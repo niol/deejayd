@@ -5,14 +5,13 @@ ex : twistd -noy deejayd.tac
 """
 
 from twisted.application import service, internet
-from deejayd import deejaydFactory
+from deejayd.net.deejaydProtocol import DeejaydFactory
 
 
 application = service.Application("deejayd")
-factory = deejaydFactory()
+factory = DeejaydFactory()
 
-# 1079 is an example for the moment
-internet.TCPServer(1079, factory).setServiceParent(
+internet.TCPServer(6600, factory).setServiceParent(
 	service.IServiceCollection(application))
 
 # vim: sw=8 noexpandtab
