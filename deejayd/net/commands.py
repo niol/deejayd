@@ -3,29 +3,27 @@ class UnknownCommandException: pass
 
 class UnknownCommand:
 
-	def __init__(self, cmdName):
-		self.name = cmdName
+    def __init__(self, cmdName):
+	self.name = cmdName
 
-	def execute(self):
-		raise UnknownCommandException()
+    def execute(self):
+	raise UnknownCommandException()
 
-	def isUnknown(self):
-		return True
+    def isUnknown(self):
+	return True
 
-	def getErrorAnswer(self, errorString):
-		return 'ACK ' + errorString + "\n"
+    def getErrorAnswer(self, errorString):
+	return 'ACK ' + errorString + "\n"
 
-	def getOkAnswer(self, answerData = None):
-		return "OK\n"
+    def getOkAnswer(self, answerData = None):
+	return "OK\n"
 
 
 class Ping(UnknownCommand):
+    def isUnknown(self):
+	return False
 
-	def isUnknown(self):
-		return False
+    def execute(self):
+	return self.getOkAnswer()
 
-	def execute(self):
-		return self.getOkAnswer()
-
-
-# vim: sw=8 noexpandtab
+# vim: sw=4 noexpandtab

@@ -14,4 +14,4 @@ factory = DeejaydFactory()
 internet.TCPServer(6600, factory).setServiceParent(
 	service.IServiceCollection(application))
 
-# vim: sw=8 noexpandtab
+# vim: sw=4 noexpandtab
