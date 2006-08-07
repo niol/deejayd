@@ -6,12 +6,14 @@ ex : twistd -noy deejayd.tac
 
 from twisted.application import service, internet
 from deejayd.net.deejaydProtocol import DeejaydFactory
+from deejayd.ui.config import DeejaydConfig
 
 
 application = service.Application("deejayd")
 factory = DeejaydFactory()
 
-internet.TCPServer(6600, factory).setServiceParent(
+port = DeejaydConfig().getint("net", "port")
+internet.TCPServer(port, factory).setServiceParent(
 	service.IServiceCollection(application))
 
 # vim: sw=4 noexpandtab
