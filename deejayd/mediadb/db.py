@@ -7,14 +7,30 @@ from deejayd.ui.config import DeejaydConfig
 #
 # Methods to initialise the database and connect to it
 #
+
+class db_table:
+	def __init__(self):
+		pass
+
+	def get(self,table):
+		try:
+			prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
+		except:
+			prefix = ""
+
+		return prefix+table
+
+
 def initSqliteDB(con):
 	cur = con.cursor()
 	# creation of tables
-	cur.execute("CREATE TABLE library(dir TEXT,filename TEXT,type TEXT,title TEXT,artist TEXT,album TEXT,genre TEXT,track_number INT, length INT, bitrate INT, PRIMARY KEY (dir,filename))")
-	cur.execute("CREATE TABLE radio(name TEXT,url1 TEXT, url2 TEXT, url3 TEXT,PRIMARY KEY (name))")
-	cur.execute("CREATE TABLE stat(name TEXT,value INT,PRIMARY KEY (name))")
+	cur.execute("CREATE TABLE %s(dir TEXT,filename TEXT,type TEXT,title TEXT,artist TEXT,album TEXT,genre TEXT,\
+		track_number INT, length INT, bitrate INT, PRIMARY KEY (dir,filename))" % (db_table().get('library')))
+	cur.execute("CREATE TABLE %s(name TEXT,url1 TEXT, url2 TEXT, url3 TEXT,PRIMARY KEY (name))" \
+		% (db_table().get('radio')))
+	cur.execute("CREATE TABLE %s(name TEXT,value INT,PRIMARY KEY (name))" % (db_table().get('stat')))
 
-	cur.execute("INSERT INTO stat(name,value)VALUES('last_updatedb_time',0)")
+	cur.execute("INSERT INTO %s(name,value)VALUES('last_updatedb_time',0)" % (db_table().get('stat')))
 	con.commit()
 	cur.close()
 
@@ -43,6 +59,7 @@ def createDB():
 
 class DeejaydFile:
 	root_path =  DeejaydConfig().get("mediadb","music_directory")
+	libraryTable = db_table().get('library') 
 
 	def __init__(self,cur,dir):
 		self.cur = cur
@@ -53,8 +70,8 @@ class DeejaydFile:
 			# Test to see if it is a correct encoding name
 			# TODO : find a better test
 			f.decode()
-			query = "INSERT INTO library(type,dir,filename,title,artist,album)VALUES\
-				('file',?,?,?,?,?)"
+			query = "INSERT INTO %s(type,dir,filename,title,artist,album)VALUES\
+				('file',?,?,?,?,?)" % (self.__class__.libraryTable,)
 			self.cur.execute(query, (self.dir,f,'','',''))
 		except:
 			print "Impossible to add file %s : %s" % (self.dir,f)
@@ -67,7 +84,8 @@ class DeejaydFile:
 
 	def remove(self,f):
 		try:
-			self.cur.execute("DELETE FROM library WHERE filename = ? AND dir = ?", (f,self.dir))
+			query = "DELETE FROM %s WHERE filename = ? AND dir = ?" % (self.__class__.libraryTable,)
+			self.cur.execute(query, (f,self.dir))
 		except:
 			print "Impossible to delete the file %s : %s from the database" % (self.dir, f)
 
@@ -87,6 +105,7 @@ class DeejaydFile:
 
 class DeejaydDir:
 	root_path =  DeejaydConfig().get("mediadb","music_directory")
+	libraryTable = db_table().get('library') 
 
 	def __init__(self,cur):
 		self.cur = cur
@@ -104,15 +123,17 @@ class DeejaydDir:
 					directories.remove(d)
 			else:
 				# directory do not exist, we erase it
-				self.cur.execute("DELETE FROM library WHERE filename = ? AND dir = ?", (d,dir))
+				query = "DELETE FROM %s WHERE filename = ? AND dir = ?" % (self.__class__.libraryTable,)
+				self.cur.execute(query, (d,dir))
 		# Add new diretory
 		for d in directories:
 			try:
 				# Test to see if it is a correct encoding name
 				# TODO : find a better test
 				d.decode()
-				self.cur.execute("INSERT INTO library(dir,filename,type)VALUES(?,?,'directory')" \
-						, (dir,d))
+				query = "INSERT INTO %s(dir,filename,type)VALUES(?,?,'directory')" \
+						% (self.__class__.libraryTable,)
+				self.cur.execute(query, (dir,d))
 			except:
 				print "Impossible to add directory %s" % (d,)
 
@@ -141,7 +162,8 @@ class DeejaydDir:
 	def __get(self,dir):
 		result = []
 		try:
-			self.cur.execute("SELECT filename,type FROM library WHERE dir = ?", (dir,))
+			query = "SELECT filename,type FROM %s WHERE dir = ?" % (self.__class__.libraryTable,)
+			self.cur.execute(query, (dir,))
 			result = self.cur.fetchall()
 		except:
 			print "Impossible to get directory '%s' elements in the database" % (dir,)
@@ -155,13 +177,16 @@ class DeejaydDB:
 	Class to manage the media database
 	"""
 	root_path =  DeejaydConfig().get("mediadb","music_directory")
+	statTable = db_table().get('stat') 
+	libraryTable = db_table().get('library') 
 
 	def __init__(self):
 		self.con = createDB()
 		self.cur = self.con.cursor()
 
 	def getDir(self,dir):
-		self.cur.execute("SELECT filename,type FROM library WHERE dir = ?",(dir,))
+		query = "SELECT filename,type FROM %s WHERE dir = ?" % (self.__class__.libraryTable,)
+		self.cur.execute(query,(dir,))
 		print  self.cur.fetchall()
 
 	def update(self,dir):
@@ -178,12 +203,13 @@ class DeejaydDB:
 
 	# Private functions
 	def __getUpdateTime(self):
-		self.cur.execute("SELECT value FROM stat WHERE name = 'last_updatedb_time'")
+		self.cur.execute("SELECT value FROM %s WHERE name = 'last_updatedb_time'" % (self.__class__.statTable,))
 		(self.lastUpdateTime,) = self.cur.fetchone()
 
 	def __setUpdateTime(self):
 		t = time.time()
-		self.cur.execute("UPDATE stat SET value = %d WHERE name = 'last_updatedb_time'" % (int(t),))
+		self.cur.execute("UPDATE %s SET value = %d WHERE name = 'last_updatedb_time'" \
+					% (self.__class__.statTable,int(t)))
 		self.con.commit()
 
 
