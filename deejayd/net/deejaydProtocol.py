@@ -7,19 +7,19 @@ from deejayd.net.commands import *
 class DeejaydProtocol(LineReceiver):
 
     def connectionMade(self):
-	self.cmdFactory = CommandFactory()
+        self.cmdFactory = CommandFactory()
 
     def connectionLost(self, reason=ConnectionDone):
-	pass
+        pass
 
     def lineReceived(self, line):
 
-	remoteCmd = self.cmdFactory.createCmd(line)
+        remoteCmd = self.cmdFactory.createCmd(line)
 
-	if not remoteCmd.isUnknown():
-	    self.transport.write(remoteCmd.execute())
-	else:
-	    self.transport.loseConnection()
+        if not remoteCmd.isUnknown():
+            self.transport.write(remoteCmd.execute())
+        else:
+            self.transport.loseConnection()
 
 
 class DeejaydFactory(protocol.ServerFactory):
@@ -30,13 +30,13 @@ class CommandFactory:
 
     def createCmd(self, rawCmd):
 
-	splittedCmd = rawCmd.split(' ',2)
-	cmdName = splittedCmd[0]
+        splittedCmd = rawCmd.split(' ',2)
+        cmdName = splittedCmd[0]
 
-	if cmdName == 'ping':
-	    return Ping(cmdName)
-	else:
-	    return UnknownCommand(cmdName)
+        if cmdName == 'ping':
+            return Ping(cmdName)
+        else:
+            return UnknownCommand(cmdName)
 
 
-# vim: sw=4 noexpandtab
+# vim: ts=4 sw=4 expandtab

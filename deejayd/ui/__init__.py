@@ -1,1 +1,1 @@
-# vim: sw=4 noexpandtab
+# vim: ts=4 sw=4 expandtab

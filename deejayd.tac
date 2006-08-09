@@ -14,6 +14,6 @@ factory = DeejaydFactory()
 
 port = DeejaydConfig().getint("net", "port")
 internet.TCPServer(port, factory).setServiceParent(
-	service.IServiceCollection(application))
+    service.IServiceCollection(application))
 
-# vim: sw=4 noexpandtab
+# vim: ts=4 sw=4 expandtab
