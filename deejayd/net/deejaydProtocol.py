@@ -30,11 +30,14 @@ class CommandFactory:
 
     def createCmd(self, rawCmd):
 
-        splittedCmd = rawCmd.split(' ',2)
+        splittedCmd = rawCmd.split(' ',1)
         cmdName = splittedCmd[0]
 
         if cmdName == 'ping':
             return Ping(cmdName)
+        elif cmdName == 'lsinfo':
+            dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
+            return Lsinfo(cmdName,dir)
         else:
             return UnknownCommand(cmdName)
 
