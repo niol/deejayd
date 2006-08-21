@@ -2,12 +2,13 @@
 """
 """
 
-from _util import *
 from tag import mp3File, oggFile
 import os, sys, time
 from deejayd.ui.config import DeejaydConfig
 import database
 
+class NotFoundException:pass
+class UnknownException:pass
 
 class DeejaydFile:
     root_path =  DeejaydConfig().get("mediadb","music_directory")
@@ -26,7 +27,7 @@ class DeejaydFile:
 
         query = "INSERT INTO {library}(type,dir,filename,title,artist,album,genre,date,tracknumber,length,bitrate)VALUES\
                 ('file',?,?,?,?,?,?,?,?,?,?)"
-        self.db.execute(query, (strEncode(self.dir),strEncode(f),fileInfo["title"],fileInfo["artist"],fileInfo["album"],\
+        self.db.execute(query, (self.dir,f,fileInfo["title"],fileInfo["artist"],fileInfo["album"],\
             fileInfo["genre"], fileInfo["date"], fileInfo["tracknumber"],fileInfo["length"],fileInfo["birate"]))
 
     def update(self,f):
@@ -40,14 +41,11 @@ class DeejaydFile:
         query = "UPDATE {library} SET title=?,artist=?,album=?,genre=?,date=?,tracknumber=?,length=?,bitrate=? WHERE dir=? \
             AND filename=?"
         self.db.execute(query,(fileInfo["title"],fileInfo["artist"],fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
-            fileInfo["tracknumber"],fileInfo["length"],fileInfo["birate"],strEncode(self.dir),strEncode(f)))
+            fileInfo["tracknumber"],fileInfo["length"],fileInfo["birate"],self.dir,f))
 
     def remove(self,f):
-        try:
-            query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
-            self.db.execute(query, (strEncode(f),strEncode(self.dir)))
-        except:
-            print "Impossible to delete the file %s : %s from the database" % (self.dir, f)
+        query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
+        self.db.execute(query, (f,self.dir))
 
     # Private functions
     def __getFileTags(self,f):
@@ -78,22 +76,17 @@ class DeejaydDir:
                 if os.path.isdir(os.path.join(realDir,d))]
         for d in [di for (di,t) in dbRecord if t == 'directory']:
             if os.path.isdir(os.path.join(realDir,d)):
-                try:
-                    if d in directories:
-                        directories.remove(d)
-                except:
-                    print directories
+                if d in directories:
+                    directories.remove(d)
             else:
                 # directory do not exist, we erase it
                 query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
-                self.db.execute(query, (strEncode(d),strEncode(dir)))
+                self.db.execute(query, (d,dir))
         # Add new diretory
-        for d in directories:
-            try:
-                query = "INSERT INTO {library}(dir,filename,type)VALUES(?,?,'directory')"
-                self.db.execute(query, (strEncode(dir),strEncode(d)))
-            except:
-                print "Impossible to add directory %s" % (d,)
+        data = [(dir,d) for d in directories]
+        if len(data) != 0:
+            query = "INSERT INTO {library}(dir,filename,type)VALUES(?,?,'directory')"
+            self.db.executemany(query, data)
 
         # Now we update the list of files if necessary
         if int(os.stat(realDir).st_mtime) >= lastUpdateTime:
@@ -118,18 +111,10 @@ class DeejaydDir:
 
     # Private functions
     def __get(self,dir):
-        # First, we encode correctly the name of directory
-        dir = strEncode(dir)
+        query = "SELECT filename,type FROM {library} WHERE dir = ?"
+        self.db.execute(query, (dir,))
 
-        result = []
-        try:
-            query = "SELECT filename,type FROM {library} WHERE dir = ?"
-            self.db.execute(query, (dir,))
-            result = [(strDecode(d),t) for (d,t) in self.db.cursor.fetchall()]
-        except:
-            print "Impossible to get directory '%s' elements in the database" % (dir,)
-
-        return result
+        return self.db.cursor.fetchall()
 
 
 class DeejaydDB:
@@ -144,23 +129,53 @@ class DeejaydDB:
         try:
             db_type =  DeejaydConfig().get("mediadb","db_type")
         except:
-            sys.exit("You do not choose a database.Verify your config file.")
+            raise SystemExit("You do not choose a database.Verify your config file.")
 
         if db_type in self.__class__.supportedDatabase:
             self.db =  getattr(database,db_type+"Database")()
             self.db.connect()
         else:
-            sys.exit("You choose a database which is not supported.Verify your config file.")
+            raise SystemExit("You choose a database which is not supported.Verify your config file.")
 
     def getDir(self,dir):
-        query = "SELECT type,dir,filename,title,artist,album,genre,tracknumber,date,length,bitrate FROM {library} \
-            WHERE dir = ? ORDER BY type"
-        self.db.execute(query,(strEncode(dir),))
-        return [ (t,strDecode(dir),strDecode(fn),strDecode(ti),strDecode(ar),strDecode(al),strDecode(gn),strDecode(tn),\
-            strDecode(dt),lg,bt) for (t,dir,fn,ti,ar,al,gn,tn,dt,lg,bt) in self.db.cursor.fetchall()]
+        query = "SELECT * FROM {library} WHERE dir = ? ORDER BY type"
+        self.db.execute(query,(dir,))
 
-    def search(self,type,pattern):
-        pass
+        rs = self.db.cursor.fetchall()
+        if len(rs) == 0:
+            # nothing found for this directory
+            raise NotFoundException
+
+        return rs
+
+    def getAll(self,dir):
+        query = "SELECT * FROM {library} WHERE dir LIKE '%s' ORDER BY dir" % (dir+'%%',)
+        self.db.execute(query)
+
+        rs = self.db.cursor.fetchall()
+        if len(rs) == 0:
+            # nothing found for this directory
+            raise NotFoundException
+
+        return rs
+
+    def search(self,type,content):
+        acceptedType = ('title','genre','filename','artist','album')
+        if type not in acceptedType:
+            raise NotFoundException
+
+        query = "SELECT * FROM {library} WHERE type = 'file' AND %s LIKE ?" % (type,)
+        self.db.execute(query,('%%'+content+'%%',))
+        return self.db.cursor.fetchall()
+
+    def find(self,type,content):
+        acceptedType = ('title','genre','filename','artist','album')
+        if type not in acceptedType:
+            raise NotFoundException
+
+        query = "SELECT * FROM {library} WHERE type = 'file' AND %s = ?" % (type,)
+        self.db.execute(query,(content,))
+        return self.db.cursor.fetchall()
 
     def update(self,dir):
         self.__getUpdateTime()
@@ -192,7 +207,8 @@ if __name__ == "__main__":
     t = int(time.time())
     djDB.update("")
     print int(time.time()) - t
-    djDB.getDir("")
+    #djDB.getDir("")
+    #print djDB.getAll("Oasis")
 
     djDB.close()
 

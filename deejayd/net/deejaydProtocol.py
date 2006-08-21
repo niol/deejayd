@@ -38,6 +38,19 @@ class CommandFactory:
         elif cmdName == 'lsinfo':
             dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return Lsinfo(cmdName,dir)
+        elif cmdName == 'search' or cmdName == 'find':
+            if len(splittedCmd) == 2:
+                args = splittedCmd[1].split(' ',1)
+                if len(args) == 2:
+                    type = args[0].strip('"')
+                    content = args[1].strip('"')
+                else:
+                    type = ""
+                    content = ""
+            else:
+                type = ""
+                content = ""
+            return Search(cmdName,type,content)
         else:
             return UnknownCommand(cmdName)
 

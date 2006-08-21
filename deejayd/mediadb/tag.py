@@ -1,5 +1,4 @@
 
-from _util import *
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from mutagen.oggvorbis import OggVorbis
@@ -36,13 +35,13 @@ class mp3File(unknownAudioFile):
         mp3Info = MP3(self.f,ID3=EasyID3) 
         mp3Info.pprint()
         self.info["bitrate"] = mp3Info.info.bitrate
-        self.info["length"] = mp3Info.info.length
+        self.info["length"] = int(mp3Info.info.length)
 
         for t in self.__class__.supportedTag:
             try:
                 self.info[t] = mp3Info[t][0]
                 if self.info[t] is unicode:
-                    self.info[t] = strEncode(self.info[t])
+                    self.info[t] = self.info[t]
             except:
                 self.info[t] = '';
 
@@ -62,13 +61,13 @@ class oggFile(unknownAudioFile):
         oggInfo = OggVorbis(self.f) 
         oggInfo.pprint()
         self.info["bitrate"] = oggInfo.info.bitrate
-        self.info["length"] = oggInfo.info.length
+        self.info["length"] = int(oggInfo.info.length)
 
         for t in self.__class__.supportedTag:
             try:
                 self.info[t] = oggInfo[t][0]
                 if self.info[t] is unicode:
-                    self.info[t] = strEncode(self.info[t])
+                    self.info[t] = self.info[t]
             except:
                 self.info[t] = '';
 

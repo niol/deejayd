@@ -5,8 +5,18 @@
 from deejayd.ui.config import DeejaydConfig
 from os import path
 
-class databaseExeption:
-    pass
+def strEncode(data):
+    """Convert a basestring to a valid UTF-8 str."""
+    filesystem_charset = DeejaydConfig().get("mediadb","filesystem_charset")
+    if isinstance(data, str):
+        return data.decode(filesystem_charset, "replace").encode("utf-8")
+    elif isinstance(data, unicode):
+        return data.encode("utf-8")
+    
+    return data
+
+
+class databaseExeption: pass
 
 class UnknownDatabase:
 
@@ -20,6 +30,9 @@ class UnknownDatabase:
         pass
 
     def execute(self,cur,query,parm = None):
+        pass
+
+    def executemany(self,cur,query,parm):
         pass
 
     def close(self):
@@ -47,6 +60,12 @@ class sqliteDatabase(UnknownDatabase):
             self.cursor = self.connection.cursor() 
         except :
             sys.exit("Unable to connect at the sqlite database. Verify your config file.")
+
+        # configure connection
+        self.connection.text_factory = str
+        self.connection.row_factory = sqlite.Row
+        sqlite.register_adapter(str,strEncode)
+
         if init[0]:
             self._initialise()
 
@@ -61,6 +80,15 @@ class sqliteDatabase(UnknownDatabase):
             self.cursor.execute(query)
         else:
             self.cursor.execute(query,parm)
+
+    def executemany(self,query,parm):
+        try:
+            prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
+        except:
+            prefix = ""
+
+        query = query.replace("{",prefix).replace("}","") 
+        self.cursor.executemany(query,parm)
 
     def close(self):
         self.cursor.close()
