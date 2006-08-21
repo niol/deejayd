@@ -82,6 +82,9 @@ class DeejaydDir:
                 # directory do not exist, we erase it
                 query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
                 self.db.execute(query, (d,dir))
+                # after we erase all this content
+                query = "DELETE FROM {library} WHERE dir LIKE ?"
+                self.db.execute(query, (os.path.join(d,dir)+"%%",))
         # Add new diretory
         data = [(dir,d) for d in directories]
         if len(data) != 0:
