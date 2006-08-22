@@ -203,6 +203,11 @@ class DeejaydDB:
         self.db.connection.commit()
 
 
+# define a global variable to access at the database
+global djDB
+djDB = DeejaydDB()
+
+
 # for test only
 if __name__ == "__main__":
     djDB = DeejaydDB()

@@ -1,5 +1,5 @@
 
-from deejayd.mediadb.deejaydDB import DeejaydDB,NotFoundException,UnknownException
+from deejayd.mediadb.deejaydDB import djDB,NotFoundException,UnknownException
 from os import path
 
 class UnknownCommandException: pass
@@ -58,13 +58,11 @@ class Lsinfo(UnknownCommand):
         return False
 
     def execute(self):
-        djDB = DeejaydDB()
         try:
             list = djDB.getDir(self.directory)
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
 
-        djDB.close()
         return self.formatInfoResponse(list)+self.getOkAnswer()
 
 
@@ -80,12 +78,10 @@ class Search(UnknownCommand):
 
     def execute(self):
         try:
-            djDB = DeejaydDB()
             list = getattr(djDB,self.name)(self.type,self.content)
         except NotFoundException:
             return self.getErrorAnswer('type %s is not supported' % (self.type,))
 
-        djDB.close()
         return self.formatInfoResponse(list)+self.getOkAnswer()
 
 
