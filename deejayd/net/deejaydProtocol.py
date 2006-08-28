@@ -8,6 +8,7 @@ class DeejaydProtocol(LineReceiver):
 
     def connectionMade(self):
         self.cmdFactory = CommandFactory()
+        self.transport.write("OK DEEJAYD 0.1\n")
 
     def connectionLost(self, reason=ConnectionDone):
         pass
@@ -25,6 +26,9 @@ class DeejaydProtocol(LineReceiver):
 class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
 
+    def stopFactory(self):
+        djDB.close()
+        djPlaylist.close()
 
 class CommandFactory:
 
@@ -51,6 +55,15 @@ class CommandFactory:
                 type = ""
                 content = ""
             return Search(cmdName,type,content)
+        elif cmdName in ('play','stop','pause','next','previous'):
+            return PlayerCommands(cmdName)
+        elif cmdName == 'add':
+            path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
+            return AddPlaylist(cmdName,path)
+        elif cmdName == 'playlist' or cmdName == 'playlistinfo':
+            return GetPlaylist(cmdName)
+        elif cmdName == 'clear':
+            return ClearPlaylist(cmdName)
         else:
             return UnknownCommand(cmdName)
 

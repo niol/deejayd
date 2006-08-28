@@ -4,6 +4,8 @@ import gst
 import sys
 
 class Player(gobject.GObject):
+    eofCallback = None
+    errorCallback = None
 
     def __init__(self):
         gobject.GObject.__init__(self)
@@ -25,9 +27,27 @@ class Player(gobject.GObject):
         self.bin.set_property('audio-sink',audio_sink)
         self.bin.set_property("auto-flush-bus",True)
 
+        bus = self.bin.get_bus()
+        bus.add_signal_watch()
+        bus.connect('message', self.__message)
+
         self.bin.set_state(gst.STATE_NULL)
 
-    def set_song(self,uri):
+    def __message(self, bus, message):
+        if message.type == gst.MESSAGE_EOS:
+            self.__class__.eofCallback()
+        elif message.type == gst.MESSAGE_ERROR:
+            err, debug = message.parse_error()
+            err = str(err).decode("utf8", 'replace')
+            self.__class__.eofCallback(err)
+
+    def addEOFCallback(self,callback):
+        self.__class__.eofCallback = callback
+    
+    def addERRORCallback(self,callback):
+        self.__class__.errorCallback = callback
+    
+    def setSong(self,uri):
         self.bin.set_state(gst.STATE_NULL)
         self.bin.set_property('uri',uri)
 
@@ -40,7 +60,7 @@ class Player(gobject.GObject):
             timeout = 4
             state = None
 
-            while state_ret == gst.STATE_CHANGE_ASYNC and not self.paused and timeout > 0:
+            while state_ret == gst.STATE_CHANGE_ASYNC and timeout > 0:
                 state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
                 timeout -= 1
         
@@ -58,18 +78,18 @@ class Player(gobject.GObject):
         self.bin.set_state(gst.STATE_NULL)
         self.paused = True
 
-    def get_volume(self):
+    def getVolume(self):
         return self.__volume
 
-    def set_volume(self,v):
+    def setVolume(self,v):
         self.__volume = v
         self.bin.set_property('volume', v)
 
-    def get_state(self):
+    def getState(self):
         changestatus,state,_state = self.bin.get_state()
         return state
 
-    def get_position(self):
+    def getPosition(self):
         if gst.STATE_NULL != self.get_state() and self.bin.get_property('uri'):
             try: p = self.bin.query_position(gst.FORMAT_TIME)[0]
             except gst.QueryError: p = 0
@@ -77,7 +97,7 @@ class Player(gobject.GObject):
             return p
         return 0
 
-    def set_position(self,pos):
+    def setPosition(self,pos):
         if self.bin.get_property('uri'):
             pos = max(0, int(pos))
             gst_time = pos * gst.MSECOND

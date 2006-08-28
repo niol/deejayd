@@ -46,6 +46,7 @@ class sqliteDatabase(UnknownDatabase):
         self.execute("CREATE TABLE {library}(dir TEXT,filename TEXT,type TEXT,title TEXT,artist TEXT,album TEXT,\
             genre TEXT, tracknumber INT, date TEXT, length INT, bitrate INT, PRIMARY KEY (dir,filename))")
         self.execute("CREATE TABLE {radio}(name TEXT,url1 TEXT, url2 TEXT, url3 TEXT,PRIMARY KEY (name))")
+        self.execute("CREATE TABLE {playlist}(name TEXT,position INT, dir TEXT, filename TEXT,PRIMARY KEY (name,position))")
         self.execute("CREATE TABLE {stat}(name TEXT,value INT,PRIMARY KEY (name))")
 
         self.execute("INSERT INTO {stat}(name,value)VALUES('last_updatedb_time',0)")

@@ -1,5 +1,6 @@
 
 from deejayd.mediadb.deejaydDB import djDB,NotFoundException,UnknownException
+from deejayd.playlist.deejaydPlaylist import djPlaylist,PlaylistNotFoundException,PlaylistUnknownException
 from os import path
 
 class UnknownCommandException: pass
@@ -83,6 +84,53 @@ class Search(UnknownCommand):
             return self.getErrorAnswer('type %s is not supported' % (self.type,))
 
         return self.formatInfoResponse(list)+self.getOkAnswer()
+
+
+class PlayerCommands(UnknownCommand):
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        getattr(djPlaylist,self.name)()
+        return self.getOkAnswer()
+
+
+class AddPlaylist(UnknownCommand):
+
+    def __init__(self, cmdName, path):
+        self.name = cmdName
+        self.path = path
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        djPlaylist.addPath(self.path)
+        return self.getOkAnswer()
+
+
+class GetPlaylist(UnknownCommand):
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        songs = djPlaylist.getContent()
+        content = ''
+        for s in songs:
+            content += "%d:%s\n" % (s["position"],path.join(s["dir"],s["filename"]))
+
+        return content + self.getOkAnswer()
+
+class ClearPlaylist(UnknownCommand):
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        djPlaylist.clear()
+        return self.getOkAnswer()
 
 
 # vim: ts=4 sw=4 expandtab
