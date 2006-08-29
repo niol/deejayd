@@ -1,18 +1,24 @@
 
+import sys
+import pygst
+pygst.require('0.10')
+
 import gobject
 import gst
-import sys
+import gst.interfaces
 
-class Player(gobject.GObject):
-    eofCallback = None
-    errorCallback = None
+
+PLAYER_PLAY = 0
+PLAYER_PAUSE = 1
+PLAYER_STOP = 2
+
+class Player:
 
     def __init__(self):
-        gobject.GObject.__init__(self)
-
         # Initialise var
-        self.paused = True
+        self.state = PLAYER_STOP
         self.__volume = 0
+        self.on_eos = False
 
         # Open a pipeline
         try: audio_sink = gst.parse_launch("gconfaudiosink")
@@ -24,31 +30,26 @@ class Player(gobject.GObject):
             sys.exit(1)
 
         self.bin = gst.element_factory_make('playbin')
+        self.bin.set_property('video-sink', None)
         self.bin.set_property('audio-sink',audio_sink)
         self.bin.set_property("auto-flush-bus",True)
 
         bus = self.bin.get_bus()
         bus.add_signal_watch()
-        bus.connect('message', self.__message)
+        bus.connect('message', self.on_message)
 
-        self.bin.set_state(gst.STATE_NULL)
-
-    def __message(self, bus, message):
+    def on_message(self, bus, message):
+        print "message"
         if message.type == gst.MESSAGE_EOS:
-            self.__class__.eofCallback()
+            if self.on_eos:
+                self.on_eos()
         elif message.type == gst.MESSAGE_ERROR:
-            err, debug = message.parse_error()
-            err = str(err).decode("utf8", 'replace')
-            self.__class__.eofCallback(err)
+            pass
 
-    def addEOFCallback(self,callback):
-        self.__class__.eofCallback = callback
-    
-    def addERRORCallback(self,callback):
-        self.__class__.errorCallback = callback
-    
+        return True
+
     def setSong(self,uri):
-        self.bin.set_state(gst.STATE_NULL)
+        self.stop()
         self.bin.set_property('uri',uri)
 
         return True
@@ -56,7 +57,7 @@ class Player(gobject.GObject):
     def play(self):
         if self.bin.get_property('uri'):
             state_ret = self.bin.set_state(gst.STATE_PLAYING)
-            self.paused = False
+            self.state = PLAYER_PLAY
             timeout = 4
             state = None
 
@@ -65,18 +66,18 @@ class Player(gobject.GObject):
                 timeout -= 1
         
             if state_ret != gst.STATE_CHANGE_SUCCESS:
-                self.paused = True
+                self.state = PLAYER_STOP
 
     def pause(self):
-        if not self.paused:
+        if self.state == PLAYER_PLAY:
             self.bin.set_state(gst.STATE_PAUSED)
-            self.paused = True
+            self.state = PLAYER_PAUSE
         else:
             self.play()
 
     def stop(self):
         self.bin.set_state(gst.STATE_NULL)
-        self.paused = True
+        self.state = PLAYER_STOP
 
     def getVolume(self):
         return self.__volume
@@ -86,8 +87,7 @@ class Player(gobject.GObject):
         self.bin.set_property('volume', v)
 
     def getState(self):
-        changestatus,state,_state = self.bin.get_state()
-        return state
+        return self.state
 
     def getPosition(self):
         if gst.STATE_NULL != self.get_state() and self.bin.get_property('uri'):

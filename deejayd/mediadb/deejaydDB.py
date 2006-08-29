@@ -162,8 +162,8 @@ class DeejaydDB:
             raise NotFoundException
 
     def getAll(self,dir):
-        query = "SELECT * FROM {library} WHERE dir LIKE '%s' AND TYPE = 'file' ORDER BY dir" % (dir+'%%',)
-        self.db.execute(query)
+        query = "SELECT * FROM {library} WHERE dir LIKE ? AND TYPE = 'file' ORDER BY dir"
+        self.db.execute(query,(dir+'%%',))
 
         rs = self.db.cursor.fetchall()
         if len(rs) == 0:

@@ -1,8 +1,9 @@
 
-from deejayd.player.player import Player
+from deejayd.player.player import *
 from deejayd.ui.config import DeejaydConfig
-from deejayd.mediadb.deejaydDB import djDB,database
+from deejayd.mediadb.deejaydDB import djDB,database,NotFoundException
 from os import path
+
 
 class PlaylistNotFoundException:pass
 class PlaylistUnknownException:pass
@@ -78,6 +79,7 @@ class Playlist:
         query = "DELETE FROM {playlist} WHERE name = ?"
         self.db.execute(query,(playlistName,))
 
+
 class PlaylistManagement:
     supportedDatabase = ('sqlite')
     root_path =  DeejaydConfig().get("mediadb","music_directory")
@@ -85,7 +87,11 @@ class PlaylistManagement:
     def __init__(self):
         # Init player
         self.player = Player()
-        self.player.addEOFCallback(self.next)
+        def on_eos():
+            self.next()
+        self.player.on_eos = lambda *x: on_eos()
+
+        # Init parms
         self.currentSong = None
         self.random = False
         self.repeat = False
@@ -140,6 +146,9 @@ class PlaylistManagement:
         return True
 
     def play(self):
+        if self.player.state == PLAYER_PLAY:
+            return
+
         if self.currentSong == None:
             try:
                 self.currentSong = self.currentPlaylist.getSong(0)
@@ -160,14 +169,22 @@ class PlaylistManagement:
         if self.currentSong == None:
             pass
 
-        self.currentSong = self.currentPlaylist.getSong(self.currentSong["position"] + 1)
-        self.play()
+        # First, we stop the player
+        self.player.stop()
+        currentPosition = self.currentSong["position"]
+        if currentPosition < len(self.currentPlaylist.get()):
+            self.currentSong = self.currentPlaylist.getSong(self.currentSong["position"] + 1)
+            self.play()
 
     def previous(self):
         if self.currentSong == None:
             pass
 
-        self.currentSong = self.currentPlaylist.getSong(self.currentSong["position"] - 1)
+        # First, we stop the player
+        self.player.stop()
+        currentPosition = self.currentSong["position"]
+        if currentPosition > 0:
+            self.currentSong = self.currentPlaylist.getSong(self.currentSong["position"] - 1)
         self.play()
 
     def close(self):
@@ -180,11 +197,5 @@ class PlaylistManagement:
 # TODO : find a better way to initialise playlist management
 global djPlaylist
 djPlaylist = PlaylistManagement()
-
-# for test only
-if __name__ == "__main__":
-    playlistMngt = PlaylistManagement()
-    print playlistMngt.getContent()
-
 
 # vim: ts=4 sw=4 expandtab

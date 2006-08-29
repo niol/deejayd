@@ -106,7 +106,10 @@ class AddPlaylist(UnknownCommand):
         return False
 
     def execute(self):
-        djPlaylist.addPath(self.path)
+        try:
+            djPlaylist.addPath(self.path)
+        except NotFoundException:
+            return self.getErrorAnswer('File or Directory not found')
         return self.getOkAnswer()
 
 
