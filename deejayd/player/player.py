@@ -1,5 +1,6 @@
 
 import sys
+import time
 import pygst
 pygst.require('0.10')
 
@@ -7,6 +8,7 @@ import gobject
 import gst
 import gst.interfaces
 
+from twisted.internet import threads
 
 PLAYER_PLAY = 0
 PLAYER_PAUSE = 1
@@ -19,6 +21,7 @@ class Player:
         self.state = PLAYER_STOP
         self.__volume = 0
         self.on_eos = False
+        self.defd = None
 
         # Open a pipeline
         try: audio_sink = gst.parse_launch("gconfaudiosink")
@@ -67,15 +70,31 @@ class Player:
         
             if state_ret != gst.STATE_CHANGE_SUCCESS:
                 self.state = PLAYER_STOP
+            else:
+                # FIXME : Very bad
+                if self.on_eos != None: 
+                    self.defd = threads.deferToThread(self.watchGstState)
+                    self.defd.addCallback(self.on_eos)
+     
+    def watchGstState(self):
+        # Return when the song is finished
+        position = None
+        while position != self.getPosition():
+            position = self.getPosition()
+            time.sleep(0.1)
+        return True
 
     def pause(self):
         if self.state == PLAYER_PLAY:
+            self.defd.pause()
             self.bin.set_state(gst.STATE_PAUSED)
             self.state = PLAYER_PAUSE
         else:
             self.play()
 
     def stop(self):
+        if self.defd:
+            self.defd.pause()
         self.bin.set_state(gst.STATE_NULL)
         self.state = PLAYER_STOP
 
@@ -87,10 +106,11 @@ class Player:
         self.bin.set_property('volume', v)
 
     def getState(self):
-        return self.state
+        changestatus,state,_state = self.bin.get_state()
+        return state
 
     def getPosition(self):
-        if gst.STATE_NULL != self.get_state() and self.bin.get_property('uri'):
+        if gst.STATE_NULL != self.getState() and self.bin.get_property('uri'):
             try: p = self.bin.query_position(gst.FORMAT_TIME)[0]
             except gst.QueryError: p = 0
             p //= gst.MSECOND
