@@ -15,12 +15,15 @@ class DeejaydProtocol(LineReceiver):
 
     def lineReceived(self, line):
 
-        remoteCmd = self.cmdFactory.createCmd(line)
+        if line == "close":
+            self.transport.loseConnection()
+            return
 
+        remoteCmd = self.cmdFactory.createCmd(line)
         if not remoteCmd.isUnknown():
             self.transport.write(remoteCmd.execute())
         else:
-            self.transport.loseConnection()
+            self.transport.write("ACK Unknown command : %s\n" % (line,))
 
 
 class DeejaydFactory(protocol.ServerFactory):

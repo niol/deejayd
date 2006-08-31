@@ -1,6 +1,7 @@
 
 from deejayd.mediadb.deejaydDB import djDB,NotFoundException,UnknownException
 from deejayd.playlist.deejaydPlaylist import djPlaylist,PlaylistNotFoundException,PlaylistUnknownException
+from deejayd.player.player import djPlayer
 from os import path
 
 class UnknownCommandException: pass
@@ -49,6 +50,10 @@ class Ping(UnknownCommand):
         return self.getOkAnswer()
 
 
+###################################################
+#   MediaDB Commands                              #
+###################################################
+
 class Lsinfo(UnknownCommand):
 
     def __init__(self, cmdName, dir):
@@ -86,6 +91,10 @@ class Search(UnknownCommand):
         return self.formatInfoResponse(list)+self.getOkAnswer()
 
 
+###################################################
+#  Playlist Commands                              #
+###################################################
+
 class PlayerCommands(UnknownCommand):
 
     def isUnknown(self):
@@ -115,16 +124,38 @@ class AddPlaylist(UnknownCommand):
 
 class GetPlaylist(UnknownCommand):
 
+    def __init__(self, cmdName, playlistName = None):
+        self.name = cmdName
+        self.playlistName = playlistName
+
     def isUnknown(self):
         return False
 
     def execute(self):
-        songs = djPlaylist.getContent()
-        content = ''
-        for s in songs:
-            content += "%d:%s\n" % (s["position"],path.join(s["dir"],s["filename"]))
+        try:
+            songs = djPlaylist.getContent(self.playlistName)
+        except PlaylistNotFoundException:
+            return self.getErrorAnswer('File or Directory not found')
 
-        return content + self.getOkAnswer()
+        return self.__formatPlaylistInfo(songs) + self.getOkAnswer()
+
+    def __formatPlaylistInfo(self,songs):
+        content = ''
+        if self.name == "playlist":
+            for s in songs:
+                content += "%d:%s\n" % (s["Pos"],path.join(s["dir"],s["filename"]))
+        else:
+            for s in songs:
+                content += "file: "+ path.join(s["dir"],s["filename"])+ "\n"
+                dict = ("Pos","Id","Time","Title","Artist","Album","Genre","Track","Date")
+                for t in dict:
+                    if isinstance(s[t],int):
+                        content += "%s: %d\n" % (t,s[t])
+                    elif isinstance(s[t],str):
+                        content += "%s: %s\n" % (t,s[t])
+
+        return content
+
 
 class ClearPlaylist(UnknownCommand):
 

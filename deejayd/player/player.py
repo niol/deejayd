@@ -18,8 +18,7 @@ class Player:
 
     def __init__(self):
         # Initialise var
-        self.state = PLAYER_STOP
-        self.__volume = 0
+        self.__state = PLAYER_STOP
         self.on_eos = False
         self.defd = None
 
@@ -35,8 +34,8 @@ class Player:
         self.bin = gst.element_factory_make('playbin')
         self.bin.set_property('video-sink', None)
         self.bin.set_property('audio-sink',audio_sink)
-        self.bin.set_property("auto-flush-bus",True)
 
+        """self.bin.set_property("auto-flush-bus",True)
         bus = self.bin.get_bus()
         bus.add_signal_watch()
         bus.connect('message', self.on_message)
@@ -49,9 +48,9 @@ class Player:
         elif message.type == gst.MESSAGE_ERROR:
             pass
 
-        return True
+        return True"""
 
-    def setSong(self,uri):
+    def setURI(self,uri):
         self.stop()
         self.bin.set_property('uri',uri)
 
@@ -60,7 +59,7 @@ class Player:
     def play(self):
         if self.bin.get_property('uri'):
             state_ret = self.bin.set_state(gst.STATE_PLAYING)
-            self.state = PLAYER_PLAY
+            self.__state = PLAYER_PLAY
             timeout = 4
             state = None
 
@@ -69,15 +68,15 @@ class Player:
                 timeout -= 1
         
             if state_ret != gst.STATE_CHANGE_SUCCESS:
-                self.state = PLAYER_STOP
+                self.__state = PLAYER_STOP
             else:
                 # FIXME : Very bad
                 if self.on_eos != None: 
-                    self.defd = threads.deferToThread(self.watchGstState)
+                    self.defd = threads.deferToThread(self.__watchGstState)
                     self.defd.addCallback(self.on_eos)
      
-    def watchGstState(self):
-        # Return when the song is finished
+    def __watchGstState(self):
+        # Return when the song finishes
         position = None
         while position != self.getPosition():
             position = self.getPosition()
@@ -85,10 +84,10 @@ class Player:
         return True
 
     def pause(self):
-        if self.state == PLAYER_PLAY:
+        if self.__state == PLAYER_PLAY:
             self.defd.pause()
             self.bin.set_state(gst.STATE_PAUSED)
-            self.state = PLAYER_PAUSE
+            self.__state = PLAYER_PAUSE
         else:
             self.play()
 
@@ -96,21 +95,19 @@ class Player:
         if self.defd:
             self.defd.pause()
         self.bin.set_state(gst.STATE_NULL)
-        self.state = PLAYER_STOP
-
-    def getVolume(self):
-        return self.__volume
-
-    def setVolume(self,v):
-        self.__volume = v
-        self.bin.set_property('volume', v)
+        self.__state = PLAYER_STOP
 
     def getState(self):
-        changestatus,state,_state = self.bin.get_state()
-        return state
+        return self.__state
+
+    def getVolume(self):
+        return self.bin.get_property('volume')
+
+    def setVolume(self,v):
+        self.bin.set_property('volume', v)
 
     def getPosition(self):
-        if gst.STATE_NULL != self.getState() and self.bin.get_property('uri'):
+        if gst.STATE_NULL != self.__getGstState() and self.bin.get_property('uri'):
             try: p = self.bin.query_position(gst.FORMAT_TIME)[0]
             except gst.QueryError: p = 0
             p //= gst.MSECOND
@@ -130,6 +127,13 @@ class Player:
                 self.bin.set_new_stream_time(0L)
             else:
                 pass
-                
+
+    def __getGstState(self):
+        changestatus,state,_state = self.bin.get_state()
+        return state
+
+
+global djPlayer
+djPlayer = Player()
 
 # vim: ts=4 sw=4 expandtab

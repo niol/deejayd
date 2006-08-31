@@ -152,14 +152,16 @@ class DeejaydDB:
         return rs
 
     def getFile(self,file):
-        (dir,filename) = path.split(file)
-        query = "SELECT * FROM {library} WHERE dir = ? AND file = ?"
+        (dir,filename) = os.path.split(file)
+        query = "SELECT * FROM {library} WHERE dir = ? AND filename = ?"
         self.db.execute(query,(dir,filename))
 
         rs = self.db.cursor.fetchall()
         if len(rs) == 0:
             # nothing found for this directory
             raise NotFoundException
+
+        return rs
 
     def getAll(self,dir):
         query = "SELECT * FROM {library} WHERE dir LIKE ? AND TYPE = 'file' ORDER BY dir"
