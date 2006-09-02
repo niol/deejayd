@@ -27,7 +27,7 @@ class UnknownCommand:
         return True
 
     def getErrorAnswer(self, errorString):
-        return 'ACK {%s}' % (self.name,) + errorString + "\n"
+        return 'ACK {%s} ' % (self.name,) + errorString + "\n"
 
     def getOkAnswer(self, answerData = None):
         return "OK\n"

@@ -76,6 +76,7 @@ class Playlist:
         for s in self.playlistContent:
             if s[type] == nb:
                 break
+            i += 1
         if i == len(self.playlistContent):
             raise SongNotFoundException
         pos = self.playlistContent[i]["Pos"]
