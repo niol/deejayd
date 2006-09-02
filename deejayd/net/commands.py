@@ -245,7 +245,7 @@ class PlayCommands(UnknownCommand):
         except ValueError:
             return self.getErrorAnswer('Need an integer')
 
-        if nb == 0:
+        if nb == -1:
             djPlayer.play()
         else:
             type = self.name == "playid" and "Id" or "Pos"
