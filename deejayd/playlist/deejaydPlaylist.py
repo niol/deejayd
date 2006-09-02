@@ -122,8 +122,8 @@ class PlaylistManagement:
         # Init parms
         self.__openPlaylists = {}
         self.currentSong = None
-        self.random = False
-        self.repeat = False
+        self.random = 0
+        self.repeat = 0
 
         # Open a connection to the database
         try:
@@ -239,16 +239,20 @@ class PlaylistManagement:
         self.__closePlaylist(self.__class__.currentPlaylistName)
         self.db.close()
 
+    def getStatus(self):
+        rs = [("random",self.random),("repeat",self.repeat),("playlistlength",self.currentPlaylist.getLength())]
+        return rs
+
     def __openPlaylist(self,name = None):
         if name == None:
             name = self.__class__.currentPlaylistName
 
-        if name not in self.__openPlaylists.keys():
+        if name not in self.__openPlaylists:
             self.__openPlaylists[name] = Playlist(self.db,name)
         return self.__openPlaylists[name]
         
     def __closePlaylist(self,name):
-        if name in self.__openPlaylists.keys():
+        if name in self.__openPlaylists:
             self.__openPlaylists[name].save()
             del self.__openPlaylists[name]
         else:

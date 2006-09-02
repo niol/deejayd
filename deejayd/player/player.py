@@ -8,9 +8,9 @@ import gobject
 import gst
 import gst.interfaces
 
-PLAYER_PLAY = 0
-PLAYER_PAUSE = 1
-PLAYER_STOP = 2
+PLAYER_PLAY = "play"
+PLAYER_PAUSE = "pause"
+PLAYER_STOP = "stop"
 
 class deejaydPlayer:
 
@@ -136,6 +136,9 @@ class deejaydPlayer:
                 self.bin.set_new_stream_time(0L)
             else:
                 pass
+
+    def getStatus(self):
+        return [("state",self.__state),("volume",int(self.getVolume()*100))]
 
     def close(self):
         pass

@@ -39,13 +39,18 @@ class UnknownCommand:
                 rs += "directory: " + fn + "\n"
             else:
                 rs += "file: "+ path.join(dir,fn)+ "\n"
-
                 dict = [("Time",lg),("Title",ti),("Artist",ar),("Album",al),("Genre",gn),("Track",tn),("Date",dt)]
-                for (k,v) in dict:
-                    if isinstance(v,int):
-                        rs += "%s: %d\n" % (k,v)
-                    elif isinstance(v,str):
-                        rs += "%s: %s\n" % (k,v)
+                rs += self.formatResponseWithDict(dict)
+
+        return rs
+
+    def formatResponseWithDict(self,dict):
+        rs = ''
+        for (k,v) in dict:
+            if isinstance(v,int):
+                rs += "%s: %d\n" % (k,v)
+            elif isinstance(v,str):
+                rs += "%s: %s\n" % (k,v)
 
         return rs
 
@@ -56,6 +61,18 @@ class Ping(UnknownCommand):
 
     def execute(self):
         return self.getOkAnswer()
+
+
+class Status(UnknownCommand):
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        status = djPlayer.getStatus()
+        status.extend(djPlaylist.getStatus())
+
+        rs = self.formatResponseWithDict(status)
+        return rs + self.getOkAnswer()
 
 
 ###################################################

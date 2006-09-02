@@ -76,6 +76,8 @@ class CommandFactory:
         elif cmdName == 'setvol':
             vol = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return SetVolume(cmdName,vol)
+        elif cmdName == 'status':
+            return Status(cmdName)
         else:
             return UnknownCommand(cmdName)
 
