@@ -71,6 +71,21 @@ class Playlist:
     def clear(self):
         self.playlistContent = []
 
+    def delete(self,nb,type):
+        i = 0
+        for s in self.playlistContent:
+            if s[type] == nb:
+                break
+        if i == len(self.playlistContent):
+            raise SongNotFoundException
+        pos = self.playlistContent[i]["Pos"]
+        del self.playlistContent[i]
+
+        # Now we must reorder the playlist
+        for s in self.playlistContent:
+            if s["Pos"] > pos:
+                s["Pos"] -= 1
+
     def shuffle(self,current):
         pass
 
@@ -167,6 +182,16 @@ class PlaylistManagement:
             self.currentSong = None
             self.player.reset()
         playlistObj.clear()
+
+        if isinstance(playlist,str):
+            self.__closePlaylist(playlist) 
+
+    def delete(self,nb,type = "Id",playlist = None):
+        playlistObj = self.__openPlaylist(playlist)
+        
+        if playlist == None and self.currentSong != None and self.currentSong[type] == nb:
+            self.player.next()
+        playlistObj.delete(nb,type)
 
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 

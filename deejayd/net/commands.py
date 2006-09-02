@@ -27,7 +27,7 @@ class UnknownCommand:
         return True
 
     def getErrorAnswer(self, errorString):
-        return 'ACK ' + errorString + "\n"
+        return 'ACK {%s}' % (self.name,) + errorString + "\n"
 
     def getOkAnswer(self, answerData = None):
         return "OK\n"
@@ -162,6 +162,28 @@ class ClearPlaylist(UnknownCommand):
 
     def execute(self):
         djPlaylist.clear()
+        return self.getOkAnswer()
+
+
+class DeletePlaylist(UnknownCommand):
+
+    def __init__(self, cmdName, nb):
+        self.name = cmdName
+        self.nb = nb
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        try:nb = int(self.nb)
+        except ValueError:
+            return self.getErrorAnswer('Need an integer')
+
+        type = self.name == "deleteid" and "Id" or "Pos"
+        try: djPlaylist.delete(nb,type)
+        except deejaydPlaylist.SongNotFoundException:
+            return self.getErrorAnswer('Song not found')
+
         return self.getOkAnswer()
 
 

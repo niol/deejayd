@@ -70,6 +70,9 @@ class CommandFactory:
             return GetPlaylist(cmdName)
         elif cmdName == 'clear':
             return ClearPlaylist(cmdName)
+        elif cmdName in ('delete','deleteid'):
+            nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
+            return DeletePlaylist(cmdName,nb)
         elif cmdName == 'setvol':
             vol = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return SetVolume(cmdName,vol)
