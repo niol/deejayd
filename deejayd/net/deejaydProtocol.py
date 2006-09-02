@@ -76,6 +76,9 @@ class CommandFactory:
         elif cmdName == 'setvol':
             vol = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return SetVolume(cmdName,vol)
+        elif cmdName == "seek":
+            t = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
+            return Seek(cmdName,t)
         elif cmdName == 'status':
             return Status(cmdName)
         else:

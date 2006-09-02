@@ -124,18 +124,14 @@ class deejaydPlayer:
         return 0
 
     def setPosition(self,pos):
-        if self.bin.get_property('uri'):
+        if gst.STATE_NULL != self.__getGstState() and self.bin.get_property('uri'):
             pos = max(0, int(pos))
             gst_time = pos * gst.SECOND
 
             event = gst.event_new_seek(
                 1.0, gst.FORMAT_TIME, gst.SEEK_FLAG_FLUSH | gst.SEEK_FLAG_ACCURATE,
                 gst.SEEK_TYPE_SET, gst_time, gst.SEEK_TYPE_NONE, 0)
-            res = self.bin.send_event(event)
-            if res:
-                self.bin.set_new_stream_time(0L)
-            else:
-                pass
+            self.bin.send_event(event)
 
     def getStatus(self):
         status = [("state",self.__state),("volume",int(self.getVolume()*100))]

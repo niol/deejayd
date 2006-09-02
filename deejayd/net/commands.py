@@ -273,4 +273,25 @@ class SetVolume(UnknownCommand):
         return self.getOkAnswer()
 
 
+class Seek(UnknownCommand):
+
+    def __init__(self, cmdName, t):
+        self.name = cmdName
+        self.t = t
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        try:
+            t = int(self.t)
+        except ValueError:
+            return self.getErrorAnswer('Need an integer')
+        if t < 0:
+            return self.getErrorAnswer('Need an integer > 0')
+
+        djPlayer.setPosition(t)
+        return self.getOkAnswer()
+
+
 # vim: ts=4 sw=4 expandtab
