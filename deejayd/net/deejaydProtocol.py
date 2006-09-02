@@ -66,7 +66,8 @@ class CommandFactory:
         elif cmdName == 'add':
             path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return AddPlaylist(cmdName,path)
-        elif cmdName == 'playlist' or cmdName == 'playlistinfo':
+        elif cmdName in ('playlist','playlistinfo','currentsong'):
+            playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return GetPlaylist(cmdName)
         elif cmdName == 'clear':
             return ClearPlaylist(cmdName)

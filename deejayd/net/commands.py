@@ -148,9 +148,12 @@ class GetPlaylist(UnknownCommand):
 
     def execute(self):
         try:
-            songs = djPlaylist.getContent(self.playlistName)
-        except PlaylistNotFoundException:
-            return self.getErrorAnswer('File or Directory not found')
+            if self.name != "currentsong":
+                songs = djPlaylist.getContent(self.playlistName)
+            else:
+                songs = [djPlaylist.getCurrentSong()] 
+        except deejaydPlaylist.PlaylistNotFoundException:
+            return self.getErrorAnswer('Playlist not found')
 
         return self.__formatPlaylistInfo(songs) + self.getOkAnswer()
 
