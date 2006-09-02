@@ -119,14 +119,14 @@ class deejaydPlayer:
         if gst.STATE_NULL != self.__getGstState() and self.bin.get_property('uri'):
             try: p = self.bin.query_position(gst.FORMAT_TIME)[0]
             except gst.QueryError: p = 0
-            p //= gst.MSECOND
+            p //= gst.SECOND
             return p
         return 0
 
     def setPosition(self,pos):
         if self.bin.get_property('uri'):
             pos = max(0, int(pos))
-            gst_time = pos * gst.MSECOND
+            gst_time = pos * gst.SECOND
 
             event = gst.event_new_seek(
                 1.0, gst.FORMAT_TIME, gst.SEEK_FLAG_FLUSH | gst.SEEK_FLAG_ACCURATE,
@@ -138,7 +138,14 @@ class deejaydPlayer:
                 pass
 
     def getStatus(self):
-        return [("state",self.__state),("volume",int(self.getVolume()*100))]
+        status = [("state",self.__state),("volume",int(self.getVolume()*100))]
+        curSong = self.__source.getCurrentSong()
+        if curSong:
+            status.extend([("song",curSong["Pos"]),("songid",curSong["Id"])])
+        if self.__state != PLAYER_STOP:
+            status.extend([ ("time","%d:%d" % (self.getPosition(),curSong["Time"])) ])
+
+        return status
 
     def close(self):
         pass
