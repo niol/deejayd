@@ -1,5 +1,4 @@
 
-from deejayd.player.player import *
 from deejayd.ui.config import DeejaydConfig
 from deejayd.mediadb.deejaydDB import djDB,database,NotFoundException
 from os import path
@@ -10,6 +9,7 @@ class SongNotFoundException:pass
 class PlaylistUnknownException:pass
 
 class Playlist:
+    root_path =  DeejaydConfig().get("mediadb","music_directory")
 
     def __init__(self,db,name, content = None):
         # Init parms
@@ -35,8 +35,8 @@ class Playlist:
 
         # Format correctly playlist content
         self.playlistContent = [{"dir":s[0],"filename":s[1],"Pos":s[3],"Id":self.__getSongId(),"Title":s[6],\
-            "Artist":s[7],"Album":s[8],"Genre":s[9],"Track":s[10],"Date":s[11],"Time":s[12],"bitrate":s[13]} \
-            for s in self.playlistContent]
+            "Artist":s[7],"Album":s[8],"Genre":s[9],"Track":s[10],"Date":s[11],"Time":s[12],"bitrate":s[13],\
+            "uri":path.join(self.__class__.root_path,path.join(s[0],s[1]))} for s in self.playlistContent]
 
     def get(self):
         return self.playlistContent
@@ -61,7 +61,8 @@ class Playlist:
         for s in songs:
             pos = playlistLength+i
             self.playlistContent.append({"dir":s[0],"filename":s[1],"Pos":pos,"Id":self.__getSongId(),"Title":s[3],
-                "Artist":s[4],"Album":s[5],"Genre":s[6],"Track":s[7],"Date":s[8],"Time":s[9],"bitrate":s[10]})
+                "Artist":s[4],"Album":s[5],"Genre":s[6],"Track":s[7],"Date":s[8],"Time":s[9],"bitrate":s[10],\
+                "uri":path.join(self.__class__.root_path,path.join(s[0],s[1]))})
             i += 1
 
     def addSongsFromPlaylist(self,songs):
@@ -70,7 +71,7 @@ class Playlist:
     def clear(self):
         self.playlistContent = []
 
-    def shuffle(self):
+    def shuffle(self,current):
         pass
 
     def save(self):
@@ -97,15 +98,11 @@ class Playlist:
 
 class PlaylistManagement:
     supportedDatabase = ('sqlite')
-    root_path =  DeejaydConfig().get("mediadb","music_directory")
     currentPlaylistName = "__djcurrent__"
 
-    def __init__(self):
+    def __init__(self,player):
         # Init player
-        self.player = djPlayer
-        def on_eos():
-            self.next()
-        self.player.on_eos = lambda *x: on_eos()
+        self.player = player
 
         # Init parms
         self.__openPlaylists = {}
@@ -160,41 +157,23 @@ class PlaylistManagement:
         playlistObj = Playlist(self.db,playlistName,self.currentPlaylist.get())
         playlistObj.save()
 
+    def shuffle(self):
+        self.currentPlaylist.shuffle(self.currentSong)
+
     def clear(self,playlist = None):
         playlistObj = self.__openPlaylist(playlist)
 
         if playlist == None:
             self.currentSong = None
-            self.player.stop()
+            self.player.reset()
         playlistObj.clear()
 
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 
 
-    def play(self):
-        if self.player.getState() == PLAYER_PLAY:
-            return
-
-        if self.player.getState() == PLAYER_STOP:
-            if self.currentSong == None:
-                try:
-                    self.currentSong = self.currentPlaylist.getSong(0)
-                except SongNotFoundException:
-                    return
-            songPath = path.join(self.currentSong["dir"],self.currentSong["filename"])
-            self.player.setURI("file://"+path.join(self.__class__.root_path,songPath))
-
-        self.player.play()
-
-    def pause(self):
-        self.player.pause()
-
-    def stop(self):
-        self.player.stop()
-
     def next(self):
         if self.currentSong == None:
-            return
+            return None
 
         currentPosition = self.currentSong["Pos"]
         if currentPosition < len(self.currentPlaylist.get()):
@@ -202,22 +181,34 @@ class PlaylistManagement:
         elif self.repeat:
             self.currentSong = self.currentPlaylist.getSong(0)
         else:
-            return
+            return None
 
-        self.stop()
-        self.play()
+        return self.currentSong
 
     def previous(self):
         if self.currentSong == None:
-            return
+            return None
 
         currentPosition = self.currentSong["Pos"]
         if currentPosition > 0:
             self.currentSong = self.currentPlaylist.getSong(self.currentSong["Pos"] - 1)
-        self.play()
+        else:
+            return None
 
-    def go_to(self,position):
-        pass
+        return self.currentSong
+
+    def getCurrentSong(self):
+        if self.currentSong == None:
+            try: self.currentSong = self.currentPlaylist.getSong(0)
+            except SongNotFoundException: pass
+
+        return self.currentSong
+
+    def goTo(self,nb,type = "Id"):
+        try: self.currentSong = self.currentPlaylist.getSong(nb,type)
+        except SongNotFoundException: self.currentSong = None
+
+        return self.currentSong
         
     def close(self):
         self.__closePlaylist(self.__class__.currentPlaylistName)
@@ -227,20 +218,16 @@ class PlaylistManagement:
         if name == None:
             name = self.__class__.currentPlaylistName
 
-        if name not in self.__openPlaylists:
+        if name not in self.__openPlaylists.keys():
             self.__openPlaylists[name] = Playlist(self.db,name)
         return self.__openPlaylists[name]
         
     def __closePlaylist(self,name):
-        if name in self.__openPlaylists:
+        if name in self.__openPlaylists.keys():
             self.__openPlaylists[name].save()
             del self.__openPlaylists[name]
         else:
             raise PlaylistNotFoundException
 
-
-# TODO : find a better way to initialise playlist management
-global djPlaylist
-djPlaylist = PlaylistManagement()
 
 # vim: ts=4 sw=4 expandtab

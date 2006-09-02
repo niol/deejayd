@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This is the file used to launch the application
-ex : twistd -noy deejayd.tac
+ex : twistd -r glib2 -noy deejayd.tac
 """
 
 from twisted.application import service, internet

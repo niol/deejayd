@@ -67,6 +67,9 @@ class CommandFactory:
             return GetPlaylist(cmdName)
         elif cmdName == 'clear':
             return ClearPlaylist(cmdName)
+        elif cmdName == 'setvol':
+            vol = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
+            return SetVolume(cmdName,vol)
         else:
             return UnknownCommand(cmdName)
 

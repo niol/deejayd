@@ -1,8 +1,16 @@
 
 from deejayd.mediadb.deejaydDB import djDB,NotFoundException,UnknownException
-from deejayd.playlist.deejaydPlaylist import djPlaylist,PlaylistNotFoundException,PlaylistUnknownException
-from deejayd.player.player import djPlayer
+from deejayd.playlist import deejaydPlaylist
+from deejayd.player import player 
 from os import path
+
+global djPlayer
+djPlayer = player.deejaydPlayer()
+
+global djPlaylist
+djPlaylist = deejaydPlaylist.PlaylistManagement(djPlayer)
+djPlayer.setSource(djPlaylist)
+
 
 class UnknownCommandException: pass
 
@@ -95,16 +103,6 @@ class Search(UnknownCommand):
 #  Playlist Commands                              #
 ###################################################
 
-class PlayerCommands(UnknownCommand):
-
-    def isUnknown(self):
-        return False
-
-    def execute(self):
-        getattr(djPlaylist,self.name)()
-        return self.getOkAnswer()
-
-
 class AddPlaylist(UnknownCommand):
 
     def __init__(self, cmdName, path):
@@ -164,6 +162,51 @@ class ClearPlaylist(UnknownCommand):
 
     def execute(self):
         djPlaylist.clear()
+        return self.getOkAnswer()
+
+
+class SavePlaylist(UnknownCommand):
+
+    def __init__(self, cmdName, playlistName):
+        self.name = cmdName
+        self.playlistName = playlistName
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        djPlaylist.save(self.playlistName)
+        return self.getOkAnswer()
+
+###################################################
+#    Player Commands                              #
+###################################################
+
+class PlayerCommands(UnknownCommand):
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        getattr(djPlayer,self.name)()
+        return self.getOkAnswer()
+
+
+class SetVolume(UnknownCommand):
+
+    def __init__(self, cmdName, vol):
+        self.name = cmdName
+        self.vol = vol
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        try:vol = int(self.vol)
+        except ValueError:
+            return self.getErrorAnswer('Need an integer')
+
+        djPlayer.setVolume(float(vol)/100)
         return self.getOkAnswer()
 
 
