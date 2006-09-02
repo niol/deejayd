@@ -182,13 +182,35 @@ class SavePlaylist(UnknownCommand):
 #    Player Commands                              #
 ###################################################
 
-class PlayerCommands(UnknownCommand):
+class SimplePlayerCommands(UnknownCommand):
 
     def isUnknown(self):
         return False
 
     def execute(self):
         getattr(djPlayer,self.name)()
+        return self.getOkAnswer()
+
+
+class PlayCommands(UnknownCommand):
+
+    def __init__(self, cmdName, nb):
+        self.name = cmdName
+        self.nb = nb
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        try:nb = int(self.nb)
+        except ValueError:
+            return self.getErrorAnswer('Need an integer')
+
+        if nb == 0:
+            djPlayer.play()
+        else:
+            type = self.name == "playid" and "Id" or "Pos"
+            djPlayer.goTo(nb,type)
         return self.getOkAnswer()
 
 
@@ -205,6 +227,8 @@ class SetVolume(UnknownCommand):
         try:vol = int(self.vol)
         except ValueError:
             return self.getErrorAnswer('Need an integer')
+        if vol < 0 or vol > 100:
+            return self.getErrorAnswer('Volume must be an integer between 0 and 100')
 
         djPlayer.setVolume(float(vol)/100)
         return self.getOkAnswer()

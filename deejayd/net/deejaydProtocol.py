@@ -58,8 +58,11 @@ class CommandFactory:
                 type = ""
                 content = ""
             return Search(cmdName,type,content)
-        elif cmdName in ('play','stop','pause','next','previous'):
-            return PlayerCommands(cmdName)
+        elif cmdName in ('stop','pause','next','previous'):
+            return SimplePlayerCommands(cmdName)
+        elif cmdName in ('play','playid'):
+            nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or 0
+            return PlayCommands(cmdName,nb)
         elif cmdName == 'add':
             path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return AddPlaylist(cmdName,path)
