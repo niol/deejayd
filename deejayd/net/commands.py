@@ -70,6 +70,7 @@ class Status(UnknownCommand):
     def execute(self):
         status = djPlayer.getStatus()
         status.extend(djPlaylist.getStatus())
+        status.extend(djDB.getStatus())
 
         rs = self.formatResponseWithDict(status)
         return rs + self.getOkAnswer()
@@ -78,6 +79,24 @@ class Status(UnknownCommand):
 ###################################################
 #   MediaDB Commands                              #
 ###################################################
+
+class UpdateDB(UnknownCommand):
+
+    def __init__(self, cmdName, dir):
+        self.name = cmdName
+        self.directory = dir 
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        try:
+            updateDBId = djDB.update(self.directory)
+        except NotFoundException:
+            return self.getErrorAnswer('Directory not found in the database')
+
+        return "updating_db: %d\n" % (updateDBId,) + self.getOkAnswer()
+
 
 class Lsinfo(UnknownCommand):
 

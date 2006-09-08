@@ -7,6 +7,8 @@ import os, sys, time
 from deejayd.ui.config import DeejaydConfig
 import database
 
+from twisted.internet import threads
+
 class NotFoundException:pass
 class UnknownException:pass
 
@@ -129,16 +131,13 @@ class DeejaydDB:
     root_path =  DeejaydConfig().get("mediadb","music_directory")
 
     def __init__(self):
-        try:
-            db_type =  DeejaydConfig().get("mediadb","db_type")
-        except:
-            raise SystemExit("You do not choose a database.Verify your config file.")
+        # init Parms
+        self.__updateDBId = 0
+        self.__updateEnd = True
 
-        if db_type in self.__class__.supportedDatabase:
-            self.db =  getattr(database,db_type+"Database")()
-            self.db.connect()
-        else:
-            raise SystemExit("You choose a database which is not supported.Verify your config file.")
+        # Connection to the database
+        self.db = database.openConnection()
+        self.db.connect()
 
     def getDir(self,dir):
         query = "SELECT * FROM {library} WHERE dir = ? ORDER BY type"
@@ -192,27 +191,53 @@ class DeejaydDB:
         self.db.execute(query,(content,))
         return self.db.cursor.fetchall()
 
-    def update(self,dir):
-        self.__getUpdateTime()
-        DeejaydDir(self.db).update(dir,self.lastUpdateTime)
-        self.__setUpdateTime()
+    def updateDir(self,dir):
+        db = database.openConnection()
+        db.connect()
+        self.__updateEnd = False
+
+        self.lastUpdateTime = db.getStat('last_updatedb_time')
+        DeejaydDir(db).update(dir,self.lastUpdateTime)
+        db.setStat('last_updatedb_time',time.time())
 
         # record the change in the database
-        self.db.connection.commit()
+        db.connection.commit()
+
+    def endUpdate(self): 
+        self.__updateEnd = True
+
+    def update(self,dir):
+        if self.__updateEnd:
+            self.__updateDBId += 1
+            self.d = threads.deferToThread(self.updateDir,dir)
+            self.d.pause()
+
+            # Add callback functions
+            succ = lambda *x: self.endUpdate()
+            err = lambda *x: self.error("Unable to update the database")
+            self.d.addCallback(succ)
+            self.d.addErrback(err)
+
+            self.d.unpause()
+            return self.__updateDBId
+        
+        return 0
+
+    def getStatus(self):
+        status = []
+        if not self.__updateEnd:
+            status.append(("updating_db",self.__updateDBId))
+
+        return status
+
+    def getStats(self):
+        pass
 
     def close(self):
         self.db.close()
 
-    # Private functions
-    def __getUpdateTime(self):
-        self.db.execute("SELECT value FROM {stat} WHERE name = 'last_updatedb_time'")
-        (self.lastUpdateTime,) = self.db.cursor.fetchone()
-
-    def __setUpdateTime(self):
-        t = time.time()
-        self.db.execute("UPDATE {stat} SET value = %d WHERE name = 'last_updatedb_time'" \
-                    % (int(t),))
-        self.db.connection.commit()
+    def error(self,err):
+        print err
 
 
 # define a global variable to access at the database

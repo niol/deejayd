@@ -100,7 +100,7 @@ class deejaydPlayer:
             self.play()
         except: return
 
-    def goTo(self,nb,type = "Id"):
+    def goTo(self,nb,type):
         self.stop()
         song = self.__source.goTo(nb,type)
         try: 

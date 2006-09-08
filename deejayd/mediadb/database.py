@@ -39,7 +39,24 @@ class UnknownDatabase:
         pass
 
 
-class sqliteDatabase(UnknownDatabase):
+class Database(UnknownDatabase):
+    
+    def setStat(self,type,value):
+        self.execute("UPDATE {stat} SET value = ? WHERE name = ?" \
+            ,(value,type))
+        self.connection.commit()
+
+    def getStat(self,type):
+        self.execute("SELECT value FROM {stat} WHERE name = ?",(type,))
+        (rs,) =  self.cursor.fetchone()
+
+        return rs
+
+
+class sqliteDatabase(Database):
+
+    def __init__(self,db_file):
+        self.db_file = db_file
 
     def _initialise(self):
         # creation of tables
@@ -54,13 +71,11 @@ class sqliteDatabase(UnknownDatabase):
 
     def connect(self):
         from pysqlite2 import dbapi2 as sqlite
-        db_file = DeejaydConfig().get("mediadb","db_file")
-        init = path.isfile(db_file) and (0,) or (1,)
+        init = path.isfile(self.db_file) and (0,) or (1,)
         try:
-            self.connection = sqlite.connect(db_file)
+            self.connection = sqlite.connect(self.db_file)
             self.cursor = self.connection.cursor() 
-        except :
-            sys.exit("Unable to connect at the sqlite database. Verify your config file.")
+        except : sys.exit("Unable to connect at the sqlite database.")
 
         # configure connection
         self.connection.text_factory = str
@@ -94,5 +109,20 @@ class sqliteDatabase(UnknownDatabase):
     def close(self):
         self.cursor.close()
         self.connection.close()
+
+
+def openConnection():
+    try: db_type =  DeejaydConfig().get("mediadb","db_type")
+    except: raise SystemExit("You do not choose a database.Verify your config file.")
+
+    supportedDatabase = ("sqlite")
+    if db_type not in supportedDatabase:
+        raise SystemExit("You choose a database which is not supported.Verify your config file.")
+
+    if db_type == "sqlite":
+        db_file = DeejaydConfig().get("mediadb","db_file")
+        return sqliteDatabase(db_file)
+
+    return None
 
 # vim: ts=4 sw=4 expandtab

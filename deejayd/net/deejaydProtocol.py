@@ -42,6 +42,9 @@ class CommandFactory:
 
         if cmdName == 'ping':
             return Ping(cmdName)
+        elif cmdName == 'update':
+            dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
+            return UpdateDB(cmdName,dir)
         elif cmdName == 'lsinfo':
             dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return Lsinfo(cmdName,dir)

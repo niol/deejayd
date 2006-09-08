@@ -127,16 +127,8 @@ class PlaylistManagement:
         self.repeat = 0
 
         # Open a connection to the database
-        try:
-            db_type =  DeejaydConfig().get("mediadb","db_type")
-        except:
-            raise SystemExit("You do not choose a database.Verify your config file.")
-
-        if db_type in self.__class__.supportedDatabase:
-            self.db =  getattr(database,db_type+"Database")()
-            self.db.connect()
-        else:
-            raise SystemExit("You choose a database which is not supported.Verify your config file.")
+        self.db = database.openConnection() 
+        self.db.connect()
 
         # Load current playlist
         self.currentPlaylist = self.__openPlaylist()
