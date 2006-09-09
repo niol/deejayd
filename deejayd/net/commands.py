@@ -12,16 +12,13 @@ djPlaylist = deejaydPlaylist.PlaylistManagement(djPlayer)
 djPlayer.setSource(djPlaylist)
 
 
-class UnknownCommandException: pass
-
-
 class UnknownCommand:
 
     def __init__(self, cmdName):
         self.name = cmdName
 
     def execute(self):
-        raise UnknownCommandException()
+        return "ACK Unknown command : %s\n" % (self.name,)
 
     def isUnknown(self):
         return True
@@ -53,6 +50,39 @@ class UnknownCommand:
                 rs += "%s: %s\n" % (k,v)
 
         return rs
+
+
+class queueCommands(UnknownCommand):
+    
+    def __init__(self, cmdName,cmdClass):
+        self.name = cmdName
+        self.cmdClass = cmdClass
+        self.__executeCommands = False
+        self.__commandsList = []
+
+    def isUnknown(self):
+        return False
+
+    def addCommand(self,cmd):
+        self.__commandsList.append(cmd)
+
+    def endCommand(self):
+        self.__executeCommands = True
+
+    def execute(self):
+        if self.__executeCommands:
+            content = ''
+            st = self.name == 'command_list_ok_begin' and "list_ok\n" or ""
+
+            for cmd in self.__commandsList: 
+                rs = self.cmdClass.createCmd(cmd).execute()
+                if rs.endswith("OK\n"):
+                    content += rs.replace('OK\n',st)
+                else: return rs
+
+            return content + self.getOkAnswer()
+
+        else: return ''
 
 
 class Ping(UnknownCommand):

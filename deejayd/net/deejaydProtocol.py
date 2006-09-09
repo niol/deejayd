@@ -20,10 +20,7 @@ class DeejaydProtocol(LineReceiver):
             return
 
         remoteCmd = self.cmdFactory.createCmd(line)
-        if not remoteCmd.isUnknown():
-            self.transport.write(remoteCmd.execute())
-        else:
-            self.transport.write("ACK Unknown command : %s\n" % (line,))
+        self.transport.write(remoteCmd.execute())
 
 
 class DeejaydFactory(protocol.ServerFactory):
@@ -33,14 +30,35 @@ class DeejaydFactory(protocol.ServerFactory):
         djDB.close()
         djPlaylist.close()
 
+
 class CommandFactory:
+
+    def __init__(self):
+        self.beginList = False
+        self.queueCmdClass = None
 
     def createCmd(self, rawCmd):
 
         splittedCmd = rawCmd.split(' ',1)
         cmdName = splittedCmd[0]
 
-        if cmdName == 'ping':
+        if cmdName == 'command_list_end':
+            self.beginList = False
+            if self.queueCmdClass:
+                self.queueCmdClass.endCommand()
+                return self.queueCmdClass 
+            else: return UnknownCommand(cmdName)
+        elif self.beginList:
+            self.queueCmdClass.addCommand(rawCmd)
+            return self.queueCmdClass
+
+        if cmdName in ('command_list_begin','command_list_ok_begin'):
+            self.queueCmdClass = queueCommands(cmdName,self)
+            self.beginList = True
+            return self.queueCmdClass
+        elif cmdName == 'status':
+            return Status(cmdName)
+        elif cmdName == 'ping':
             return Ping(cmdName)
         elif cmdName == 'update':
             dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
@@ -83,8 +101,6 @@ class CommandFactory:
         elif cmdName == "seek":
             t = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
             return Seek(cmdName,t)
-        elif cmdName == 'status':
-            return Status(cmdName)
         else:
             return UnknownCommand(cmdName)
 
