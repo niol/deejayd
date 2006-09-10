@@ -56,7 +56,7 @@ class Database(UnknownDatabase):
         self.connection.commit()
 
     def savePlaylist(self,content,playlistName):
-        values = [(self.playlistName,s["Pos"],s["dir"],s["filename"]) for s in content]
+        values = [(playlistName,s["Pos"],s["dir"],s["filename"]) for s in content]
         query = "INSERT INTO {playlist}(name,position,dir,filename)VALUES(?,?,?,?)"
         self.executemany(query,values)
         self.connection.commit()
