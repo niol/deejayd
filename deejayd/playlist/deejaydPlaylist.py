@@ -16,14 +16,11 @@ class Playlist:
         self.playlistName = name
         self.db = db 
         self.__songId = 0 
+        self.playlistId = 0
 
         if content == None:
             # Load the content of this playlist
-            query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, l.filename, l.title, l.artist, l.album, l.genre, \
-                l.tracknumber, l.date, l.length, l.bitrate FROM {library} l INNER JOIN {playlist} p ON p.dir = l.dir AND \
-                p.filename = l.filename WHERE p.name = ? ORDER BY p.position"
-            self.db.execute(query,(name,))
-            self.playlistContent = self.db.cursor.fetchall()
+            self.playlistContent = self.db.getPlaylist(name)
             if len(self.playlistContent) == 0:
                 if name ==  "__djcurrent__":
                     self.playlistContent = []
@@ -64,12 +61,16 @@ class Playlist:
                 "Artist":s[4],"Album":s[5],"Genre":s[6],"Track":s[7],"Date":s[8],"Time":s[9],"bitrate":s[10],\
                 "uri":path.join(self.__class__.root_path,path.join(s[0],s[1]))})
             i += 1
+        # Increment playlistId
+        self.playlistId += len(songs)
 
     def addSongsFromPlaylist(self,songs):
         pass
 
     def clear(self):
         self.playlistContent = []
+        # Increment playlistId
+        self.playlistId += 1
 
     def delete(self,nb,type):
         i = 0
@@ -87,25 +88,20 @@ class Playlist:
             if s["Pos"] > pos:
                 s["Pos"] -= 1
 
+        # Increment playlistId
+        self.playlistId += 1
+
     def shuffle(self,current):
         pass
 
     def save(self):
         # First we delete all previous record
-        query = "DELETE FROM {playlist} WHERE name = ?"
-        self.db.execute(query,(self.playlistName,))
-
+        self.db.deletePlaylist(self.playlistName)
         # After we record the new playlist
-        query = "INSERT INTO {playlist}(name,position,dir,filename)VALUES(?,?,?,?)"
-        values = [(self.playlistName,s["Pos"],s["dir"],s["filename"]) for s in self.playlistContent]
-        self.db.executemany(query,values)
-
-        # We commit changes
-        self.db.connection.commit()
+        self.db.savePlaylist(self.playlistContent,self.playlistName)
 
     def erase(self):
-        query = "DELETE FROM {playlist} WHERE name = ?"
-        self.db.execute(query,(playlistName,))
+        self.db.deletePlaylist(self.playlistName)
 
     def __getSongId(self):
         self.__songId += 1
@@ -113,7 +109,6 @@ class Playlist:
 
 
 class PlaylistManagement:
-    supportedDatabase = ('sqlite')
     currentPlaylistName = "__djcurrent__"
 
     def __init__(self,player):
@@ -134,7 +129,7 @@ class PlaylistManagement:
         self.currentPlaylist = self.__openPlaylist()
 
     def getList(self):
-        pass
+        return self.db.getPlaylistList()
 
     def getContent(self,playlist = None):
         playlistObj = self.__openPlaylist(playlist)
@@ -233,7 +228,8 @@ class PlaylistManagement:
         self.db.close()
 
     def getStatus(self):
-        rs = [("random",self.random),("repeat",self.repeat),("playlistlength",self.currentPlaylist.getLength())]
+        rs = [("random",self.random),("repeat",self.repeat),("playlistlength",self.currentPlaylist.getLength()),\
+            ("playlist",self.currentPlaylist.playlistId)]
         return rs
 
     def __openPlaylist(self,name = None):

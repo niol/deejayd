@@ -82,7 +82,6 @@ status
 	song: (current song stopped on or playing, playlist song number)
 	songid: (current song stopped on or playing, playlist songid)
 	time: <int elapsed>:<time total> (of current playing/paused song)
-	bitrate: <int bitrate> (instantaneous bitrate in kbps)
 	updatings_db: <int job id>
 
 

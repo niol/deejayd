@@ -41,6 +41,32 @@ class UnknownDatabase:
 
 class Database(UnknownDatabase):
     
+    #
+    # Playlist requests
+    #
+    def getPlaylist(self,playlistName):
+        query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, l.filename, l.title, l.artist, l.album, l.genre, \
+            l.tracknumber, l.date, l.length, l.bitrate FROM {library} l INNER JOIN {playlist} p ON p.dir = l.dir AND \
+            p.filename = l.filename WHERE p.name = ? ORDER BY p.position"
+        self.execute(query,(playlistName,))
+        return self.cursor.fetchall()
+
+    def deletePlaylist(self,playlistName):
+        self.execute("DELETE FROM {playlist} WHERE name = ?",(playlistName,))
+        self.connection.commit()
+
+    def savePlaylist(self,content,playlistName):
+        values = [(self.playlistName,s["Pos"],s["dir"],s["filename"]) for s in content]
+        query = "INSERT INTO {playlist}(name,position,dir,filename)VALUES(?,?,?,?)"
+        self.executemany(query,values)
+        self.connection.commit()
+
+    def getPlaylistList(self):
+        self.db.execute("SELECT name FROM {playlist}")
+
+    #
+    # Stat requests
+    #
     def setStat(self,type,value):
         self.execute("UPDATE {stat} SET value = ? WHERE name = ?" \
             ,(value,type))
