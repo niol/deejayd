@@ -196,12 +196,15 @@ class DeejaydDB:
         db.connect()
         self.__updateEnd = False
 
-        self.lastUpdateTime = db.getStat('last_updatedb_time')
+        self.lastUpdateTime = db.getStat('db_update')
         DeejaydDir(db).update(dir,self.lastUpdateTime)
-        db.setStat('last_updatedb_time',time.time())
+        db.setStat('db_update',time.time())
 
         # record the change in the database
         db.connection.commit()
+
+        # update stat values
+        db.recordMediaDBStat()
 
     def endUpdate(self): 
         self.__updateEnd = True
@@ -231,7 +234,7 @@ class DeejaydDB:
         return status
 
     def getStats(self):
-        pass
+        return self.db.getMediaDBStat()
 
     def close(self):
         self.db.close()
@@ -250,7 +253,7 @@ if __name__ == "__main__":
     djDB = DeejaydDB()
 
     t = int(time.time())
-    djDB.update("")
+    djDB.updateDir("")
     print int(time.time()) - t
     #djDB.getDir("")
     #print djDB.getAll("Oasis")

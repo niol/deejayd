@@ -67,6 +67,26 @@ class Database(UnknownDatabase):
     #
     # Stat requests
     #
+    def recordMediaDBStat(self):
+        # Get the number of songs
+        self.execute("SELECT filename FROM {library} WHERE type = 'file'")
+        songs = len(self.cursor.fetchall())
+        # Get the number of artist
+        self.execute("SELECT DISTINCT artist FROM {library} WHERE type = 'file'")
+        artists = len(self.cursor.fetchall())
+        # Get the number of album
+        self.execute("SELECT DISTINCT album FROM {library} WHERE type = 'file'")
+        albums = len(self.cursor.fetchall())
+
+        # record in the database  
+        values = [(songs,"songs"),(artists,"artists"),(albums,"albums")]
+        self.executemany("UPDATE {stat} SET value = ? WHERE name = ?",values)
+        self.connection.commit()
+
+    def getMediaDBStat(self):
+        self.execute("SELECT * FROM {stat}")
+        return self.cursor.fetchall()
+
     def setStat(self,type,value):
         self.execute("UPDATE {stat} SET value = ? WHERE name = ?" \
             ,(value,type))
@@ -92,7 +112,8 @@ class sqliteDatabase(Database):
         self.execute("CREATE TABLE {playlist}(name TEXT,position INT, dir TEXT, filename TEXT,PRIMARY KEY (name,position))")
         self.execute("CREATE TABLE {stat}(name TEXT,value INT,PRIMARY KEY (name))")
 
-        self.execute("INSERT INTO {stat}(name,value)VALUES('last_updatedb_time',0)")
+        values = [("db_update",0),("songs",0),("artists",0),("albums",0)]
+        self.executemany("INSERT INTO {stat}(name,value)VALUES(?,?)",values)
         self.connection.commit()
 
     def connect(self):

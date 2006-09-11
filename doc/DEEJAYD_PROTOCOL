@@ -66,10 +66,7 @@ stats
 	artists: number of artists
 	albums: number of albums
 	songs: number of songs
-	uptime: daemon uptime in seconds
-	db_playtime: sum of all song times in db
 	db_update: last db update in UNIX time
-	playtime: time length of music played
 
 status
 	reports current status of player, and volume level.

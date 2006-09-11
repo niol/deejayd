@@ -48,6 +48,8 @@ class UnknownCommand:
                 rs += "%s: %d\n" % (k,v)
             elif isinstance(v,str):
                 rs += "%s: %s\n" % (k,v)
+            elif isinstance(v,float):
+                rs += "%s: %d\n" % (k,int(v))
 
         return rs
 
@@ -103,6 +105,17 @@ class Status(UnknownCommand):
         status.extend(djDB.getStatus())
 
         rs = self.formatResponseWithDict(status)
+        return rs + self.getOkAnswer()
+
+
+class Stats(UnknownCommand):
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        stats = djDB.getStats()
+        rs = self.formatResponseWithDict(stats)
+
         return rs + self.getOkAnswer()
 
 

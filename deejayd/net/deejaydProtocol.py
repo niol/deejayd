@@ -66,6 +66,8 @@ class CommandFactory:
             return self.queueCmdClass
         elif cmdName == 'status':
             return Status(cmdName)
+        elif cmdName == 'stats':
+            return Stats(cmdName)
         elif cmdName == 'ping':
             return Ping(cmdName)
         elif cmdName == 'update':
