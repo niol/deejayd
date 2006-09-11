@@ -2,6 +2,7 @@
  Class and methods to manage database
 """
 
+from twisted.python import log
 from deejayd.ui.config import DeejaydConfig
 from os import path
 import sys
@@ -116,6 +117,7 @@ class sqliteDatabase(Database):
         values = [("db_update",0),("songs",0),("artists",0),("albums",0)]
         self.executemany("INSERT INTO {stat}(name,value)VALUES(?,?)",values)
         self.connection.commit()
+        log.msg("SQLite database structure successfully created.")
 
     def connect(self):
         from pysqlite2 import dbapi2 as sqlite
@@ -123,7 +125,9 @@ class sqliteDatabase(Database):
         try:
             self.connection = sqlite.connect(self.db_file)
             self.cursor = self.connection.cursor() 
-        except : sys.exit("Unable to connect at the sqlite database.")
+        except:
+            log.err("Could not connect to sqlite database.")
+            sys.exit("Unable to connect at the sqlite database.")
 
         # configure connection
         self.connection.text_factory = str
@@ -161,10 +165,13 @@ class sqliteDatabase(Database):
 
 def openConnection():
     try: db_type =  DeejaydConfig().get("mediadb","db_type")
-    except: raise SystemExit("You do not choose a database.Verify your config file.")
+    except:
+        log.err("No database type selected. Exiting.")
+        raise SystemExit("You do not choose a database.Verify your config file.")
 
     supportedDatabase = ("sqlite")
     if db_type not in supportedDatabase:
+        log.err("Database %(db_type) is not supported. Exiting." % db_type)
         raise SystemExit("You choose a database which is not supported.Verify your config file.")
 
     if db_type == "sqlite":
