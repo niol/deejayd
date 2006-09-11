@@ -4,6 +4,7 @@
 
 from deejayd.ui.config import DeejaydConfig
 from os import path
+import sys
 
 def strEncode(data):
     """Convert a basestring to a valid UTF-8 str."""
