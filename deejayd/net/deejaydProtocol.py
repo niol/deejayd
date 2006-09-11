@@ -6,6 +6,10 @@ from deejayd.net.commands import *
 
 class DeejaydProtocol(LineReceiver):
 
+    def __init__(self):
+        self.delimiter = "\n"
+        self.MAX_LENGTH = 1024
+
     def connectionMade(self):
         self.cmdFactory = CommandFactory()
         self.transport.write("OK DEEJAYD 0.1\n")
@@ -14,13 +18,17 @@ class DeejaydProtocol(LineReceiver):
         pass
 
     def lineReceived(self, line):
-
+        line = line.strip("\r")
         if line == "close":
             self.transport.loseConnection()
             return
 
         remoteCmd = self.cmdFactory.createCmd(line)
         self.transport.write(remoteCmd.execute())
+
+    def lineLengthExceeded(self, line):
+        self.transport.write("ACK line too long\n")
+        self.transport.loseConnection()
 
 
 class DeejaydFactory(protocol.ServerFactory):
