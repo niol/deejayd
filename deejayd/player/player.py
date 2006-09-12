@@ -8,6 +8,8 @@ import gobject
 import gst
 import gst.interfaces
 
+from twisted.python import log
+
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
@@ -18,6 +20,9 @@ class deejaydPlayer:
         # Initialise var
         self.__state = PLAYER_STOP
         self.__source = None
+        self.__sourceName = ""
+        self.random = 0
+        self.repeat = 0
 
         # Open a pipeline
         try: audio_sink = gst.parse_launch("gconfaudiosink")
@@ -47,13 +52,14 @@ class deejaydPlayer:
 
         return True
 
-    def setSource(self,source):
+    def setSource(self,source,name):
         self.__source = source
+        self.__sourceName = name
 
     def play(self):
         if not self.bin.get_property('uri'):
             try: 
-                curSong = self.__source.getCurrentSong()
+                curSong = self.__source.getCurrent()
                 self.bin.set_property('uri',curSong["uri"])
             except: return
 
@@ -86,7 +92,7 @@ class deejaydPlayer:
 
     def next(self):
         self.stop()
-        song = self.__source.next()
+        song = self.__source.next(self.random,self.repeat)
         try: 
             self.bin.set_property('uri',song["uri"])
             self.play()
@@ -94,7 +100,7 @@ class deejaydPlayer:
 
     def previous(self):
         self.stop()
-        song = self.__source.previous()
+        song = self.__source.previous(self.random,self.repeat)
         try: 
             self.bin.set_property('uri',song["uri"])
             self.play()
@@ -107,6 +113,12 @@ class deejaydPlayer:
             self.bin.set_property('uri',song["uri"])
             self.play()
         except: return
+
+    def random(self,v):
+        self.random = v
+
+    def repeat(self,v):
+        self.repeat = v
 
     def getVolume(self):
         return self.bin.get_property('volume')
@@ -134,8 +146,9 @@ class deejaydPlayer:
             self.bin.send_event(event)
 
     def getStatus(self):
-        status = [("state",self.__state),("volume",int(self.getVolume()*100))]
-        curSong = self.__source.getCurrentSong()
+        status = [("random",self.random),("repeat",self.repeat),("state",self.__state),\
+            ("volume",int(self.getVolume()*100)),("mode",self.__sourceName)]
+        curSong = self.__source.getCurrent()
         if curSong:
             status.extend([("song",curSong["Pos"]),("songid",curSong["Id"])])
         if self.__state != PLAYER_STOP:
@@ -147,7 +160,7 @@ class deejaydPlayer:
         pass
 
     def error(self,error):
-        pass
+        log.msg("ERROR : " + error)
 
     def __getGstState(self):
         changestatus,state,_state = self.bin.get_state()

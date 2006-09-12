@@ -129,8 +129,6 @@ class PlaylistManagement:
         # Init parms
         self.__openPlaylists = {}
         self.currentSong = None
-        self.random = 0
-        self.repeat = 0
 
         # Open a connection to the database
         self.db = database.openConnection() 
@@ -198,21 +196,21 @@ class PlaylistManagement:
     def rm(self,playlistName):
         Playlist(self.db,playlistName).erase()
 
-    def next(self):
+    def next(self,random,repeat):
         if self.currentSong == None:
             return None
 
         currentPosition = self.currentSong["Pos"]
         if currentPosition < len(self.currentPlaylist.get()):
             self.currentSong = self.currentPlaylist.getSong(self.currentSong["Pos"] + 1)
-        elif self.repeat:
+        elif repeat:
             self.currentSong = self.currentPlaylist.getSong(0)
         else:
             return None
 
         return self.currentSong
 
-    def previous(self):
+    def previous(self,random,repeat):
         if self.currentSong == None:
             return None
 
@@ -224,7 +222,7 @@ class PlaylistManagement:
 
         return self.currentSong
 
-    def getCurrentSong(self):
+    def getCurrent(self):
         if self.currentSong == None:
             try: self.currentSong = self.currentPlaylist.getSong(0)
             except SongNotFoundException: pass
@@ -242,8 +240,7 @@ class PlaylistManagement:
         self.db.close()
 
     def getStatus(self):
-        rs = [("random",self.random),("repeat",self.repeat),("playlistlength",self.currentPlaylist.getLength()),\
-            ("playlist",self.currentPlaylist.playlistId)]
+        rs = [("playlistlength",self.currentPlaylist.getLength()),("playlist",self.currentPlaylist.playlistId)]
         return rs
 
     def __openPlaylist(self,name = None):

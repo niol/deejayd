@@ -9,7 +9,7 @@ djPlayer = player.deejaydPlayer()
 
 global djPlaylist
 djPlaylist = deejaydPlaylist.PlaylistManagement(djPlayer)
-djPlayer.setSource(djPlaylist)
+djPlayer.setSource(djPlaylist,"playlist")
 
 
 class UnknownCommand:
