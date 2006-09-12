@@ -27,13 +27,14 @@ class Playlist:
                 else:
                     raise PlaylistNotFoundException
 
+            # Format correctly playlist content
+            self.playlistContent = [{"dir":s[0],"filename":s[1],"Pos":s[3],"Id":self.__getSongId(),"Title":s[6],\
+                "Artist":s[7],"Album":s[8],"Genre":s[9],"Track":s[10],"Date":s[11],"Time":s[12],"bitrate":s[13],\
+                "uri":"file://"+path.join(self.__class__.root_path,path.join(s[0],s[1]))} for s in self.playlistContent]
+
         elif isinstance(content,list):
             self.playlistContent = content
 
-        # Format correctly playlist content
-        self.playlistContent = [{"dir":s[0],"filename":s[1],"Pos":s[3],"Id":self.__getSongId(),"Title":s[6],\
-            "Artist":s[7],"Album":s[8],"Genre":s[9],"Track":s[10],"Date":s[11],"Time":s[12],"bitrate":s[13],\
-            "uri":path.join(self.__class__.root_path,path.join(s[0],s[1]))} for s in self.playlistContent]
 
     def get(self):
         return self.playlistContent
@@ -59,13 +60,23 @@ class Playlist:
             pos = playlistLength+i
             self.playlistContent.append({"dir":s[0],"filename":s[1],"Pos":pos,"Id":self.__getSongId(),"Title":s[3],
                 "Artist":s[4],"Album":s[5],"Genre":s[6],"Track":s[7],"Date":s[8],"Time":s[9],"bitrate":s[10],\
-                "uri":path.join(self.__class__.root_path,path.join(s[0],s[1]))})
+                "uri":"file://"+path.join(self.__class__.root_path,path.join(s[0],s[1]))})
             i += 1
         # Increment playlistId
         self.playlistId += len(songs)
 
     def addSongsFromPlaylist(self,songs):
-        pass
+        playlistLength = len(self.playlistContent)
+        i = 0
+        for s in songs:
+            pos = playlistLength+i
+            self.playlistContent.append({"dir":s["dir"],"filename":s["filename"],"Pos":pos,"Id":self.__getSongId(),\
+                "Title":s["Title"],"Artist":s["Artist"],"Album":s["Album"],"Genre":s["Genre"],"Track":s["Track"],\
+                "Date":s["Date"],"Time":s["Time"],"bitrate":s["bitrate"],\
+                "uri":s["uri"]})
+            i += 1
+        # Increment playlistId
+        self.playlistId += len(songs)
 
     def clear(self):
         self.playlistContent = []
@@ -139,10 +150,6 @@ class PlaylistManagement:
             self.__closePlaylist(playlist) 
         return content
 
-    def loadPlaylist(self,playlist):
-        playlistContent = Playlist(self.db,playlist)
-        self.currentPlaylist.addSongsFromPlaylist(playlistContent.get())
-
     def addPath(self,path,playlist = None):
         playlistObj = self.__openPlaylist(playlist)
 
@@ -155,10 +162,6 @@ class PlaylistManagement:
         playlistObj.addSongsFromLibrary(songs)
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 
-
-    def save(self,playlistName):
-        playlistObj = Playlist(self.db,playlistName,self.currentPlaylist.get())
-        playlistObj.save()
 
     def shuffle(self):
         self.currentPlaylist.shuffle(self.currentSong)
@@ -183,6 +186,17 @@ class PlaylistManagement:
 
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 
+
+    def load(self,playlist):
+        playlistContent = Playlist(self.db,playlist)
+        self.currentPlaylist.addSongsFromPlaylist(playlistContent.get())
+
+    def save(self,playlistName):
+        playlistObj = Playlist(self.db,playlistName,self.currentPlaylist.get())
+        playlistObj.save()
+
+    def rm(self,playlistName):
+        Playlist(self.db,playlistName).erase()
 
     def next(self):
         if self.currentSong == None:

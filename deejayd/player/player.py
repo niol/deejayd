@@ -54,7 +54,7 @@ class deejaydPlayer:
         if not self.bin.get_property('uri'):
             try: 
                 curSong = self.__source.getCurrentSong()
-                self.bin.set_property('uri',"file://"+curSong["uri"])
+                self.bin.set_property('uri',curSong["uri"])
             except: return
 
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
@@ -88,7 +88,7 @@ class deejaydPlayer:
         self.stop()
         song = self.__source.next()
         try: 
-            self.bin.set_property('uri',"file://"+song["uri"])
+            self.bin.set_property('uri',song["uri"])
             self.play()
         except: return
 
@@ -96,7 +96,7 @@ class deejaydPlayer:
         self.stop()
         song = self.__source.previous()
         try: 
-            self.bin.set_property('uri',"file://"+song["uri"])
+            self.bin.set_property('uri',song["uri"])
             self.play()
         except: return
 
@@ -104,7 +104,7 @@ class deejaydPlayer:
         self.stop()
         song = self.__source.goTo(nb,type)
         try: 
-            self.bin.set_property('uri',"file://"+song["uri"])
+            self.bin.set_property('uri',song["uri"])
             self.play()
         except: return
 

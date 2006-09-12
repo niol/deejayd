@@ -201,7 +201,7 @@ class AddPlaylist(UnknownCommand):
 
 class GetPlaylist(UnknownCommand):
 
-    def __init__(self, cmdName, playlistName = None):
+    def __init__(self, cmdName, playlistName):
         self.name = cmdName
         self.playlistName = playlistName
 
@@ -269,7 +269,7 @@ class DeletePlaylist(UnknownCommand):
         return self.getOkAnswer()
 
 
-class SavePlaylist(UnknownCommand):
+class PlaylistCommands(UnknownCommand):
 
     def __init__(self, cmdName, playlistName):
         self.name = cmdName
@@ -279,8 +279,33 @@ class SavePlaylist(UnknownCommand):
         return False
 
     def execute(self):
-        djPlaylist.save(self.playlistName)
+        if not self.playlistName:
+            return self.getErrorAnswer('You must enter a playlist name')
+
+        try:
+            getattr(djPlaylist,self.name)(self.playlistName)
+        except deejaydPlaylist.PlaylistNotFoundException:
+            return self.getErrorAnswer('Playlist not found')
+
         return self.getOkAnswer()
+
+
+class PlaylistList(UnknownCommand):
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        rs = djPlaylist.getList()
+        content = ''
+        i = 0
+        for (pl,) in rs: 
+            if pl != djPlaylist.__class__.currentPlaylistName:
+                content += "%d: %s\n" % (i,pl)
+                i +=1
+
+        return content + self.getOkAnswer()
+
 
 ###################################################
 #    Player Commands                              #

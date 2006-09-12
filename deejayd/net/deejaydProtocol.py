@@ -70,6 +70,7 @@ class CommandFactory:
             return Stats(cmdName)
         elif cmdName == 'ping':
             return Ping(cmdName)
+        # MediaDB Commands
         elif cmdName == 'update':
             dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return UpdateDB(cmdName,dir)
@@ -89,22 +90,29 @@ class CommandFactory:
                 type = ""
                 content = ""
             return Search(cmdName,type,content)
-        elif cmdName in ('stop','pause','next','previous'):
-            return SimplePlayerCommands(cmdName)
-        elif cmdName in ('play','playid'):
-            nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
-            return PlayCommands(cmdName,nb)
+        # Playlist Commands
+        elif cmdName == 'plist':
+            return PlaylistList(cmdName)
         elif cmdName == 'add':
             path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return AddPlaylist(cmdName,path)
         elif cmdName in ('playlist','playlistinfo','currentsong'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return GetPlaylist(cmdName)
+            return GetPlaylist(cmdName,playlisName)
         elif cmdName == 'clear':
             return ClearPlaylist(cmdName)
         elif cmdName in ('delete','deleteid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return DeletePlaylist(cmdName,nb)
+        elif cmdName in ('load','save','rm'):
+            playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
+            return PlaylistCommands(cmdName,playlisName)
+        # Player Commands
+        elif cmdName in ('stop','pause','next','previous'):
+            return SimplePlayerCommands(cmdName)
+        elif cmdName in ('play','playid'):
+            nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
+            return PlayCommands(cmdName,nb)
         elif cmdName == 'setvol':
             vol = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return SetVolume(cmdName,vol)

@@ -64,7 +64,8 @@ class Database(UnknownDatabase):
         self.connection.commit()
 
     def getPlaylistList(self):
-        self.db.execute("SELECT name FROM {playlist}")
+        self.execute("SELECT DISTINCT name FROM {playlist}")
+        return self.cursor.fetchall()
 
     #
     # Stat requests
