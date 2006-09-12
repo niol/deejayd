@@ -28,6 +28,14 @@ class TestDir:
     def addSong(self, song):
         self.songs[song.getFilename()] = song
 
+    def create(self, destDir):
+        # FIXME Not implemented
+        pass
+
+    def destroy(self):
+        # FIXME Not implemented
+        pass
+
 
 class TestMusicCollection(TestDir):
 
@@ -50,15 +58,11 @@ class TestMusicCollection(TestDir):
 
             testdir.addSong(TestSong(songmeta))
 
-    def __del__(self):
+    def cleanLibraryDirectoryTree(self):
         if self.dir_struct_written:
             # This basically is rm -r self.testdir
-            for root, dir, files in os.walk(self.datadir):
-                if not self.dontClean:
-                    for name in files:
-                        os.remove(os.path.join(root, name))
-                    for name in dirs:
-                        os.rmdir(os.path.join(root, name))
+            for dir in self.dirs:
+                dir.destroy()
 
     def buildLibraryDirectoryTree(self, destDir):
         # create test data directory in random subdirectory of destDir
@@ -67,6 +71,11 @@ class TestMusicCollection(TestDir):
             mkdir(self.datadir)
         else:
             sys.exit(1)
+
+        # Create each library dir
+        for dir in self.dirs:
+            dir.create(self.datadir)
+
         self.dir_struct_written = True
 
     def getRandomString(self, length = 5, charset = string.letters):
