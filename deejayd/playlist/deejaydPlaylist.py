@@ -2,6 +2,7 @@
 from deejayd.ui.config import DeejaydConfig
 from deejayd.mediadb.deejaydDB import djDB,database,NotFoundException
 from os import path
+import random
 
 
 class PlaylistNotFoundException:pass
@@ -52,6 +53,9 @@ class Playlist:
         if song == None:
             raise SongNotFoundException
         return song
+
+    def getIds(self):
+        return [s["Id"] for s in self.playlistContent]
 
     def addSongsFromLibrary(self,songs):
         playlistLength = len(self.playlistContent)
@@ -129,6 +133,7 @@ class PlaylistManagement:
         # Init parms
         self.__openPlaylists = {}
         self.currentSong = None
+        self.playedSongs = []
 
         # Open a connection to the database
         self.db = database.openConnection() 
@@ -196,23 +201,75 @@ class PlaylistManagement:
     def rm(self,playlistName):
         Playlist(self.db,playlistName).erase()
 
-    def next(self,random,repeat):
+    def next(self,rd,rpt):
         if self.currentSong == None:
             return None
 
+        # Return a pseudo-random song
+        l = self.currentPlaylist.getLength()
+        if rd and l > 0: 
+            # first determine if the current song is in playedSongs
+            try:
+                id = self.playedSongs.index(self.currentSong["Id"])
+                self.currentSong = self.currentPlaylist.getSong(self.playedSongs[id+1],"Id")
+                return self.currentSong
+            except: pass
+
+            # So we add the current song in playedSongs
+            self.playedSongs.append(self.currentSong["Id"])
+
+            # Determine the id of the next song
+            values = [v for v in self.currentPlaylist.getIds() if v not in self.playedSongs]
+            try: songId = random.choice(values)
+            except: # All songs are played 
+                if rpt:
+                    self.playedSongs = []
+                    songId = random.choice(self.currentPlaylist.getIds())
+                else: return None
+
+            # Obtain the choosed song
+            try: self.currentSong = self.currentPlaylist.getSong(songId,"Id")
+            except SongNotFoundException: return None
+            return self.currentSong
+            
+        # Reset random
+        self.playedSongs = []
+
         currentPosition = self.currentSong["Pos"]
-        if currentPosition < len(self.currentPlaylist.get()):
-            self.currentSong = self.currentPlaylist.getSong(self.currentSong["Pos"] + 1)
-        elif repeat:
+        if currentPosition < len(self.currentPlaylist.get())-1:
+            try: self.currentSong = self.currentPlaylist.getSong(self.currentSong["Pos"] + 1)
+            except SongNotFoundException: return None
+        elif rpt:
             self.currentSong = self.currentPlaylist.getSong(0)
         else:
             return None
 
         return self.currentSong
 
-    def previous(self,random,repeat):
+    def previous(self,rd,rpt):
         if self.currentSong == None:
             return None
+
+        # Return the last pseudo-random song
+        l = len(self.playedSongs)
+        if rd and l > 0:
+            # first determine if the current song is in playedSongs
+            try:
+                id = self.playedSongs.index(self.currentSong["Id"])
+                if id == 0: return None
+                self.currentSong = self.currentPlaylist.getSong(self.playedSongs[id-1],"Id")
+                return self.currentSong
+            except SongNotFoundException: return None 
+            except ValueError: pass
+
+            # So we add the current song in playedSongs
+            self.playedSongs.append(self.currentSong["Id"])
+
+            self.currentSong = self.currentPlaylist.getSong(self.playedSongs[l-1],"Id")
+            return self.currentSong
+
+        # Reset random
+        self.playedSongs = []
 
         currentPosition = self.currentSong["Pos"]
         if currentPosition > 0:
@@ -232,6 +289,9 @@ class PlaylistManagement:
     def goTo(self,nb,type = "Id"):
         try: self.currentSong = self.currentPlaylist.getSong(nb,type)
         except SongNotFoundException: self.currentSong = None
+
+        # Reset random
+        self.playedSongs = []
 
         return self.currentSong
         

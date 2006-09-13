@@ -21,8 +21,8 @@ class deejaydPlayer:
         self.__state = PLAYER_STOP
         self.__source = None
         self.__sourceName = ""
-        self.random = 0
-        self.repeat = 0
+        self.__random = 0
+        self.__repeat = 0
 
         # Open a pipeline
         try: audio_sink = gst.parse_launch("gconfaudiosink")
@@ -92,7 +92,7 @@ class deejaydPlayer:
 
     def next(self):
         self.stop()
-        song = self.__source.next(self.random,self.repeat)
+        song = self.__source.next(self.__random,self.__repeat)
         try: 
             self.bin.set_property('uri',song["uri"])
             self.play()
@@ -100,7 +100,7 @@ class deejaydPlayer:
 
     def previous(self):
         self.stop()
-        song = self.__source.previous(self.random,self.repeat)
+        song = self.__source.previous(self.__random,self.__repeat)
         try: 
             self.bin.set_property('uri',song["uri"])
             self.play()
@@ -114,11 +114,11 @@ class deejaydPlayer:
             self.play()
         except: return
 
-    def random(self,v):
-        self.random = v
+    def random(self,val):
+        self.__random = val
 
-    def repeat(self,v):
-        self.repeat = v
+    def repeat(self,val):
+        self.__repeat = val
 
     def getVolume(self):
         return self.bin.get_property('volume')
@@ -146,7 +146,7 @@ class deejaydPlayer:
             self.bin.send_event(event)
 
     def getStatus(self):
-        status = [("random",self.random),("repeat",self.repeat),("state",self.__state),\
+        status = [("random",self.__random),("repeat",self.__repeat),("state",self.__state),\
             ("volume",int(self.getVolume()*100)),("mode",self.__sourceName)]
         curSong = self.__source.getCurrent()
         if curSong:

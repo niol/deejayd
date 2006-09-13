@@ -373,14 +373,31 @@ class Seek(UnknownCommand):
         return False
 
     def execute(self):
-        try:
-            t = int(self.t)
+        try: t = int(self.t)
         except ValueError:
             return self.getErrorAnswer('Need an integer')
         if t < 0:
             return self.getErrorAnswer('Need an integer > 0')
 
         djPlayer.setPosition(t)
+        return self.getOkAnswer()
+
+
+class PlayerMode(UnknownCommand):
+
+    def __init__(self, cmdName, val):
+        self.name = cmdName
+        self.val = val
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        try: val = int(self.val)
+        except TypeError,ValueError:
+            return self.getErrorAnswer('Need an integer')
+
+        getattr(djPlayer,self.name)(val)
         return self.getOkAnswer()
 
 

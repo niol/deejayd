@@ -8,6 +8,10 @@ from twisted.application import service, internet
 from deejayd.net.deejaydProtocol import DeejaydFactory
 from deejayd.ui.config import DeejaydConfig
 
+# Init random generator
+import random
+random.seed()
+
 
 application = service.Application("deejayd")
 factory = DeejaydFactory()

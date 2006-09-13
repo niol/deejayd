@@ -119,6 +119,9 @@ class CommandFactory:
         elif cmdName == "seek":
             t = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
             return Seek(cmdName,t)
+        elif cmdName in ('repeat','random'):
+            v = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
+            return PlayerMode(cmdName,v)
         else:
             return UnknownCommand(cmdName)
 
