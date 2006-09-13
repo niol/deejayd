@@ -14,6 +14,8 @@ class testSqliteDatabase(TestCaseWithData):
     def tearDown(self):
         TestCaseWithData.tearDown(self)
 
+        self.db.close()
+
         os.remove(self.dbfilename)
 
     def testGetUnexistentPlaylist(self):
