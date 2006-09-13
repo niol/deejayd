@@ -1,16 +1,14 @@
 
 from deejayd.mediadb.deejaydDB import djDB,NotFoundException,UnknownException
-from deejayd.playlist import deejaydPlaylist
+from deejayd.sources import playlist,sources
 from deejayd.player import player 
 from os import path
 
 global djPlayer
 djPlayer = player.deejaydPlayer()
 
-global djPlaylist
-djPlaylist = deejaydPlaylist.PlaylistManagement(djPlayer)
-djPlayer.setSource(djPlaylist,"playlist")
-
+global djMediaSource
+djMediaSource = sources.sourcesFactory(djPlayer)
 
 class UnknownCommand:
 
@@ -101,7 +99,7 @@ class Status(UnknownCommand):
 
     def execute(self):
         status = djPlayer.getStatus()
-        status.extend(djPlaylist.getStatus())
+        status.extend(djMediaSource.getSource("playlist").getStatus())
         status.extend(djDB.getStatus())
 
         rs = self.formatResponseWithDict(status)
@@ -193,7 +191,7 @@ class AddPlaylist(UnknownCommand):
 
     def execute(self):
         try:
-            djPlaylist.addPath(self.path)
+            djMediaSource.getSource("playlist").addPath(self.path)
         except NotFoundException:
             return self.getErrorAnswer('File or Directory not found')
         return self.getOkAnswer()
@@ -211,10 +209,10 @@ class GetPlaylist(UnknownCommand):
     def execute(self):
         try:
             if self.name != "currentsong":
-                songs = djPlaylist.getContent(self.playlistName)
+                songs = djMediaSource.getSource("playlist").getContent(self.playlistName)
             else:
-                songs = [djPlaylist.getCurrentSong()] 
-        except deejaydPlaylist.PlaylistNotFoundException:
+                songs = [djMediaSource.getSource("playlist").getCurrentSong()] 
+        except playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
 
         return self.__formatPlaylistInfo(songs) + self.getOkAnswer()
@@ -243,7 +241,7 @@ class ClearPlaylist(UnknownCommand):
         return False
 
     def execute(self):
-        djPlaylist.clear()
+        djMediaSource.getSource("playlist").clear()
         return self.getOkAnswer()
 
 
@@ -262,8 +260,8 @@ class DeletePlaylist(UnknownCommand):
             return self.getErrorAnswer('Need an integer')
 
         type = self.name == "deleteid" and "Id" or "Pos"
-        try: djPlaylist.delete(nb,type)
-        except deejaydPlaylist.SongNotFoundException:
+        try: djMediaSource.getSource("playlist").delete(nb,type)
+        except playlist.SongNotFoundException:
             return self.getErrorAnswer('Song not found')
 
         return self.getOkAnswer()
@@ -283,8 +281,8 @@ class PlaylistCommands(UnknownCommand):
             return self.getErrorAnswer('You must enter a playlist name')
 
         try:
-            getattr(djPlaylist,self.name)(self.playlistName)
-        except deejaydPlaylist.PlaylistNotFoundException:
+            getattr(djMediaSource.getSource("playlist"),self.name)(self.playlistName)
+        except playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
 
         return self.getOkAnswer()
@@ -296,11 +294,11 @@ class PlaylistList(UnknownCommand):
         return False
 
     def execute(self):
-        rs = djPlaylist.getList()
+        rs = djMediaSource.getSource("playlist").getList()
         content = ''
         i = 0
         for (pl,) in rs: 
-            if pl != djPlaylist.__class__.currentPlaylistName:
+            if pl != djMediaSource.getSource("playlist").__class__.currentPlaylistName:
                 content += "%d: %s\n" % (i,pl)
                 i +=1
 

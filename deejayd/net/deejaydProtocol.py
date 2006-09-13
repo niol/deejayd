@@ -36,7 +36,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def stopFactory(self):
         djDB.close()
-        djPlaylist.close()
+        djMediaSource.close()
 
 
 class CommandFactory:
