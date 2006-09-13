@@ -19,8 +19,9 @@ class testSqliteDatabase(TestCaseWithData):
         os.remove(self.dbfilename)
 
     def testGetUnexistentPlaylist(self):
+        """Unexistent playlist is zero rows"""
         randomName = self.testdata.getRandomString()
-        self.assertRaises(PlaylistNotFound,self.db.getPlaylist(randomName))
+        self.assertEqual(self.db.getPlaylist(randomName), [])
 
 
 # vim: ts=4 sw=4 expandtab
