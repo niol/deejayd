@@ -55,7 +55,7 @@ kill
 ping
 	does nothing but return "OK"
 
-mode <str mode>
+setmode <str mode>
 	active the mode __mode__ in deejayd
 	valid modes are :
 		"playlist" to play playlist 
@@ -225,16 +225,17 @@ setvol <int vol>
 ********************************************************************
 
 wrlist
-	display webradio list
+	displays list of webradios
 
-wradd <str webradio>
+wradd <str webradio> <str name>
 	add a webradio
-	pls and m3u format are supported
+	__webradio__ is url of webradio
+	__name__ is its name
+	supported formats : pls,m3u and simple url
 
-wrclear
-	erase all the webradios
-
-wrdel
+wrdel <int wrid>
+	erase webradio with the id __wrid__
+	
 
 COMMAND LIST
 ------------

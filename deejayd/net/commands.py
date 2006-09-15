@@ -1,6 +1,6 @@
 
 from deejayd.mediadb.deejaydDB import djDB,NotFoundException,UnknownException
-from deejayd.sources import playlist,sources
+from deejayd.sources import webradio,playlist,sources
 from deejayd.player import player 
 from os import path
 
@@ -324,6 +324,58 @@ class PlaylistList(UnknownCommand):
                 i +=1
 
         return content + self.getOkAnswer()
+
+
+###################################################
+#  Webradios Commands                              #
+###################################################
+class webradioList(UnknownCommand):
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        wrs = djMediaSource.getSource("webradio").getList()
+        dict = []
+        for wr in wrs:
+            dict.extend([("Webradio",wr["Title"]),("Id",wr["Id"]),("Pos",wr["Pos"]),("Url",wr["uri"])])
+        content = self.formatResponseWithDict(dict) 
+        return content + self.getOkAnswer()
+
+
+class webradioErase(UnknownCommand):
+
+    def __init__(self,cmdName,id):
+        self.name = cmdName
+        self.id = id
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        try: id = int(self.id)
+        except:
+            return self.getErrorAnswer('Need an integer')
+            
+        djMediaSource.getSource("webradio").erase(id)
+        return self.getOkAnswer()
+
+
+class webradioAdd(UnknownCommand):
+
+    def __init__(self,cmdName,url,name):
+        self.name = cmdName
+        self.url = url
+        self.name = name
+        
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        if not self.url or not self.name:
+            return self.getErrorAnswer('Need two arguments')
+        djMediaSource.getSource("webradio").addWebradio(self.url,self.name)
+        return self.getOkAnswer()
 
 
 ###################################################

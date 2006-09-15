@@ -68,6 +68,22 @@ class Database(UnknownDatabase):
         return self.cursor.fetchall()
 
     #
+    # Webradio requests
+    #
+    def getWebradios(self):
+        self.execute("SELECT wid, name, url FROM {webradio} ORDER BY wid")
+        return self.cursor.fetchall()
+
+    def addWebradios(self,values):
+        query = "INSERT INTO {webradio}(wid,name,url)VALUES(?,?,?)"
+        self.executemany(query,values)
+        self.connection.commit()
+
+    def clearWebradios(self):
+        self.execute("DELETE FROM {webradio}")
+        self.connection.commit()
+
+    #
     # Stat requests
     #
     def recordMediaDBStat(self):
@@ -111,7 +127,7 @@ class sqliteDatabase(Database):
         # creation of tables
         self.execute("CREATE TABLE {library}(dir TEXT,filename TEXT,type TEXT,title TEXT,artist TEXT,album TEXT,\
             genre TEXT, tracknumber INT, date TEXT, length INT, bitrate INT, PRIMARY KEY (dir,filename))")
-        self.execute("CREATE TABLE {radio}(name TEXT,url1 TEXT, url2 TEXT, url3 TEXT,PRIMARY KEY (name))")
+        self.execute("CREATE TABLE {webradio}(wid INT, name TEXT,url TEXT,PRIMARY KEY (wid))")
         self.execute("CREATE TABLE {playlist}(name TEXT,position INT, dir TEXT, filename TEXT,PRIMARY KEY (name,position))")
         self.execute("CREATE TABLE {stat}(name TEXT,value INT,PRIMARY KEY (name))")
 

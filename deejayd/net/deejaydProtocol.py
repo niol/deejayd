@@ -110,6 +110,18 @@ class CommandFactory:
         elif cmdName in ('load','save','rm'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return PlaylistCommands(cmdName,playlisName)
+        # Webradios Commands
+        elif cmdName == 'wrlist':
+            return webradioList(cmdName)
+        elif cmdName == 'wrdel':
+            nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
+            return webradioErase(cmdName,nb)
+        elif cmdName == "wradd":
+            (url,name) = (None,None)
+            if len(splittedCmd) == 2:
+                args = splittedCmd[1].split(" ",1)
+                if len(args) == 2: (url,name) = (args[0].strip('"'),args[1].strip('"'))
+            return webradioAdd(cmdName,url,name)
         # Player Commands
         elif cmdName in ('stop','pause','next','previous'):
             return SimplePlayerCommands(cmdName)

@@ -1,15 +1,16 @@
-from deejayd.sources import playlist
+from deejayd.sources import playlist,webradio
 
 class unknownSourceException: pass
 
 class sourcesFactory:
-    __supportedSources__ = ("playlist")
+    __supportedSources__ = ("playlist","webradio")
 
     def __init__(self,player):
         self.player = player
         # Initialise all the source
         self.sourcesObj = {}
         self.sourcesObj["playlist"] = playlist.PlaylistManagement(player)
+        self.sourcesObj["webradio"] = webradio.WebradioManagement(player)
 
         # For the moment we choose "playlist" for default source
         self.setSource("playlist")
@@ -30,5 +31,6 @@ class sourcesFactory:
     def close(self):
         for k in self.sourcesObj.keys():
             self.sourcesObj[k].close()
+
 
 # vim: ts=4 sw=4 expandtab

@@ -129,15 +129,13 @@ class PlaylistManagement:
     def __init__(self,player):
         # Init player
         self.player = player
-
+        # Open a connection to the database
+        self.db = database.openConnection()
+        self.db.connect()
         # Init parms
         self.__openPlaylists = {}
         self.currentSong = None
         self.playedSongs = []
-
-        # Open a connection to the database
-        self.db = database.openConnection() 
-        self.db.connect()
 
         # Load current playlist
         self.currentPlaylist = self.__openPlaylist()
