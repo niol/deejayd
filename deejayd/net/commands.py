@@ -86,10 +86,31 @@ class queueCommands(UnknownCommand):
 
 
 class Ping(UnknownCommand):
+
     def isUnknown(self):
         return False
 
     def execute(self):
+        return self.getOkAnswer()
+
+
+class Mode(UnknownCommand):
+
+    def __init__(self, cmdName, mode):
+        self.name = cmdName
+        self.mode = mode 
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        if not self.mode:
+            return self.getErrorAnswer('You have to choose a mode') 
+        
+        try: djMediaSource.setSource(self.mode)
+        except sources.unknownSourceException:
+            return self.getErrorAnswer('Unknown mode') 
+
         return self.getOkAnswer()
 
 

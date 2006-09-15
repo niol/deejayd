@@ -64,6 +64,9 @@ class CommandFactory:
             self.queueCmdClass = queueCommands(cmdName,self)
             self.beginList = True
             return self.queueCmdClass
+        elif cmdName == 'setmode':
+            mode = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
+            return Mode(cmdName,mode)
         elif cmdName == 'status':
             return Status(cmdName)
         elif cmdName == 'stats':
