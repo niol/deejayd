@@ -106,7 +106,7 @@ class CommandFactory:
             return ClearPlaylist(cmdName)
         elif cmdName == 'shuffle':
             return ShufflePlaylist(cmdName)
-        elif cmdName in ('delete','deleteid'):
+        elif cmdName == 'delete':
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return DeletePlaylist(cmdName,nb)
         elif cmdName == 'move':
@@ -135,7 +135,7 @@ class CommandFactory:
         # Player Commands
         elif cmdName in ('stop','pause','next','previous'):
             return SimplePlayerCommands(cmdName)
-        elif cmdName in ('play','playid'):
+        elif cmdName == 'play':
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
             return PlayCommands(cmdName,nb)
         elif cmdName == 'setvol':

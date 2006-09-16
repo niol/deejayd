@@ -248,9 +248,7 @@ class DeletePlaylist(UnknownCommand):
         except ValueError:
             return self.getErrorAnswer('Need an integer')
 
-        type = self.name == "deleteid" and "Id" or "Pos"
-        try: djMediaSource.getSource("playlist").delete(nb,type)
-        except playlist.SongNotFoundException:
+        if not djMediaSource.getSource("playlist").delete(nb):
             return self.getErrorAnswer('Song not found')
 
         return self.getOkAnswer()
@@ -382,8 +380,7 @@ class PlayCommands(UnknownCommand):
         if nb == -1:
             djPlayer.play()
         else:
-            type = self.name == "playid" and "Id" or "Pos"
-            djPlayer.goTo(nb,type)
+            djPlayer.goTo(nb,"Id")
         return self.getOkAnswer()
 
 

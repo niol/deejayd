@@ -222,10 +222,13 @@ class PlaylistManagement:
         
         if playlist == None and self.currentSong != None and self.currentSong[type] == nb:
             self.player.next()
-        playlistObj.delete(nb,type)
+        try: playlistObj.delete(nb,type)
+        except SongNotFoundException: return False
 
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 
+
+        return True
 
     def load(self,playlist):
         playlistContent = Playlist(self.db,playlist)

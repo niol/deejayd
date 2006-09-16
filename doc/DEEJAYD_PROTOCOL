@@ -36,21 +36,15 @@ These denote the end of command execution.
 NOTE:
 -----
 
-For manipulating playlists and playing, there are two sets of commands.  One
-set uses the song id of a song in the playlist, while another set uses the
-playlist position of the song.  The commands using song id's should be used
-instead of the commands that manipulate and control playback based on playlist
-position.  Using song id's is a safer method when multiple clients are 
-interacting with MPD.
+For manipulating playlists and playing, you should use the song id of a song 
+in the playlist. Using song id's is a safer method when multiple clients are
+interacting with DEEJAYD.
 
 Commands:
 ---------
 
 close
 	close the connection with DEEJAYD
-
-kill
-	kill DEEJAYD
 
 ping
 	does nothing but return "OK"
@@ -92,7 +86,7 @@ lsinfo <string directory>
 
 find <string type> <string what>
 	finds songs in the db that are exactly _what_
-	_type_ should be "album", "artist", or "title"
+	_type_ should be "genre", "album", "artist", or "title"
 	_what_ is what to find
 
 search <string type> <string what>
@@ -139,11 +133,7 @@ clear
 	clears the current playlist
 	increments playlist version by 1
 
-delete <int song>
-	delete _song_ from playlist
-	increments playlist version by 1
-
-deleteid <int songid>
+delete <int songid>
 	delete song with _songid_ from playlist
 	increments playlist version by 1
 
@@ -180,10 +170,7 @@ next
 pause
 	toggle pause/resume playing
 
-play <int song>
-	begin playing playlist at song number _song_, _song_ is optional
-
-playid <int songid>
+play <int songid>
 	begin playing playlist at song with _songid_, _songid_ is optional
 
 stop
