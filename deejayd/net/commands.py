@@ -183,7 +183,7 @@ class AddPlaylist(UnknownCommand):
     def execute(self):
         try:
             djMediaSource.getSource("playlist").addPath(self.path)
-        except NotFoundException:
+        except:
             return self.getErrorAnswer('File or Directory not found')
         return self.getOkAnswer()
 
@@ -227,6 +227,13 @@ class ClearPlaylist(UnknownCommand):
 
     def execute(self):
         djMediaSource.getSource("playlist").clear()
+        return self.getOkAnswer()
+
+
+class ShufflePlaylist(UnknownCommand):
+
+    def execute(self):
+        djMediaSource.getSource("playlist").shuffle()
         return self.getOkAnswer()
 
 

@@ -107,8 +107,28 @@ class Playlist:
         self.playlistId += 1
 
     def shuffle(self,current):
-        pass
+        newPlaylist = []
+        oldPlaylist = self.playlistContent
+        pos = 0
+        # First we have to put the current song at the first place
+        if current != None:
+            oldPos = current["Pos"]
+            del oldPlaylist[oldPos]
+            newPlaylist.append(current)
+            newPlaylist[pos]["Pos"] = pos
+            pos += 1
 
+        while len(oldPlaylist) > 0:
+            song = random.choice(oldPlaylist) 
+            del oldPlaylist[oldPlaylist.index(song)]
+            newPlaylist.append(song)
+            newPlaylist[pos]["Pos"] = pos
+            pos += 1
+
+        self.playlistContent = newPlaylist
+        # Increment playlistId
+        self.playlistId += 1
+            
     def save(self):
         # First we delete all previous record
         self.db.deletePlaylist(self.playlistName)

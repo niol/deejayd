@@ -104,6 +104,8 @@ class CommandFactory:
             return GetPlaylist(cmdName,playlisName)
         elif cmdName == 'clear':
             return ClearPlaylist(cmdName)
+        elif cmdName == 'shuffle':
+            return ShufflePlaylist(cmdName)
         elif cmdName in ('delete','deleteid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return DeletePlaylist(cmdName,nb)
