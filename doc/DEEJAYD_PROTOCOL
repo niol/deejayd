@@ -236,6 +236,9 @@ wradd <str webradio> <str name>
 wrdel <int wrid>
 	erase webradio with the id __wrid__
 	
+wrclear
+	erase all the webradio
+	
 
 COMMAND LIST
 ------------

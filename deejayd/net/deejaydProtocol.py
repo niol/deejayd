@@ -113,6 +113,8 @@ class CommandFactory:
         # Webradios Commands
         elif cmdName == 'wrlist':
             return webradioList(cmdName)
+        elif cmdName == 'wrclear':
+            return webradioClear(cmdName)
         elif cmdName == 'wrdel':
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return webradioErase(cmdName,nb)

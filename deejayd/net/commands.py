@@ -343,6 +343,16 @@ class webradioList(UnknownCommand):
         return content + self.getOkAnswer()
 
 
+class webradioClear(UnknownCommand):
+
+    def isUnknown(self):
+        return False
+
+    def execute(self):
+        djMediaSource.getSource("webradio").clear()
+        return self.getOkAnswer()
+
+
 class webradioErase(UnknownCommand):
 
     def __init__(self,cmdName,id):

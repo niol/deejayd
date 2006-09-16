@@ -83,6 +83,11 @@ class Webradio:
         # Increment webradioId
         self.webradioId += 1
 
+    def clear(self):
+        self.wrContent = []
+        # Increment webradioId
+        self.webradioId += 1
+
     def save(self):
         self.db.clearWebradios()
         values = [(webradio["Pos"],webradio["Title"],webradio["uri"]) for webradio in self.wrContent]
@@ -125,6 +130,9 @@ class WebradioManagement:
 
     def erase(self,id):
         self.wrContent.erase(id)
+
+    def clear(self):
+        self.wrContent.clear()
 
     def next(self,rd,rpt):
         pass
