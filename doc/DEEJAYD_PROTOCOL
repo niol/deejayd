@@ -73,6 +73,7 @@ status
 	volume: (0-100).
 	repeat: (0 or 1)
 	random: (0 or 1)
+	webradio: (31-bit unsigned integer, the webradio version number)
 	playlist: (31-bit unsigned integer, the playlist version number)
 	playlistlength: (integer, the length of the playlist)
 	state: ("play", "stop", or "pause")
@@ -94,13 +95,6 @@ find <string type> <string what>
 	_type_ should be "album", "artist", or "title"
 	_what_ is what to find
 
-list <string type> <string arg1>
-	list all tags of _type_ 
-	_type_ should be "album" or "artist"
-	_arg1_ is an optional parameter when type is album, this specifies
-		to list albums by a artist, where artist is specified with
-		arg1
-
 search <string type> <string what>
 	searches for any song that contain _what_
 	_type_ can be "title","artist","album", or "filename"
@@ -115,10 +109,6 @@ update <string path>
 	where job id, is the job id requested for your update, and is displayed
 	in status, while the requested update is happening
 	increments playlist version by 1
-	NOTE: To update a number of paths/songs at once, use command_list,
-	it will be much more faster/effecient.  Also, if you use a 
-	command_list for updating, only one update_db job id will be returned
-	per sequence of updates.
 
 
 ********************************************************************
