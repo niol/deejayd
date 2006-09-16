@@ -120,7 +120,7 @@ class Status(UnknownCommand):
 
     def execute(self):
         status = djPlayer.getStatus()
-        status.extend(djMediaSource.getSource("playlist").getStatus())
+        status.extend(djMediaSource.getStatus())
         status.extend(djDB.getStatus())
 
         rs = self.formatResponseWithDict(status)

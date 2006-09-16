@@ -28,6 +28,13 @@ class sourcesFactory:
         self.player.setSource(self.sourcesObj[s],s)
         return True
 
+    def getStatus(self):
+        status = []
+        for k in self.sourcesObj.keys():
+            status.extend(self.sourcesObj[k].getStatus())
+
+        return status
+
     def close(self):
         for k in self.sourcesObj.keys():
             self.sourcesObj[k].close()

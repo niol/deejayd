@@ -150,10 +150,12 @@ class WebradioManagement:
         self.webradioCurrent = self.wrContent.get(nb,type)
         return self.webradioCurrent
 
+    def getStatus(self):
+        return [('webradio',self.wrContent.webradioId)]
+
     def close(self):
         self.wrContent.save()
         self.db.close()
-
 
 
 # vim: ts=4 sw=4 expandtab
