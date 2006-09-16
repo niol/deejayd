@@ -47,6 +47,9 @@ class Webradio:
     def getList(self):
         return self.wrContent
 
+    def getLength(self):
+        return len(self.wrContent)
+
     def get(self,id,type):
         wr = None
         for w in self.wrContent:
@@ -135,10 +138,28 @@ class WebradioManagement:
         self.wrContent.clear()
 
     def next(self,rd,rpt):
-        pass
+        if self.webradioCurrent == None:
+            return None
+
+        currentPos = self.webradioCurrent["Pos"]
+        if currentPosition < self.wrContent.getLength()-1:
+            try: self.webradioCurrent = self.wrContent.get(currentPos+1,"Pos")
+            except NotFoundException: self.webradioCurrent = None
+        else: self.webradioCurrent = None
+
+        return self.webradioCurrent
 
     def previous(self,rd,rpt):
-        pass
+        if self.webradioCurrent == None:
+            return None
+
+        currentPos = self.webradioCurrent["Pos"]
+        if currentPosition > 0:
+            try: self.webradioCurrent = self.wrContent.get(currentPos-1,"Pos")
+            except NotFoundException: self.webradioCurrent = None
+        else: self.webradioCurrent = None
+
+        return self.webradioCurrent
 
     def getCurrent(self):
         if self.webradioCurrent == None:

@@ -236,11 +236,11 @@ class PlaylistManagement:
         currentPosition = self.currentSong["Pos"]
         if currentPosition < len(self.currentPlaylist.get())-1:
             try: self.currentSong = self.currentPlaylist.getSong(self.currentSong["Pos"] + 1)
-            except SongNotFoundException: return None
+            except SongNotFoundException: self.currentSong = None
         elif rpt:
             self.currentSong = self.currentPlaylist.getSong(0)
         else:
-            return None
+            self.currentSong = None
 
         return self.currentSong
 
@@ -273,7 +273,7 @@ class PlaylistManagement:
         if currentPosition > 0:
             self.currentSong = self.currentPlaylist.getSong(self.currentSong["Pos"] - 1)
         else:
-            return None
+            self.currentSong = None
 
         return self.currentSong
 
