@@ -256,6 +256,25 @@ class DeletePlaylist(UnknownCommand):
         return self.getOkAnswer()
 
 
+class MoveInPlaylist(UnknownCommand):
+
+    def __init__(self, cmdName, id, newPos):
+        self.name = cmdName
+        self.id = id
+        self.newPos = newPos
+
+    def execute(self):
+        try:
+            id = int(self.id)
+            newPos = int(self.newPos)
+        except ValueError:
+            return self.getErrorAnswer('Need two integers')
+
+        try: djMediaSource.getSource("playlist").move(id,newPos)
+        except playlist.SongNotFoundException:
+            return self.getErrorAnswer('Song not found')
+        return self.getOkAnswer()
+
 class PlaylistCommands(UnknownCommand):
 
     def __init__(self, cmdName, playlistName):

@@ -109,6 +109,12 @@ class CommandFactory:
         elif cmdName in ('delete','deleteid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return DeletePlaylist(cmdName,nb)
+        elif cmdName == 'move':
+            (id,newPos) = (None,None) 
+            if len(splittedCmd) == 2:
+                numbers = splittedCmd[1].split(" ",1)
+                if len(numbers) == 2: (id,newPos) = (numbers[0],numbers[1])
+            return MoveInPlaylist(cmdName,id,newPos)
         elif cmdName in ('load','save','rm'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return PlaylistCommands(cmdName,playlisName)
