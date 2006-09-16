@@ -18,9 +18,6 @@ class UnknownCommand:
     def execute(self):
         return "ACK Unknown command : %s\n" % (self.name,)
 
-    def isUnknown(self):
-        return True
-
     def getErrorAnswer(self, errorString):
         return 'ACK {%s} ' % (self.name,) + errorString + "\n"
 
@@ -60,9 +57,6 @@ class queueCommands(UnknownCommand):
         self.__executeCommands = False
         self.__commandsList = []
 
-    def isUnknown(self):
-        return False
-
     def addCommand(self,cmd):
         self.__commandsList.append(cmd)
 
@@ -87,9 +81,6 @@ class queueCommands(UnknownCommand):
 
 class Ping(UnknownCommand):
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         return self.getOkAnswer()
 
@@ -99,9 +90,6 @@ class Mode(UnknownCommand):
     def __init__(self, cmdName, mode):
         self.name = cmdName
         self.mode = mode 
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         if not self.mode:
@@ -115,9 +103,6 @@ class Mode(UnknownCommand):
 
 
 class Status(UnknownCommand):
-    def isUnknown(self):
-        return False
-
     def execute(self):
         status = djPlayer.getStatus()
         status.extend(djMediaSource.getStatus())
@@ -128,9 +113,6 @@ class Status(UnknownCommand):
 
 
 class Stats(UnknownCommand):
-    def isUnknown(self):
-        return False
-
     def execute(self):
         stats = djDB.getStats()
         rs = self.formatResponseWithDict(stats)
@@ -148,9 +130,6 @@ class UpdateDB(UnknownCommand):
         self.name = cmdName
         self.directory = dir 
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         try:
             updateDBId = djDB.update(self.directory)
@@ -165,9 +144,6 @@ class Lsinfo(UnknownCommand):
     def __init__(self, cmdName, dir):
         self.name = cmdName
         self.directory = dir 
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         try:
@@ -184,9 +160,6 @@ class Search(UnknownCommand):
         self.name = cmdName
         self.type = type
         self.content = content
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         try:
@@ -207,9 +180,6 @@ class AddPlaylist(UnknownCommand):
         self.name = cmdName
         self.path = path
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         try:
             djMediaSource.getSource("playlist").addPath(self.path)
@@ -223,9 +193,6 @@ class GetPlaylist(UnknownCommand):
     def __init__(self, cmdName, playlistName):
         self.name = cmdName
         self.playlistName = playlistName
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         try:
@@ -258,9 +225,6 @@ class GetPlaylist(UnknownCommand):
 
 class ClearPlaylist(UnknownCommand):
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         djMediaSource.getSource("playlist").clear()
         return self.getOkAnswer()
@@ -271,9 +235,6 @@ class DeletePlaylist(UnknownCommand):
     def __init__(self, cmdName, nb):
         self.name = cmdName
         self.nb = nb
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         try:nb = int(self.nb)
@@ -294,9 +255,6 @@ class PlaylistCommands(UnknownCommand):
         self.name = cmdName
         self.playlistName = playlistName
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         if not self.playlistName:
             return self.getErrorAnswer('You must enter a playlist name')
@@ -310,9 +268,6 @@ class PlaylistCommands(UnknownCommand):
 
 
 class PlaylistList(UnknownCommand):
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         rs = djMediaSource.getSource("playlist").getList()
@@ -331,9 +286,6 @@ class PlaylistList(UnknownCommand):
 ###################################################
 class webradioList(UnknownCommand):
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         wrs = djMediaSource.getSource("webradio").getList()
         dict = []
@@ -345,9 +297,6 @@ class webradioList(UnknownCommand):
 
 class webradioClear(UnknownCommand):
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         djMediaSource.getSource("webradio").clear()
         return self.getOkAnswer()
@@ -358,9 +307,6 @@ class webradioErase(UnknownCommand):
     def __init__(self,cmdName,id):
         self.name = cmdName
         self.id = id
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         try: id = int(self.id)
@@ -378,9 +324,6 @@ class webradioAdd(UnknownCommand):
         self.url = url
         self.name = name
         
-    def isUnknown(self):
-        return False
-
     def execute(self):
         if not self.url or not self.name:
             return self.getErrorAnswer('Need two arguments')
@@ -394,9 +337,6 @@ class webradioAdd(UnknownCommand):
 
 class SimplePlayerCommands(UnknownCommand):
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         getattr(djPlayer,self.name)()
         return self.getOkAnswer()
@@ -407,9 +347,6 @@ class PlayCommands(UnknownCommand):
     def __init__(self, cmdName, nb):
         self.name = cmdName
         self.nb = nb
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         try:nb = int(self.nb)
@@ -430,9 +367,6 @@ class SetVolume(UnknownCommand):
         self.name = cmdName
         self.vol = vol
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         try:vol = int(self.vol)
         except ValueError:
@@ -450,9 +384,6 @@ class Seek(UnknownCommand):
         self.name = cmdName
         self.t = t
 
-    def isUnknown(self):
-        return False
-
     def execute(self):
         try: t = int(self.t)
         except ValueError:
@@ -469,9 +400,6 @@ class PlayerMode(UnknownCommand):
     def __init__(self, cmdName, val):
         self.name = cmdName
         self.val = val
-
-    def isUnknown(self):
-        return False
 
     def execute(self):
         try: val = int(self.val)
