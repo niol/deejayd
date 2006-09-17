@@ -1,6 +1,6 @@
 
 from deejayd.mediadb.deejaydDB import djDB,NotFoundException,UnknownException
-from deejayd.sources import webradio,playlist,sources
+from deejayd.sources import sources
 from deejayd.player import player 
 from os import path
 
@@ -181,9 +181,8 @@ class AddPlaylist(UnknownCommand):
         self.path = path
 
     def execute(self):
-        try:
-            djMediaSource.getSource("playlist").addPath(self.path)
-        except:
+        try: djMediaSource.getSource("playlist").addPath(self.path)
+        except sources.playlist.SongNotFoundException:
             return self.getErrorAnswer('File or Directory not found')
         return self.getOkAnswer()
 
@@ -200,7 +199,7 @@ class GetPlaylist(UnknownCommand):
                 songs = djMediaSource.getSource("playlist").getContent(self.playlistName)
             else:
                 songs = [djMediaSource.getSource("playlist").getCurrentSong()] 
-        except playlist.PlaylistNotFoundException:
+        except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
 
         return self.__formatPlaylistInfo(songs) + self.getOkAnswer()
@@ -248,7 +247,8 @@ class DeletePlaylist(UnknownCommand):
         except ValueError:
             return self.getErrorAnswer('Need an integer')
 
-        if not djMediaSource.getSource("playlist").delete(nb):
+        try: djMediaSource.getSource("playlist").delete(nb)
+        except sources.playlist.SongNotFoundException:
             return self.getErrorAnswer('Song not found')
 
         return self.getOkAnswer()
@@ -269,9 +269,10 @@ class MoveInPlaylist(UnknownCommand):
             return self.getErrorAnswer('Need two integers')
 
         try: djMediaSource.getSource("playlist").move(id,newPos)
-        except playlist.SongNotFoundException:
+        except sources.playlist.SongNotFoundException:
             return self.getErrorAnswer('Song not found')
         return self.getOkAnswer()
+
 
 class PlaylistCommands(UnknownCommand):
 
@@ -285,7 +286,7 @@ class PlaylistCommands(UnknownCommand):
 
         try:
             getattr(djMediaSource.getSource("playlist"),self.name)(self.playlistName)
-        except playlist.PlaylistNotFoundException:
+        except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
 
         return self.getOkAnswer()
@@ -334,10 +335,13 @@ class webradioErase(UnknownCommand):
 
     def execute(self):
         try: id = int(self.id)
-        except:
+        except ValueError:
             return self.getErrorAnswer('Need an integer')
             
-        djMediaSource.getSource("webradio").erase(id)
+        try: djMediaSource.getSource("webradio").erase(id)
+        except sources.webradio.NotFoundException:
+            return self.getErrorAnswer('Webradio not found')
+
         return self.getOkAnswer()
 
 
@@ -346,12 +350,12 @@ class webradioAdd(UnknownCommand):
     def __init__(self,cmdName,url,name):
         self.name = cmdName
         self.url = url
-        self.name = name
+        self.wrname = name
         
     def execute(self):
-        if not self.url or not self.name:
+        if not self.url or not self.wrname:
             return self.getErrorAnswer('Need two arguments')
-        djMediaSource.getSource("webradio").addWebradio(self.url,self.name)
+        djMediaSource.getSource("webradio").addWebradio(self.url,self.wrname)
         return self.getOkAnswer()
 
 

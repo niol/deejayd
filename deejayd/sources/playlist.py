@@ -194,7 +194,8 @@ class PlaylistManagement:
             songs = djDB.getAll(path)
         except NotFoundException:
             # perhaps it is file
-            songs = djDB.getFile(path)
+            try: songs = djDB.getFile(path)
+            except NotFoundException: raise SongNotFoundException
 
         playlistObj.addSongsFromLibrary(songs)
         if isinstance(playlist,str):
@@ -222,13 +223,10 @@ class PlaylistManagement:
         
         if playlist == None and self.currentSong != None and self.currentSong[type] == nb:
             self.player.next()
-        try: playlistObj.delete(nb,type)
-        except SongNotFoundException: return False
+        playlistObj.delete(nb,type)
 
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 
-
-        return True
 
     def plload(self,playlist):
         playlistContent = Playlist(self.db,playlist)

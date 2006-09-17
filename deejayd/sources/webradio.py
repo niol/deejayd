@@ -78,7 +78,7 @@ class Webradio:
         pos = self.wrContent[i]["Pos"]
         del self.wrContent[i]
 
-        # Now we must reorder the playlist
+        # Now we must reorder the list
         for w in self.wrContent:
             if w["Pos"] > pos:
                 w["Pos"] -= 1
