@@ -113,11 +113,9 @@ class Playlist:
         self.playlistContent.insert(newPos,song)
 
         # Reorder the playlist
-        # TODO : improve this
-        i = 0
-        for s in self.playlistContent:
-            s["Pos"] = i
-            i += 1
+        ids = range(newPos,len(self.playlistContent))
+        for id in ids:
+            self.playlistContent[id]["Pos"] = id
 
         # Increment playlistId
         self.playlistId += 1
