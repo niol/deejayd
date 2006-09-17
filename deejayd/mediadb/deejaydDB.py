@@ -88,10 +88,10 @@ class DeejaydDir:
                 query = "DELETE FROM {library} WHERE dir LIKE ?"
                 self.db.execute(query, (os.path.join(d,dir)+"%%",))
         # Add new diretory
-        data = [(dir,d) for d in directories]
-        if len(data) != 0:
+        newDir = [(dir,d) for d in directories]
+        if len(newDir) != 0:
             query = "INSERT INTO {library}(dir,filename,type)VALUES(?,?,'directory')"
-            self.db.executemany(query, data)
+            self.db.executemany(query, newDir)
 
         # Now we update the list of files if necessary
         if int(os.stat(realDir).st_mtime) >= lastUpdateTime:
@@ -111,8 +111,10 @@ class DeejaydDir:
         # Finally we update subdirectories
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
                 if os.path.isdir(os.path.join(realDir,d))]
+        newDir = [os.path.join(dir,d) for (dir,d) in newDir]
         for d in directories:
-            self.update(d,lastUpdateTime)
+            if d in newDir: self.update(d,0)
+            else: self.update(d,lastUpdateTime)
 
     # Private functions
     def __get(self,dir):
