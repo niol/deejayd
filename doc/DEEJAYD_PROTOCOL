@@ -7,6 +7,7 @@ However :
   * Commands have been removed (ex: crossface because gstreamer does not
     support crossfade for the moment)
   * Commands have been added 
+  * Commands have been renamed (ex: add to pladd)
 
 This document is intended for client developers, not end users.
 
@@ -124,39 +125,39 @@ currentsong
 	displays the song info of current song (same song that is identified
 	in status)
 
-add <string path>
+pladd <string path>
 	add the file _path_ to the playlist (directories add recursively)
 	_path_ can also be a single file
 	increments playlist version by for each song added
 
-clear	
+plclear	
 	clears the current playlist
 	increments playlist version by 1
 
-delete <int songid>
+pldelete <int songid>
 	delete song with _songid_ from playlist
 	increments playlist version by 1
 
-move <int songid> <int to>
+plmove <int songid> <int to>
 	move song with _songid_ to  _to_ in the playlist
 	increments playlist version by 1
 
-shuffle
+plshuffle
 	shuffles the current playlist
 	increments playlist version by 1
 
-plist
+pllist
 	display the list of recorded playlist as :
 	id: name
 	
-load <string name>
+plload <string name>
 	loads the playlist _name_
 	increments playlist version by the number of songs added
 
-rm <string playlist>
+plrm <string playlist>
 	removes the playlist __playlist__ 
 
-save <string name>
+plsave <string name>
 	saves the current playlist to _name_ in the database
 
 

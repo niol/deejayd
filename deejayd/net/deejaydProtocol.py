@@ -94,28 +94,28 @@ class CommandFactory:
                 content = ""
             return Search(cmdName,type,content)
         # Playlist Commands
-        elif cmdName == 'plist':
+        elif cmdName == 'pllist':
             return PlaylistList(cmdName)
-        elif cmdName == 'add':
+        elif cmdName == 'pladd':
             path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return AddPlaylist(cmdName,path)
         elif cmdName in ('playlist','playlistinfo','currentsong'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return GetPlaylist(cmdName,playlisName)
-        elif cmdName == 'clear':
+        elif cmdName == 'plclear':
             return ClearPlaylist(cmdName)
-        elif cmdName == 'shuffle':
+        elif cmdName == 'plshuffle':
             return ShufflePlaylist(cmdName)
-        elif cmdName == 'delete':
+        elif cmdName == 'pldelete':
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return DeletePlaylist(cmdName,nb)
-        elif cmdName == 'move':
+        elif cmdName == 'plmove':
             (id,newPos) = (None,None) 
             if len(splittedCmd) == 2:
                 numbers = splittedCmd[1].split(" ",1)
                 if len(numbers) == 2: (id,newPos) = (numbers[0],numbers[1])
             return MoveInPlaylist(cmdName,id,newPos)
-        elif cmdName in ('load','save','rm'):
+        elif cmdName in ('plload','plsave','plrm'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return PlaylistCommands(cmdName,playlisName)
         # Webradios Commands

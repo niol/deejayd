@@ -230,15 +230,15 @@ class PlaylistManagement:
 
         return True
 
-    def load(self,playlist):
+    def plload(self,playlist):
         playlistContent = Playlist(self.db,playlist)
         self.currentPlaylist.addSongsFromPlaylist(playlistContent.get())
 
-    def save(self,playlistName):
+    def plsave(self,playlistName):
         playlistObj = Playlist(self.db,playlistName,self.currentPlaylist.get())
         playlistObj.save()
 
-    def rm(self,playlistName):
+    def plrm(self,playlistName):
         Playlist(self.db,playlistName).erase()
 
     def next(self,rd,rpt):
