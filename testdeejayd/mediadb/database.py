@@ -75,4 +75,16 @@ class testSqliteDatabase(TestCaseWithData):
         self.assert_((anotherRandomName,) in self.db.getPlaylistList())
 
 
+    def testAddWebradio(self):
+        """Add a webradio and retrieve it"""
+        randomData = [(self.testdata.getRandomString(),
+                        self.testdata.getRandomString(),
+                        self.testdata.getRandomString())]
+
+        self.db.addWebradios(randomData)
+
+        for garbageWebradio in randomData:
+            self.assert_(garbageWebradio in self.db.getWebradios())
+
+
 # vim: ts=4 sw=4 expandtab
