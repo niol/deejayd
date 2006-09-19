@@ -48,7 +48,7 @@ class Database(UnknownDatabase):
     #
     def getPlaylist(self,playlistName):
         query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, l.filename, l.title, l.artist, l.album, l.genre, \
-            l.tracknumber, l.date, l.length, l.bitrate FROM {library} l INNER JOIN {playlist} p ON p.dir = l.dir AND \
+            l.tracknumber, l.date, l.length, l.bitrate FROM {playlist} p LEFT OUTER JOIN {library} l ON p.dir = l.dir AND \
             p.filename = l.filename WHERE p.name = ? ORDER BY p.position"
         self.execute(query,(playlistName,))
         return self.cursor.fetchall()
