@@ -37,7 +37,7 @@ These denote the end of command execution.
 NOTE:
 -----
 
-For manipulating playlists and playing, you should use the song id of a song 
+For manipulating playlists and playing, we recommend to use the song id of a song 
 in the playlist. Using song id's is a safer method when multiple clients are
 interacting with DEEJAYD.
 
@@ -125,24 +125,32 @@ currentsong
 	displays the song info of current song (same song that is identified
 	in status)
 
-pladd <string path>
+add <string path>
 	add the file _path_ to the playlist (directories add recursively)
 	_path_ can also be a single file
 	increments playlist version by for each song added
 
-plclear	
+clear	
 	clears the current playlist
 	increments playlist version by 1
 
-pldelete <int songid>
+delete <int song>
+	delete song with _song_ position from playlist
+	increments playlist version by 1
+
+deleteid <int songid>
 	delete song with _songid_ from playlist
 	increments playlist version by 1
 
-plmove <int songid> <int to>
+move <int song> <int to>
+	move song with _song_ position to  _to_ in the playlist
+	increments playlist version by 1
+
+moveid <int songid> <int to>
 	move song with _songid_ to  _to_ in the playlist
 	increments playlist version by 1
 
-plshuffle
+shuffle
 	shuffles the current playlist
 	increments playlist version by 1
 
@@ -150,14 +158,14 @@ pllist
 	display the list of recorded playlist as :
 	id: name
 	
-plload <string name>
+load <string name>
 	loads the playlist _name_
 	increments playlist version by the number of songs added
 
-plrm <string playlist>
+rm <string playlist>
 	removes the playlist __playlist__ 
 
-plsave <string name>
+save <string name>
 	saves the current playlist to _name_ in the database
 
 
@@ -171,7 +179,10 @@ next
 pause
 	toggle pause/resume playing
 
-play <int songid>
+play <int song>
+	begin playing playlist at song with _song_ position, _song_ is optional
+
+playid <int songid>
 	begin playing playlist at song with _songid_, _songid_ is optional
 
 stop

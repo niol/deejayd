@@ -247,7 +247,8 @@ class DeletePlaylist(UnknownCommand):
         except ValueError:
             return self.getErrorAnswer('Need an integer')
 
-        try: djMediaSource.getSource("playlist").delete(nb)
+        type = self.name.endswith("id") and "Id" or "Pos" 
+        try: djMediaSource.getSource("playlist").delete(nb,type)
         except sources.playlist.SongNotFoundException:
             return self.getErrorAnswer('Song not found')
 
@@ -268,7 +269,8 @@ class MoveInPlaylist(UnknownCommand):
         except ValueError:
             return self.getErrorAnswer('Need two integers')
 
-        try: djMediaSource.getSource("playlist").move(id,newPos)
+        type = self.name.endswith("id") and "Id" or "Pos" 
+        try: djMediaSource.getSource("playlist").move(id,newPos,type)
         except sources.playlist.SongNotFoundException:
             return self.getErrorAnswer('Song not found')
         return self.getOkAnswer()
@@ -384,7 +386,8 @@ class PlayCommands(UnknownCommand):
         if nb == -1:
             djPlayer.play()
         else:
-            djPlayer.goTo(nb,"Id")
+            type = self.name.endswith("id") and "Id" or "Pos" 
+            djPlayer.goTo(nb,type)
         return self.getOkAnswer()
 
 

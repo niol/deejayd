@@ -106,14 +106,14 @@ class Playlist:
         # Increment playlistId
         self.playlistId += 1
 
-    def move(self,id,newPos):
-        song = self.getSong(id,"Id")
+    def move(self,id,newPos,type):
+        song = self.getSong(id,type)
         oldPos = song["Pos"]
         del self.playlistContent[oldPos]
         self.playlistContent.insert(newPos,song)
 
         # Reorder the playlist
-        ids = range(newPos,len(self.playlistContent))
+        ids = range(0,len(self.playlistContent))
         for id in ids:
             self.playlistContent[id]["Pos"] = id
 
@@ -202,8 +202,8 @@ class PlaylistManagement:
     def shuffle(self):
         self.currentPlaylist.shuffle(self.currentSong)
 
-    def move(self,id,newPos):
-        self.currentPlaylist.move(id,newPos)
+    def move(self,id,newPos,type = "Id"):
+        self.currentPlaylist.move(id,newPos,type)
 
     def clear(self,playlist = None):
         playlistObj = self.__openPlaylist(playlist)
@@ -226,15 +226,15 @@ class PlaylistManagement:
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 
 
-    def plload(self,playlist):
+    def load(self,playlist):
         playlistContent = Playlist(self.db,playlist)
         self.currentPlaylist.addSongsFromPlaylist(playlistContent.get())
 
-    def plsave(self,playlistName):
+    def save(self,playlistName):
         playlistObj = Playlist(self.db,playlistName,self.currentPlaylist.get())
         playlistObj.save()
 
-    def plrm(self,playlistName):
+    def rm(self,playlistName):
         Playlist(self.db,playlistName).erase()
 
     def next(self,rd,rpt):

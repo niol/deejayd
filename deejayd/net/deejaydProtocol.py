@@ -1,18 +1,21 @@
 from twisted.application import service, internet
-from twisted.internet import protocol, reactor, defer
+from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
 from deejayd.net.commands import *
+from deejayd.ui.config import DeejaydConfig
+from xml.dom import minidom
 
 class DeejaydProtocol(LineReceiver):
 
     def __init__(self):
         self.delimiter = "\n"
         self.MAX_LENGTH = 1024
+        self.lineAllowed = DeejaydConfig().get("net", "mpd_compatibility")
 
     def connectionMade(self):
         self.cmdFactory = CommandFactory()
-        self.transport.write("OK DEEJAYD 0.1\n")
+        self.transport.write("OK DEEJAYD 0.0.1\n")
 
     def connectionLost(self, reason=ConnectionDone):
         pass
@@ -23,13 +26,25 @@ class DeejaydProtocol(LineReceiver):
             self.transport.loseConnection()
             return
 
-        remoteCmd = self.cmdFactory.createCmd(line)
+        if self.isXML(line):
+            remoteCmd = self.cmdFactory.createCmdFromXML(self.xmldoc)
+        elif self.lineAllowed == 'yes':
+            remoteCmd = self.cmdFactory.createCmd(line)
+        else:
+            self.transport.write("ACK deejayd is not allowed to accept simple line commands\n")
+            self.transport.loseConnection()
         self.transport.write(remoteCmd.execute())
 
     def lineLengthExceeded(self, line):
         self.transport.write("ACK line too long\n")
         self.transport.loseConnection()
 
+    def isXML(self,line):
+        try: self.xmldoc = minidom.parseString(line)
+        except: return False
+
+        return True
+        
 
 class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
@@ -44,6 +59,9 @@ class CommandFactory:
     def __init__(self):
         self.beginList = False
         self.queueCmdClass = None
+
+    def createCmdFromXML(self,xmldoc):
+        pass
 
     def createCmd(self, rawCmd):
 
@@ -96,26 +114,26 @@ class CommandFactory:
         # Playlist Commands
         elif cmdName == 'pllist':
             return PlaylistList(cmdName)
-        elif cmdName == 'pladd':
+        elif cmdName == 'add':
             path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return AddPlaylist(cmdName,path)
         elif cmdName in ('playlist','playlistinfo','currentsong'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return GetPlaylist(cmdName,playlisName)
-        elif cmdName == 'plclear':
+        elif cmdName == 'clear':
             return ClearPlaylist(cmdName)
-        elif cmdName == 'plshuffle':
+        elif cmdName == 'shuffle':
             return ShufflePlaylist(cmdName)
-        elif cmdName == 'pldelete':
+        elif cmdName in ('delete','deleteid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return DeletePlaylist(cmdName,nb)
-        elif cmdName == 'plmove':
+        elif cmdName in ('move','moveid'):
             (id,newPos) = (None,None) 
             if len(splittedCmd) == 2:
                 numbers = splittedCmd[1].split(" ",1)
                 if len(numbers) == 2: (id,newPos) = (numbers[0],numbers[1])
             return MoveInPlaylist(cmdName,id,newPos)
-        elif cmdName in ('plload','plsave','plrm'):
+        elif cmdName in ('load','save','rm'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return PlaylistCommands(cmdName,playlisName)
         # Webradios Commands
@@ -135,7 +153,7 @@ class CommandFactory:
         # Player Commands
         elif cmdName in ('stop','pause','next','previous'):
             return SimplePlayerCommands(cmdName)
-        elif cmdName == 'play':
+        elif cmdName in ('play','playid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
             return PlayCommands(cmdName,nb)
         elif cmdName == 'setvol':
