@@ -11,7 +11,7 @@ class TestCaseWithData(unittest.TestCase):
 class TestCaseWithFileData(TestCaseWithData):
 
     def setUp(self):
-        TestCaseWithData.__init__(self)
+        TestCaseWithData.setUp(self)
         self.testdata.buildLibraryDirectoryTree('/tmp')
 
     def tearDown(self):
