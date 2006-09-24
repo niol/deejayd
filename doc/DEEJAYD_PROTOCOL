@@ -205,29 +205,6 @@ setvol <int vol>
 	_vol_ the range of volume is 0-100
 
 
-********************************************************************
-                  	WEBRADIOS COMMANDS
-********************************************************************
-
-wrlist
-	displays list of webradios
-
-wradd <str webradio> <str name>
-	add a webradio
-	__webradio__ is url of webradio
-	__name__ is its name
-	supported formats : pls,m3u and simple url
-	increments webradio version by for each radio added
-
-wrdel <int wrid>
-	erase webradio with the id __wrid__
-	increments webradio version by 1
-	
-wrclear
-	erase all the webradio
-	increments webradio version by 1
-	
-
 COMMAND LIST
 ------------
 

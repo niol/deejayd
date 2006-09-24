@@ -309,59 +309,6 @@ class PlaylistList(UnknownCommand):
 
 
 ###################################################
-#  Webradios Commands                              #
-###################################################
-class webradioList(UnknownCommand):
-
-    def execute(self):
-        wrs = djMediaSource.getSource("webradio").getList()
-        dict = []
-        for wr in wrs:
-            dict.extend([("Webradio",wr["Title"]),("Id",wr["Id"]),("Pos",wr["Pos"]),("Url",wr["uri"])])
-        content = self.formatResponseWithDict(dict) 
-        return content + self.getOkAnswer()
-
-
-class webradioClear(UnknownCommand):
-
-    def execute(self):
-        djMediaSource.getSource("webradio").clear()
-        return self.getOkAnswer()
-
-
-class webradioErase(UnknownCommand):
-
-    def __init__(self,cmdName,id):
-        self.name = cmdName
-        self.id = id
-
-    def execute(self):
-        try: id = int(self.id)
-        except ValueError:
-            return self.getErrorAnswer('Need an integer')
-            
-        try: djMediaSource.getSource("webradio").erase(id)
-        except sources.webradio.NotFoundException:
-            return self.getErrorAnswer('Webradio not found')
-
-        return self.getOkAnswer()
-
-
-class webradioAdd(UnknownCommand):
-
-    def __init__(self,cmdName,url,name):
-        self.name = cmdName
-        self.url = url
-        self.wrname = name
-        
-    def execute(self):
-        if not self.url or not self.wrname:
-            return self.getErrorAnswer('Need two arguments')
-        djMediaSource.getSource("webradio").addWebradio(self.url,self.wrname)
-        return self.getOkAnswer()
-
-
-###################################################
 #    Player Commands                              #
 ###################################################
 

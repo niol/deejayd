@@ -10,7 +10,7 @@ class DeejaydProtocol(LineReceiver):
 
     def __init__(self):
         self.delimiter = "\n"
-        self.MAX_LENGTH = 1024
+        self.MAX_LENGTH = 4096
         self.lineAllowed = DeejaydConfig().get("net", "mpd_compatibility")
 
     def connectionMade(self):
@@ -60,9 +60,71 @@ class CommandFactory:
         self.beginList = False
         self.queueCmdClass = None
 
+   # XML Commands
     def createCmdFromXML(self,xmldoc):
-        pass
+        queueCmd = commandsXML.queueCommands()
+        cmds = xmldoc.getElementsByTagName("command")
 
+        for cmd in cmds: 
+            (cmdName,cmdClass,args) = parseXMLCommand(cmd)
+            queueCmd.addCommand(cmdName,cmdClass,args)
+
+        return queueCmd
+
+    def parseXMLCommand(self,cmd):
+        cmdName = cmd.getAttribute("name") 
+        args = {}
+        for arg in cmd.getElementsByTagName("arg"):
+            name = arg.attributes["name"].value
+            value = arg.firstChild.data
+            args[name] = value
+            
+        commandsParse = {
+                        # General Commmands
+                            "ping":commandsXML.Ping,
+                            "status":commandsXML.Status,
+                            "stats":commandsXML.Stats,
+                            "mode":commandsXML.Mode,
+                        # MediaDB Commmands
+                            "update":commandsXML.UpdateDB,
+                            "getdir":commandsXML.GetDir,
+                            "search":commandsXML.Search,
+                            "find":commandsXML.Search,
+                        # Player commands
+                            "play":commandsXML.Play,
+                            "stop":commandsXML.Stop,
+                            "pause":commandsXML.Pause,
+                            "next":commandsXML.Next,
+                            "previous":commandsXML.Previous,
+                            "setvolume":commandsXML.Volume,
+                            "seek":commandsXML.Seek,
+                            "random":commandsXML.Random,
+                            "repeat":commandsXML.Repeat,
+                        # Playlist commands
+                            "playlistInfo":commandsXML.PlaylistInfo,
+                            "playlistList":commandsXML.PlaylistList,
+                            "playlistAdd":commandsXML.PlaylistAdd,
+                            "playlistDel":commandsXML.PlaylistDel,
+                            "playlistClear":commandsXML.PlaylistClear,
+                            "playlistMove":commandsXML.PlaylistMove,
+                            "playlistShuffle":commandsXML.PlaylistShuffle,
+                            "playlistRemove":commandsXML.PlaylistRemove,
+                            "playlistLoad":commandsXML.PlaylistLoad,
+                            "playlistSave":commandsXML.PlaylistSave,
+                        # Webradios commands
+                            "webradioList":commandsXML.WebradioList,
+                            "webradioAdd":commandsXML.WebradioAdd,
+                            "webradioDel":commandsXML.WebradioDel,
+                            "webradioClear":commandsXML.WebradioClear
+                        # Panel commands
+                        }
+
+        if cmdName in commandsParse.keys():
+            return (cmdName,commandsParse[cmdName],args)
+        else: return (cmdName,commandsXML.UnknownCommand,{})
+
+
+  # Line Commands
     def createCmd(self, rawCmd):
 
         splittedCmd = rawCmd.split(' ',1)
@@ -136,20 +198,6 @@ class CommandFactory:
         elif cmdName in ('load','save','rm'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
             return PlaylistCommands(cmdName,playlisName)
-        # Webradios Commands
-        elif cmdName == 'wrlist':
-            return webradioList(cmdName)
-        elif cmdName == 'wrclear':
-            return webradioClear(cmdName)
-        elif cmdName == 'wrdel':
-            nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return webradioErase(cmdName,nb)
-        elif cmdName == "wradd":
-            (url,name) = (None,None)
-            if len(splittedCmd) == 2:
-                args = splittedCmd[1].split(" ",1)
-                if len(args) == 2: (url,name) = (args[0].strip('"'),args[1].strip('"'))
-            return webradioAdd(cmdName,url,name)
         # Player Commands
         elif cmdName in ('stop','pause','next','previous'):
             return SimplePlayerCommands(cmdName)

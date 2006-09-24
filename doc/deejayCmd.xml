@@ -1,0 +1,8 @@
+<deejayd>
+	<command name="cmdName">
+		<arg name="">value</arg>
+	</command>
+	<command name="cmdName">
+		<arg name="">value</arg>
+	</command>
+</deejayd>
