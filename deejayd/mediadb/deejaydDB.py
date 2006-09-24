@@ -130,7 +130,6 @@ class DeejaydDB:
     Class to manage the media database
     """
     supportedDatabase = ('sqlite')
-    root_path =  DeejaydConfig().get("mediadb","music_directory")
 
     def __init__(self):
         # init Parms
