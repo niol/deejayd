@@ -9,6 +9,24 @@ global djPlayer
 global djMediaSource
 
 
+class Error:
+
+    def __init__(self,error):
+        self.errorString = error
+        # Init XML Document
+        self.xmlDoc = Document()
+        self.xmlRoot = doc.createElement("deejayd")
+        self.xmlDoc.appendChild(self.xmlRoot)
+
+    def execute(self):
+        err = self.xmldoc.createElement("error")
+        err.setAttribute("name","unknown")
+        err.appendChild(self.xmlDoc.createTextNode(self.errorString))
+
+        self.xmlRoot.appendChild(error)
+        return False
+
+
 class queueCommands:
     
     def __init__(self):

@@ -11,7 +11,8 @@ class DeejaydProtocol(LineReceiver):
     def __init__(self):
         self.delimiter = "\n"
         self.MAX_LENGTH = 4096
-        self.lineAllowed = DeejaydConfig().get("net", "mpd_compatibility")
+        self.mpdCompatibility = DeejaydConfig().get("net", "mpd_compatibility")
+        self.lineProtocol = True
 
     def connectionMade(self):
         self.cmdFactory = CommandFactory()
@@ -25,25 +26,21 @@ class DeejaydProtocol(LineReceiver):
         if line == "close":
             self.transport.loseConnection()
             return
+        elif line == "setXML":
+            self.lineProtocol = False
+            self.delimiter = "</deejayd>\n"
+            self.transport.write("OK\n")
+            return
 
-        if self.isXML(line):
-            remoteCmd = self.cmdFactory.createCmdFromXML(self.xmldoc)
-        elif self.lineAllowed == 'yes':
-            remoteCmd = self.cmdFactory.createCmd(line)
+        if not self.lineProtocol:
+            remoteCmd = self.cmdFactory.createCmdFromXML(line)
         else:
-            self.transport.write("ACK deejayd is not allowed to accept simple line commands\n")
-            self.transport.loseConnection()
+            remoteCmd = self.cmdFactory.createCmd(line)
         self.transport.write(remoteCmd.execute())
 
     def lineLengthExceeded(self, line):
         self.transport.write("ACK line too long\n")
         self.transport.loseConnection()
-
-    def isXML(self,line):
-        try: self.xmldoc = minidom.parseString(line)
-        except: return False
-
-        return True
         
 
 class DeejaydFactory(protocol.ServerFactory):
@@ -61,7 +58,11 @@ class CommandFactory:
         self.queueCmdClass = None
 
    # XML Commands
-    def createCmdFromXML(self,xmldoc):
+    def createCmdFromXML(self,line):
+        try: xmldoc = minidom.parseString(line)
+        except: 
+            return commandsXML.Error("Unable to parse the XML command")
+
         queueCmd = commandsXML.queueCommands()
         cmds = xmldoc.getElementsByTagName("command")
 
