@@ -16,7 +16,7 @@ PLAYER_STOP = "stop"
 
 class deejaydPlayer:
 
-    def __init__(self):
+    def __init__(self, pipeline = "gconf"):
         # Initialise var
         self.__state = PLAYER_STOP
         self.__source = None
@@ -25,12 +25,17 @@ class deejaydPlayer:
         self.__repeat = 0
 
         # Open a pipeline
-        try: audio_sink = gst.parse_launch("gconfaudiosink")
+        if pipeline == "gconf": pipeline = "gconfaudiosink"
+        try: audio_sink = gst.parse_launch(pipeline)
         except gobject.GError, err:
-            try: audio_sink = gst.parse_launch("autoaudiosink")
-            except gobject.GError: audio_sink = None
+            if pipeline != "autoaudiosink":
+                try: audio_sink = gst.parse_launch("autoaudiosink")
+                except gobject.GError: audio_sink = None
+                else: pipeline = "autoaudiosink"
+            else: audio_sink = None
 
         if audio_sink==None:
+            print "No audio sink found for Gstreamer"
             sys.exit(1)
 
         self.bin = gst.element_factory_make('playbin')
