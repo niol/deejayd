@@ -2,20 +2,28 @@ from twisted.application import service, internet
 from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
-from deejayd.net.commands import *
-from deejayd.ui.config import DeejaydConfig
+from twisted.python import log
 from xml.dom import minidom
+
+from deejayd.ui.config import DeejaydConfig
+from deejayd.mediadb import deejaydDB
+from deejayd.sources import sources
+from deejayd.player import player
+from deejayd.net import commandsLine
+from deejayd.net import commandsXML
+
 
 class DeejaydProtocol(LineReceiver):
 
-    def __init__(self):
+    def __init__(self,player,db,sources):
         self.delimiter = "\n"
         self.MAX_LENGTH = 4096
         self.mpdCompatibility = DeejaydConfig().get("net", "mpd_compatibility")
         self.lineProtocol = True
+        self.deejaydArgs = {"player":player,"db":db,"sources":sources}
 
     def connectionMade(self):
-        self.cmdFactory = CommandFactory()
+        self.cmdFactory = CommandFactory(self.deejaydArgs)
         self.transport.write("OK DEEJAYD 0.0.1\n")
 
     def connectionLost(self, reason=ConnectionDone):
@@ -35,7 +43,7 @@ class DeejaydProtocol(LineReceiver):
         if not self.lineProtocol:
             remoteCmd = self.cmdFactory.createCmdFromXML(line)
         else:
-            remoteCmd = self.cmdFactory.createCmd(line)
+            remoteCmd = self.cmdFactory.createCmdFromLine(line)
         self.transport.write(remoteCmd.execute())
 
     def lineLengthExceeded(self, line):
@@ -46,16 +54,44 @@ class DeejaydProtocol(LineReceiver):
 class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
 
+    def startFactory(self):
+        log.msg("Startting Deejayd ...")
+        # Try to Init the player
+        log.msg("Player Initialisation")
+        try: self.player = player.deejaydPlayer()
+        except player.NoSinkError:
+            log.err("No audio sink found for Gstreamer, deejayd can not run")
+            from twisted.internet import glib2reactor
+            glib2reactor.stop()
+
+        # Try to Init the MediaDB
+        log.msg("MediaDB Initialisation")
+        self.db = deejaydDB.DejaydDB()
+
+        # Try to Init sources
+        log.msg("Sources Initialisation")
+        try: self.sources = sources.sourcesFactory(self.player,self.db)
+        except:
+            log.err("Unable to init sources, deejayd has to quit")
+            from twisted.internet import glib2reactor
+            glib2reactor.stop()
+
     def stopFactory(self):
-        djDB.close()
-        djMediaSource.close()
+        self.db.close()
+        self.sources.close()
+
+    def buildProtocol(self):
+        p = self.protocol(player = self.player,db = self.db,sources = self.sources)
+        p.factory = self
+        return p
 
 
 class CommandFactory:
 
-    def __init__(self):
+    def __init__(self,deejaydArgs = {}):
         self.beginList = False
         self.queueCmdClass = None
+        self.deejaydArgs = deejaydArgs
 
    # XML Commands
     def createCmdFromXML(self,line):
@@ -63,7 +99,7 @@ class CommandFactory:
         except: 
             return commandsXML.Error("Unable to parse the XML command")
 
-        queueCmd = commandsXML.queueCommands()
+        queueCmd = commandsXML.queueCommands(self.deejaydArgs)
         cmds = xmldoc.getElementsByTagName("command")
 
         for cmd in cmds: 
@@ -126,7 +162,7 @@ class CommandFactory:
 
 
   # Line Commands
-    def createCmd(self, rawCmd):
+    def createCmdFromLine(self, rawCmd):
 
         splittedCmd = rawCmd.split(' ',1)
         cmdName = splittedCmd[0]
@@ -142,25 +178,25 @@ class CommandFactory:
             return self.queueCmdClass
 
         if cmdName in ('command_list_begin','command_list_ok_begin'):
-            self.queueCmdClass = queueCommands(cmdName,self)
+            self.queueCmdClass = commandsLine.queueCommands(cmdName,self)
             self.beginList = True
             return self.queueCmdClass
         elif cmdName == 'setmode':
             mode = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return Mode(cmdName,mode)
+            return commandsLine.Mode(cmdName,mode)
         elif cmdName == 'status':
-            return Status(cmdName)
+            return commandsLine.Status(cmdName)
         elif cmdName == 'stats':
-            return Stats(cmdName)
+            return commandsLine.Stats(cmdName)
         elif cmdName == 'ping':
-            return Ping(cmdName)
+            return commandsLine.Ping(cmdName,self.deejaydArgs)
         # MediaDB Commands
         elif cmdName == 'update':
             dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
-            return UpdateDB(cmdName,dir)
+            return commandsLine.UpdateDB(cmdName,dir)
         elif cmdName == 'lsinfo':
             dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
-            return Lsinfo(cmdName,dir)
+            return commandsLine.Lsinfo(cmdName,dir)
         elif cmdName == 'search' or cmdName == 'find':
             if len(splittedCmd) == 2:
                 args = splittedCmd[1].split(' ',1)
@@ -173,49 +209,49 @@ class CommandFactory:
             else:
                 type = ""
                 content = ""
-            return Search(cmdName,type,content)
+            return commandsLine.Search(cmdName,type,content)
         # Playlist Commands
         elif cmdName == 'pllist':
-            return PlaylistList(cmdName)
+            return commandsLine.PlaylistList(cmdName)
         elif cmdName == 'add':
             path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
-            return AddPlaylist(cmdName,path)
+            return commandsLine.AddPlaylist(cmdName,path)
         elif cmdName in ('playlist','playlistinfo','currentsong'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return GetPlaylist(cmdName,playlisName)
+            return commandsLine.GetPlaylist(cmdName,playlisName)
         elif cmdName == 'clear':
-            return ClearPlaylist(cmdName)
+            return commandsLine.ClearPlaylist(cmdName)
         elif cmdName == 'shuffle':
-            return ShufflePlaylist(cmdName)
+            return commandsLine.ShufflePlaylist(cmdName)
         elif cmdName in ('delete','deleteid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return DeletePlaylist(cmdName,nb)
+            return commandsLine.DeletePlaylist(cmdName,nb)
         elif cmdName in ('move','moveid'):
             (id,newPos) = (None,None) 
             if len(splittedCmd) == 2:
                 numbers = splittedCmd[1].split(" ",1)
                 if len(numbers) == 2: (id,newPos) = (numbers[0],numbers[1])
-            return MoveInPlaylist(cmdName,id,newPos)
+            return commandsLine.MoveInPlaylist(cmdName,id,newPos)
         elif cmdName in ('load','save','rm'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return PlaylistCommands(cmdName,playlisName)
+            return commandsLine.PlaylistCommands(cmdName,playlisName)
         # Player Commands
         elif cmdName in ('stop','pause','next','previous'):
-            return SimplePlayerCommands(cmdName)
+            return commandsLine.SimplePlayerCommands(cmdName)
         elif cmdName in ('play','playid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
-            return PlayCommands(cmdName,nb)
+            return commandsLine.PlayCommands(cmdName,nb)
         elif cmdName == 'setvol':
             vol = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
-            return SetVolume(cmdName,vol)
+            return commandsLine.SetVolume(cmdName,vol)
         elif cmdName == "seek":
             t = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
-            return Seek(cmdName,t)
+            return commandsLine.Seek(cmdName,t)
         elif cmdName in ('repeat','random'):
             v = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return PlayerMode(cmdName,v)
+            return commandsLine.PlayerMode(cmdName,v)
         else:
-            return UnknownCommand(cmdName)
+            return commandsLine.UnknownCommand(cmdName)
 
 
 # vim: ts=4 sw=4 expandtab

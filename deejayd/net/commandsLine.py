@@ -1,19 +1,14 @@
 
-from deejayd.mediadb.deejaydDB import djDB,NotFoundException,UnknownException
+from deejayd.mediadb.deejaydDB import NotFoundException
 from deejayd.sources import sources
 from deejayd.player import player 
 from os import path
 
-global djPlayer
-djPlayer = player.deejaydPlayer()
-
-global djMediaSource
-djMediaSource = sources.sourcesFactory(djPlayer)
-
 class UnknownCommand:
 
-    def __init__(self, cmdName):
+    def __init__(self, cmdName, deejaydArgs):
         self.name = cmdName
+        self.deejaydArgs = deejaydArgs
 
     def execute(self):
         return "ACK Unknown command : %s\n" % (self.name,)

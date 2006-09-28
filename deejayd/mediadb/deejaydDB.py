@@ -244,11 +244,6 @@ class DeejaydDB:
         print err
 
 
-# define a global variable to access at the database
-global djDB
-djDB = DeejaydDB()
-
-
 # for test only
 if __name__ == "__main__":
     djDB = DeejaydDB()
@@ -256,9 +251,6 @@ if __name__ == "__main__":
     t = int(time.time())
     djDB.updateDir("")
     print int(time.time()) - t
-    #djDB.getDir("")
-    #print djDB.getAll("Oasis")
-
     djDB.close()
 
 # vim: ts=4 sw=4 expandtab

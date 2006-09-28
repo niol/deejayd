@@ -14,6 +14,8 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
+class NoSinkError: pass
+
 class deejaydPlayer:
 
     def __init__(self, pipeline = "gconf"):
@@ -35,8 +37,7 @@ class deejaydPlayer:
             else: audio_sink = None
 
         if audio_sink==None:
-            print "No audio sink found for Gstreamer"
-            sys.exit(1)
+            raise NoSinkError
 
         self.bin = gst.element_factory_make('playbin')
         self.bin.set_property('video-sink', None)

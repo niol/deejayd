@@ -5,11 +5,11 @@ class unknownSourceException: pass
 class sourcesFactory:
     __supportedSources__ = ("playlist","webradio")
 
-    def __init__(self,player):
+    def __init__(self,player,db):
         self.player = player
         # Initialise all the source
         self.sourcesObj = {}
-        self.sourcesObj["playlist"] = playlist.PlaylistManagement(player)
+        self.sourcesObj["playlist"] = playlist.PlaylistManagement(player,db)
         self.sourcesObj["webradio"] = webradio.WebradioManagement(player)
 
         # For the moment we choose "playlist" for default source

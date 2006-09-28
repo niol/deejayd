@@ -1,5 +1,5 @@
 
-from deejayd.mediadb.deejaydDB import djDB,database,NotFoundException
+from deejayd.mediadb.deejaydDB import database,NotFoundException
 import urllib
 
 class NotFoundException: pass
