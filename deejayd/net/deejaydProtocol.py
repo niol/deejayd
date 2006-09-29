@@ -66,7 +66,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
         # Try to Init the MediaDB
         log.msg("MediaDB Initialisation")
-        self.db = deejaydDB.DejaydDB()
+        self.db = deejaydDB.DeejaydDB()
 
         # Try to Init sources
         log.msg("Sources Initialisation")
@@ -80,7 +80,7 @@ class DeejaydFactory(protocol.ServerFactory):
         self.db.close()
         self.sources.close()
 
-    def buildProtocol(self):
+    def buildProtocol(self, addr):
         p = self.protocol(player = self.player,db = self.db,sources = self.sources)
         p.factory = self
         return p
@@ -183,20 +183,20 @@ class CommandFactory:
             return self.queueCmdClass
         elif cmdName == 'setmode':
             mode = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return commandsLine.Mode(cmdName,mode)
+            return commandsLine.Mode(cmdName,self.deejaydArgs,mode)
         elif cmdName == 'status':
-            return commandsLine.Status(cmdName)
+            return commandsLine.Status(cmdName,self.deejaydArgs)
         elif cmdName == 'stats':
-            return commandsLine.Stats(cmdName)
+            return commandsLine.Stats(cmdName,self.deejaydArgs)
         elif cmdName == 'ping':
             return commandsLine.Ping(cmdName,self.deejaydArgs)
         # MediaDB Commands
         elif cmdName == 'update':
             dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
-            return commandsLine.UpdateDB(cmdName,dir)
+            return commandsLine.UpdateDB(cmdName,self.deejaydArgs,dir)
         elif cmdName == 'lsinfo':
             dir = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
-            return commandsLine.Lsinfo(cmdName,dir)
+            return commandsLine.Lsinfo(cmdName,self.deejaydArgs,dir)
         elif cmdName == 'search' or cmdName == 'find':
             if len(splittedCmd) == 2:
                 args = splittedCmd[1].split(' ',1)
@@ -209,49 +209,49 @@ class CommandFactory:
             else:
                 type = ""
                 content = ""
-            return commandsLine.Search(cmdName,type,content)
+            return commandsLine.Search(cmdName,self.deejaydArgs,type,content)
         # Playlist Commands
         elif cmdName == 'pllist':
-            return commandsLine.PlaylistList(cmdName)
+            return commandsLine.PlaylistList(cmdName,self.deejaydArgs)
         elif cmdName == 'add':
             path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
-            return commandsLine.AddPlaylist(cmdName,path)
+            return commandsLine.AddPlaylist(cmdName,self.deejaydArgs,path)
         elif cmdName in ('playlist','playlistinfo','currentsong'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return commandsLine.GetPlaylist(cmdName,playlisName)
+            return commandsLine.GetPlaylist(cmdName,self.deejaydArgs,playlisName)
         elif cmdName == 'clear':
-            return commandsLine.ClearPlaylist(cmdName)
+            return commandsLine.ClearPlaylist(cmdName,self.deejaydArgs)
         elif cmdName == 'shuffle':
-            return commandsLine.ShufflePlaylist(cmdName)
+            return commandsLine.ShufflePlaylist(cmdName,self.deejaydArgs)
         elif cmdName in ('delete','deleteid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return commandsLine.DeletePlaylist(cmdName,nb)
+            return commandsLine.DeletePlaylist(cmdName,self.deejaydArgs,nb)
         elif cmdName in ('move','moveid'):
             (id,newPos) = (None,None) 
             if len(splittedCmd) == 2:
                 numbers = splittedCmd[1].split(" ",1)
                 if len(numbers) == 2: (id,newPos) = (numbers[0],numbers[1])
-            return commandsLine.MoveInPlaylist(cmdName,id,newPos)
+            return commandsLine.MoveInPlaylist(cmdName,self.deejaydArgs,id,newPos)
         elif cmdName in ('load','save','rm'):
             playlisName = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return commandsLine.PlaylistCommands(cmdName,playlisName)
+            return commandsLine.PlaylistCommands(cmdName,self.deejaydArgs,playlisName)
         # Player Commands
         elif cmdName in ('stop','pause','next','previous'):
-            return commandsLine.SimplePlayerCommands(cmdName)
+            return commandsLine.SimplePlayerCommands(cmdName,self.deejaydArgs)
         elif cmdName in ('play','playid'):
             nb = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
-            return commandsLine.PlayCommands(cmdName,nb)
+            return commandsLine.PlayCommands(cmdName,self.deejaydArgs,nb)
         elif cmdName == 'setvol':
             vol = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
-            return commandsLine.SetVolume(cmdName,vol)
+            return commandsLine.SetVolume(cmdName,self.deejaydArgs,vol)
         elif cmdName == "seek":
             t = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or -1
-            return commandsLine.Seek(cmdName,t)
+            return commandsLine.Seek(cmdName,self.deejaydArgs,t)
         elif cmdName in ('repeat','random'):
             v = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return commandsLine.PlayerMode(cmdName,v)
+            return commandsLine.PlayerMode(cmdName,self.deejaydArgs,v)
         else:
-            return commandsLine.UnknownCommand(cmdName)
+            return commandsLine.UnknownCommand(cmdName,self.deejaydArgs)
 
 
 # vim: ts=4 sw=4 expandtab

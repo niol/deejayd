@@ -124,7 +124,7 @@ class Mode(UnknownCommand):
              return self.getErrorAnswer('You have to choose a mode') 
         else:
             try: 
-                djMediaSource.setSource(self.mode)
+                self.deejaydArgs["sources"].setSource(self.mode)
                 return self.getOkAnswer()
             except sources.unknownSourceException:
                 return self.getErrorAnswer('Unknown mode') 

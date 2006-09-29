@@ -82,15 +82,15 @@ class Ping(UnknownCommand):
 
 class Mode(UnknownCommand):
 
-    def __init__(self, cmdName, mode):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, mode):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.mode = mode 
 
     def execute(self):
         if not self.mode:
             return self.getErrorAnswer('You have to choose a mode') 
         
-        try: djMediaSource.setSource(self.mode)
+        try: self.deejaydArgs["sources"].setSource(self.mode)
         except sources.unknownSourceException:
             return self.getErrorAnswer('Unknown mode') 
 
@@ -99,9 +99,9 @@ class Mode(UnknownCommand):
 
 class Status(UnknownCommand):
     def execute(self):
-        status = djPlayer.getStatus()
-        status.extend(djMediaSource.getStatus())
-        status.extend(djDB.getStatus())
+        status = self.deejaydArgs["player"].getStatus()
+        status.extend(self.deejaydArgs["sources"].getStatus())
+        status.extend(self.deejaydArgs["db"].getStatus())
 
         rs = self.formatResponseWithDict(status)
         return rs + self.getOkAnswer()
@@ -109,7 +109,7 @@ class Status(UnknownCommand):
 
 class Stats(UnknownCommand):
     def execute(self):
-        stats = djDB.getStats()
+        stats = self.deejaydArgs["sources"].getStats()
         rs = self.formatResponseWithDict(stats)
 
         return rs + self.getOkAnswer()
@@ -127,7 +127,7 @@ class UpdateDB(UnknownCommand):
 
     def execute(self):
         try:
-            updateDBId = djDB.update(self.directory)
+            updateDBId = self.deejaydArgs["db"].update(self.directory)
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
 
@@ -136,13 +136,12 @@ class UpdateDB(UnknownCommand):
 
 class Lsinfo(UnknownCommand):
 
-    def __init__(self, cmdName, dir):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, dir):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.directory = dir 
 
     def execute(self):
-        try:
-            list = djDB.getDir(self.directory)
+        try: list = self.deejaydArgs["db"].getDir(self.directory)
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
 
@@ -151,14 +150,13 @@ class Lsinfo(UnknownCommand):
 
 class Search(UnknownCommand):
 
-    def __init__(self, cmdName, type, content):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, type, content):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.type = type
         self.content = content
 
     def execute(self):
-        try:
-            list = getattr(djDB,self.name)(self.type,self.content)
+        try: list = getattr(self.deejaydArgs["db"],self.name)(self.type,self.content)
         except NotFoundException:
             return self.getErrorAnswer('type %s is not supported' % (self.type,))
 
@@ -171,12 +169,12 @@ class Search(UnknownCommand):
 
 class AddPlaylist(UnknownCommand):
 
-    def __init__(self, cmdName, path):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, path):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.path = path
 
     def execute(self):
-        try: djMediaSource.getSource("playlist").addPath(self.path)
+        try: self.deejaydArgs["sources"].getSource("playlist").addPath(self.path)
         except sources.playlist.SongNotFoundException:
             return self.getErrorAnswer('File or Directory not found')
         return self.getOkAnswer()
@@ -184,16 +182,16 @@ class AddPlaylist(UnknownCommand):
 
 class GetPlaylist(UnknownCommand):
 
-    def __init__(self, cmdName, playlistName):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, playlistName):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.playlistName = playlistName
 
     def execute(self):
         try:
             if self.name != "currentsong":
-                songs = djMediaSource.getSource("playlist").getContent(self.playlistName)
+                songs = self.deejaydArgs["sources"].getSource("playlist").getContent(self.playlistName)
             else:
-                songs = [djMediaSource.getSource("playlist").getCurrentSong()] 
+                songs = [self.deejaydArgs["sources"].getSource("playlist").getCurrentSong()] 
         except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
 
@@ -220,21 +218,21 @@ class GetPlaylist(UnknownCommand):
 class ClearPlaylist(UnknownCommand):
 
     def execute(self):
-        djMediaSource.getSource("playlist").clear()
+        self.deejaydArgs["sources"].getSource("playlist").clear()
         return self.getOkAnswer()
 
 
 class ShufflePlaylist(UnknownCommand):
 
     def execute(self):
-        djMediaSource.getSource("playlist").shuffle()
+        self.deejaydArgs["sources"].getSource("playlist").shuffle()
         return self.getOkAnswer()
 
 
 class DeletePlaylist(UnknownCommand):
 
-    def __init__(self, cmdName, nb):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, nb):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.nb = nb
 
     def execute(self):
@@ -243,7 +241,7 @@ class DeletePlaylist(UnknownCommand):
             return self.getErrorAnswer('Need an integer')
 
         type = self.name.endswith("id") and "Id" or "Pos" 
-        try: djMediaSource.getSource("playlist").delete(nb,type)
+        try: self.deejaydArgs["sources"].getSource("playlist").delete(nb,type)
         except sources.playlist.SongNotFoundException:
             return self.getErrorAnswer('Song not found')
 
@@ -252,8 +250,8 @@ class DeletePlaylist(UnknownCommand):
 
 class MoveInPlaylist(UnknownCommand):
 
-    def __init__(self, cmdName, id, newPos):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, id, newPos):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.id = id
         self.newPos = newPos
 
@@ -265,7 +263,7 @@ class MoveInPlaylist(UnknownCommand):
             return self.getErrorAnswer('Need two integers')
 
         type = self.name.endswith("id") and "Id" or "Pos" 
-        try: djMediaSource.getSource("playlist").move(id,newPos,type)
+        try: self.deejaydArgs["sources"].getSource("playlist").move(id,newPos,type)
         except sources.playlist.SongNotFoundException:
             return self.getErrorAnswer('Song not found')
         return self.getOkAnswer()
@@ -273,8 +271,8 @@ class MoveInPlaylist(UnknownCommand):
 
 class PlaylistCommands(UnknownCommand):
 
-    def __init__(self, cmdName, playlistName):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, playlistName):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.playlistName = playlistName
 
     def execute(self):
@@ -282,7 +280,7 @@ class PlaylistCommands(UnknownCommand):
             return self.getErrorAnswer('You must enter a playlist name')
 
         try:
-            getattr(djMediaSource.getSource("playlist"),self.name)(self.playlistName)
+            getattr(self.deejaydArgs["sources"].getSource("playlist"),self.name)(self.playlistName)
         except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
 
@@ -292,11 +290,11 @@ class PlaylistCommands(UnknownCommand):
 class PlaylistList(UnknownCommand):
 
     def execute(self):
-        rs = djMediaSource.getSource("playlist").getList()
+        rs = self.deejaydArgs["sources"].getSource("playlist").getList()
         content = ''
         i = 0
         for (pl,) in rs: 
-            if pl != djMediaSource.getSource("playlist").__class__.currentPlaylistName:
+            if pl != self.deejaydArgs["sources"].getSource("playlist").__class__.currentPlaylistName:
                 content += "%d: %s\n" % (i,pl)
                 i +=1
 
@@ -310,14 +308,14 @@ class PlaylistList(UnknownCommand):
 class SimplePlayerCommands(UnknownCommand):
 
     def execute(self):
-        getattr(djPlayer,self.name)()
+        getattr(self.deejaydArgs["player"],self.name)()
         return self.getOkAnswer()
 
 
 class PlayCommands(UnknownCommand):
 
-    def __init__(self, cmdName, nb):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, nb):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.nb = nb
 
     def execute(self):
@@ -326,16 +324,17 @@ class PlayCommands(UnknownCommand):
             return self.getErrorAnswer('Need an integer')
 
         if nb == -1:
-            djPlayer.play()
+            self.deejaydArgs["player"].play()
         else:
             type = self.name.endswith("id") and "Id" or "Pos" 
-            djPlayer.goTo(nb,type)
+            self.deejaydArgs["player"].goTo(nb,type)
         return self.getOkAnswer()
 
 
 class SetVolume(UnknownCommand):
 
-    def __init__(self, cmdName, vol):
+    def __init__(self, cmdName, deejaydArgs, vol):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.name = cmdName
         self.vol = vol
 
@@ -346,14 +345,14 @@ class SetVolume(UnknownCommand):
         if vol < 0 or vol > 100:
             return self.getErrorAnswer('Volume must be an integer between 0 and 100')
 
-        djPlayer.setVolume(float(vol)/100)
+        self.deejaydArgs["player"].setVolume(float(vol)/100)
         return self.getOkAnswer()
 
 
 class Seek(UnknownCommand):
 
-    def __init__(self, cmdName, t):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, t):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.t = t
 
     def execute(self):
@@ -363,14 +362,14 @@ class Seek(UnknownCommand):
         if t < 0:
             return self.getErrorAnswer('Need an integer > 0')
 
-        djPlayer.setPosition(t)
+        self.deejaydArgs["player"].setPosition(t)
         return self.getOkAnswer()
 
 
 class PlayerMode(UnknownCommand):
 
-    def __init__(self, cmdName, val):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, val):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.val = val
 
     def execute(self):
@@ -378,7 +377,7 @@ class PlayerMode(UnknownCommand):
         except TypeError,ValueError:
             return self.getErrorAnswer('Need an integer')
 
-        getattr(djPlayer,self.name)(val)
+        getattr(self.deejaydArgs["player"],self.name)(val)
         return self.getOkAnswer()
 
 
