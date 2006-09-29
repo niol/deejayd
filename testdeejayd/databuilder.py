@@ -5,6 +5,7 @@ This module generates the test data.
 import os, sys
 import md5
 import random, time, string
+from xml.dom.minidom import Document
 
 
 class TestSong:
@@ -82,5 +83,43 @@ class TestMusicCollection(TestDir):
         random.seed(time.time())
         return ''.join(random.sample(charset, length))
 
+
+class TestCommand:
+
+    def __init__(self):
+        self.xmldoc = Document()
+        self.xmlroot = self.xmldoc.createElement("deejayd")
+        self.xmldoc.appendChild(self.xmlroot)
+
+    def createXMLCmd(self,cmdName,args = {}):
+        cmd = self.xmldoc.createElement("command")
+        cmd.setAttribute("name",cmdName)
+        for k in args.keys():
+            arg = self.xmldoc.createElement("arg")
+            arg.setAttribute("name",k)
+            arg.appendChild(self.xmlDoc.createTextNode(args[k]))
+            cmd.appendChild(arg)
+
+        self.xmlroot.appendChild(cmd)
+        return self.xmldoc.toxml()
+
+    def createRandomXMLCmd(self):
+        rdCmd = self.getRandomString()
+        return self.createXMLCmd(self,rdCmd)
+
+    def createRandomLineCmd(self):
+        return self.getRandomString()
+
+    def getRandomString(self, length = 5, charset = string.letters):
+        random.seed(time.time())
+        return ''.join(random.sample(charset, length))
+
+    def createSimpleOkanswer(self,cmdName):
+        rsp = self.xmldoc.createElement("response")
+        rsp.setAttribute("name",cmdName)
+        rsp.setAttribute("type","ack")
+
+        self.xmlroot.appendChild(rsp)
+        return self.xmldoc.toxml()
 
 # vim: ts=4 sw=4 expandtab

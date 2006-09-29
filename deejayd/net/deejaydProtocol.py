@@ -103,7 +103,7 @@ class CommandFactory:
         cmds = xmldoc.getElementsByTagName("command")
 
         for cmd in cmds: 
-            (cmdName,cmdClass,args) = parseXMLCommand(cmd)
+            (cmdName,cmdClass,args) = self.parseXMLCommand(cmd)
             queueCmd.addCommand(cmdName,cmdClass,args)
 
         return queueCmd

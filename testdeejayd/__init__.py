@@ -1,5 +1,5 @@
 import unittest
-from testdeejayd.databuilder import TestMusicCollection
+from testdeejayd.databuilder import TestMusicCollection,TestCommand
 import testdeejayd.data
 
 class TestCaseWithData(unittest.TestCase):
@@ -17,5 +17,10 @@ class TestCaseWithFileData(TestCaseWithData):
     def tearDown(self):
         self.testdata.cleanLibraryDirectoryTree()
 
+
+class TestCaseWithCommand(unittest.TestCase):
+
+    def setUp(self):
+        self.testcmd = TestCommand
 
 # vim: ts=4 sw=4 expandtab

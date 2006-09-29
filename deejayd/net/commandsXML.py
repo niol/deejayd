@@ -35,7 +35,7 @@ class queueCommands:
 
         # Init XML Document
         self.xmlDoc = Document()
-        self.xmlRoot = doc.createElement("deejayd")
+        self.xmlRoot = self.xmlDoc.createElement("deejayd")
         self.xmlDoc.appendChild(self.xmlRoot)
 
     def addCommand(self,name,cmd,args):
@@ -44,7 +44,7 @@ class queueCommands:
     def execute(self):
 
         for (cmdName,cmd,args) in self.__commandsList: 
-            self.cmd(cmdName,args,self.deejaydArgs,self.xmlDoc,self.xmlRoot).execute()
+            cmd(cmdName,args,self.deejaydArgs,self.xmlDoc,self.xmlRoot).execute()
 
         return self.xmlDoc.toxml()
 
@@ -62,7 +62,7 @@ class UnknownCommand:
         self.getErrorAnswer("Unknown command : %s" % (self.name,))
 
     def getErrorAnswer(self, errorString):
-        error = self.xmldoc.createElement("error")
+        error = self.xmlDoc.createElement("error")
         error.setAttribute("name",self.name)
         error.appendChild(self.xmlDoc.createTextNode(errorString))
 
@@ -70,7 +70,7 @@ class UnknownCommand:
         return False
 
     def getOkAnswer(self, type = "ack", answerXmlData = []):
-        rsp = self.xmldoc.createElement("response")
+        rsp = self.xmlDoc.createElement("response")
         rsp.setAttribute("name",self.name)
         rsp.setAttribute("type",type)
         for child in answerXmlData: rsp.appendChild(child)
@@ -357,7 +357,7 @@ class WebradioClear(UnknownCommand):
         return self.getOkAnswer()
 
 
-class WebradioErase(UnknownCommand):
+class WebradioDel(UnknownCommand):
 
     def execute(self):
         id = "id" in self.args.keys() and self.args["id"] or None
