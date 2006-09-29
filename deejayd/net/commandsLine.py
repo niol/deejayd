@@ -6,7 +6,7 @@ from os import path
 
 class UnknownCommand:
 
-    def __init__(self, cmdName, deejaydArgs):
+    def __init__(self, cmdName, deejaydArgs = {}):
         self.name = cmdName
         self.deejaydArgs = deejaydArgs
 

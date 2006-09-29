@@ -5,7 +5,7 @@ This module generates the test data.
 import os, sys
 import md5
 import random, time, string
-from xml.dom.minidom import Document
+from xml.dom import minidom
 
 
 class TestSong:
@@ -87,7 +87,7 @@ class TestMusicCollection(TestDir):
 class TestCommand:
 
     def __init__(self):
-        self.xmldoc = Document()
+        self.xmldoc = minidom.Document()
         self.xmlroot = self.xmldoc.createElement("deejayd")
         self.xmldoc.appendChild(self.xmlroot)
 
@@ -121,5 +121,12 @@ class TestCommand:
 
         self.xmlroot.appendChild(rsp)
         return self.xmldoc.toxml()
+
+    def isError(self,rsp,cmdName = ""):
+        xmldoc = minidom.parseString(rsp)
+        errs = xmldoc.getElementsByTagName("error")
+
+        if len(errs) > 0: return True
+        else: return False
 
 # vim: ts=4 sw=4 expandtab

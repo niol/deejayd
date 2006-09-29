@@ -23,5 +23,20 @@ class testDeejaydProtocol(TestCaseWithCommand):
         cmd = self.cmdFactory.createCmdFromXML(cmdContent)
         self.assertEqual(cmd.execute(), self.testcmd().createSimpleOkanswer("ping"))
 
+    def testLineUnknownCommand(self):
+        """Send a unknown command with the line protocol"""
+        cmdName =  self.testcmd().getRandomString()
+        cmd = self.cmdFactory.createCmdFromLine(cmdName)
+        rs = cmd.execute()
+        self.assert_(rs.startswith("ACK"))
+
+    def testXMLUnknownCommand(self):
+        """Send a unknown command with the XML protocol"""
+        cmdName =  self.testcmd().getRandomString()
+        cmdContent = self.testcmd().createXMLCmd(cmdName)
+        cmd = self.cmdFactory.createCmdFromXML(cmdContent)
+        rs = cmd.execute()
+
+        self.assert_(self.testcmd().isError(rs))
 
 # vim: ts=4 sw=4 expandtab
