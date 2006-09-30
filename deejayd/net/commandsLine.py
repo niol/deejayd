@@ -64,7 +64,7 @@ class queueCommands(UnknownCommand):
             st = self.name == 'command_list_ok_begin' and "list_ok\n" or ""
 
             for cmd in self.__commandsList: 
-                rs = self.cmdClass.createCmd(cmd).execute()
+                rs = self.cmdClass.createCmdFromLine(cmd).execute()
                 if rs.endswith("OK\n"):
                     content += rs.replace('OK\n',st)
                 else: return rs
@@ -77,23 +77,6 @@ class queueCommands(UnknownCommand):
 class Ping(UnknownCommand):
 
     def execute(self):
-        return self.getOkAnswer()
-
-
-class Mode(UnknownCommand):
-
-    def __init__(self, cmdName, deejaydArgs, mode):
-        UnknownCommand.__init__(self,cmdName, deejaydArgs)
-        self.mode = mode 
-
-    def execute(self):
-        if not self.mode:
-            return self.getErrorAnswer('You have to choose a mode') 
-        
-        try: self.deejaydArgs["sources"].setSource(self.mode)
-        except sources.unknownSourceException:
-            return self.getErrorAnswer('Unknown mode') 
-
         return self.getOkAnswer()
 
 
@@ -144,8 +127,15 @@ class Lsinfo(UnknownCommand):
         try: list = self.deejaydArgs["db"].getDir(self.directory)
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
+        rs = self.formatInfoResponse(list)
 
-        return self.formatInfoResponse(list)+self.getOkAnswer()
+        if self.directory == "":
+            plist = self.deejaydArgs["sources"].getSource("playlist").getList()
+            for (pl,) in plist: 
+                if pl != self.deejaydArgs["sources"].getSource("playlist").__class__.currentPlaylistName:
+                    rs += "playlist: %s\n" % (pl,)
+
+        return rs+self.getOkAnswer()
 
 
 class Search(UnknownCommand):
@@ -285,20 +275,6 @@ class PlaylistCommands(UnknownCommand):
             return self.getErrorAnswer('Playlist not found')
 
         return self.getOkAnswer()
-
-
-class PlaylistList(UnknownCommand):
-
-    def execute(self):
-        rs = self.deejaydArgs["sources"].getSource("playlist").getList()
-        content = ''
-        i = 0
-        for (pl,) in rs: 
-            if pl != self.deejaydArgs["sources"].getSource("playlist").__class__.currentPlaylistName:
-                content += "%d: %s\n" % (i,pl)
-                i +=1
-
-        return content + self.getOkAnswer()
 
 
 ###################################################

@@ -181,9 +181,6 @@ class CommandFactory:
             self.queueCmdClass = commandsLine.queueCommands(cmdName,self)
             self.beginList = True
             return self.queueCmdClass
-        elif cmdName == 'setmode':
-            mode = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or None
-            return commandsLine.Mode(cmdName,self.deejaydArgs,mode)
         elif cmdName == 'status':
             return commandsLine.Status(cmdName,self.deejaydArgs)
         elif cmdName == 'stats':
@@ -211,8 +208,6 @@ class CommandFactory:
                 content = ""
             return commandsLine.Search(cmdName,self.deejaydArgs,type,content)
         # Playlist Commands
-        elif cmdName == 'pllist':
-            return commandsLine.PlaylistList(cmdName,self.deejaydArgs)
         elif cmdName == 'add':
             path = len(splittedCmd) == 2 and splittedCmd[1].strip('"') or ""
             return commandsLine.AddPlaylist(cmdName,self.deejaydArgs,path)

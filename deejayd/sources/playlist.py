@@ -1,6 +1,6 @@
 
 from deejayd.ui.config import DeejaydConfig
-from deejayd.mediadb.deejaydDB import database,NotFoundException
+from deejayd.mediadb import database
 from os import path
 import random
 
@@ -188,12 +188,11 @@ class PlaylistManagement:
     def addPath(self,path,playlist = None):
         playlistObj = self.__openPlaylist(playlist)
 
-        try:
-            songs = self.djDB.getAll(path)
-        except NotFoundException:
+        try: songs = self.djDB.getAll(path)
+        except:
             # perhaps it is file
             try: songs = self.djDB.getFile(path)
-            except NotFoundException: raise SongNotFoundException
+            except: raise SongNotFoundException
 
         playlistObj.addSongsFromLibrary(songs)
         if isinstance(playlist,str):

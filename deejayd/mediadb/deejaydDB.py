@@ -10,7 +10,6 @@ import database
 from twisted.internet import threads
 
 class NotFoundException:pass
-class UnknownException:pass
 
 class DeejaydFile:
     root_path =  DeejaydConfig().get("mediadb","music_directory")

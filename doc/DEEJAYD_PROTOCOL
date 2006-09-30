@@ -6,8 +6,6 @@ However :
   * Several commands (ex: seek) are a different comportement
   * Commands have been removed (ex: crossface because gstreamer does not
     support crossfade for the moment)
-  * Commands have been added 
-  * Commands have been renamed (ex: add to pladd)
 
 This document is intended for client developers, not end users.
 
@@ -50,12 +48,6 @@ close
 ping
 	does nothing but return "OK"
 
-setmode <str mode>
-	active the mode __mode__ in deejayd
-	valid modes are :
-		"playlist" to play playlist 
-		"webradio" to play webradios 
-
 stats
 	display stats
 	artists: number of artists
@@ -68,7 +60,6 @@ status
 	volume: (0-100).
 	repeat: (0 or 1)
 	random: (0 or 1)
-	webradio: (31-bit unsigned integer, the webradio version number)
 	playlist: (31-bit unsigned integer, the playlist version number)
 	playlistlength: (integer, the length of the playlist)
 	state: ("play", "stop", or "pause")
@@ -154,10 +145,6 @@ shuffle
 	shuffles the current playlist
 	increments playlist version by 1
 
-pllist
-	display the list of recorded playlist as :
-	id: name
-	
 load <string name>
 	loads the playlist _name_
 	increments playlist version by the number of songs added
