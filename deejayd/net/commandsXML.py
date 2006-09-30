@@ -15,15 +15,15 @@ class Error:
         self.errorString = error
         # Init XML Document
         self.xmlDoc = Document()
-        self.xmlRoot = doc.createElement("deejayd")
+        self.xmlRoot = self.xmlDoc.createElement("deejayd")
         self.xmlDoc.appendChild(self.xmlRoot)
 
     def execute(self):
-        err = self.xmldoc.createElement("error")
+        err = self.xmlDoc.createElement("error")
         err.setAttribute("name","unknown")
         err.appendChild(self.xmlDoc.createTextNode(self.errorString))
 
-        self.xmlRoot.appendChild(error)
+        self.xmlRoot.appendChild(err)
         return False
 
 

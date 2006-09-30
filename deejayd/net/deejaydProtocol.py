@@ -36,7 +36,7 @@ class DeejaydProtocol(LineReceiver):
             return
         elif line == "setXML":
             self.lineProtocol = False
-            self.delimiter = "</deejayd>\n"
+            self.delimiter = "ENDXML\n"
             self.transport.write("OK\n")
             return
 
@@ -44,7 +44,11 @@ class DeejaydProtocol(LineReceiver):
             remoteCmd = self.cmdFactory.createCmdFromXML(line)
         else:
             remoteCmd = self.cmdFactory.createCmdFromLine(line)
-        self.transport.write(remoteCmd.execute())
+
+        rsp = remoteCmd.execute()
+        if isinstance(rsp, unicode):
+            rsp = rsp.encode("utf-8")
+        self.transport.write(rsp)
 
     def lineLengthExceeded(self, line):
         self.transport.write("ACK line too long\n")
