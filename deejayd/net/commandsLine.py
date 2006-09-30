@@ -109,7 +109,7 @@ class Status(UnknownCommand):
 
 class Stats(UnknownCommand):
     def execute(self):
-        stats = self.deejaydArgs["sources"].getStats()
+        stats = self.deejaydArgs["db"].getStats()
         rs = self.formatResponseWithDict(stats)
 
         return rs + self.getOkAnswer()
@@ -121,8 +121,8 @@ class Stats(UnknownCommand):
 
 class UpdateDB(UnknownCommand):
 
-    def __init__(self, cmdName, dir):
-        self.name = cmdName
+    def __init__(self, cmdName, deejaydArgs, dir):
+        UnknownCommand.__init__(self,cmdName, deejaydArgs)
         self.directory = dir 
 
     def execute(self):
