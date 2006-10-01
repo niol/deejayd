@@ -84,10 +84,10 @@ class UnknownCommand:
         for (dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in resp:
 
             if t == 'directory':
-                chd = self.xmldoc.createElement("directory")
+                chd = self.xmlDoc.createElement("directory")
                 chd.appendChild(self.xmlDoc.createTextNode(fn))
             else:
-                chd = self.xmldoc.createElement("file")
+                chd = self.xmlDoc.createElement("file")
                 dict = [("Path",path.join(dir,fn)),("Time",lg),("Title",ti),("Artist",ar),("Album",al),("Genre",gn),("Track",tn),("Date",dt)]
                 parms = self.formatResponseWithDict(dict)
                 for parm in parms: chd.appendChild(parm)
@@ -99,7 +99,7 @@ class UnknownCommand:
     def formatResponseWithDict(self,dict):
         rs = []
         for (k,v) in dict:
-            parm = self.xmldoc.createElement("parm")
+            parm = self.xmlDoc.createElement("parm")
             parm.setAttribute("name",k)
             if isinstance(v,int) or isinstance(v,float):
                 value = "%d" % (v,)
@@ -262,11 +262,11 @@ class PlaylistInfo(UnknownCommand):
         rs = []
         for s in songs:
             s["path"] = path.join(s["dir"],s["filename"])
-            chd = self.xmldoc.createElement("file")
+            chd = self.xmlDoc.createElement("file")
             dict = ("Path","Pos","Id","Time","Title","Artist","Album","Genre","Track","Date")
 
             for t in dict:
-                parm = self.xmldoc.createElement("file")
+                parm = self.xmlDoc.createElement("file")
                 parm.setAttribute("name",t)
                 if isinstance(s[t],int):
                     content = "%d" % (s[t],)
@@ -325,8 +325,8 @@ class PlaylistList(UnknownCommand):
         playlists.remove((self.deejaydArgs["sources"].getSource("playlist").__class__.currentPlaylistName,))
         rs = []
         for (pl,) in playlists: 
-            playlist = self.xmldoc.createDocument("playlist")
-            playlist.appendChild(self.xmldoc.createTextNode(pl))
+            playlist = self.xmlDoc.createDocument("playlist")
+            playlist.appendChild(self.xmlDoc.createTextNode(pl))
             rs.append(playlist)
 
         return self.getOkAnswer("FileList",rs)
@@ -341,7 +341,7 @@ class WebradioList(UnknownCommand):
         wrs = self.deejaydArgs["sources"].getSource("webradio").getList()
         rs = []
         for wr in wrs:
-            webradio = self.xmldoc.createDocument("webradio")
+            webradio = self.xmlDoc.createDocument("webradio")
             dict = [("Title",wr["Title"]),("Id",wr["Id"]),("Pos",wr["Pos"]),("Url",wr["uri"])]
             content = self.formatResponseWithDict(dict) 
             for c in content: webradio.appendChild(c)
