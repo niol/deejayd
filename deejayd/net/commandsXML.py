@@ -1,4 +1,3 @@
-
 from deejayd.mediadb.deejaydDB import NotFoundException
 from deejayd.sources import sources
 from deejayd.player import player 
@@ -46,7 +45,7 @@ class queueCommands:
         for (cmdName,cmd,args) in self.__commandsList: 
             cmd(cmdName,args,self.deejaydArgs,self.xmlDoc,self.xmlRoot).execute()
 
-        return self.xmlDoc.toxml()
+        return self.xmlDoc.toxml("utf-8")
 
 
 class UnknownCommand:
@@ -78,14 +77,13 @@ class UnknownCommand:
         self.xmlRoot.appendChild(rsp)
         return True
 
-
     def formatInfoResponse(self, resp):
         rs = [];
         for (dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in resp:
 
             if t == 'directory':
                 chd = self.xmlDoc.createElement("directory")
-                chd.appendChild(self.xmlDoc.createTextNode(fn))
+                chd.setAttribute("name",fn)
             else:
                 chd = self.xmlDoc.createElement("file")
                 dict = [("Path",path.join(dir,fn)),("Time",lg),("Title",ti),("Artist",ar),("Album",al),("Genre",gn),("Track",tn),("Date",dt)]
@@ -105,7 +103,7 @@ class UnknownCommand:
                 value = "%d" % (v,)
             elif isinstance(v,str):
                 value = "%s" % (v)
-            parm.appendChild(self.xmlDoc.createTextNode(value))
+            parm.setAttribute("value",value)
             rs.append(parm)
 
         return rs
@@ -169,9 +167,22 @@ class UpdateDB(UnknownCommand):
 
 class GetDir(UnknownCommand):
 
+    def getOkAnswer(self, type = "ack", answerXmlData = []):
+        rsp = self.xmlDoc.createElement("response")
+        rsp.setAttribute("name",self.name)
+        rsp.setAttribute("type",type)
+
+        dir = "directory" in self.args.keys() and self.args["directory"] or ""
+        rsp.setAttribute("directory",dir)
+
+        for child in answerXmlData: rsp.appendChild(child)
+
+        self.xmlRoot.appendChild(rsp)
+        return True
+
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        try: list = self.deejaydArgs["db"].getDir(self.dir)
+        try: list = self.deejaydArgs["db"].getDir(dir)
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
 
@@ -261,24 +272,33 @@ class PlaylistInfo(UnknownCommand):
     def formatPlaylistInfo(self,songs):
         rs = []
         for s in songs:
-            s["path"] = path.join(s["dir"],s["filename"])
+            s["Path"] = path.join(s["dir"],s["filename"])
             chd = self.xmlDoc.createElement("file")
             dict = ("Path","Pos","Id","Time","Title","Artist","Album","Genre","Track","Date")
 
             for t in dict:
-                parm = self.xmlDoc.createElement("file")
+                parm = self.xmlDoc.createElement("parm")
                 parm.setAttribute("name",t)
                 if isinstance(s[t],int):
                     content = "%d" % (s[t],)
                 elif isinstance(s[t],str):
                     content = s[t]
-                parm.appendChild(self.xmlDoc.createTextNode(content))
+                parm.setAttribute("value",content)
 
                 chd.appendChild(parm)
 
             rs.append(chd)
 
         return rs
+
+
+class PlaylistCurrent(PlaylistInfo):
+
+    def execute(self):
+        songs = self.deejaydArgs["sources"].getSource("playlist").\
+                    getContent()
+        rs = self.formatPlaylistInfo(songs)
+        return self.getOkAnswer("FileList",rs)
 
 
 class PlaylistDel(UnknownCommand):
@@ -391,8 +411,8 @@ class WebradioAdd(UnknownCommand):
 class SimplePlayerCommand(UnknownCommand):
 
     def execute(self):
-        try: getattr(self.deejaydArgs["player"],self.cmdName)()
-        except: return self.getErrorAnswer("Unable to execute the command %s" % (self.cmdName,))
+        try: getattr(self.deejaydArgs["player"],self.name)()
+        except: return self.getErrorAnswer("Unable to execute the command %s" % (self.name,))
 
         return self.getOkAnswer()
 
@@ -412,7 +432,7 @@ class Pause(SimplePlayerCommand):pass
 class Play(UnknownCommand):
 
     def execute(self):
-        nb = "number" in self.args.keys() and self.args["number"] or None
+        nb = "id" in self.args.keys() and self.args["id"] or -1
         try:nb = int(nb)
         except ValueError:
             return self.getErrorAnswer('Need an integer')

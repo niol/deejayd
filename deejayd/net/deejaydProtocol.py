@@ -85,7 +85,8 @@ class DeejaydFactory(protocol.ServerFactory):
         self.sources.close()
 
     def buildProtocol(self, addr):
-        p = self.protocol(player = self.player,db = self.db,sources = self.sources)
+        p = self.protocol(player = self.player,
+            db = self.db,sources = self.sources)
         p.factory = self
         return p
 
@@ -143,6 +144,7 @@ class CommandFactory:
                             "repeat":commandsXML.Repeat,
                         # Playlist commands
                             "playlistInfo":commandsXML.PlaylistInfo,
+                            "playlistCurrent":commandsXML.PlaylistCurrent,
                             "playlistList":commandsXML.PlaylistList,
                             "playlistAdd":commandsXML.PlaylistAdd,
                             "playlistDel":commandsXML.PlaylistDel,
