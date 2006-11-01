@@ -1,0 +1,7 @@
+Player
+  * Add an option to choose your default gstreamer pipeline
+
+Mediadb
+  * Improve error handling
+  	-> When the music directory does not exist
+  * Do not send an error when there is no file in the root directory
