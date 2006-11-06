@@ -194,7 +194,7 @@ class Search(UnknownCommand):
 
     def execute(self):
         type = "type" in self.args.keys() and self.args["type"] or ""
-        content = "type" in self.args.keys() and self.args["type"] or ""
+        content = "txt" in self.args.keys() and self.args["txt"] or ""
         try: list = getattr(self.deejaydArgs["db"],self.name)(type,content)
         except NotFoundException:
             return self.getErrorAnswer('type %s is not supported' % (type,))
@@ -342,11 +342,14 @@ class PlaylistList(UnknownCommand):
 
     def execute(self):
         playlists = self.deejaydArgs["sources"].getSource("playlist").getList()
-        playlists.remove((self.deejaydArgs["sources"].getSource("playlist").__class__.currentPlaylistName,))
+        try:
+            playlists.remove((self.deejaydArgs["sources"].\
+            getSource("playlist").__class__.currentPlaylistName,))
+        except: pass
         rs = []
         for (pl,) in playlists: 
-            playlist = self.xmlDoc.createDocument("playlist")
-            playlist.appendChild(self.xmlDoc.createTextNode(pl))
+            playlist = self.xmlDoc.createElement("playlist")
+            playlist.setAttribute("name",pl)
             rs.append(playlist)
 
         return self.getOkAnswer("FileList",rs)
