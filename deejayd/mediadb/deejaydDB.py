@@ -163,7 +163,8 @@ class DeejaydDB:
         return rs
 
     def getAll(self,dir):
-        query = "SELECT * FROM {library} WHERE dir LIKE ? AND TYPE = 'file' ORDER BY dir"
+        query = "SELECT * FROM {library} WHERE dir LIKE ? AND TYPE = 'file' \
+                ORDER BY dir"
         self.db.execute(query,(dir+'%%',))
 
         rs = self.db.cursor.fetchall()
@@ -174,22 +175,18 @@ class DeejaydDB:
         return rs
 
     def search(self,type,content):
-        acceptedType = ('title','genre','filename','artist','album')
+        acceptedType = ('all','title','genre','filename','artist','album')
         if type not in acceptedType:
             raise NotFoundException
 
-        query = "SELECT * FROM {library} WHERE type = 'file' AND %s LIKE ?" % (type,)
-        self.db.execute(query,('%%'+content+'%%',))
-        return self.db.cursor.fetchall()
+        return self.db.searchInMediaDB(type,content)
 
     def find(self,type,content):
         acceptedType = ('title','genre','filename','artist','album')
         if type not in acceptedType:
             raise NotFoundException
 
-        query = "SELECT * FROM {library} WHERE type = 'file' AND %s = ?" % (type,)
-        self.db.execute(query,(content,))
-        return self.db.cursor.fetchall()
+        return self.db.findInMediaDB(type,content)
 
     def updateDir(self,dir):
         db = database.openConnection()

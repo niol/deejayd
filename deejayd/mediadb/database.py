@@ -44,6 +44,30 @@ class UnknownDatabase:
 class Database(UnknownDatabase):
     
     #
+    # MediaDB requests
+    #
+    def searchInMediaDB(self,type,content):
+        if type != "all":
+            query = "SELECT * FROM {library} WHERE type = 'file' AND %s LIKE ?"\
+                % (type,)
+            self.execute(query,('%%'+content+'%%',))
+        else:
+            query = "SELECT * FROM {library} WHERE type = 'file' AND \
+                ('genre' LIKE ? OR 'title' LIKE ? OR 'album' LIKE ? OR \
+                'artist' LIKE ?)"
+            self.execute(query,('%%'+content+'%%','%%'+content+'%%',
+                '%%'+content+'%%','%%'+content+'%%'))
+
+        return self.cursor.fetchall()
+
+    def findInMediaDB(self,type,content):
+        query = "SELECT * FROM {library} WHERE type = 'file' AND %s = ?" \
+                % (type,)
+        self.execute(query,(content,))
+
+        return self.cursor.fetchall()
+
+    #
     # Playlist requests
     #
     def getPlaylist(self,playlistName):
