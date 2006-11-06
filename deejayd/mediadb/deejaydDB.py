@@ -144,7 +144,7 @@ class DeejaydDB:
         self.db.execute(query,(dir,))
 
         rs = self.db.cursor.fetchall()
-        if len(rs) == 0:
+        if len(rs) == 0 and dir != "":
             # nothing found for this directory
             raise NotFoundException
 
@@ -157,7 +157,7 @@ class DeejaydDB:
 
         rs = self.db.cursor.fetchall()
         if len(rs) == 0:
-            # nothing found for this directory
+            # this file is not found
             raise NotFoundException
 
         return rs
