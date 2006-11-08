@@ -213,7 +213,7 @@ class SimplePlaylistCommand(UnknownCommand):
 
     def execute(self):
         playlistName = "name" in self.args.keys() and self.args["name"] or None
-        if not self.playlistName and requirePlaylist:
+        if not playlistName and self.__class__.requirePlaylist:
             return self.getErrorAnswer('You must enter a playlist name')
 
         try: getattr(self.deejaydArgs["sources"].getSource("playlist"),self.__class__.funcName)(playlistName)

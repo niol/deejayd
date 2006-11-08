@@ -198,7 +198,7 @@ class PlaylistManagement:
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 
 
-    def shuffle(self):
+    def shuffle(self, playlistName = None):
         self.currentPlaylist.shuffle(self.currentSong)
 
     def move(self,id,newPos,type = "Id"):
