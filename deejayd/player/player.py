@@ -9,6 +9,7 @@ import gst
 import gst.interfaces
 
 from twisted.python import log
+from deejayd.ui.config import DeejaydConfig
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
@@ -18,7 +19,7 @@ class NoSinkError: pass
 
 class deejaydPlayer:
 
-    def __init__(self, pipeline = "gconf"):
+    def __init__(self):
         # Initialise var
         self.__state = PLAYER_STOP
         self.__source = None
@@ -27,7 +28,10 @@ class deejaydPlayer:
         self.__repeat = 0
 
         # Open a pipeline
+        pipeline = DeejaydConfig().get("player", "output")
         if pipeline == "gconf": pipeline = "gconfaudiosink"
+        else: pipeline = pipeline + "sink"
+
         try: audio_sink = gst.parse_launch(pipeline)
         except gobject.GError, err:
             if pipeline != "autoaudiosink":

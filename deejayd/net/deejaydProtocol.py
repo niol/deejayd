@@ -18,7 +18,6 @@ class DeejaydProtocol(LineReceiver):
     def __init__(self,player,db,sources):
         self.delimiter = "\n"
         self.MAX_LENGTH = 4096
-        self.mpdCompatibility = DeejaydConfig().get("net", "mpd_compatibility")
         self.lineProtocol = True
         self.deejaydArgs = {"player":player,"db":db,"sources":sources}
 
