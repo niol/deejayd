@@ -137,7 +137,7 @@ class CommandFactory:
                             "pause":commandsXML.Pause,
                             "next":commandsXML.Next,
                             "previous":commandsXML.Previous,
-                            "setvolume":commandsXML.Volume,
+                            "setVolume":commandsXML.Volume,
                             "seek":commandsXML.Seek,
                             "random":commandsXML.Random,
                             "repeat":commandsXML.Repeat,

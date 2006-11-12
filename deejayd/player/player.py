@@ -168,6 +168,9 @@ class deejaydPlayer:
 
         return status
 
+    def isPlay(self):
+        return self.__state != PLAYER_STOP
+
     def close(self):
         pass
 

@@ -296,8 +296,10 @@ class PlaylistCurrent(PlaylistInfo):
 
     def execute(self):
         songs = self.deejaydArgs["sources"].getSource("playlist").\
-                    getContent()
-        rs = self.formatPlaylistInfo(songs)
+                    getCurrentSong()
+        rs = []
+        if songs:
+            rs = self.formatPlaylistInfo(songs)
         return self.getOkAnswer("FileList",rs)
 
 
@@ -478,7 +480,7 @@ class Random(UnknownCommand):
 
     def execute(self):
         val = "value" in self.args.keys() and self.args["value"] or None
-        try: val = int(self.val)
+        try: val = int(val)
         except TypeError,ValueError:
             return self.getErrorAnswer('Need an integer')
 
