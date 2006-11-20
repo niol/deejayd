@@ -465,7 +465,7 @@ class Seek(UnknownCommand):
 
     def execute(self):
         t = "time" in self.args.keys() and self.args["time"] or None
-        try: t = int(self.t)
+        try: t = int(t)
         except ValueError:
             return self.getErrorAnswer('Need an integer')
         if t < 0:
