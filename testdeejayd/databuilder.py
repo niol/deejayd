@@ -120,7 +120,7 @@ class TestCommand:
         rsp.setAttribute("type","ack")
 
         self.xmlroot.appendChild(rsp)
-        return self.xmldoc.toxml()
+        return self.xmldoc.toxml('utf-8')
 
     def isError(self,rsp,cmdName = ""):
         xmldoc = minidom.parseString(rsp)
