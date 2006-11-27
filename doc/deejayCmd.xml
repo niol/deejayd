@@ -1,8 +1,16 @@
 <deejayd>
 	<command name="cmdName">
-		<arg name="">value</arg>
+		<arg name="" type="simple">value</arg>
+		<arg name="" type="multiple">
+			<value>value1</value>
+			<value>value2</value>
+		</arg>
 	</command>
 	<command name="cmdName">
 		<arg name="">value</arg>
+		<arg name="" type="multiple">
+			<value>value1</value>
+			<value>value2</value>
+		</arg>
 	</command>
 </deejayd>
