@@ -248,13 +248,18 @@ class PlaylistSave(SimplePlaylistCommand):
 class PlaylistAdd(UnknownCommand):
 
     def execute(self):
-        path = "path" in self.args.keys() and self.args["path"] or ""
+        files = "path" in self.args.keys() and self.args["path"] or ""
+        if isinstance(files, str):
+            files = [files]
         playlistName = "name" in self.args.keys() and self.args["name"] or None
-        try: 
-            self.deejaydArgs["sources"].getSource("playlist").addPath(path,playlistName)
-            return self.getOkAnswer()
-        except sources.playlist.SongNotFoundException:
-            return self.getErrorAnswer('File or Directory not found')
+
+        for file in files:
+            try: 
+                self.deejaydArgs["sources"].getSource("playlist").\
+                    addPath(file,playlistName)
+            except sources.playlist.SongNotFoundException:
+                return self.getErrorAnswer('%s not found' % (file,))
+        return self.getOkAnswer()
 
 
 class PlaylistInfo(UnknownCommand):
