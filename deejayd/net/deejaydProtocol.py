@@ -152,11 +152,11 @@ class CommandFactory:
                             "playlistCurrent":commandsXML.PlaylistCurrent,
                             "playlistList":commandsXML.PlaylistList,
                             "playlistAdd":commandsXML.PlaylistAdd,
-                            "playlistDel":commandsXML.PlaylistDel,
+                            "playlistRemove":commandsXML.PlaylistRemove,
                             "playlistClear":commandsXML.PlaylistClear,
                             "playlistMove":commandsXML.PlaylistMove,
                             "playlistShuffle":commandsXML.PlaylistShuffle,
-                            "playlistRemove":commandsXML.PlaylistRemove,
+                            "playlistErase":commandsXML.PlaylistErase,
                             "playlistLoad":commandsXML.PlaylistLoad,
                             "playlistSave":commandsXML.PlaylistSave,
                         # Webradios commands

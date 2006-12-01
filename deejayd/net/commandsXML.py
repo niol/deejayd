@@ -233,7 +233,7 @@ class PlaylistShuffle(SimplePlaylistCommand):
     requirePlaylist = False
 
 
-class PlaylistRemove(SimplePlaylistCommand):
+class PlaylistErase(SimplePlaylistCommand):
     funcName = "rm"
 
 
@@ -308,22 +308,29 @@ class PlaylistCurrent(PlaylistInfo):
         return self.getOkAnswer("FileList",rs)
 
 
-class PlaylistDel(UnknownCommand):
+class PlaylistRemove(UnknownCommand):
 
     def execute(self):
-        nb = "number" in self.args.keys() and self.args["number"] or None
+        numbs = "id" in self.args.keys() and self.args["id"] or []
+        if isinstance(numbs, str):
+            numbs = [numbs]
         playlistName = "name" in self.args.keys() and self.args["name"] or None
-        try:nb = int(nb)
-        except ValueError:
-            return self.getErrorAnswer('Need an integer for argument number')
 
-        try: 
-            self.deejaydArgs["sources"].getSource("playlist").delete(nb,"Id",playlistName)
-            return self.getOkAnswer()
-        except sources.playlist.SongNotFoundException:
-            return self.getErrorAnswer('Song not found')
-        except sources.playlist.PlaylistNotFoundException:
-            self.getErrorAnswer('Playlist not found')
+        for nb in numbs:
+            try:nb = int(nb)
+            except ValueError:
+                return self.getErrorAnswer('Need an integer for argument \
+                        number')
+
+            try: 
+                self.deejaydArgs["sources"].getSource("playlist").\
+                    delete(nb,"Id",playlistName)
+            except sources.playlist.SongNotFoundException:
+                return self.getErrorAnswer('Song not found')
+            except sources.playlist.PlaylistNotFoundException:
+                return self.getErrorAnswer('Playlist not found')
+
+        return self.getOkAnswer()
 
 
 
