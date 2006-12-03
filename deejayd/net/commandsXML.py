@@ -233,16 +233,28 @@ class PlaylistShuffle(SimplePlaylistCommand):
     requirePlaylist = False
 
 
-class PlaylistErase(SimplePlaylistCommand):
-    funcName = "rm"
-
-
-class PlaylistLoad(SimplePlaylistCommand):
-    funcName = "load"
-
-
 class PlaylistSave(SimplePlaylistCommand):
     funcName = "save"
+
+
+class PlaylistLoad(UnknownCommand):
+    funcName = "load"
+
+    def execute(self):
+        plsNames = "name" in self.args.keys() and self.args["name"] or ""
+        if isinstance(plsNames, str):
+            plsNames = [plsNames]
+
+        for plsName in plsNames:
+            try: getattr(self.deejaydArgs["sources"].getSource("playlist"),self.__class__.funcName)(plsName)
+            except sources.playlist.PlaylistNotFoundException:
+                return self.getErrorAnswer('Playlist not found')
+
+        self.getOkAnswer()
+
+
+class PlaylistErase(PlaylistLoad):
+    funcName = "rm"
 
 
 class PlaylistAdd(UnknownCommand):
