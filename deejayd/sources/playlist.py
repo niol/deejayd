@@ -200,7 +200,7 @@ class PlaylistManagement:
             except: raise SongNotFoundException
 
         playlistObj.addSongsFromLibrary(songs)
-        if isinstance(playlist,str):
+        if playlist != None:
             self.__closePlaylist(playlist) 
 
     def shuffle(self, playlistName = None):
