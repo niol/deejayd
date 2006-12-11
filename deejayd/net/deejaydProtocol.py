@@ -131,7 +131,7 @@ class CommandFactory:
                             "ping":commandsXML.Ping,
                             "status":commandsXML.Status,
                             "stats":commandsXML.Stats,
-                            "mode":commandsXML.Mode,
+                            "setMode":commandsXML.Mode,
                         # MediaDB Commmands
                             "update":commandsXML.UpdateDB,
                             "getdir":commandsXML.GetDir,
@@ -162,7 +162,7 @@ class CommandFactory:
                         # Webradios commands
                             "webradioList":commandsXML.WebradioList,
                             "webradioAdd":commandsXML.WebradioAdd,
-                            "webradioDel":commandsXML.WebradioDel,
+                            "webradioRemove":commandsXML.WebradioDel,
                             "webradioClear":commandsXML.WebradioClear
                         # Panel commands
                         }
