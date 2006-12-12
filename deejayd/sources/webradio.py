@@ -163,7 +163,8 @@ class WebradioManagement:
 
     def getCurrent(self):
         if self.webradioCurrent == None:
-            self.webradioCurrent = self.wrContent.get(0,"Pos")
+            try: self.webradioCurrent = self.wrContent.get(0,"Pos")
+            except NotFoundException: pass
 
         return self.webradioCurrent
 
