@@ -40,6 +40,8 @@ class UnknownCommand:
                 rs += "%s: %s\n" % (k,v)
             elif isinstance(v,float):
                 rs += "%s: %d\n" % (k,int(v))
+            elif isinstance(v,unicode):
+                rs += "%s: %s\n" % (k,v.encode("utf-8"))
 
         return rs
 

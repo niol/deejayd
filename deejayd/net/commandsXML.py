@@ -103,6 +103,8 @@ class UnknownCommand:
                 value = "%d" % (v,)
             elif isinstance(v,str):
                 value = "%s" % (v)
+            elif isinstance(v,unicode):
+                value = "%s" % (v.encode("utf-8"))
             parm.setAttribute("value",value)
             rs.append(parm)
 

@@ -156,15 +156,17 @@ class deejaydPlayer:
             self.bin.send_event(event)
 
     def getStatus(self):
-        status = [("random",self.__random),("repeat",self.__repeat),("state",self.__state),\
-            ("volume",int(self.getVolume()*100)),("mode",self.__sourceName)]
+        status = [("random",self.__random),("repeat",self.__repeat),\
+            ("state",self.__state),("volume",int(self.getVolume()*100)),\
+            ("mode",self.__sourceName)]
         curSong = self.__source.getCurrent()
         if curSong:
             status.extend([("song",curSong["Pos"]),("songid",curSong["Id"])])
         if self.__state != PLAYER_STOP:
             if "Time" not in curSong.keys():
                 curSong["Time"] = 0
-            status.extend([ ("time","%d:%d" % (self.getPosition(),curSong["Time"])) ])
+            status.extend([ ("time","%d:%d" % (self.getPosition(),\
+                curSong["Time"])) ])
 
         return status
 
