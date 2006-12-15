@@ -392,7 +392,7 @@ class WebradioList(UnknownCommand):
         wrs = self.deejaydArgs["sources"].getSource("webradio").getList()
         rs = []
         for wr in wrs:
-            webradio = self.xmlDoc.createDocument("webradio")
+            webradio = self.xmlDoc.createElement("webradio")
             dict = [("Title",wr["Title"]),("Id",wr["Id"]),("Pos",wr["Pos"]),("Url",wr["uri"])]
             content = self.formatResponseWithDict(dict) 
             for c in content: webradio.appendChild(c)
@@ -411,14 +411,18 @@ class WebradioClear(UnknownCommand):
 class WebradioDel(UnknownCommand):
 
     def execute(self):
-        id = "id" in self.args.keys() and self.args["id"] or None
-        try: id = int(id)
-        except ValueError:
-            return self.getErrorAnswer('Need an integer : id')
-            
-        try: self.deejaydArgs["sources"].getSource("webradio").erase(id)
-        except sources.webradio.NotFoundException:
-            return self.getErrorAnswer('Webradio not found')
+        numbs = "id" in self.args.keys() and self.args["id"] or []
+        if isinstance(numbs, str):
+            numbs = [numbs]
+
+        for nb in numbs:
+            try: id = int(nb)
+            except ValueError: 
+                return self.getErrorAnswer('Need an integer : id') 
+        
+            try: self.deejaydArgs["sources"].getSource("webradio").erase(id)
+            except sources.webradio.NotFoundException:
+                return self.getErrorAnswer('Webradio not found')
 
         return self.getOkAnswer()
 
