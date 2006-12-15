@@ -147,9 +147,9 @@ class CommandFactory:
                             "seek":commandsXML.Seek,
                             "random":commandsXML.Random,
                             "repeat":commandsXML.Repeat,
+                            "current":commandsXML.CurrentSong,
                         # Playlist commands
                             "playlistInfo":commandsXML.PlaylistInfo,
-                            "playlistCurrent":commandsXML.PlaylistCurrent,
                             "playlistList":commandsXML.PlaylistList,
                             "playlistAdd":commandsXML.PlaylistAdd,
                             "playlistRemove":commandsXML.PlaylistRemove,

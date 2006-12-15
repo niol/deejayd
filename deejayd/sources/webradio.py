@@ -168,6 +168,11 @@ class WebradioManagement:
 
         return self.webradioCurrent
 
+    def getPlayingSong(self):
+        if self.webradioCurrent and self.player.isPlay():
+            return self.webradioCurrent
+        return None
+
     def goTo(self,nb,type):
         self.webradioCurrent = self.wrContent.get(nb,type)
         return self.webradioCurrent

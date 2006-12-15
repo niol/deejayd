@@ -23,7 +23,8 @@ class deejaydPlayer:
         # Initialise var
         self.__state = PLAYER_STOP
         self.__source = None
-        self.__sourceName = ""
+        self.__sourceName = None
+        self.__playingSourceName = None
         self.__random = 0
         self.__repeat = 0
 
@@ -66,6 +67,9 @@ class deejaydPlayer:
         self.__source = source
         self.__sourceName = name
 
+    def getPlayingSourceName(self):
+        return self.__playingSourceName or self.__sourceName
+
     def play(self):
         if not self.bin.get_property('uri'):
             try: 
@@ -73,6 +77,7 @@ class deejaydPlayer:
                 self.bin.set_property('uri',curSong["uri"])
             except: return
 
+        self.__playingSourceName = self.__sourceName
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         self.__state = PLAYER_PLAY
         timeout = 4

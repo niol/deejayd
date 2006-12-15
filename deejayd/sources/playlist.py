@@ -185,9 +185,9 @@ class PlaylistManagement:
             self.__closePlaylist(playlist) 
         return content
 
-    def getCurrentSong(self):
+    def getPlayingSong(self):
         if self.currentSong and self.player.isPlay():
-            return [self.currentSong]
+            return self.currentSong
         return None
 
     def addPath(self,path,playlist = None):

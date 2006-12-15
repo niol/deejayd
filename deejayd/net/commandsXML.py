@@ -311,17 +311,6 @@ class PlaylistInfo(UnknownCommand):
         return rs
 
 
-class PlaylistCurrent(PlaylistInfo):
-
-    def execute(self):
-        songs = self.deejaydArgs["sources"].getSource("playlist").\
-                    getCurrentSong()
-        rs = []
-        if songs:
-            rs = self.formatPlaylistInfo(songs)
-        return self.getOkAnswer("FileList",rs)
-
-
 class PlaylistRemove(UnknownCommand):
 
     def execute(self):
@@ -521,5 +510,30 @@ class Random(UnknownCommand):
 class Repeat(Random):
     funcName = "repeat"
 
+
+class CurrentSong(UnknownCommand):
+
+    def execute(self):
+        source = self.deejaydArgs["player"].getPlayingSourceName()
+        song = self.deejaydArgs["sources"].getSource(source).\
+                    getPlayingSong()
+        rs = []
+        if song:
+            chd = self.xmlDoc.createElement("item") 
+            chd.setAttribute("type",source)
+            dict = []
+            if source == "webradio":
+                dict = [("Title",song["Title"]),("Id",song["Id"]),\
+                    ("Pos",song["Pos"]),("Url",song["uri"])]
+            elif source == "playlist":
+                dict = [("Title",song["Title"]),("Id",song["Id"]),\
+                    ("Pos",song["Pos"]),("Artist",song["Artist"]),\
+                    ("Album",song["Album"]),("Time",song["Time"])]
+
+            content = self.formatResponseWithDict(dict) 
+            for c in content: chd.appendChild(c)
+            rs = [chd]
+
+        return self.getOkAnswer("FileList",rs)
 
 # vim: ts=4 sw=4 expandtab
