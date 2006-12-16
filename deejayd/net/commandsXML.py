@@ -519,7 +519,8 @@ class CurrentSong(UnknownCommand):
                     getPlayingSong()
         rs = []
         if song:
-            chd = self.xmlDoc.createElement("item") 
+            chdName = source=="webradio" and "webradio" or "file"
+            chd = self.xmlDoc.createElement(chdName) 
             chd.setAttribute("type",source)
             dict = []
             if source == "webradio":
