@@ -41,8 +41,8 @@ class Webradio:
         self.__wrId = 0
         self.webradioId = 0
         webradios = self.db.getWebradios() 
-        self.wrContent = [{"Pos":webradio[0],"Id":self.__getId(), "Title":webradio[1], "uri":webradio[2]} \
-                            for webradio in webradios]
+        self.wrContent = [{"Pos":webradio[0],"Id":self.__getId(), \
+            "Title":webradio[1], "uri":webradio[2]} for webradio in webradios]
 
     def getList(self):
         return self.wrContent

@@ -168,8 +168,8 @@ class deejaydPlayer:
         if curSong:
             status.extend([("song",curSong["Pos"]),("songid",curSong["Id"])])
         if self.__state != PLAYER_STOP:
-            if "Time" not in curSong.keys():
-                curSong["Time"] = 0
+            if "Time" not in curSong.keys() or curSong["Time"] == 0:
+                curSong["Time"] = self.getPosition()
             status.extend([ ("time","%d:%d" % (self.getPosition(),\
                 curSong["Time"])) ])
 
