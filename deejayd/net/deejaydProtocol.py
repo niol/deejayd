@@ -119,11 +119,14 @@ class CommandFactory:
             name = arg.attributes["name"].value
             type = arg.attributes["type"].value
             if type == "simple":
-                value = arg.firstChild.data
+                value = None
+                if arg.hasChildNodes():
+                    value = arg.firstChild.data
             elif type == "multiple":
                 value = []
                 for val in arg.getElementsByTagName("value"):
-                    value.append(val.firstChild.data)
+                    if arg.hasChildNodes():
+                        value.append(val.firstChild.data)
             args[name] = value
             
         commandsParse = {
