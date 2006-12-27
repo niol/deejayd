@@ -214,7 +214,7 @@ class PlaylistManagement:
 
         if playlist == None:
             self.currentSong = None
-            self.player.reset()
+            self.player.reset("playlist")
         playlistObj.clear()
 
         if isinstance(playlist,str):

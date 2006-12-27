@@ -25,6 +25,7 @@ class deejaydPlayer:
         self.__source = None
         self.__sourceName = None
         self.__playingSourceName = None
+        self.__playingSource = None
         self.__random = 0
         self.__repeat = 0
 
@@ -71,13 +72,15 @@ class deejaydPlayer:
         return self.__playingSourceName or self.__sourceName
 
     def play(self):
-        if not self.bin.get_property('uri'):
+        if self.__state == PLAYER_STOP:
             try: 
                 curSong = self.__source.getCurrent()
                 self.bin.set_property('uri',curSong["uri"])
             except: return
 
         self.__playingSourceName = self.__sourceName
+        self.__playingSource= self.__source
+
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         self.__state = PLAYER_PLAY
         timeout = 4
@@ -101,9 +104,10 @@ class deejaydPlayer:
         self.bin.set_state(gst.STATE_NULL)
         self.__state = PLAYER_STOP
 
-    def reset(self):
-        self.stop()
-        self.bin.set_property('uri',"")
+    def reset(self,sourceName):
+        if sourceName == self.__playingSourceName:
+            self.stop()
+            self.bin.set_property('uri',"")
 
     def next(self):
         self.stop()
@@ -164,7 +168,9 @@ class deejaydPlayer:
         status = [("random",self.__random),("repeat",self.__repeat),\
             ("state",self.__state),("volume",int(self.getVolume()*100)),\
             ("mode",self.__sourceName)]
-        curSong = self.__source.getCurrent()
+
+        source = self.__playingSource or self.__source
+        curSong = source.getCurrent()
         if curSong:
             status.extend([("song",curSong["Pos"]),("songid",curSong["Id"])])
         if self.__state != PLAYER_STOP:
