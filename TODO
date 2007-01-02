@@ -1,3 +1,16 @@
 Mediadb
   * Improve error handling
   	-> When the music directory does not exist
+  * Use os.walk function
+
+Net
+  * Document XML protocol (find an automatic way)
+
+Database
+  * Complete Database class
+
+Test
+  * Finish to write tests
+
+Other
+  * Add a setup.py file
