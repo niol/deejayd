@@ -240,7 +240,30 @@ class PlaylistSave(SimplePlaylistCommand):
 
 
 class PlaylistLoad(UnknownCommand):
-    funcName = "load"
+
+    def execute(self):
+        pos = "pos" in self.args.keys() and self.args["pos"] or None
+        if pos:
+            try:
+                pos = int(pos)
+                if pos < 0:
+                    raise ValueError 
+            except ValueError:
+                return self.getErrorAnswer(
+                    'Need an integer for position argument')
+        plsNames = "name" in self.args.keys() and self.args["name"] or ""
+        if isinstance(plsNames, str):
+            plsNames = [plsNames]
+
+        try: self.deejaydArgs["sources"].getSource("playlist").load(plsNames,
+                pos)
+        except sources.playlist.PlaylistNotFoundException:
+            return self.getErrorAnswer('Playlist not found')
+
+        self.getOkAnswer()
+
+
+class PlaylistErase(PlaylistLoad):
 
     def execute(self):
         plsNames = "name" in self.args.keys() and self.args["name"] or ""
@@ -248,31 +271,36 @@ class PlaylistLoad(UnknownCommand):
             plsNames = [plsNames]
 
         for plsName in plsNames:
-            try: getattr(self.deejaydArgs["sources"].getSource("playlist"),self.__class__.funcName)(plsName)
+            try: self.deejaydArgs["sources"].getSource("playlist").\
+                    rm(plsName)
             except sources.playlist.PlaylistNotFoundException:
                 return self.getErrorAnswer('Playlist not found')
 
         self.getOkAnswer()
 
 
-class PlaylistErase(PlaylistLoad):
-    funcName = "rm"
-
-
 class PlaylistAdd(UnknownCommand):
 
     def execute(self):
+        pos = "pos" in self.args.keys() and self.args["pos"] or None
+        if pos:
+            try:
+                pos = int(pos)
+                if pos < 0:
+                    raise ValueError 
+            except ValueError:
+                return self.getErrorAnswer(
+                    'Need an integer for position argument')
         files = "path" in self.args.keys() and self.args["path"] or ""
         if isinstance(files, str):
             files = [files]
         playlistName = "name" in self.args.keys() and self.args["name"] or None
 
-        for file in files:
-            try: 
-                self.deejaydArgs["sources"].getSource("playlist").\
-                    addPath(file,playlistName)
-            except sources.playlist.SongNotFoundException:
-                return self.getErrorAnswer('%s not found' % (file,))
+        try: 
+            self.deejaydArgs["sources"].getSource("playlist").\
+                addPath(files,playlistName,pos)
+        except sources.playlist.SongNotFoundException:
+            return self.getErrorAnswer('%s not found' % (file,))
         return self.getOkAnswer()
 
 

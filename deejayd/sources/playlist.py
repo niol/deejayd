@@ -26,12 +26,16 @@ class Playlist:
                 if name ==  "__djcurrent__":
                     self.playlistContent = []
                 else:
+                    # Playlist not found
                     raise PlaylistNotFoundException
 
             # Format correctly playlist content
-            self.playlistContent = [{"dir":s[0],"filename":s[1],"Pos":s[3],"Id":self.__getSongId(),"Title":s[6],\
-                "Artist":s[7],"Album":s[8],"Genre":s[9],"Track":s[10],"Date":s[11],"Time":s[12],"bitrate":s[13],\
-                "uri":"file://"+path.join(self.__class__.root_path,path.join(s[0],s[1]))} for s in self.playlistContent]
+            self.playlistContent = [{"dir":s[0],"filename":s[1],"Pos":s[3],
+                "Id":self.__getSongId(),"Title":s[6],"Artist":s[7],
+                "Album":s[8],"Genre":s[9],"Track":s[10],"Date":s[11],
+                "Time":s[12],"bitrate":s[13],"uri":"file://"+path.join(self.\
+                __class__.root_path,path.join(s[0],s[1]))} for s in \
+                self.playlistContent]
 
         elif isinstance(content,list):
             self.playlistContent = content
@@ -57,28 +61,53 @@ class Playlist:
     def getIds(self):
         return [s["Id"] for s in self.playlistContent]
 
-    def addSongsFromLibrary(self,songs):
-        playlistLength = len(self.playlistContent)
+    def addSongsFromLibrary(self,songs,firstPos):
+        initPos = firstPos
+        if firstPos == None:
+            initPos = len(self.playlistContent)
+        oldPls = self.playlistContent[initPos:len(self.playlistContent)]
+        self.playlistContent = self.playlistContent[0:initPos]
+
         i = 0
         for s in songs:
-            pos = playlistLength+i
-            self.playlistContent.append({"dir":s[0],"filename":s[1],"Pos":pos,"Id":self.__getSongId(),"Title":s[3],
-                "Artist":s[4],"Album":s[5],"Genre":s[6],"Track":s[7],"Date":s[8],"Time":s[9],"bitrate":s[10],\
-                "uri":"file://"+path.join(self.__class__.root_path,path.join(s[0],s[1]))})
+            pos = initPos+i
+            self.playlistContent.append({"dir":s[0],"filename":s[1],
+                "Pos":pos,"Id":self.__getSongId(),"Title":s[3], "Artist":s[4],
+                "Album":s[5],"Genre":s[6],"Track":s[7],"Date":s[8],"Time":s[9],
+                "bitrate":s[10],"uri":"file://"+path.join(\
+                self.__class__.root_path,path.join(s[0],s[1]))})
             i += 1
+
+        for song in oldPls:
+            song["Pos"] = initPos+i
+            i+=1
+
+        self.playlistContent.extend(oldPls)
         # Increment playlistId
         self.playlistId += len(songs)
 
-    def addSongsFromPlaylist(self,songs):
-        playlistLength = len(self.playlistContent)
+    def addSongsFromPlaylist(self,songs,firstPos):
+        initPos = firstPos
+        if firstPos == None:
+            initPos = len(self.playlistContent)
+        oldPls = self.playlistContent[initPos:len(self.playlistContent)]
+        self.playlistContent = self.playlistContent[0:initPos]
+
         i = 0
         for s in songs:
-            pos = playlistLength+i
-            self.playlistContent.append({"dir":s["dir"],"filename":s["filename"],"Pos":pos,"Id":self.__getSongId(),\
-                "Title":s["Title"],"Artist":s["Artist"],"Album":s["Album"],"Genre":s["Genre"],"Track":s["Track"],\
-                "Date":s["Date"],"Time":s["Time"],"bitrate":s["bitrate"],\
-                "uri":s["uri"]})
+            pos = initPos+i
+            self.playlistContent.append({"dir":s["dir"],
+                "filename":s["filename"],"Pos":pos,"Id":self.__getSongId(),
+                "Title":s["Title"],"Artist":s["Artist"],"Album":s["Album"],
+                "Genre":s["Genre"],"Track":s["Track"],"Date":s["Date"],
+                "Time":s["Time"],"bitrate":s["bitrate"],"uri":s["uri"]})
             i += 1
+
+        for song in oldPls:
+            song["Pos"] = initPos+i
+            i+=1
+
+        self.playlistContent.extend(oldPls)
         # Increment playlistId
         self.playlistId += len(songs)
 
@@ -190,16 +219,20 @@ class PlaylistManagement:
             return self.currentSong
         return None
 
-    def addPath(self,path,playlist = None):
+    def addPath(self,files,playlist = None,pos = None):
         playlistObj = self.__openPlaylist(playlist)
 
-        try: songs = self.djDB.getAll(path)
-        except:
-            # perhaps it is file
-            try: songs = self.djDB.getFile(path)
-            except: raise SongNotFoundException
+        songs = []
+        if isinstance(files,str):
+            files = [files]
+        for file in files:
+            try: songs.extend(self.djDB.getAll(file))
+            except:
+                # perhaps it is file
+                try: songs.extend(self.djDB.getFile(file))
+                except: raise SongNotFoundException
 
-        playlistObj.addSongsFromLibrary(songs)
+        playlistObj.addSongsFromLibrary(songs,pos)
         if playlist != None:
             self.__closePlaylist(playlist) 
 
@@ -223,16 +256,23 @@ class PlaylistManagement:
     def delete(self,nb,type = "Id",playlist = None):
         playlistObj = self.__openPlaylist(playlist)
         
-        if playlist == None and self.currentSong != None and self.currentSong[type] == nb:
+        if playlist == None and self.currentSong != None and\
+                self.currentSong[type] == nb:
             self.player.next()
         playlistObj.delete(nb,type)
 
         if isinstance(playlist,str):
             self.__closePlaylist(playlist) 
 
-    def load(self,playlist):
-        playlistContent = Playlist(self.db,playlist)
-        self.currentPlaylist.addSongsFromPlaylist(playlistContent.get())
+    def load(self,playlists,pos = None):
+        songs = []
+        if isinstance(playlists,str):
+            playlists = [playlists]
+        for playlist in playlists:
+            playlistContent = Playlist(self.db,playlist)
+            songs.extend(playlistContent.get())
+
+        self.currentPlaylist.addSongsFromPlaylist(songs,pos)
 
     def save(self,playlistName):
         playlistObj = Playlist(self.db,playlistName,self.currentPlaylist.get())
