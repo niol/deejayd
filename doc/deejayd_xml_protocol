@@ -1,0 +1,388 @@
+
+                        deejayd - XML Protocol
+
+All data between the client and server is encoded in UTF-8.
+-------------------------------------------------------------------------------
+Commands Format :
+-----------------
+<?xml version="1.0"?>
+<deejayd>
+    <command name="cmdName1">
+        <arg name="argName1" type="simple">value</arg>
+        <arg name="argName2" type="multiple">
+            <value>value1</value>
+            <value>value2</value>
+        </arg>
+    </command>
+    <command name="cmdName2">
+        <arg name="argName1" type="simple">value</arg>
+        <arg name="argName2" type="multiple">
+            <value>value1</value>
+            <value>value2</value>
+        </arg>
+    </command>
+</deejayd>
+ENDXML
+-----------------
+ENDXML is used as command delimeter.
+For certain commands, you want to pass several values for an argument. 
+Then, you have to set the type to "multiple" instead of "single".
+
+
+-------------------------------------------------------------------------------
+Response Format :
+-----------------
+<?xml version="1.0"?>
+<deejayd>
+    <error name="cmdName">errorText</error> // If there is an error.
+                 OR
+    <response name="cmdName1" type="Ack"/> // No error
+    <response name="cmdName2" type="KeyValue">
+        <parm name="parmName1" value="value1"/>
+        <parm name="parmName2" value="value2"/>
+    </response>
+    <response name="cmdName3" type="FileList">
+        <file>
+            <parm name="parmName1" value="parmValue1"
+            <parm name="parmName2" value="parmValue2"
+        </file>
+            OR
+        <directory name="dirName"/>
+    </response>
+    <response name="cmdName3" type="WebradioList">
+        <webradio>
+            <parm name="parmName1" value="parmValue1"
+            <parm name="parmName2" value="parmValue2"
+        </webradio>
+    </response>
+    <response name="cmdName3" type="SongList">
+        <song>
+            <parm name="parmName1" value="parmValue1"
+            <parm name="parmName2" value="parmValue2"
+        </song>
+    </response>
+    <response name="cmdName4" type="PlaylistList">
+        <playlist name="pls1"/>
+        <playlist name="pls2"/>
+    </response>
+</deejayd>
+-----------------
+There are 6 response types
+  * "Ack" : just an acknowledgement of the command 
+  * "KeyValue" : a list of "key=value" couple  
+  * "FileList" : file and directory list
+  * "WebradioList" : webradio list with informations foreach webradio 
+                     (id,pos,title,url)
+  * "SongList" : song list (playlist content for example) with informations
+                 foreach song (artist,album,title,id...) 
+  * "PlaylistList" : playlist list 
+
+-------------------------------------------------------------------------------
+Available Commands :
+-----------------
+
+    
+-----------------
+ping
+-----------------
+arguments :
+
+description : 
+Does nothing, just to test the connextion with the server
+    
+-----------------
+status
+-----------------
+arguments :
+
+description : 
+Return status of deejayd. Given informations are :
+  * playlist : id of the current playlist
+  * playlistlength : length of the current playlist
+  * webradio : id of the current webradio list
+  * random : 0 (not activate) or 1 (activate) 
+  * repeat : 0 (not activate) or 1 (activate) 
+  * volume : [0-100] current volume value  
+  * state : [play-pause-stop] the current state of deejayd
+  * song : the position of the current song
+  * songid : the id of the current song
+  * mode : [playlist-webradio] the current mode
+  * updating_db :  
+    
+-----------------
+stats
+-----------------
+arguments :
+
+description : 
+Return statistic informations :
+  * db_update : UNIX time of the last database update
+  * songs : songs number in the database
+  * artists : number of artists in the database
+  * albums : number of albums in the database
+    
+-----------------
+setMode
+-----------------
+arguments :
+mode : type->string, required->true, multiple->false
+
+description : 
+Change the player mode. Possible values are :
+  * playlist : to manage and listen songs in playlist mode
+  * webradio : to manage and listen webradio
+    
+-----------------
+update
+-----------------
+arguments :
+directory : type->string, required->false, multiple->false
+
+description : 
+Update the database. "directory" argument is optional and allow to update just
+a particular directory.
+  * updating_db : the id of this task. it appears in the result of status
+    command until the update are finished.
+    
+-----------------
+getdir
+-----------------
+arguments :
+directory : type->string, required->false, multiple->false
+
+description : 
+lists files of "directory".
+    
+-----------------
+search
+-----------------
+arguments :
+type : type->list : 'all','title',                    'genre','filename','artist','album', required->true, multiple->false
+txt : type->string, required->true, multiple->false
+
+description : 
+Search file where "type" contains "txt" content
+    
+-----------------
+play
+-----------------
+arguments :
+id : type->int, required->false, multiple->false
+
+description : 
+Begin playing at song or webradio with id "id".
+    
+-----------------
+stop
+-----------------
+arguments :
+
+description : 
+Stop playing
+    
+-----------------
+pause
+-----------------
+arguments :
+
+description : 
+Toggle pause/resume playing
+    
+-----------------
+next
+-----------------
+arguments :
+
+description : 
+Go to next song or webradio
+    
+-----------------
+previous
+-----------------
+arguments :
+
+description : 
+Go to previous song or webradio
+    
+-----------------
+setVolume
+-----------------
+arguments :
+volume : type->int, required->true, multiple->false
+
+description : 
+set volume to "volume".
+The range of volume is 0-100
+    
+-----------------
+seek
+-----------------
+arguments :
+time : type->int, required->true, multiple->false
+
+description : 
+seeks to the position "time" (in seconds) of the current song (in playlist mode).
+    
+-----------------
+random
+-----------------
+arguments :
+value : type->list : 0 or 1, required->true, multiple->false
+
+description : 
+set random state to "value", "value" should be 0 or 1
+    
+-----------------
+repeat
+-----------------
+arguments :
+value : type->list 0 or 1, required->true, multiple->false
+
+description : 
+set repeat state to "value", "value" should be 0 or 1
+    
+-----------------
+current
+-----------------
+arguments :
+
+description : 
+Return informations on the current song or webradio.
+    
+-----------------
+playlistInfo
+-----------------
+arguments :
+path : type->string, required->false, multiple->false
+
+description : 
+Return the content of the playlist "name". 
+If no name are given, return the content of the current playlist
+    
+-----------------
+playlistList
+-----------------
+arguments :
+
+description : 
+Return the list of recorded playlists
+    
+-----------------
+playlistAdd
+-----------------
+arguments :
+path : type->string, required->true, multiple->false
+pos : type->int, required->false, multiple->false
+
+description : 
+Load files or directories passed in arguments ("path") at the position "pos"  
+    
+-----------------
+playlistRemove
+-----------------
+arguments :
+id : type->int, required->true, multiple->false
+name : type->string, required->false, multiple->false
+
+description : 
+Remove songs with ids passed as argument ("id"), from the playlist "name". 
+If no name are given, remove songs from current playlist 
+    
+-----------------
+playlistClear
+-----------------
+arguments :
+
+description : 
+Clear the current playlist.
+    
+-----------------
+playlistMove
+-----------------
+arguments :
+id : type->int, required->true, multiple->false
+newPosition : type->int, required->true, multiple->false
+
+description : 
+Move song with id equal to "id" to "newPosition "position 
+    
+-----------------
+playlistShuffle
+-----------------
+arguments :
+
+description : 
+Shuffle the current playlist.
+    
+-----------------
+playlistShuffle
+-----------------
+arguments :
+
+description : 
+Shuffle the current playlist.
+    
+-----------------
+playlistErase
+-----------------
+arguments :
+name : type->string, required->true, multiple->false
+
+description : 
+Erase playlists passed in arguments 
+    
+-----------------
+playlistLoad
+-----------------
+arguments :
+name : type->string, required->true, multiple->false
+pos : type->int, required->false, multiple->false
+
+description : 
+Load playlists passed in arguments ("name") at the position "pos"  
+    
+-----------------
+playlistSave
+-----------------
+arguments :
+name : type->string, required->true, multiple->false
+
+description : 
+Save the current playlist to "name" in the database
+    
+-----------------
+webradioList
+-----------------
+arguments :
+
+description : 
+Return the list of recorded webradios
+    
+-----------------
+webradioAdd
+-----------------
+arguments :
+url : type->string, required->true, multiple->false
+name : type->string, required->true, multiple->false
+
+description : 
+Add a webradio. It's name is "name" and the url of the webradio is "url".
+You can pass a playlist for "url" argument (.pls and .m3u format are supported) 
+    
+-----------------
+webradioRemove
+-----------------
+arguments :
+id : type->int, required->true, multiple->false
+
+description : 
+Remove webradios with id equal to "ids"
+    
+-----------------
+webradioClear
+-----------------
+arguments :
+
+description : 
+Remove all recorded webradios
+    

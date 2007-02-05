@@ -12,7 +12,6 @@ from deejayd.player import player
 from deejayd.net import commandsLine
 from deejayd.net import commandsXML
 
-
 class DeejaydProtocol(LineReceiver):
 
     def __init__(self,player,db,sources):
@@ -129,47 +128,7 @@ class CommandFactory:
                         value.append(val.firstChild.data)
             args[name] = value
             
-        commandsParse = {
-                        # General Commmands
-                            "ping":commandsXML.Ping,
-                            "status":commandsXML.Status,
-                            "stats":commandsXML.Stats,
-                            "setMode":commandsXML.Mode,
-                        # MediaDB Commmands
-                            "update":commandsXML.UpdateDB,
-                            "getdir":commandsXML.GetDir,
-                            "search":commandsXML.Search,
-                            "find":commandsXML.Search,
-                        # Player commands
-                            "play":commandsXML.Play,
-                            "stop":commandsXML.Stop,
-                            "pause":commandsXML.Pause,
-                            "next":commandsXML.Next,
-                            "previous":commandsXML.Previous,
-                            "setVolume":commandsXML.Volume,
-                            "seek":commandsXML.Seek,
-                            "random":commandsXML.Random,
-                            "repeat":commandsXML.Repeat,
-                            "current":commandsXML.CurrentSong,
-                        # Playlist commands
-                            "playlistInfo":commandsXML.PlaylistInfo,
-                            "playlistList":commandsXML.PlaylistList,
-                            "playlistAdd":commandsXML.PlaylistAdd,
-                            "playlistRemove":commandsXML.PlaylistRemove,
-                            "playlistClear":commandsXML.PlaylistClear,
-                            "playlistMove":commandsXML.PlaylistMove,
-                            "playlistShuffle":commandsXML.PlaylistShuffle,
-                            "playlistErase":commandsXML.PlaylistErase,
-                            "playlistLoad":commandsXML.PlaylistLoad,
-                            "playlistSave":commandsXML.PlaylistSave,
-                        # Webradios commands
-                            "webradioList":commandsXML.WebradioList,
-                            "webradioAdd":commandsXML.WebradioAdd,
-                            "webradioRemove":commandsXML.WebradioDel,
-                            "webradioClear":commandsXML.WebradioClear
-                        # Panel commands
-                        }
-
+        commandsParse = commandsXML.commandsList(commandsXML)
         if cmdName in commandsParse.keys():
             return (cmdName,commandsParse[cmdName],args)
         else: return (cmdName,commandsXML.UnknownCommand,{})
