@@ -67,13 +67,73 @@ class Database(UnknownDatabase):
 
         return self.cursor.fetchall()
 
+    def getDirContent(self,dir):
+        query = "SELECT filename,type FROM {library} WHERE dir = ?"
+        self.execute(query, (dir,))
+
+        return self.cursor.fetchall()
+
+    def getDirInfo(self,dir): 
+        query = "SELECT * FROM {library} WHERE dir = ? ORDER BY type"
+        self.execute(query,(dir,))
+
+        return self.cursor.fetchall()
+
+    def getFileInfo(self,file):
+        query = "SELECT * FROM {library} WHERE dir = ? AND filename = ?"
+        self.execute(query,path.split(file))
+
+        return self.cursor.fetchall()
+
+    def getAllFile(self,dir):
+        query = "SELECT * FROM {library} WHERE dir LIKE ? AND TYPE = 'file' \
+            ORDER BY dir"
+        self.execute(query,(dir+'%%',))
+
+        return self.cursor.fetchall()
+
+    def insertFile(self,dir,fileInfo):
+        query = "INSERT INTO {library}(type,dir,filename,title,artist,album,\
+            genre,date,tracknumber,length,bitrate)VALUES ('file',?,?,?,?,?,\
+            ?,?,?,?,?)"
+        self.execute(query, (dir,fileInfo["filename"],fileInfo["title"],\
+            fileInfo["artist"],fileInfo["album"],fileInfo["genre"],\
+            fileInfo["date"], fileInfo["tracknumber"],fileInfo["length"],\
+            fileInfo["birate"]))
+
+    def updateFile(self,dir,fileInfo):
+        query = "UPDATE {library} SET title=?,artist=?,album=?,genre=?,date=?,\
+            acknumber=?,length=?,bitrate=? WHERE dir=? AND filename=?"
+        self.execute(query,(fileInfo["title"],fileInfo["artist"],\
+            fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
+            fileInfo["tracknumber"],fileInfo["length"],fileInfo["birate"],\
+            dir,fileInfo["filename"]))
+
+    def removeFile(self,dir,f):
+        query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
+        self.execute(query, (f,dir))
+
+    def insertDir(self,newDir):
+        query = "INSERT INTO {library}(dir,filename,type)VALUES(?,?,\
+            'directory')"
+        self.executemany(query, newDir)
+
+    def eraseDir(self,root,dir):
+        query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
+        self.execute(query, (dir,root))
+        # We also need to erase the content of this directory
+        query = "DELETE FROM {library} WHERE dir LIKE ?"
+        self.execute(query, (path.join(root,dir)+"%%",))
+
     #
     # Playlist requests
     #
     def getPlaylist(self,playlistName):
-        query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, l.filename, l.title, l.artist, l.album, l.genre, \
-            l.tracknumber, l.date, l.length, l.bitrate FROM {playlist} p LEFT OUTER JOIN {library} l ON p.dir = l.dir AND \
-            p.filename = l.filename WHERE p.name = ? ORDER BY p.position"
+        query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, \
+        l.filename, l.title, l.artist, l.album, l.genre, l.tracknumber, \
+        l.date, l.length, l.bitrate FROM {playlist} p LEFT OUTER JOIN \
+        {library} l ON p.dir = l.dir AND p.filename = l.filename WHERE \
+        p.name = ? ORDER BY p.position"
         self.execute(query,(playlistName,))
         return self.cursor.fetchall()
 
@@ -82,8 +142,10 @@ class Database(UnknownDatabase):
         self.connection.commit()
 
     def savePlaylist(self,content,playlistName):
-        values = [(playlistName,s["Pos"],s["dir"],s["filename"]) for s in content]
-        query = "INSERT INTO {playlist}(name,position,dir,filename)VALUES(?,?,?,?)"
+        values = [(playlistName,s["Pos"],s["dir"],s["filename"]) \
+            for s in content]
+        query = "INSERT INTO {playlist}(name,position,dir,filename)\
+            VALUES(?,?,?,?)"
         self.executemany(query,values)
         self.connection.commit()
 
@@ -115,7 +177,8 @@ class Database(UnknownDatabase):
         self.execute("SELECT filename FROM {library} WHERE type = 'file'")
         songs = len(self.cursor.fetchall())
         # Get the number of artist
-        self.execute("SELECT DISTINCT artist FROM {library} WHERE type = 'file'")
+        self.execute("SELECT DISTINCT artist FROM {library} WHERE type = \
+            'file'")
         artists = len(self.cursor.fetchall())
         # Get the number of album
         self.execute("SELECT DISTINCT album FROM {library} WHERE type = 'file'")
@@ -149,11 +212,15 @@ class sqliteDatabase(Database):
 
     def _initialise(self):
         # creation of tables
-        self.execute("CREATE TABLE {library}(dir TEXT,filename TEXT,type TEXT,title TEXT,artist TEXT,album TEXT,\
-            genre TEXT, tracknumber INT, date TEXT, length INT, bitrate INT, PRIMARY KEY (dir,filename))")
-        self.execute("CREATE TABLE {webradio}(wid INT, name TEXT,url TEXT,PRIMARY KEY (wid))")
-        self.execute("CREATE TABLE {playlist}(name TEXT,position INT, dir TEXT, filename TEXT,PRIMARY KEY (name,position))")
-        self.execute("CREATE TABLE {stat}(name TEXT,value INT,PRIMARY KEY (name))")
+        self.execute("CREATE TABLE {library}(dir TEXT,filename TEXT,type TEXT,\
+            title TEXT,artist TEXT,album TEXT, genre TEXT, tracknumber INT,\
+            date TEXT, length INT, bitrate INT, PRIMARY KEY (dir,filename))")
+        self.execute("CREATE TABLE {webradio}(wid INT, name TEXT,url TEXT,\
+            PRIMARY KEY (wid))")
+        self.execute("CREATE TABLE {playlist}(name TEXT,position INT, dir TEXT,\
+            filename TEXT,PRIMARY KEY (name,position))")
+        self.execute("CREATE TABLE {stat}(name TEXT,value INT,PRIMARY KEY \
+            (name))")
 
         values = [("db_update",0),("songs",0),("artists",0),("albums",0)]
         self.executemany("INSERT INTO {stat}(name,value)VALUES(?,?)",values)
@@ -208,12 +275,14 @@ def openConnection():
     try: db_type =  DeejaydConfig().get("mediadb","db_type")
     except:
         log.err("No database type selected. Exiting.")
-        raise SystemExit("You do not choose a database.Verify your config file.")
+        raise SystemExit("You do not choose a database.Verify your config \
+            file.")
 
     supportedDatabase = ("sqlite")
     if db_type not in supportedDatabase:
         log.err("Database %(db_type) is not supported. Exiting." % db_type)
-        raise SystemExit("You choose a database which is not supported.Verify your config file.")
+        raise SystemExit("You choose a database which is not supported. \
+            Verify your config file.")
 
     if db_type == "sqlite":
         db_file = DeejaydConfig().get("mediadb","db_file")

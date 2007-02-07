@@ -23,30 +23,23 @@ class DeejaydFile:
         realFile = os.path.join(realDir,f)
         
         fileInfo = self.__getFileTags(realFile) 
-        if fileInfo == None:
-            return
+        if fileInfo == None: return # Not an supported file
+        fileInfo["filename"] = f
 
-        query = "INSERT INTO {library}(type,dir,filename,title,artist,album,genre,date,tracknumber,length,bitrate)VALUES\
-                ('file',?,?,?,?,?,?,?,?,?,?)"
-        self.db.execute(query, (self.dir,f,fileInfo["title"],fileInfo["artist"],fileInfo["album"],\
-            fileInfo["genre"], fileInfo["date"], fileInfo["tracknumber"],fileInfo["length"],fileInfo["birate"]))
+        self.db.insertFile(self.dir,fileInfo)
 
     def update(self,f):
         realDir = os.path.join(self.__class__.root_path,self.dir)
         realFile = os.path.join(realDir,f)
         
         fileInfo = self.__getFileTags(realFile) 
-        if fileInfo == None:
-            return
+        if fileInfo == None: self.remove(f) # Not an supported file
+        fileInfo["filename"] = f
 
-        query = "UPDATE {library} SET title=?,artist=?,album=?,genre=?,date=?,tracknumber=?,length=?,bitrate=? WHERE dir=? \
-            AND filename=?"
-        self.db.execute(query,(fileInfo["title"],fileInfo["artist"],fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
-            fileInfo["tracknumber"],fileInfo["length"],fileInfo["birate"],self.dir,f))
+        self.db.updateFile(self.dir,fileInfo)
 
     def remove(self,f):
-        query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
-        self.db.execute(query, (f,self.dir))
+        seld.db.removeFile(self.dir,f)
 
     # Private functions
     def __getFileTags(self,f):
@@ -70,7 +63,7 @@ class DeejaydDir:
 
     def update(self,dir,lastUpdateTime):
         realDir = os.path.join(self.__class__.root_path,dir)
-        dbRecord = self.__get(dir)
+        dbRecord = self.db.getDirContent(dir)
 
         # First we update the list of directory
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
@@ -81,31 +74,23 @@ class DeejaydDir:
                     directories.remove(d)
             else:
                 # directory do not exist, we erase it
-                query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
-                self.db.execute(query, (d,dir))
-                # after we erase all this content
-                query = "DELETE FROM {library} WHERE dir LIKE ?"
-                self.db.execute(query, (os.path.join(d,dir)+"%%",))
+                self.db.eraseDir(dir,d)
         # Add new diretory
         newDir = [(dir,d) for d in directories]
-        if len(newDir) != 0:
-            query = "INSERT INTO {library}(dir,filename,type)VALUES(?,?,'directory')"
-            self.db.executemany(query, newDir)
+        if len(newDir) != 0: self.db.insertDir(newDir)
 
         # Now we update the list of files if necessary
         if int(os.stat(realDir).st_mtime) >= lastUpdateTime:
-            files = [ f for f in os.listdir(realDir) if os.path.isfile(os.path.join(realDir,f))]
+            files = [ f for f in os.listdir(realDir) 
+                if os.path.isfile(os.path.join(realDir,f))]
             djFile = DeejaydFile(self.db,dir)
             for f in [fi for (fi,t) in dbRecord if t == 'file']:
                 if os.path.isfile(os.path.join(realDir,f)):
                     djFile.update(f)
-                    if f in files:
-                        files.remove(f)
-                else:
-                    djFile.remove(f)
+                    if f in files: files.remove(f)
+                else: djFile.remove(f)
             # Insert new files
-            for f in files:
-                djFile.insert(f)
+            for f in files: djFile.insert(f)
 
         # Finally we update subdirectories
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
@@ -115,17 +100,9 @@ class DeejaydDir:
             if d in newDir: self.update(d,0)
             else: self.update(d,lastUpdateTime)
 
-    # Private functions
-    def __get(self,dir):
-        query = "SELECT filename,type FROM {library} WHERE dir = ?"
-        self.db.execute(query, (dir,))
-
-        return self.db.cursor.fetchall()
-
 
 class DeejaydDB:
     """deejaydDB
-
     Class to manage the media database
     """
     supportedDatabase = ('sqlite')
@@ -140,22 +117,14 @@ class DeejaydDB:
         self.db.connect()
 
     def getDir(self,dir):
-        query = "SELECT * FROM {library} WHERE dir = ? ORDER BY type"
-        self.db.execute(query,(dir,))
-
-        rs = self.db.cursor.fetchall()
+        rs = self.db.getDirInfo(dir)
         if len(rs) == 0 and dir != "":
             # nothing found for this directory
             raise NotFoundException
-
         return rs
 
     def getFile(self,file):
-        (dir,filename) = os.path.split(file)
-        query = "SELECT * FROM {library} WHERE dir = ? AND filename = ?"
-        self.db.execute(query,(dir,filename))
-
-        rs = self.db.cursor.fetchall()
+        rs = self.db.getFileInfo(file)
         if len(rs) == 0:
             # this file is not found
             raise NotFoundException
@@ -163,11 +132,7 @@ class DeejaydDB:
         return rs
 
     def getAll(self,dir):
-        query = "SELECT * FROM {library} WHERE dir LIKE ? AND TYPE = 'file' \
-                ORDER BY dir"
-        self.db.execute(query,(dir+'%%',))
-
-        rs = self.db.cursor.fetchall()
+        rs = self.db.getAllFile(dir)
         if len(rs) == 0:
             # nothing found for this directory
             raise NotFoundException
