@@ -5,6 +5,3 @@ Mediadb
 
 Test
   * Finish to write tests
-
-Other
-  * Add a check.py and a Makefile to package deejayd
