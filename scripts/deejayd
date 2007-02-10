@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+"""
+This is the script used to launch deejayd
+"""
+
+############ Parse Option ############################
+######################################################
+from optparse import OptionParser
+usage = "usage: %prog [options]"
+parser = OptionParser(usage=usage)
+
+# List options
+parser.set_defaults(conffile = "/etc/deejayd.conf",daemon = True)
+parser.add_option("-u","--uid",dest="uid",type="string",\
+    help="the uid to run as")
+parser.add_option("-g","--gid",dest="gid",type="string",\
+    help="the gid to run as")
+parser.add_option("-n","--nodaemon",action="store_false",dest="daemon",\
+    help="no daemonize deejayd")
+parser.add_option("-l","--log",type="string",dest="logfile",metavar="FILE",\
+    help="Specify the log file")
+#parser.add_option("-c","--conf",type="string",dest="conffile",metavar="FILE",\
+#    help="Specify the conf file")
+
+(options, args) = parser.parse_args()
+######################################################
+
+import random,sys,os,pwd,grp
+from deejayd.net.deejaydProtocol import DeejaydFactory
+from deejayd.ui.config import DeejaydConfig
+from twisted.python import log
+# Install glib2 reactor
+from twisted.internet import glib2reactor
+glib2reactor.install()
+from twisted.internet import reactor
+
+
+def daemonize():
+    # See http://www.erlenstar.demon.co.uk/unix/faq_toc.html#TOC16
+    if os.fork():   # launch child and...
+        os._exit(0) # kill off parent
+    os.setsid()
+    if os.fork():   # launch child and...
+        os._exit(0) # kill off parent again.
+    os.umask(077)
+    null=os.open('/dev/null', os.O_RDWR)
+    for i in range(3):
+        try:
+            os.dup2(null, i)
+        except OSError, e:
+            if e.errno != errno.EBADF:
+                raise
+    os.close(null)
+
+
+#def setConf(options):
+#    try: conf = open(options.conffile,"r")
+#    except IOError:
+#        sys.exit("Unable to open the configuration file %s"%(options.conffile,))
+#    conf.close()
+
+
+def setEnv(options):
+    # Init random generator
+    random.seed()
+
+    if options.daemon:
+        daemonize()
+    if options.gid:
+        try: gid = int(options.gid)
+        except ValueError:
+            gid = grp.getgrnam(options.gid)[2]
+        try: os.setgid(gid)
+        except OSError:
+            sys.exit("Unable to change gid of the process")
+    if options.uid:
+        try: uid = int(options.uid)
+        except ValueError:
+            uid = pwd.getpwnam(options.uid)[2]
+        try: 
+            os.setuid(uid)
+        except OSError:
+            sys.exit("Unable to change uid of the process")
+
+
+def startLog(options):
+    if options.logfile:
+        try: logFile = open(options.logfile, 'a')
+        except IOError:
+            sys.exit("Unable to open the log file %s" % (options.logfile,))
+    elif options.daemon:
+        try: logFile = open("./deejayd.log", 'w')
+        except IOError:
+            sys.exit("Unable to open default log file %s" % (options.logfile,))
+    else: logFile = sys.stdout
+    log.startLogging(logFile)
+
+# Start 
+if __name__ == "__main__":
+    config = DeejaydConfig()
+    setEnv(options,config)
+    startLog(options)
+    factory = DeejaydFactory()
+    port = config.getint("net", "port")
+    reactor.listenTCP(port, factory)
+    reactor.run()
+
+# vim: ts=4 sw=4 expandtab
