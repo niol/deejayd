@@ -246,25 +246,26 @@ class sqliteDatabase(Database):
             self._initialise()
 
     def execute(self,query,parm = None):
-        try:
-            prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
-        except:
-            prefix = ""
+        from pysqlite2 import dbapi2 as sqlite
+        try: prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
+        except: prefix = ""
 
         query = query.replace("{",prefix).replace("}","") 
-        if parm == None:
-            self.cursor.execute(query)
-        else:
-            self.cursor.execute(query,parm)
+        try:
+            if parm == None: self.cursor.execute(query)
+            else: self.cursor.execute(query,parm)
+        except sqlite.OperationalError,err: 
+            log.err("Unable to execute database request : %s" %(err,))
 
     def executemany(self,query,parm):
-        try:
-            prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
-        except:
-            prefix = ""
+        from pysqlite2 import dbapi2 as sqlite
+        try: prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
+        except: prefix = ""
 
         query = query.replace("{",prefix).replace("}","") 
-        self.cursor.executemany(query,parm)
+        try: self.cursor.executemany(query,parm)
+        except sqlite.OperationalError,err: 
+            log.err("Unable to execute database request : %s" %(err,))
 
     def close(self):
         self.cursor.close()
