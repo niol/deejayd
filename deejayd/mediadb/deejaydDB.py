@@ -2,7 +2,7 @@
 """
 """
 
-from tag import mp3File, oggFile
+import tag
 import os, sys, time
 from deejayd.ui.config import DeejaydConfig
 import database
@@ -22,8 +22,8 @@ class DeejaydFile:
         realDir = os.path.join(self.__class__.root_path,self.dir)
         realFile = os.path.join(realDir,f)
         
-        fileInfo = self.__getFileTags(realFile) 
-        if fileInfo == None: return # Not an supported file
+        try: fileInfo = tag.getFileTag(realFile) 
+        except tag.NotSupportedFormat: return # Not an supported file
         fileInfo["filename"] = f
 
         self.db.insertFile(self.dir,fileInfo)
@@ -32,27 +32,14 @@ class DeejaydFile:
         realDir = os.path.join(self.__class__.root_path,self.dir)
         realFile = os.path.join(realDir,f)
         
-        fileInfo = self.__getFileTags(realFile) 
-        if fileInfo == None: self.remove(f) # Not an supported file
+        try: fileInfo = tag.getFileTag(realFile) 
+        except tag.NotSupportedFormat: return # Not an supported file
         fileInfo["filename"] = f
 
         self.db.updateFile(self.dir,fileInfo)
 
     def remove(self,f):
         seld.db.removeFile(self.dir,f)
-
-    # Private functions
-    def __getFileTags(self,f):
-        realDir = os.path.join(self.__class__.root_path,self.dir)
-        (filename,extension) = os.path.splitext(f)
-        ext = extension.lower()
-
-        if ext == ".mp3":
-            return mp3File(f)
-        elif ext == ".ogg":
-            return oggFile(f)
-        else:
-            return None
 
 
 class DeejaydDir:

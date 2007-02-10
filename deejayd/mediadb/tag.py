@@ -3,6 +3,7 @@ from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from mutagen.oggvorbis import OggVorbis
 
+class NotSupportedFormat:pass
 
 class unknownAudioFile:
     supportedTag = ("tracknumber","title","genre","artist","album","date")
@@ -70,6 +71,15 @@ class oggFile(unknownAudioFile):
                     self.info[t] = self.info[t]
             except:
                 self.info[t] = '';
+
+def getFileTag(file):
+    supportedFormat = {".mp3" : mp3File,\
+                       ".ogg" : oggFile}
+    (filename,extension) = os.path.splitext(f)
+    ext = extension.lower()
+    if ext in supportedFormat.keys():
+        return supportedFormat[ext](f)
+    else: raise NotSupportedFormat
 
 
 # vim: ts=4 sw=4 expandtab
