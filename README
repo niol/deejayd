@@ -1,0 +1,52 @@
+deejayd
+===========
+
+Actual version : 0.1.0
+----------------------
+
+Description:
+------------
+deejayd is an media player written in python and based on twisted.
+So, it is a network daemon which can be controlled with a client application
+like MPD. The protocol used to control deejayd is an XML protocol. 
+Documentation of this protocol can be found in source archive (doc directory)
+Actually, only one client exists for deejayd, it is ajaxdj. It is a web based
+client written in XUL and PHP. 
+See http://mroy31.dyndns.org/~roy/projects/ajaxdj for more informations
+
+
+Requirements:
+-------------
+    * python >= 2.4
+    * twisted >= 2.0 (http://twistedmatrix.com/trac)
+    * pysqlite >= 2.0 (http://www.initd.org/tracker/pysqlite/wiki/pysqlite)
+    * pygtk < 2.10 or pygobject >= 2.12
+    * gstreamer >= 0.10 (http://gstreamer.freedesktop.org)
+    * gstreamer plugins :
+        * Required :
+          * gst-python >= 0.10
+        * Optionnal : 
+          * alsa, oss, esd ...
+          * mad to play mp3
+          * ogg to play ogg
+          * for webradio, gst-plugins-gnomevfs >= 0.10
+
+Installation:
+-------------
+Download deejayd and extract it: 
+  $tar xzvf deejayd-0.1.0.tar.gz
+
+Then, install it with:
+  $cd deejayd-0.1.0
+  $python setup.py install 
+
+Usage:
+------
+To launch deejayd just do
+  $deejayd
+See "deejayd --help" for more informations 
+
+
+Documentation and more informations:
+------------------------------------
+see http://mroy31.dyndns.org/~roy/projects/deejayd 
