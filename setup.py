@@ -9,11 +9,12 @@ import sys
 from distutils.core import setup, Command
 from distutils.command.clean import clean as distutils_clean
 from distutils.command.sdist import sdist as distutils_sdist
+import deejayd
 
 if __name__ == "__main__":
     #setup(cmdclass={'clean': clean, 'test': test_cmd, 'coverage': coverage_cmd,
     #                "sdist": sdist, "release": release},
-    setup( name="deejayd", version="0.1.0",
+    setup( name="deejayd", version=deejayd.__version__,
            url="http://mroy31.dyndns.org/~roy/projects/deejayd",
            description="",
            author="Mikael Royer",
