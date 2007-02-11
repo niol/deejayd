@@ -10,22 +10,24 @@ usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 
 # List options
-parser.set_defaults(conffile = "/etc/deejayd.conf",daemon = True)
+parser.set_defaults(pidfile="deejayd.pid",kill = False,daemon = True)
 parser.add_option("-u","--uid",dest="uid",type="string",\
     help="the uid to run as")
 parser.add_option("-g","--gid",dest="gid",type="string",\
     help="the gid to run as")
 parser.add_option("-n","--nodaemon",action="store_false",dest="daemon",\
     help="no daemonize deejayd")
-parser.add_option("-l","--log",type="string",dest="logfile",metavar="FILE",\
-    help="Specify the log file")
-#parser.add_option("-c","--conf",type="string",dest="conffile",metavar="FILE",\
-#    help="Specify the conf file")
+parser.add_option("-l","--log-file",type="string",dest="logfile",\
+    metavar="FILE", help="Specify the log file")
+parser.add_option("-p","--pid-file",type="string",dest="pidfile",\
+    metavar="FILE", help="Specify the log file")
+parser.add_option("-k","--kill",action="store_true",dest="kill",\
+    help="Kill the actual deejayd process")
 
 (options, args) = parser.parse_args()
 ######################################################
 
-import random,sys,os,pwd,grp
+import errno,random,sys,os,pwd,grp
 from deejayd.net.deejaydProtocol import DeejaydFactory
 from deejayd.ui.config import DeejaydConfig
 from twisted.python import log
@@ -53,11 +55,26 @@ def daemonize():
     os.close(null)
 
 
-#def setConf(options):
-#    try: conf = open(options.conffile,"r")
-#    except IOError:
-#        sys.exit("Unable to open the configuration file %s"%(options.conffile,))
-#    conf.close()
+def killDeejayd(pidfile):
+    if os.path.exists(pidfile):
+        try: pid = int(open(pidfile).read())
+        except ValueError:
+            sys.exit('Pidfile %s contains non-numeric value' % pidfile)
+        try: 
+            os.kill(pid, 9)
+            removePID(pidfile)
+        except OSError, err:
+            sys.exit('Unable to stop deejayd : %s, are you sure it running ?'\
+                ,(err,))
+    else:
+        sys.exit('no PidFile found, are you sure deejayd running ?')
+
+
+def removePID(pidfile):
+    try: os.unlink(pidfile)
+    except OSError, e:
+        if e.errno == errno.EACCES or e.errno == errno.EPERM:
+            sys.exit("Unable to remove pid file : %s" % (err,))
 
 
 def setEnv(options):
@@ -66,6 +83,10 @@ def setEnv(options):
 
     if options.daemon:
         daemonize()
+    # Store the pid
+    removePID(options.pidfile)
+    open(options.pidfile,'wb').write(str(os.getpid()))
+
     if options.gid:
         try: gid = int(options.gid)
         except ValueError:
@@ -97,8 +118,11 @@ def startLog(options):
 
 # Start 
 if __name__ == "__main__":
+    if options.kill:
+        killDeejayd(options.pidfile)
+        sys.exit(1)
     config = DeejaydConfig()
-    setEnv(options,config)
+    setEnv(options)
     startLog(options)
     factory = DeejaydFactory()
     port = config.getint("net", "port")
