@@ -20,7 +20,8 @@ Requirements:
     * python >= 2.4
     * twisted >= 2.0 (http://twistedmatrix.com/trac)
     * pysqlite >= 2.0 (http://www.initd.org/tracker/pysqlite/wiki/pysqlite)
-    * pygtk < 2.10 or pygobject >= 2.12
+    * pygtk >= 2.8 (http://www.pygtk.org/)
+    * mutagen >= 1.9 (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
     * gstreamer >= 0.10 (http://gstreamer.freedesktop.org)
     * gstreamer plugins :
         * Required :
