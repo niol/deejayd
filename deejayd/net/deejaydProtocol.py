@@ -21,8 +21,9 @@ class DeejaydProtocol(LineReceiver):
         self.deejaydArgs = {"player":player,"db":db,"sources":sources}
 
     def connectionMade(self):
+        from deejayd import __version__
         self.cmdFactory = CommandFactory(self.deejaydArgs)
-        self.transport.write("OK DEEJAYD 0.0.1\n")
+        self.transport.write("OK DEEJAYD %s\n" % (__version__,))
 
     def connectionLost(self, reason=ConnectionDone):
         pass
