@@ -3,3 +3,5 @@ include TODO
 include LICENCE
 include docs.py
 include deejayd/ui/defaults.conf
+include gentoo/*
+include gentoo/files/*
