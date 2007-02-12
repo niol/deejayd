@@ -34,7 +34,7 @@ pkg_setup() {
 }
 
 src_install() {
-	python setup.py install || die
+	${python} setup.py install --root=${D} --no-compile "$@" || die
 
 	# Pid File
 	dodir /var/run/deejayd
@@ -45,6 +45,10 @@ src_install() {
 	# Conf
 	insinto /etc
 	newins doc/deejayd.conf.example deejayd.conf
+
+	# init.d
+	exeinto /etc/init.d
+	newexe ${FILESDIR}/deejayd.initd deejayd
 
 	diropts -m0755 -o deejayd -g audio
 	dodir /var/lib/deejayd/music
