@@ -1,0 +1,13 @@
+[net]
+port = 6800
+
+[player]
+# Possible values are : alsa, oss, esd, gconf
+output = alsa
+
+[mediadb]
+db_type = sqlite
+db_file = /var/lib/deejayd/mediadb/deejayd.db
+db_prefix = dj
+music_directory =  /var/lib/deejayd/music
+filesystem_charset = utf-8
