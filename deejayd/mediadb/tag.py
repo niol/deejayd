@@ -1,4 +1,5 @@
 
+import os
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from mutagen.oggvorbis import OggVorbis
@@ -75,10 +76,10 @@ class oggFile(unknownAudioFile):
 def getFileTag(file):
     supportedFormat = {".mp3" : mp3File,\
                        ".ogg" : oggFile}
-    (filename,extension) = os.path.splitext(f)
+    (filename,extension) = os.path.splitext(file)
     ext = extension.lower()
     if ext in supportedFormat.keys():
-        return supportedFormat[ext](f)
+        return supportedFormat[ext](file)
     else: raise NotSupportedFormat
 
 
