@@ -120,7 +120,7 @@ def startLog(options):
 if __name__ == "__main__":
     if options.kill:
         killDeejayd(options.pidfile)
-        sys.exit(1)
+        sys.exit(0)
     config = DeejaydConfig()
     setEnv(options)
     startLog(options)
