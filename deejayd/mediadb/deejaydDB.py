@@ -5,6 +5,7 @@
 import tag
 import os, sys, time
 from deejayd.ui.config import DeejaydConfig
+from twisted.python import log
 import database
 
 from twisted.internet import threads
@@ -34,7 +35,6 @@ class DeejaydFile:
         
         try: fileInfo = tag.getFileTag(realFile) 
         except tag.NotSupportedFormat: return # Not an supported file
-        fileInfo["filename"] = f
 
         self.db.updateFile(self.dir,fileInfo)
 
@@ -157,6 +157,7 @@ class DeejaydDB:
 
     def endUpdate(self): 
         self.__updateEnd = True
+        log.msg("The database has been updated")
 
     def update(self,dir):
         if self.__updateEnd:
@@ -166,7 +167,7 @@ class DeejaydDB:
 
             # Add callback functions
             succ = lambda *x: self.endUpdate()
-            err = lambda *x: self.error("Unable to update the database")
+            err = lambda *x: log.err("Unable to update the database")
             self.d.addCallback(succ)
             self.d.addErrback(err)
 
@@ -187,9 +188,6 @@ class DeejaydDB:
 
     def close(self):
         self.db.close()
-
-    def error(self,err):
-        print err
 
 
 # for test only

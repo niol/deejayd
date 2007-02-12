@@ -188,7 +188,7 @@ class deejaydPlayer:
         pass
 
     def error(self,error):
-        log.msg("ERROR : " + error)
+        log.err(error)
 
     def __getGstState(self):
         changestatus,state,_state = self.bin.get_state()

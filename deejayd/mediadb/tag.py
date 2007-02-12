@@ -12,7 +12,8 @@ class unknownAudioFile:
     def __init__(self,f):
         self.f = f
         self.init = 0
-        self.info = {}
+        (path,filename) = os.path.split(f)
+        self.info = {"filename": filename}
 
     def __getitem__(self,infoType):
         pass
@@ -73,13 +74,13 @@ class oggFile(unknownAudioFile):
             except:
                 self.info[t] = '';
 
-def getFileTag(file):
+def getFileTag(realFile):
     supportedFormat = {".mp3" : mp3File,\
                        ".ogg" : oggFile}
-    (filename,extension) = os.path.splitext(file)
+    (filename,extension) = os.path.splitext(realFile)
     ext = extension.lower()
     if ext in supportedFormat.keys():
-        return supportedFormat[ext](file)
+        return supportedFormat[ext](realFile)
     else: raise NotSupportedFormat
 
 
