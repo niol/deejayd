@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-"""
 
 import tag
 import os, sys, time
 from deejayd.ui.config import DeejaydConfig
-from twisted.python import log
 import database
-
+from twisted.python import log
 from twisted.internet import threads
 
 class NotFoundException:pass
@@ -24,8 +21,10 @@ class DeejaydFile:
         realFile = os.path.join(realDir,f)
         
         try: fileInfo = tag.getFileTag(realFile) 
-        except tag.NotSupportedFormat: return # Not an supported file
-        fileInfo["filename"] = f
+        except tag.NotSupportedFormat: 
+            # Not an supported file
+            log.msg("%s : format not supported" % (f,))
+            return
 
         self.db.insertFile(self.dir,fileInfo)
 
@@ -34,7 +33,10 @@ class DeejaydFile:
         realFile = os.path.join(realDir,f)
         
         try: fileInfo = tag.getFileTag(realFile) 
-        except tag.NotSupportedFormat: return # Not an supported file
+        except tag.NotSupportedFormat: 
+            # Not an supported file
+            log.msg("%s : format not supported" % (f,))
+            return
 
         self.db.updateFile(self.dir,fileInfo)
 
@@ -50,8 +52,11 @@ class DeejaydDir:
 
     def update(self,dir,lastUpdateTime):
         realDir = os.path.join(self.__class__.root_path,dir)
-        dbRecord = self.db.getDirContent(dir)
+        # Test directory existence
+        if not os.path.isdir(realDir):
+            raise NotFoundException
 
+        dbRecord = self.db.getDirContent(dir)
         # First we update the list of directory
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
                 if os.path.isdir(os.path.join(realDir,d))]
@@ -92,8 +97,6 @@ class DeejaydDB:
     """deejaydDB
     Class to manage the media database
     """
-    supportedDatabase = ('sqlite')
-
     def __init__(self):
         # init Parms
         self.__updateDBId = 0
@@ -167,9 +170,8 @@ class DeejaydDB:
 
             # Add callback functions
             succ = lambda *x: self.endUpdate()
-            err = lambda *x: log.err("Unable to update the database")
             self.d.addCallback(succ)
-            self.d.addErrback(err)
+            self.d.addErrback(errorHandler)
 
             self.d.unpause()
             return self.__updateDBId
@@ -188,6 +190,17 @@ class DeejaydDB:
 
     def close(self):
         self.db.close()
+
+
+def errorHandler(failure):
+    #failure.printTraceback()
+    if failure.check(deejayd.mediadb.deejaydDB.NotFoundException):
+        print("true")
+        log.err("Updated directory not found")
+    else:
+        print("false")
+        log.err("Un to update the database")
+    failure.raiseException()
 
 
 # for test only

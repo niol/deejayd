@@ -1,6 +1,5 @@
 Mediadb
   * Improve error handling
-  	-> When the music directory does not exist
   * Use os.walk function
 
 Test

@@ -60,7 +60,7 @@ class deejaydPlayer:
         elif message.type == gst.MESSAGE_ERROR:
             err, debug = message.parse_error()
             err = str(err).decode("utf8", 'replace')
-            self.error(err)
+            log.err(err)
 
         return True
 
@@ -147,7 +147,8 @@ class deejaydPlayer:
         return True
 
     def getPosition(self):
-        if gst.STATE_NULL != self.__getGstState() and self.bin.get_property('uri'):
+        if gst.STATE_NULL != self.__getGstState() and \
+                self.bin.get_property('uri'):
             try: p = self.bin.query_position(gst.FORMAT_TIME)[0]
             except gst.QueryError: p = 0
             p //= gst.SECOND
@@ -155,13 +156,15 @@ class deejaydPlayer:
         return 0
 
     def setPosition(self,pos):
-        if gst.STATE_NULL != self.__getGstState() and self.bin.get_property('uri'):
+        if gst.STATE_NULL != self.__getGstState() and \
+                self.bin.get_property('uri'):
             pos = max(0, int(pos))
             gst_time = pos * gst.SECOND
 
             event = gst.event_new_seek(
-                1.0, gst.FORMAT_TIME, gst.SEEK_FLAG_FLUSH | gst.SEEK_FLAG_ACCURATE,
-                gst.SEEK_TYPE_SET, gst_time, gst.SEEK_TYPE_NONE, 0)
+                1.0, gst.FORMAT_TIME, gst.SEEK_FLAG_FLUSH | \
+                gst.SEEK_FLAG_ACCURATE, gst.SEEK_TYPE_SET, gst_time, \
+                gst.SEEK_TYPE_NONE, 0)
             self.bin.send_event(event)
 
     def getStatus(self):
@@ -186,9 +189,6 @@ class deejaydPlayer:
 
     def close(self):
         pass
-
-    def error(self,error):
-        log.err(error)
 
     def __getGstState(self):
         changestatus,state,_state = self.bin.get_state()
