@@ -114,7 +114,8 @@ class UpdateDB(UnknownCommand):
         try:
             updateDBId = self.deejaydArgs["db"].update(self.directory)
         except NotFoundException:
-            return self.getErrorAnswer('Directory not found in the database')
+            return self.getErrorAnswer('Directory not found in the music \
+                directory')
 
         return "updating_db: %d\n" % (updateDBId,) + self.getOkAnswer()
 

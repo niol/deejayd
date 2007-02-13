@@ -271,7 +271,7 @@ a particular directory.
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
         try: updateDBId = self.deejaydArgs["db"].update(dir)
         except NotFoundException:
-            self.getErrorAnswer('Directory not found in the database')
+            self.getErrorAnswer('Path not found in the music directory')
 
         rs = self.formatResponseWithDict([("updating_db",updateDBId)])
         self.getOkAnswer("KeyValue",rs)

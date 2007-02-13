@@ -47,15 +47,13 @@ class DeejaydFile:
 class DeejaydDir:
     root_path =  DeejaydConfig().get("mediadb","music_directory")
 
-    def __init__(self,db):
+    def __init__(self,db = None):
         self.db = db
 
     def update(self,dir,lastUpdateTime):
-        realDir = os.path.join(self.__class__.root_path,dir)
-        # Test directory existence
-        if not os.path.isdir(realDir):
-            raise NotFoundException
+        self.testDir(dir)
 
+        realDir = os.path.join(self.__class__.root_path,dir)
         dbRecord = self.db.getDirContent(dir)
         # First we update the list of directory
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
@@ -92,6 +90,12 @@ class DeejaydDir:
             if d in newDir: self.update(d,0)
             else: self.update(d,lastUpdateTime)
 
+    def testDir(self,dir):
+        realDir = os.path.join(self.__class__.root_path,dir)
+        # Test directory existence
+        if not os.path.isdir(realDir):
+            raise NotFoundException
+
 
 class DeejaydDB:
     """deejaydDB
@@ -101,6 +105,7 @@ class DeejaydDB:
         # init Parms
         self.__updateDBId = 0
         self.__updateEnd = True
+        self.__updateError = None
 
         # Connection to the database
         self.db = database.openConnection()
@@ -158,12 +163,21 @@ class DeejaydDB:
         # update stat values
         db.recordMediaDBStat()
 
-    def endUpdate(self): 
+    def endUpdate(self, result = True): 
         self.__updateEnd = True
-        log.msg("The database has been updated")
+        if result: log.msg("The database has been updated")
+        else:
+            msg = "Unable to update the database. See log for more information"
+            log.err(msg)
+            self.__updateError = msg
+        return True
+
 
     def update(self,dir):
         if self.__updateEnd:
+            # First we test the directory
+            DeejaydDir().testDir(dir)
+
             self.__updateDBId += 1
             self.d = threads.deferToThread(self.updateDir,dir)
             self.d.pause()
@@ -171,7 +185,7 @@ class DeejaydDB:
             # Add callback functions
             succ = lambda *x: self.endUpdate()
             self.d.addCallback(succ)
-            self.d.addErrback(errorHandler)
+            self.d.addErrback(errorHandler,self)
 
             self.d.unpause()
             return self.__updateDBId
@@ -182,6 +196,9 @@ class DeejaydDB:
         status = []
         if not self.__updateEnd:
             status.append(("updating_db",self.__updateDBId))
+        if self.__updateError:
+            status.append(("updating_error",self.__updateError))
+            self.__updateError = None
 
         return status
 
@@ -192,15 +209,12 @@ class DeejaydDB:
         self.db.close()
 
 
-def errorHandler(failure):
-    #failure.printTraceback()
-    if failure.check(deejayd.mediadb.deejaydDB.NotFoundException):
-        print("true")
-        log.err("Updated directory not found")
-    else:
-        print("false")
-        log.err("Un to update the database")
-    failure.raiseException()
+def errorHandler(failure,dbClass):
+    # Log the exception to debug pb later
+    failure.printTraceback()
+    dbClass.endUpdate(False)
+
+    return False
 
 
 # for test only
