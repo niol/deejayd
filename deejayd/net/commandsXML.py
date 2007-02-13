@@ -205,17 +205,19 @@ class Status(UnknownCommand):
             "returnType": "KeyValue", 
             "description": """
 Return status of deejayd. Given informations are :
-  * playlist : id of the current playlist
-  * playlistlength : length of the current playlist
-  * webradio : id of the current webradio list
+  * playlist : _int_ id of the current playlist
+  * playlistlength : _int_ length of the current playlist
+  * webradio : _int_ id of the current webradio list
   * random : 0 (not activate) or 1 (activate) 
   * repeat : 0 (not activate) or 1 (activate) 
   * volume : [0-100] current volume value  
   * state : [play-pause-stop] the current state of deejayd
-  * song : the position of the current song
-  * songid : the id of the current song
+  * song : _int_ the position of the current song
+  * songid : _int_ the id of the current song
   * mode : [playlist-webradio] the current mode
-  * updating_db :  
+  * updating_db : _int_ show when an database update is in progress  
+  * updating_error : _string_ error message that apppears when the database
+                     update has failed
 """
         }
 
