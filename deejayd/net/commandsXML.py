@@ -711,7 +711,7 @@ Remove webradios with id equal to "ids"
                 return self.getErrorAnswer('Need an integer : id') 
         
             try: self.deejaydArgs["sources"].getSource("webradio").erase(id)
-            except sources.webradio.NotFoundException:
+            except sources.webradio.WrNotFoundException:
                 return self.getErrorAnswer('Webradio not found')
 
         return self.getOkAnswer()

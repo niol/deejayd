@@ -2,7 +2,7 @@
 from deejayd.mediadb.deejaydDB import database,NotFoundException
 import urllib
 
-class NotFoundException: pass
+class WrNotFoundException: pass
 class UnsupportedFormatException: pass
 
 def getUrisFromPls(URL):
@@ -57,12 +57,13 @@ class Webradio:
                 wr = w
                 break
 
-        if wr == None: raise NotFoundException
+        if wr == None: raise WrNotFoundException
         return wr
 
     def add(self,uri,name):
         pos = len(self.wrContent)
-        self.wrContent.append({"Pos":pos,"Id":self.__getId(), "Title":name, "uri":uri})
+        self.wrContent.append({"Pos":pos,"Id":self.__getId(), "Title":name,\
+            "uri":uri})
 
         # Increment webradioId
         self.webradioId += 1
@@ -74,7 +75,7 @@ class Webradio:
                 break
             i += 1
         if i == len(self.wrContent):
-            raise NotFoundException
+            raise WrNotFoundException
         pos = self.wrContent[i]["Pos"]
         del self.wrContent[i]
 
@@ -93,7 +94,8 @@ class Webradio:
 
     def save(self):
         self.db.clearWebradios()
-        values = [(webradio["Pos"],webradio["Title"],webradio["uri"]) for webradio in self.wrContent]
+        values = [(webradio["Pos"],webradio["Title"],webradio["uri"]) \
+            for webradio in self.wrContent]
         self.db.addWebradios(values)
 
     def __getId(self):
@@ -101,7 +103,7 @@ class Webradio:
         return self.__wrId
 
 
-class WebradioManagement:
+class WebradioSource:
 
     def __init__(self,player):
         # Init player
@@ -139,7 +141,8 @@ class WebradioManagement:
 
     def next(self,rd,rpt):
         if self.webradioCurrent == None:
-            return None
+            self.goTo(0,'Pos')
+            return self.webradioCurrent
 
         currentPos = self.webradioCurrent["Pos"]
         if currentPosition < self.wrContent.getLength()-1:
@@ -164,7 +167,7 @@ class WebradioManagement:
     def getCurrent(self):
         if self.webradioCurrent == None:
             try: self.webradioCurrent = self.wrContent.get(0,"Pos")
-            except NotFoundException: pass
+            except WrNotFoundException: pass
 
         return self.webradioCurrent
 
@@ -174,7 +177,9 @@ class WebradioManagement:
         return None
 
     def goTo(self,nb,type):
-        self.webradioCurrent = self.wrContent.get(nb,type)
+        try: self.webradioCurrent = self.wrContent.get(nb,type)
+        except WrNotFoundException: self.webradioCurrent = None 
+
         return self.webradioCurrent
 
     def getStatus(self):
@@ -183,6 +188,6 @@ class WebradioManagement:
     def close(self):
         self.wrContent.save()
         self.db.close()
-
+    
 
 # vim: ts=4 sw=4 expandtab

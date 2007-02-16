@@ -186,7 +186,7 @@ class Playlist:
         return self.__songId
 
 
-class PlaylistManagement:
+class PlaylistSource:
     currentPlaylistName = "__djcurrent__"
 
     def __init__(self,player,djDB):
@@ -283,7 +283,8 @@ class PlaylistManagement:
 
     def next(self,rd,rpt):
         if self.currentSong == None:
-            return None
+            self.goTo(0,"Pos")
+            return self.currentSong
 
         # Return a pseudo-random song
         l = self.currentPlaylist.getLength()
@@ -291,7 +292,8 @@ class PlaylistManagement:
             # first determine if the current song is in playedSongs
             try:
                 id = self.playedSongs.index(self.currentSong["Id"])
-                self.currentSong = self.currentPlaylist.getSong(self.playedSongs[id+1],"Id")
+                self.currentSong = self.currentPlaylist.getSong(\
+                    self.playedSongs[id+1],"Id")
                 return self.currentSong
             except: pass
 
@@ -299,7 +301,8 @@ class PlaylistManagement:
             self.playedSongs.append(self.currentSong["Id"])
 
             # Determine the id of the next song
-            values = [v for v in self.currentPlaylist.getIds() if v not in self.playedSongs]
+            values = [v for v in self.currentPlaylist.getIds() \
+                if v not in self.playedSongs]
             try: songId = random.choice(values)
             except: # All songs are played 
                 if rpt:
@@ -317,7 +320,8 @@ class PlaylistManagement:
 
         currentPosition = self.currentSong["Pos"]
         if currentPosition < len(self.currentPlaylist.get())-1:
-            try: self.currentSong = self.currentPlaylist.getSong(self.currentSong["Pos"] + 1)
+            try: self.currentSong = self.currentPlaylist.getSong(\
+                self.currentSong["Pos"] + 1)
             except SongNotFoundException: self.currentSong = None
         elif rpt:
             self.currentSong = self.currentPlaylist.getSong(0)
@@ -337,7 +341,8 @@ class PlaylistManagement:
             try:
                 id = self.playedSongs.index(self.currentSong["Id"])
                 if id == 0: return None
-                self.currentSong = self.currentPlaylist.getSong(self.playedSongs[id-1],"Id")
+                self.currentSong = self.currentPlaylist.getSong(\
+                    self.playedSongs[id-1],"Id")
                 return self.currentSong
             except SongNotFoundException: return None 
             except ValueError: pass
@@ -345,7 +350,8 @@ class PlaylistManagement:
             # So we add the current song in playedSongs
             self.playedSongs.append(self.currentSong["Id"])
 
-            self.currentSong = self.currentPlaylist.getSong(self.playedSongs[l-1],"Id")
+            self.currentSong = self.currentPlaylist.\
+                getSong(self.playedSongs[l-1],"Id")
             return self.currentSong
 
         # Reset random
@@ -353,7 +359,8 @@ class PlaylistManagement:
 
         currentPosition = self.currentSong["Pos"]
         if currentPosition > 0:
-            self.currentSong = self.currentPlaylist.getSong(self.currentSong["Pos"] - 1)
+            self.currentSong = self.currentPlaylist.\
+                getSong(self.currentSong["Pos"] - 1)
         else:
             self.currentSong = None
 
@@ -361,8 +368,7 @@ class PlaylistManagement:
 
     def getCurrent(self):
         if self.currentSong == None:
-            try: self.currentSong = self.currentPlaylist.getSong(0)
-            except SongNotFoundException: pass
+            self.goTo(0,"Pos")
 
         return self.currentSong
 
@@ -380,7 +386,8 @@ class PlaylistManagement:
         self.db.close()
 
     def getStatus(self):
-        rs = [("playlistlength",self.currentPlaylist.getLength()),("playlist",self.currentPlaylist.playlistId)]
+        rs = [("playlistlength",self.currentPlaylist.getLength()),\
+            ("playlist",self.currentPlaylist.playlistId)]
         return rs
 
     def __openPlaylist(self,name = None):
