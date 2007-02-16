@@ -23,6 +23,7 @@ def commandsList(commandsXML):
         "status":commandsXML.Status,
         "stats":commandsXML.Stats,
         "setMode":commandsXML.Mode,
+        "getMode":commandsXML.GetMode,
         # MediaDB Commmands
         "update":commandsXML.UpdateDB,
         "getdir":commandsXML.GetDir,
@@ -247,6 +248,27 @@ Return statistic informations :
     def execute(self):
         stats = self.deejaydArgs["db"].getStats()
         rs = self.formatResponseWithDict(stats)
+
+        return self.getOkAnswer("KeyValue",rs)
+
+
+class GetMode(UnknownCommand):
+
+    def docInfos(self):
+        return {
+            "returnType": "KeyValue", 
+            "description": """
+For each possible sources, show if it activate or not. The answer returns :
+playlist : 0 or 1 (actually always 1 because it does not need optionnal
+                   requirements)
+webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activate)
+"""
+        }
+
+    def execute(self):
+        avSources = self.deejaydArgs["sources"].getAvailableSources()
+        for s in ("playlist","webradio"):
+            rs[s] = s in avSources
 
         return self.getOkAnswer("KeyValue",rs)
 
