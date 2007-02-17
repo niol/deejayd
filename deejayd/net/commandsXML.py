@@ -4,14 +4,11 @@ from deejayd.player import player
 from os import path
 from xml.dom.minidom import Document
 
-global djPlayer
-global djMediaSource
-
 
 def commandsOrders():
-    return ("ping","status","stats","setMode","update","getdir","search",
-       "play","stop","pause","next","previous","setVolume","seek","random",
-       "repeat","current","playlistInfo","playlistList","playlistAdd",
+    return ("ping","status","stats","setMode","getMode","update","getdir",
+       "search","play","stop","pause","next","previous","setVolume","seek",
+       "random","repeat","current","playlistInfo","playlistList","playlistAdd",
        "playlistRemove","playlistClear","playlistMove","playlistShuffle",
        "playlistShuffle","playlistErase","playlistLoad","playlistSave",
        "webradioList","webradioAdd","webradioRemove","webradioClear")
@@ -94,14 +91,16 @@ class queueCommands:
     def execute(self):
 
         for (cmdName,cmd,args) in self.__commandsList: 
-            cmd(cmdName,args,self.deejaydArgs,self.xmlDoc,self.xmlRoot).execute()
+            cmd(cmdName,args,self.deejaydArgs,self.xmlDoc,self.xmlRoot).\
+                execute()
 
         return self.xmlDoc.toxml("utf-8")
 
 
 class UnknownCommand:
 
-    def __init__(self, cmdName, args, deejaydArgs = None, xmlDoc = None, xmlRoot = None):
+    def __init__(self, cmdName, args, deejaydArgs = None, xmlDoc = None,\
+                 xmlRoot = None):
         self.name = cmdName
         self.args = args
         self.deejaydArgs = deejaydArgs
@@ -137,7 +136,9 @@ class UnknownCommand:
                 chd.setAttribute("name",fn)
             else:
                 chd = self.xmlDoc.createElement("file")
-                dict = [("Path",path.join(dir,fn)),("Time",lg),("Title",ti),("Artist",ar),("Album",al),("Genre",gn),("Track",tn),("Date",dt)]
+                dict = [("Path",path.join(dir,fn)),("Time",lg),("Title",ti),\
+                        ("Artist",ar),("Album",al),("Genre",gn),("Track",tn),\
+                        ("Date",dt)]
                 parms = self.formatResponseWithDict(dict)
                 for parm in parms: chd.appendChild(parm)
 
@@ -659,9 +660,11 @@ class WebradioCommand(UnknownCommand):
                  xmlRoot = None):
         UnknownCommand.__init__(self,cmdName,args,deejaydArgs,xmlDoc,xmlRoot)
 
-        try: self.wrSource = self.deejaydArgs["sources"].getSource("webradio")
-        except sources.unknownSourceException:
-            self.wrSource = None
+        self.wrSource = None
+        if deejaydArgs:
+            try: self.wrSource = self.deejaydArgs["sources"].getSource(\
+                        "webradio")
+            except sources.unknownSourceException:pass
 
 
 class WebradioList(WebradioCommand):
