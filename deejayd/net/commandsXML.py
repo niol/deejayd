@@ -653,7 +653,18 @@ Return the list of recorded playlists
 ###################################################
 #  Webradios Commands                              #
 ###################################################
-class WebradioList(UnknownCommand):
+class WebradioCommand(UnknownCommand):
+
+    def __init__(self, cmdName, args, deejaydArgs = None, xmlDoc = None,\
+                 xmlRoot = None):
+        UnknownCommand.__init__(self,cmdName,args,deejaydArgs,xmlDoc,xmlRoot)
+
+        try: self.wrSource = self.deejaydArgs["sources"].getSource("webradio")
+        except sources.unknownSourceException:
+            self.wrSource = None
+
+
+class WebradioList(WebradioCommand):
 
     def docInfos(self):
         return {
@@ -664,7 +675,10 @@ Return the list of recorded webradios
         }
 
     def execute(self):
-        wrs = self.deejaydArgs["sources"].getSource("webradio").getList()
+        if not self.wrSource:
+            return self.getErrorAnswer("Webradio support not available")
+
+        wrs = self.wrSource.getList()
         rs = []
         for wr in wrs:
             webradio = self.xmlDoc.createElement("webradio")
@@ -676,7 +690,7 @@ Return the list of recorded webradios
         return self.getOkAnswer("WebradioList",rs)
 
 
-class WebradioClear(UnknownCommand):
+class WebradioClear(WebradioCommand):
 
     def docInfos(self):
         return {
@@ -686,11 +700,14 @@ Remove all recorded webradios
         }
 
     def execute(self):
-        self.deejaydArgs["sources"].getSource("webradio").clear()
+        if not self.wrSource:
+            return self.getErrorAnswer("Webradio support not available")
+
+        self.wrSource.clear()
         return self.getOkAnswer()
 
 
-class WebradioDel(UnknownCommand):
+class WebradioDel(WebradioCommand):
 
     def docInfos(self):
         return {
@@ -701,6 +718,9 @@ Remove webradios with id equal to "ids"
         }
 
     def execute(self):
+        if not self.wrSource:
+            return self.getErrorAnswer("Webradio support not available")
+
         numbs = "id" in self.args.keys() and self.args["id"] or []
         if isinstance(numbs, str):
             numbs = [numbs]
@@ -710,14 +730,14 @@ Remove webradios with id equal to "ids"
             except ValueError: 
                 return self.getErrorAnswer('Need an integer : id') 
         
-            try: self.deejaydArgs["sources"].getSource("webradio").erase(id)
+            try: self.wrSource.erase(id)
             except sources.webradio.WrNotFoundException:
                 return self.getErrorAnswer('Webradio not found')
 
         return self.getOkAnswer()
 
 
-class WebradioAdd(UnknownCommand):
+class WebradioAdd(WebradioCommand):
 
     def docInfos(self):
         return {
@@ -730,12 +750,15 @@ You can pass a playlist for "url" argument (.pls and .m3u format are supported)
         }
 
     def execute(self):
+        if not self.wrSource:
+            return self.getErrorAnswer("Webradio support not available")
+
         url = "url" in self.args.keys() and self.args["url"] or None
         wrname = "name" in self.args.keys() and self.args["name"] or None
         if not url or not wrname:
             return self.getErrorAnswer('Need two arguments : url and name')
 
-        self.deejaydArgs["sources"].getSource("webradio").addWebradio(url,wrname)
+        self.wrSource.addWebradio(url,wrname)
         return self.getOkAnswer()
 
 
