@@ -24,6 +24,11 @@ class unknownAudioFile:
 
 class mp3File(unknownAudioFile):
 
+    def __init__(self,f):
+        unknownAudioFile.__init__(self,f)
+        from mutagen.mp3 import MP3
+        from mutagen.easyid3 import EasyID3
+
     def __getitem__(self,infoType):
         if self.init == 0:
             self.__getInfo()
@@ -74,14 +79,34 @@ class oggFile(unknownAudioFile):
             except:
                 self.info[t] = '';
 
-def getFileTag(realFile):
-    supportedFormat = {".mp3" : mp3File,\
-                       ".ogg" : oggFile}
-    (filename,extension) = os.path.splitext(realFile)
-    ext = extension.lower()
-    if ext in supportedFormat.keys():
-        return supportedFormat[ext](realFile)
-    else: raise NotSupportedFormat
+
+class fileTag:
+
+    __supportedFormat = None
+
+    def __init__(self):
+        if fileTag.__supportedFormat == None:
+            # Find supported format
+            fileTag.__supportedFormat = {}
+            import gst
+
+            # mp3
+            if gst.registry_get_default().find_plugin("mad") is not None:
+                    fileTag.__supportedFormat[".mp3"] = mp3File
+                    fileTag.__supportedFormat[".mp2"] = mp3File
+
+            # ogg
+            if gst.registry_get_default().find_plugin("vorbis") is not None\
+                and gst.registry_get_default().find_plugin("ogg") is not None:
+                    fileTag.__supportedFormat[".ogg"] = oggFile
+
+    def getFileTag(self,realFile):
+        (filename,extension) = os.path.splitext(realFile)
+        ext = extension.lower()
+
+        if ext in fileTag.__supportedFormat.keys():
+            return fileTag.__supportedFormat[ext](realFile)
+        else: raise NotSupportedFormat
 
 
 # vim: ts=4 sw=4 expandtab

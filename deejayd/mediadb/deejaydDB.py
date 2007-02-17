@@ -20,7 +20,7 @@ class DeejaydFile:
         realDir = os.path.join(self.__class__.root_path,self.dir)
         realFile = os.path.join(realDir,f)
         
-        try: fileInfo = tag.getFileTag(realFile) 
+        try: fileInfo = tag.fileTag().getFileTag(realFile) 
         except tag.NotSupportedFormat: 
             # Not an supported file
             log.msg("%s : format not supported" % (f,))
@@ -32,7 +32,7 @@ class DeejaydFile:
         realDir = os.path.join(self.__class__.root_path,self.dir)
         realFile = os.path.join(realDir,f)
         
-        try: fileInfo = tag.getFileTag(realFile) 
+        try: fileInfo = tag.fileTag().getFileTag(realFile) 
         except tag.NotSupportedFormat: 
             # Not an supported file
             log.msg("%s : format not supported" % (f,))
