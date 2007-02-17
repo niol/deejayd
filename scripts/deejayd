@@ -21,15 +21,27 @@ parser.add_option("-l","--log-file",type="string",dest="logfile",\
     metavar="FILE", help="Specify the log file")
 parser.add_option("-p","--pid-file",type="string",dest="pidfile",\
     metavar="FILE", help="Specify the log file")
+parser.add_option("-c","--conf-file",type="string",dest="conffile",\
+    metavar="FILE", help="Specify a custom conf file")
 parser.add_option("-k","--kill",action="store_true",dest="kill",\
     help="Kill the actual deejayd process")
 
 (options, args) = parser.parse_args()
 ######################################################
 
+# add custom config parms
 import errno,random,sys,os,pwd,grp
-from deejayd.net.deejaydProtocol import DeejaydFactory
 from deejayd.ui.config import DeejaydConfig
+if options.conffile:
+    if os.path.isfile(options.conffile):
+        DeejaydConfig.customConf = options.conffile
+    else:
+        sys.exit("The config file does not exist.")
+        
+
+######################################################
+
+from deejayd.net.deejaydProtocol import DeejaydFactory
 from twisted.python import log
 # Install glib2 reactor
 from twisted.internet import glib2reactor
@@ -120,11 +132,13 @@ def startLog(options):
 if __name__ == "__main__":
     if options.kill:
         killDeejayd(options.pidfile)
-        sys.exit(0)
-    config = DeejaydConfig()
+        sys.exit(1)
+
     setEnv(options)
     startLog(options)
+
     factory = DeejaydFactory()
+    config = DeejaydConfig()
     port = config.getint("net", "port")
     reactor.listenTCP(port, factory)
     reactor.run()
