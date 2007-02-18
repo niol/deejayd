@@ -103,7 +103,7 @@ class Database(UnknownDatabase):
 
     def updateFile(self,dir,fileInfo):
         query = "UPDATE {library} SET title=?,artist=?,album=?,genre=?,date=?,\
-            acknumber=?,length=?,bitrate=? WHERE dir=? AND filename=?"
+            tracknumber=?,length=?,bitrate=? WHERE dir=? AND filename=?"
         self.execute(query,(fileInfo["title"],fileInfo["artist"],\
             fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
             fileInfo["tracknumber"],fileInfo["length"],fileInfo["birate"],\

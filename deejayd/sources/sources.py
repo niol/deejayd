@@ -1,3 +1,5 @@
+from twisted.python import log
+
 class unknownSourceException: pass
 
 class sourcesFactory:
@@ -14,7 +16,8 @@ class sourcesFactory:
         if gst.element_make_from_uri(gst.URI_SRC, "http://", ""):
             from deejayd.sources import webradio
             self.sourcesObj["webradio"] = webradio.WebradioSource(player)
-
+        else:
+            log.msg("Webradio support disabled : require gst-plugins-gnomevfs")
 
         # For the moment we choose "playlist" for default source
         self.setSource("playlist")

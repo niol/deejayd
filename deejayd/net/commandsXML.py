@@ -268,9 +268,12 @@ webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activate)
 
     def execute(self):
         avSources = self.deejaydArgs["sources"].getAvailableSources()
+        modes = []
         for s in ("playlist","webradio"):
-            rs[s] = s in avSources
+            act = s in avSources or 1 and 0
+            modes.append((s,act))
 
+        rs = self.formatResponseWithDict(modes)
         return self.getOkAnswer("KeyValue",rs)
 
 
