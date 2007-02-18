@@ -53,8 +53,8 @@ class Database(UnknownDatabase):
             self.execute(query,('%%'+content+'%%',))
         else:
             query = "SELECT * FROM {library} WHERE type = 'file' AND \
-                ('genre' LIKE ? OR 'title' LIKE ? OR 'album' LIKE ? OR \
-                'artist' LIKE ?)"
+                (genre LIKE ? OR title LIKE ? OR album LIKE ? OR \
+                artist LIKE ?)"
             self.execute(query,('%%'+content+'%%','%%'+content+'%%',
                 '%%'+content+'%%','%%'+content+'%%'))
 
