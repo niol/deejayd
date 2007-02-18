@@ -1,5 +1,5 @@
 from deejayd.mediadb.deejaydDB import NotFoundException
-from deejayd.sources import sources
+from deejayd import sources 
 from deejayd.player import player 
 from os import path
 from xml.dom.minidom import Document
@@ -195,7 +195,7 @@ Change the player mode. Possible values are :
             try: 
                 self.deejaydArgs["sources"].setSource(self.args["mode"])
                 return self.getOkAnswer()
-            except sources.unknownSourceException:
+            except sources.sources.unknownSourceException:
                 return self.getErrorAnswer('Unknown mode') 
 
 
