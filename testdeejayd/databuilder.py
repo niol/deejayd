@@ -117,7 +117,7 @@ class TestCommand:
     def createSimpleOkanswer(self,cmdName):
         rsp = self.xmldoc.createElement("response")
         rsp.setAttribute("name",cmdName)
-        rsp.setAttribute("type","ack")
+        rsp.setAttribute("type","Ack")
 
         self.xmlroot.appendChild(rsp)
         return self.xmldoc.toxml('utf-8')
