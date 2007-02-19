@@ -3,6 +3,12 @@
 
 All data between the client and server is encoded in UTF-8.
 -------------------------------------------------------------------------------
+
+Activate XML protocol :
+-----------------------
+By default, line protocole is activated.
+To activate XML, you have to send "setXML" command at deejayd 
+
 Commands Format :
 -----------------
 <?xml version="1.0"?>
@@ -80,7 +86,6 @@ There are 6 response types
 -------------------------------------------------------------------------------
 Available Commands :
 -----------------
-
     
 -----------------
 ping

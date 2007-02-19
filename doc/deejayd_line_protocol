@@ -1,0 +1,161 @@
+
+                        deejayd - Line Protocol
+
+All data between the client and server is encoded in UTF-8.
+-------------------------------------------------------------------------------
+
+Commands Format : 
+-----------------  
+cmdName arg1 arg2
+
+If arguments contain spaces, they should be surrounded by double quotation
+marks, ".
+
+Command Completion :
+--------------------
+A command returns "OK\n" on completion or "ACK some error\n" on failure.
+These denote the end of command execution.
+
+Available Commands :
+-----------------
+
+------------------
+setXML
+------------------
+description :
+Activate XML protocol
+
+------------------
+close
+------------------
+description :
+Close connection with deejayd
+
+-----------------
+ping
+-----------------
+arguments :
+
+description : 
+Does nothing, just to test the connextion with the server
+    
+-----------------
+status
+-----------------
+arguments :
+
+description : 
+Return status of deejayd. Given informations are :
+  * playlist : _int_ id of the current playlist
+  * playlistlength : _int_ length of the current playlist
+  * webradio : _int_ id of the current webradio list
+  * random : 0 (not activate) or 1 (activate) 
+  * repeat : 0 (not activate) or 1 (activate) 
+  * volume : [0-100] current volume value  
+  * state : [play-pause-stop] the current state of deejayd
+  * song : _int_ the position of the current song
+  * songid : _int_ the id of the current song
+  * mode : [playlist-webradio] the current mode
+  * updating_db : _int_ show when an database update is in progress  
+  * updating_error : _string_ error message that apppears when the database
+                     update has failed
+    
+-----------------
+update
+-----------------
+arguments :
+directory : type->string, required->false
+
+description : 
+Update the database. "directory" argument is optional and allow to update just
+a particular directory.
+  * updating_db : the id of this task. it appears in the result of status
+    command until the update are finished.
+    
+-----------------
+lsinfo
+-----------------
+arguments :
+directory : type->string, required->false
+
+description : 
+lists files of "directory".
+    
+-----------------
+play
+-----------------
+arguments :
+id : type->int, required->false
+
+description : 
+Begin playing at song or webradio with id "id".
+    
+-----------------
+stop
+-----------------
+arguments :
+
+description : 
+Stop playing
+    
+-----------------
+pause
+-----------------
+arguments :
+
+description : 
+Toggle pause/resume playing
+    
+-----------------
+next
+-----------------
+arguments :
+
+description : 
+Go to next song or webradio
+    
+-----------------
+previous
+-----------------
+arguments :
+
+description : 
+Go to previous song or webradio
+    
+-----------------
+setvol
+-----------------
+arguments :
+volume : type->int, required->true
+
+description : 
+set volume to "volume".
+The range of volume is 0-100
+    
+-----------------
+seek
+-----------------
+arguments :
+time : type->int, required->true
+
+description : 
+seeks to the position "time" (in seconds) of the current song (in playlist mode).
+    
+-----------------
+random
+-----------------
+arguments :
+value : type->list : 0 or 1, required->true
+
+description : 
+set random state to "value", "value" should be 0 or 1
+    
+-----------------
+repeat
+-----------------
+arguments :
+value : type->list 0 or 1, required->true
+
+description : 
+set repeat state to "value", "value" should be 0 or 1
+    

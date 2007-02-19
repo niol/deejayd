@@ -3,10 +3,42 @@
 Use to create documentation of the protocol
 """
 
-from deejayd.net import commandsXML
+from deejayd.net import commandsXML,commandsLine
 
 def headerLineCommands():
-    pass
+    return """
+                        deejayd - Line Protocol
+
+All data between the client and server is encoded in UTF-8.
+-------------------------------------------------------------------------------
+
+Commands Format : 
+-----------------  
+cmdName arg1 arg2
+
+If arguments contain spaces, they should be surrounded by double quotation
+marks, ".
+
+Command Completion :
+--------------------
+A command returns "OK\\n" on completion or "ACK some error\\n" on failure.
+These denote the end of command execution.
+
+Available Commands :
+-----------------
+
+------------------
+setXML
+------------------
+description :
+Activate XML protocol
+
+------------------
+close
+------------------
+description :
+Close connection with deejayd
+"""
 
 def headerXMLCommands():
     return """
@@ -14,6 +46,12 @@ def headerXMLCommands():
 
 All data between the client and server is encoded in UTF-8.
 -------------------------------------------------------------------------------
+
+Activate XML protocol :
+-----------------------
+By default, line protocole is activated.
+To activate XML, you have to send "setXML" command at deejayd 
+
 Commands Format :
 -----------------
 <?xml version="1.0"?>
@@ -91,10 +129,9 @@ There are 6 response types
 -------------------------------------------------------------------------------
 Available Commands :
 -----------------
-
     """
 
-def formatCmdDoc(name,cmdObj):
+def formatCmdDoc(name,cmdObj, xml = True):
     infos = cmdObj("",[]).docInfos()
     # Args
     argsText = ""
@@ -104,8 +141,12 @@ def formatCmdDoc(name,cmdObj):
             mult = "false"
             if "mult" in infos: mult = arg["mult"]
 
-            argsText += "%s : type->%s, required->%s, multiple->%s\n" %\
-                (arg["name"],arg["type"],req,mult)
+            if xml:
+                argsText += "%s : type->%s, required->%s, multiple->%s\n" %\
+                    (arg["name"],arg["type"],req,mult)
+            else:
+                argsText += "%s : type->%s, required->%s\n" %\
+                    (arg["name"],arg["type"],req)
 
     return """
 -----------------
@@ -122,13 +163,29 @@ description :
 
 
 if __name__ == "__main__":
-    commandsList = commandsXML.commandsList(commandsXML)
+    # XML Doc
+    commandsListXML = commandsXML.commandsList(commandsXML)
     docs = headerXMLCommands()
     for cmd in commandsXML.commandsOrders():
-        docs += formatCmdDoc(cmd,commandsList[cmd])
+        docs += formatCmdDoc(cmd,commandsListXML[cmd])
 
     f = open("doc/deejayd_xml_protocol","w")
     try: f.write(docs)
     finally: f.close()
+
+    # Line Doc
+    commandsListLine = commandsLine.commandsList(commandsLine)
+    docs = headerLineCommands()
+    for cmd in commandsLine.commandsOrders():
+        try: func = getattr(commandsListLine[cmd]("",[]), "docInfos")
+        except AttributeError:
+            docs += formatCmdDoc(cmd,commandsListXML[cmd],False)
+        else:
+            docs += formatCmdDoc(cmd,commandsListLine[cmd],False)
+
+    f = open("doc/deejayd_line_protocol","w")
+    try: f.write(docs)
+    finally: f.close()
+
 
 # vim: ts=4 sw=4 expandtab

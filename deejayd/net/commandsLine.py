@@ -119,6 +119,15 @@ class UpdateDB(UnknownCommand):
 
 class LsInfo(UnknownCommand):
 
+    def docInfos(self):
+        return {
+            "args": [{"name":"directory", "type":"string", "req":0}],
+            "returnType": "FileList", 
+            "description": """
+lists files of "directory".
+"""
+        }
+
     def execute(self):
         dir = ""
         if self.args != None:
@@ -177,6 +186,15 @@ class Play(UnknownCommand):
 
 
 class SetVolume(UnknownCommand):
+
+    def docInfos(self):
+        return {
+            "args": [{"name":"volume", "type":"int", "req":1}],
+            "description": """
+set volume to "volume".
+The range of volume is 0-100
+"""
+        }
 
     def execute(self):
         try:vol = int(self.args)
