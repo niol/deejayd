@@ -258,7 +258,9 @@ class PlaylistSource:
         
         if playlist == None and self.currentSong != None and\
                 self.currentSong[type] == nb:
-            self.player.next()
+            self.player.stop()
+            pos = self.currentSong["Pos"]
+            self.goTo(pos+1, "Pos")
         playlistObj.delete(nb,type)
 
         if isinstance(playlist,str):
