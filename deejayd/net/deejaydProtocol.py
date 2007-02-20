@@ -60,17 +60,17 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def startFactory(self):
         log.msg("Starting Deejayd ...")
+        # Try to Init the MediaDB
+        self.db = deejaydDB.DeejaydDB()
+        log.msg("MediaDB Initialisation...OK")
+
         # Try to Init the player
-        try: self.player = player.deejaydPlayer()
+        try: self.player = player.deejaydPlayer(self.db)
         except player.NoSinkError:
             log.err("No audio sink found for Gstreamer, deejayd can not run")
             from twisted.internet import reactor
             reactor.stop()
         log.msg("Player Initialisation...OK")
-
-        # Try to Init the MediaDB
-        self.db = deejaydDB.DeejaydDB()
-        log.msg("MediaDB Initialisation...OK")
 
         # Try to Init sources
         try: self.sources = sources.sourcesFactory(self.player,self.db)
@@ -81,8 +81,9 @@ class DeejaydFactory(protocol.ServerFactory):
         log.msg("Sources Initialisation...OK")
 
     def stopFactory(self):
-        self.db.close()
+        self.player.close()
         self.sources.close()
+        self.db.close()
 
     def buildProtocol(self, addr):
         p = self.protocol(player = self.player,

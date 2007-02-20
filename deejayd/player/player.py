@@ -19,7 +19,8 @@ class NoSinkError: pass
 
 class deejaydPlayer:
 
-    def __init__(self):
+    def __init__(self,db):
+        self.db = db
         # Initialise var
         self.__state = PLAYER_STOP
         self.__source = None
@@ -63,6 +64,20 @@ class deejaydPlayer:
             log.err(err)
 
         return True
+
+    def loadState(self):
+        # Restore volume
+        vol = float(self.db.getState("volume"))
+        self.setVolume(vol)
+
+        # Restore current song
+        curPos = int(self.db.getState("currentPos"))
+        self.__source.goTo(curPos,"Pos")
+
+        # Random and Repeat
+        self.__random = int(self.db.getState("random"))
+        self.__repeat = int(self.db.getState("repeat"))
+
 
     def setSource(self,source,name):
         self.__source = source
@@ -188,10 +203,18 @@ class deejaydPlayer:
         return self.__state != PLAYER_STOP
 
     def close(self):
-        pass
+        song = self.__source.getCurrent()
+        if song: curPos = song["Pos"]
+        else: curPos = 0
+
+        states = [(str(self.getVolume()),"volume"),(str(self.__repeat),\
+            "repeat"),(str(self.__random),"random"),\
+            (self.__sourceName,"source"),(str(curPos),"currentPos")]
+        self.db.setState(states)
 
     def __getGstState(self):
         changestatus,state,_state = self.bin.get_state()
         return state
+
 
 # vim: ts=4 sw=4 expandtab

@@ -204,6 +204,20 @@ class Database(UnknownDatabase):
 
         return rs
 
+    #
+    # State requests
+    #
+    def setState(self,values):
+        self.executemany("UPDATE {state} SET value = ? WHERE name = ?" \
+            ,values)
+        self.connection.commit()
+
+    def getState(self,type): 
+        self.execute("SELECT value FROM {state} WHERE name = ?",(type,))
+        (rs,) =  self.cursor.fetchone()
+
+        return rs
+
 
 class sqliteDatabase(Database):
 
@@ -221,9 +235,16 @@ class sqliteDatabase(Database):
             filename TEXT,PRIMARY KEY (name,position))")
         self.execute("CREATE TABLE {stat}(name TEXT,value INT,PRIMARY KEY \
             (name))")
+        self.execute("CREATE TABLE {state}(name TEXT,value TEXT,PRIMARY KEY \
+            (name))")
 
         values = [("db_update",0),("songs",0),("artists",0),("albums",0)]
         self.executemany("INSERT INTO {stat}(name,value)VALUES(?,?)",values)
+
+        values = [("volume","0"),("currentPos","0"),("source","playlist"),\
+            ("random","0"),("repeat","0")]
+        self.executemany("INSERT INTO {state}(name,value)VALUES(?,?)",values)
+
         self.connection.commit()
         log.msg("SQLite database structure successfully created.")
 

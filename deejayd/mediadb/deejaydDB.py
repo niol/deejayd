@@ -205,6 +205,12 @@ class DeejaydDB:
     def getStats(self):
         return self.db.getMediaDBStat()
 
+    def getState(self,name):
+        return self.db.getState(name)
+
+    def setState(self,values):
+        self.db.setState(values)
+
     def close(self):
         self.db.close()
 

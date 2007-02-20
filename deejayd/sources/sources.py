@@ -19,8 +19,10 @@ class sourcesFactory:
         else:
             log.msg("Webradio support disabled : require gst-plugins-gnomevfs")
 
-        # For the moment we choose "playlist" for default source
-        self.setSource("playlist")
+        # restore recorded source 
+        source = db.getState("source")
+        self.setSource(source)
+        self.player.loadState()
 
     def getSource(self,s):
         if s not in self.sourcesObj.keys():
