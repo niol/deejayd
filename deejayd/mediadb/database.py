@@ -22,27 +22,85 @@ class databaseExeption: pass
 
 class UnknownDatabase:
 
-    def __init__(self):
-        pass
-
-    def _initialise(self):
-        pass
-
     def connect(self):
-        pass
+        raise NotImplementedError
 
     def execute(self,cur,query,parm = None):
-        pass
+        raise NotImplementedError
 
     def executemany(self,cur,query,parm):
-        pass
+        raise NotImplementedError
 
     def close(self):
-        pass
+        raise NotImplementedError
 
 
 class Database(UnknownDatabase):
-    
+    databaseVersion = "1"    
+
+    def initialise(self):
+        create_table = """
+CREATE TABLE {library}(
+    dir TEXT,
+    filename TEXT,
+    type TEXT,
+    title TEXT,
+    artist TEXT,
+    album TEXT, 
+    genre TEXT, 
+    tracknumber INT,
+    date TEXT,
+    length INT,
+    bitrate INT,
+    PRIMARY KEY (dir,filename));
+
+CREATE TABLE {video}(
+    dir TEXT,
+    filename TEXT,
+    type TEXT,
+    PRIMARY KEY (dir,filename));
+
+CREATE TABLE {webradio}(
+    wid INT,
+    name TEXT,
+    url TEXT,
+    PRIMARY KEY (wid));
+
+CREATE TABLE {playlist}(
+    name TEXT,
+    position INT, 
+    dir TEXT,
+    filename TEXT,
+    PRIMARY KEY (name,position));
+
+CREATE TABLE {stats}(
+    name TEXT,
+    value INT,
+    PRIMARY KEY (name));
+
+CREATE TABLE {variables}(
+    name TEXT,
+    value TEXT,
+    PRIMARY KEY (name));
+"""
+        self.executescript(create_table)
+        
+        # Init stats informations
+        values = [("db_update",0),("songs",0),("artists",0),("albums",0)]
+        self.executemany("INSERT INTO {stats}(name,value)VALUES(?,?)",values)
+
+        # Init player state
+        values = [("volume","0"),("currentPos","0"),("source","playlist"),\
+            ("random","0"),("repeat","0")]
+        self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
+            values)
+
+        # Init database version
+        self.execute("INSERT INTO {variables}(name,value)VALUES(?,?)",\
+            ("database_version",self.__class__.databaseVersion))
+        self.connection.commit()
+        log.msg("Database structure successfully created.")
+
     #
     # MediaDB requests
     #
@@ -186,20 +244,20 @@ class Database(UnknownDatabase):
 
         # record in the database  
         values = [(songs,"songs"),(artists,"artists"),(albums,"albums")]
-        self.executemany("UPDATE {stat} SET value = ? WHERE name = ?",values)
+        self.executemany("UPDATE {stats} SET value = ? WHERE name = ?",values)
         self.connection.commit()
 
     def getMediaDBStat(self):
-        self.execute("SELECT * FROM {stat}")
+        self.execute("SELECT * FROM {stats}")
         return self.cursor.fetchall()
 
     def setStat(self,type,value):
-        self.execute("UPDATE {stat} SET value = ? WHERE name = ?" \
+        self.execute("UPDATE {stats} SET value = ? WHERE name = ?" \
             ,(value,type))
         self.connection.commit()
 
     def getStat(self,type):
-        self.execute("SELECT value FROM {stat} WHERE name = ?",(type,))
+        self.execute("SELECT value FROM {stats} WHERE name = ?",(type,))
         (rs,) =  self.cursor.fetchone()
 
         return rs
@@ -208,12 +266,12 @@ class Database(UnknownDatabase):
     # State requests
     #
     def setState(self,values):
-        self.executemany("UPDATE {state} SET value = ? WHERE name = ?" \
+        self.executemany("UPDATE {variables} SET value = ? WHERE name = ?" \
             ,values)
         self.connection.commit()
 
     def getState(self,type): 
-        self.execute("SELECT value FROM {state} WHERE name = ?",(type,))
+        self.execute("SELECT value FROM {variables} WHERE name = ?",(type,))
         (rs,) =  self.cursor.fetchone()
 
         return rs
@@ -224,39 +282,15 @@ class sqliteDatabase(Database):
     def __init__(self,db_file):
         self.db_file = db_file
 
-    def _initialise(self):
-        # creation of tables
-        self.execute("CREATE TABLE {library}(dir TEXT,filename TEXT,type TEXT,\
-            title TEXT,artist TEXT,album TEXT, genre TEXT, tracknumber INT,\
-            date TEXT, length INT, bitrate INT, PRIMARY KEY (dir,filename))")
-        self.execute("CREATE TABLE {webradio}(wid INT, name TEXT,url TEXT,\
-            PRIMARY KEY (wid))")
-        self.execute("CREATE TABLE {playlist}(name TEXT,position INT, dir TEXT,\
-            filename TEXT,PRIMARY KEY (name,position))")
-        self.execute("CREATE TABLE {stat}(name TEXT,value INT,PRIMARY KEY \
-            (name))")
-        self.execute("CREATE TABLE {state}(name TEXT,value TEXT,PRIMARY KEY \
-            (name))")
-
-        values = [("db_update",0),("songs",0),("artists",0),("albums",0)]
-        self.executemany("INSERT INTO {stat}(name,value)VALUES(?,?)",values)
-
-        values = [("volume","0"),("currentPos","0"),("source","playlist"),\
-            ("random","0"),("repeat","0")]
-        self.executemany("INSERT INTO {state}(name,value)VALUES(?,?)",values)
-
-        self.connection.commit()
-        log.msg("SQLite database structure successfully created.")
-
     def connect(self):
         from pysqlite2 import dbapi2 as sqlite
         init = path.isfile(self.db_file) and (0,) or (1,)
-        try:
-            self.connection = sqlite.connect(self.db_file)
-            self.cursor = self.connection.cursor() 
+        try: self.connection = sqlite.connect(self.db_file)
         except:
             log.err("Could not connect to sqlite database.")
             sys.exit("Unable to connect at the sqlite database.")
+        else:
+            self.cursor = self.connection.cursor() 
 
         # configure connection
         self.connection.text_factory = str
@@ -264,14 +298,11 @@ class sqliteDatabase(Database):
         sqlite.register_adapter(str,strEncode)
 
         if init[0]:
-            self._initialise()
+            self.initialise()
 
     def execute(self,query,parm = None):
         from pysqlite2 import dbapi2 as sqlite
-        try: prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
-        except: prefix = ""
-
-        query = query.replace("{",prefix).replace("}","") 
+        query = self.__formatQuery(query)
         try:
             if parm == None: self.cursor.execute(query)
             else: self.cursor.execute(query,parm)
@@ -280,11 +311,13 @@ class sqliteDatabase(Database):
 
     def executemany(self,query,parm):
         from pysqlite2 import dbapi2 as sqlite
-        try: prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
-        except: prefix = ""
+        try: self.cursor.executemany(self.__formatQuery(query),parm)
+        except sqlite.OperationalError,err: 
+            log.err("Unable to execute database request : %s" %(err,))
 
-        query = query.replace("{",prefix).replace("}","") 
-        try: self.cursor.executemany(query,parm)
+    def executescript(self,query):
+        from pysqlite2 import dbapi2 as sqlite
+        try: self.cursor.executescript(self.__formatQuery(query))
         except sqlite.OperationalError,err: 
             log.err("Unable to execute database request : %s" %(err,))
 
@@ -292,6 +325,12 @@ class sqliteDatabase(Database):
         self.cursor.close()
         self.connection.close()
 
+    def __formatQuery(self,query):
+        try: prefix = DeejaydConfig().get("mediadb","db_prefix") + "_"
+        except: prefix = ""
+        query = query.replace("{",prefix).replace("}","") 
+
+        return query
 
 def openConnection():
     try: db_type =  DeejaydConfig().get("mediadb","db_type")
