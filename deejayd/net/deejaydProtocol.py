@@ -1,3 +1,4 @@
+import sys
 from twisted.application import service, internet
 from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
@@ -68,16 +69,14 @@ class DeejaydFactory(protocol.ServerFactory):
         try: self.player = player.deejaydPlayer(self.db)
         except player.NoSinkError:
             log.err("No audio sink found for Gstreamer, deejayd can not run")
-            from twisted.internet import reactor
-            reactor.stop()
+            sys.exit("Unable to start deejayd : see log for more informations")
         log.msg("Player Initialisation...OK")
 
         # Try to Init sources
         try: self.sources = sources.sourcesFactory(self.player,self.db)
         except:
             log.err("Unable to init sources, deejayd has to quit")
-            from twisted.internet import reactor
-            reactor.stop()
+            sys.exit("Unable to start deejayd : see log for more informations")
         log.msg("Sources Initialisation...OK")
 
     def stopFactory(self):
