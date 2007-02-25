@@ -291,9 +291,12 @@ playlistAdd
 arguments :
 path : type->string, required->true, multiple->false
 pos : type->int, required->false, multiple->false
+name : type->string, required->false, multiple->false
 
 description : 
-Load files or directories passed in arguments ("path") at the position "pos"  
+Load files or directories passed in arguments ("path") at the position "pos" in
+the playlist "name". If no playlist name is passed, add files in the current 
+playlist.
     
 -----------------
 playlistRemove

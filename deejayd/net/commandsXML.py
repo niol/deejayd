@@ -487,9 +487,12 @@ class PlaylistAdd(UnknownCommand):
     def docInfos(self):
         return {
             "args": [{"mult":"true","name":"path", "type":"string", "req":1},
-                {"name":"pos", "type":"int", "req":0}],
+                {"name":"pos", "type":"int", "req":0},
+                {"name":"name", "type":"string","req":0}],
             "description": """
-Load files or directories passed in arguments ("path") at the position "pos"  
+Load files or directories passed in arguments ("path") at the position "pos" in
+the playlist "name". If no playlist name is passed, add files in the current 
+playlist.
 """
         }
 
