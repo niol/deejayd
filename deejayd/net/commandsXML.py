@@ -523,7 +523,7 @@ class PlaylistInfo(UnknownCommand):
 
     def docInfos(self):
         return {
-            "args": [{"name":"path", "type":"string", "req":0}],
+            "args": [{"name":"name", "type":"string", "req":0}],
             "returnType": "SongList", 
             "description": """
 Return the content of the playlist "name". 
@@ -599,7 +599,6 @@ If no name are given, remove songs from current playlist
                 return self.getErrorAnswer('Playlist not found')
 
         return self.getOkAnswer()
-
 
 
 class PlaylistMove(UnknownCommand):

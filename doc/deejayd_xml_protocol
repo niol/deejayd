@@ -271,7 +271,7 @@ Return informations on the current song or webradio.
 playlistInfo
 -----------------
 arguments :
-path : type->string, required->false, multiple->false
+name : type->string, required->false, multiple->false
 
 description : 
 Return the content of the playlist "name". 
