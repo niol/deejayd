@@ -5,14 +5,17 @@ This is the test suite launcher.
 
 import unittest
 
-print "Test Database functions\n"
-import testdeejayd.mediadb.database
-dbsuite = unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.mediadb.database)
-unittest.TextTestRunner(verbosity=2).run(dbsuite)
+suitelist = []
 
-print "\nTest DeejaydProtocol functions\n"
+import testdeejayd.mediadb.database
+suitelist.append(unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.mediadb.database))
+
+import testdeejayd.mediadb.deejaydDB
+suitelist.append(unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.mediadb.deejaydDB))
+
 import testdeejayd.net.deejaydProtocol
-dbsuite = unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.net.deejaydProtocol)
-unittest.TextTestRunner(verbosity=2).run(dbsuite)
+suitelist.append(unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.net.deejaydProtocol))
+
+unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suitelist))
 
 # vim: ts=4 sw=4 expandtab
