@@ -7,7 +7,7 @@ from twisted.python import log
 from xml.dom import minidom
 
 from deejayd.ui.config import DeejaydConfig
-from deejayd.mediadb import deejaydDB
+from deejayd.mediadb import deejaydDB, database
 from deejayd.sources import sources
 from deejayd.player import player
 from deejayd.net import commandsXML,commandsLine
@@ -58,11 +58,20 @@ class DeejaydProtocol(LineReceiver):
 
 class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
+    db_supplied = False
+
+    def __init__(self, ddb = None):
+        if ddb != None:
+            self.db_supplied = True
+            self.db = ddb
 
     def startFactory(self):
         log.msg("Starting Deejayd ...")
+
         # Try to Init the MediaDB
-        self.db = deejaydDB.DeejaydDB()
+        if not self.db_supplied:
+            self.db = deejaydDB.DeejaydDB(database.openConnection(),
+                            DeejaydConfig().get("mediadb","music_directory"))
         log.msg("MediaDB Initialisation...OK")
 
         # Try to Init the player

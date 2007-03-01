@@ -10,14 +10,14 @@ from twisted.internet import threads
 class NotFoundException:pass
 
 class DeejaydFile:
-    root_path =  DeejaydConfig().get("mediadb","music_directory")
 
-    def __init__(self,db,dir):
-        self.db = db
+    def __init__(self, library, dir):
+        self.library = library
+        self.db = self.library.getDB()
         self.dir = dir
 
     def insert(self,f):
-        realDir = os.path.join(self.__class__.root_path,self.dir)
+        realDir = os.path.join(self.library.getRootPath(), self.dir)
         realFile = os.path.join(realDir,f)
         
         try: fileInfo = tag.fileTag().getFileTag(realFile) 
@@ -29,7 +29,7 @@ class DeejaydFile:
         self.db.insertFile(self.dir,fileInfo)
 
     def update(self,f):
-        realDir = os.path.join(self.__class__.root_path,self.dir)
+        realDir = os.path.join(self.library.getRootPath(), self.dir)
         realFile = os.path.join(realDir,f)
         
         try: fileInfo = tag.fileTag().getFileTag(realFile) 
@@ -45,15 +45,15 @@ class DeejaydFile:
 
 
 class DeejaydDir:
-    root_path =  DeejaydConfig().get("mediadb","music_directory")
 
-    def __init__(self,db = None):
-        self.db = db
+    def __init__(self, library):
+        self.library = library
+        self.db = self.library.getDB()
 
     def update(self,dir,lastUpdateTime):
         self.testDir(dir)
 
-        realDir = os.path.join(self.__class__.root_path,dir)
+        realDir = os.path.join(self.library.getRootPath(), dir)
         dbRecord = self.db.getDirContent(dir)
         # First we update the list of directory
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
@@ -73,7 +73,7 @@ class DeejaydDir:
         if int(os.stat(realDir).st_mtime) >= lastUpdateTime:
             files = [ f for f in os.listdir(realDir) 
                 if os.path.isfile(os.path.join(realDir,f))]
-            djFile = DeejaydFile(self.db,dir)
+            djFile = DeejaydFile(self.library,dir)
             for f in [fi for (fi,t) in dbRecord if t == 'file']:
                 if os.path.isfile(os.path.join(realDir,f)):
                     djFile.update(f)
@@ -91,7 +91,7 @@ class DeejaydDir:
             else: self.update(d,lastUpdateTime)
 
     def testDir(self,dir):
-        realDir = os.path.join(self.__class__.root_path,dir)
+        realDir = os.path.join(self.library.getRootPath(), dir)
         # Test directory existence
         if not os.path.isdir(realDir):
             raise NotFoundException
@@ -101,14 +101,16 @@ class DeejaydDB:
     """deejaydDB
     Class to manage the media database
     """
-    def __init__(self):
+    def __init__(self, db, root_path):
         # init Parms
         self.__updateDBId = 0
         self.__updateEnd = True
         self.__updateError = None
 
+        self.__root_path = root_path
+
         # Connection to the database
-        self.db = database.openConnection()
+        self.db = db
         self.db.connect()
 
     def getDir(self,dir):
@@ -213,6 +215,12 @@ class DeejaydDB:
 
     def close(self):
         self.db.close()
+
+    def getRootPath(self):
+        return self.__root_path
+
+    def getDB(self):
+        return self.db
 
 
 def errorHandler(failure,dbClass):
