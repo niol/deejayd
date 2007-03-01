@@ -8,6 +8,13 @@ import random, time, string
 from xml.dom import minidom
 
 
+class TestData:
+
+    def getRandomString(self, length = 5, charset = string.letters):
+        random.seed(time.time())
+        return ''.join(random.sample(charset, length))
+
+
 class TestSong:
 
     def __init__(self, tagDict):
@@ -38,10 +45,30 @@ class TestDir:
         pass
 
 
-class TestMusicCollection(TestDir):
+class TestProvidedMusicCollection(TestData):
+
+    def __init__(self, musicDir):
+        self.datadir = os.path.normpath(musicDir)
+
+    def getRootDir(self):
+        return self.datadir
+
+    def stripRoot(self, path):
+        """Strips the root directory path turning the argument into a
+        relative path."""
+        abs_path = os.path.abspath(path)
+        rel_path = os.path.normpath(abs_path[len(self.getRootDir()):])
+
+        if rel_path != '.':
+            rel_path = '.' + rel_path
+
+        return rel_path
+
+
+class TestMusicCollection(TestProvidedMusicCollection):
 
     def __init__(self, data, dontClean = False):
-        TestDir.__init__(self, '.')
+        TestProvidedMusicCollection.__init__(self, '')
 
         self.dir_struct_written = False
 
@@ -79,12 +106,8 @@ class TestMusicCollection(TestDir):
 
         self.dir_struct_written = True
 
-    def getRandomString(self, length = 5, charset = string.letters):
-        random.seed(time.time())
-        return ''.join(random.sample(charset, length))
 
-
-class TestCommand:
+class TestCommand(TestData):
 
     def __init__(self):
         self.xmldoc = minidom.Document()
@@ -109,10 +132,6 @@ class TestCommand:
 
     def createRandomLineCmd(self):
         return self.getRandomString()
-
-    def getRandomString(self, length = 5, charset = string.letters):
-        random.seed(time.time())
-        return ''.join(random.sample(charset, length))
 
     def createSimpleOkanswer(self,cmdName):
         rsp = self.xmldoc.createElement("response")
