@@ -192,9 +192,7 @@ class PlaylistSource:
     def __init__(self,player,djDB):
         self.player = player
         self.djDB = djDB
-        # Open a connection to the database
-        self.db = database.openConnection()
-        self.db.connect()
+        self.db = self.djDB.getDB()
         # Init parms
         self.__openPlaylists = {}
         self.currentSong = None
@@ -385,7 +383,6 @@ class PlaylistSource:
         
     def close(self):
         self.__closePlaylist(self.__class__.currentPlaylistName)
-        self.db.close()
 
     def getStatus(self):
         rs = [("playlistlength",self.currentPlaylist.getLength()),\

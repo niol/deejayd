@@ -15,7 +15,7 @@ class sourcesFactory:
         import gst
         if gst.element_make_from_uri(gst.URI_SRC, "http://", ""):
             from deejayd.sources import webradio
-            self.sourcesObj["webradio"] = webradio.WebradioSource(player)
+            self.sourcesObj["webradio"] = webradio.WebradioSource(player, db)
         else:
             log.msg("Webradio support disabled : require gst-plugins-gnomevfs")
 

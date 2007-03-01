@@ -105,12 +105,12 @@ class Webradio:
 
 class WebradioSource:
 
-    def __init__(self,player):
+    def __init__(self, player, djDB):
         # Init player
         self.player = player
-        # Open a connection to the database
-        self.db = database.openConnection()
-        self.db.connect()
+
+        self.db = djDB.getDB()
+
         # Init parms
         self.webradioCurrent = None
         self.wrContent = Webradio(self.db)
@@ -187,7 +187,6 @@ class WebradioSource:
 
     def close(self):
         self.wrContent.save()
-        self.db.close()
     
 
 # vim: ts=4 sw=4 expandtab
