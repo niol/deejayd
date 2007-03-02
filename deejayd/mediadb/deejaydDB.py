@@ -11,9 +11,9 @@ class NotFoundException:pass
 
 class DeejaydFile:
 
-    def __init__(self, library, dir):
+    def __init__(self, library, db, dir):
         self.library = library
-        self.db = self.library.getDB()
+        self.db = db
         self.dir = dir
 
     def insert(self,f):
@@ -46,9 +46,9 @@ class DeejaydFile:
 
 class DeejaydDir:
 
-    def __init__(self, library):
+    def __init__(self, library, db = None):
         self.library = library
-        self.db = self.library.getDB()
+        self.db = db or self.library.getDB()
 
     def update(self,dir,lastUpdateTime):
         self.testDir(dir)
@@ -73,7 +73,7 @@ class DeejaydDir:
         if int(os.stat(realDir).st_mtime) >= lastUpdateTime:
             files = [ f for f in os.listdir(realDir) 
                 if os.path.isfile(os.path.join(realDir,f))]
-            djFile = DeejaydFile(self.library,dir)
+            djFile = DeejaydFile(self.library,self.db,dir)
             for f in [fi for (fi,t) in dbRecord if t == 'file']:
                 if os.path.isfile(os.path.join(realDir,f)):
                     djFile.update(f)
@@ -156,7 +156,7 @@ class DeejaydDB:
         self.__updateEnd = False
 
         self.lastUpdateTime = db.getStat('db_update')
-        DeejaydDir(db).update(dir,self.lastUpdateTime)
+        DeejaydDir(self,db).update(dir,self.lastUpdateTime)
         db.setStat('db_update',time.time())
 
         # record the change in the database
@@ -178,7 +178,7 @@ class DeejaydDB:
     def update(self,dir):
         if self.__updateEnd:
             # First we test the directory
-            DeejaydDir().testDir(dir)
+            DeejaydDir(self).testDir(dir)
 
             self.__updateDBId += 1
             self.d = threads.deferToThread(self.updateDir,dir)
