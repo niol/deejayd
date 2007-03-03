@@ -165,6 +165,8 @@ class DeejaydDB:
         # update stat values
         db.recordMediaDBStat()
 
+        db.close()
+
     def endUpdate(self, result = True): 
         self.__updateEnd = True
         if result: log.msg("The database has been updated")
