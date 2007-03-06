@@ -7,7 +7,8 @@ from twisted.python import log
 from xml.dom import minidom
 
 from deejayd.ui.config import DeejaydConfig
-from deejayd.mediadb import deejaydDB, database
+from deejayd.mediadb import deejaydDB
+from deejayd.mediadb.database import DatabaseFactory
 from deejayd.sources import sources
 from deejayd.player import player
 from deejayd.net import commandsXML,commandsLine
@@ -70,7 +71,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
         # Try to Init the MediaDB
         if not self.db_supplied:
-            self.db = deejaydDB.DeejaydDB(database.openConnection(),
+            self.db = deejaydDB.DeejaydDB(DatabaseFactory().getDB(),
                             DeejaydConfig().get("mediadb","music_directory"))
         log.msg("MediaDB Initialisation...OK")
 

@@ -151,7 +151,7 @@ class DeejaydDB:
         return self.db.findInMediaDB(type,content)
 
     def updateDir(self,dir):
-        db = database.openConnection()
+        db = self.db.getNewConnection()
         db.connect()
         self.__updateEnd = False
 

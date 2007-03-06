@@ -34,6 +34,9 @@ class UnknownDatabase:
     def close(self):
         raise NotImplementedError
 
+    def getNewConnection(self):
+        raise NotImplementedError
+
 
 class Database(UnknownDatabase):
     databaseVersion = "1"    
@@ -300,6 +303,9 @@ class sqliteDatabase(Database):
         if init[0]:
             self.initialise()
 
+    def getNewConnection(self):
+        return sqliteDatabase(self.db_file)
+
     def execute(self,query,parm = None):
         from pysqlite2 import dbapi2 as sqlite
         query = self.__formatQuery(query)
@@ -332,23 +338,28 @@ class sqliteDatabase(Database):
 
         return query
 
-def openConnection(db_file = None):
-    try: db_type =  DeejaydConfig().get("mediadb","db_type")
-    except:
-        log.err("No database type selected. Exiting.")
-        raise SystemExit("You do not choose a database.Verify your config \
-            file.")
 
-    supportedDatabase = ("sqlite")
-    if db_type not in supportedDatabase:
-        log.err("Database %(db_type) is not supported. Exiting." % db_type)
-        raise SystemExit("You choose a database which is not supported. \
-            Verify your config file.")
+class DatabaseFactory:
 
-    if db_type == "sqlite":
-        dbFile = db_file or DeejaydConfig().get("mediadb","db_file")
-        return sqliteDatabase(dbFile)
+    def __init__(self):
+        self.supportedDatabase = ("sqlite")
 
-    return None
+    def getDB(self):
+        try: db_type =  DeejaydConfig().get("mediadb","db_type")
+        except:
+            log.err("No database type selected. Exiting.")
+            raise SystemExit("You do not choose a database.Verify your config \
+                file.")
+
+        if db_type not in self.supportedDatabase:
+            log.err("Database %(db_type) is not supported. Exiting." % db_type)
+            raise SystemExit("You chose a database which is not supported. \
+                Verify your config file.")
+
+        if db_type == "sqlite":
+            dbFile = DeejaydConfig().get("mediadb","db_file")
+            return sqliteDatabase(dbFile)
+
+        return None
 
 # vim: ts=4 sw=4 expandtab
