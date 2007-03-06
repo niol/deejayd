@@ -6,10 +6,16 @@ from testdeejayd import TestCaseWithProvidedMusic
 from testdeejayd.server import TestServer
 from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, AnswerFactory
 
+# FIXME : We should not nee dthose here, this is some code duplication from the
+# client code.
+from Queue import Queue
+from StringIO import StringIO
+from xml.sax import make_parser
+
 import re, unittest
 
 class TestCommandBuildParse(unittest.TestCase):
-    """Test the Deejayd client library command building and parsing"""
+    """Test the Deejayd client library command building"""
 
     def trimXML(self, xml):
         return re.sub('(\s{2,})|(\\n)','', xml)
@@ -44,7 +50,20 @@ class TestCommandBuildParse(unittest.TestCase):
 
         self.assertEqual(cmd.toXML(), self.trimXML(expectedAnswer))
 
-    def testAnswerParseriAck(self):
+
+class TestAnswerParser(unittest.TestCase):
+    """Test the Deejayd client library answer parser"""
+
+    def setUp(self):
+        self.ansq = Queue()
+        self.parser = make_parser()
+        self.ansb = AnswerFactory(self.ansq)
+        self.parser.setContentHandler(self.parser)
+
+    def parseAnswer(self, str):
+        self.parser.parse(StringIO(str))
+
+    def testAnswerParserAck(self):
         """Test the client library parsing an ack answer"""
 
         # FIXME : Handle the negative case
@@ -54,10 +73,10 @@ class TestCommandBuildParse(unittest.TestCase):
     <response name="%s" type="Ack"/>
 </deejayd>""" % originatingCommand
 
-        answerObj = AnswerFactory(self.trimXML(ackAnswer))
+        self.parseAnswer(ackAnswer)
 
-        self.assertEqual(answerObj.getOriginatingCommand(), originatingCommand)
-        self.assertEqual(answerObj.getAnswer(), True)
+        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+        self.assertEqual(self.ansq.get(), True)
 
 
 class TestClient(TestCaseWithProvidedMusic):

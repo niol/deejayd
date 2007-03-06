@@ -3,8 +3,14 @@
 from types import ListType
 
 import socket, threading
+
 from Queue import Queue, Empty
+
 from xml.dom import minidom, DOMException
+
+from StringIO import StringIO
+from xml.sax import make_parser
+from xml.sax.handler import ContentHandler
 
 msgDelimiter = 'ENDXML\n'
 
@@ -58,35 +64,36 @@ class DeejaydXMLCommand:
         return xmldoc.toxml('utf-8')
 
 
-class AnswerFactory:
+class AnswerFactory(ContentHandler):
 
-    def __init__(self, buffer):
-        self.buffer = buffer
-        self.parsed = False
-        self.xmlTree = None
-        self.responses = None
+    def __init__(self, answerQueue):
+        self.answerQueue = answerQueue
 
-    def parse(self):
-        if self.parsed:
-            return
+        self.answer = None
+        self.originatingCommand = ''
 
-        self.xmlTree = minidom.parseString(self.buffer)
-        self.responses = self.xmlTree.getElementsByTagName('response')
+        self.xmlpath = []
+
+    def startElement(self, name, attrs):
+        self.xmlpath.append(name)
+
+        if name == 'response':
+            self.originatingCommand = attrs.get('name')
+
+            if attrs.get('type') == 'Ack':
+                self.answer = True
+
+    def characters(self, str):
+        pass
+
+    def endElement(self, name):
+        self.xmlpath.pop()
+
+        if name == 'response':
+            self.answerQueue.put(self.answer)
 
     def getOriginatingCommand(self):
-        self.parse()
-
-        # FIXME : This should handle multiple responses
-        return self.responses[0].attributes['name'].value
-
-    def getAnswer(self):
-        self.parse()
-
-        # FIXME : This should also handle multiple responses
-        resp =  self.responses[0].attributes['type'].value
-
-        if resp == 'Ack':
-            return True
+        return self.originatingCommand
 
 
 class DeejayDaemonSocketThread(threading.Thread):
@@ -140,9 +147,13 @@ class DeejayDaemonAnswerThread(DeejayDaemonSocketThread):
         DeejayDaemonSocketThread.__init__(self, socket)
         self.answerQueue = answerQueue
 
+        self.parser = make_parser()
+        self.answerBuilder = AnswerFactory(self.answerQueue)
+        self.parser.setContentHandler(self.answerBuilder)
+
     def reallyRun(self):
         rawmsg = self.__readmsg()
-        self.answerQueue.put(AnswerFactory(rawmsg).getAnswer())
+        self.parser.parse(StringIO(rawmsg))
 
     def __readmsg(self):
         msg = ''
