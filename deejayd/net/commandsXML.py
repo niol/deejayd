@@ -11,7 +11,8 @@ def commandsOrders():
        "random","repeat","current","playlistInfo","playlistList","playlistAdd",
        "playlistRemove","playlistClear","playlistMove","playlistShuffle",
        "playlistShuffle","playlistErase","playlistLoad","playlistSave",
-       "webradioList","webradioAdd","webradioRemove","webradioClear")
+       "webradioList","webradioAdd","webradioRemove","webradioClear",
+       "queueInfo","queueAdd","queueLoadPlaylist","queueRemove","queueClear")
 
 def commandsList(commandsXML):
     return {
@@ -51,7 +52,13 @@ def commandsList(commandsXML):
         "webradioList":commandsXML.WebradioList,
         "webradioAdd":commandsXML.WebradioAdd,
         "webradioRemove":commandsXML.WebradioDel,
-        "webradioClear":commandsXML.WebradioClear
+        "webradioClear":commandsXML.WebradioClear,
+        # Queue commands
+        "queueInfo":commandsXML.QueueInfo,
+        "queueAdd":commandsXML.QueueAdd,
+        "queueLoadPlaylist":commandsXML.QueueLoadPlaylist,
+        "queueRemove":commandsXML.QueueRemove,
+        "queueClear":commandsXML.QueueClear,
         # Panel commands
     }
 
@@ -210,6 +217,9 @@ Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
   * webradio : _int_ id of the current webradio list
+  * webradiolength : _int_ number of recorded webradio
+  * queue : _int_ id of the current queue
+  * queuelength : _int_ length of the current queue
   * random : 0 (not activate) or 1 (activate) 
   * repeat : 0 (not activate) or 1 (activate) 
   * volume : [0-100] current volume value  
@@ -514,7 +524,7 @@ playlist.
         try: 
             self.deejaydArgs["sources"].getSource("playlist").\
                 addPath(files,playlistName,pos)
-        except sources.playlist.SongNotFoundException:
+        except sources.unknown.ItemNotFoundException:
             return self.getErrorAnswer('%s not found' % (file,))
         return self.getOkAnswer()
 
@@ -593,7 +603,7 @@ If no name are given, remove songs from current playlist
             try: 
                 self.deejaydArgs["sources"].getSource("playlist").\
                     delete(nb,"Id",playlistName)
-            except sources.playlist.SongNotFoundException:
+            except sources.unknown.ItemNotFoundException:
                 return self.getErrorAnswer('Song not found')
             except sources.playlist.PlaylistNotFoundException:
                 return self.getErrorAnswer('Playlist not found')
@@ -626,7 +636,7 @@ Move song with id equal to "id" to "newPosition "position
         try: 
             self.deejaydArgs["sources"].getSource("playlist").move(id,newPos)
             return self.getOkAnswer()
-        except sources.playlist.SongNotFoundException:
+        except sources.unknown.ItemNotFoundException:
             return self.getErrorAnswer('Song not found')
 
 
@@ -642,13 +652,8 @@ Return the list of recorded playlists
 
     def execute(self):
         playlists = self.deejaydArgs["sources"].getSource("playlist").getList()
-        # Remove current playlist from the list
-        try: playlists.remove((self.deejaydArgs["sources"].\
-            getSource("playlist").__class__.currentPlaylistName,))
-        except: pass
-
         rs = []
-        for (pl,) in playlists: 
+        for pl in playlists: 
             playlist = self.xmlDoc.createElement("playlist")
             playlist.setAttribute("name",pl)
             rs.append(playlist)
@@ -686,7 +691,7 @@ Return the list of recorded webradios
         if not self.wrSource:
             return self.getErrorAnswer("Webradio support not available")
 
-        wrs = self.wrSource.getList()
+        wrs = self.wrSource.getContent()
         rs = []
         for wr in wrs:
             webradio = self.xmlDoc.createElement("webradio")
@@ -738,7 +743,7 @@ Remove webradios with id equal to "ids"
             except ValueError: 
                 return self.getErrorAnswer('Need an integer : id') 
         
-            try: self.wrSource.erase(id)
+            try: self.wrSource.delete(id)
             except sources.webradio.WrNotFoundException:
                 return self.getErrorAnswer('Webradio not found')
 
@@ -766,20 +771,144 @@ You can pass a playlist for "url" argument (.pls and .m3u format are supported)
         if not url or not wrname:
             return self.getErrorAnswer('Need two arguments : url and name')
 
-        self.wrSource.addWebradio(url,wrname)
+        self.wrSource.add(url,wrname)
+        return self.getOkAnswer()
+
+###################################################
+#  Queue Commands                              #
+###################################################
+class QueueAdd(UnknownCommand):
+
+    def docInfos(self):
+        return {
+            "args": [{"mult":"true","name":"path", "type":"string", "req":1},
+                {"name":"pos", "type":"int", "req":0}],
+            "description": """
+Load files or directories passed in arguments ("path") at the position "pos" in
+the queue
+"""
+        }
+
+    def execute(self):
+        pos = "pos" in self.args.keys() and self.args["pos"] or None
+        if pos:
+            try:
+                pos = int(pos)
+                if pos < 0:
+                    raise ValueError 
+            except ValueError:
+                return self.getErrorAnswer(
+                    'Need an integer for position argument')
+        files = "path" in self.args.keys() and self.args["path"] or ""
+        if isinstance(files, str):
+            files = [files]
+
+        try: self.deejaydArgs["sources"].getSource("queue").\
+                add(files,pos)
+        except sources.unknown.ItemNotFoundException:
+            return self.getErrorAnswer('%s not found' % (file,))
+        return self.getOkAnswer()
+
+
+class QueueLoadPlaylist(UnknownCommand):
+
+    def docInfos(self):
+        return {
+            "args": [{"name":"name", "type":"string", "req":1,\
+                "mult":"true"}, {"name":"pos", "type":"int", "req":0}],
+            "description": """
+Load playlists passed in arguments ("name") at the position "pos" in the queue 
+"""
+        }
+
+    def execute(self):
+        pos = "pos" in self.args.keys() and self.args["pos"] or None
+        if pos:
+            try:
+                pos = int(pos)
+                if pos < 0:
+                    raise ValueError 
+            except ValueError:
+                return self.getErrorAnswer(
+                    'Need an integer for position argument')
+        plsNames = "name" in self.args.keys() and self.args["name"] or ""
+        if isinstance(plsNames, str):
+            plsNames = [plsNames]
+
+        try: self.deejaydArgs["sources"].getSource("queue").\
+            loadPlaylist(plsNames,pos)
+        except sources.playlist.PlaylistNotFoundException:
+            return self.getErrorAnswer('Playlist not found')
+
+        self.getOkAnswer()
+
+
+class QueueInfo(PlaylistInfo):
+
+    def docInfos(self):
+        return {
+            "args": [],
+            "returnType": "SongList", 
+            "description": """
+Return the content of the queue
+"""
+        }
+
+    def execute(self):
+        songs = self.deejaydArgs["sources"].getSource("queue").getContent()
+        rs = self.formatPlaylistInfo(songs)
+        return self.getOkAnswer("SongList",rs)
+
+
+class QueueRemove(UnknownCommand):
+
+    def docInfos(self):
+        return {
+            "args": [{"mult":"true", "name":"id", "type":"int", "req":1}],
+            "description": """
+Remove songs with ids passed as argument ("id"), from the queue. 
+"""
+        }
+
+    def execute(self):
+        numbs = "id" in self.args.keys() and self.args["id"] or []
+        if isinstance(numbs, str):
+            numbs = [numbs]
+
+        for nb in numbs:
+            try:nb = int(nb)
+            except ValueError:
+                return self.getErrorAnswer('Need an integer for argument \
+                        number')
+
+            try: self.deejaydArgs["sources"].getSource("queue").delete(nb,"Id")
+            except sources.unknown.ItemNotFoundException:
+                return self.getErrorAnswer('Song not found')
+
+        return self.getOkAnswer()
+
+
+class QueueClear(WebradioCommand):
+
+    def docInfos(self):
+        return {
+            "description": """
+Remove all songs from the queue
+"""
+        }
+
+    def execute(self):
+        self.deejaydArgs["sources"].getSource("queue").clear()
         return self.getOkAnswer()
 
 
 ###################################################
 #    Player Commands                              #
 ###################################################
-
 class SimplePlayerCommand(UnknownCommand):
 
     def execute(self):
-        try: getattr(self.deejaydArgs["player"],self.name)()
-        except: return self.getErrorAnswer("Unable to execute the command %s" % (self.name,))
-
+        getattr(self.deejaydArgs["player"],self.name)()
         return self.getOkAnswer()
 
 
@@ -948,7 +1077,7 @@ Return informations on the current song or webradio.
                 returnType = "WebradioList"
                 dict = [("Title",song["Title"]),("Id",song["Id"]),\
                     ("Pos",song["Pos"]),("Url",song["uri"])]
-            elif source == "playlist":
+            elif source == "playlist" or source == "queue":
                 returnType = "SongList"
                 dict = [("Title",song["Title"]),("Id",song["Id"]),\
                     ("Pos",song["Pos"]),("Artist",song["Artist"]),\

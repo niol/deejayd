@@ -23,6 +23,7 @@ class deejaydPlayer:
         self.db = db
         # Initialise var
         self.__state = PLAYER_STOP
+        self.__queue = None
         self.__source = None
         self.__sourceName = None
         self.__playingSourceName = None
@@ -83,18 +84,19 @@ class deejaydPlayer:
         self.__source = source
         self.__sourceName = name
 
+    def setQueue(self,queue):
+        self.__queue = queue
+
     def getPlayingSourceName(self):
         return self.__playingSourceName or self.__sourceName
 
-    def play(self):
-        if self.__state == PLAYER_STOP:
-            try: 
-                curSong = self.__source.getCurrent()
-                self.bin.set_property('uri',curSong["uri"])
-            except: return
-
-        self.__playingSourceName = self.__sourceName
-        self.__playingSource= self.__source
+    def __startPlay(self):
+        if self.__queue.getCurrent():
+            self.__playingSourceName = "queue"
+            self.__playingSource = self.__queue
+        else:
+            self.__playingSourceName = self.__sourceName
+            self.__playingSource= self.__source
 
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         self.__state = PLAYER_PLAY
@@ -108,16 +110,26 @@ class deejaydPlayer:
         if state_ret != gst.STATE_CHANGE_SUCCESS:
             self.__state = PLAYER_STOP
 
+    def play(self):
+        if self.__state == PLAYER_STOP:
+            curSong = self.__queue.goTo(0,"Pos") or self.__source.getCurrent()
+            if curSong: self.bin.set_property('uri',curSong["uri"])
+            else: return
+        self.__startPlay()
+
+
     def pause(self):
         if self.__state == PLAYER_PLAY:
             self.bin.set_state(gst.STATE_PAUSED)
             self.__state = PLAYER_PAUSE
-        else:
-            self.play()
+        elif self.__state == PLAYER_PAUSE:
+            self.play(setURI = False)
 
     def stop(self):
         self.bin.set_state(gst.STATE_NULL)
         self.__state = PLAYER_STOP
+        # Reset the queue
+        self.__queue.reset()
 
     def reset(self,sourceName):
         if sourceName == self.__playingSourceName:
@@ -126,27 +138,27 @@ class deejaydPlayer:
 
     def next(self):
         self.stop()
-        song = self.__source.next(self.__random,self.__repeat)
-        try: 
+        song = self.__queue.next(self.__random,self.__repeat) or\
+                self.__source.next(self.__random,self.__repeat)
+
+        if song:
             self.bin.set_property('uri',song["uri"])
-            self.play()
-        except: return
+            self.__startPlay()
 
     def previous(self):
         self.stop()
         song = self.__source.previous(self.__random,self.__repeat)
-        try: 
+        if song:
             self.bin.set_property('uri',song["uri"])
-            self.play()
-        except: return
+            self.__startPlay()
 
-    def goTo(self,nb,type):
+    def goTo(self,nb,type,queue = False):
         self.stop()
-        song = self.__source.goTo(nb,type)
-        try: 
+        s = queue and self.__queue or self.__source
+        song = s.goTo(nb,type)
+        if song:
             self.bin.set_property('uri',song["uri"])
-            self.play()
-        except: return
+            self.__startPlay()
 
     def random(self,val):
         self.__random = val

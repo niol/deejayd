@@ -105,6 +105,9 @@ Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
   * webradio : _int_ id of the current webradio list
+  * webradiolength : _int_ number of recorded webradio
+  * queue : _int_ id of the current queue
+  * queuelength : _int_ length of the current queue
   * random : 0 (not activate) or 1 (activate) 
   * repeat : 0 (not activate) or 1 (activate) 
   * volume : [0-100] current volume value  
@@ -289,7 +292,7 @@ Return the list of recorded playlists
 playlistAdd
 -----------------
 arguments :
-path : type->string, required->true, multiple->false
+path : type->string, required->true, multiple->true
 pos : type->int, required->false, multiple->false
 name : type->string, required->false, multiple->false
 
@@ -302,7 +305,7 @@ playlist.
 playlistRemove
 -----------------
 arguments :
-id : type->int, required->true, multiple->false
+id : type->int, required->true, multiple->true
 name : type->string, required->false, multiple->false
 
 description : 
@@ -347,7 +350,7 @@ Shuffle the current playlist.
 playlistErase
 -----------------
 arguments :
-name : type->string, required->true, multiple->false
+name : type->string, required->true, multiple->true
 
 description : 
 Erase playlists passed in arguments 
@@ -356,7 +359,7 @@ Erase playlists passed in arguments
 playlistLoad
 -----------------
 arguments :
-name : type->string, required->true, multiple->false
+name : type->string, required->true, multiple->true
 pos : type->int, required->false, multiple->false
 
 description : 
@@ -394,7 +397,7 @@ You can pass a playlist for "url" argument (.pls and .m3u format are supported)
 webradioRemove
 -----------------
 arguments :
-id : type->int, required->true, multiple->false
+id : type->int, required->true, multiple->true
 
 description : 
 Remove webradios with id equal to "ids"
@@ -406,4 +409,50 @@ arguments :
 
 description : 
 Remove all recorded webradios
+    
+-----------------
+queueInfo
+-----------------
+arguments :
+
+description : 
+Return the content of the queue
+    
+-----------------
+queueAdd
+-----------------
+arguments :
+path : type->string, required->true, multiple->true
+pos : type->int, required->false, multiple->false
+
+description : 
+Load files or directories passed in arguments ("path") at the position "pos" in
+the queue
+    
+-----------------
+queueLoadPlaylist
+-----------------
+arguments :
+name : type->string, required->true, multiple->true
+pos : type->int, required->false, multiple->false
+
+description : 
+Load playlists passed in arguments ("name") at the position "pos" in the queue 
+    
+-----------------
+queueRemove
+-----------------
+arguments :
+id : type->int, required->true, multiple->true
+
+description : 
+Remove songs with ids passed as argument ("id"), from the queue. 
+    
+-----------------
+queueClear
+-----------------
+arguments :
+
+description : 
+Remove all songs from the queue
     

@@ -82,10 +82,11 @@ class DeejaydFactory(protocol.ServerFactory):
         log.msg("Player Initialisation...OK")
 
         # Try to Init sources
-        try: self.sources = sources.sourcesFactory(self.player,self.db)
-        except:
-            log.err("Unable to init sources, deejayd has to quit")
-            sys.exit("Unable to start deejayd : see log for more informations")
+        self.sources = sources.sourcesFactory(self.player,self.db)
+        #try: self.sources = sources.sourcesFactory(self.player,self.db)
+        #except :
+        #    log.err("Unable to init sources, deejayd has to quit")
+        #    sys.exit("Unable to start deejayd : see log for more informations")
         log.msg("Sources Initialisation...OK")
 
     def stopFactory(self):

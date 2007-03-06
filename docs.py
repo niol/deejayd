@@ -139,7 +139,7 @@ def formatCmdDoc(name,cmdObj, xml = True):
         for arg in infos["args"]: 
             req = arg["req"] and "true" or "false"
             mult = "false"
-            if "mult" in infos: mult = arg["mult"]
+            if "mult" in arg: mult = arg["mult"]
 
             if xml:
                 argsText += "%s : type->%s, required->%s, multiple->%s\n" %\

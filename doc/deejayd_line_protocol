@@ -49,6 +49,9 @@ Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
   * webradio : _int_ id of the current webradio list
+  * webradiolength : _int_ number of recorded webradio
+  * queue : _int_ id of the current queue
+  * queuelength : _int_ length of the current queue
   * random : 0 (not activate) or 1 (activate) 
   * repeat : 0 (not activate) or 1 (activate) 
   * volume : [0-100] current volume value  

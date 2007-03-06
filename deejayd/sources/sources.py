@@ -3,14 +3,14 @@ from twisted.python import log
 class unknownSourceException: pass
 
 class sourcesFactory:
-    __supportedSources__ = ("playlist","webradio")
 
     def __init__(self,player,db):
         self.sourcesObj = {}
         self.player = player
 
-        from deejayd.sources import playlist
+        from deejayd.sources import playlist,queue
         self.sourcesObj["playlist"] = playlist.PlaylistSource(player,db)
+        self.sourcesObj["queue"] = queue.QueueSource(player,db)
 
         import gst
         if gst.element_make_from_uri(gst.URI_SRC, "http://", ""):
@@ -22,6 +22,7 @@ class sourcesFactory:
         # restore recorded source 
         source = db.getState("source")
         self.setSource(source)
+        self.player.setQueue(self.sourcesObj["queue"])
         self.player.loadState()
 
     def getSource(self,s):
