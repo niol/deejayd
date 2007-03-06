@@ -332,7 +332,7 @@ class sqliteDatabase(Database):
 
         return query
 
-def openConnection(db_file):
+def openConnection(db_file = None):
     try: db_type =  DeejaydConfig().get("mediadb","db_type")
     except:
         log.err("No database type selected. Exiting.")
@@ -346,7 +346,8 @@ def openConnection(db_file):
             Verify your config file.")
 
     if db_type == "sqlite":
-        return sqliteDatabase(db_file)
+        dbFile = db_file or DeejaydConfig().get("mediadb","db_file")
+        return sqliteDatabase(dbFile)
 
     return None
 
