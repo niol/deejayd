@@ -58,7 +58,7 @@ class TestAnswerParser(unittest.TestCase):
         self.ansq = Queue()
         self.parser = make_parser()
         self.ansb = AnswerFactory(self.ansq)
-        self.parser.setContentHandler(self.parser)
+        self.parser.setContentHandler(self.ansb)
 
     def parseAnswer(self, str):
         self.parser.parse(StringIO(str))
