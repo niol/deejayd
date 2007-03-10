@@ -5,8 +5,8 @@ from deejayd.sources.unknown import *
 class Queue(UnknownSource):
     queueName = "__djqueue__"
 
-    def __init__(self,library):
-        UnknownSource.__init__(self,library)
+    def __init__(self,library,id):
+        UnknownSource.__init__(self,library,id)
         self.rootPath = library.getRootPath()
 
         self.sourceContent = self.db.getPlaylist(self.__class__.queueName)
@@ -25,7 +25,8 @@ class QueueSource(UnknownSourceManagement):
 
     def __init__(self,player,djDB): 
         UnknownSourceManagement.__init__(self,player,djDB)
-        self.currentSource = Queue(self.djDB)
+        self.sourceName = "queue"
+        self.currentSource = Queue(self.djDB,self.getRecordedId())
 
     def getCurrent(self):
         return self.currentItem
@@ -70,9 +71,6 @@ class QueueSource(UnknownSourceManagement):
     def previous(self,rd,rpt):
         # Have to be never called
         raise NotImplementedError
-
-    def close(self):
-        self.currentSource.save()
 
     def reset(self):
         self.currentItem = None

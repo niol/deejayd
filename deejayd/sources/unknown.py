@@ -8,10 +8,10 @@ class ItemNotFoundException:pass
 
 class UnknownSource:
 
-    def __init__(self,library):
+    def __init__(self,library, id):
         self.db = library.getDB()
         self.sourceContent = []
-        self.sourceId = 0
+        self.sourceId = id
         self.__itemId = 0
 
     def getContent(self):
@@ -109,6 +109,10 @@ class UnknownSourceManagement:
         self.djDB = djDB
         self.currentItem = None
 
+    def getRecordedId(self):
+        id = int(self.djDB.getState(self.sourceName+"id"))
+        return id
+
     def getContent(self):
         return self.currentSource.getContent()
 
@@ -160,5 +164,10 @@ class UnknownSourceManagement:
         else: self.currentItem = None
 
         return self.currentItem
+
+    def close(self):
+        states = [(str(self.currentSource.sourceId),self.sourceName+"id")]
+        self.djDB.setState(states)
+        self.currentSource.save()
 
 # vim: ts=4 sw=4 expandtab

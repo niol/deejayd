@@ -36,8 +36,8 @@ def getUrisFromM3u(URL):
 
 class Webradio(UnknownSource):
 
-    def __init__(self,library): 
-        UnknownSource.__init__(self,library)
+    def __init__(self,library,id): 
+        UnknownSource.__init__(self,library,id)
 
         webradios = self.db.getWebradios() 
         self.sourceContent = [{"Pos":webradio[0],"Id":self.setItemId(), \
@@ -64,8 +64,9 @@ class WebradioSource(UnknownSourceManagement):
         UnknownSourceManagement.__init__(self,player,djDB)
 
         # Init parms
+        self.sourceName = "webradio"
         self.currentItem = None
-        self.currentSource = Webradio(self.djDB)
+        self.currentSource = Webradio(self.djDB,self.getRecordedId())
 
     def add(self,URL,name):
         if URL.lower().startswith("http://"):
@@ -85,9 +86,5 @@ class WebradioSource(UnknownSourceManagement):
     def getStatus(self):
         return [('webradio',self.currentSource.sourceId),\
             ("webradiolength",self.currentSource.getContentLength())]
-
-    def close(self):
-        self.currentSource.save()
-    
 
 # vim: ts=4 sw=4 expandtab

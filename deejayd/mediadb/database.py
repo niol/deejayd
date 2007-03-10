@@ -39,7 +39,7 @@ class UnknownDatabase:
 
 
 class Database(UnknownDatabase):
-    databaseVersion = "1"    
+    databaseVersion = "2"    
 
     def initialise(self):
         create_table = """
@@ -98,11 +98,40 @@ CREATE TABLE {variables}(
         self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
             values)
 
+        # Init source ids
+        values = [("queueid","0"),("playlistid","0"),("webradioid","0"),\
+            ("videoid","0")]
+        self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
+            values)
+
         # Init database version
         self.execute("INSERT INTO {variables}(name,value)VALUES(?,?)",\
             ("database_version",self.__class__.databaseVersion))
         self.connection.commit()
         log.msg("Database structure successfully created.")
+
+    def verifyDatabaseVersion(self):
+        # Get current database version
+        currentVersion = int(self.getState("database_version"))
+
+        newVersion = int(self.__class__.databaseVersion)
+        if newVersion > currentVersion:
+            log.msg("The database structure needs to be updated")
+            self.updateDatabase(newVersion,currentVersion)
+
+        return True
+
+    def updateDatabase(self,new,current):
+        if (new,current) == (2,1):
+            # Init source ids
+            values = [("queueid","0"),("playlistid","0"),("webradioid","0"),\
+                ("videoid","0"),("database_version",\
+                self.__class__.databaseVersion)]
+            self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
+                values)
+
+        self.connection.commit()
+        log.msg("The database structure has been updated")
 
     #
     # MediaDB requests
@@ -300,8 +329,8 @@ class sqliteDatabase(Database):
         self.connection.row_factory = sqlite.Row
         sqlite.register_adapter(str,strEncode)
 
-        if init[0]:
-            self.initialise()
+        if init[0]: self.initialise()
+        else: self.verifyDatabaseVersion()
 
     def getNewConnection(self):
         return sqliteDatabase(self.db_file)

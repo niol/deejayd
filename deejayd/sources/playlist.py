@@ -10,8 +10,8 @@ class PlaylistNotFoundException:pass
 
 class Playlist(UnknownSource):
 
-    def __init__(self,library,name, content = None):
-        UnknownSource.__init__(self,library)
+    def __init__(self,library,name, content = None, id = 0):
+        UnknownSource.__init__(self,library,id)
 
         # Init parms
         self.playlistName = name
@@ -90,6 +90,7 @@ class PlaylistSource(UnknownSourceManagement):
         UnknownSourceManagement.__init__(self,player,djDB)
 
         # Init parms
+        self.sourceName = "playlist"
         self.db = djDB.getDB()
         self.__openPlaylists = {}
         self.playedSongs = []
@@ -267,6 +268,8 @@ class PlaylistSource(UnknownSourceManagement):
         return UnknownSourceManagement.goTo(self,nb,type)
 
     def close(self):
+        states = [(str(self.currentSource.sourceId),self.sourceName+"id")]
+        self.djDB.setState(states)
         self.__closePlaylist(self.__class__.currentPlaylistName)
 
     def getStatus(self):
@@ -275,11 +278,13 @@ class PlaylistSource(UnknownSourceManagement):
         return rs
 
     def __openPlaylist(self,name = None):
+        id = 0
         if name == None:
             name = self.__class__.currentPlaylistName
+            id = self.getRecordedId()
 
         if name not in self.__openPlaylists:
-            self.__openPlaylists[name] = Playlist(self.djDB,name)
+            self.__openPlaylists[name] = Playlist(self.djDB,name,None,id)
         return self.__openPlaylists[name]
         
     def __closePlaylist(self,name):
