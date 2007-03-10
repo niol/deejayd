@@ -411,6 +411,15 @@ description :
 Remove all recorded webradios
     
 -----------------
+playQueue
+-----------------
+arguments :
+id : type->int, required->true, multiple->false
+
+description : 
+Begin playing song with id "id" in the queue.
+    
+-----------------
 queueInfo
 -----------------
 arguments :

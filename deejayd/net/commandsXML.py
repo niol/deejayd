@@ -12,7 +12,8 @@ def commandsOrders():
        "playlistRemove","playlistClear","playlistMove","playlistShuffle",
        "playlistShuffle","playlistErase","playlistLoad","playlistSave",
        "webradioList","webradioAdd","webradioRemove","webradioClear",
-       "queueInfo","queueAdd","queueLoadPlaylist","queueRemove","queueClear")
+       "playQueue","queueInfo","queueAdd","queueLoadPlaylist","queueRemove",
+       "queueClear")
 
 def commandsList(commandsXML):
     return {
@@ -54,6 +55,7 @@ def commandsList(commandsXML):
         "webradioRemove":commandsXML.WebradioDel,
         "webradioClear":commandsXML.WebradioClear,
         # Queue commands
+        "playQueue":commandsXML.PlayQueue,
         "queueInfo":commandsXML.QueueInfo,
         "queueAdd":commandsXML.QueueAdd,
         "queueLoadPlaylist":commandsXML.QueueLoadPlaylist,
@@ -777,6 +779,26 @@ You can pass a playlist for "url" argument (.pls and .m3u format are supported)
 ###################################################
 #  Queue Commands                              #
 ###################################################
+class PlayQueue(UnknownCommand):
+
+    def docInfos(self):
+        return {
+            "args": [{"name":"id", "type":"int", "req":1}],
+            "description": """
+Begin playing song with id "id" in the queue.
+"""
+        }
+
+    def execute(self):
+        nb = "id" in self.args.keys() and self.args["id"] or None
+        try:nb = int(nb)
+        except ValueError:
+            return self.getErrorAnswer('Need an integer')
+
+        self.deejaydArgs["player"].goTo(nb,"Id",True)
+        return self.getOkAnswer()
+
+
 class QueueAdd(UnknownCommand):
 
     def docInfos(self):
