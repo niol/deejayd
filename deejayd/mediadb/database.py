@@ -316,6 +316,15 @@ class sqliteDatabase(Database):
 
     def connect(self):
         from pysqlite2 import dbapi2 as sqlite
+
+        # Check pysqlite version
+        pysqliteMinVersion = [2, 2]
+        pysqliteVersion = map(int, sqlite.version.split('.'))
+        if pysqliteVersion < pysqliteMinVersion:
+            sqliteError = 'This program requires pysqlite version %s or later.' % '.'.join(map(str, pysqliteMinVersion))
+            log.err(sqliteError)
+            sys.exit(sqliteError)
+
         init = path.isfile(self.db_file) and (0,) or (1,)
         try: self.connection = sqlite.connect(self.db_file)
         except:
