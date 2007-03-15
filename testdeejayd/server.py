@@ -32,7 +32,10 @@ class TestServer(threading.Thread):
 
     def __init__(self, testServerPort, musicDir, dbfilename):
         threading.Thread.__init__(self, name = 'Deejayd test server reactor')
+
         self.__reactorRunning = False
+        self.__reactorNotBusy = threading.Event()
+
         self.testServerPort = testServerPort
         self.musicDir = musicDir
         self.dbfilename = dbfilename
@@ -49,34 +52,49 @@ class TestServer(threading.Thread):
         # Set up the test server
         reactor.listenTCP(self.testServerPort, DeejaydFactory(ddb))
 
+        # Set a shutdown callback to confirm shutdown
+        reactor.addSystemEventTrigger('after', 'startup',
+            self.__setReactorRunning, True)
+
+        # Set a shutdown callback to confirm shutdown
+        reactor.addSystemEventTrigger('after', 'shutdown',
+            self.__setReactorRunning, False)
+
         # run reactor disabling SIG handlers (those are only allowed in
         # the main thread)
         reactor.run(False)
 
-        # Set a shutdown callback to confirm shutdown
-        reactor.addSystemEventTrigger('after', 'shutdown',
-            self.__reactorShutDown)
+    def __setReactorRunning(self, status):
+        self.__reactorRunning = status
 
-    def __reactorShutDown(self):
-        self.__reactorRunning = False
+        # No need to wait for the reactor anymore
+        self.__reactorNotBusy.set()
 
     def start(self):
+        # Reactor is now busy starting
+        self.__reactorNotBusy.clear()
+
         if self.__reactorRunning:
             raise ReactorException("Reactor already running")
 
         threading.Thread.start(self)
 
         # Wait for the reactor to really be running
-        while not reactor.running:
-            time.sleep(.1)
+        self.__reactorNotBusy.wait()
 
         self.__reactorRunning = True
 
     def stop(self):
+        # Reactor is now busy shutting down
+        self.__reactorNotBusy.clear()
+
         if not self.__reactorRunning:
             raise ReactorException("Reactor not running")
 
         reactor.callFromThread(reactor.stop)
+
+        # Wait for the reactor to really be stopped
+        self.__reactorNotBusy.wait()
 
         os.unlink(self.dbfilename)
 
