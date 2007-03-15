@@ -108,6 +108,8 @@ class DeejayDaemonSocketThread(threading.Thread):
             while not self.shouldStop:
                 try:
                     self.reallyRun()
+                except StopException:
+                    self.shouldStop = True
                 except DOMException:
                     # XML parsing failed, simply ignore. What should we do here?
                     pass
@@ -122,6 +124,9 @@ class DeejayDaemonSocketThread(threading.Thread):
         raise NotImplementedError
 
 
+class StopException(Exception):
+    pass
+
 class DeejayDaemonCommandThread(DeejayDaemonSocketThread):
 
     def __init__(self, socket, commandQueue):
@@ -129,13 +134,13 @@ class DeejayDaemonCommandThread(DeejayDaemonSocketThread):
         self.commandQueue = commandQueue
 
     def reallyRun(self):
-        # FIXME : There should be a better method that non-blocking wait to be
-        # able to cleanly terminate the thread
-        try:
-            self.__send(self.commandQueue.get(False,1).toXML())
-        except Empty:
-            # If the queue is empty, simply ignore
-            pass
+        cmd = self.commandQueue.get()
+
+        # If we've got a stop exception in the queue, raise it!
+        if cmd.__class__ == StopException:
+            raise cmd
+
+        self.__send(cmd.toXML())
 
     def __send(self, buf):
         self.socketToServer.send(buf + msgDelimiter)
@@ -213,7 +218,9 @@ class DeejayDaemon:
     def disconnect(self):
         # Stop our processing threads
         self.receivingThread.shouldStop = True
-        self.sendingThread.shouldStop = True
+        # This is tricky because stopping must be notified in the queue for the
+        # command thread...
+        self.commandQueue.put(StopException())
 
         self.socketToServer.close()
 
