@@ -1,5 +1,3 @@
-
-from deejayd.ui.config import DeejaydConfig
 from os import path
 import random
 

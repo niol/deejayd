@@ -2,7 +2,6 @@
 
 import tag
 import os, sys, time
-from deejayd.ui.config import DeejaydConfig
 import database
 from twisted.python import log
 from twisted.internet import threads

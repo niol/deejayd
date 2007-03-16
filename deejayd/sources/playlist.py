@@ -1,5 +1,3 @@
-
-from deejayd.ui.config import DeejaydConfig
 from deejayd.sources.unknown import *
 from deejayd.mediadb.deejaydDB import NotFoundException 
 from os import path
