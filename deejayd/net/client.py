@@ -73,24 +73,41 @@ class AnswerFactory(ContentHandler):
         self.originatingCommand = ''
 
         self.xmlpath = []
+        self.responseType = ''
+        self.parms = {}
 
     def startElement(self, name, attrs):
         self.xmlpath.append(name)
 
-        if name == 'response':
+        if name in ['error', 'response'] and len(self.xmlpath) == 2:
             self.originatingCommand = attrs.get('name')
 
-            if attrs.get('type') == 'Ack':
+        if name == 'response':
+            self.responseType = attrs.get('type')
+            if self.responseType == 'Ack':
                 self.answer = True
+            elif self.responseType in ['SongList']:
+                self.answer = []
+        elif name == 'parm':
+            self.parms[attrs.get('name')] = attrs.get('value')
+        elif name == 'playlist':
+            assert self.responseType == 'playlistList'
+            assert self.xmlpath == ['deejayd', 'response', 'playlist']
+            self.answer.append(attrs.get('name'))
 
     def characters(self, str):
-        pass
+        if self.xmlpath == ['deejayd', 'error']:
+            self.answer = str
 
     def endElement(self, name):
         self.xmlpath.pop()
 
-        if name == 'response':
+        if name in ['song', 'webradio', 'file']:
+            self.answer.append(self.parms)
+            self.parms.clear()
+        elif name in ['response', 'error']:
             self.answerQueue.put(self.answer)
+            self.answer = None
 
     def getOriginatingCommand(self):
         return self.originatingCommand

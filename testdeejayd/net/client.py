@@ -3,6 +3,8 @@ Deejayd Client library testing
 """
 
 from testdeejayd import TestCaseWithProvidedMusic
+import testdeejayd.data
+
 from testdeejayd.server import TestServer
 from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, AnswerFactory
 
@@ -66,8 +68,7 @@ class TestAnswerParser(unittest.TestCase):
     def testAnswerParserAck(self):
         """Test the client library parsing an ack answer"""
 
-        # FIXME : Handle the negative case
-        originatingCommand = 'cmdName1'
+        originatingCommand = 'ping'
         ackAnswer = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
     <response name="%s" type="Ack"/>
@@ -77,6 +78,55 @@ class TestAnswerParser(unittest.TestCase):
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
         self.assertEqual(self.ansq.get(), True)
+
+    def testAnswerParserError(self):
+        """Test the client library parsing an error"""
+
+        originatingCommand = 'zboub'
+        errorText = 'This command is not yet part of the protocol.'
+        errorAnswer = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <error name="%s">%s</error>
+</deejayd>""" % (originatingCommand, errorText)
+
+        self.parseAnswer(errorAnswer)
+
+        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+        self.assertEqual(self.ansq.get(), errorText)
+
+
+    def testAnswerParserPlaylist(self):
+        """Test the client library parsing a song list answer"""
+        originatingCommand = 'getPlaylist'
+        songListAnswer = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <response name="%s" type="SongList">""" % originatingCommand
+        songOrder = 0
+        for song in testdeejayd.data.songlibrary:
+            song['plorder'] = songOrder
+            songOrder = songOrder + 1
+
+            songListAnswer = songListAnswer + """
+        <song>
+            <parm name="plorder" value="%(plorder)s" />
+            <parm name="filename" value="%(filename)s" />
+            <parm name="title" value="%(title)s" />
+            <parm name="artist" value="%(artist)s" />
+        </song>""" % song
+
+        songListAnswer = songListAnswer + """
+    </response>
+</deejayd>"""
+
+        self.parseAnswer(songListAnswer)
+
+        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+        retrievedSongList = self.ansq.get()
+
+        for song in retrievedSongList:
+            for tag in song.keys():
+                self.assertEqual(song[tag],
+                    testdeejayd.data.songlibrary[int(song['plorder'])])
 
 
 class TestClient(TestCaseWithProvidedMusic):
