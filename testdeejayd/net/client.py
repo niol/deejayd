@@ -1,6 +1,7 @@
 """
 Deejayd Client library testing
 """
+# -*- coding: utf-8 -*-
 
 from testdeejayd import TestCaseWithData, TestCaseWithProvidedMusic
 import testdeejayd.data
@@ -195,6 +196,38 @@ class TestClient(TestCaseWithProvidedMusic):
     def tearDown(self):
         self.deejaydaemon.disconnect()
         self.testserver.stop()
+
+    def testPlaylistSaveRetrieve(self):
+        """Save a playlist and try to retrieve it."""
+
+        pl = []
+        djplname = self.testdata.getRandomString()
+
+        # Get current playlist
+        self.deejaydaemon.getCurrentPlaylist()
+        djpl = self.deejaydaemon.getNextAnswer()
+
+        # Add songs to playlist
+        for songPath in self.testdata.getRandomSongPaths(3):
+            pl.append(songPath)
+
+            djpl.addSong(songPath)
+            self.assertEqual(self.deejaydaemon.getNextAnswer(), True)
+
+        # Save the playlist
+        djpl.save(djplname)
+        self.assertEqual(self.deejaydaemon.getNextAnswer(), True)
+
+        # Check for the saved playslit to be available
+        self.deejaydaemon.getPlaylistList()
+        retrievedPls = self.deejaydaemon.getNextAnswer()
+        self.assertEqual(djplname in retrievedPls, True)
+
+        # Retrieve the saved playlist
+        self.deejaydaemon.getPlaylist(djplname)
+        retrievedPl = self.deejaydaemon.getNextAnswer()
+        for song_nb in range(len(pl)):
+            self.assertEqual(pl[song_nb], retrievedPl[song_nb]['Path'])
 
 
 # vim: ts=4 sw=4 expandtab

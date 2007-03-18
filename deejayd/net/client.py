@@ -12,6 +12,39 @@ from xml.sax.handler import ContentHandler
 
 msgDelimiter = 'ENDXML\n'
 
+class DeejaydPlaylist(list):
+
+    def __init__(self, server, contents):
+        self.server = server
+        self.contents = contents
+
+    def __getitem__(self, name):
+        return self.contents[name]
+
+    def save(self, name):
+        cmd = DeejaydXMLCommand('playlistSave')
+        cmd.addSimpleArg('name', name)
+        self.server.commandQueue.put(cmd)
+
+    def addSong(self, path, position = None, name = None):
+        self.addSongs([path], position, name)
+
+    def addSongs(self, paths, position = None, name = None):
+        cmd = DeejaydXMLCommand('playlistAdd')
+        cmd.addMultipleArg('path', paths)
+        if position != None:
+            cmd.addSimpleArg('pos', position)
+        if name != None:
+            cmd.addSimpleArg('name', name)
+        self.server.commandQueue.put(cmd)
+
+    def load(self, name, loadingPosition = 0):
+        cmd = DeejaydXMLCommand('playlistLoad')
+        cmd.addSimpleArg('name', name)
+        cmd.addSimpleArg('pos', loadingPosition)
+        self.server.commandQueue.put(cmd)
+
+
 class DeejaydXMLCommand:
 
     def __init__(self, name):
@@ -117,6 +150,7 @@ class DeejayDaemonSocketThread(threading.Thread):
 
     def __init__(self, socket):
         threading.Thread.__init__(self)
+
         self.shouldStop = False
         self.socketToServer = socket
 
@@ -252,5 +286,19 @@ class DeejayDaemon:
     def ping(self):
         cmd = DeejaydXMLCommand('ping')
         self.commandQueue.put(cmd)
+
+    def getPlaylist(self, name):
+        cmd = DeejaydXMLCommand('playlistInfo')
+        if name != None:
+            cmd.addSimpleArg('name', name)
+        self.commandQueue.put(cmd)
+
+    def getCurrentPlaylist(self):
+        self.getPlaylist(None)
+
+    def getPlaylistList(self):
+        cmd = DeejaydXMLCommand('playlistList')
+        self.commandQueue.put(cmd)
+
 
 # vim: ts=4 sw=4 expandtab

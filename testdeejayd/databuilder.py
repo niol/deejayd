@@ -55,12 +55,19 @@ class TestProvidedMusicCollection(TestData):
     def __init__(self, musicDir):
         self.datadir = os.path.normpath(musicDir)
 
+        self.songPaths = []
+        for root, dir, files in os.walk(self.datadir):
+            for file in files:
+                if file.split('.')[-1] == 'mp3':
+                    self.songPaths.append(self.stripRoot(os.path.join(root,
+                                                                      file)))
+
     def getRootDir(self):
         return self.datadir
 
     def stripRoot(self, path):
         """Strips the root directory path turning the argument into a
-        relative path."""
+        path relative to the music root directory."""
         abs_path = os.path.abspath(path)
         rel_path = os.path.normpath(abs_path[len(self.getRootDir()):])
 
@@ -68,6 +75,11 @@ class TestProvidedMusicCollection(TestData):
             rel_path = '.' + rel_path
 
         return rel_path
+
+    def getRandomSongPaths(self, howMuch = 1):
+        """Returns the path of a random song in provided music"""
+        random.seed(time.time())
+        return random.sample(self.songPaths, howMuch)
 
 
 class TestMusicCollection(TestProvidedMusicCollection):
