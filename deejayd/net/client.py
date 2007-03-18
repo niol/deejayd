@@ -1,7 +1,5 @@
 """The Deejayd python client library"""
 
-from types import ListType
-
 import socket, threading
 
 from Queue import Queue, Empty
@@ -46,7 +44,7 @@ class DeejaydXMLCommand:
 
             argParam = self.args[arg]
 
-            if type(argParam) is ListType:
+            if type(argParam) is list:
                 # We've got multiple args
                 xmlarg.setAttribute('type', 'multiple')
 
