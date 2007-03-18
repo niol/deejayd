@@ -82,8 +82,6 @@ class TestServer(threading.Thread):
         # Wait for the reactor to really be running
         self.__reactorNotBusy.wait()
 
-        self.__reactorRunning = True
-
     def stop(self):
         # Reactor is now busy shutting down
         self.__reactorNotBusy.clear()
