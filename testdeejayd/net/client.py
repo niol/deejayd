@@ -77,7 +77,7 @@ class TestAnswerParser(unittest.TestCase):
         self.parseAnswer(ackAnswer)
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        self.assertEqual(self.ansq.get(), True)
+        self.assertEqual(self.ansq.get(), ('Ack', True))
 
     def testAnswerParserError(self):
         """Test the client library parsing an error"""
@@ -92,7 +92,7 @@ class TestAnswerParser(unittest.TestCase):
         self.parseAnswer(errorAnswer)
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        self.assertEqual(self.ansq.get(), errorText)
+        self.assertEqual(self.ansq.get(), ('error', errorText))
 
 
     def testAnswerParserPlaylist(self):
@@ -121,8 +121,9 @@ class TestAnswerParser(unittest.TestCase):
         self.parseAnswer(songListAnswer)
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        retrievedSongList = self.ansq.get()
+        retrievedSongListType, retrievedSongList = self.ansq.get()
 
+        self.assertEqual('SongList', retrievedSongListType)
         for song in retrievedSongList:
             for tag in song.keys():
                 self.assertEqual(song[tag],

@@ -92,6 +92,8 @@ class AnswerFactory(ContentHandler):
             assert self.responseType == 'playlistList'
             assert self.xmlpath == ['deejayd', 'response', 'playlist']
             self.answer.append(attrs.get('name'))
+        elif name == 'error':
+            self.responseType = 'error'
 
     def characters(self, str):
         if self.xmlpath == ['deejayd', 'error']:
@@ -104,7 +106,7 @@ class AnswerFactory(ContentHandler):
             self.answer.append(self.parms)
             self.parms.clear()
         elif name in ['response', 'error']:
-            self.answerQueue.put(self.answer)
+            self.answerQueue.put((self.responseType, self.answer))
             self.answer = None
 
     def getOriginatingCommand(self):
@@ -240,7 +242,12 @@ class DeejayDaemon:
         self.socketToServer.close()
 
     def getNextAnswer(self):
-        return self.answerQueue.get()
+        (rspType, ans) = self.answerQueue.get()
+
+        if rspType == 'SongList':
+            return DeejaydPlaylist(self, ans)
+        else:
+            return ans
 
     def ping(self):
         cmd = DeejaydXMLCommand('ping')
