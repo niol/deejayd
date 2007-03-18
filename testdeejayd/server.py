@@ -33,6 +33,10 @@ class TestServer(threading.Thread):
     def __init__(self, testServerPort, musicDir, dbfilename):
         threading.Thread.__init__(self, name = 'Deejayd test server reactor')
 
+        # FIXME : This is not a good thing to do but sometimes reactor.run does
+        # not exit after shutdown...
+        self.setDaemon(True)
+
         self.__reactorRunning = False
         self.__reactorNotBusy = threading.Event()
 
