@@ -9,7 +9,7 @@ import testdeejayd.data
 from testdeejayd.server import TestServer
 from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, AnswerFactory
 
-# FIXME : We should not nee dthose here, this is some code duplication from the
+# FIXME : We should not need those here, this is some code duplication from the
 # client code.
 from Queue import Queue
 from StringIO import StringIO
