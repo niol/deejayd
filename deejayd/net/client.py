@@ -22,7 +22,7 @@ class DeejaydXMLCommand:
         self.args[name] = value
 
     def addMultipleArg(self, name, valuelist):
-        self.addSimpleArg(self, name, valuelist)
+        self.addSimpleArg(name, valuelist)
 
     def toXML(self):
         xmldoc = minidom.Document()
