@@ -1,12 +1,11 @@
 import sys
 import unittest
-from testdeejayd.databuilder import TestMusicCollection, TestProvidedMusicCollection, TestCommand
-import testdeejayd.data
+from testdeejayd.databuilder import TestData, TestMusicCollection, TestProvidedMusicCollection, TestCommand
 
 class TestCaseWithData(unittest.TestCase):
 
     def setUp(self):
-        self.testdata = TestMusicCollection(testdeejayd.data.songlibrary)
+        self.testdata = TestData()
 
 
 class TestCaseWithFileData(TestCaseWithData):

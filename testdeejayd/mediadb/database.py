@@ -31,7 +31,7 @@ class testSqliteDatabase(TestCaseWithData):
         playlistContents = []
 
         i = 1
-        for song in self.testdata.data[0:3]:
+        for song in self.testdata.sampleLibrary[0:3]:
             playlistEntry = {}
             playlistEntry['Pos'] = i
             playlistEntry['dir'] = os.path.dirname(song['filename'])
@@ -46,9 +46,9 @@ class testSqliteDatabase(TestCaseWithData):
         i = 0
         for retrievedPlaylistEntry in retrievedPlaylist:
             self.assertEqual(retrievedPlaylistEntry[0],
-                            os.path.dirname(self.testdata.data[i]['filename']))
+                            os.path.dirname(self.testdata.sampleLibrary[i]['filename']))
             self.assertEqual(retrievedPlaylistEntry[1],
-                            os.path.basename(self.testdata.data[i]['filename']))
+                            os.path.basename(self.testdata.sampleLibrary[i]['filename']))
             self.assertEqual(retrievedPlaylistEntry[2], randomName)
             self.assertEqual(retrievedPlaylistEntry[3], i + 1)
             i = i + 1

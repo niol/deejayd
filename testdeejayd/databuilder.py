@@ -10,6 +10,11 @@ from xml.dom import minidom
 
 class TestData:
 
+    def __init__(self):
+        # Grab some sample data
+        import testdeejayd.data
+        self.sampleLibrary = testdeejayd.data.songlibrary
+
     def getRandomString(self, length = 5, charset = string.letters):
         random.seed(time.time())
         return ''.join(random.sample(charset, length))

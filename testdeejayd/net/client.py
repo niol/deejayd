@@ -2,7 +2,7 @@
 Deejayd Client library testing
 """
 
-from testdeejayd import TestCaseWithProvidedMusic
+from testdeejayd import TestCaseWithData, TestCaseWithProvidedMusic
 import testdeejayd.data
 
 from testdeejayd.server import TestServer
@@ -53,10 +53,12 @@ class TestCommandBuildParse(unittest.TestCase):
         self.assertEqual(cmd.toXML(), self.trimXML(expectedAnswer))
 
 
-class TestAnswerParser(unittest.TestCase):
+class TestAnswerParser(TestCaseWithData):
     """Test the Deejayd client library answer parser"""
 
     def setUp(self):
+        TestCaseWithData.setUp(self)
+
         self.ansq = Queue()
         self.parser = make_parser()
         self.ansb = AnswerFactory(self.ansq)
