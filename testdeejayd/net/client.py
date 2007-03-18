@@ -109,12 +109,13 @@ class TestAnswerParser(TestCaseWithData):
             songOrder = songOrder + 1
 
             songListAnswer = songListAnswer + """
-        <song>
-            <parm name="plorder" value="%(plorder)s" />
-            <parm name="filename" value="%(filename)s" />
-            <parm name="title" value="%(title)s" />
-            <parm name="artist" value="%(artist)s" />
-        </song>""" % song
+        <song>"""
+            for tag in song.keys():
+                songListAnswer = songListAnswer + """
+            <parm name="%s" value="%s" />""" % (tag, song[tag])
+
+            songListAnswer = songListAnswer + """
+        </song>"""
 
         songListAnswer = songListAnswer + """
     </response>
@@ -126,10 +127,19 @@ class TestAnswerParser(TestCaseWithData):
         retrievedSongListType, retrievedSongList = self.ansq.get()
 
         self.assertEqual('SongList', retrievedSongListType)
-        for song in retrievedSongList:
+        for song in testdeejayd.data.songlibrary:
             for tag in song.keys():
-                self.assertEqual(song[tag],
-                    testdeejayd.data.songlibrary[int(song['plorder'])])
+                songRank = song['plorder']
+
+                if tag == 'plorder':
+                    # FIXME : the answer parser should build on int here, there
+                    # should be no need for a type conversion.
+                    self.assertEqual(song[tag],
+                                     int(retrievedSongList[songRank][tag]))
+                else:
+                    # FIXME : This does not work because of an utf-8 error
+                    self.assertEqual(song[tag],
+                                     retrievedSongList[songRank][tag])
 
     def testAnswerParserPlaylistList(self):
         """Test the client library parsing a playlist list answer"""

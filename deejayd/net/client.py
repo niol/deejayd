@@ -104,7 +104,7 @@ class AnswerFactory(ContentHandler):
 
         if name in ['song', 'webradio', 'file']:
             self.answer.append(self.parms)
-            self.parms.clear()
+            self.parms = {}
         elif name in ['response', 'error']:
             self.answerQueue.put((self.responseType, self.answer))
             self.answer = None
