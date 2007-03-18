@@ -84,12 +84,12 @@ class AnswerFactory(ContentHandler):
             self.responseType = attrs.get('type')
             if self.responseType == 'Ack':
                 self.answer = True
-            elif self.responseType in ['SongList']:
+            elif self.responseType in ['SongList', 'PlaylistList']:
                 self.answer = []
         elif name == 'parm':
             self.parms[attrs.get('name')] = attrs.get('value')
         elif name == 'playlist':
-            assert self.responseType == 'playlistList'
+            assert self.responseType == 'PlaylistList'
             assert self.xmlpath == ['deejayd', 'response', 'playlist']
             self.answer.append(attrs.get('name'))
         elif name == 'error':

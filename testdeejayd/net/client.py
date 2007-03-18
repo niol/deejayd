@@ -131,6 +131,34 @@ class TestAnswerParser(TestCaseWithData):
                 self.assertEqual(song[tag],
                     testdeejayd.data.songlibrary[int(song['plorder'])])
 
+    def testAnswerParserPlaylistList(self):
+        """Test the client library parsing a playlist list answer"""
+        originatingCommand = 'playlistList'
+
+        pls = []
+        for nb in range(5):
+            pls.append(self.testdata.getRandomString())
+
+        plListAnswer = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <response name="%s" type="PlaylistList">""" % originatingCommand
+        for pl in pls:
+            plListAnswer = plListAnswer + """
+        <playlist name="%s" />""" % pl
+
+        plListAnswer = plListAnswer + """
+    </response>
+</deejayd>"""
+
+        self.parseAnswer(plListAnswer)
+
+        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+        retrievedPlListType, retrievedPlList = self.ansq.get()
+
+        self.assertEqual('PlaylistList', retrievedPlListType)
+        for pl in retrievedPlList:
+            self.assertEqual(pl in pls, True)
+
 
 class TestClient(TestCaseWithProvidedMusic):
     """Completely test the DeejaydClient library"""
