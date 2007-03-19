@@ -7,7 +7,7 @@ class Queue(UnknownSource):
 
     def __init__(self,library,id):
         UnknownSource.__init__(self,library,id)
-        self.rootPath = library.getRootPath()
+        self.rootPath = library.getAudioRootPath()
 
         self.sourceContent = self.db.getPlaylist(self.__class__.queueName)
         # Format correctly queue content

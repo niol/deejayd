@@ -67,12 +67,23 @@ class DeejaydFactory(protocol.ServerFactory):
             self.db = ddb
 
     def startFactory(self):
+        config = DeejaydConfig()
         log.msg("Starting Deejayd ...")
 
         # Try to Init the MediaDB
         if not self.db_supplied:
-            self.db = deejaydDB.DeejaydDB(DatabaseFactory().getDB(),
-                            DeejaydConfig().get("mediadb","music_directory"))
+            try: audio_dir = config.get("mediadb","music_directory")
+            except NoOptionError:
+                log.err("No audio directory found.")
+                sys.exit("You have to choose a music directory")
+
+            try: video_dir = config.get("mediadb","video_directory")
+            except NoOptionError:
+                log.err("No video directory found. Video Support disabled")
+                video_dir = None
+
+            self.db = deejaydDB.DeejaydDB(DatabaseFactory().getDB(),\
+                            audio_dir,video_dir)
         log.msg("MediaDB Initialisation...OK")
 
         # Try to Init the player
@@ -84,10 +95,6 @@ class DeejaydFactory(protocol.ServerFactory):
 
         # Try to Init sources
         self.sources = sources.sourcesFactory(self.player,self.db)
-        #try: self.sources = sources.sourcesFactory(self.player,self.db)
-        #except :
-        #    log.err("Unable to init sources, deejayd has to quit")
-        #    sys.exit("Unable to start deejayd : see log for more informations")
         log.msg("Sources Initialisation...OK")
 
     def stopFactory(self):

@@ -8,15 +8,15 @@ from twisted.internet import threads
 
 class NotFoundException:pass
 
-class DeejaydFile:
+class DeejaydAudioFile:
 
-    def __init__(self, library, db, dir):
-        self.library = library
+    def __init__(self,db,dir,root_path):
         self.db = db
         self.dir = dir
+        self.rootPath = root_path
 
     def insert(self,f):
-        realDir = os.path.join(self.library.getRootPath(), self.dir)
+        realDir = os.path.join(self.rootPath, self.dir)
         realFile = os.path.join(realDir,f)
         
         try: fileInfo = tag.fileTag().getFileTag(realFile) 
@@ -25,10 +25,10 @@ class DeejaydFile:
             log.msg("%s : format not supported" % (f,))
             return
 
-        self.db.insertFile(self.dir,fileInfo)
+        self.db.insertAudioFile(self.dir,fileInfo)
 
     def update(self,f):
-        realDir = os.path.join(self.library.getRootPath(), self.dir)
+        realDir = os.path.join(self.rootPath, self.dir)
         realFile = os.path.join(realDir,f)
         
         try: fileInfo = tag.fileTag().getFileTag(realFile) 
@@ -37,23 +37,48 @@ class DeejaydFile:
             log.msg("%s : format not supported" % (f,))
             return
 
-        self.db.updateFile(self.dir,fileInfo)
+        self.db.updateAudioFile(self.dir,fileInfo)
 
     def remove(self,f):
         seld.db.removeFile(self.dir,f)
 
 
+class DeejaydVideoFile(DeejaydAudioFile):
+
+    def __init__(self,db,dir,root_path = None):
+        DeejaydAudioFile.__init__(self,db,dir,root_path)
+        self.__id = self.db.getLastVideoId() or 0 
+
+    def insert(self,f):
+        fileInfo = {"filename":f,"dir":self.dir,"id":self.__getNextId()}
+        self.db.insertVideoFile(self.dir,fileInfo)
+
+    def update(self,f):
+        pass
+
+    def __getNextId(self):
+        self.__id += 1
+        return self.__id
+
+
 class DeejaydDir:
 
-    def __init__(self, library, db = None):
-        self.library = library
-        self.db = db or self.library.getDB()
+    def __init__(self, library, db = None, type = "audio"):
+        self.db = db or library.getDB()
+        if type =="audio":
+            self.table = "audio_library"
+            self.rootPath = library.getAudioRootPath()
+            self.fileClass = DeejaydAudioFile
+        elif type =="video":
+            self.table = "video_library"
+            self.rootPath = library.getVideoRootPath()
+            self.fileClass = DeejaydVideoFile
 
     def update(self,dir,lastUpdateTime):
         self.testDir(dir)
 
-        realDir = os.path.join(self.library.getRootPath(), dir)
-        dbRecord = self.db.getDirContent(dir)
+        realDir = os.path.join(self.rootPath, dir)
+        dbRecord = self.db.getDirContent(dir,self.table)
         # First we update the list of directory
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
                 if os.path.isdir(os.path.join(realDir,d))]
@@ -63,16 +88,16 @@ class DeejaydDir:
                     directories.remove(d)
             else:
                 # directory do not exist, we erase it
-                self.db.eraseDir(dir,d)
+                self.db.eraseDir(dir,d,self.table)
         # Add new diretory
         newDir = [(dir,d) for d in directories]
-        if len(newDir) != 0: self.db.insertDir(newDir)
+        if len(newDir) != 0: self.db.insertDir(newDir,self.table)
 
         # Now we update the list of files if necessary
         if int(os.stat(realDir).st_mtime) >= lastUpdateTime:
             files = [ f for f in os.listdir(realDir) 
                 if os.path.isfile(os.path.join(realDir,f))]
-            djFile = DeejaydFile(self.library,self.db,dir)
+            djFile = self.fileClass(self.db,dir,self.rootPath)
             for f in [fi for (fi,t) in dbRecord if t == 'file']:
                 if os.path.isfile(os.path.join(realDir,f)):
                     djFile.update(f)
@@ -90,7 +115,7 @@ class DeejaydDir:
             else: self.update(d,lastUpdateTime)
 
     def testDir(self,dir):
-        realDir = os.path.join(self.library.getRootPath(), dir)
+        realDir = os.path.join(self.rootPath, dir)
         # Test directory existence
         if not os.path.isdir(realDir):
             raise NotFoundException
@@ -100,13 +125,15 @@ class DeejaydDB:
     """deejaydDB
     Class to manage the media database
     """
-    def __init__(self, db, root_path):
+    def __init__(self, db, audio_path, video_path = None):
         # init Parms
         self.__updateDBId = 0
         self.__updateEnd = True
         self.__updateError = None
+        self.__dbUpdate = None
 
-        self.__root_path = root_path
+        self.__audio_path = audio_path
+        self.__video_path = video_path
 
         # Connection to the database
         self.db = db
@@ -140,31 +167,37 @@ class DeejaydDB:
         if type not in acceptedType:
             raise NotFoundException
 
-        return self.db.searchInMediaDB(type,content)
+        return self.db.searchInAudioMediaDB(type,content)
 
     def find(self,type,content):
         acceptedType = ('title','genre','filename','artist','album')
         if type not in acceptedType:
             raise NotFoundException
 
-        return self.db.findInMediaDB(type,content)
+        return self.db.findInAudioMediaDB(type,content)
 
     def updateDir(self,dir):
-        db = self.db.getNewConnection()
-        db.connect()
+        self.__dbUpdate = self.db.getNewConnection()
+        self.__dbUpdate.connect()
         self.__updateEnd = False
 
-        self.lastUpdateTime = db.getStat('db_update')
-        DeejaydDir(self,db).update(dir,self.lastUpdateTime)
-        db.setStat('db_update',time.time())
+        self.lastUpdateTime = self.__dbUpdate.getStat('db_update')
+        # Update video library
+        if self.__video_path:
+            DeejaydDir(self,self.__dbUpdate,"video").update(dir,self.\
+                lastUpdateTime)
+        # Update audio library
+        DeejaydDir(self,self.__dbUpdate).update(dir,self.lastUpdateTime)
+
+        self.__dbUpdate.setStat('db_update',time.time())
 
         # record the change in the database
-        db.connection.commit()
-
+        self.__dbUpdate.connection.commit()
         # update stat values
-        db.recordMediaDBStat()
-
-        db.close()
+        self.__dbUpdate.recordMediaDBStat()
+        # close the connextion
+        self.__dbUpdate.close()
+        self.__dbUpdate = None
 
     def endUpdate(self, result = True): 
         self.__updateEnd = True
@@ -173,8 +206,12 @@ class DeejaydDB:
             msg = "Unable to update the database. See log for more information"
             log.err(msg)
             self.__updateError = msg
+            # close opened connection if necessary
+            try:
+                self.__dbUpdate.close()
+                self.__dbUpdate = None
+            except: pass
         return True
-
 
     def update(self,dir):
         if self.__updateEnd:
@@ -217,8 +254,11 @@ class DeejaydDB:
     def close(self):
         self.db.close()
 
-    def getRootPath(self):
-        return self.__root_path
+    def getAudioRootPath(self):
+        return self.__audio_path
+
+    def getVideoRootPath(self):
+        return self.__video_path
 
     def getDB(self):
         return self.db

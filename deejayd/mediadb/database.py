@@ -43,7 +43,7 @@ class Database(UnknownDatabase):
 
     def initialise(self):
         create_table = """
-CREATE TABLE {library}(
+CREATE TABLE {audio_library}(
     dir TEXT,
     filename TEXT,
     type TEXT,
@@ -57,10 +57,11 @@ CREATE TABLE {library}(
     bitrate INT,
     PRIMARY KEY (dir,filename));
 
-CREATE TABLE {video}(
+CREATE TABLE {video_library}(
     dir TEXT,
     filename TEXT,
     type TEXT,
+    id INT,
     PRIMARY KEY (dir,filename));
 
 CREATE TABLE {webradio}(
@@ -116,13 +117,21 @@ CREATE TABLE {variables}(
 
         newVersion = int(self.__class__.databaseVersion)
         if newVersion > currentVersion:
-            log.msg("The database structure needs to be updated")
+            log.msg("The database structure needs to be updated...")
             self.updateDatabase(newVersion,currentVersion)
 
         return True
 
     def updateDatabase(self,new,current):
         if (new,current) == (2,1):
+            update_table = """
+ALERT TABLE {video} ADD id INT DEFAULT 0 AFTER type;
+
+RENAME TABLE {library} TO {audio_library};
+RENAME TABLE {video} TO {video_library};
+""" 
+            self.executescript(update_table)
+
             # Init source ids
             values = [("queueid","0"),("playlistid","0"),("webradioid","0"),\
                 ("videoid","0"),("database_version",\
@@ -134,15 +143,71 @@ CREATE TABLE {variables}(
         log.msg("The database structure has been updated")
 
     #
-    # MediaDB requests
+    # Common MediaDB requests
     #
-    def searchInMediaDB(self,type,content):
+    def removeFile(self,dir,f,table = "audio_library"):
+        query = "DELETE FROM {%s} WHERE filename = ? AND dir = ?" % table
+        self.execute(query, (f,dir))
+
+    def insertDir(self,newDir,table = "audio_library"):
+        query = "INSERT INTO {%s}(dir,filename,type)VALUES(?,?,\
+            'directory')" % table
+        self.executemany(query, newDir)
+
+    def eraseDir(self,root,dir,table = "audio_library"):
+        query = "DELETE FROM {%s} WHERE filename = ? AND dir = ?" % table
+        self.execute(query, (dir,root))
+        # We also need to erase the content of this directory
+        query = "DELETE FROM {%s} WHERE dir LIKE ?" % table
+        self.execute(query, (path.join(root,dir)+"%%",))
+
+    def getDirContent(self,dir,table = "audio_library"):
+        query = "SELECT filename,type FROM {%s} WHERE dir = ?" % table
+        self.execute(query, (dir,))
+
+        return self.cursor.fetchall()
+
+    def getDirInfo(self,dir,table = "audio_library"): 
+        query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" % table
+        self.execute(query,(dir,))
+
+        return self.cursor.fetchall()
+
+    def getDirContent(self,dir,table = "audio_library"):
+        query = "SELECT filename,type FROM {%s} WHERE dir = ?" % table
+        self.execute(query, (dir,))
+
+        return self.cursor.fetchall()
+
+    def getDirInfo(self,dir,table = "audio_library"): 
+        query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" % table
+        self.execute(query,(dir,))
+
+        return self.cursor.fetchall()
+
+    def getFileInfo(self,file,table = "audio_library"):
+        query = "SELECT * FROM {%s} WHERE dir = ? AND filename = ?" % table
+        self.execute(query,path.split(file))
+
+        return self.cursor.fetchall()
+
+    def getAllFile(self,dir,table = "audio_library"):
+        query = "SELECT * FROM {%s} WHERE dir LIKE ? AND TYPE = 'file' \
+            ORDER BY dir" % table
+        self.execute(query,(dir+'%%',))
+
+        return self.cursor.fetchall()
+
+    #
+    # Specific audio library
+    #
+    def searchInAudioMediaDB(self,type,content):
         if type != "all":
-            query = "SELECT * FROM {library} WHERE type = 'file' AND %s LIKE ?"\
-                % (type,)
+            query = "SELECT * FROM {audio_library} WHERE type = 'file' AND %s \
+                LIKE ?" % (type,)
             self.execute(query,('%%'+content+'%%',))
         else:
-            query = "SELECT * FROM {library} WHERE type = 'file' AND \
+            query = "SELECT * FROM {audio_library} WHERE type = 'file' AND \
                 (genre LIKE ? OR title LIKE ? OR album LIKE ? OR \
                 artist LIKE ?)"
             self.execute(query,('%%'+content+'%%','%%'+content+'%%',
@@ -150,70 +215,42 @@ CREATE TABLE {variables}(
 
         return self.cursor.fetchall()
 
-    def findInMediaDB(self,type,content):
-        query = "SELECT * FROM {library} WHERE type = 'file' AND %s = ?" \
+    def findInAudioMediaDB(self,type,content):
+        query = "SELECT * FROM {audio_library} WHERE type = 'file' AND %s = ?" \
                 % (type,)
         self.execute(query,(content,))
 
         return self.cursor.fetchall()
 
-    def getDirContent(self,dir):
-        query = "SELECT filename,type FROM {library} WHERE dir = ?"
-        self.execute(query, (dir,))
-
-        return self.cursor.fetchall()
-
-    def getDirInfo(self,dir): 
-        query = "SELECT * FROM {library} WHERE dir = ? ORDER BY type"
-        self.execute(query,(dir,))
-
-        return self.cursor.fetchall()
-
-    def getFileInfo(self,file):
-        query = "SELECT * FROM {library} WHERE dir = ? AND filename = ?"
-        self.execute(query,path.split(file))
-
-        return self.cursor.fetchall()
-
-    def getAllFile(self,dir):
-        query = "SELECT * FROM {library} WHERE dir LIKE ? AND TYPE = 'file' \
-            ORDER BY dir"
-        self.execute(query,(dir+'%%',))
-
-        return self.cursor.fetchall()
-
-    def insertFile(self,dir,fileInfo):
-        query = "INSERT INTO {library}(type,dir,filename,title,artist,album,\
-            genre,date,tracknumber,length,bitrate)VALUES ('file',?,?,?,?,?,\
-            ?,?,?,?,?)"
+    def insertAudioFile(self,dir,fileInfo):
+        query = "INSERT INTO {audio_library}(type,dir,filename,title,artist,\
+            album,genre,date,tracknumber,length,bitrate)VALUES \
+            ('file',?,?,?,?,?,?,?,?,?,?)"
         self.execute(query, (dir,fileInfo["filename"],fileInfo["title"],\
             fileInfo["artist"],fileInfo["album"],fileInfo["genre"],\
             fileInfo["date"], fileInfo["tracknumber"],fileInfo["length"],\
             fileInfo["birate"]))
 
-    def updateFile(self,dir,fileInfo):
-        query = "UPDATE {library} SET title=?,artist=?,album=?,genre=?,date=?,\
-            tracknumber=?,length=?,bitrate=? WHERE dir=? AND filename=?"
+    def updateAudioFile(self,dir,fileInfo):
+        query = "UPDATE {audio_library} SET title=?,artist=?,album=?,genre=?,\
+            date=?,tracknumber=?,length=?,bitrate=? WHERE dir=? AND filename=?"
         self.execute(query,(fileInfo["title"],fileInfo["artist"],\
             fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
             fileInfo["tracknumber"],fileInfo["length"],fileInfo["birate"],\
             dir,fileInfo["filename"]))
 
-    def removeFile(self,dir,f):
-        query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
-        self.execute(query, (f,dir))
+    #
+    # Video MediaDB specific requests
+    #
+    def getLastVideoId(self):
+        self.execute("SELECT id FROM {video_library} ORDER BY id DESC")
+        (lastId,) = self.cursor.fetchone()
+        return lastId
 
-    def insertDir(self,newDir):
-        query = "INSERT INTO {library}(dir,filename,type)VALUES(?,?,\
-            'directory')"
-        self.executemany(query, newDir)
-
-    def eraseDir(self,root,dir):
-        query = "DELETE FROM {library} WHERE filename = ? AND dir = ?"
-        self.execute(query, (dir,root))
-        # We also need to erase the content of this directory
-        query = "DELETE FROM {library} WHERE dir LIKE ?"
-        self.execute(query, (path.join(root,dir)+"%%",))
+    def insertVideoFile(self,dir,fileInfo):
+        query = "INSERT INTO {video_library}(type,dir,filename,id)\
+            VALUES ('file',?,?,?)"
+        self.execute(query, (dir,fileInfo["filename"],fileInfo["id"]))
 
     #
     # Playlist requests
@@ -222,7 +259,7 @@ CREATE TABLE {variables}(
         query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, \
         l.filename, l.title, l.artist, l.album, l.genre, l.tracknumber, \
         l.date, l.length, l.bitrate FROM {playlist} p LEFT OUTER JOIN \
-        {library} l ON p.dir = l.dir AND p.filename = l.filename WHERE \
+        {audio_library} l ON p.dir = l.dir AND p.filename = l.filename WHERE \
         p.name = ? ORDER BY p.position"
         self.execute(query,(playlistName,))
         return self.cursor.fetchall()
@@ -264,14 +301,15 @@ CREATE TABLE {variables}(
     #
     def recordMediaDBStat(self):
         # Get the number of songs
-        self.execute("SELECT filename FROM {library} WHERE type = 'file'")
+        self.execute("SELECT filename FROM {audio_library} WHERE type = 'file'")
         songs = len(self.cursor.fetchall())
         # Get the number of artist
-        self.execute("SELECT DISTINCT artist FROM {library} WHERE type = \
+        self.execute("SELECT DISTINCT artist FROM {audio_library} WHERE type = \
             'file'")
         artists = len(self.cursor.fetchall())
         # Get the number of album
-        self.execute("SELECT DISTINCT album FROM {library} WHERE type = 'file'")
+        self.execute("SELECT DISTINCT album FROM {audio_library} WHERE type = \
+            'file'")
         albums = len(self.cursor.fetchall())
 
         # record in the database  
@@ -321,7 +359,8 @@ class sqliteDatabase(Database):
         pysqliteMinVersion = [2, 2]
         pysqliteVersion = map(int, sqlite.version.split('.'))
         if pysqliteVersion < pysqliteMinVersion:
-            sqliteError = 'This program requires pysqlite version %s or later.' % '.'.join(map(str, pysqliteMinVersion))
+            sqliteError = 'This program requires pysqlite version %s or later.'\
+                % '.'.join(map(str, pysqliteMinVersion))
             log.err(sqliteError)
             sys.exit(sqliteError)
 

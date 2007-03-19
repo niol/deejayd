@@ -13,7 +13,7 @@ class Playlist(UnknownSource):
 
         # Init parms
         self.playlistName = name
-        self.rootPath = library.getRootPath() 
+        self.rootPath = library.getAudioRootPath() 
 
         if content == None:
             # Load the content of this playlist
