@@ -7,7 +7,8 @@ from testdeejayd import TestCaseWithData, TestCaseWithProvidedMusic
 import testdeejayd.data
 
 from testdeejayd.server import TestServer
-from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, AnswerFactory
+from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, AnswerFactory,\
+                               DeejaydAnswer, DeejaydPlaylist, DeejaydError
 
 # FIXME : We should not need those here, this is some code duplication from the
 # client code.
@@ -60,9 +61,9 @@ class TestAnswerParser(TestCaseWithData):
     def setUp(self):
         TestCaseWithData.setUp(self)
 
-        self.ansq = Queue()
+        self.eansq = Queue()
         self.parser = make_parser()
-        self.ansb = AnswerFactory(self.ansq)
+        self.ansb = AnswerFactory(self.eansq)
         self.parser.setContentHandler(self.ansb)
 
     def parseAnswer(self, str):
@@ -77,10 +78,12 @@ class TestAnswerParser(TestCaseWithData):
     <response name="%s" type="Ack"/>
 </deejayd>""" % originatingCommand
 
+        ans = DeejaydAnswer()
+        self.eansq.put(ans)
         self.parseAnswer(ackAnswer)
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        self.assertEqual(self.ansq.get(), ('Ack', True))
+        self.assertEqual(ans.getContents(), True)
 
     def testAnswerParserError(self):
         """Test the client library parsing an error"""
@@ -92,10 +95,13 @@ class TestAnswerParser(TestCaseWithData):
     <error name="%s">%s</error>
 </deejayd>""" % (originatingCommand, errorText)
 
+        ans = DeejaydAnswer()
+        self.eansq.put(ans)
         self.parseAnswer(errorAnswer)
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        self.assertEqual(self.ansq.get(), ('error', errorText))
+        # FIXME : find a way to test the errorText
+        self.assertRaises(DeejaydError, ans.getContents)
 
 
     def testAnswerParserPlaylist(self):
@@ -122,12 +128,13 @@ class TestAnswerParser(TestCaseWithData):
     </response>
 </deejayd>"""
 
+        ans = DeejaydPlaylist(None)
+        self.eansq.put(ans)
         self.parseAnswer(songListAnswer)
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        retrievedSongListType, retrievedSongList = self.ansq.get()
+        retrievedSongList = ans.getContents()
 
-        self.assertEqual('SongList', retrievedSongListType)
         for song in testdeejayd.data.songlibrary:
             for tag in song.keys():
                 songRank = song['plorder']
@@ -161,14 +168,15 @@ class TestAnswerParser(TestCaseWithData):
     </response>
 </deejayd>"""
 
+        ans = DeejaydAnswer()
+        self.eansq.put(ans)
         self.parseAnswer(plListAnswer)
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        retrievedPlListType, retrievedPlList = self.ansq.get()
+        retrievedPlList = ans.getContents()
 
-        self.assertEqual('PlaylistList', retrievedPlListType)
-        for pl in retrievedPlList:
-            self.assertEqual(pl in pls, True)
+        for pl in pls:
+            self.assertEqual(pl in retrievedPlList, True)
 
 
 class TestClient(TestCaseWithProvidedMusic):
@@ -185,13 +193,19 @@ class TestClient(TestCaseWithProvidedMusic):
         self.testserver.start()
 
         # Instanciate the server object of the client library
-        self.deejaydaemon = DeejayDaemon('localhost', testServerPort)
+        self.deejaydaemon = DeejayDaemon('localhost', testServerPort, False)
         self.deejaydaemon.connect()
 
     def testPing(self):
         """Ping server"""
-        self.deejaydaemon.ping()
-        self.assertEqual(self.deejaydaemon.getNextAnswer(), True)
+        self.assertEqual(self.deejaydaemon.ping().getContents(), True)
+
+    def testPingAsync(self):
+        """Ping server asynchroneously"""
+        self.deejaydaemon.setAsync(True)
+        ans = self.deejaydaemon.ping()
+        self.assertEqual(ans.getContents(), True)
+        self.deejaydaemon.setAsync(False)
 
     def tearDown(self):
         self.deejaydaemon.disconnect()
@@ -204,28 +218,23 @@ class TestClient(TestCaseWithProvidedMusic):
         djplname = self.testdata.getRandomString()
 
         # Get current playlist
-        self.deejaydaemon.getCurrentPlaylist()
-        djpl = self.deejaydaemon.getNextAnswer()
+        djpl = self.deejaydaemon.getCurrentPlaylist()
+        self.assertEqual(djpl.getContents(), [])
 
         # Add songs to playlist
         for songPath in self.testdata.getRandomSongPaths(3):
             pl.append(songPath)
-
-            djpl.addSong(songPath)
-            self.assertEqual(self.deejaydaemon.getNextAnswer(), True)
+            self.assertEqual(djpl.addSong(songPath).getContents(), True)
 
         # Save the playlist
-        djpl.save(djplname)
-        self.assertEqual(self.deejaydaemon.getNextAnswer(), True)
+        self.assertEqual(djpl.save(djplname).getContents(), True)
 
         # Check for the saved playslit to be available
-        self.deejaydaemon.getPlaylistList()
-        retrievedPls = self.deejaydaemon.getNextAnswer()
+        retrievedPls = self.deejaydaemon.getPlaylistList().getContents()
         self.assertEqual(djplname in retrievedPls, True)
 
         # Retrieve the saved playlist
-        self.deejaydaemon.getPlaylist(djplname)
-        retrievedPl = self.deejaydaemon.getNextAnswer()
+        retrievedPl = self.deejaydaemon.getPlaylist(djplname)
         for song_nb in range(len(pl)):
             self.assertEqual(pl[song_nb], retrievedPl[song_nb]['Path'])
 

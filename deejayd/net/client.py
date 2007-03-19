@@ -12,22 +12,53 @@ from xml.sax.handler import ContentHandler
 
 msgDelimiter = 'ENDXML\n'
 
-class DeejaydPlaylist(list):
 
-    def __init__(self, server, contents):
-        self.server = server
+class DeejaydError(Exception):
+    pass
+
+class DeejaydAnswer:
+
+    def __init__(self):
+        self.answerReceived = threading.Event()
+        self.contents = None
+        self.error = False
+
+    def wait(self):
+        self.answerReceived.wait()
+
+    def received(self, contents):
         self.contents = contents
+        self.answerReceived.set()
+
+    def setError(self, msg):
+        self.contents = msg
+        self.error = True
+        self.answerReceived.set()
+
+    def getContents(self):
+        self.wait()
+        if self.error:
+            raise DeejaydError(self.contents)
+        return self.contents
+
+
+class DeejaydPlaylist(DeejaydAnswer):
+
+    def __init__(self, server):
+        DeejaydAnswer.__init__(self)
+        self.server = server
 
     def __getitem__(self, name):
+        self.wait()
         return self.contents[name]
 
     def save(self, name):
         cmd = DeejaydXMLCommand('playlistSave')
         cmd.addSimpleArg('name', name)
-        self.server.commandQueue.put(cmd)
+        return self.server.sendCommand(cmd)
 
     def addSong(self, path, position = None, name = None):
-        self.addSongs([path], position, name)
+        return self.addSongs([path], position, name)
 
     def addSongs(self, paths, position = None, name = None):
         cmd = DeejaydXMLCommand('playlistAdd')
@@ -36,13 +67,14 @@ class DeejaydPlaylist(list):
             cmd.addSimpleArg('pos', position)
         if name != None:
             cmd.addSimpleArg('name', name)
-        self.server.commandQueue.put(cmd)
+        return self.server.sendCommand(cmd)
 
     def load(self, name, loadingPosition = 0):
         cmd = DeejaydXMLCommand('playlistLoad')
         cmd.addSimpleArg('name', name)
         cmd.addSimpleArg('pos', loadingPosition)
         self.server.commandQueue.put(cmd)
+        return self.server.sendCommand(cmd)
 
 
 class DeejaydXMLCommand:
@@ -97,8 +129,8 @@ class DeejaydXMLCommand:
 
 class AnswerFactory(ContentHandler):
 
-    def __init__(self, answerQueue):
-        self.answerQueue = answerQueue
+    def __init__(self, expectedAnswersQueue):
+        self.expectedAnswersQueue = expectedAnswersQueue
 
         self.answer = None
         self.originatingCommand = ''
@@ -139,7 +171,13 @@ class AnswerFactory(ContentHandler):
             self.answer.append(self.parms)
             self.parms = {}
         elif name in ['response', 'error']:
-            self.answerQueue.put((self.responseType, self.answer))
+            expectedAnswer = self.expectedAnswersQueue.get()
+
+            if name == 'response':
+                expectedAnswer.received(self.answer)
+            elif name == 'error':
+                expectedAnswer.setError(self.answer)
+
             self.answer = None
 
     def getOriginatingCommand(self):
@@ -199,12 +237,12 @@ class DeejayDaemonCommandThread(DeejayDaemonSocketThread):
 
 class DeejayDaemonAnswerThread(DeejayDaemonSocketThread):
 
-    def __init__(self, socket, answerQueue):
+    def __init__(self, socket, expectedAnswersQueue):
         DeejayDaemonSocketThread.__init__(self, socket)
-        self.answerQueue = answerQueue
+        self.expectedAnswersQueue = expectedAnswersQueue
 
         self.parser = make_parser()
-        self.answerBuilder = AnswerFactory(self.answerQueue)
+        self.answerBuilder = AnswerFactory(self.expectedAnswersQueue)
         self.parser.setContentHandler(self.answerBuilder)
 
     def reallyRun(self):
@@ -232,10 +270,10 @@ class ConnectError(Exception):
 
 class DeejayDaemon:
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, async = True):
         # Queue setup
         self.commandQueue = Queue()
-        self.answerQueue = Queue()
+        self.expectedAnswersQueue = Queue()
 
         # Socket setup
         self.socketToServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -244,9 +282,12 @@ class DeejayDaemon:
 
         # Messaging threads
         self.sendingThread = DeejayDaemonCommandThread(self.socketToServer,
-                                                       self.commandQueue)
+                                                   self.commandQueue)
         self.receivingThread = DeejayDaemonAnswerThread(self.socketToServer,
-                                                        self.answerQueue)
+                                                   self.expectedAnswersQueue)
+
+        # Library behavior, asynchroneous or not
+        self.async = async
 
     def connect(self):
         self.socketToServer.connect((self.host, self.port))
@@ -275,30 +316,43 @@ class DeejayDaemon:
 
         self.socketToServer.close()
 
-    def getNextAnswer(self):
-        (rspType, ans) = self.answerQueue.get()
+    def isAsync(self):
+        return self.async
 
-        if rspType == 'SongList':
-            return DeejaydPlaylist(self, ans)
-        else:
-            return ans
+    def setAsync(self, async):
+        self.async = async
+
+    def __returnAsyncOrResult(self, answer):
+        if not self.async:
+           answer.wait()
+        return answer
+
+    def sendCommand(self, cmd, expectedAnswer = None):
+        # Set a default answer by default
+        if expectedAnswer == None:
+            expectedAnswer = DeejaydAnswer()
+
+        self.expectedAnswersQueue.put(expectedAnswer)
+        self.commandQueue.put(cmd)
+        return self.__returnAsyncOrResult(expectedAnswer)
 
     def ping(self):
         cmd = DeejaydXMLCommand('ping')
-        self.commandQueue.put(cmd)
+        return self.sendCommand(cmd)
 
     def getPlaylist(self, name):
         cmd = DeejaydXMLCommand('playlistInfo')
         if name != None:
             cmd.addSimpleArg('name', name)
-        self.commandQueue.put(cmd)
+        ans = DeejaydPlaylist(self)
+        return self.sendCommand(cmd, ans)
 
     def getCurrentPlaylist(self):
-        self.getPlaylist(None)
+        return self.getPlaylist(None)
 
     def getPlaylistList(self):
         cmd = DeejaydXMLCommand('playlistList')
-        self.commandQueue.put(cmd)
+        return self.sendCommand(cmd)
 
 
 # vim: ts=4 sw=4 expandtab
