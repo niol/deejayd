@@ -1,103 +1,63 @@
 """
-Tools to create a test server in a thread.
+Tools to create a test server.
 """
-import threading
-import os, time
+import os, signal, os.path, sys, subprocess
 
-from testdeejayd.databuilder import TestData
-
-from deejayd.net.deejaydProtocol import DeejaydFactory
-from deejayd.mediadb.database import sqliteDatabase
-from deejayd.mediadb.deejaydDB import DeejaydDB
-
-from twisted.python import threadable
-# Before creating the reactor, let's make it threadable, this allows us
-# to use reactor.callFromThread(() to stop the reactor from the main thread.
-threadable.init()
-from twisted.internet import reactor
-
-
-class ReactorException(Exception):
-
-    def __init__(self, *args):
-        Exception.__init__(self, *args)
-
-
-class TestServer(threading.Thread):
-    """The idea of this class is to run the twisted reactor in a thread. This
-    must be done because reactor.run() is the main tread of the test
-    application otherwise.
+class TestServer:
+    """Implements a server ready for testing."""
     
-    from : http://wiki.osafoundation.org/bin/view/Projects/ChandlerTwistedInThreadedEnvironment"""
-
     def __init__(self, testServerPort, musicDir, dbfilename):
-        threading.Thread.__init__(self, name = 'Deejayd test server reactor')
-
-        # FIXME : This is not a good thing to do but sometimes reactor.run does
-        # not exit after shutdown...
-        self.setDaemon(True)
-
-        self.__reactorRunning = False
-        self.__reactorNotBusy = threading.Event()
-
         self.testServerPort = testServerPort
         self.musicDir = musicDir
         self.dbfilename = dbfilename
 
-    def run(self):
-        # Set up the test database
-        db = sqliteDatabase(self.dbfilename)
-        db.connect()
+        self.serverExecRelPath = 'scripts/testserver'
+        self.srcpath = self.findSrcPath()
 
-        # Set up the test deeajayd database
-        ddb = DeejaydDB(db, self.musicDir)
-        ddb.updateDir('.')
+    def findSrcPath(self):
+        # Get the server executable path, assuming it is names scripts/deejayd
+        # in a subdirectory of $PYTHONPATH
+        absPath = ''
+        notFound = True
+        sysPathIterator = iter(sys.path)
+        while notFound:
+            absPath = sysPathIterator.next()
+            serverScriptPath = os.path.join(absPath, self.serverExecRelPath)
+            if os.path.exists(serverScriptPath):
+                notFound = False
 
-        # Set up the test server
-        reactor.listenTCP(self.testServerPort, DeejaydFactory(ddb))
+        if notFound:
+            raise Exception('Cannot find server executable')
 
-        # Set a shutdown callback to confirm shutdown
-        reactor.addSystemEventTrigger('after', 'startup',
-            self.__setReactorRunning, True)
-
-        # Set a shutdown callback to confirm shutdown
-        reactor.addSystemEventTrigger('after', 'shutdown',
-            self.__setReactorRunning, False)
-
-        # run reactor disabling SIG handlers (those are only allowed in
-        # the main thread)
-        reactor.run(False)
-
-    def __setReactorRunning(self, status):
-        self.__reactorRunning = status
-
-        # No need to wait for the reactor anymore
-        self.__reactorNotBusy.set()
+        return os.path.abspath(absPath)
 
     def start(self):
-        # Reactor is now busy starting
-        self.__reactorNotBusy.clear()
+        serverExec = os.path.join(self.srcpath, self.serverExecRelPath)
+        args = [serverExec, str(self.testServerPort),
+                            self.musicDir,
+                            self.dbfilename]
+        env = {}
+        env['PYTHONPATH'] = self.srcpath
+        self.__serverProcess = subprocess.Popen(args = args,
+                                                env = env,
+                                                stderr = subprocess.PIPE,
+                                                stdout = sys.stdout.fileno(),
+                                                close_fds = True)
 
-        if self.__reactorRunning:
-            raise ReactorException("Reactor already running")
-
-        threading.Thread.start(self)
-
-        # Wait for the reactor to really be running
-        self.__reactorNotBusy.wait()
+        firstLine = self.__serverProcess.stderr.readline()
+        if not firstLine == 'ready\n':
+            # Should not occur
+            print self.__serverProcess.stderr.read(16000)
+            raise Exception('Reactor does not seem to be ready')
 
     def stop(self):
-        # Reactor is now busy shutting down
-        self.__reactorNotBusy.clear()
+        # Send kill signal
+        os.kill(self.__serverProcess.pid, signal.SIGKILL)
 
-        if not self.__reactorRunning:
-            raise ReactorException("Reactor not running")
+        # Wait for the process to finish
+        self.__serverProcess.wait()
 
-        reactor.callFromThread(reactor.stop)
-
-        # Wait for the reactor to really be stopped
-        self.__reactorNotBusy.wait()
-
+        # Clean up temporary db file
         os.unlink(self.dbfilename)
 
 
