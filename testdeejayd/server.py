@@ -33,6 +33,11 @@ class TestServer:
 
     def start(self):
         serverExec = os.path.join(self.srcpath, self.serverExecRelPath)
+
+        if not os.access(serverExec, os.X_OK):
+            sys.exit("The test server executable '%s' is not executable."\
+                     % serverExec)
+
         args = [serverExec, str(self.testServerPort),
                             self.musicDir,
                             self.dbfilename]
