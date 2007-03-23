@@ -8,7 +8,6 @@ import gobject
 import gst
 import gst.interfaces
 
-from twisted.python import log
 from deejayd.ui.config import DeejaydConfig
 
 PLAYER_PLAY = "play"
@@ -22,6 +21,7 @@ class deejaydPlayer:
     def __init__(self,db):
         self.db = db
         # Initialise var
+        self.__videoSupport = False
         self.__state = PLAYER_STOP
         self.__queue = None
         self.__source = None
@@ -31,19 +31,12 @@ class deejaydPlayer:
         self.__random = 0
         self.__repeat = 0
 
-        # Open a pipeline
-        pipeline = DeejaydConfig().get("player", "output")
-        if pipeline == "gconf": pipeline = "gconfaudiosink"
-        else: pipeline = pipeline + "sink"
+        self.config = DeejaydConfig()
 
+        # Open a Audio pipeline
+        pipeline =  self.config.get("player", "audio_output")
         try: audio_sink = gst.parse_launch(pipeline)
-        except gobject.GError, err:
-            if pipeline != "autoaudiosink":
-                try: audio_sink = gst.parse_launch("autoaudiosink")
-                except gobject.GError: audio_sink = None
-                else: pipeline = "autoaudiosink"
-            else: audio_sink = None
-
+        except gobject.GError, err: audio_sink = None
         if audio_sink==None:
             raise NoSinkError
 
@@ -56,6 +49,28 @@ class deejaydPlayer:
         bus.add_signal_watch()
         bus.connect('message', self.on_message)
 
+    def initVideoSupport(self):
+        import pygtk
+        pygtk.require('2.0')
+
+        # init video specific parms
+        self.videoWindow = None
+        self.deejaydWindow = None
+        self.__fullscreen = False
+        # Open a Video pipeline
+        pipeline =  self.config.get("player", "video_output")
+        try: video_sink = gst.parse_launch(pipeline)
+        except gobject.GError, err: raise NoSinkError
+        else: 
+            self.bin.set_property('video-sink', video_sink)
+
+            bus = self.bin.get_bus()
+            bus.enable_sync_message_emission()
+            bus.connect('sync-message::element', self.on_sync_message)
+
+            self.__videoSupport = True
+
+
     def on_message(self, bus, message):
         if message.type == gst.MESSAGE_EOS:
             self.next()
@@ -65,6 +80,25 @@ class deejaydPlayer:
             log.err(err)
 
         return True
+
+    def on_sync_message(self, bus, message):
+        if message.structure is None:
+            return
+        message_name = message.structure.get_name()
+        if message_name == 'prepare-xwindow-id' and self.__videoSupport:
+            imagesink = message.src
+            imagesink.set_property('force-aspect-ratio', True)
+            imagesink.set_xwindow_id(self.videoWindow.window.xid)
+
+    def setFullscreen(self):
+        if  self.__videoSupport and self.videoWindow:
+            self.videoWindow.fullscreen()
+            self.__fullscreen = True
+
+    def setUnfullscreen(self):
+        if  self.__videoSupport and self.videoWindow:
+            self.videoWindow.unfullscreen()
+            self.__fullscreen = False
 
     def loadState(self):
         # Restore volume
@@ -98,6 +132,19 @@ class deejaydPlayer:
             self.__playingSourceName = self.__sourceName
             self.__playingSource= self.__source
 
+        if self.__playingSourceName == "video":
+            import gtk
+            self.deejaydWindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            self.deejaydWindow.set_title("deejayd")
+            self.deejaydWindow.set_default_size(500, 400)
+            self.deejaydWindow.connect("destroy", self.stop, "WM destroy")
+            self.videoWindow = gtk.DrawingArea()
+            self.deejaydWindow.add(self.videoWindow)
+            self.deejaydWindow.connect("map_event",self.startGst)
+            self.deejaydWindow.show_all()
+        else: self.startGst()
+
+    def startGst(self,widget = None, event = None):
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         self.__state = PLAYER_PLAY
         timeout = 4
@@ -125,11 +172,16 @@ class deejaydPlayer:
         elif self.__state == PLAYER_PAUSE:
             self.play(setURI = False)
 
-    def stop(self):
+    def stop(self,widget = None, event = None):
         self.bin.set_state(gst.STATE_NULL)
         self.__state = PLAYER_STOP
         # Reset the queue
         self.__queue.reset()
+
+        # destroy video window if necessary
+        if self.__videoSupport and self.deejaydWindow:
+            self.deejaydWindow.destroy()
+            self.deejaydWindow = None
 
     def reset(self,sourceName):
         if sourceName == self.__playingSourceName:
