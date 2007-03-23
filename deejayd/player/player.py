@@ -92,12 +92,12 @@ class deejaydPlayer:
 
     def setFullscreen(self):
         if  self.__videoSupport and self.videoWindow:
-            self.videoWindow.fullscreen()
+            self.deejaydWindow.fullscreen()
             self.__fullscreen = True
 
     def setUnfullscreen(self):
         if  self.__videoSupport and self.videoWindow:
-            self.videoWindow.unfullscreen()
+            self.deejaydWindow.unfullscreen()
             self.__fullscreen = False
 
     def loadState(self):
@@ -132,12 +132,12 @@ class deejaydPlayer:
             self.__playingSourceName = self.__sourceName
             self.__playingSource= self.__source
 
-        if self.__playingSourceName == "video":
+        if self.__playingSourceName == "video" and not self.deejaydWindow:
             import gtk
             self.deejaydWindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
             self.deejaydWindow.set_title("deejayd")
             self.deejaydWindow.set_default_size(500, 400)
-            self.deejaydWindow.connect("destroy", self.stop, "WM destroy")
+            self.deejaydWindow.connect("destroy", self.stop)
             self.videoWindow = gtk.DrawingArea()
             self.deejaydWindow.add(self.videoWindow)
             self.deejaydWindow.connect("map_event",self.startGst)
@@ -170,7 +170,7 @@ class deejaydPlayer:
             self.bin.set_state(gst.STATE_PAUSED)
             self.__state = PLAYER_PAUSE
         elif self.__state == PLAYER_PAUSE:
-            self.play(setURI = False)
+            self.play()
 
     def stop(self,widget = None, event = None):
         self.bin.set_state(gst.STATE_NULL)
