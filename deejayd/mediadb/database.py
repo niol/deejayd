@@ -62,6 +62,9 @@ CREATE TABLE {video_library}(
     filename TEXT,
     type TEXT,
     id INT,
+    title TEXT,
+    length INT,
+    resolution TEXT,
     PRIMARY KEY (dir,filename));
 
 CREATE TABLE {webradio}(
@@ -126,6 +129,9 @@ CREATE TABLE {variables}(
         if (new,current) == (2,1):
             update_table = """
 ALERT TABLE {video} ADD id INT DEFAULT 0 AFTER type;
+ALERT TABLE {video} ADD title TEXT AFTER id;
+ALERT TABLE {video} ADD length INT DEFAULT 0 AFTER title;
+ALERT TABLE {video} ADD resolution TEXT AFTER length;
 
 RENAME TABLE {library} TO {audio_library};
 RENAME TABLE {video} TO {video_library};
@@ -161,12 +167,6 @@ RENAME TABLE {video} TO {video_library};
         query = "DELETE FROM {%s} WHERE dir LIKE ?" % table
         self.execute(query, (path.join(root,dir)+"%%",))
 
-    def getDirContent(self,dir,table = "audio_library"):
-        query = "SELECT filename,type FROM {%s} WHERE dir = ?" % table
-        self.execute(query, (dir,))
-
-        return self.cursor.fetchall()
-
     def getDirInfo(self,dir,table = "audio_library"): 
         query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" % table
         self.execute(query,(dir,))
@@ -179,8 +179,9 @@ RENAME TABLE {video} TO {video_library};
 
         return self.cursor.fetchall()
 
-    def getDirInfo(self,dir,table = "audio_library"): 
-        query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" % table
+    def getDirInfo(self,dir,type = "audio"): 
+        query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" \
+            % (type+"_library",)
         self.execute(query,(dir,))
 
         return self.cursor.fetchall()
@@ -247,10 +248,18 @@ RENAME TABLE {video} TO {video_library};
         (lastId,) = self.cursor.fetchone()
         return lastId
 
+    def getVideoFiles(self,dir):
+        query = "SELECT * FROM {video_library} WHERE type = \
+            'file' AND dir = ?" 
+        self.execute(query,(dir,))
+
+        return self.cursor.fetchall()
+
     def insertVideoFile(self,dir,fileInfo):
-        query = "INSERT INTO {video_library}(type,dir,filename,id)\
-            VALUES ('file',?,?,?)"
-        self.execute(query, (dir,fileInfo["filename"],fileInfo["id"]))
+        query = "INSERT INTO {video_library}(type,dir,filename,id,title,length,\
+            resolution) VALUES ('file',?,?,?,?,?,?)"
+        self.execute(query, (dir,fileInfo["filename"],fileInfo["id"],\
+            fileInfo["title"],fileInfo["length"],fileInfo["res"]))
 
     #
     # Playlist requests

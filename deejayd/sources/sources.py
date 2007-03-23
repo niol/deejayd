@@ -4,20 +4,29 @@ class unknownSourceException: pass
 
 class sourcesFactory:
 
-    def __init__(self,player,db):
+    def __init__(self,player,db,config):
         self.sourcesObj = {}
         self.player = player
 
+        # Playlist and Queue
         from deejayd.sources import playlist,queue
         self.sourcesObj["playlist"] = playlist.PlaylistSource(player,db)
         self.sourcesObj["queue"] = queue.QueueSource(player,db)
 
+        # Webradio
         import gst
         if gst.element_make_from_uri(gst.URI_SRC, "http://", ""):
             from deejayd.sources import webradio
             self.sourcesObj["webradio"] = webradio.WebradioSource(player, db)
         else:
             log.msg("Webradio support disabled : require gst-plugins-gnomevfs")
+
+        # Video
+        video_support = config.get("general","video_support")== "true"
+        if video_support:
+            from deejayd.sources import video
+            self.sourcesObj["video"] = video.VideoSource(player, db)
+            self.player.initVideoSupport()
 
         # restore recorded source 
         source = db.getState("source")

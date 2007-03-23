@@ -94,7 +94,7 @@ class DeejaydFactory(protocol.ServerFactory):
         log.msg("Player Initialisation...OK")
 
         # Try to Init sources
-        self.sources = sources.sourcesFactory(self.player,self.db)
+        self.sources = sources.sourcesFactory(self.player,self.db,config)
         log.msg("Sources Initialisation...OK")
 
     def stopFactory(self):

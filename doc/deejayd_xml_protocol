@@ -185,6 +185,15 @@ description :
 Search file where "type" contains "txt" content
     
 -----------------
+getvideodir
+-----------------
+arguments :
+directory : type->string, required->false, multiple->false
+
+description : 
+lists files of video dir "directory".
+    
+-----------------
 play
 -----------------
 arguments :
@@ -464,4 +473,13 @@ arguments :
 
 description : 
 Remove all songs from the queue
+    
+-----------------
+setvideodir
+-----------------
+arguments :
+directory : type->string, required->false, multiple->false
+
+description : 
+Set the current video directory at "directory"
     

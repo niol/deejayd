@@ -7,13 +7,13 @@ from xml.dom.minidom import Document
 
 def commandsOrders():
     return ("ping","status","stats","setMode","getMode","update","getdir",
-       "search","play","stop","pause","next","previous","setVolume","seek",
-       "random","repeat","current","playlistInfo","playlistList","playlistAdd",
-       "playlistRemove","playlistClear","playlistMove","playlistShuffle",
-       "playlistShuffle","playlistErase","playlistLoad","playlistSave",
-       "webradioList","webradioAdd","webradioRemove","webradioClear",
-       "playQueue","queueInfo","queueAdd","queueLoadPlaylist","queueRemove",
-       "queueClear")
+       "search","getvideodir","play","stop","pause","next","previous",
+       "setVolume","seek","random","repeat","current","playlistInfo",
+       "playlistList","playlistAdd","playlistRemove","playlistClear",
+       "playlistMove","playlistShuffle","playlistShuffle","playlistErase",
+       "playlistLoad","playlistSave","webradioList","webradioAdd",
+       "webradioRemove","webradioClear","playQueue","queueInfo","queueAdd",
+       "queueLoadPlaylist","queueRemove","queueClear","setvideodir")
 
 def commandsList(commandsXML):
     return {
@@ -27,6 +27,7 @@ def commandsList(commandsXML):
         "update":commandsXML.UpdateDB,
         "getdir":commandsXML.GetDir,
         "search":commandsXML.Search,
+        "getvideodir":commandsXML.GetVideoDir,
         # Player commands
         "play":commandsXML.Play,
         "stop":commandsXML.Stop,
@@ -61,7 +62,8 @@ def commandsList(commandsXML):
         "queueLoadPlaylist":commandsXML.QueueLoadPlaylist,
         "queueRemove":commandsXML.QueueRemove,
         "queueClear":commandsXML.QueueClear,
-        # Panel commands
+        # Video commands
+        "setvideodir":commandsXML.SetVideoDir,
     }
 
 
@@ -281,7 +283,7 @@ webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activate)
     def execute(self):
         avSources = self.deejaydArgs["sources"].getAvailableSources()
         modes = []
-        for s in ("playlist","webradio"):
+        for s in ("playlist","webradio","video"):
             act = s in avSources or 1 and 0
             modes.append((s,act))
 
@@ -377,6 +379,71 @@ Search file where "type" contains "txt" content
 
         rs = self.formatInfoResponse(list)
         return self.getOkAnswer("FileList",rs)
+
+
+class GetVideoDir(GetDir):
+
+    def docInfos(self):
+        return {
+            "args": [{"name":"directory", "type":"string", "req":0}],
+            "returnType": "FileList", 
+            "description": """
+lists files of video dir "directory".
+"""
+        }
+
+    def execute(self):
+        dir = "directory" in self.args.keys() and self.args["directory"] or ""
+        try: list = self.deejaydArgs["db"].getDir(dir,"video")
+        except NotFoundException:
+            return self.getErrorAnswer('Directory not found in the database')
+
+        rs = self.formatInfoResponse(list)
+        return self.getOkAnswer("FileList",rs)
+
+    def formatInfoResponse(self, resp):
+        rs = [];
+        for (dir,fn,t,id,ti,len,res) in resp:
+
+            if t == 'directory':
+                chd = self.xmlDoc.createElement("directory")
+                chd.setAttribute("name",fn)
+            else:
+                chd = self.xmlDoc.createElement("video")
+                dict = [("Path",path.join(dir,fn)),("Title",ti),("Id",id),\
+                    ("Time",len),("Res",res)]
+                parms = self.formatResponseWithDict(dict)
+                for parm in parms: chd.appendChild(parm)
+
+            rs.append(chd)
+
+        return rs
+
+
+###################################################
+#  Video Commands                              #
+###################################################
+
+class SetVideoDir(UnknownCommand):
+
+    def docInfos(self):
+        return {
+            "args": [{"name":"directory", "type":"string", "req":0}],
+            "returnType": "Ack", 
+            "description": """
+Set the current video directory at "directory"
+"""
+        }
+
+    def execute(self):
+        dir = "directory" in self.args.keys() and self.args["directory"] or ""
+        try: self.deejaydArgs["sources"].getSource("video").setDirectory(dir)
+        except NotFoundException:
+            return self.getErrorAnswer('Directory not found in the database')
+        #except sources.unknownSourceException:
+        #    return self.getErrorAnswer('Video support disabled')
+
+        return self.getOkAnswer()
 
 
 ###################################################

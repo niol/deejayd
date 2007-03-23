@@ -87,7 +87,7 @@ class UnknownSource:
         self.sourceId += 1
 
     def save(self):
-        raise ImplementedError
+        raise NotImplementedError
     
     def formatMediadbPlaylistFiles(self,s):
         return {"dir":s[0],"filename":s[1],"Pos":s[3],"Id":self.setItemId(),

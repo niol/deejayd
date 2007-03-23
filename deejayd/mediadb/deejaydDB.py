@@ -40,18 +40,25 @@ class DeejaydAudioFile:
         self.db.updateAudioFile(self.dir,fileInfo)
 
     def remove(self,f):
-        seld.db.removeFile(self.dir,f)
+        self.db.removeFile(self.dir,f)
 
 
 class DeejaydVideoFile(DeejaydAudioFile):
 
     def __init__(self,db,dir,root_path = None):
         DeejaydAudioFile.__init__(self,db,dir,root_path)
+
+        self.__supportedExtension = (".avi",".mpeg")
         self.__id = self.db.getLastVideoId() or 0 
 
     def insert(self,f):
-        fileInfo = {"filename":f,"dir":self.dir,"id":self.__getNextId()}
-        self.db.insertVideoFile(self.dir,fileInfo)
+        (filename,extension) = os.path.splitext(f) 
+        ext = extension.lower()
+        if ext in self.__supportedExtension:
+            fileInfo = {"filename":f,"dir":self.dir,"id":self.__getNextId(),\
+                "title":f,"res":"","length":0}
+            self.db.insertVideoFile(self.dir,fileInfo)
+        else: log.msg("%s : format not supported" % (f,))
 
     def update(self,f):
         pass
@@ -139,8 +146,8 @@ class DeejaydDB:
         self.db = db
         self.db.connect()
 
-    def getDir(self,dir):
-        rs = self.db.getDirInfo(dir)
+    def getDir(self,dir, type = "audio"):
+        rs = self.db.getDirInfo(dir,type)
         if len(rs) == 0 and dir != "":
             # nothing found for this directory
             raise NotFoundException
@@ -154,9 +161,16 @@ class DeejaydDB:
 
         return rs
 
+    def getVideoFiles(self,dir):
+        rs = self.db.getVideoFiles(dir)
+        if len(rs) == 0:
+            raise NotFoundException
+
+        return rs
+
     def getAll(self,dir):
         rs = self.db.getAllFile(dir)
-        if len(rs) == 0:
+        if len(rs) == 0 and dir != "":
             # nothing found for this directory
             raise NotFoundException
 

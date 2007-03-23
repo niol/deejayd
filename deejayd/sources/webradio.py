@@ -1,5 +1,5 @@
 
-from deejayd.mediadb.deejaydDB import database,NotFoundException
+from deejayd.mediadb.deejaydDB import NotFoundException
 from deejayd.sources.unknown import *
 import urllib
 
