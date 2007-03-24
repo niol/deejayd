@@ -39,6 +39,7 @@ def commandsList(commandsXML):
         "random":commandsXML.Random,
         "repeat":commandsXML.Repeat,
         "current":commandsXML.CurrentSong,
+        "fullscreen":commandsXML.Fullscreen,
         # Playlist commands
         "playlistInfo":commandsXML.PlaylistInfo,
         "playlistList":commandsXML.PlaylistList,
@@ -1124,6 +1125,9 @@ set random state to "value", "value" should be 0 or 1
         try: val = int(val)
         except TypeError,ValueError:
             return self.getErrorAnswer('Need an integer')
+        else:
+            if val not in (0,1):
+                return self.getErrorAnswer('value has to be 0 or 1')
 
         getattr(self.deejaydArgs["player"],self.__class__.funcName)(val)
         return self.getOkAnswer()
@@ -1137,6 +1141,18 @@ class Repeat(Random):
             "args": [{"name":"value", "type":"list 0 or 1","req":1}],
             "description": """
 set repeat state to "value", "value" should be 0 or 1
+"""
+        }
+
+
+class Fullscreen(Random):
+    funcName = "fullscreen"
+
+    def docInfos(self):
+        return {
+            "args": [{"name":"value", "type":"list 0 or 1","req":1}],
+            "description": """
+set video fullscreen to "value", "value" should be 0 (off) or 1 (on)
 """
         }
 

@@ -90,16 +90,6 @@ class deejaydPlayer:
             imagesink.set_property('force-aspect-ratio', True)
             imagesink.set_xwindow_id(self.videoWindow.window.xid)
 
-    def setFullscreen(self):
-        if  self.__videoSupport and self.videoWindow:
-            self.deejaydWindow.fullscreen()
-            self.__fullscreen = True
-
-    def setUnfullscreen(self):
-        if  self.__videoSupport and self.videoWindow:
-            self.deejaydWindow.unfullscreen()
-            self.__fullscreen = False
-
     def loadState(self):
         # Restore volume
         vol = float(self.db.getState("volume"))
@@ -182,6 +172,7 @@ class deejaydPlayer:
         if self.__videoSupport and self.deejaydWindow:
             self.deejaydWindow.destroy()
             self.deejaydWindow = None
+            self.__fullscreen = False
 
     def reset(self,sourceName):
         if sourceName == self.__playingSourceName:
@@ -217,6 +208,15 @@ class deejaydPlayer:
 
     def repeat(self,val):
         self.__repeat = val
+
+    def fullscreen(self,val):
+        if  self.__videoSupport and self.deejaydWindow:
+            if val == 0:
+                self.deejaydWindow.unfullscreen()
+                self.__fullscreen = False
+            else:
+                self.deejaydWindow.fullscreen()
+                self.__fullscreen = True
 
     def getVolume(self):
         return self.bin.get_property('volume')
@@ -260,6 +260,10 @@ class deejaydPlayer:
                 curSong["Time"] = self.getPosition()
             status.extend([ ("time","%d:%d" % (self.getPosition(),\
                 curSong["Time"])) ])
+                    
+        # Specific video status
+        if self.__videoSupport:
+            status.extend([("fullscreen",self.__fullscreen)])
 
         return status
 
