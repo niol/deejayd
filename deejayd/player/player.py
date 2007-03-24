@@ -136,12 +136,12 @@ class deejaydPlayer:
             import gtk
             self.deejaydWindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
             self.deejaydWindow.set_title("deejayd")
-            self.deejaydWindow.set_default_size(500, 400)
             self.deejaydWindow.connect("destroy", self.stop)
             self.videoWindow = gtk.DrawingArea()
             self.deejaydWindow.add(self.videoWindow)
             self.deejaydWindow.connect("map_event",self.startGst)
             self.deejaydWindow.show_all()
+            self.deejaydWindow.maximize()
         else: self.startGst()
 
     def startGst(self,widget = None, event = None):
