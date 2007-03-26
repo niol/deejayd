@@ -211,10 +211,21 @@ class deejaydPlayer:
 
     def fullscreen(self,val):
         if  self.__videoSupport and self.deejaydWindow:
+            import gtk
             if val == 0:
+                # Set the cursor visible
+                self.deejaydWindow.window.set_cursor(None)
+
                 self.deejaydWindow.unfullscreen()
                 self.__fullscreen = False
             else:
+                # Hide the cursor
+                emptyPixmap = gtk.gdk.Pixmap(None, 1, 1, 1)
+                emptyColor = gtk.gdk.Color()
+                emptyCursor = gtk.gdk.Cursor(emptyPixmap, emptyPixmap,
+                    emptyColor, emptyColor, 0, 0)
+                self.deejaydWindow.window.set_cursor(emptyCursor)
+
                 self.deejaydWindow.fullscreen()
                 self.__fullscreen = True
 
@@ -283,6 +294,4 @@ class deejaydPlayer:
     def __getGstState(self):
         changestatus,state,_state = self.bin.get_state()
         return state
-
-
 # vim: ts=4 sw=4 expandtab
