@@ -52,6 +52,7 @@ class TestServer:
         firstLine = self.__serverProcess.stderr.readline()
         if not firstLine == 'ready\n':
             # Should not occur
+            print firstLine
             print self.__serverProcess.stderr.read(16000)
             raise Exception('Reactor does not seem to be ready')
 
