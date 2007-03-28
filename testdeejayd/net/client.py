@@ -171,7 +171,7 @@ class TestAnswerParser(TestCaseWithData):
                     # FIXME : the answer parser should build on int here, there
                     # should be no need for a type conversion.
                     self.assertEqual(song[tag],
-                                     int(retrievedSongList[songRank][tag]))
+                                     retrievedSongList[songRank][tag])
                 else:
                     self.assertEqual(song[tag].decode('utf-8'),
                                      retrievedSongList[songRank][tag])

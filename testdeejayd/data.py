@@ -5,7 +5,7 @@ songlibrary = [
  'artist': 'Dolly', 'album': 'Dolly', 'title': "Je n'veux pas rester sage"},
 {'filename': 'rap/MC Solar/LTDLQ/04-mc_solaar-onzième_commandement.ogg',
  'artist': 'MC Solar', 'album': 'Le tour de la question CD1',
- 'title': "Onzième commandement", 'track': '04'},
+ 'title': "Onzième commandement", 'track': '04/20'},
 {'filename': 'dance/singles/Ultra Nate - Free.mp3',
  'artist': 'Ultra Nate', 'title': "Free"}
 ]
