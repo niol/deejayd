@@ -168,8 +168,6 @@ class TestAnswerParser(TestCaseWithData):
                 songRank = song['plorder']
 
                 if tag == 'plorder':
-                    # FIXME : the answer parser should build on int here, there
-                    # should be no need for a type conversion.
                     self.assertEqual(song[tag],
                                      retrievedSongList[songRank][tag])
                 else:
@@ -254,7 +252,7 @@ class TestClient(TestCaseWithProvidedMusic):
             pl.append(songPath)
             self.assertEqual(djpl.addSong(songPath).getContents(), True)
 
-        # Check for the playlist to be of apprpriate length
+        # Check for the playlist to be of appropriate length
         self.assertEqual(self.deejaydaemon.getStatus()['playlistlength'],
                          howManySongs)
 
