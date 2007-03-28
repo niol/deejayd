@@ -10,7 +10,7 @@ def commandsOrders():
        "search","getvideodir","play","stop","pause","next","previous",
        "setVolume","seek","random","repeat","current","playlistInfo",
        "playlistList","playlistAdd","playlistRemove","playlistClear",
-       "playlistMove","playlistShuffle","playlistShuffle","playlistErase",
+       "playlistMove","playlistShuffle","playlistErase",
        "playlistLoad","playlistSave","webradioList","webradioAdd",
        "webradioRemove","webradioClear","playQueue","queueInfo","queueAdd",
        "queueLoadPlaylist","queueRemove","queueClear","setvideodir")

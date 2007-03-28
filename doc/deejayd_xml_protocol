@@ -348,14 +348,6 @@ description :
 Shuffle the current playlist.
     
 -----------------
-playlistShuffle
------------------
-arguments :
-
-description : 
-Shuffle the current playlist.
-    
------------------
 playlistErase
 -----------------
 arguments :
