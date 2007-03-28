@@ -8,7 +8,8 @@ import testdeejayd.data
 
 from testdeejayd.server import TestServer
 from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, AnswerFactory,\
-                               DeejaydAnswer, DeejaydPlaylist, DeejaydError
+                               DeejaydAnswer, DeejaydKeyValue,\
+                               DeejaydPlaylist, DeejaydError
 
 # FIXME : We should not need those here, this is some code duplication from the
 # client code.
@@ -103,6 +104,33 @@ class TestAnswerParser(TestCaseWithData):
         # FIXME : find a way to test the errorText
         self.assertRaises(DeejaydError, ans.getContents)
 
+    def testAnswerParserKeyValue(self):
+        """Test the client library parsing a key value answer"""
+        originatingCommand = 'status'
+        keyValueAnswer = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <response name="%s" type="KeyValue">""" % originatingCommand
+        howMuch = 10
+        origKeyValue = {}
+        for count in range(howMuch):
+            key = self.testdata.getRandomString()
+            value =  self.testdata.getRandomString()
+            origKeyValue[key] = value
+            keyValueAnswer = keyValueAnswer + """
+        <parm name="%s" value="%s" />""" % (key, value)
+        keyValueAnswer = keyValueAnswer + """
+    </response>
+</deejayd>"""
+
+        ans = DeejaydKeyValue()
+        self.eansq.put(ans)
+        self.parseAnswer(keyValueAnswer)
+
+        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+        retrievedKeyValues = ans.getContents()
+
+        for key in origKeyValue.keys():
+            self.assertEqual(origKeyValue[key], retrievedKeyValues[key])
 
     def testAnswerParserPlaylist(self):
         """Test the client library parsing a song list answer"""
@@ -221,9 +249,14 @@ class TestClient(TestCaseWithProvidedMusic):
         self.assertEqual(djpl.getContents(), [])
 
         # Add songs to playlist
-        for songPath in self.testdata.getRandomSongPaths(3):
+        howManySongs = 3
+        for songPath in self.testdata.getRandomSongPaths(howManySongs):
             pl.append(songPath)
             self.assertEqual(djpl.addSong(songPath).getContents(), True)
+
+        # Check for the playlist to be of apprpriate length
+        self.assertEqual(self.deejaydaemon.getStatus()['playlistlength'],
+                         howManySongs)
 
         # Save the playlist
         self.assertEqual(djpl.save(djplname).getContents(), True)

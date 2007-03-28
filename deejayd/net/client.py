@@ -42,15 +42,18 @@ class DeejaydAnswer:
         return self.contents
 
 
-class DeejaydPlaylist(DeejaydAnswer):
-
-    def __init__(self, server):
-        DeejaydAnswer.__init__(self)
-        self.server = server
+class DeejaydKeyValue(DeejaydAnswer):
 
     def __getitem__(self, name):
         self.wait()
         return self.contents[name]
+
+
+class DeejaydPlaylist(DeejaydKeyValue):
+
+    def __init__(self, server):
+        DeejaydAnswer.__init__(self)
+        self.server = server
 
     def save(self, name):
         cmd = DeejaydXMLCommand('playlistSave')
@@ -151,8 +154,20 @@ class AnswerFactory(ContentHandler):
                 self.answer = True
             elif self.responseType in ['SongList', 'PlaylistList']:
                 self.answer = []
+            elif self.responseType == 'KeyValue':
+                self.answer = {}
         elif name == 'parm':
-            self.parms[attrs.get('name')] = attrs.get('value')
+            # Parse value into a int if possible
+            val = attrs.get('value')
+            try:
+                realVal = int(val)
+            except(ValueError):
+                realVal = val
+
+            if self.responseType == 'KeyValue':
+                self.answer[attrs.get('name')] = realVal
+            else:
+                self.parms[attrs.get('name')] = realVal
         elif name == 'playlist':
             assert self.responseType == 'PlaylistList'
             assert self.xmlpath == ['deejayd', 'response', 'playlist']
@@ -339,6 +354,10 @@ class DeejayDaemon:
     def ping(self):
         cmd = DeejaydXMLCommand('ping')
         return self.sendCommand(cmd)
+
+    def getStatus(self):
+        cmd = DeejaydXMLCommand('status')
+        return self.sendCommand(cmd, DeejaydKeyValue())
 
     def getPlaylist(self, name):
         cmd = DeejaydXMLCommand('playlistInfo')
