@@ -145,8 +145,7 @@ class TestAnswerParser(TestCaseWithData):
                     self.assertEqual(song[tag],
                                      int(retrievedSongList[songRank][tag]))
                 else:
-                    # FIXME : This does not work because of an utf-8 error
-                    self.assertEqual(song[tag],
+                    self.assertEqual(song[tag].decode('utf-8'),
                                      retrievedSongList[songRank][tag])
 
     def testAnswerParserPlaylistList(self):
