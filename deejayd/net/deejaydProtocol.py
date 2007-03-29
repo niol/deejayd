@@ -77,10 +77,14 @@ class DeejaydFactory(protocol.ServerFactory):
                 log.err("No audio directory found.")
                 sys.exit("You have to choose a music directory")
 
-            try: video_dir = config.get("mediadb","video_directory")
-            except NoOptionError:
-                log.err("No video directory found. Video Support disabled")
+            if config.get('general', 'video_support') != 'yes':
                 video_dir = None
+                log.msg("Video support disabled.")
+            else:
+                try: video_dir = config.get('mediadb', 'video_directory')
+                except NoOptionError:
+                    log.err('Supplied video directory not found. Video support disabled.')
+                    video_dir = None
 
             self.db = deejaydDB.DeejaydDB(DatabaseFactory().getDB(),\
                             audio_dir,video_dir)
