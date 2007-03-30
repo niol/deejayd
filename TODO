@@ -1,8 +1,9 @@
 Mediadb
-  * Improve error handling
   * Use os.walk function
+  * Remove empty directory from mediadb
 
 Test
   * Finish to write tests
 
-save state when we quit deejayd
+Player
+  * add basic subtitles support for gstreamer 
