@@ -1,7 +1,7 @@
 import sys
 
 from twisted.python import log
-from deejayd.player.player import NoSinkError
+from deejayd.player.gstreamer import NoSinkError
 
 class unknownSourceException: pass
 
@@ -25,12 +25,11 @@ class sourcesFactory:
             log.msg("Webradio support disabled : require gst-plugins-gnomevfs")
 
         # Video
-        video_support = config.get("general","video_support")== "true"
+        video_support = config.get("general","video_support") == "yes"
         if video_support:
             from deejayd.sources import video
             self.sourcesObj["video"] = video.VideoSource(player, db)
-            try:
-                self.player.initVideoSupport()
+            try: self.player.initVideoSupport()
             except(NoSinkError):
                 error = 'Cannot initialise video sink, either disable video support or check your gstreamer plugins (video sink).' 
                 log.msg(error)
@@ -41,7 +40,11 @@ class sourcesFactory:
 
         # restore recorded source 
         source = db.getState("source")
-        self.setSource(source)
+        try: self.setSource(source)
+        except unknownSourceException:
+            log.err("Unable to set recorded source")
+            self.setSource("playlist")
+
         self.player.setQueue(self.sourcesObj["queue"])
         self.player.loadState()
 

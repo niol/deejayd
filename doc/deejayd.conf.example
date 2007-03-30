@@ -1,13 +1,32 @@
+[general]
+# video_support : yes or no
+video_support = yes 
+
+
 [net]
 port = 6800
 
+
 [player]
-# Possible values are : alsa, oss, esd, gconf
-output = alsa
+# media_backend : choose the media backend for deejayd
+# possible values are : mplayer, gstreamer
+media_backend = gstreamer
+
+# Audio Ouput
+# Possible values are : alsa, oss...
+# for gstreamer backend you can choose also auto
+audio_output = alsa
+
+# Video Ouput
+# Possible values are : xv, x...
+# for gstreamer backend you can choose also auto
+video_output = xv
+
 
 [mediadb]
 db_type = sqlite
 db_file = /var/lib/deejayd/mediadb/deejayd.db
 db_prefix = dj
 music_directory =  /var/lib/deejayd/music
+video_directory =  /var/lib/deejayd/video
 filesystem_charset = utf-8

@@ -1,6 +1,5 @@
 from deejayd.mediadb.deejaydDB import NotFoundException
 from deejayd.sources import sources
-from deejayd.player import player 
 from os import path
 
 

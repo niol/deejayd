@@ -10,7 +10,6 @@ from deejayd.ui.config import DeejaydConfig
 from deejayd.mediadb import deejaydDB
 from deejayd.mediadb.database import DatabaseFactory
 from deejayd.sources import sources
-from deejayd.player import player
 from deejayd.net import commandsXML,commandsLine
 
 class DeejaydProtocol(LineReceiver):
@@ -91,10 +90,17 @@ class DeejaydFactory(protocol.ServerFactory):
         log.msg("MediaDB Initialisation...OK")
 
         # Try to Init the player
-        try: self.player = player.deejaydPlayer(self.db)
-        except player.NoSinkError:
-            log.err("No audio sink found for Gstreamer, deejayd can not run")
-            sys.exit("Unable to start deejayd : see log for more informations")
+        media_backend = config.get("player","media_backend")
+        if media_backend == "gstreamer":
+            from deejayd.player import gstreamer
+            try: self.player = gstreamer.Gstreamer(self.db,config)
+            except gstreamer.NoSinkError:
+                sys.exit("Unable to start deejayd : No audio sink found for Gstreamer\n")
+        elif media_backend == "mplayer":
+            from deejayd.player import mplayer
+            self.player = mplayer.Mplayer(self.db,config)
+        else:
+            sys.exit("Unable to start deejayd : you do not choose a correct media backend\n")
         log.msg("Player Initialisation...OK")
 
         # Try to Init sources

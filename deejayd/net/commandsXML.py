@@ -1,6 +1,5 @@
 from deejayd.mediadb.deejaydDB import NotFoundException
 from deejayd import sources 
-from deejayd.player import player 
 from os import path
 from xml.dom.minidom import Document
 
@@ -1080,9 +1079,10 @@ The range of volume is 0-100
         except ValueError:
             return self.getErrorAnswer('Need an integer')
         if vol < 0 or vol > 100:
-            return self.getErrorAnswer('Volume must be an integer between 0 and 100')
+            return self.getErrorAnswer('Volume must be an integer between 0 \
+                and 100')
 
-        self.deejaydArgs["player"].setVolume(float(vol)/100)
+        self.deejaydArgs["player"].setVolume(vol)
         return self.getOkAnswer()
 
 

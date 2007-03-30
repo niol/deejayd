@@ -43,9 +43,21 @@ if options.conffile:
 
 from deejayd.net.deejaydProtocol import DeejaydFactory
 from twisted.python import log
-# Install glib2 reactor
-from twisted.internet import glib2reactor
-glib2reactor.install()
+
+# install reactor
+config = DeejaydConfig()
+media_backend = config.get("player","media_backend")
+video_support = config.get("general","video_support") == "yes"
+if media_backend == "gstreamer":
+    if video_support:
+        # Install gtk2 reactor
+        from twisted.internet import gtk2reactor
+        gtk2reactor.install()
+    else:
+        # Install glib2 reactor
+        from twisted.internet import glib2reactor
+        glib2reactor.install()
+
 from twisted.internet import reactor
 
 
