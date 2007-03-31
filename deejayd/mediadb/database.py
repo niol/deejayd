@@ -155,6 +155,23 @@ RENAME TABLE {video} TO {video_library};
         query = "DELETE FROM {%s} WHERE filename = ? AND dir = ?" % table
         self.execute(query, (f,dir))
 
+    def eraseEmptyDir(self,table = "audio_library"):
+        # FIXME : find a better way to do this
+        # get list of dir
+        query = "SELECT dir,filename FROM {%s} WHERE type='directory'" \
+            % (table,)
+        self.execute(query)
+
+        for (dir,filename) in self.cursor.fetchall():
+            query = "SELECT COUNT(*) FROM {%s} WHERE type='file' AND dir LIKE ?\
+                " % table
+            self.execute(query,(filename+'%%',))
+            rs = self.cursor.fetchone()
+            if rs == (0,):
+                self.eraseDir(dir,filename,table)
+
+        return True
+
     def insertDir(self,newDir,table = "audio_library"):
         query = "INSERT INTO {%s}(dir,filename,type)VALUES(?,?,\
             'directory')" % table

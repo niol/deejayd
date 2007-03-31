@@ -203,11 +203,14 @@ class DeejaydDB:
         # Update audio library
         DeejaydDir(self,self.__dbUpdate).update(dir,self.lastUpdateTime)
 
-        self.__dbUpdate.setStat('db_update',time.time())
-
+        # Remove empty dir
+        self.__dbUpdate.eraseEmptyDir("audio_library")
+        self.__dbUpdate.eraseEmptyDir("video_library")
         # record the change in the database
         self.__dbUpdate.connection.commit()
+
         # update stat values
+        self.__dbUpdate.setStat('db_update',time.time())
         self.__dbUpdate.recordMediaDBStat()
         # close the connextion
         self.__dbUpdate.close()
