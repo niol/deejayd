@@ -9,6 +9,7 @@ import testdeejayd.data
 from testdeejayd.server import TestServer
 from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, AnswerFactory,\
                                DeejaydAnswer, DeejaydKeyValue,\
+                               DeejaydFileList, DeejaydWebradioList,\
                                DeejaydPlaylist, DeejaydError
 
 # FIXME : We should not need those here, this is some code duplication from the
@@ -131,6 +132,108 @@ class TestAnswerParser(TestCaseWithData):
 
         for key in origKeyValue.keys():
             self.assertEqual(origKeyValue[key], retrievedKeyValues[key])
+
+    def testAnswerFileList(self):
+        """Test the client library parsing a file list answer"""
+        originatingCommand = self.testdata.getRandomString()
+        fileListAnswer = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <response name="%s" type="FileList">""" % originatingCommand
+        howMuch = self.testdata.getRandomInt(50)
+        origFiles = []
+        origDirs = []
+
+        for count in range(howMuch):
+
+            if self.testdata.getRandomElement(['file', 'directory']) == 'file':
+                file = {}
+
+                fileListAnswer = fileListAnswer + """
+        <file>
+            <parm name="id" value="%s" />""" % count
+                file['id'] = count
+
+                howMuchParms = self.testdata.getRandomInt()
+                for parmCount in range(howMuchParms):
+                    name = self.testdata.getRandomString()
+                    value =  self.testdata.getRandomString()
+                    file[name] = value
+                    fileListAnswer = fileListAnswer + """
+            <parm name="%s" value="%s" />""" % (name, value)
+                fileListAnswer = fileListAnswer + """
+        </file>"""
+                origFiles.append(file)
+            else:
+                dirname = self.testdata.getRandomString()
+                fileListAnswer = fileListAnswer + """
+        <directory name="%s" />""" % dirname
+                origDirs.append(dirname)
+
+        fileListAnswer = fileListAnswer + """
+    </response>
+</deejayd>"""
+
+        ans = DeejaydFileList()
+        self.eansq.put(ans)
+        self.parseAnswer(fileListAnswer)
+
+        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+
+        for file in origFiles:
+
+            # Find corresponding file in retrieved files
+            filesIter = iter(ans.getFiles())
+            notFound = True
+            retrievedFile = None
+            while notFound:
+                retrievedFile = filesIter.next()
+                if file['id'] == retrievedFile['id']:
+                    notFound = False
+
+            for key in file.keys():
+                self.failUnless(key in retrievedFile.keys())
+                self.assertEqual(file[key], retrievedFile[key])
+
+        for dir in origDirs:
+            self.failUnless(dir in ans.getDirectories())
+
+    def testAnswerParserWebradioList(self):
+        """Test the client library parsing a web radio list answer"""
+        originatingCommand = 'webradioList'
+        webradioListAnswer = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <response name="%s" type="WebradioList">""" % originatingCommand
+        howMuch = self.testdata.getRandomInt(50)
+        origWebradios = []
+
+        for count in range(howMuch):
+
+            webradioListAnswer = webradioListAnswer + """
+        <webradio>"""
+            howMuchParms = self.testdata.getRandomInt()
+            webradio = {}
+            for parmCount in range(howMuchParms):
+                name = self.testdata.getRandomString()
+                value =  self.testdata.getRandomString()
+                webradio[name] = value
+                webradioListAnswer = webradioListAnswer + """
+            <parm name="%s" value="%s" />""" % (name, value)
+            webradioListAnswer = webradioListAnswer + """
+        </webradio>"""
+            origWebradios.append(webradio)
+
+        webradioListAnswer = webradioListAnswer + """
+    </response>
+</deejayd>"""
+
+        ans = DeejaydWebradioList()
+        self.eansq.put(ans)
+        self.parseAnswer(webradioListAnswer)
+
+        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+
+        for webradio in origWebradios:
+            self.assertEqual(webradio in ans.getContents(), True)
 
     def testAnswerParserPlaylist(self):
         """Test the client library parsing a song list answer"""

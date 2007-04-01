@@ -49,6 +49,32 @@ class DeejaydKeyValue(DeejaydAnswer):
         return self.contents[name]
 
 
+class DeejaydFileList(DeejaydAnswer):
+
+    def __init__(self):
+        DeejaydAnswer.__init__(self)
+        self.files = []
+        self.directories = []
+
+    def addFile(self, file):
+        self.files.append(file)
+
+    def addDir(self, dir):
+        self.directories.append(dir)
+
+    def getFiles(self):
+        self.wait()
+        return self.files
+
+    def getDirectories(self):
+        self.wait()
+        return self.directories
+
+
+class DeejaydWebradioList(DeejaydAnswer):
+    pass
+
+
 class DeejaydPlaylist(DeejaydKeyValue):
 
     def __init__(self, server):
@@ -147,12 +173,14 @@ class AnswerFactory(ContentHandler):
 
         if name in ['error', 'response'] and len(self.xmlpath) == 2:
             self.originatingCommand = attrs.get('name')
+            self.expectedAnswer = self.expectedAnswersQueue.get()
 
         if name == 'response':
             self.responseType = attrs.get('type')
             if self.responseType == 'Ack':
                 self.answer = True
-            elif self.responseType in ['SongList', 'PlaylistList']:
+            elif self.responseType in ['FileList', 'WebradioList',
+                                       'SongList', 'PlaylistList']:
                 self.answer = []
             elif self.responseType == 'KeyValue':
                 self.answer = {}
@@ -168,6 +196,10 @@ class AnswerFactory(ContentHandler):
                 self.answer[attrs.get('name')] = realVal
             else:
                 self.parms[attrs.get('name')] = realVal
+        elif name == 'directory':
+            assert self.responseType == 'FileList'
+            assert self.xmlpath == ['deejayd', 'response', 'directory']
+            self.expectedAnswer.addDir(attrs.get('name'))
         elif name == 'playlist':
             assert self.responseType == 'PlaylistList'
             assert self.xmlpath == ['deejayd', 'response', 'playlist']
@@ -182,18 +214,20 @@ class AnswerFactory(ContentHandler):
     def endElement(self, name):
         self.xmlpath.pop()
 
-        if name in ['song', 'webradio', 'file']:
+        if name in ['song', 'webradio']:
             self.answer.append(self.parms)
             self.parms = {}
+        elif name == 'file':
+            self.expectedAnswer.addFile(self.parms)
+            self.parms = {}
         elif name in ['response', 'error']:
-            expectedAnswer = self.expectedAnswersQueue.get()
-
             if name == 'response':
-                expectedAnswer.received(self.answer)
+                self.expectedAnswer.received(self.answer)
             elif name == 'error':
-                expectedAnswer.setError(self.answer)
+                self.expectedAnswer.setError(self.answer)
 
             self.answer = None
+            self.expectedAnswer = None
 
     def getOriginatingCommand(self):
         return self.originatingCommand
