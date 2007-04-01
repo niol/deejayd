@@ -625,7 +625,7 @@ If no name are given, return the content of the current playlist
         rs = []
         for s in songs:
             s["Path"] = path.join(s["dir"],s["filename"])
-            chd = self.xmlDoc.createElement("file")
+            chd = self.xmlDoc.createElement("song")
             dict = ("Path","Pos","Id","Time","Title","Artist","Album",
                 "Genre","Track","Date")
 
