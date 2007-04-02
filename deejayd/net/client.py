@@ -102,7 +102,6 @@ class DeejaydPlaylist(DeejaydKeyValue):
         cmd = DeejaydXMLCommand('playlistLoad')
         cmd.addSimpleArg('name', name)
         cmd.addSimpleArg('pos', loadingPosition)
-        self.server.commandQueue.put(cmd)
         return self.server.sendCommand(cmd)
 
 
