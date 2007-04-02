@@ -78,9 +78,9 @@ class Mplayer(unknownPlayer):
             self.__cmd("pause")
         
     def stop(self):
+        self._state = PLAYER_STOP
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
             self._stopDeferred.pause()
-            self._state = PLAYER_STOP
             self.__cmd("quit")  
             try: self.mplayerProcess.wait()
             except: pass
