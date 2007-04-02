@@ -19,6 +19,14 @@ class TestData:
         random.seed(time.time())
         return ''.join(random.sample(charset, length))
 
+    def getRandomInt(self, maxValue = 10, minValue = 0):
+        random.seed(time.time())
+        return random.randint(minValue, maxValue)
+
+    def getRandomElement(self, list):
+        random.seed(time.time())
+        return random.sample(list, 1).pop()
+
 
 class TestSong:
 
