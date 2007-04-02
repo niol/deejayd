@@ -46,7 +46,7 @@ class DeejaydAnswer:
 class DeejaydKeyValue(DeejaydAnswer):
 
     def __getitem__(self, name):
-        self.wait()
+        self.getContents()
         return self.contents[name]
 
 
@@ -64,11 +64,11 @@ class DeejaydFileList(DeejaydAnswer):
         self.directories.append(dir)
 
     def getFiles(self):
-        self.wait()
+        self.getContents()
         return self.files
 
     def getDirectories(self):
-        self.wait()
+        self.getContents()
         return self.directories
 
 
