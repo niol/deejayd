@@ -18,10 +18,11 @@ class DeejaydError(Exception):
 
 class DeejaydAnswer:
 
-    def __init__(self):
+    def __init__(self, server = None):
         self.answerReceived = threading.Event()
         self.contents = None
         self.error = False
+        self.server = server
 
     def wait(self):
         self.answerReceived.wait()
@@ -51,8 +52,8 @@ class DeejaydKeyValue(DeejaydAnswer):
 
 class DeejaydFileList(DeejaydAnswer):
 
-    def __init__(self):
-        DeejaydAnswer.__init__(self)
+    def __init__(self, server = None):
+        DeejaydAnswer.__init__(self, server)
         self.files = []
         self.directories = []
 
@@ -76,10 +77,6 @@ class DeejaydWebradioList(DeejaydAnswer):
 
 
 class DeejaydPlaylist(DeejaydKeyValue):
-
-    def __init__(self, server):
-        DeejaydAnswer.__init__(self)
-        self.server = server
 
     def save(self, name):
         cmd = DeejaydXMLCommand('playlistSave')
@@ -378,7 +375,7 @@ class DeejayDaemon:
     def sendCommand(self, cmd, expectedAnswer = None):
         # Set a default answer by default
         if expectedAnswer == None:
-            expectedAnswer = DeejaydAnswer()
+            expectedAnswer = DeejaydAnswer(self)
 
         self.expectedAnswersQueue.put(expectedAnswer)
         self.commandQueue.put(cmd)
