@@ -19,7 +19,8 @@ class Video(UnknownSource):
             pos = initPos+i
             self.sourceContent.append({"dir":f[0],"Title":f[4],"filename":f[1],\
                 "Pos":pos,"Id":f[3],"uri":"file://"+path.join(self.rootPath,\
-                path.join(f[0],f[1])),"Time":f[5],"Res":f[6]})
+                path.join(f[0],f[1])),"Time":f[5],"Videowidth":f[6],\
+                "Videoheigth":f[7]})
             i += 1
 
         for f in oldContent:

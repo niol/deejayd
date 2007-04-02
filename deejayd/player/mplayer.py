@@ -135,6 +135,39 @@ class Mplayer(unknownPlayer):
     def __setProperty(self,name,value):
         self.__cmd("set_property %s %s" % (name,value))
 
+    #
+    # file format info
+    #
+    def isSupportedFormat(self,format):
+        if format in (".avi",".mpeg",".mpg"):
+            return self._videoSupport
+        return True
+
+    def getVideoFileInfo(self,file):
+        args = ["midentify",file]
+        try: self.__process = Popen(args,stdin=PIPE,stdout=PIPE)
+        except OSError: return
+
+        if self.__process.poll() == None:
+            self.__process.wait()
+        infoLines = self.__process.stdout.readlines()
+        videoInfo = {}
+        for line in infoLines:
+            if line.startswith("ID_LENGTH"):
+                rs = line.replace("ID_LENGTH=","")
+                rs = rs.strip("\n")
+                videoInfo["length"] = int(float(rs))
+            elif line.startswith("ID_VIDEO_WIDTH"):
+                rs = line.replace("ID_VIDEO_WIDTH=","")
+                rs = rs.strip("\n")
+                videoInfo["videowidth"] = rs
+            elif line.startswith("ID_VIDEO_HEIGHT"):
+                rs = line.replace("ID_VIDEO_HEIGHT=","")
+                rs = rs.strip("\n")
+                videoInfo["videoheight"] = rs
+
+        return videoInfo
+
 
 def errorHandler(failure):
     # Log the exception to debug pb later

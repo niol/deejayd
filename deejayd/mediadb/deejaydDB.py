@@ -10,16 +10,17 @@ class NotFoundException:pass
 
 class DeejaydAudioFile:
 
-    def __init__(self,db,dir,root_path):
+    def __init__(self,db,player,dir,root_path):
         self.db = db
         self.dir = dir
+        self.player = player
         self.rootPath = root_path
 
     def insert(self,f):
         realDir = os.path.join(self.rootPath, self.dir)
         realFile = os.path.join(realDir,f)
         
-        try: fileInfo = tag.fileTag().getFileTag(realFile) 
+        try: fileInfo = tag.fileTag(self.player).getFileTag(realFile) 
         except tag.NotSupportedFormat: 
             # Not an supported file
             log.msg("%s : format not supported" % (f,))
@@ -31,7 +32,7 @@ class DeejaydAudioFile:
         realDir = os.path.join(self.rootPath, self.dir)
         realFile = os.path.join(realDir,f)
         
-        try: fileInfo = tag.fileTag().getFileTag(realFile) 
+        try: fileInfo = tag.fileTag(self.player).getFileTag(realFile) 
         except tag.NotSupportedFormat: 
             # Not an supported file
             log.msg("%s : format not supported" % (f,))
@@ -45,20 +46,24 @@ class DeejaydAudioFile:
 
 class DeejaydVideoFile(DeejaydAudioFile):
 
-    def __init__(self,db,dir,root_path = None):
-        DeejaydAudioFile.__init__(self,db,dir,root_path)
+    def __init__(self,db,player,dir,root_path = None):
+        DeejaydAudioFile.__init__(self,db,player,dir,root_path)
 
         self.__supportedExtension = (".avi",".mpeg")
         self.__id = self.db.getLastVideoId() or 0 
 
     def insert(self,f):
-        (filename,extension) = os.path.splitext(f) 
-        ext = extension.lower()
-        if ext in self.__supportedExtension:
-            fileInfo = {"filename":f,"dir":self.dir,"id":self.__getNextId(),\
-                "title":f,"res":"","length":0}
-            self.db.insertVideoFile(self.dir,fileInfo)
-        else: log.msg("%s : format not supported" % (f,))
+        realDir = os.path.join(self.rootPath, self.dir)
+        realFile = os.path.join(realDir,f)
+        
+        try: fileInfo = tag.fileTag(self.player).getFileTag(realFile) 
+        except tag.NotSupportedFormat: 
+            # Not an supported file
+            log.msg("%s : format not supported" % (f,))
+            return
+
+        fileInfo["id"] = self.__getNextId()
+        self.db.insertVideoFile(self.dir,fileInfo)
 
     def update(self,f):
         pass
@@ -72,6 +77,7 @@ class DeejaydDir:
 
     def __init__(self, library, db = None, type = "audio"):
         self.db = db or library.getDB()
+        self.player = library.getPlayer()
         if type =="audio":
             self.table = "audio_library"
             self.rootPath = library.getAudioRootPath()
@@ -104,7 +110,7 @@ class DeejaydDir:
         if int(os.stat(realDir).st_mtime) >= lastUpdateTime:
             files = [ f for f in os.listdir(realDir) 
                 if os.path.isfile(os.path.join(realDir,f))]
-            djFile = self.fileClass(self.db,dir,self.rootPath)
+            djFile = self.fileClass(self.db,self.player,dir,self.rootPath)
             for f in [fi for (fi,t) in dbRecord if t == 'file']:
                 if os.path.isfile(os.path.join(realDir,f)):
                     djFile.update(f)
@@ -280,6 +286,11 @@ class DeejaydDB:
     def getDB(self):
         return self.db
 
+    def setPlayer(self,player):
+        self.player = player
+
+    def getPlayer(self):
+        return self.player
 
 def errorHandler(failure,dbClass):
     # Log the exception to debug pb later

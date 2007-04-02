@@ -185,4 +185,69 @@ class Gstreamer(unknownPlayer):
         changestatus,state,_state = self.bin.get_state()
         return state
 
+    #
+    # file format info
+    #
+    def isSupportedFormat(self,format):
+        # MP3 file
+        if format in (".mp3",".mp2"):
+            return gst.registry_get_default().find_plugin("mad") is not None
+        
+        # OGG file
+        if format in (".ogg",):
+            return gst.registry_get_default().find_plugin("ogg") is not None \
+               and gst.registry_get_default().find_plugin("vorbis") is not None
+        
+        # Video file
+        if format in (".avi",".mpeg",".mpg"):
+            return self._videoSupport and gst.registry_get_default().\
+                find_plugin("ffmpeg") is not None
+
+    def getVideoFileInfo(self,file):
+        return DiscoverVideoFile(file)
+
+
+class InfoNotFound: pass 
+
+class DiscoverVideoFile:
+    
+    def __init__(self,f):
+        self.__file = f.encode('utf-8')
+        self.__process = False
+        self.__fileInfo = None
+
+    def __getitem__(self,key):
+        if not self.__fileInfo:
+            self.__getinfo()
+
+        if key in self.__fileInfo: return self.__fileInfo[key]
+        else: raise InfoNotFound
+
+    def __getinfo(self):
+        self.__process = True
+
+        from gst.extend.discoverer import Discoverer
+        self.current = Discoverer(self.__file)
+        self.current.connect('discovered', self._processEnd)
+        # start the discover
+        self.current.discover()
+        self.__wait()
+
+    def _processEnd(self,discoverer,ismedia):
+        # format file infos
+        self.__fileInfo = {}
+        self.__fileInfo["videowidth"] = self.current.videowidth 
+        self.__fileInfo["videoheight"] = self.current.videoheight 
+        self.__fileInfo["length"] = self.__formatTime(\
+            max(self.current.audiolength, self.current.videolength)) 
+
+        self.__process = False
+
+    def __wait(self):
+        while self.__process:
+            time.sleep(0.1)
+
+    def __formatTime(self,value):
+        return value / gst.SECOND
+
 # vim: ts=4 sw=4 expandtab

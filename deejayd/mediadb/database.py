@@ -64,7 +64,9 @@ CREATE TABLE {video_library}(
     id INT,
     title TEXT,
     length INT,
-    resolution TEXT,
+    videowidth TEXT,
+    videoheight TEXT,
+    subtitle TEXT,
     PRIMARY KEY (dir,filename));
 
 CREATE TABLE {webradio}(
@@ -131,7 +133,9 @@ CREATE TABLE {variables}(
 ALERT TABLE {video} ADD id INT DEFAULT 0 AFTER type;
 ALERT TABLE {video} ADD title TEXT AFTER id;
 ALERT TABLE {video} ADD length INT DEFAULT 0 AFTER title;
-ALERT TABLE {video} ADD resolution TEXT AFTER length;
+ALERT TABLE {video} ADD videowidth TEXT AFTER length;
+ALERT TABLE {video} ADD videoheight TEXT AFTER videowidth;
+ALERT TABLE {video} ADD subtitle TEXT AFTER videoheight;
 
 RENAME TABLE {library} TO {audio_library};
 RENAME TABLE {video} TO {video_library};
@@ -274,9 +278,10 @@ RENAME TABLE {video} TO {video_library};
 
     def insertVideoFile(self,dir,fileInfo):
         query = "INSERT INTO {video_library}(type,dir,filename,id,title,length,\
-            resolution) VALUES ('file',?,?,?,?,?,?)"
+            videowidth,videoheight,subtitle) VALUES ('file',?,?,?,?,?,?,?,?)"
         self.execute(query, (dir,fileInfo["filename"],fileInfo["id"],\
-            fileInfo["title"],fileInfo["length"],fileInfo["res"]))
+            fileInfo["title"],fileInfo["length"],fileInfo["videowidth"],\
+            fileInfo["videoheight"],""))
 
     #
     # Playlist requests

@@ -403,7 +403,7 @@ lists files of video dir "directory".
 
     def formatInfoResponse(self, resp):
         rs = [];
-        for (dir,fn,t,id,ti,len,res) in resp:
+        for (dir,fn,t,id,ti,len,videow,videoh,sub) in resp:
 
             if t == 'directory':
                 chd = self.xmlDoc.createElement("directory")
@@ -411,7 +411,7 @@ lists files of video dir "directory".
             else:
                 chd = self.xmlDoc.createElement("video")
                 dict = [("Path",path.join(dir,fn)),("Title",ti),("Id",id),\
-                    ("Time",len),("Res",res)]
+                    ("Time",len),("Videowidth",videow),("Videoheigth",videoh)]
                 parms = self.formatResponseWithDict(dict)
                 for parm in parms: chd.appendChild(parm)
 
