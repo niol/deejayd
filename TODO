@@ -7,3 +7,9 @@ Test
 
 Player
   * add basic subtitles support for gstreamer 
+
+Coding style
+  I red somewhere that the recommended usage is underscore-separated for
+  variable and function names, camel-case for class names, and run-together
+  lower-case for module names. It should perhaps be good to respect this, one
+  day...
