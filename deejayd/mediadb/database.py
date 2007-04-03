@@ -100,7 +100,7 @@ CREATE TABLE {variables}(
 
         # Init player state
         values = [("volume","0"),("currentPos","0"),("source","playlist"),\
-            ("random","0"),("repeat","0")]
+            ("random","0"),("repeat","0"),("fullscreen","0")]
         self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
             values)
 
@@ -144,7 +144,7 @@ RENAME TABLE {video} TO {video_library};
 
             # Init source ids
             values = [("queueid","0"),("playlistid","0"),("webradioid","0"),\
-                ("videoid","0"),("database_version",\
+                ("videoid","0"),("fullscreen","0"),("database_version",\
                 self.__class__.databaseVersion)]
             self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
                 values)

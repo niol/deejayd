@@ -24,7 +24,7 @@ class unknownPlayer:
 
     def initVideoSupport(self):
         self._videoSupport = True
-        self._fullscreen = False
+        self._fullscreen = int(self.db.getState("fullscreen"))
 
     def loadState(self):
         # Restore volume
@@ -106,7 +106,9 @@ class unknownPlayer:
         self._repeat = val
 
     def fullscreen(self,val):
-        raise NotImplementedError
+        self._fullscreen = val
+        if self._state != PLAYER_STOP:
+            self.setFullscreen(self._fullscreen)
 
     def getVolume(self):
         raise NotImplementedError
@@ -152,6 +154,8 @@ class unknownPlayer:
         states = [(str(self.getVolume()),"volume"),(str(self._repeat),\
             "repeat"),(str(self._random),"random"),\
             (self._sourceName,"source"),(str(curPos),"currentPos")]
+        if self._videoSupport:
+            states.extend([(str(self._fullscreen),"fullscreen")])
         self.db.setState(states)
 
         # stop player if necessary

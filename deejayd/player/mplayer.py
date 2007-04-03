@@ -42,12 +42,13 @@ class Mplayer(unknownPlayer):
         except OSError: return
         fcntl.fcntl(self.mplayerProcess.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
         self.setVolume(self._volume)
+        self.setFullscreen(self._fullscreen)
 
         self._state = PLAYER_PLAY
         self._stopDeferred = threads.deferToThread(self.wait)
         self._stopDeferred.addCallback(self.eofHandler)
         self._stopDeferred.addErrback(errorHandler)
-        
+    
     def wait(self):
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
             try: self.mplayerProcess.wait()
@@ -85,12 +86,6 @@ class Mplayer(unknownPlayer):
             try: self.mplayerProcess.wait()
             except: pass
         
-    def fullscreen(self,val):
-        if  self._videoSupport:
-            if val == 0: self._fullscreen = False
-            else: self._fullscreen = True
-            self.__setProperty("fullscreen",str(val))
-
     def getVolume(self):
         return self._volume
 
@@ -127,6 +122,9 @@ class Mplayer(unknownPlayer):
         self.__cmd(cmd)
         time.sleep(0.05)  #allow time for execute command
     
+    def setFullscreen(self,val):
+         self.__setProperty("fullscreen",str(val))
+
     def __cmd(self, command):
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
             self.mplayerProcess.stdin.write(command + "\n")

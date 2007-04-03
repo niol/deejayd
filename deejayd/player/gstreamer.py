@@ -47,7 +47,7 @@ class Gstreamer(unknownPlayer):
         # init video specific parms
         self.videoWindow = None
         self.deejaydWindow = None
-        self._fullscreen = False
+        self._fullscreen = int(self.db.getState("fullscreen"))
         # Open a Video pipeline
         pipeline_dict = {"x":"ximagesink", "xv":"xvimagesink",\
             "auto":"autovideosink"}
@@ -110,8 +110,8 @@ class Gstreamer(unknownPlayer):
             state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
             timeout -= 1
         
-        if state_ret != gst.STATE_CHANGE_SUCCESS:
-            self._state = PLAYER_STOP
+        if state_ret != gst.STATE_CHANGE_SUCCESS: self._state = PLAYER_STOP
+        else: self.setFullscreen(self._fullscreen)
 
     def pause(self):
         if self._state == PLAYER_PLAY:
@@ -130,17 +130,14 @@ class Gstreamer(unknownPlayer):
         if self._videoSupport and self.deejaydWindow:
             self.deejaydWindow.destroy()
             self.deejaydWindow = None
-            self._fullscreen = False
 
-    def fullscreen(self,val):
+    def setFullscreen(self,val):
         if  self._videoSupport and self.deejaydWindow:
             import gtk
             if val == 0:
                 # Set the cursor visible
                 self.deejaydWindow.window.set_cursor(None)
-
                 self.deejaydWindow.unfullscreen()
-                self._fullscreen = False
             else:
                 # Hide the cursor
                 emptyPixmap = gtk.gdk.Pixmap(None, 1, 1, 1)
@@ -148,9 +145,7 @@ class Gstreamer(unknownPlayer):
                 emptyCursor = gtk.gdk.Cursor(emptyPixmap, emptyPixmap,
                     emptyColor, emptyColor, 0, 0)
                 self.deejaydWindow.window.set_cursor(emptyCursor)
-
                 self.deejaydWindow.fullscreen()
-                self._fullscreen = True
 
     def getVolume(self):
         return int(self.bin.get_property('volume')*100)
