@@ -120,7 +120,7 @@ class UnknownSourceManagement:
 
         return self.currentItem
 
-    def getPlayingSong(self):
+    def getPlayingItem(self):
         if self.currentItem and self.player.isPlay():
             return self.currentItem
         return None

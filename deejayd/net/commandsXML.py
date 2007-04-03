@@ -1169,26 +1169,33 @@ Return informations on the current song or webradio.
 
     def execute(self):
         source = self.deejaydArgs["player"].getPlayingSourceName()
-        song = self.deejaydArgs["sources"].getSource(source).\
-                    getPlayingSong()
+        item = self.deejaydArgs["sources"].getSource(source).\
+                    getPlayingItem()
         rs = []
         returnType = "SongList"
-        if song:
-            chdName = source=="webradio" and "webradio" or "file"
-            chd = self.xmlDoc.createElement(chdName) 
-            chd.setAttribute("type",source)
+        if item:
             dict = []
             if source == "webradio":
+                chdName = "webradio"
                 returnType = "WebradioList"
-                dict = [("Title",song["Title"]),("Id",song["Id"]),\
-                    ("Pos",song["Pos"]),("Url",song["uri"])]
+                dict = [("Title",item["Title"]),("Id",item["Id"]),\
+                    ("Pos",item["Pos"]),("Url",item["uri"])]
+            elif source == "video":
+                chdName = "video"
+                returnType = "VideoList"
+                dict = [("Title",item["Title"]),("Id",item["Id"]),\
+                    ("Time",item["Time"])]
             elif source == "playlist" or source == "queue":
+                chdName = "file"
                 returnType = "SongList"
-                dict = [("Title",song["Title"]),("Id",song["Id"]),\
-                    ("Pos",song["Pos"]),("Artist",song["Artist"]),\
-                    ("Album",song["Album"]),("Time",song["Time"])]
+                dict = [("Title",item["Title"]),("Id",item["Id"]),\
+                    ("Pos",item["Pos"]),("Artist",item["Artist"]),\
+                    ("Album",item["Album"]),("Time",item["Time"])]
 
             content = self.formatResponseWithDict(dict) 
+
+            chd = self.xmlDoc.createElement(chdName) 
+            chd.setAttribute("type",source)
             for c in content: chd.appendChild(c)
             rs = [chd]
 
