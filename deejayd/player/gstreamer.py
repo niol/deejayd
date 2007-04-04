@@ -79,7 +79,6 @@ class Gstreamer(unknownPlayer):
         message_name = message.structure.get_name()
         if message_name == 'prepare-xwindow-id' and self._videoSupport:
             imagesink = message.src
-            imagesink.set_property('force-aspect-ratio', True)
             imagesink.set_xwindow_id(self.videoWindow.window.xid)
 
     def setURI(self,uri):
