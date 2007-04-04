@@ -13,6 +13,9 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
+# FIXME : find a way to known mplayer state in order to remove all tmie.sleep
+#         from this class
+
 class Mplayer(unknownPlayer):
     
     def __init__(self,db,config):
@@ -41,6 +44,8 @@ class Mplayer(unknownPlayer):
         try: self.mplayerProcess = Popen(mpc,stdin=PIPE,stdout=PIPE,shell=True)
         except OSError: return
         fcntl.fcntl(self.mplayerProcess.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
+        time.sleep(0.5)  #allow time for execute command
+
         self.setVolume(self._volume)
         self.setFullscreen(self._fullscreen)
 
@@ -100,7 +105,7 @@ class Mplayer(unknownPlayer):
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
             self.mplayerProcess.stdout.flush()
             self.__cmd("get_time_pos")
-            time.sleep(0.05)  #allow time for output
+            time.sleep(0.1)  #allow time for output
 
             posLine = []
             while True:
@@ -127,8 +132,9 @@ class Mplayer(unknownPlayer):
 
     def __cmd(self, command):
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
-            self.mplayerProcess.stdin.write(command + "\n")
+            self.mplayerProcess.stdin.write("pausing_keep " + command + "\n")
             self.mplayerProcess.stdin.flush()
+            time.sleep(0.2)  #allow time for execute command
         
     def __setProperty(self,name,value):
         self.__cmd("set_property %s %s" % (name,value))

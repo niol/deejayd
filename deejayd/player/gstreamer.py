@@ -88,6 +88,7 @@ class Gstreamer(unknownPlayer):
     def startPlay(self):
         unknownPlayer.startPlay(self)
 
+        self._state = PLAYER_PLAY
         if self._playingSourceName == "video" and not self.deejaydWindow:
             import gtk
             self.deejaydWindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -102,7 +103,6 @@ class Gstreamer(unknownPlayer):
 
     def startGst(self,widget = None, event = None):
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
-        self._state = PLAYER_PLAY
         timeout = 4
         state = None
 
