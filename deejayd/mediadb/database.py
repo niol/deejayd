@@ -281,7 +281,14 @@ RENAME TABLE {video} TO {video_library};
             videowidth,videoheight,subtitle) VALUES ('file',?,?,?,?,?,?,?,?)"
         self.execute(query, (dir,fileInfo["filename"],fileInfo["id"],\
             fileInfo["title"],fileInfo["length"],fileInfo["videowidth"],\
-            fileInfo["videoheight"],""))
+            fileInfo["videoheight"],fileInfo["subtitle"]))
+
+    def updateVideoFile(self,dir,fileInfo):
+        query = "UPDATE {video_library} SET title=?,length=?,videowidth=?,\
+            videoheight=?,subtitle=? WHERE dir=? AND filename=?"
+        self.execute(query,(fileInfo["title"],fileInfo["length"],\
+            fileInfo["videowidth"],fileInfo["videoheight"],\
+            fileInfo["subtitle"],dir,fileInfo["filename"]))
 
     #
     # Playlist requests

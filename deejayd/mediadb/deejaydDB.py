@@ -14,34 +14,33 @@ class DeejaydAudioFile:
         self.db = db
         self.dir = dir
         self.player = player
-        self.rootPath = root_path
+        self.root_path = root_path
+        self.update_function = self.db.updateAudioFile
+        self.insert_function = self.db.insertAudioFile
 
     def insert(self,f):
-        realDir = os.path.join(self.rootPath, self.dir)
-        realFile = os.path.join(realDir,f)
-        
-        try: fileInfo = tag.fileTag(self.player).getFileTag(realFile) 
-        except tag.NotSupportedFormat: 
-            # Not an supported file
-            log.msg("%s : format not supported" % (f,))
-            return
-
-        self.db.insertAudioFile(self.dir,fileInfo)
+        file_info = self._get_file_info(f)
+        if file_info:
+            self.insert_function(self.dir,file_info)
 
     def update(self,f):
-        realDir = os.path.join(self.rootPath, self.dir)
-        realFile = os.path.join(realDir,f)
-        
-        try: fileInfo = tag.fileTag(self.player).getFileTag(realFile) 
-        except tag.NotSupportedFormat: 
-            # Not an supported file
-            log.msg("%s : format not supported" % (f,))
-            return
-
-        self.db.updateAudioFile(self.dir,fileInfo)
+        file_info = self._get_file_info(f)
+        if file_info:
+            self.update_function(self.dir,file_info)
 
     def remove(self,f):
         self.db.removeFile(self.dir,f)
+
+    def _get_file_info(self,f):
+        real_dir = os.path.join(self.root_path, self.dir)
+        real_file = os.path.join(real_dir,f)
+        
+        try: file_info = tag.fileTag(self.player).getFileTag(real_file) 
+        except tag.NotSupportedFormat: 
+            # Not an supported file
+            log.msg("%s : format not supported" % (f,))
+            return None
+        else: return file_info
 
 
 class DeejaydVideoFile(DeejaydAudioFile):
@@ -49,26 +48,17 @@ class DeejaydVideoFile(DeejaydAudioFile):
     def __init__(self,db,player,dir,root_path = None):
         DeejaydAudioFile.__init__(self,db,player,dir,root_path)
 
-        self.__supportedExtension = (".avi",".mpeg")
+        self.update_function = self.db.updateVideoFile
+        self.insert_function = self.db.insertVideoFile
         self.__id = self.db.getLastVideoId() or 0 
 
     def insert(self,f):
-        realDir = os.path.join(self.rootPath, self.dir)
-        realFile = os.path.join(realDir,f)
-        
-        try: fileInfo = tag.fileTag(self.player).getFileTag(realFile) 
-        except tag.NotSupportedFormat: 
-            # Not an supported file
-            log.msg("%s : format not supported" % (f,))
-            return
+        file_info = self._get_file_info(f)
+        if file_info:
+            file_info["id"] = self.__get_next_id()
+            self.insert_function(self.dir,file_info)
 
-        fileInfo["id"] = self.__getNextId()
-        self.db.insertVideoFile(self.dir,fileInfo)
-
-    def update(self,f):
-        pass
-
-    def __getNextId(self):
+    def __get_next_id(self):
         self.__id += 1
         return self.__id
 

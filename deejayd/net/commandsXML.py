@@ -411,7 +411,8 @@ lists files of video dir "directory".
             else:
                 chd = self.xmlDoc.createElement("video")
                 dict = [("Path",path.join(dir,fn)),("Title",ti),("Id",id),\
-                    ("Time",len),("Videowidth",videow),("Videoheigth",videoh)]
+                    ("Time",len),("Videowidth",videow),("Videoheigth",videoh),\
+                    ("Subtitle",sub)]
                 parms = self.formatResponseWithDict(dict)
                 for parm in parms: chd.appendChild(parm)
 

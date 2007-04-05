@@ -46,7 +46,20 @@ class videoFile(unknownFile):
             return ""
 
     def __getInfo(self):
-        self.info["title"] = self.info["filename"]
+        def format_title(f):
+            (filename,ext) = os.path.splitext(f)
+            title = filename.replace(".", " ")
+            title = title.replace("_", " ")
+
+            return title.title()
+        
+        # Try to find a subtitle (same name with a srt extension)
+        (base_path,ext) = os.path.splitext(self.f)
+        if os.path.isfile(base_path+".srt"):
+            self.info["subtitle"] = "file://" + base_path + ".srt"
+        else: self.info["subtitle"] = ""
+
+        self.info["title"] = format_title(self.info["filename"])
         videoInfo = self.player.getVideoFileInfo(self.f)
         for t in self.__class__.supportedTag:
             self.info[t] = videoInfo[t]
