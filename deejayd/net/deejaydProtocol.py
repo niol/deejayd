@@ -103,9 +103,6 @@ class DeejaydFactory(protocol.ServerFactory):
             sys.exit("Unable to start deejayd : you do not choose a correct media backend\n")
         log.msg("Player Initialisation...OK")
 
-        # set player in mediadb
-        self.db.setPlayer(self.player)
-
         # Try to Init sources
         self.sources = sources.sourcesFactory(self.player,self.db,config)
         log.msg("Sources Initialisation...OK")

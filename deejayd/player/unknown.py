@@ -10,7 +10,10 @@ class unknownPlayer:
 
     def __init__(self,db,config):
         self.config = config
+
         self.db = db
+        self.db.setPlayer(self)
+
         # Initialise var
         self._videoSupport = False
         self._state = PLAYER_STOP

@@ -138,6 +138,8 @@ class DeejaydDB:
         self.__audio_path = audio_path
         self.__video_path = video_path
 
+        self.player = None
+
         # Connection to the database
         self.db = db
         self.db.connect()
