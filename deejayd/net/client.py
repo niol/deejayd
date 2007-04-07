@@ -229,15 +229,20 @@ class AnswerFactory(ContentHandler):
         return self.originatingCommand
 
 
-class DeejayDaemonSocketThread(threading.Thread):
+class DeejaydSocketThread(threading.Thread):
 
     def __init__(self, socket):
         threading.Thread.__init__(self)
 
-        self.shouldStop = False
+        self.socketDieCallback = []
+
         self.socketToServer = socket
 
+    def addSocketDieCallback(self, callback):
+        self.socketDieCallback.append(callback)
+
     def run(self):
+        self.shouldStop = False
         try:
             while not self.shouldStop:
                 try:
@@ -248,9 +253,8 @@ class DeejayDaemonSocketThread(threading.Thread):
                     # XML parsing failed, simply ignore. What should we do here?
                     pass
         except socket.error:
-            # Just terminate thread, this should be because the socket is
-            # closed... FIXME : handle I/O errors.
-            pass
+            for cb in self.socketDieCallback:
+                cb()
 
     def reallyRun(self):
         # This is implemented by daughter classes. This should be a blocking
@@ -261,10 +265,10 @@ class DeejayDaemonSocketThread(threading.Thread):
 class StopException(Exception):
     pass
 
-class DeejayDaemonCommandThread(DeejayDaemonSocketThread):
+class DeejaydCommandThread(DeejaydSocketThread):
 
     def __init__(self, socket, commandQueue):
-        DeejayDaemonSocketThread.__init__(self, socket)
+        DeejaydSocketThread.__init__(self, socket)
         self.commandQueue = commandQueue
 
     def reallyRun(self):
@@ -280,10 +284,10 @@ class DeejayDaemonCommandThread(DeejayDaemonSocketThread):
         self.socketToServer.send(buf + msgDelimiter)
 
 
-class DeejayDaemonAnswerThread(DeejayDaemonSocketThread):
+class DeejaydAnswerThread(DeejaydSocketThread):
 
     def __init__(self, socket, expectedAnswersQueue):
-        DeejayDaemonSocketThread.__init__(self, socket)
+        DeejaydSocketThread.__init__(self, socket)
         self.expectedAnswersQueue = expectedAnswersQueue
 
         self.parser = make_parser()
@@ -295,18 +299,34 @@ class DeejayDaemonAnswerThread(DeejayDaemonSocketThread):
         self.parser.parse(StringIO(rawmsg))
 
     def __readmsg(self):
-        msg = ''
+        msgChunks = []
 
         # This is dirty, but there is no msgdelim in answers...
         msgDelimiter = '</deejayd>'
 
-        while msg[-len(msgDelimiter):len(msg)] != msgDelimiter:
-            msg = msg + self.socketToServer.recv(4096)
+        msgChunk = ''
+        while msgChunk[-len(msgDelimiter):len(msgChunk)] != msgDelimiter:
+            msgChunk = self.socketToServer.recv(4096)
+
+            # socket.recv returns an empty string if the socket is closed, so
+            # catch this.
+            if msgChunk == '':
+                self.__addConnectErrorAnswer('Could not obtain answer from server.')
+                raise socket.error()
+            else:
+                msgChunks.append(msgChunk)
 
         # We should strip the msgdelim, but in our hack, it is part of the XML,
         # so it may not be a good idea to strip it...
-        #return msg[0:len(msg) - 1 - len(msgDelimiter)]
-        return msg
+        #return ''.joint(msgChunks)[0:len(msg) - 1 - len(msgDelimiter)]
+        return ''.join(msgChunks)
+
+    def __addConnectErrorAnswer(self, msg):
+        try:
+            self.expectedAnswersQueue.get_nowait().setError(msg)
+        except Empty:
+            # There is no answer there, so no need to set an error.
+            pass
 
 
 class ConnectError(Exception):
@@ -326,10 +346,12 @@ class DeejayDaemon:
         self.port = port
 
         # Messaging threads
-        self.sendingThread = DeejayDaemonCommandThread(self.socketToServer,
-                                                   self.commandQueue)
-        self.receivingThread = DeejayDaemonAnswerThread(self.socketToServer,
+        self.sendingThread = DeejaydCommandThread(self.socketToServer,
+                                                  self.commandQueue)
+        self.receivingThread = DeejaydAnswerThread(self.socketToServer,
                                                    self.expectedAnswersQueue)
+        for thread in [self.sendingThread, self.receivingThread]:
+            thread.addSocketDieCallback(self.disconnect)
 
         # Library behavior, asynchroneous or not
         self.async = async
