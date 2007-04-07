@@ -39,6 +39,7 @@ def commandsList(commandsXML):
         "repeat":commandsXML.Repeat,
         "current":commandsXML.CurrentSong,
         "fullscreen":commandsXML.Fullscreen,
+        "loadsubtitle":commandsXML.Loadsubtitle,
         # Playlist commands
         "playlistInfo":commandsXML.PlaylistInfo,
         "playlistList":commandsXML.PlaylistList,
@@ -1154,6 +1155,18 @@ class Fullscreen(Random):
             "args": [{"name":"value", "type":"list 0 or 1","req":1}],
             "description": """
 set video fullscreen to "value", "value" should be 0 (off) or 1 (on)
+"""
+        }
+
+
+class Loadsubtitle(Random):
+    funcName = "loadsubtitle"
+
+    def docInfos(self):
+        return {
+            "args": [{"name":"value", "type":"list 0 or 1","req":1}],
+            "description": """
+by default, load subtitle when it is available ("value"=1) or not ("value"=0)
 """
         }
 

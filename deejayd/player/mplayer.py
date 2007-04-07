@@ -33,9 +33,8 @@ class Mplayer(unknownPlayer):
     def startPlay(self):
         unknownPlayer.startPlay(self)
 
-        if not self._uri:
-            return
-
+        if not self._uri: return
+        self._uri = self._uri.replace("file://","")
         mpc = "mplayer -slave -quiet -ao %s -vo %s \"" % \
             (self.config.get("player", "audio_output"),\
             self.config.get("player", "video_output")) \
@@ -44,10 +43,11 @@ class Mplayer(unknownPlayer):
         try: self.mplayerProcess = Popen(mpc,stdin=PIPE,stdout=PIPE,shell=True)
         except OSError: return
         fcntl.fcntl(self.mplayerProcess.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
-        time.sleep(0.5)  #allow time for execute command
+        time.sleep(0.3)  #allow time for execute command
 
         self.setVolume(self._volume)
         self.setFullscreen(self._fullscreen)
+        self.setSubtitle(self._loadsubtitle)
 
         self._state = PLAYER_PLAY
         self._stopDeferred = threads.deferToThread(self.wait)
@@ -130,8 +130,12 @@ class Mplayer(unknownPlayer):
     def setFullscreen(self,val):
          self.__setProperty("fullscreen",str(val))
 
+    def setSubtitle(self,val):
+         self.__setProperty("sub_visibility",str(val))
+
     def __cmd(self, command):
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
+            self.mplayerProcess.stdout.flush()
             self.mplayerProcess.stdin.write("pausing_keep " + command + "\n")
             self.mplayerProcess.stdin.flush()
             time.sleep(0.2)  #allow time for execute command

@@ -10,6 +10,7 @@ import gst
 import gst.interfaces
 
 from deejayd.player.unknown import unknownPlayer
+from twisted.python import log
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
@@ -22,6 +23,7 @@ class Gstreamer(unknownPlayer):
     def __init__(self,db,config):
         unknownPlayer.__init__(self,db,config)
 
+        self._uri = None
         # Open a Audio pipeline
         pipeline_dict = {"alsa":"alsasink", "oss":"osssink",\
             "auto":"autoaudiosink","esd":"esdsink"}
@@ -48,6 +50,7 @@ class Gstreamer(unknownPlayer):
         self.videoWindow = None
         self.deejaydWindow = None
         self._fullscreen = int(self.db.getState("fullscreen"))
+        self._loadsubtitle = int(self.db.getState("loadsubtitle"))
         # Open a Video pipeline
         pipeline_dict = {"x":"ximagesink", "xv":"xvimagesink",\
             "auto":"autovideosink"}
@@ -82,7 +85,7 @@ class Gstreamer(unknownPlayer):
             imagesink.set_xwindow_id(self.videoWindow.window.xid)
 
     def setURI(self,uri):
-        self.bin.set_property('uri',uri)
+        self._uri = uri
 
     def startPlay(self):
         unknownPlayer.startPlay(self)
@@ -101,6 +104,9 @@ class Gstreamer(unknownPlayer):
         else: self.startGst()
 
     def startGst(self,widget = None, event = None):
+        self.bin.set_property('uri',self._uri)
+        self.setSubtitle(self._loadsubtitle)
+
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         timeout = 4
         state = None
@@ -145,6 +151,17 @@ class Gstreamer(unknownPlayer):
                     emptyColor, emptyColor, 0, 0)
                 self.deejaydWindow.window.set_cursor(emptyCursor)
                 self.deejaydWindow.fullscreen()
+
+    def setSubtitle(self,val):
+        if  self._videoSupport and self._sourceName == "video" and val == 1:
+            currentSong = self._source.getCurrent()
+            subURI = currentSong["Subtitle"]
+            if subURI.startswith("file://"): pass
+                # FIXME : these 2 lines induce a general stream error in 
+                #         gstreamer. Find out the reason
+                #self.bin.set_property('suburi', subURI)
+                #self.bin.set_property('subtitle-font-desc','Sans Bold 24')
+        #else: self.bin.set_property('suburi', '')
 
     def getVolume(self):
         return int(self.bin.get_property('volume')*100)
