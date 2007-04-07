@@ -12,10 +12,14 @@ class TestCaseWithFileData(TestCaseWithData):
 
     def setUp(self):
         TestCaseWithData.setUp(self)
-        self.testdata.buildLibraryDirectoryTree('/tmp')
+        # FIXME Data should be generated
+        # For the mean time, we use a cmdline passed music directory
+        # self.testdata.buildLibraryDirectoryTree('/tmp')
 
     def tearDown(self):
-        self.testdata.cleanLibraryDirectoryTree()
+        # FIXME Data is not generated yet, so we do not need to clean it
+        # self.testdata.cleanLibraryDirectoryTree()
+        pass
 
 
 class TestCaseWithCommand(unittest.TestCase):

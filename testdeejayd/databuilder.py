@@ -49,7 +49,7 @@ class TestDir:
     def addSong(self, song):
         self.songs[song.getFilename()] = song
 
-    def create(self, destDir):
+    def build(self, destDir):
         # FIXME Not implemented
         pass
 
@@ -99,7 +99,7 @@ class TestMusicCollection(TestProvidedMusicCollection):
 
         self.dontClean = dontClean
         self.data = data
-        self.dirs = {'.': self}
+        self.dirs = {'.': TestDir('.')}
 
         for songmeta in self.data:
             song = TestSong(songmeta)
@@ -114,20 +114,21 @@ class TestMusicCollection(TestProvidedMusicCollection):
     def cleanLibraryDirectoryTree(self):
         if self.dir_struct_written:
             # This basically is rm -r self.testdir
-            for dir in self.dirs:
+            for dir in self.dirs.values():
                 dir.destroy()
 
     def buildLibraryDirectoryTree(self, destDir):
         # create test data directory in random subdirectory of destDir
-        self.datadir = '-'.join(destDir,self.getRandomString())
+        self.datadir = os.path.join(destDir,
+                                    'testdeejayd-' + self.getRandomString())
         if not os.path.exists(self.datadir):
-            mkdir(self.datadir)
+            os.mkdir(self.datadir)
         else:
-            sys.exit(1)
+            sys.exit('Test data temporary directory exists, I do not want to mess your stuff.')
 
         # Create each library dir
-        for dir in self.dirs:
-            dir.create(self.datadir)
+        for dir in self.dirs.values():
+            dir.build(self.datadir)
 
         self.dir_struct_written = True
 
