@@ -25,10 +25,11 @@ dbfilename = sys.argv[3]
 db = sqliteDatabase(dbfilename)
 
 ddb = DeejaydDB(db, musicDir)
-ddb.updateDir('.')
 
 factory = DeejaydFactory(ddb)
 reactor.listenTCP(int(port), factory)
+
+ddb.updateDir('.')
 
 def printReady():
     sys.stderr.write('ready\n')
