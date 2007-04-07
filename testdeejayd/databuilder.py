@@ -19,7 +19,7 @@ class TestData:
         random.seed(time.time())
         return ''.join(random.sample(charset, length))
 
-    def getRandomInt(self, maxValue = 10, minValue = 0):
+    def getRandomInt(self, maxValue = 10, minValue = 1):
         random.seed(time.time())
         return random.randint(minValue, maxValue)
 
