@@ -237,7 +237,7 @@ class TestAnswerParser(TestCaseWithData):
 
     def testAnswerParserPlaylist(self):
         """Test the client library parsing a song list answer"""
-        originatingCommand = 'getPlaylist'
+        originatingCommand = 'playlistInfo'
         songListAnswer = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
     <response name="%s" type="SongList">""" % originatingCommand
