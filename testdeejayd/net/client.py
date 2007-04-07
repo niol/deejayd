@@ -315,7 +315,8 @@ class TestClient(TestCaseWithProvidedMusic):
 
         # Set up the test server
         testServerPort = 23344
-        dbfilename = '/tmp/testdeejayddb-' + self.testdata.getRandomString()
+        dbfilename = '/tmp/testdeejayddb-' +\
+                     self.testdata.getRandomString() + '.db'
         self.testserver = TestServer(testServerPort,
                                      self.testdata.getRootDir(), dbfilename)
         self.testserver.start()
