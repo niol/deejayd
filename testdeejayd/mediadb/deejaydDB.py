@@ -6,6 +6,10 @@ from deejayd.mediadb.database import sqliteDatabase
 from deejayd.mediadb.deejaydDB import DeejaydDB, NotFoundException
 import os
 
+# FIXME : Those imports should really go away one day
+from deejayd.player import gstreamer
+from deejayd.ui.config import DeejaydConfig
+
 class testDeejayDB(TestCaseWithProvidedMusic):
 
     def setUp(self):
@@ -16,6 +20,11 @@ class testDeejayDB(TestCaseWithProvidedMusic):
         self.db.connect()
 
         self.ddb = DeejaydDB(self.db, self.testdata.getRootDir())
+
+        # FIXME : Player shouldn't need to be initialised there. It should be
+        # by the DeejayDB.
+        self.ddb.setPlayer(gstreamer.Gstreamer(self.ddb, DeejaydConfig()))
+
         self.ddb.updateDir('.')
 
     def tearDown(self):
