@@ -85,7 +85,7 @@ class TestAnswerParser(TestCaseWithData):
         self.parseAnswer(ackAnswer)
 
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        self.assertEqual(ans.getContents(), True)
+        self.failUnless(ans.getContents())
 
     def testAnswerParserError(self):
         """Test the client library parsing an error"""
@@ -233,7 +233,7 @@ class TestAnswerParser(TestCaseWithData):
         self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
 
         for webradio in origWebradios:
-            self.assertEqual(webradio in ans.getContents(), True)
+            self.failUnless(webradio in ans.getContents())
 
     def testAnswerParserPlaylist(self):
         """Test the client library parsing a song list answer"""
@@ -304,7 +304,7 @@ class TestAnswerParser(TestCaseWithData):
         retrievedPlList = ans.getContents()
 
         for pl in pls:
-            self.assertEqual(pl in retrievedPlList, True)
+            self.failUnless(pl in retrievedPlList)
 
 
 class TestClient(TestCaseWithProvidedMusic):
@@ -326,13 +326,14 @@ class TestClient(TestCaseWithProvidedMusic):
 
     def testPing(self):
         """Ping server"""
-        self.assertEqual(self.deejaydaemon.ping().getContents(), True)
+        self.failUnless(self.deejaydaemon.ping().getContents())
 
     def testPingAsync(self):
         """Ping server asynchroneously"""
         self.deejaydaemon.setAsync(True)
         ans = self.deejaydaemon.ping()
-        self.assertEqual(ans.getContents(), True)
+        self.failUnless(ans.getContents(),
+                        'Server did not respond well to ping.')
         self.deejaydaemon.setAsync(False)
 
     def tearDown(self):
@@ -353,18 +354,18 @@ class TestClient(TestCaseWithProvidedMusic):
         howManySongs = 3
         for songPath in self.testdata.getRandomSongPaths(howManySongs):
             pl.append(songPath)
-            self.assertEqual(djpl.addSong(songPath).getContents(), True)
+            self.failUnless(djpl.addSong(songPath).getContents())
 
         # Check for the playlist to be of appropriate length
         self.assertEqual(self.deejaydaemon.getStatus()['playlistlength'],
                          howManySongs)
 
         # Save the playlist
-        self.assertEqual(djpl.save(djplname).getContents(), True)
+        self.failUnless(djpl.save(djplname).getContents())
 
         # Check for the saved playslit to be available
         retrievedPls = self.deejaydaemon.getPlaylistList().getContents()
-        self.assertEqual(djplname in retrievedPls, True)
+        self.failUnless(djplname in retrievedPls)
 
         # Retrieve the saved playlist
         retrievedPl = self.deejaydaemon.getPlaylist(djplname)
