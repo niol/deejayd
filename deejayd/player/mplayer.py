@@ -42,8 +42,9 @@ class Mplayer(unknownPlayer):
 
         try: self.mplayerProcess = Popen(mpc,stdin=PIPE,stdout=PIPE,shell=True)
         except OSError: return
+        time.sleep(0.4)  #allow time for execute command
         fcntl.fcntl(self.mplayerProcess.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
-        time.sleep(0.3)  #allow time for execute command
+        self.__wait()
 
         self.setVolume(self._volume)
         self.setFullscreen(self._fullscreen)
@@ -105,7 +106,7 @@ class Mplayer(unknownPlayer):
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
             self.mplayerProcess.stdout.flush()
             self.__cmd("get_time_pos")
-            time.sleep(0.1)  #allow time for output
+            time.sleep(0.3)  #allow time for output
 
             posLine = []
             while True:
@@ -125,7 +126,7 @@ class Mplayer(unknownPlayer):
     def setPosition(self, pos):
         cmd = "seek %d 2" % pos
         self.__cmd(cmd)
-        time.sleep(0.05)  #allow time for execute command
+        self.__wait()
     
     def setFullscreen(self,val):
          self.__setProperty("fullscreen",str(val))
@@ -138,10 +139,18 @@ class Mplayer(unknownPlayer):
             self.mplayerProcess.stdout.flush()
             self.mplayerProcess.stdin.write("pausing_keep " + command + "\n")
             self.mplayerProcess.stdin.flush()
-            time.sleep(0.2)  #allow time for execute command
         
     def __setProperty(self,name,value):
         self.__cmd("set_property %s %s" % (name,value))
+        self.__wait()
+
+    def __wait(self):
+        if self.mplayerProcess and self.mplayerProcess.poll() == None:
+            while True:
+                try: line = self.mplayerProcess.stdout.readline()
+                except StandardError: break
+
+                if not line: break
 
     #
     # file format info
