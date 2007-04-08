@@ -17,12 +17,10 @@ class sourcesFactory:
         self.sourcesObj["queue"] = queue.QueueSource(player,db)
 
         # Webradio
-        import gst
-        if gst.element_make_from_uri(gst.URI_SRC, "http://", ""):
+        if self.player.webradioSupport():
             from deejayd.sources import webradio
             self.sourcesObj["webradio"] = webradio.WebradioSource(player, db)
-        else:
-            log.msg("Webradio support disabled : require gst-plugins-gnomevfs")
+        else: log.msg("Webradio support disabled.")
 
         # Video
         video_support = config.get("general","video_support") == "yes"

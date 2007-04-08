@@ -205,6 +205,12 @@ class Gstreamer(unknownPlayer):
     #
     # file format info
     #
+    def webradioSupport(self):
+        if gst.element_make_from_uri(gst.URI_SRC, "http://", ""): return True
+        else:
+            log.msg("gstreamer requires gst-plugins-gnomevfs to support webradio.")
+            return False
+
     def isSupportedFormat(self,format):
         # MP3 file
         if format in (".mp3",".mp2"):

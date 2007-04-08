@@ -13,7 +13,7 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-# FIXME : find a way to known mplayer state in order to remove all tmie.sleep
+# FIXME : find a way to known mplayer state in order to remove all time.sleep
 #         from this class
 
 class Mplayer(unknownPlayer):
@@ -164,6 +164,9 @@ class Mplayer(unknownPlayer):
     #
     # file format info
     #
+    def webradioSupport(self):
+        return True
+
     def isSupportedFormat(self,format):
         if format in (".avi",".mpeg",".mpg"):
             return self._videoSupport
