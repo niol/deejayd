@@ -7,7 +7,7 @@ from Queue import Queue, Empty
 from xml.dom import minidom, DOMException
 
 from StringIO import StringIO
-from xml.sax import make_parser
+from xml.sax import make_parser, SAXParseException
 from xml.sax.handler import ContentHandler
 
 msgDelimiter = 'ENDXML\n'
@@ -249,7 +249,7 @@ class DeejaydSocketThread(threading.Thread):
                     self.reallyRun()
                 except StopException:
                     self.shouldStop = True
-                except DOMException:
+                except SAXParseException:
                     # XML parsing failed, simply ignore. What should we do here?
                     pass
         except socket.error:
