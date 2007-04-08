@@ -35,8 +35,17 @@ class Mplayer(unknownPlayer):
 
         if not self._uri: return
         self._uri = self._uri.replace("file://","")
-        mpc = "mplayer -slave -quiet -ao %s -vo %s \"" % \
-            (self.config.get("player", "audio_output"),\
+
+        # Construc audio output
+        ao = self.config.get("player", "audio_output")
+        if ao == "alsa":
+            try: alsa_card = self.config.get("player", "alsa_card")
+            except: pass
+            else: 
+                alsa_card = alsa_card.replace(":","=")
+                ao += ":device=%s" % alsa_card
+
+        mpc = "mplayer -slave -quiet -ao %s -vo %s \"" % (ao,\
             self.config.get("player", "video_output")) \
             + self._uri + "\" 2>/dev/null"
 

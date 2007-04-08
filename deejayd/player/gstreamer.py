@@ -33,6 +33,12 @@ class Gstreamer(unknownPlayer):
         if audio_sink==None:
             raise NoSinkError
 
+        # More audio-sink option
+        if pipeline == "alsa":
+            try: alsa_card = self.config.get("player", "alsa_card")
+            except: pass
+            else: audio_sink.set_property('device',alsa_card)
+
         self.bin = gst.element_factory_make('playbin')
         self.bin.set_property('video-sink', None)
         self.bin.set_property('audio-sink',audio_sink)

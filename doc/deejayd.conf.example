@@ -17,6 +17,10 @@ media_backend = gstreamer
 # for gstreamer backend you can choose also auto
 audio_output = alsa
 
+# Alsa Options
+# valid only for alsa output
+#alsa_card = hw:2
+
 # Video Ouput
 # Possible values are : xv, x...
 # for gstreamer backend you can choose also auto
