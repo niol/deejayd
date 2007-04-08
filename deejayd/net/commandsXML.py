@@ -1,4 +1,5 @@
 from deejayd.mediadb.deejaydDB import NotFoundException
+from deejayd.sources.webradio import UnsupportedFormatException
 from deejayd import sources 
 from os import path
 from xml.dom.minidom import Document
@@ -842,8 +843,14 @@ You can pass a playlist for "url" argument (.pls and .m3u format are supported)
         if not url or not wrname:
             return self.getErrorAnswer('Need two arguments : url and name')
 
-        self.wrSource.add(url,wrname)
-        return self.getOkAnswer()
+        try:
+            self.wrSource.add(url,wrname)
+            return self.getOkAnswer()
+        except UnsupportedFormatException:
+            return self.getErrorAnswer('Webradio URI not supported')
+        except NotFoundException:
+            return self.getErrorAnswer('Webradio info could not be retrieved')
+
 
 ###################################################
 #  Queue Commands                              #

@@ -5,14 +5,18 @@ import urllib
 
 class UnsupportedFormatException: pass
 
-def getUrisFromPls(URL):
+def getPlaylistFileLines(URL):
     try: 
         plsHandle = urllib.urlopen(URL)
         playlist = plsHandle.read()
-    except: return None
+    except:
+        raise NotFoundException
 
+    return playlist.splitlines()
+
+def getUrisFromPls(URL):
     uris = []
-    lines = playlist.splitlines()
+    lines = getPlaylistFileLines(URL)
     for line in lines:
         if line.lower().startswith("file") and line.find("=")!=-1:
             uris.append(line[line.find("=")+1:].strip())
@@ -20,13 +24,8 @@ def getUrisFromPls(URL):
     return uris
 
 def getUrisFromM3u(URL):
-    try: 
-        plsHandle = urllib.urlopen(URL)
-        playlist = plsHandle.read()
-    except: return None
-
     uris = []
-    lines = playlist.splitlines()
+    lines = getPlaylistFileLines(URL)
     for line in lines:
         if not line.startswith("#") and line.strip()!="":
             uris.append(line.strip())
@@ -86,5 +85,6 @@ class WebradioSource(UnknownSourceManagement):
     def getStatus(self):
         return [('webradio',self.currentSource.sourceId),\
             ("webradiolength",self.currentSource.getContentLength())]
+
 
 # vim: ts=4 sw=4 expandtab
