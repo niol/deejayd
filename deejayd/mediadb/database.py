@@ -149,6 +149,9 @@ RENAME TABLE {video} TO {video_library};
                 self.__class__.databaseVersion),("loadsubtitle","0")]
             self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
                 values)
+            # Erase db_update
+            self.execute("INSERT INTO {stats}(name,value)VALUES(?,?)",\
+                ("db_update",0))
 
         self.connection.commit()
         log.msg("The database structure has been updated")
