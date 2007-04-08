@@ -43,6 +43,7 @@ class VideoSource(UnknownSourceManagement):
         self.currentItem = None
         self.currentSource = Video(djDB)
         self.__currentDir = ""
+        self.setDirectory(self.djDB.getState("videodir"))
 
     def setDirectory(self,dir):
         self.currentSource.clear()
@@ -59,5 +60,9 @@ class VideoSource(UnknownSourceManagement):
 
     def getStatus(self):
         return [('video_dir',self.__currentDir)]
+
+    def close(self):
+        states = [(self.__currentDir,"videodir")]
+        self.djDB.setState(states)
 
 # vim: ts=4 sw=4 expandtab

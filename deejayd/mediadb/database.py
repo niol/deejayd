@@ -107,7 +107,7 @@ CREATE TABLE {variables}(
 
         # Init source ids
         values = [("queueid","0"),("playlistid","0"),("webradioid","0"),\
-            ("videoid","0")]
+            ("videodir","")]
         self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
             values)
 
@@ -145,7 +145,7 @@ RENAME TABLE {video} TO {video_library};
 
             # Init source ids
             values = [("queueid","0"),("playlistid","0"),("webradioid","0"),\
-                ("videoid","0"),("fullscreen","0"),("database_version",\
+                ("videodir",""),("fullscreen","0"),("database_version",\
                 self.__class__.databaseVersion),("loadsubtitle","0")]
             self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
                 values)
