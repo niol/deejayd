@@ -142,6 +142,7 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         fl.addDirectory('dirName')
 
         fl.addFile(self.getSampleParmDict())
+        fl.addVideo(self.getSampleParmDict())
 
         return fl
 

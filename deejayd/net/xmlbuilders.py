@@ -167,27 +167,50 @@ class DeejaydXMLFileList(DeejaydXMLAck):
 
     def __init__(self, originatingCmd):
         DeejaydXMLAck.__init__(self, originatingCmd)
-        self.directories = []
-        self.files = []
+
+        self.directory = None
+
+        self.contents = {'directory' : [],
+                         'file'      : [],
+                         'video'     : [] }
+
+    def setDirectory(self, directory):
+        self.directory = directory
 
     def addDirectory(self, dirname):
-        self.directories.append(dirname)
+        self.contents['directory'].append(dirname)
+
+    def setDirectories(self, directories):
+        self.contents['directory'] = directories
 
     def addFile(self, fileInfo):
-        self.files.append(fileInfo)
+        self.contents['file'].append(fileInfo)
+
+    def setFiles(self, fileList):
+        self.contents['file'] = fileList
+
+    def addVideo(self, videoInfo):
+        self.contents['video'].append(videoInfo)
+
+    def setVideos(self, videoList):
+        self.contents['video'] = videoList
 
     def buildXML(self):
         DeejaydXMLAck.buildXML(self)
 
-        for dirname in self.directories:
+        if self.directory != None:
+            self.xmlroot.setAttribute('directory', self.directory)
+
+        for dirname in self.contents['directory']:
             xmldir = self.xmldoc.createElement('directory')
             xmldir.setAttribute('name', dirname)
             self.response.appendChild(xmldir)
 
-        for file in self.files:
-            xmlfile = self.xmldoc.createElement('file')
-            self.buildXMLParmList(file, xmlfile)
-            self.response.appendChild(xmlfile)
+        for mediaType in ['file', 'video']:
+            for item in self.contents[mediaType]:
+                xmlitem = self.xmldoc.createElement(mediaType)
+                self.buildXMLParmList(item, xmlitem)
+                self.response.appendChild(xmlitem)
 
 
 class DeejaydWebradioList(DeejaydXMLAck):

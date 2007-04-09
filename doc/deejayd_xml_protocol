@@ -76,6 +76,10 @@ There are 6 response types :
 			<parm name="parmName0" value="parmValue0"/>
 			<parm name="parmName1" value="parmValue1"/>
 		</file>
+		<video>
+			<parm name="parmName0" value="parmValue0"/>
+			<parm name="parmName1" value="parmValue1"/>
+		</video>
 	</response>
 </deejayd>
 }}}
