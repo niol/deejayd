@@ -17,4 +17,5 @@ if __name__ == "__main__":
            package_data={'deejayd.ui': ['defaults.conf']},
            data_files=[('share/doc/deejayd-'+deejayd.__version__, 
                             glob.glob("doc/*")),
-                       ('share/doc/deejayd-0.1.0',glob.glob("README*"))])
+                       ('share/doc/deejayd-'+deejayd.__version__,\
+                       glob.glob("README*"))])
