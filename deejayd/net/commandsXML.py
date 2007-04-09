@@ -8,12 +8,12 @@ from xml.dom.minidom import Document
 def commandsOrders():
     return ("ping","status","stats","setMode","getMode","update","getdir",
        "search","getvideodir","play","stop","pause","next","previous",
-       "setVolume","seek","random","repeat","current","playlistInfo",
-       "playlistList","playlistAdd","playlistRemove","playlistClear",
-       "playlistMove","playlistShuffle","playlistErase",
-       "playlistLoad","playlistSave","webradioList","webradioAdd",
-       "webradioRemove","webradioClear","playQueue","queueInfo","queueAdd",
-       "queueLoadPlaylist","queueRemove","queueClear","setvideodir")
+       "setVolume","seek","random","repeat","current","fullscreen",
+       "loadsubtitle","playlistInfo","playlistList","playlistAdd",
+       "playlistRemove","playlistClear","playlistMove","playlistShuffle",
+       "playlistErase","playlistLoad","playlistSave","webradioList",
+       "webradioAdd","webradioRemove","webradioClear","playQueue","queueInfo",
+       "queueAdd","queueLoadPlaylist","queueRemove","queueClear","setvideodir")
 
 def commandsList(commandsXML):
     return {

@@ -280,6 +280,24 @@ description :
 Return informations on the current song or webradio.
     
 -----------------
+fullscreen
+-----------------
+arguments :
+value : type->list 0 or 1, required->true, multiple->false
+
+description : 
+set video fullscreen to "value", "value" should be 0 (off) or 1 (on)
+    
+-----------------
+loadsubtitle
+-----------------
+arguments :
+value : type->list 0 or 1, required->true, multiple->false
+
+description : 
+by default, load subtitle when it is available ("value"=1) or not ("value"=0)
+    
+-----------------
 playlistInfo
 -----------------
 arguments :
