@@ -10,7 +10,7 @@ SRC_URI="http://mroy31.dyndns.org/~roy/archives/deejayd/${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86"
-IUSE="mad vorbis webradio mplayer"
+IUSE="mad vorbis webradio mplayer video"
 
 DEPEND=">=virtual/python-2.4"
 
@@ -22,6 +22,7 @@ RDEPEND="${DEPEND}
 		>=media-libs/gstreamer-0.10.2
 		>=media-libs/gst-plugins-base-0.10.2
 		>=media-libs/gst-plugins-good-0.10.2
+		video? ( >=media-libs/gst-plugins-ffmpeg.10.2 )
 		>=dev-python/gst-python-0.10.2
 		mad? ( >=media-plugins/gst-plugins-mad-0.10.2 )
 		vorbis? ( >=media-plugins/gst-plugins-vorbis-0.10.2
