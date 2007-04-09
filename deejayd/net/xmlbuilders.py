@@ -97,7 +97,7 @@ class DeejaydXMLAnswer(DeejaydXML):
     def buildXML(self):
         raise NotImplementedError
 
-    def toXML(self):
+    def __str__(self):
         self.buildXML()
         return self.xmldoc.toxml('utf-8')
 
