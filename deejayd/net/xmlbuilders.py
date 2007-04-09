@@ -250,6 +250,26 @@ class DeejaydPlaylistList(DeejaydXMLAck):
             self.response.appendChild(xmlpl)
 
 
+class DeejaydVideoList(DeejaydXMLAck):
+    """A list of videos with information for each video."""
+
+    responseType = 'VideoList'
+
+    def __init__(self, originatingCmd):
+        DeejaydXMLAck.__init__(self, originatingCmd)
+        self.videos = []
+
+    def addVideo(self, video):
+        self.videos.append(video)
+
+    def buildXML(self):
+        DeejaydXMLAck.buildXML(self)
+        for video in self.videos:
+            xmlvid = self.xmldoc.createElement('video')
+            self.buildXMLParmList(video, xmlvid)
+            self.response.appendChild(xmlvid)
+
+
 class DeejaydXMLAnswerFactory:
 
     responseTypes = [ DeejaydXMLError,
@@ -258,7 +278,8 @@ class DeejaydXMLAnswerFactory:
                       DeejaydXMLFileList,
                       DeejaydWebradioList,
                       DeejaydXMLSongList,
-                      DeejaydPlaylistList ]
+                      DeejaydPlaylistList,
+                      DeejaydVideoList     ]
 
     def getDeejaydXMLAnswer(self, type, originatingCmd):
         iat = iter(self.responseTypes)

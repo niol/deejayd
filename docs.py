@@ -161,13 +161,19 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         pll.addPlaylist('playlist2')
         return pll
 
+    def getVideoList(self):
+        vl = self.getDeejaydXMLAnswer('VideoList', 'cmdName')
+        vl.addVideo(self.getSampleParmDict())
+        return vl
+
     responseTypeExBuilders = { DeejaydXMLError: getError,
                                DeejaydXMLAck: getAck,
                                DeejaydXMLKeyValue: getKeyValue,
                                DeejaydXMLFileList: getFileList,
                                DeejaydWebradioList: getWebradioList,
                                DeejaydXMLSongList: getSongList,
-                               DeejaydPlaylistList: getPlaylistList }
+                               DeejaydPlaylistList: getPlaylistList,
+                               DeejaydVideoList: getVideoList }
  
     def getExample(self, responseClass):
         builder = self.responseTypeExBuilders[responseClass]

@@ -113,6 +113,18 @@ There are 6 response types :
 	</response>
 </deejayd>
 }}}
+  * VideoList : A list of videos with information for each video.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+	<response name="cmdName" type="VideoList">
+		<video>
+			<parm name="parmName0" value="parmValue0"/>
+			<parm name="parmName1" value="parmValue1"/>
+		</video>
+	</response>
+</deejayd>
+}}}
 
 -------------------------------------------------------------------------------
 Available Commands :
