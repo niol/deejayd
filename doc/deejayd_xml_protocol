@@ -73,20 +73,85 @@ Response Format :
     </response>
 </deejayd>
 -----------------
-There are 6 response types
-  * "Ack" : just an acknowledgement of the command 
-  * "KeyValue" : a list of "key=value" couple  
-  * "FileList" : file and directory list
-  * "WebradioList" : webradio list with informations foreach webradio 
-                     (id,pos,title,url)
-  * "SongList" : song list (playlist content for example) with informations
-                 foreach song (artist,album,title,id...) 
-  * "PlaylistList" : playlist list 
+There are 6 response types :
+  * error : Error notification.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+	<error name="cmdName">
+		error text
+	</error>
+</deejayd>
+}}}
+  * Ack : Acknowledgement of a command.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+	<response name="cmdName" type="Ack"/>
+</deejayd>
+}}}
+  * KeyValue : A list of key, value pairs.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+	<response name="cmdName" type="KeyValue">
+		<parm name="parmName0" value="parmValue0"/>
+		<parm name="parmName1" value="parmValue1"/>
+	</response>
+</deejayd>
+}}}
+  * FileList : A list of files and directories.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+	<response name="cmdName" type="FileList">
+		<directory name="dirName"/>
+		<file>
+			<parm name="parmName0" value="parmValue0"/>
+			<parm name="parmName1" value="parmValue1"/>
+		</file>
+	</response>
+</deejayd>
+}}}
+  * WebradioList : A list of webradios with information for each webradio : id, pos, title and url.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+	<response name="cmdName" type="WebradioList">
+		<webradio>
+			<parm name="parmName0" value="parmValue0"/>
+			<parm name="parmName1" value="parmValue1"/>
+		</webradio>
+	</response>
+</deejayd>
+}}}
+  * SongList : A list of songs with information for each song : artist, album, title, id, etc.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+	<response name="cmdName" type="SongList">
+		<song>
+			<parm name="parmName0" value="parmValue0"/>
+			<parm name="parmName1" value="parmValue1"/>
+		</song>
+	</response>
+</deejayd>
+}}}
+  * PlaylistList : A list of playlist names.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+	<response name="getPlaylistList" type="PlaylistList">
+		<playlist name="playlist1"/>
+		<playlist name="playlist2"/>
+	</response>
+</deejayd>
+}}}
 
 -------------------------------------------------------------------------------
 Available Commands :
 -----------------
-    
+
 -----------------
 ping
 -----------------
