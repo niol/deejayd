@@ -10,21 +10,24 @@ SRC_URI="http://mroy31.dyndns.org/~roy/archives/deejayd/${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86"
-IUSE="mad vorbis webradio"
+IUSE="mad vorbis webradio mplayer"
 
 DEPEND=">=virtual/python-2.4"
 
 RDEPEND="${DEPEND}
 	>=dev-python/twisted-2.0.0
-	>=dev-python/pygtk-2.8
 	>=dev-python/pysqlite-2.2
 	>=media-libs/mutagen-1.9
-	>=media-libs/gst-plugins-good-0.10.2
-	>=dev-python/gst-python-0.10.2
-	mad? ( >=media-plugins/gst-plugins-mad-0.10.2 )
-	vorbis? ( >=media-plugins/gst-plugins-vorbis-0.10.2
-		>=media-plugins/gst-plugins-ogg-0.10.2 )
-	webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 )"
+	!mplayer? ( >=dev-python/pygtk-2.8
+		>=media-libs/gstreamer-0.10.2
+		>=media-libs/gst-plugins-base-0.10.2
+		>=media-libs/gst-plugins-good-0.10.2
+		>=dev-python/gst-python-0.10.2
+		mad? ( >=media-plugins/gst-plugins-mad-0.10.2 )
+		vorbis? ( >=media-plugins/gst-plugins-vorbis-0.10.2
+			>=media-plugins/gst-plugins-ogg-0.10.2 )
+		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))
+	mplayer? (>= media-video/mplayer-1.0rc1)"
 
 pkg_setup() {
 	enewuser deejayd '' '' "/var/lib/deejayd" audio || die "problem adding user deejayd"
