@@ -46,7 +46,7 @@ from twisted.python import log
 
 # install reactor
 config = DeejaydConfig()
-media_backend = config.get("player","media_backend")
+media_backend = config.get("general","media_backend")
 video_support = config.get("general","video_support") == "yes"
 if media_backend == "gstreamer":
     if video_support:
@@ -57,6 +57,9 @@ if media_backend == "gstreamer":
         # Install glib2 reactor
         from twisted.internet import glib2reactor
         glib2reactor.install()
+elif media_backend == "both":
+    from twisted.internet import glib2reactor
+    glib2reactor.install()
 
 from twisted.internet import reactor
 
