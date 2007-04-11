@@ -30,23 +30,23 @@ class Mplayer(unknownPlayer):
     def setURI(self,uri):
         self._uri = uri
 
-    def startPlay(self):
-        unknownPlayer.startPlay(self)
+    def startPlay(self,init = True):
+        if init: unknownPlayer.startPlay(self)
 
         if not self._uri: return
         self._uri = self._uri.replace("file://","")
 
         # Construc audio output
-        ao = self.config.get("player", "audio_output")
+        ao = self.config.get("mplayer", "audio_output")
         if ao == "alsa":
-            try: alsa_card = self.config.get("player", "alsa_card")
+            try: alsa_card = self.config.get("mplayer", "alsa_card")
             except: pass
             else: 
                 alsa_card = alsa_card.replace(":","=")
                 ao += ":device=%s" % alsa_card
 
         mpc = "mplayer -slave -quiet -ao %s -vo %s \"" % (ao,\
-            self.config.get("player", "video_output")) \
+            self.config.get("mplayer", "video_output")) \
             + self._uri + "\" 2>/dev/null"
 
         try: self.mplayerProcess = Popen(mpc,stdin=PIPE,stdout=PIPE,shell=True)
@@ -59,7 +59,7 @@ class Mplayer(unknownPlayer):
         self.setFullscreen(self._fullscreen)
         self.setSubtitle(self._loadsubtitle)
 
-        self._state = PLAYER_PLAY
+        self.setState(PLAYER_PLAY)
         self._stopDeferred = threads.deferToThread(self.wait)
         self._stopDeferred.addCallback(self.eofHandler)
         self._stopDeferred.addErrback(errorHandler)
@@ -71,30 +71,23 @@ class Mplayer(unknownPlayer):
         return True
 
     def eofHandler(self,res = False):
-        if self._state == PLAYER_PLAY:
-            self.next()
-
-    def play(self):
-        if self._state == PLAYER_STOP:
-            curSong = self._queue.goTo(0,"Pos") or self._source.getCurrent()
-            if curSong: self.setURI(curSong["uri"])
-            else: return
-            self.startPlay()
-        elif self._state == PLAYER_PAUSE:
-            self.pause()
+        if self.getState() == PLAYER_PLAY: self.next()
+        else: self.setState(PLAYER_STOP)
 
     def pause(self):
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
-            if self._state == PLAYER_PLAY: 
+            if self.getState() == PLAYER_PLAY: 
                 self._position = self.getPosition()
-                self._state = PLAYER_PAUSE
-            else: 
-                self._state = PLAYER_PLAY
+                self.setState(PLAYER_PAUSE)
+            elif self.getState() == PLAYER_PAUSE: 
+                self.setState(PLAYER_PLAY)
                 self._position = 0
+            else: return
             self.__cmd("pause")
+            self.__wait()
         
     def stop(self):
-        self._state = PLAYER_STOP
+        self.setState(PLAYER_STOP)
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
             self._stopDeferred.pause()
             self.__cmd("quit")  
@@ -109,8 +102,8 @@ class Mplayer(unknownPlayer):
         self._volume = vol
 
     def getPosition(self):
-        if self._state == PLAYER_PAUSE: return self._position
-        elif self._state == PLAYER_STOP: return 0
+        if self.getState() == PLAYER_PAUSE: return self._position
+        elif self.getState() == PLAYER_STOP: return 0
 
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
             self.mplayerProcess.stdout.flush()
@@ -146,7 +139,8 @@ class Mplayer(unknownPlayer):
     def __cmd(self, command):
         if self.mplayerProcess and self.mplayerProcess.poll() == None:
             self.mplayerProcess.stdout.flush()
-            self.mplayerProcess.stdin.write("pausing_keep " + command + "\n")
+            pause = command == "pause" and "" or "pausing_keep "
+            self.mplayerProcess.stdin.write(pause + command + "\n")
             self.mplayerProcess.stdin.flush()
         
     def __setProperty(self,name,value):
@@ -154,12 +148,7 @@ class Mplayer(unknownPlayer):
         self.__wait()
 
     def __wait(self):
-        if self.mplayerProcess and self.mplayerProcess.poll() == None:
-            while True:
-                try: line = self.mplayerProcess.stdout.readline()
-                except StandardError: break
-
-                if not line: break
+        time.sleep(0.05)
 
     #
     # file format info

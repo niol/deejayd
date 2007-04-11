@@ -40,8 +40,8 @@ class unknownPlayer:
         self._source.goTo(curPos,"Pos")
 
         # Random and Repeat
-        self._random = int(self.db.getState("random"))
-        self._repeat = int(self.db.getState("repeat"))
+        self.random(int(self.db.getState("random")))
+        self.repeat(int(self.db.getState("repeat")))
 
     def setSource(self,source,name):
         self._source = source
@@ -62,11 +62,13 @@ class unknownPlayer:
             self._playingSource= self._source
 
     def play(self):
-        if self._state == PLAYER_STOP:
+        if self.getState() == PLAYER_STOP:
             curSong = self._queue.goTo(0,"Pos") or self._source.getCurrent()
             if curSong: self.setURI(curSong["uri"])
             else: return
-        self.startPlay()
+            self.startPlay()
+        elif self.getState() == PLAYER_PAUSE:
+            self.pause()
 
     def pause(self):
         raise NotImplementedError
@@ -111,12 +113,12 @@ class unknownPlayer:
 
     def fullscreen(self,val):
         self._fullscreen = val
-        if self._state != PLAYER_STOP:
+        if self.getState() != PLAYER_STOP:
             self.setFullscreen(self._fullscreen)
 
     def loadsubtitle(self,val):
         self._loadsubtitle = val
-        if self._state != PLAYER_STOP:
+        if self.getState() != PLAYER_STOP:
             self.setSubtitle(self._loadsubtitle)
 
     def getVolume(self):
@@ -131,16 +133,22 @@ class unknownPlayer:
     def setPosition(self,pos):
         raise NotImplementedError
 
+    def getState(self):
+        return self._state
+
+    def setState(self,state):
+        self._state = state
+
     def getStatus(self):
         status = [("random",self._random),("repeat",self._repeat),\
-            ("state",self._state),("volume",self.getVolume()),\
+            ("state",self.getState()),("volume",self.getVolume()),\
             ("mode",self._sourceName)]
 
         source = self._playingSource or self._source
         curSong = source.getCurrent()
         if curSong:
             status.extend([("song",curSong["Pos"]),("songid",curSong["Id"])])
-        if self._state != PLAYER_STOP:
+        if self.getState() != PLAYER_STOP:
             if "Time" not in curSong.keys() or curSong["Time"] == 0:
                 curSong["Time"] = self.getPosition()
             status.extend([ ("time","%d:%d" % (self.getPosition(),\
@@ -154,7 +162,7 @@ class unknownPlayer:
         return status
 
     def isPlay(self):
-        return self._state != PLAYER_STOP
+        return self.getState() != PLAYER_STOP
 
     def close(self):
         song = self._source.getCurrent()
@@ -170,7 +178,7 @@ class unknownPlayer:
         self.db.setState(states)
 
         # stop player if necessary
-        if self._state != PLAYER_STOP:
+        if self.getState() != PLAYER_STOP:
             self.stop()
 
 # vim: ts=4 sw=4 expandtab

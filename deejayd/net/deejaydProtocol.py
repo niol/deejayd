@@ -90,7 +90,7 @@ class DeejaydFactory(protocol.ServerFactory):
         log.msg("MediaDB Initialisation...OK")
 
         # Try to Init the player
-        media_backend = config.get("player","media_backend")
+        media_backend = config.get("general","media_backend")
         if media_backend == "gstreamer":
             from deejayd.player import gstreamer
             try: self.player = gstreamer.Gstreamer(self.db,config)
@@ -99,6 +99,11 @@ class DeejaydFactory(protocol.ServerFactory):
         elif media_backend == "mplayer":
             from deejayd.player import mplayer
             self.player = mplayer.Mplayer(self.db,config)
+        elif media_backend == "both":
+            from deejayd.player import both
+            try: self.player = both.Both(self.db,config)
+            except gstreamer.NoSinkError:
+                sys.exit("Unable to start deejayd : No audio sink found for Gstreamer\n")
         else:
             sys.exit("Unable to start deejayd : you do not choose a correct media backend\n")
         log.msg("Player Initialisation...OK")

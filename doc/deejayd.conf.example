@@ -2,19 +2,47 @@
 # video_support : yes or no
 video_support = yes 
 
+# media_backend : choose the media backend for deejayd
+# possible values are : mplayer, gstreamer or both
+# 'both' corresponds to :
+#   * gstreamer to play audio file
+#   * mplayer to play video file
+# this mode will disappear when gstreamer will have a better video support 
+# (in particular for subtitle)
+media_backend = gstreamer
+
 
 [net]
 port = 6800
 
 
-[player]
-# media_backend : choose the media backend for deejayd
-# possible values are : mplayer, gstreamer
-media_backend = gstreamer
+[mediadb]
+db_type = sqlite
+db_file = /var/lib/deejayd/mediadb/deejayd.db
+db_prefix = rj
 
+music_directory =  /var/lib/deejayd/music
+video_directory =  /var/lib/deejayd/video
+filesystem_charset = utf-8
+
+
+[gstreamer]
+# Audio Ouput
+# Possible values are : auto, alsa, oss
+audio_output = alsa
+
+# Alsa Options
+# valid only for alsa output
+#alsa_card = hw:2
+
+# Video Ouput
+# Possible values are : auto, xv, x
+video_output = xv
+
+
+[mplayer]
 # Audio Ouput
 # Possible values are : alsa, oss...
-# for gstreamer backend you can choose also auto
 audio_output = alsa
 
 # Alsa Options
@@ -23,14 +51,4 @@ audio_output = alsa
 
 # Video Ouput
 # Possible values are : xv, x...
-# for gstreamer backend you can choose also auto
 video_output = xv
-
-
-[mediadb]
-db_type = sqlite
-db_file = /var/lib/deejayd/mediadb/deejayd.db
-db_prefix = dj
-music_directory =  /var/lib/deejayd/music
-video_directory =  /var/lib/deejayd/video
-filesystem_charset = utf-8

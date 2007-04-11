@@ -27,7 +27,7 @@ class Gstreamer(unknownPlayer):
         # Open a Audio pipeline
         pipeline_dict = {"alsa":"alsasink", "oss":"osssink",\
             "auto":"autoaudiosink","esd":"esdsink"}
-        pipeline =  self.config.get("player", "audio_output")
+        pipeline =  self.config.get("gstreamer", "audio_output")
         try: audio_sink = gst.parse_launch(pipeline_dict[pipeline])
         except gobject.GError, err: audio_sink = None
         if audio_sink==None:
@@ -35,7 +35,7 @@ class Gstreamer(unknownPlayer):
 
         # More audio-sink option
         if pipeline == "alsa":
-            try: alsa_card = self.config.get("player", "alsa_card")
+            try: alsa_card = self.config.get("gstreamer", "alsa_card")
             except: pass
             else: audio_sink.set_property('device',alsa_card)
 
@@ -60,7 +60,7 @@ class Gstreamer(unknownPlayer):
         # Open a Video pipeline
         pipeline_dict = {"x":"ximagesink", "xv":"xvimagesink",\
             "auto":"autovideosink"}
-        pipeline =  self.config.get("player", "video_output")
+        pipeline =  self.config.get("gstreamer", "video_output")
         try: video_sink = gst.parse_launch(pipeline_dict[pipeline])
         except gobject.GError, err: raise NoSinkError
         else: 
@@ -93,10 +93,10 @@ class Gstreamer(unknownPlayer):
     def setURI(self,uri):
         self._uri = uri
 
-    def startPlay(self):
-        unknownPlayer.startPlay(self)
+    def startPlay(self,init = True):
+        if init: unknownPlayer.startPlay(self)
 
-        self._state = PLAYER_PLAY
+        self.setState(PLAYER_PLAY)
         if self._playingSourceName == "video" and not self.deejaydWindow:
             import gtk
             self.deejaydWindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -111,7 +111,7 @@ class Gstreamer(unknownPlayer):
 
     def startGst(self,widget = None, event = None):
         self.bin.set_property('uri',self._uri)
-        self.setSubtitle(self._loadsubtitle)
+        if self._videoSupport: self.setSubtitle(self._loadsubtitle)
 
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         timeout = 4
@@ -121,19 +121,20 @@ class Gstreamer(unknownPlayer):
             state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
             timeout -= 1
         
-        if state_ret != gst.STATE_CHANGE_SUCCESS: self._state = PLAYER_STOP
-        else: self.setFullscreen(self._fullscreen)
+        if state_ret != gst.STATE_CHANGE_SUCCESS: self.setState(PLAYER_STOP)
+        elif self._videoSupport: self.setFullscreen(self._fullscreen)
 
     def pause(self):
-        if self._state == PLAYER_PLAY:
+        if self.getState() == PLAYER_PLAY:
             self.bin.set_state(gst.STATE_PAUSED)
-            self._state = PLAYER_PAUSE
-        elif self._state == PLAYER_PAUSE:
-            self.play()
+            self.setState(PLAYER_PAUSE)
+        elif self.getState() == PLAYER_PAUSE:
+            self.bin.set_state(gst.STATE_PLAYING)
+            self.setState(PLAYER_PLAY)
 
     def stop(self,widget = None, event = None):
         self.bin.set_state(gst.STATE_NULL)
-        self._state = PLAYER_STOP
+        self.setState(PLAYER_STOP)
         # Reset the queue
         self._queue.reset()
 
