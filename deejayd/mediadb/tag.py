@@ -120,38 +120,48 @@ class oggFile(unknownAudioFile):
 
 class fileTag:
 
-    __supportedFormat = None
+    __supportedAudioFormat = None
+    __supportedVideoFormat = None
     __player = None
 
     def __init__(self,player = None):
         if fileTag.__player == None:
             fileTag.__player = player
         
-        if fileTag.__supportedFormat == None and fileTag.__player != None:
+        if fileTag.__supportedAudioFormat == None or \
+            fileTag.__supportedVideoFormat == None and fileTag.__player != None:
             # Find supported format
-            fileTag.__supportedFormat = {}
+            fileTag.__supportedAudioFormat = {}
+            fileTag.__supportedVideoFormat = {}
 
             # mp3
             if fileTag.__player.isSupportedFormat(".mp3"): 
-                fileTag.__supportedFormat[".mp3"] = mp3File
-                fileTag.__supportedFormat[".mp2"] = mp3File
+                fileTag.__supportedAudioFormat[".mp3"] = mp3File
+                fileTag.__supportedAudioFormat[".mp2"] = mp3File
 
             # ogg
             if fileTag.__player.isSupportedFormat(".ogg"): 
-                fileTag.__supportedFormat[".ogg"] = oggFile
+                fileTag.__supportedAudioFormat[".ogg"] = oggFile
 
             # video
             for ext in (".avi",".mpeg",".mpg"):
                 if fileTag.__player.isSupportedFormat(ext):
-                    fileTag.__supportedFormat[ext] = videoFile
+                    fileTag.__supportedVideoFormat[ext] = videoFile
 
-    def getFileTag(self,realFile):
+    def getFileTag(self,realFile,type):
         (filename,extension) = os.path.splitext(realFile)
         ext = extension.lower()
 
-        if ext in fileTag.__supportedFormat.keys():
-            return fileTag.__supportedFormat[ext](realFile,fileTag.__player)
-        else: raise NotSupportedFormat
+        if type == "audio":
+            if ext in fileTag.__supportedAudioFormat.keys():
+                return fileTag.__supportedAudioFormat[ext](realFile,\
+                    fileTag.__player)
+            else: raise NotSupportedFormat
+        elif type == "video":
+            if ext in fileTag.__supportedVideoFormat.keys():
+                return fileTag.__supportedVideoFormat[ext](realFile,\
+                    fileTag.__player)
+            else: raise NotSupportedFormat
 
 
 # vim: ts=4 sw=4 expandtab

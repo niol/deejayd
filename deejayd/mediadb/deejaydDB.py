@@ -17,6 +17,7 @@ class DeejaydAudioFile:
         self.root_path = root_path
         self.update_function = self.db.updateAudioFile
         self.insert_function = self.db.insertAudioFile
+        self.file_type = "audio"
 
     def insert(self,f):
         file_info = self._get_file_info(f)
@@ -35,10 +36,11 @@ class DeejaydAudioFile:
         real_dir = os.path.join(self.root_path, self.dir)
         real_file = os.path.join(real_dir,f)
         
-        try: file_info = tag.fileTag(self.player).getFileTag(real_file) 
+        try: file_info = tag.fileTag(self.player).getFileTag(real_file,\
+            self.file_type) 
         except tag.NotSupportedFormat: 
             # Not an supported file
-            log.msg("%s : format not supported" % (f,))
+            log.msg("%s : %s format not supported" % (f,self.file_type))
             return None
         else: return file_info
 
@@ -51,6 +53,7 @@ class DeejaydVideoFile(DeejaydAudioFile):
         self.update_function = self.db.updateVideoFile
         self.insert_function = self.db.insertVideoFile
         self.__id = self.db.getLastVideoId() or 0 
+        self.file_type = "video"
 
     def insert(self,f):
         file_info = self._get_file_info(f)
