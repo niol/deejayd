@@ -213,7 +213,7 @@ class DeejaydXMLFileList(DeejaydXMLAck):
         DeejaydXMLAck.buildXML(self)
 
         if self.directory != None:
-            self.xmlroot.setAttribute('directory', self.directory)
+            self.xmlcontent.setAttribute('directory', self.directory)
 
         for dirname in self.contents['directory']:
             xmldir = self.xmldoc.createElement('directory')
