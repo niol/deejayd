@@ -91,7 +91,6 @@ class PlaylistSource(UnknownSourceManagement):
         self.sourceName = "playlist"
         self.db = djDB.getDB()
         self.__openPlaylists = {}
-        self.playedSongs = []
 
         # Load current playlist
         self.currentSource = self.__openPlaylist()
@@ -173,97 +172,6 @@ class PlaylistSource(UnknownSourceManagement):
 
     def rm(self,playlistName):
         Playlist(self.djDB,playlistName).erase()
-
-    def next(self,rd,rpt):
-        if self.currentItem == None:
-            self.goTo(0,"Pos")
-            return self.currentItem
-
-        # Return a pseudo-random song
-        l = self.currentSource.getContentLength()
-        if rd and l > 0: 
-            # first determine if the current song is in playedSongs
-            try:
-                id = self.playedSongs.index(self.currentItem["Id"])
-                self.currentItem = self.currentSource.getItem(\
-                    self.playedSongs[id+1],"Id")
-                return self.currentItem
-            except: pass
-
-            # So we add the current song in playedSongs
-            self.playedSongs.append(self.currentItem["Id"])
-
-            # Determine the id of the next song
-            values = [v for v in self.currentSource.getItemIds() \
-                if v not in self.playedSongs]
-            try: songId = random.choice(values)
-            except: # All songs are played 
-                if rpt:
-                    self.playedSongs = []
-                    songId = random.choice(self.currentSource.getItemIds())
-                else: return None
-
-            # Obtain the choosed song
-            try: self.currentItem = self.currentSource.getItem(songId,"Id")
-            except ItemNotFoundException: return None
-            return self.currentItem
-            
-        # Reset random
-        self.playedSongs = []
-
-        currentPosition = self.currentItem["Pos"]
-        if currentPosition < self.currentSource.getContentLength()-1:
-            try: self.currentItem = self.currentSource.getItem(\
-                self.currentItem["Pos"] + 1)
-            except ItemNotFoundException: self.currentItem = None
-        elif rpt:
-            self.currentItem = self.currentSource.getItem(0)
-        else:
-            self.currentItem = None
-
-        return self.currentItem
-
-    def previous(self,rd,rpt):
-        if self.currentItem == None:
-            return None
-
-        # Return the last pseudo-random song
-        l = len(self.playedSongs)
-        if rd and l > 0:
-            # first determine if the current song is in playedSongs
-            try:
-                id = self.playedSongs.index(self.currentItem["Id"])
-                if id == 0: return None
-                self.currentItem = self.currentSource.getItem(\
-                    self.playedSongs[id-1],"Id")
-                return self.currentItem
-            except ItemNotFoundException: return None 
-            except ValueError: pass
-
-            # So we add the current song in playedSongs
-            self.playedSongs.append(self.currentItem["Id"])
-
-            self.currentItem = self.currentSource.\
-                getItem(self.playedSongs[l-1],"Id")
-            return self.currentItem
-
-        # Reset random
-        self.playedSongs = []
-
-        currentPosition = self.currentItem["Pos"]
-        if currentPosition > 0:
-            self.currentItem = self.currentSource.\
-                getItem(self.currentItem["Pos"] - 1)
-        else:
-            self.currentItem = None
-
-        return self.currentItem
-
-    def goTo(self,nb,type = "Id"):
-        # Reset random
-        self.playedSongs = []
-
-        return UnknownSourceManagement.goTo(self,nb,type)
 
     def close(self):
         states = [(str(self.currentSource.sourceId),self.sourceName+"id")]

@@ -106,6 +106,7 @@ class UnknownSourceManagement:
         self.player = player
         self.djDB = djDB
         self.currentItem = None
+        self.playedItems = []
 
     def getRecordedId(self):
         id = int(self.djDB.getState(self.sourceName+"id"))
@@ -129,6 +130,7 @@ class UnknownSourceManagement:
         try: self.currentItem = self.currentSource.getItem(nb,type)
         except ItemNotFoundException: self.currentItem = None
 
+        self.playedItems = []
         return self.currentItem
         
     def delete(self,id):
@@ -137,17 +139,52 @@ class UnknownSourceManagement:
     def clear(self):
         self.currentSource.clear()
 
-    def next(self,rd,rpt):  
+    def next(self,rd,rpt):
         if self.currentItem == None:
-            self.goTo(0,'Pos')
+            self.goTo(0,"Pos")
             return self.currentItem
 
-        currentPos = self.currentItem["Pos"]
-        if currentPos < self.currentSource.getContentLength()-1:
-            try: self.currentItem = self.currentSource.getItem(currentPos+1,\
-                "Pos")
+        # Return a pseudo-random song
+        l = self.currentSource.getContentLength()
+        if rd and l > 0: 
+            # first determine if the current song is in playedItems
+            try:
+                id = self.playedItems.index(self.currentItem["Id"])
+                self.currentItem = self.currentSource.getItem(\
+                    self.playedItems[id+1],"Id")
+                return self.currentItem
+            except: pass
+
+            # So we add the current song in playedItems
+            self.playedItems.append(self.currentItem["Id"])
+
+            # Determine the id of the next song
+            values = [v for v in self.currentSource.getItemIds() \
+                if v not in self.playedItems]
+            try: songId = random.choice(values)
+            except: # All songs are played 
+                if rpt:
+                    self.playedItems = []
+                    songId = random.choice(self.currentSource.getItemIds())
+                else: return None
+
+            # Obtain the choosed song
+            try: self.currentItem = self.currentSource.getItem(songId,"Id")
+            except ItemNotFoundException: return None
+            return self.currentItem
+            
+        # Reset random
+        self.playedItems = []
+
+        currentPosition = self.currentItem["Pos"]
+        if currentPosition < self.currentSource.getContentLength()-1:
+            try: self.currentItem = self.currentSource.getItem(\
+                self.currentItem["Pos"] + 1)
             except ItemNotFoundException: self.currentItem = None
-        else: self.currentItem = None
+        elif rpt:
+            self.currentItem = self.currentSource.getItem(0)
+        else:
+            self.currentItem = None
 
         return self.currentItem
 
@@ -155,11 +192,35 @@ class UnknownSourceManagement:
         if self.currentItem == None:
             return None
 
-        currentPos = self.currentItem["Pos"]
-        if currentPos > 0:
-            try: self.currentItem = self.currentSource.get(currentPos-1,"Pos")
-            except ItemNotFoundException: self.currentItem = None
-        else: self.currentItem = None
+        # Return the last pseudo-random song
+        l = len(self.playedItems)
+        if rd and l > 0:
+            # first determine if the current song is in playedItems
+            try:
+                id = self.playedItems.index(self.currentItem["Id"])
+                if id == 0: return None
+                self.currentItem = self.currentSource.getItem(\
+                    self.playedItems[id-1],"Id")
+                return self.currentItem
+            except ItemNotFoundException: return None 
+            except ValueError: pass
+
+            # So we add the current song in playedItems
+            self.playedItems.append(self.currentItem["Id"])
+
+            self.currentItem = self.currentSource.\
+                getItem(self.playedItems[l-1],"Id")
+            return self.currentItem
+
+        # Reset random
+        self.playedItems = []
+
+        currentPosition = self.currentItem["Pos"]
+        if currentPosition > 0:
+            self.currentItem = self.currentSource.\
+                getItem(self.currentItem["Pos"] - 1)
+        else:
+            self.currentItem = None
 
         return self.currentItem
 
