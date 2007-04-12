@@ -45,7 +45,7 @@ class Mplayer(unknownPlayer):
                 alsa_card = alsa_card.replace(":","=")
                 ao += ":device=%s" % alsa_card
 
-        mpc = "mplayer -slave -quiet -ao %s -vo %s \"" % (ao,\
+        mpc = "mplayer -slave -softvol -quiet -ao %s -vo %s \"" % (ao,\
             self.config.get("mplayer", "video_output")) \
             + self._uri + "\" 2>/dev/null"
 
