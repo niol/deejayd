@@ -44,8 +44,8 @@ class DeejaydXML:
 
 class DeejaydXMLCommand(DeejaydXML):
 
-    def __init__(self, name):
-        DeejaydXML.__init__(self)
+    def __init__(self, name, motherXMLObject = None):
+        DeejaydXML.__init__(self, motherXMLObject)
         self.name = name
         self.args = {}
 
@@ -55,17 +55,16 @@ class DeejaydXMLCommand(DeejaydXML):
     def addMultipleArg(self, name, valuelist):
         self.addSimpleArg(name, valuelist)
 
-    def toXML(self):
+    def buildXML(self):
         # Add command
-        xmlcmd = self.xmldoc.createElement('command')
-        xmlcmd.setAttribute('name', self.name)
-        self.xmlroot.appendChild(xmlcmd)
+        self.xmlcontent = self.xmldoc.createElement('command')
+        self.xmlcontent.setAttribute('name', self.name)
 
         # Add args
         for arg in self.args.keys():
             xmlarg = self.xmldoc.createElement('arg')
             xmlarg.setAttribute('name', arg)
-            xmlcmd.appendChild(xmlarg)
+            self.xmlcontent.appendChild(xmlarg)
 
             argParam = self.args[arg]
 
@@ -83,8 +82,6 @@ class DeejaydXMLCommand(DeejaydXML):
                 # We've got a simple arg
                 xmlarg.setAttribute('type', 'simple')
                 xmlarg.appendChild(self.xmldoc.createTextNode(str(argParam)))
-
-        return self.xmldoc.toxml('utf-8')
 
 
 class DeejaydXMLAnswer(DeejaydXML):
