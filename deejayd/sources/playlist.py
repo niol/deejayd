@@ -279,7 +279,7 @@ class PlaylistSource(UnknownSourceManagement):
         id = 0
         if name == None:
             name = self.__class__.currentPlaylistName
-            id = self.getRecordedId()
+            id = self.getRecordedId() + 1
 
         if name not in self.__openPlaylists:
             self.__openPlaylists[name] = Playlist(self.djDB,name,None,id)

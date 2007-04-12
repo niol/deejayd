@@ -47,7 +47,6 @@ class VideoSource(UnknownSourceManagement):
 
     def setDirectory(self,dir):
         self.currentSource.clear()
-        self.currentItem = None
 
         try: videoList = self.djDB.getVideoFiles(dir)
         except NotFoundException: videoList = []
