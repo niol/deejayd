@@ -196,6 +196,12 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
 
         return responseDoc
 
+    def formatCombinedResponse(self):
+        combi = self.getAck()
+        combiFact = DeejaydXMLDocFactory(combi)
+        vl = combiFact.getVideoList()
+        return combi.toPrettyXML()
+
 if __name__ == "__main__":
     # XML Doc
     commandsListXML = commandsXML.commandsList(commandsXML)
@@ -207,6 +213,12 @@ There are 6 response types :"""
     respDocBuilder = DeejaydXMLDocFactory()
     for response in respDocBuilder.responseTypes:
         docs += respDocBuilder.formatResponseDoc(response)
+
+    docs += """
+Responses may be combined in the same physical message :
+{{{
+%s
+}}}""" % respDocBuilder.formatCombinedResponse()
 
     docs += """
 

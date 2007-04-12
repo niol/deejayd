@@ -3,12 +3,43 @@ from xml.dom import minidom
 
 class DeejaydXML:
 
-    def __init__(self):
-        self.xmldoc = minidom.Document()
+    def __init__(self, motherXMLObject = None):
+        self.appendedXMLObjects = None
 
-        # Add root
-        self.xmlroot = self.xmldoc.createElement('deejayd')
-        self.xmldoc.appendChild(self.xmlroot)
+        if motherXMLObject == None:
+            self.xmldoc = minidom.Document()
+            self.xmlroot = self.xmldoc.createElement('deejayd')
+            self.xmldoc.appendChild(self.xmlroot)
+            self.appendedXMLObjects = []
+        else:
+            self.xmldoc = motherXMLObject.xmldoc
+            self.xmlroot = self.xmldoc.getElementsByTagName('deejayd').pop()
+            motherXMLObject.appendAnotherXMLObject(self)
+
+        self.xmlcontent = None
+
+    def appendAnotherXMLObject(self, xmlObject):
+        self.appendedXMLObjects.append(xmlObject)
+
+    def __reallyBuildXML(self):
+        self.buildXML()
+        self.xmlroot.appendChild(self.xmlcontent)
+
+        if self.appendedXMLObjects != None:
+            for xmlObject in self.appendedXMLObjects:
+                xmlObject.buildXML()
+                self.xmlroot.appendChild(xmlObject.xmlcontent)
+
+    def toXML(self):
+        self.__reallyBuildXML()
+        return self.xmldoc.toxml('utf-8')
+
+    def toPrettyXML(self):
+        self.__reallyBuildXML()
+        return self.xmldoc.toprettyxml(encoding = 'utf-8')
+
+    def buildXML(self):
+        raise NotImplementedError
 
 
 class DeejaydXMLCommand(DeejaydXML):
@@ -58,8 +89,8 @@ class DeejaydXMLCommand(DeejaydXML):
 
 class DeejaydXMLAnswer(DeejaydXML):
 
-    def __init__(self, originatingCmd):
-        DeejaydXML.__init__(self)
+    def __init__(self, originatingCmd, motherXMLObject = None):
+        DeejaydXML.__init__(self, motherXMLObject)
         self.originatingCmd = originatingCmd
 
     def __toXMLString(self, s):
@@ -94,17 +125,6 @@ class DeejaydXMLAnswer(DeejaydXML):
                 xmlParm = self.buildXMLParm(dataKey, dataValue)
             parentElement.appendChild(xmlParm)
 
-    def buildXML(self):
-        raise NotImplementedError
-
-    def __str__(self):
-        self.buildXML()
-        return self.xmldoc.toxml('utf-8')
-
-    def toPrettyXML(self):
-        self.buildXML()
-        return self.xmldoc.toprettyxml(encoding = 'utf-8')
-
 
 class DeejaydXMLError(DeejaydXMLAnswer):
     """Error notification."""
@@ -115,11 +135,10 @@ class DeejaydXMLError(DeejaydXMLAnswer):
         self.errorText = txt
 
     def buildXML(self):
-        error = self.xmldoc.createElement(self.responseType)
-        error.setAttribute('name', self.originatingCmd)
-        error.appendChild(self.xmldoc.createTextNode(str(self.errorText)))
-        self.xmlroot.appendChild(error)
-        return self.xmldoc.toxml('utf-8')
+        self.xmlcontent = self.xmldoc.createElement(self.responseType)
+        self.xmlcontent.setAttribute('name', self.originatingCmd)
+        xmlErrorText = self.xmldoc.createTextNode(str(self.errorText))
+        self.xmlcontent.appendChild(xmlErrorText)
 
 
 class DeejaydXMLAck(DeejaydXMLAnswer):
@@ -127,15 +146,10 @@ class DeejaydXMLAck(DeejaydXMLAnswer):
 
     responseType = 'Ack'
 
-    def __init__(self, originatingCmd):
-        DeejaydXMLAnswer.__init__(self, originatingCmd)
-
-        self.response = self.xmldoc.createElement('response')
-        self.response.setAttribute('name', self.originatingCmd)
-
     def buildXML(self):
-        self.response.setAttribute('type', self.responseType)
-        self.xmlroot.appendChild(self.response)
+        self.xmlcontent = self.xmldoc.createElement('response')
+        self.xmlcontent.setAttribute('name', self.originatingCmd)
+        self.xmlcontent.setAttribute('type', self.responseType)
 
 
 class DeejaydXMLKeyValue(DeejaydXMLAck):
@@ -143,8 +157,8 @@ class DeejaydXMLKeyValue(DeejaydXMLAck):
 
     responseType = 'KeyValue'
 
-    def __init__(self, originatingCmd):
-        DeejaydXMLAck.__init__(self, originatingCmd)
+    def __init__(self, originatingCmd, motherXMLObject = None):
+        DeejaydXMLAck.__init__(self, originatingCmd, motherXMLObject)
         self.contents = {}
 
     def addParm(self, key, value):
@@ -157,7 +171,7 @@ class DeejaydXMLKeyValue(DeejaydXMLAck):
         DeejaydXMLAck.buildXML(self)
 
         for k, v in self.contents.items():
-            self.response.appendChild(self.buildXMLParm(k, v))
+            self.xmlcontent.appendChild(self.buildXMLParm(k, v))
 
 
 class DeejaydXMLFileList(DeejaydXMLAck):
@@ -165,8 +179,8 @@ class DeejaydXMLFileList(DeejaydXMLAck):
 
     responseType = 'FileList'
 
-    def __init__(self, originatingCmd):
-        DeejaydXMLAck.__init__(self, originatingCmd)
+    def __init__(self, originatingCmd, motherXMLObject = None):
+        DeejaydXMLAck.__init__(self, originatingCmd, motherXMLObject)
 
         self.directory = None
 
@@ -204,13 +218,13 @@ class DeejaydXMLFileList(DeejaydXMLAck):
         for dirname in self.contents['directory']:
             xmldir = self.xmldoc.createElement('directory')
             xmldir.setAttribute('name', dirname)
-            self.response.appendChild(xmldir)
+            self.xmlcontent.appendChild(xmldir)
 
         for mediaType in ['file', 'video']:
             for item in self.contents[mediaType]:
                 xmlitem = self.xmldoc.createElement(mediaType)
                 self.buildXMLParmList(item, xmlitem)
-                self.response.appendChild(xmlitem)
+                self.xmlcontent.appendChild(xmlitem)
 
 
 class DeejaydWebradioList(DeejaydXMLAck):
@@ -218,8 +232,8 @@ class DeejaydWebradioList(DeejaydXMLAck):
 
     responseType = 'WebradioList'
 
-    def __init__(self, originatingCmd):
-        DeejaydXMLAck.__init__(self, originatingCmd)
+    def __init__(self, originatingCmd, motherXMLObject = None):
+        DeejaydXMLAck.__init__(self, originatingCmd, motherXMLObject)
         self.webradios = []
 
     def addWebradio(self, wr):
@@ -230,7 +244,7 @@ class DeejaydWebradioList(DeejaydXMLAck):
         for wr in self.webradios:
             xmlwr = self.xmldoc.createElement('webradio')
             self.buildXMLParmList(wr, xmlwr)
-            self.response.appendChild(xmlwr)
+            self.xmlcontent.appendChild(xmlwr)
 
 
 class DeejaydXMLSongList(DeejaydXMLAck):
@@ -238,8 +252,8 @@ class DeejaydXMLSongList(DeejaydXMLAck):
 
     responseType = 'SongList'
 
-    def __init__(self, originatingCmd):
-        DeejaydXMLAck.__init__(self, originatingCmd)
+    def __init__(self, originatingCmd, motherXMLObject = None):
+        DeejaydXMLAck.__init__(self, originatingCmd, motherXMLObject)
         self.songs = []
 
     def addSong(self, song):
@@ -250,7 +264,7 @@ class DeejaydXMLSongList(DeejaydXMLAck):
         for song in self.songs:
             xmlsong = self.xmldoc.createElement('song')
             self.buildXMLParmList(song, xmlsong)
-            self.response.appendChild(xmlsong)
+            self.xmlcontent.appendChild(xmlsong)
 
 
 class DeejaydPlaylistList(DeejaydXMLAck):
@@ -258,8 +272,8 @@ class DeejaydPlaylistList(DeejaydXMLAck):
 
     responseType = 'PlaylistList'
 
-    def __init__(self, originatingCmd):
-        DeejaydXMLAck.__init__(self, originatingCmd)
+    def __init__(self, originatingCmd, motherXMLObject = None):
+        DeejaydXMLAck.__init__(self, originatingCmd, motherXMLObject)
         self.playlistNames = []
 
     def addPlaylist(self, playlistName):
@@ -270,7 +284,7 @@ class DeejaydPlaylistList(DeejaydXMLAck):
         for playlistName in self.playlistNames:
             xmlpl = self.xmldoc.createElement('playlist')
             xmlpl.setAttribute('name', playlistName)
-            self.response.appendChild(xmlpl)
+            self.xmlcontent.appendChild(xmlpl)
 
 
 class DeejaydVideoList(DeejaydXMLAck):
@@ -278,8 +292,8 @@ class DeejaydVideoList(DeejaydXMLAck):
 
     responseType = 'VideoList'
 
-    def __init__(self, originatingCmd):
-        DeejaydXMLAck.__init__(self, originatingCmd)
+    def __init__(self, originatingCmd, motherXMLObject = None):
+        DeejaydXMLAck.__init__(self, originatingCmd, motherXMLObject)
         self.videos = []
 
     def addVideo(self, video):
@@ -290,7 +304,7 @@ class DeejaydVideoList(DeejaydXMLAck):
         for video in self.videos:
             xmlvid = self.xmldoc.createElement('video')
             self.buildXMLParmList(video, xmlvid)
-            self.response.appendChild(xmlvid)
+            self.xmlcontent.appendChild(xmlvid)
 
 
 class DeejaydXMLAnswerFactory:
@@ -304,13 +318,17 @@ class DeejaydXMLAnswerFactory:
                       DeejaydPlaylistList,
                       DeejaydVideoList     ]
 
+    def __init__(self, motherAnswer = None):
+        self.motherAnswer = motherAnswer
+
     def getDeejaydXMLAnswer(self, type, originatingCmd):
         iat = iter(self.responseTypes)
         try:
             while True:
                 typeClass = iat.next()
                 if typeClass.responseType == type:
-                    return typeClass(originatingCmd)
+                    ans = typeClass(originatingCmd, self.motherAnswer)
+                    return ans
         except StopIteration:
             raise NotImplementedError
 
