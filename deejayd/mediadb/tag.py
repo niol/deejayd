@@ -5,21 +5,22 @@ from mutagen.easyid3 import EasyID3
 from mutagen.oggvorbis import OggVorbis
 
 class NotSupportedFormat:pass
+class UnknownException:pass
 
 class unknownFile:
 
     def __init__(self,f,player):
         self.player = player
         self.f = f
-        self.init = 0
         (path,filename) = os.path.split(f)
         self.info = {"filename": filename}
+        self._getInfo()
 
     def __getitem__(self,infoType):
-        pass
+        raise NotImplementedError
 
-    def __getInfo(self):
-        pass
+    def _getInfo(self):
+        raise NotImplementedError
 
 
 class unknownAudioFile(unknownFile):
@@ -30,22 +31,13 @@ class videoFile(unknownFile):
     supportedTag = ("videowidth","length","videoheight")
 
     def __setitem__(self,key,value):
-        if self.init == 0:
-            self.__getInfo()
-            self.init = 1
         self.info[key] = value
 
     def __getitem__(self,infoType):
-        if self.init == 0:
-            self.__getInfo()
-            self.init = 1
+        if infoType in self.info: return self.info[infoType]
+        else: return ""
 
-        if infoType in self.info:
-            return self.info[infoType]
-        else:
-            return ""
-
-    def __getInfo(self):
+    def _getInfo(self):
         def format_title(f):
             (filename,ext) = os.path.splitext(f)
             title = filename.replace(".", " ")
@@ -61,23 +53,19 @@ class videoFile(unknownFile):
 
         self.info["title"] = format_title(self.info["filename"])
         videoInfo = self.player.getVideoFileInfo(self.f)
+        if not isinstance(videoInfo,dict): raise UnknownException
         for t in self.__class__.supportedTag:
-            self.info[t] = videoInfo[t]
+            if t in videoInfo: self.info[t] = videoInfo[t]
+            else: raise UnknownException
 
 
 class mp3File(unknownAudioFile):
 
     def __getitem__(self,infoType):
-        if self.init == 0:
-            self.__getInfo()
-            self.init = 1
+        if infoType in self.info: return self.info[infoType]
+        else: return ""
 
-        if infoType in self.info:
-            return self.info[infoType]
-        else:
-            return ""
-
-    def __getInfo(self):
+    def _getInfo(self):
         mp3Info = MP3(self.f,ID3=EasyID3) 
         mp3Info.pprint()
         self.info["bitrate"] = mp3Info.info.bitrate
@@ -94,16 +82,10 @@ class mp3File(unknownAudioFile):
 class oggFile(unknownAudioFile):
 
     def __getitem__(self,infoType):
-        if self.init == 0:
-            self.__getInfo()
-            self.init = 1
+        if infoType in self.info: return self.info[infoType]
+        else: return ""
 
-        if infoType in self.info:
-            return self.info[infoType]
-        else:
-            return ""
-
-    def __getInfo(self):
+    def _getInfo(self):
         oggInfo = OggVorbis(self.f) 
         oggInfo.pprint()
         self.info["bitrate"] = oggInfo.info.bitrate

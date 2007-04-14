@@ -164,7 +164,7 @@ class Mplayer(unknownPlayer):
     def getVideoFileInfo(self,file):
         args = ["midentify",file]
         try: self.__process = Popen(args,stdin=PIPE,stdout=PIPE)
-        except OSError: return
+        except OSError: return None
 
         if self.__process.poll() == None:
             self.__process.wait()

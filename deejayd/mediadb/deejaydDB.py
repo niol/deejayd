@@ -42,6 +42,10 @@ class DeejaydAudioFile:
             # Not an supported file
             log.msg("%s : %s format not supported" % (f,self.file_type))
             return None
+        except tag.UnknownException: 
+            log.msg("%s : unable to obtain metadata form this %s file, skipped"\
+                % (f,self.file_type))
+            return None
         else: return file_info
 
 
@@ -89,7 +93,7 @@ class DeejaydDir:
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
                 if os.path.isdir(os.path.join(realDir,d))]
         for d in [di for (di,t) in dbRecord if t == 'directory']:
-            if os.path.isdir(os.path.join(realDir,d)):
+            if os.path.isdir(os.path.join(self.rootPath,d)):
                 if d in directories:
                     directories.remove(d)
             else:
@@ -115,10 +119,11 @@ class DeejaydDir:
         # Finally we update subdirectories
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
                 if os.path.isdir(os.path.join(realDir,d))]
-        newDir = [os.path.join(dir,d) for (dir,d) in newDir]
+        #newDir = [os.path.join(dir,d) for (dir,d) in newDir]
+        newDir = [d for (dir,d) in newDir]
         for d in directories:
-            if d in newDir: self.update(d,0)
-            else: self.update(d,lastUpdateTime)
+            t = d in newDir and 0 or lastUpdateTime
+            self.update(d,t)
 
     def testDir(self,dir):
         realDir = os.path.join(self.rootPath, dir)
