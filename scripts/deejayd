@@ -65,7 +65,7 @@ def killDeejayd(pidfile):
         except ValueError:
             sys.exit('Pidfile %s contains non-numeric value' % pidfile)
         try: 
-            os.kill(pid, 9)
+            os.kill(pid, 15)
             removePID(pidfile)
         except OSError, err:
             sys.exit('Unable to stop deejayd : %s, are you sure it running ?'\
