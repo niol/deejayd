@@ -41,29 +41,6 @@ if options.conffile:
 
 ######################################################
 
-from deejayd.net.deejaydProtocol import DeejaydFactory
-from twisted.python import log
-
-# install reactor
-config = DeejaydConfig()
-media_backend = config.get("general","media_backend")
-video_support = config.get("general","video_support") == "yes"
-if media_backend == "gstreamer":
-    if video_support:
-        # Install gtk2 reactor
-        from twisted.internet import gtk2reactor
-        gtk2reactor.install()
-    else:
-        # Install glib2 reactor
-        from twisted.internet import glib2reactor
-        glib2reactor.install()
-elif media_backend == "both":
-    from twisted.internet import glib2reactor
-    glib2reactor.install()
-
-from twisted.internet import reactor
-
-
 def daemonize():
     # See http://www.erlenstar.demon.co.uk/unix/faq_toc.html#TOC16
     if os.fork():   # launch child and...
@@ -132,6 +109,7 @@ def setEnv(options):
 
 
 def startLog(options):
+    from twisted.python import log
     if options.logfile:
         try: logFile = open(options.logfile, 'a')
         except IOError:
@@ -149,11 +127,33 @@ if __name__ == "__main__":
         killDeejayd(options.pidfile)
         sys.exit(1)
 
+    ###################
+    # install reactor
+    ##################
+    config = DeejaydConfig()
+    media_backend = config.get("general","media_backend")
+    video_support = config.get("general","video_support") == "yes"
+    if media_backend == "gstreamer":
+        if video_support:
+            # Install gtk2 reactor
+            from twisted.internet import gtk2reactor
+            gtk2reactor.install()
+        else:
+            # Install glib2 reactor
+            from twisted.internet import glib2reactor
+            glib2reactor.install()
+    elif media_backend == "both":
+        from twisted.internet import glib2reactor
+        glib2reactor.install()
+
+    from twisted.internet import reactor
+    ###############################################################
+
     setEnv(options)
     startLog(options)
 
+    from deejayd.net.deejaydProtocol import DeejaydFactory
     factory = DeejaydFactory()
-    config = DeejaydConfig()
     port = config.getint("net", "port")
     reactor.listenTCP(port, factory)
     reactor.run()
