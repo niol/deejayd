@@ -3,7 +3,7 @@
 This is a deejayd test server executable
 """
 
-import sys
+import sys, os
 
 print sys.path
 
@@ -11,6 +11,7 @@ from deejayd.net.deejaydProtocol import DeejaydFactory
 from deejayd.mediadb.database import sqliteDatabase
 from deejayd.mediadb.deejaydDB import DeejaydDB
 from twisted.internet import reactor
+from twisted.python import log
 
 # argv[1] should be port
 # argv[2] should be music dir
@@ -22,6 +23,8 @@ port = sys.argv[1]
 musicDir = sys.argv[2]
 dbfilename = sys.argv[3]
 
+log.startLogging(open('/tmp/testdeejayd.log', 'w'))
+
 db = sqliteDatabase(dbfilename)
 
 ddb = DeejaydDB(db, musicDir)
@@ -32,7 +35,7 @@ reactor.listenTCP(int(port), factory)
 ddb.updateDir('.')
 
 def printReady():
-    sys.stderr.write('ready\n')
+    os.write(2, 'ready\n')
 
 reactor.addSystemEventTrigger('after', 'startup', printReady)
 
