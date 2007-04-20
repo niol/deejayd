@@ -1,6 +1,4 @@
-"""
-Deejayd Client library testing
-"""
+"""Deejayd Client library testing"""
 # -*- coding: utf-8 -*-
 
 from testdeejayd import TestCaseWithData, TestCaseWithProvidedMusic
