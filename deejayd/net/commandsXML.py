@@ -301,19 +301,16 @@ class UpdateDB(UnknownCommand):
 
     def docInfos(self):
         return {
-            "args": [{"name":"directory", "type":"string", "req":0}],
             "returnType": "KeyValue", 
             "description": """
-Update the database. "directory" argument is optional and allow to update just
-a particular directory.
+Update the database. 
   * updating_db : the id of this task. it appears in the result of status
     command until the update are finished.
 """
         }
 
     def execute(self):
-        dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        try: updateDBId = self.deejaydArgs["db"].update(dir)
+        try: updateDBId = self.deejaydArgs["db"].update()
         except NotFoundException:
             self.getErrorAnswer('Path not found in the music directory')
 

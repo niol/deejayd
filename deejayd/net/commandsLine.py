@@ -104,11 +104,7 @@ class Stats(UnknownCommand):
 class UpdateDB(UnknownCommand):
 
     def execute(self):
-        dir = ""
-        if self.args != None:
-            dir = self.args
-
-        try: updateDBId = self.deejaydArgs["db"].update(dir)
+        try: updateDBId = self.deejaydArgs["db"].update()
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the music \
                 library')

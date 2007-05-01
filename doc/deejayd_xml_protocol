@@ -218,11 +218,9 @@ webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activate)
 update
 -----------------
 arguments :
-directory : type->string, required->false, multiple->false
 
 description : 
-Update the database. "directory" argument is optional and allow to update just
-a particular directory.
+Update the database. 
   * updating_db : the id of this task. it appears in the result of status
     command until the update are finished.
     
