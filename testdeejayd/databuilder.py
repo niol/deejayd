@@ -205,7 +205,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
         self.dir_struct_written = True
 
     def getRootDir(self):
-        return self.dir_struct_written and self.datadir or None 
+        return self.datadir 
 
     def addMedia(self):
         dir = self.getRandomElement(self.dirs.values())

@@ -83,7 +83,7 @@ class testDeejayDB(TestCaseWithMediaData,testDeejayDBWithProvidedMusic):
     def testRenameDirectory(self):
         """Rename a directory in deejaydb"""
         self.testdata.renameDir()
-        self.__verifyMediaDBContent()
+        self.__verifyMediaDBContent(False)
 
     def testRemoveDirectory(self):
         """Remove a directory in deejaydb"""
@@ -110,11 +110,12 @@ class testDeejayDB(TestCaseWithMediaData,testDeejayDBWithProvidedMusic):
         self.testdata.changeMediaTags()
         self.__verifyMediaDBContent()
 
-    def __verifyMediaDBContent(self):
-        time.sleep(1)
+    def __verifyMediaDBContent(self, testTag = True):
+        # First update mediadb
+        time.sleep(0.5)
         self.ddb.startUpdate()
+        time.sleep(0.5)
 
-        #"""Directory and Files detected by deejayddb"""
         self.assertRaises(NotFoundException,
                         self.ddb.getDir, self.testdata.getRandomString())
         self.assertRaises(NotFoundException,
@@ -128,12 +129,15 @@ class testDeejayDB(TestCaseWithMediaData,testDeejayDBWithProvidedMusic):
                 tn,dt,lg,bt) in self.ddb.getDir(current_root) \
                 if t == "directory"] 
             except NotFoundException:
+                allDirs = [os.path.join(dir,fn) for (dir,fn,t,ti,ar,al,gn,\
+                                tn,dt,lg,bt) in self.ddb.getDir('') \
+                                if t == "directory"]
                 self.assert_(False,
-                    "'%s' is in directory tree but was not found in DB" %\
-                    current_root)
+                    "'%s' is in directory tree but was not found in DB %s" %\
+                    (current_root,str(allDirs)))
             for dir in dirs:
                 self.assert_(os.path.join(current_root, dir) in inDBdirs,
-                    "'%s' is in directory tree but was not found in DB" % dir)
+                    "'%s' is in directory tree but was not found in DB %s in currrent root %s" % (dir,str(inDBdirs),current_root))
 
             # then, verify file list
             inDBfiles = [os.path.join(dir,fn) for (dir,fn,t,ti,ar,al,gn,tn,dt,\
@@ -145,7 +149,7 @@ class testDeejayDB(TestCaseWithMediaData,testDeejayDBWithProvidedMusic):
                     self.assert_(relPath in inDBfiles,
                     "'%s' is a file in directory tree but was not found in DB"\
                     % relPath)
-                    self.__verifyAudioTag(relPath)
+                    if testTag: self.__verifyAudioTag(relPath)
 
     def __verifyAudioTag(self,filePath):
         try: inDBfile = self.ddb.getFile(filePath)
