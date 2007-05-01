@@ -342,6 +342,7 @@ RENAME TABLE {video} TO {video_library};
     # Stat requests
     #
     def recordMediaDBStat(self):
+        import time
         # Get the number of songs
         self.execute("SELECT filename FROM {audio_library} WHERE type = 'file'")
         songs = len(self.cursor.fetchall())
@@ -355,9 +356,9 @@ RENAME TABLE {video} TO {video_library};
         albums = len(self.cursor.fetchall())
 
         # record in the database  
-        values = [(songs,"songs"),(artists,"artists"),(albums,"albums")]
+        values = [(songs,"songs"),(artists,"artists"),(albums,"albums"),\
+                  (time.time(),"db_update")]
         self.executemany("UPDATE {stats} SET value = ? WHERE name = ?",values)
-        self.connection.commit()
 
     def getMediaDBStat(self):
         self.execute("SELECT * FROM {stats}")

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import tag
-import os, sys, time
+import os, sys
 import database
 from twisted.python import log
 from twisted.internet import threads
@@ -84,8 +84,10 @@ class DeejaydDir:
             self.rootPath = library.getVideoRootPath()
             self.fileClass = DeejaydVideoFile
 
-    def update(self,dir,lastUpdateTime):
-        self.testDir(dir)
+    def update(self,lastUpdateTime,dir = ''):
+        # Test directory existence
+        if not os.path.isdir(self.rootPath):
+            raise NotFoundException
 
         realDir = os.path.join(self.rootPath, dir)
         dbRecord = self.db.getDirContent(dir,self.table)
@@ -123,13 +125,7 @@ class DeejaydDir:
         newDir = [d for (dir,d) in newDir]
         for d in directories:
             t = d in newDir and 0 or lastUpdateTime
-            self.update(d,t)
-
-    def testDir(self,dir):
-        realDir = os.path.join(self.rootPath, dir)
-        # Test directory existence
-        if not os.path.isdir(realDir):
-            raise NotFoundException
+            self.update(t,d)
 
 
 class DeejaydDB:
@@ -196,7 +192,7 @@ class DeejaydDB:
 
         return self.db.findInAudioMediaDB(type,content)
 
-    def updateDir(self,dir):
+    def startUpdate(self):
         self.__dbUpdate = self.db.getNewConnection()
         self.__dbUpdate.connect()
         self.__updateEnd = False
@@ -204,21 +200,20 @@ class DeejaydDB:
         self.lastUpdateTime = self.__dbUpdate.getStat('db_update')
         # Update video library
         if self.__video_path:
-            DeejaydDir(self,self.__dbUpdate,"video").update(dir,self.\
+            DeejaydDir(self,self.__dbUpdate,"video").update(self.\
                 lastUpdateTime)
         # Update audio library
-        DeejaydDir(self,self.__dbUpdate).update(dir,self.lastUpdateTime)
+        DeejaydDir(self,self.__dbUpdate).update(self.lastUpdateTime)
 
         # Remove empty dir
         self.__dbUpdate.eraseEmptyDir("audio_library")
         self.__dbUpdate.eraseEmptyDir("video_library")
-        # record the change in the database
-        self.__dbUpdate.connection.commit()
 
         # update stat values
-        self.__dbUpdate.setStat('db_update',time.time())
         self.__dbUpdate.recordMediaDBStat()
-        # close the connextion
+
+        # commit changes and close the connextion
+        self.__dbUpdate.connection.commit()
         self.__dbUpdate.close()
         self.__dbUpdate = None
 
@@ -236,13 +231,10 @@ class DeejaydDB:
             except: pass
         return True
 
-    def update(self,dir):
+    def update(self):
         if self.__updateEnd:
-            # First we test the directory
-            DeejaydDir(self).testDir(dir)
-
             self.__updateDBId += 1
-            self.d = threads.deferToThread(self.updateDir,dir)
+            self.d = threads.deferToThread(self.startUpdate)
             self.d.pause()
 
             # Add callback functions
@@ -299,14 +291,5 @@ def errorHandler(failure,dbClass):
 
     return False
 
-
-# for test only
-if __name__ == "__main__":
-    djDB = DeejaydDB()
-
-    t = int(time.time())
-    djDB.updateDir("")
-    print int(time.time()) - t
-    djDB.close()
 
 # vim: ts=4 sw=4 expandtab
