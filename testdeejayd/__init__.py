@@ -1,6 +1,6 @@
 import sys
 import unittest
-from testdeejayd.databuilder import TestData, TestMusicCollection, TestProvidedMusicCollection, TestCommand
+from testdeejayd.databuilder import TestData, TestMediaCollection, TestProvidedMusicCollection, TestCommand
 
 class TestCaseWithData(unittest.TestCase):
 
@@ -8,18 +8,14 @@ class TestCaseWithData(unittest.TestCase):
         self.testdata = TestData()
 
 
-class TestCaseWithFileData(TestCaseWithData):
+class TestCaseWithMediaData(unittest.TestCase):
 
     def setUp(self):
-        TestCaseWithData.setUp(self)
-        # FIXME Data should be generated
-        # For the mean time, we use a cmdline passed music directory
-        # self.testdata.buildLibraryDirectoryTree('/tmp')
+        self.testdata = TestMediaCollection()
+        self.testdata.buildMusicDirectoryTree()
 
     def tearDown(self):
-        # FIXME Data is not generated yet, so we do not need to clean it
-        # self.testdata.cleanLibraryDirectoryTree()
-        pass
+        self.testdata.cleanLibraryDirectoryTree()
 
 
 class TestCaseWithCommand(unittest.TestCase):

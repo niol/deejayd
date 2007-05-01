@@ -32,7 +32,7 @@ ddb = DeejaydDB(db, musicDir)
 factory = DeejaydFactory(ddb)
 reactor.listenTCP(int(port), factory)
 
-ddb.updateDir('.')
+ddb.startUpdate()
 
 def printReady():
     os.write(2, 'ready\n')

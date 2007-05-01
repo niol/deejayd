@@ -33,12 +33,6 @@ for fn in glob.glob(os.path.join(testSuitesDirectory, "test_*.py")):
 
 # FIXME : This was the old way of running tests, this is deprecated and the
 # following should be deleted.
-import testdeejayd.mediadb.database
-suitelist.append(unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.mediadb.database))
-
-import testdeejayd.mediadb.deejaydDB
-suitelist.append(unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.mediadb.deejaydDB))
-
 import testdeejayd.net.deejaydProtocol
 suitelist.append(unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.net.deejaydProtocol))
 # end of FIXME
