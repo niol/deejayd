@@ -126,15 +126,6 @@ class TestDir(TestData):
     def remove(self):
         shutil.rmtree(self.dirPath)
         self.build = False
-       
-    def renameItem(self):
-        item = self.getRandomElement(self.items)
-        item.rename()
-
-    def removeItem(self):
-        item = self.getRandomElement(self.items)
-        if self.build: item.remove()
-        self.items.remove(item)
         
 
 class TestProvidedMusicCollection(TestData):
@@ -261,6 +252,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
     def changeMediaTags(self):
         media = self.getRandomElement(self.medias.values())
         media.setRandomTag()
+
 
 class TestCommand(TestData):
 
