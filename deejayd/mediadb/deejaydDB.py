@@ -92,10 +92,10 @@ class DeejaydDir:
         realDir = os.path.join(self.rootPath, dir)
         dbRecord = self.db.getDirContent(dir,self.table)
         # First we update the list of directory
-        directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
+        directories = [ d for d in os.listdir(realDir) \
                 if os.path.isdir(os.path.join(realDir,d))]
         for d in [di for (di,t) in dbRecord if t == 'directory']:
-            if os.path.isdir(os.path.join(self.rootPath,d)):
+            if os.path.isdir(os.path.join(realDir,d)):
                 if d in directories:
                     directories.remove(d)
             else:
@@ -106,26 +106,27 @@ class DeejaydDir:
         if len(newDir) != 0: self.db.insertDir(newDir,self.table)
 
         # Now we update the list of files if necessary
-        if int(os.stat(realDir).st_mtime) >= lastUpdateTime:
-            files = [ f for f in os.listdir(realDir) 
-                if os.path.isfile(os.path.join(realDir,f))]
-            djFile = self.fileClass(self.db,self.player,dir,self.rootPath)
-            for f in [fi for (fi,t) in dbRecord if t == 'file']:
-                if os.path.isfile(os.path.join(realDir,f)):
-                    djFile.update(f)
-                    if f in files: files.remove(f)
-                else: djFile.remove(f)
-            # Insert new files
-            for f in files: djFile.insert(f)
+        files = [ f for f in os.listdir(realDir) 
+           if os.path.isfile(os.path.join(realDir,f))]
+        djFile = self.fileClass(self.db,self.player,dir,self.rootPath)
+        for f in [fi for (fi,t) in dbRecord if t == 'file']:
+            if os.path.isfile(os.path.join(realDir,f)):
+                if f in files: 
+                    files.remove(f)
+                    if os.stat(os.path.join(realDir,f)).st_mtime >= \
+                                                                lastUpdateTime:
+                        djFile.update(f)
+            else: djFile.remove(f)
+        # Insert new files
+        for f in files: djFile.insert(f)
 
         # Finally we update subdirectories
         directories = [ os.path.join(dir,d) for d in os.listdir(realDir) \
-                if os.path.isdir(os.path.join(realDir,d))]
-        #newDir = [os.path.join(dir,d) for (dir,d) in newDir]
+            if os.path.isdir(os.path.join(realDir,d))]
         newDir = [d for (dir,d) in newDir]
         for d in directories:
-            t = d in newDir and 0 or lastUpdateTime
-            self.update(t,d)
+            t = d in newDir and (0,) or (lastUpdateTime,)
+            self.update(t[0],d)
 
 
 class DeejaydDB:

@@ -107,6 +107,7 @@ class testDeejayDB(TestCaseWithMediaData,testDeejayDBWithProvidedMusic):
 
     def testChangeTag(self):
         """Tag value change detected by deejaydb"""
+        time.sleep(0.5)
         self.testdata.changeMediaTags()
         self.__verifyMediaDBContent()
 
@@ -114,7 +115,6 @@ class testDeejayDB(TestCaseWithMediaData,testDeejayDBWithProvidedMusic):
         # First update mediadb
         time.sleep(0.5)
         self.ddb.startUpdate()
-        time.sleep(0.5)
 
         self.assertRaises(NotFoundException,
                         self.ddb.getDir, self.testdata.getRandomString())
@@ -163,7 +163,7 @@ class testDeejayDB(TestCaseWithMediaData,testDeejayDBWithProvidedMusic):
         tags = {"title": 3, "artist": 4, "album": 5}
         for tag in tags.keys():
             self.assert_(realFile[tag] == inDBfile[tags[tag]],
-                "tag %s different between DB and reality %s != %s" % \
-                (tag,realFile[tag],inDBfile[tags[tag]]))
+                "tag %s for %s different between DB and reality %s != %s" % \
+                (tag,realFile["filename"],realFile[tag],inDBfile[tags[tag]]))
 
 # vim: ts=4 sw=4 expandtab

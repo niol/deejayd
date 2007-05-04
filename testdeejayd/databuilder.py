@@ -165,11 +165,12 @@ class TestMediaCollection(TestProvidedMusicCollection):
 
     def __init__(self):
         self.dir_struct_written = False
+        self.clean_library = True
         self.dirs = {} 
         self.medias = {} 
 
     def cleanLibraryDirectoryTree(self):
-        if self.dir_struct_written:
+        if self.dir_struct_written and self.clean_library:
             shutil.rmtree(self.datadir)
 
     def buildMusicDirectoryTree(self, destDir = "/tmp"):

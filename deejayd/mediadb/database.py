@@ -173,7 +173,7 @@ RENAME TABLE {video} TO {video_library};
         for (dir,filename) in self.cursor.fetchall():
             query = "SELECT COUNT(*) FROM {%s} WHERE type='file' AND dir LIKE ?\
                 " % table
-            self.execute(query,(filename+'%%',))
+            self.execute(query,(dir+'%%',))
             rs = self.cursor.fetchone()
             if rs == (0,):
                 self.eraseDir(dir,filename,table)
@@ -363,11 +363,6 @@ RENAME TABLE {video} TO {video_library};
     def getMediaDBStat(self):
         self.execute("SELECT * FROM {stats}")
         return self.cursor.fetchall()
-
-    def setStat(self,type,value):
-        self.execute("UPDATE {stats} SET value = ? WHERE name = ?" \
-            ,(value,type))
-        self.connection.commit()
 
     def getStat(self,type):
         self.execute("SELECT value FROM {stats} WHERE name = ?",(type,))
