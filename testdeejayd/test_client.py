@@ -371,5 +371,52 @@ class TestClient(TestCaseWithProvidedMusic):
         for song_nb in range(len(pl)):
             self.assertEqual(pl[song_nb], retrievedPl[song_nb]['Path'])
 
+    def testWebradioAddRetrieve(self):
+        """Save a webradio and check it is in the list, then delete it."""
+
+        wrList = self.deejaydaemon.getWebradios()
+
+        # Test for bad URI and inexistant playlist
+        for badURI in [[self.testdata.getRandomString(50)],
+                       ['http://' +\
+                        self.testdata.getRandomString(50) + '.pls']]:
+            # FIXME : provision for the future where the same webradio may have
+            # multiple urls.
+            # ans = wrList.addWebradio(self.testdata.getRandomString(), badURI)
+            ans = wrList.addWebradio(self.testdata.getRandomString(), badURI[0])
+            self.assertRaises(DeejaydError, ans.getContents)
+
+        testWrName = self.testdata.getRandomString()
+
+        # FIXME : provision for the future where the same webradio may have
+        # multiple urls.
+        # testWrUrls = []
+        # for urlCount in range(self.testdata.getRandomInt(10)):
+        #     testWrUrls.append('http://' + self.testdata.getRandomString(50))
+        testWrUrls = 'http://' + self.testdata.getRandomString(50)
+
+        ans = wrList.addWebradio(testWrName, testWrUrls)
+        self.failUnless(ans.getContents())
+
+        wrList = self.deejaydaemon.getWebradios()
+
+        # FIXME : This should not be, see the future of webradios.
+        testWrName += '-1'
+
+        self.failUnless(testWrName in self.deejaydaemon.getWebradios().names())
+
+        retrievedWr1 = wrList.getWebradio(testWrName)
+        retrievedWr2 = self.deejaydaemon.getWebradios().getWebradio(testWrName)
+
+        for retrievedWr in [retrievedWr1, retrievedWr2]:
+            # FIXME : Same provision for the future.
+            # for url in testWrUrls:
+            #     self.failUnless(url in retrievedWr['Url'])
+            self.assertEqual(testWrUrls, retrievedWr['Url'])
+
+        wrList.deleteWebradio(testWrName)
+        wrList = self.deejaydaemon.getWebradios()
+        self.failIf(testWrName in wrList.names())
+
 
 # vim: ts=4 sw=4 expandtab

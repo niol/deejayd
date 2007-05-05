@@ -73,7 +73,40 @@ class DeejaydFileList(DeejaydAnswer):
 
 
 class DeejaydWebradioList(DeejaydAnswer):
-    pass
+
+    def addWebradio(self, name, urls):
+        cmd = DeejaydXMLCommand('webradioAdd')
+        cmd.addSimpleArg('name', name)
+        # FIXME : Provision for the future where one webradio may have multiple
+        # urls.
+        # cmd.addMultipleArg('url', urls)
+        cmd.addSimpleArg('url', urls)
+        return self.server.sendCommand(cmd)
+
+    def deleteWebradio(self, name):
+        cmd = DeejaydXMLCommand('webradioRemove')
+        wrId = self.getWebradio(name)['Id']
+        cmd.addMultipleArg('id', [wrId])
+        return self.server.sendCommand(cmd)
+
+    def names(self):
+        names = []
+        for wr in self.getContents():
+            names.append(wr['Title'])
+        return names
+
+    def getWebradio(self, name):
+        return self.__getWebradioByField('Title', name)
+
+    def __getWebradioByField(self, field, value):
+        iWr = iter(self.getContents())
+        try:
+            while True:
+                wr = iWr.next()
+                if wr[field] == value:
+                    return wr
+        except StopIteration:
+            raise DeejaydError('Webradio not found')
 
 
 class DeejaydPlaylist(DeejaydKeyValue):
@@ -374,6 +407,11 @@ class DeejayDaemon:
     def getPlaylistList(self):
         cmd = DeejaydXMLCommand('playlistList')
         return self.sendCommand(cmd)
+
+    def getWebradios(self):
+        cmd = DeejaydXMLCommand('webradioList')
+        ans = DeejaydWebradioList(self)
+        return self.sendCommand(cmd, ans)
 
 
 # vim: ts=4 sw=4 expandtab
