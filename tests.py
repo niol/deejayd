@@ -31,12 +31,6 @@ for fn in glob.glob(os.path.join(testSuitesDirectory, "test_*.py")):
     suitelist.append(testSuite)
 
 
-# FIXME : This was the old way of running tests, this is deprecated and the
-# following should be deleted.
-import testdeejayd.net.deejaydProtocol
-suitelist.append(unittest.defaultTestLoader.loadTestsFromModule(testdeejayd.net.deejaydProtocol))
-# end of FIXME
-
 runner.run(unittest.TestSuite(suitelist))
 
 # vim: ts=4 sw=4 expandtab
