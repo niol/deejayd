@@ -1,6 +1,5 @@
 # mplayer.py
 
-from twisted.python import log
 from twisted.internet import threads
 from deejayd.ui.config import DeejaydConfig
 from subprocess import *

@@ -10,7 +10,7 @@ import gst
 import gst.interfaces
 
 from deejayd.player.unknown import unknownPlayer
-from twisted.python import log
+from deejayd.ui import log
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
@@ -209,7 +209,8 @@ class Gstreamer(unknownPlayer):
     def webradioSupport(self):
         if gst.element_make_from_uri(gst.URI_SRC, "http://", ""): return True
         else:
-            log.msg("gstreamer requires gst-plugins-gnomevfs to support webradio.")
+            log.msg(\
+                "gstreamer requires gst-plugins-gnomevfs to support webradio.")
             return False
 
     def isSupportedFormat(self,format):

@@ -3,9 +3,9 @@ from twisted.application import service, internet
 from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
-from twisted.python import log
 from xml.dom import minidom
 
+from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
 from deejayd.mediadb import deejaydDB
 from deejayd.mediadb.database import DatabaseFactory
@@ -67,13 +67,12 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def startFactory(self):
         config = DeejaydConfig()
-        log.msg("Starting Deejayd ...")
+        log.info("Starting Deejayd ...")
 
         # Try to Init the MediaDB
         if not self.db_supplied:
             try: audio_dir = config.get("mediadb","music_directory")
             except NoOptionError:
-                log.err("No audio directory found.")
                 sys.exit("You have to choose a music directory")
 
             if config.get('general', 'video_support') != 'yes':
@@ -87,7 +86,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
             self.db = deejaydDB.DeejaydDB(DatabaseFactory().getDB(),\
                             audio_dir,video_dir)
-        log.msg("MediaDB Initialisation...OK")
+        log.info("MediaDB Initialisation...OK")
 
         # Try to Init the player
         media_backend = config.get("general","media_backend")
@@ -95,7 +94,8 @@ class DeejaydFactory(protocol.ServerFactory):
             from deejayd.player import gstreamer
             try: self.player = gstreamer.Gstreamer(self.db,config)
             except gstreamer.NoSinkError:
-                sys.exit("Unable to start deejayd : No audio sink found for Gstreamer\n")
+                sys.exit(\
+                "Unable to start deejayd : No audio sink found for Gstreamer\n")
         elif media_backend == "mplayer":
             from deejayd.player import mplayer
             self.player = mplayer.Mplayer(self.db,config)
@@ -103,14 +103,16 @@ class DeejaydFactory(protocol.ServerFactory):
             from deejayd.player import both
             try: self.player = both.Both(self.db,config)
             except gstreamer.NoSinkError:
-                sys.exit("Unable to start deejayd : No audio sink found for Gstreamer\n")
+                sys.exit(\
+                "Unable to start deejayd : No audio sink found for Gstreamer\n")
         else:
-            sys.exit("Unable to start deejayd : you do not choose a correct media backend\n")
-        log.msg("Player Initialisation...OK")
+            sys.exit(\
+        "Unable to start deejayd : you do not choose a correct media backend\n")
+        log.info("Player Initialisation...OK")
 
         # Try to Init sources
         self.sources = sources.sourcesFactory(self.player,self.db,config)
-        log.msg("Sources Initialisation...OK")
+        log.info("Sources Initialisation...OK")
 
     def stopFactory(self):
         self.player.close()

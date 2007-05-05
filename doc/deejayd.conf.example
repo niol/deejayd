@@ -1,4 +1,11 @@
 [general]
+# log level
+# possible value are :
+#  * error : just log error
+#  * info : be more verbose
+#  * debug : log all messages
+log = error
+
 # video_support : yes or no
 video_support = yes 
 

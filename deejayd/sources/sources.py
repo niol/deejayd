@@ -1,6 +1,6 @@
 import sys
 
-from twisted.python import log
+from deejayd.ui import log
 from deejayd.player.gstreamer import NoSinkError
 
 class unknownSourceException: pass
@@ -30,7 +30,7 @@ class sourcesFactory:
             try: self.player.initVideoSupport()
             except(NoSinkError):
                 error = 'Cannot initialise video sink, either disable video support or check your gstreamer plugins (video sink).' 
-                log.msg(error)
+                log.err(error)
                 # FIXME : Perhaps we could continue here, but don't know if
                 # this is critical to deejayd operation if video support is
                 # half initialised.

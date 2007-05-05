@@ -2,7 +2,7 @@
  Class and methods to manage database
 """
 
-from twisted.python import log
+from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
 from os import path
 import sys

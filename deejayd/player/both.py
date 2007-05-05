@@ -1,5 +1,4 @@
 from deejayd.player.unknown import unknownPlayer
-from twisted.python import log
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"

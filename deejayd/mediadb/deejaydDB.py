@@ -3,7 +3,7 @@
 import tag
 import os, sys
 import database
-from twisted.python import log
+from deejayd.ui import log
 from twisted.internet import threads
 
 class NotFoundException:pass
@@ -40,10 +40,11 @@ class DeejaydAudioFile:
             self.file_type) 
         except tag.NotSupportedFormat: 
             # Not an supported file
-            log.msg("%s : %s format not supported" % (f,self.file_type))
+            log.info("%s : %s format not supported" % (f,self.file_type))
             return None
         except tag.UnknownException: 
-            log.msg("%s : unable to obtain metadata form this %s file, skipped"\
+            log.info(\
+                "%s : unable to obtain metadata form this %s file, skipped"\
                 % (f,self.file_type))
             return None
         else: return file_info
