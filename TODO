@@ -1,12 +1,8 @@
 Mediadb
   * Use os.walk function
-  * Remove empty directory from mediadb
 
 Test
   * Finish to write tests
-
-Player
-  * add basic subtitles support for gstreamer 
 
 Coding style
   I red somewhere that the recommended usage is underscore-separated for
