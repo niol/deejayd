@@ -25,5 +25,8 @@ class DeejaydConfig:
     def __getattr__(self, name):
         return getattr(DeejaydConfig.__config, name)
 
+    def set(self, section, variable, value):
+        self.__config.set(section, variable, value)
+
 
 # vim: ts=4 sw=4 expandtab
