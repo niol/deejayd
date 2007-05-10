@@ -270,7 +270,7 @@ RENAME TABLE {video} TO {video_library};
     #
     def getLastVideoId(self):
         self.execute("SELECT id FROM {video_library} ORDER BY id DESC")
-        (lastId,) = self.cursor.fetchone()
+        (lastId,) = self.cursor.fetchone() or (None,)
         return lastId
 
     def getVideoFiles(self,dir):
