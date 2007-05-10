@@ -5,13 +5,15 @@ class DeejaydXML:
 
     def __init__(self, motherXMLObject = None):
         self.appendedXMLObjects = None
+        self.__isMother = True
 
         if motherXMLObject == None:
             self.xmldoc = minidom.Document()
             self.xmlroot = self.xmldoc.createElement('deejayd')
             self.xmldoc.appendChild(self.xmlroot)
-            self.appendedXMLObjects = []
+            self.appendedXMLObjects = [self]
         else:
+            self.__isMother = False
             self.xmldoc = motherXMLObject.xmldoc
             self.xmlroot = self.xmldoc.getElementsByTagName('deejayd').pop()
             motherXMLObject.appendAnotherXMLObject(self)
@@ -22,13 +24,13 @@ class DeejaydXML:
         self.appendedXMLObjects.append(xmlObject)
 
     def __reallyBuildXML(self):
-        self.buildXML()
-        self.xmlroot.appendChild(self.xmlcontent)
-
-        if self.appendedXMLObjects != None:
+        if self.__isMother:
             for xmlObject in self.appendedXMLObjects:
                 xmlObject.buildXML()
                 self.xmlroot.appendChild(xmlObject.xmlcontent)
+        else:
+            raise NotImplementedError('Do not build directly deejayd\
+                                       XML that has a mother.')
 
     def toXML(self):
         self.__reallyBuildXML()
@@ -315,7 +317,10 @@ class DeejaydXMLAnswerFactory:
                       DeejaydPlaylistList,
                       DeejaydVideoList     ]
 
-    def __init__(self, motherAnswer = None):
+    def __init__(self):
+        self.motherAnswer = None
+
+    def setMother(self, motherAnswer):
         self.motherAnswer = motherAnswer
 
     def getDeejaydXMLAnswer(self, type, originatingCmd):

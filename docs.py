@@ -198,8 +198,8 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
 
     def formatCombinedResponse(self):
         combi = self.getAck()
-        combiFact = DeejaydXMLDocFactory(combi)
-        vl = combiFact.getVideoList()
+        self.setMother(combi)
+        vl = self.getVideoList()
         return combi.toPrettyXML()
 
 if __name__ == "__main__":
