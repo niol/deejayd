@@ -160,10 +160,10 @@ class DeejaydXMLKeyValue(DeejaydXMLAck):
         DeejaydXMLAck.__init__(self, originatingCmd, motherXMLObject)
         self.contents = {}
 
-    def addParm(self, key, value):
+    def addPair(self, key, value):
         self.contents[key] = value
 
-    def setParms(self, keyValue):
+    def setPairs(self, keyValue):
         self.contents = keyValue
 
     def buildXML(self):

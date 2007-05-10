@@ -134,7 +134,7 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
 
     def getKeyValue(self):
         kv = self.getDeejaydXMLAnswer('KeyValue', 'cmdName')
-        kv.setParms(self.getSampleParmDict())
+        kv.setPairs(self.getSampleParmDict())
         return kv
 
     def getFileList(self):
