@@ -14,8 +14,6 @@ from deejayd.net import commandsXML,commandsLine
 
 class DeejaydProtocol(LineReceiver):
 
-    debug = False
-
     def __init__(self,player,db,sources):
         self.delimiter = "\n"
         self.MAX_LENGTH = 1024
@@ -41,9 +39,8 @@ class DeejaydProtocol(LineReceiver):
             self.delimiter = "ENDXML\n"
             self.transport.write("OK\n")
             return
-
-        if self.debug:
-            print line
+        # DEBUG Informations
+        log.debug(line)
 
         if not self.lineProtocol:
             remoteCmd = self.cmdFactory.createCmdFromXML(line)
@@ -53,9 +50,8 @@ class DeejaydProtocol(LineReceiver):
         rsp = remoteCmd.execute()
         if isinstance(rsp, unicode):
             rsp = rsp.encode("utf-8")
-
-        if self.debug:
-            print rsp
+        # DEBUG Informations
+        log.debug(rsp)
 
         self.transport.write(rsp)
 
@@ -77,11 +73,6 @@ class DeejaydFactory(protocol.ServerFactory):
     def startFactory(self):
         config = DeejaydConfig()
         log.info("Starting Deejayd ...")
-
-        # Init protocol debug mode
-        if config.get('net', 'protocoldebug') == 'true':
-            log.msg('Protocol debugging enabled')
-            self.protocol.debug = True
 
         # Try to Init the MediaDB
         if not self.db_supplied:

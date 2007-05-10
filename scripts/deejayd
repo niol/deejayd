@@ -25,9 +25,9 @@ parser.add_option("-c","--conf-file",type="string",dest="conffile",\
     metavar="FILE", help="Specify a custom conf file")
 parser.add_option("-k","--kill",action="store_true",dest="kill",\
     help="Kill the actual deejayd process")
-parser.add_option("", "--protocoldebug",
-                  action="store_true", dest="protocoldebug",
-                  help="Log full exchanged protocol messages")
+parser.add_option("-d", "--debug",
+                  action="store_true", dest="debug",
+                  help="Log more debug informations")
 
 (options, args) = parser.parse_args()
 ######################################################
@@ -41,8 +41,8 @@ if options.conffile:
     else:
         sys.exit("The config file does not exist.")
 
-if options.protocoldebug:
-    DeejaydConfig().set('net', 'protocoldebug', 'true')
+if options.debug:
+    DeejaydConfig().set('general', 'log', 'debug')
         
 
 ######################################################
