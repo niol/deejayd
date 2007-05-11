@@ -1,5 +1,9 @@
 Mediadb
-  * Use os.walk function
+  * remove getState and setState to remove player dependance
+  * Use os.walk function to update library
+
+Player
+  * implement xine backend to remove mplayer backend
 
 Test
   * Finish to write tests
