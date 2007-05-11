@@ -173,7 +173,7 @@ RENAME TABLE {video} TO {video_library};
         for (dir,filename) in self.cursor.fetchall():
             query = "SELECT COUNT(*) FROM {%s} WHERE type='file' AND dir LIKE ?\
                 " % table
-            self.execute(query,(dir+'%%',))
+            self.execute(query,(path.join(dir,filename)+'%%',))
             rs = self.cursor.fetchone()
             if rs == (0,):
                 self.eraseDir(dir,filename,table)
@@ -186,6 +186,8 @@ RENAME TABLE {video} TO {video_library};
         self.executemany(query, newDir)
 
     def eraseDir(self,root,dir,table = "audio_library"):
+        log.debug("Erase dir (%s,%s) from mediadb" % (root,dir))
+
         query = "DELETE FROM {%s} WHERE filename = ? AND dir = ?" % table
         self.execute(query, (dir,root))
         # We also need to erase the content of this directory
