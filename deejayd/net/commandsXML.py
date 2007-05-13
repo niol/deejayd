@@ -1,8 +1,9 @@
+from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 from deejayd.mediadb.deejaydDB import NotFoundException
 from deejayd.sources.webradio import UnsupportedFormatException
 from deejayd import sources 
+
 from os import path
-from xml.dom.minidom import Document
 
 
 def commandsOrders():
@@ -69,111 +70,88 @@ def commandsList(commandsXML):
     }
 
 
-class Error:
-
-    def __init__(self,error):
-        self.errorString = error
-        # Init XML Document
-        self.xmlDoc = Document()
-        self.xmlRoot = self.xmlDoc.createElement("deejayd")
-        self.xmlDoc.appendChild(self.xmlRoot)
-
-    def execute(self):
-        err = self.xmlDoc.createElement("error")
-        err.setAttribute("name","unknown")
-        err.appendChild(self.xmlDoc.createTextNode(self.errorString))
-
-        self.xmlRoot.appendChild(err)
-        return False
-
-
 class queueCommands:
     
     def __init__(self,deejaydArgs):
         self.__commandsList = []
         self.deejaydArgs = deejaydArgs
-
-        # Init XML Document
-        self.xmlDoc = Document()
-        self.xmlRoot = self.xmlDoc.createElement("deejayd")
-        self.xmlDoc.appendChild(self.xmlRoot)
+        self.__rspFactory = DeejaydXMLAnswerFactory()
 
     def addCommand(self,name,cmd,args):
         self.__commandsList.append((name,cmd,args))
 
     def execute(self):
+        motherRsp = None
 
-        for (cmdName,cmd,args) in self.__commandsList: 
-            cmd(cmdName,args,self.deejaydArgs,self.xmlDoc,self.xmlRoot).\
-                execute()
+        for (cmdName, cmdType, args) in self.__commandsList:
+            cmd = cmdType(cmdName, args, self.__rspFactory, self.deejaydArgs)
+            rsp = cmd.execute()
+            if motherRsp == None:
+                motherRsp = rsp
+                self.__rspFactory.setMother(motherRsp)
 
-        return self.xmlDoc.toxml("utf-8")
+        return motherRsp.toXML()
 
 
 class UnknownCommand:
 
-    def __init__(self, cmdName, args, deejaydArgs = None, xmlDoc = None,\
-                 xmlRoot = None):
+    def __init__(self, cmdName, args,
+                 rspFactory = None, deejaydArgs = None):
         self.name = cmdName
         self.args = args
         self.deejaydArgs = deejaydArgs
-        self.xmlDoc = xmlDoc
-        self.xmlRoot = xmlRoot
+        self.__rspFactory = rspFactory or DeejaydXMLAnswerFactory()
 
     def execute(self):
-        self.getErrorAnswer("Unknown command : %s" % (self.name,))
+        return self.getErrorAnswer("Unknown command : %s" % (self.name,))
+
+    def getAnswer(self, type):
+        return self.__rspFactory.getDeejaydXMLAnswer(type, self.name)
 
     def getErrorAnswer(self, errorString):
-        error = self.xmlDoc.createElement("error")
-        error.setAttribute("name",self.name)
-        error.appendChild(self.xmlDoc.createTextNode(errorString))
+        error = self.getAnswer('error')
+        error.setErrorText(errorString)
+        return error
 
-        self.xmlRoot.appendChild(error)
-        return False
+    def getOkAnswer(self):
+        return self.getAnswer('Ack')
 
-    def getOkAnswer(self, type = "Ack", answerXmlData = []):
-        rsp = self.xmlDoc.createElement("response")
-        rsp.setAttribute("name",self.name)
-        rsp.setAttribute("type",type)
-        for child in answerXmlData: rsp.appendChild(child)
+    def getKeyValueAnswer(self, keyValueList):
+        rsp = self.getAnswer('KeyValue')
+        rsp.setPairs(dict(keyValueList))
+        return rsp
 
-        self.xmlRoot.appendChild(rsp)
-        return True
-
-    def formatInfoResponse(self, resp):
-        rs = [];
-        for (dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in resp:
-
+    # FIXME : This function should not exist, dataase structure should not
+    # appear here.
+    def getFileAndDirs(self, dblist):
+        files = []
+        dirs = []
+        for (dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in dblist:
             if t == 'directory':
-                chd = self.xmlDoc.createElement("directory")
-                chd.setAttribute("name",fn)
+                dirs.append(fn)
             else:
-                chd = self.xmlDoc.createElement("file")
-                dict = [("Path",path.join(dir,fn)),("Time",lg),("Title",ti),\
+                fileI = [("Path",path.join(dir,fn)),("Time",lg),("Title",ti),\
                         ("Artist",ar),("Album",al),("Genre",gn),("Track",tn),\
                         ("Date",dt)]
-                parms = self.formatResponseWithDict(dict)
-                for parm in parms: chd.appendChild(parm)
+                files.append(dict(fileI))
+        return (files, dirs)
 
-            rs.append(chd)
+    # FIXME : This function should not exist, dataase structure should not
+    # appear here.
+    def getVideosAndDirs(self, dblist):
+        videos = []
+        dirs = []
+        for (dir,fn,t,id,ti,len,videow,videoh,sub) in dblist:
 
-        return rs
+            if t == 'directory':
+                dirs.append(fn)
+            else:
+                videoI = [("Path",path.join(dir,fn)),("Title",ti),("Id",id),\
+                    ("Time",len),("Videowidth",videow),("Videoheight",videoh),\
+                    ("Subtitle",sub)]
+                videos.append(dict(videoI))
 
-    def formatResponseWithDict(self,dict):
-        rs = []
-        for (k,v) in dict:
-            parm = self.xmlDoc.createElement("parm")
-            parm.setAttribute("name",k)
-            if isinstance(v,int) or isinstance(v,float):
-                value = "%d" % (v,)
-            elif isinstance(v,str):
-                value = "%s" % (v)
-            elif isinstance(v,unicode):
-                value = "%s" % (v.encode("utf-8"))
-            parm.setAttribute("value",value)
-            rs.append(parm)
-
-        return rs
+        return (videos, dirs)
 
 
 class Ping(UnknownCommand):
@@ -212,7 +190,6 @@ Change the player mode. Possible values are :
                 return self.getErrorAnswer('Unknown mode') 
 
 
-
 class Status(UnknownCommand):
 
     def docInfos(self):
@@ -244,8 +221,7 @@ Return status of deejayd. Given informations are :
         status.extend(self.deejaydArgs["sources"].getStatus())
         status.extend(self.deejaydArgs["db"].getStatus())
 
-        rs = self.formatResponseWithDict(status)
-        return self.getOkAnswer("KeyValue",rs)
+        return self.getKeyValueAnswer(status)
 
 
 class Stats(UnknownCommand):
@@ -264,9 +240,7 @@ Return statistic informations :
 
     def execute(self):
         stats = self.deejaydArgs["db"].getStats()
-        rs = self.formatResponseWithDict(stats)
-
-        return self.getOkAnswer("KeyValue",rs)
+        return self.getKeyValueAnswer(stats)
 
 
 class GetMode(UnknownCommand):
@@ -289,8 +263,7 @@ webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activate)
             act = s in avSources or 1 and 0
             modes.append((s,act))
 
-        rs = self.formatResponseWithDict(modes)
-        return self.getOkAnswer("KeyValue",rs)
+        return self.getKeyValueAnswer(modes)
 
 
 ###################################################
@@ -310,12 +283,11 @@ Update the database.
         }
 
     def execute(self):
-        try: updateDBId = self.deejaydArgs["db"].update()
+        try:
+            updateDBId = self.deejaydArgs["db"].update()
+            return self.getKeyValueAnswer([('updating_db', updateDBId)])
         except NotFoundException:
-            self.getErrorAnswer('Path not found in the music directory')
-
-        rs = self.formatResponseWithDict([("updating_db",updateDBId)])
-        self.getOkAnswer("KeyValue",rs)
+            return self.getErrorAnswer('Path not found in the music directory')
 
 
 class GetDir(UnknownCommand):
@@ -329,27 +301,21 @@ lists files of "directory".
 """
         }
 
-    def getOkAnswer(self, type, answerXmlData):
-        rsp = self.xmlDoc.createElement("response")
-        rsp.setAttribute("name",self.name)
-        rsp.setAttribute("type",type)
-
-        dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        rsp.setAttribute("directory",dir)
-
-        for child in answerXmlData: rsp.appendChild(child)
-
-        self.xmlRoot.appendChild(rsp)
-        return True
-
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        try: list = self.deejaydArgs["db"].getDir(dir)
+        try:
+            list = self.deejaydArgs['db'].getDir(dir)
+            rsp = self.getAnswer('FileList')
+            rsp.setDirectory(dir)
+
+            files, dirs = self.getFileAndDirs(list)
+            rsp.setFiles(files)
+            rsp.setDirectories(dirs)
+
+            return rsp
+
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
-
-        rs = self.formatInfoResponse(list)
-        return self.getOkAnswer("FileList",rs)
 
 
 class Search(UnknownCommand):
@@ -372,12 +338,18 @@ Search file where "type" contains "txt" content
         else:
             return self.getErrorAnswer('You have to enter text')
 
-        try: list = getattr(self.deejaydArgs["db"],self.name)(type,content)
+        try:
+            list = getattr(self.deejaydArgs["db"],self.name)(type,content)
+            rsp = self.getAnswer('FileList')
+
+            dirs, files = self.getFileAndDirs(list)
+            rsp.setFiles(files)
+            rsp.setDirectories(dirs)
+
+            return rsp
+
         except NotFoundException:
             return self.getErrorAnswer('type %s is not supported' % (type,))
-
-        rs = self.formatInfoResponse(list)
-        return self.getOkAnswer("FileList",rs)
 
 
 class GetVideoDir(GetDir):
@@ -393,31 +365,20 @@ lists files of video dir "directory".
 
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        try: list = self.deejaydArgs["db"].getDir(dir,"video")
+        try:
+            list = self.deejaydArgs["db"].getDir(dir,"video")
+            rsp = self.getAnswer('FileList')
+            rsp.setDirectory(dir)
+
+            videos, dirs = self.getVideosAndDirs(list)
+            rsp.setVideos(videos)
+            rsp.setDirectories(dirs)
+
+            return rsp
+
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
 
-        rs = self.formatInfoResponse(list)
-        return self.getOkAnswer("FileList",rs)
-
-    def formatInfoResponse(self, resp):
-        rs = [];
-        for (dir,fn,t,id,ti,len,videow,videoh,sub) in resp:
-
-            if t == 'directory':
-                chd = self.xmlDoc.createElement("directory")
-                chd.setAttribute("name",fn)
-            else:
-                chd = self.xmlDoc.createElement("video")
-                dict = [("Path",path.join(dir,fn)),("Title",ti),("Id",id),\
-                    ("Time",len),("Videowidth",videow),("Videoheight",videoh),\
-                    ("Subtitle",sub)]
-                parms = self.formatResponseWithDict(dict)
-                for parm in parms: chd.appendChild(parm)
-
-            rs.append(chd)
-
-        return rs
 
 
 ###################################################
@@ -437,13 +398,13 @@ Set the current video directory at "directory"
 
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        try: self.deejaydArgs["sources"].getSource("video").setDirectory(dir)
+        try:
+            self.deejaydArgs["sources"].getSource("video").setDirectory(dir)
+            return self.getOkAnswer()
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
         #except sources.unknownSourceException:
         #    return self.getErrorAnswer('Video support disabled')
-
-        return self.getOkAnswer()
 
 
 ###################################################
@@ -459,12 +420,12 @@ class SimplePlaylistCommand(UnknownCommand):
         if not playlistName and self.__class__.requirePlaylist:
             return self.getErrorAnswer('You must enter a playlist name')
 
-        try: getattr(self.deejaydArgs["sources"].getSource("playlist"),
-            self.__class__.funcName)(playlistName)
+        try:
+            getattr(self.deejaydArgs["sources"].getSource("playlist"),
+                    self.__class__.funcName)(playlistName)
+            return self.getOkAnswer()
         except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
-
-        self.getOkAnswer()
 
 
 class PlaylistClear(SimplePlaylistCommand):
@@ -529,12 +490,12 @@ Load playlists passed in arguments ("name") at the position "pos"
         if isinstance(plsNames, str):
             plsNames = [plsNames]
 
-        try: self.deejaydArgs["sources"].getSource("playlist").load(plsNames,
-                pos)
+        try:
+            self.deejaydArgs["sources"].getSource("playlist").load(plsNames,
+                                                                   pos)
+            return self.getOkAnswer()
         except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
-
-        self.getOkAnswer()
 
 
 class PlaylistErase(UnknownCommand):
@@ -553,12 +514,12 @@ Erase playlists passed in arguments
             plsNames = [plsNames]
 
         for plsName in plsNames:
-            try: self.deejaydArgs["sources"].getSource("playlist").\
+            try:
+                self.deejaydArgs["sources"].getSource("playlist").\
                     rm(plsName)
+                return self.getOkAnswer()
             except sources.playlist.PlaylistNotFoundException:
                 return self.getErrorAnswer('Playlist not found')
-
-        self.getOkAnswer()
 
 
 class PlaylistAdd(UnknownCommand):
@@ -593,9 +554,9 @@ playlist.
         try: 
             self.deejaydArgs["sources"].getSource("playlist").\
                 addPath(files,playlistName,pos)
+            return self.getOkAnswer()
         except sources.unknown.ItemNotFoundException:
             return self.getErrorAnswer('%s not found' % (file,))
-        return self.getOkAnswer()
 
 
 class PlaylistInfo(UnknownCommand):
@@ -615,33 +576,22 @@ If no name are given, return the content of the current playlist
         try:
             songs = self.deejaydArgs["sources"].getSource("playlist").\
                 getContent(playlistName)
-            rs = self.formatPlaylistInfo(songs)
-            return self.getOkAnswer("SongList",rs)
-
+            rsp = self.getAnswer('SongList')
+            rsp.setSongs(self.formatSongs(songs))
+            return rsp
         except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
 
-    def formatPlaylistInfo(self,songs):
+    def formatSongs(self,songs):
         rs = []
         for s in songs:
             s["Path"] = path.join(s["dir"],s["filename"])
-            chd = self.xmlDoc.createElement("song")
-            dict = ("Path","Pos","Id","Time","Title","Artist","Album",
-                "Genre","Track","Date")
-
-            for t in dict:
-                parm = self.xmlDoc.createElement("parm")
-                parm.setAttribute("name",t)
-                if isinstance(s[t],int):
-                    content = "%d" % (s[t],)
-                elif isinstance(s[t],str):
-                    content = s[t]
-                parm.setAttribute("value",content)
-
-                chd.appendChild(parm)
-
-            rs.append(chd)
-
+            dictKeys = ("Path","Pos","Id","Time","Title","Artist","Album",
+                        "Genre","Track","Date")
+            songInfo = {}
+            for t in dictKeys:
+                songInfo[t] = s[t]
+            rs.append(songInfo)
         return rs
 
 
@@ -672,12 +622,11 @@ If no name are given, remove songs from current playlist
             try: 
                 self.deejaydArgs["sources"].getSource("playlist").\
                     delete(nb,"Id",playlistName)
+                return self.getOkAnswer()
             except sources.unknown.ItemNotFoundException:
                 return self.getErrorAnswer('Song not found')
             except sources.playlist.PlaylistNotFoundException:
                 return self.getErrorAnswer('Playlist not found')
-
-        return self.getOkAnswer()
 
 
 class PlaylistMove(UnknownCommand):
@@ -721,13 +670,11 @@ Return the list of recorded playlists
 
     def execute(self):
         playlists = self.deejaydArgs["sources"].getSource("playlist").getList()
-        rs = []
+        rsp = self.getAnswer('PlaylistList')
         for pl in playlists: 
-            playlist = self.xmlDoc.createElement("playlist")
-            playlist.setAttribute("name",pl)
-            rs.append(playlist)
+            rsp.addPlaylist(pl)
 
-        return self.getOkAnswer("PlaylistList",rs)
+        return rsp
 
 
 ###################################################
@@ -735,9 +682,8 @@ Return the list of recorded playlists
 ###################################################
 class WebradioCommand(UnknownCommand):
 
-    def __init__(self, cmdName, args, deejaydArgs = None, xmlDoc = None,\
-                 xmlRoot = None):
-        UnknownCommand.__init__(self,cmdName,args,deejaydArgs,xmlDoc,xmlRoot)
+    def __init__(self, cmdName, args, rspFactory, deejaydArgs = None):
+        UnknownCommand.__init__(self, cmdName, args, rspFactory, deejaydArgs)
 
         self.wrSource = None
         if deejaydArgs:
@@ -761,15 +707,13 @@ Return the list of recorded webradios
             return self.getErrorAnswer("Webradio support not available")
 
         wrs = self.wrSource.getContent()
-        rs = []
-        for wr in wrs:
-            webradio = self.xmlDoc.createElement("webradio")
-            dict = [("Title",wr["Title"]),("Id",wr["Id"]),("Pos",wr["Pos"]),("Url",wr["uri"])]
-            content = self.formatResponseWithDict(dict) 
-            for c in content: webradio.appendChild(c)
-            rs.append(webradio)
 
-        return self.getOkAnswer("WebradioList",rs)
+        rsp = self.getAnswer('WebradioList')
+        for wr in wrs:
+            wrdict = [("Title",wr["Title"]),("Id",wr["Id"]),("Pos",wr["Pos"]),("Url",wr["uri"])]
+            rsp.addWebradio(dict(wrdict))
+
+        return rsp
 
 
 class WebradioClear(WebradioCommand):
@@ -812,11 +756,11 @@ Remove webradios with id equal to "ids"
             except ValueError: 
                 return self.getErrorAnswer('Need an integer : id') 
         
-            try: self.wrSource.delete(id)
+            try:
+                self.wrSource.delete(id)
+                return self.getOkAnswer()
             except sources.webradio.WrNotFoundException:
                 return self.getErrorAnswer('Webradio not found')
-
-        return self.getOkAnswer()
 
 
 class WebradioAdd(WebradioCommand):
@@ -898,11 +842,12 @@ the queue
         if isinstance(files, str):
             files = [files]
 
-        try: self.deejaydArgs["sources"].getSource("queue").\
+        try:
+            self.deejaydArgs["sources"].getSource("queue").\
                 add(files,pos)
+            return self.getOkAnswer()
         except sources.unknown.ItemNotFoundException:
             return self.getErrorAnswer('%s not found' % (file,))
-        return self.getOkAnswer()
 
 
 class QueueLoadPlaylist(UnknownCommand):
@@ -930,12 +875,12 @@ Load playlists passed in arguments ("name") at the position "pos" in the queue
         if isinstance(plsNames, str):
             plsNames = [plsNames]
 
-        try: self.deejaydArgs["sources"].getSource("queue").\
-            loadPlaylist(plsNames,pos)
+        try:
+            self.deejaydArgs["sources"].getSource("queue").\
+                loadPlaylist(plsNames,pos)
+            return self.getOkAnswer()
         except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
-
-        self.getOkAnswer()
 
 
 class QueueInfo(PlaylistInfo):
@@ -951,8 +896,9 @@ Return the content of the queue
 
     def execute(self):
         songs = self.deejaydArgs["sources"].getSource("queue").getContent()
-        rs = self.formatPlaylistInfo(songs)
-        return self.getOkAnswer("SongList",rs)
+        rsp = self.getAnswer('SongList')
+        rsp.setSongs(self.formatSongs(songs))
+        return rsp
 
 
 class QueueRemove(UnknownCommand):
@@ -976,11 +922,11 @@ Remove songs with ids passed as argument ("id"), from the queue.
                 return self.getErrorAnswer('Need an integer for argument \
                         number')
 
-            try: self.deejaydArgs["sources"].getSource("queue").delete(nb,"Id")
+            try:
+                self.deejaydArgs["sources"].getSource("queue").delete(nb,"Id")
+                return self.getOkAnswer()
             except sources.unknown.ItemNotFoundException:
                 return self.getErrorAnswer('Song not found')
-
-        return self.getOkAnswer()
 
 
 class QueueClear(WebradioCommand):
@@ -1189,34 +1135,26 @@ Return informations on the current song or webradio.
         source = self.deejaydArgs["player"].getPlayingSourceName()
         item = self.deejaydArgs["sources"].getSource(source).\
                     getPlayingItem()
-        rs = []
-        returnType = "SongList"
+        rsp = None
+
         if item:
-            dict = []
             if source == "webradio":
-                chdName = "webradio"
-                returnType = "WebradioList"
-                dict = [("Title",item["Title"]),("Id",item["Id"]),\
+                rsp = self.getAnswer('WebradioList')
+                wrdict = [("Title",item["Title"]),("Id",item["Id"]),\
                     ("Pos",item["Pos"]),("Url",item["uri"])]
+                rsp.addWebradio(dict(wrdict))
             elif source == "video":
-                chdName = "video"
-                returnType = "VideoList"
-                dict = [("Title",item["Title"]),("Id",item["Id"]),\
+                rsp = self.getAnswer('VideoList')
+                vdict = [("Title",item["Title"]),("Id",item["Id"]),\
                     ("Time",item["Time"])]
+                rsp.addVideo(dict(vdict))
             elif source == "playlist" or source == "queue":
-                chdName = "file"
-                returnType = "SongList"
-                dict = [("Title",item["Title"]),("Id",item["Id"]),\
+                rsp = self.getAnswer('SongList')
+                sldict = [("Title",item["Title"]),("Id",item["Id"]),\
                     ("Pos",item["Pos"]),("Artist",item["Artist"]),\
                     ("Album",item["Album"]),("Time",item["Time"])]
+                rsp.addSong(dict(sldict))
+        return rsp
 
-            content = self.formatResponseWithDict(dict) 
-
-            chd = self.xmlDoc.createElement(chdName) 
-            chd.setAttribute("type",source)
-            for c in content: chd.appendChild(c)
-            rs = [chd]
-
-        return self.getOkAnswer(returnType,rs)
 
 # vim: ts=4 sw=4 expandtab

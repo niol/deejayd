@@ -255,45 +255,4 @@ class TestMediaCollection(TestProvidedMusicCollection):
         media.setRandomTag()
 
 
-class TestCommand(TestData):
-
-    def __init__(self):
-        self.xmldoc = minidom.Document()
-        self.xmlroot = self.xmldoc.createElement("deejayd")
-        self.xmldoc.appendChild(self.xmlroot)
-
-    def createXMLCmd(self,cmdName,args = {}):
-        cmd = self.xmldoc.createElement("command")
-        cmd.setAttribute("name",cmdName)
-        for k in args.keys():
-            arg = self.xmldoc.createElement("arg")
-            arg.setAttribute("name",k)
-            arg.appendChild(self.xmlDoc.createTextNode(args[k]))
-            cmd.appendChild(arg)
-
-        self.xmlroot.appendChild(cmd)
-        return self.xmldoc.toxml()
-
-    def createRandomXMLCmd(self):
-        rdCmd = self.getRandomString()
-        return self.createXMLCmd(self,rdCmd)
-
-    def createRandomLineCmd(self):
-        return self.getRandomString()
-
-    def createSimpleOkanswer(self,cmdName):
-        rsp = self.xmldoc.createElement("response")
-        rsp.setAttribute("name",cmdName)
-        rsp.setAttribute("type","Ack")
-
-        self.xmlroot.appendChild(rsp)
-        return self.xmldoc.toxml('utf-8')
-
-    def isError(self,rsp,cmdName = ""):
-        xmldoc = minidom.parseString(rsp)
-        errs = xmldoc.getElementsByTagName("error")
-
-        if len(errs) > 0: return True
-        else: return False
-
 # vim: ts=4 sw=4 expandtab

@@ -1,6 +1,7 @@
 import sys
 import unittest
-from testdeejayd.databuilder import TestData, TestMediaCollection, TestProvidedMusicCollection, TestCommand
+from testdeejayd.databuilder import TestData, TestMediaCollection, TestProvidedMusicCollection
+
 
 class TestCaseWithData(unittest.TestCase):
 
@@ -16,12 +17,6 @@ class TestCaseWithMediaData(unittest.TestCase):
 
     def tearDown(self):
         self.testdata.cleanLibraryDirectoryTree()
-
-
-class TestCaseWithCommand(unittest.TestCase):
-
-    def setUp(self):
-        self.testcmd = TestCommand
 
 
 class TestCaseWithProvidedMusic(unittest.TestCase):

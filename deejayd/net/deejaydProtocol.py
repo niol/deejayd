@@ -59,7 +59,7 @@ class DeejaydProtocol(LineReceiver):
         log.err("Request too long, skip it")
         self.transport.write("ACK line too long\n")
         self.transport.loseConnection()
-        
+
 
 class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
@@ -142,7 +142,7 @@ class CommandFactory:
     def createCmdFromXML(self,line):
         try: xmldoc = minidom.parseString(line)
         except: 
-            return commandsXML.Error("Unable to parse the XML command")
+            return commandsXML.UnknownCommand('parsing error', [])
 
         queueCmd = commandsXML.queueCommands(self.deejaydArgs)
         cmds = xmldoc.getElementsByTagName("command")

@@ -238,6 +238,9 @@ class DeejaydWebradioList(DeejaydXMLAck):
     def addWebradio(self, wr):
         self.webradios.append(wr)
 
+    def setWebradios(self, wrList):
+        self.webradios = wrList
+
     def buildXML(self):
         DeejaydXMLAck.buildXML(self)
         for wr in self.webradios:
@@ -257,6 +260,9 @@ class DeejaydXMLSongList(DeejaydXMLAck):
 
     def addSong(self, song):
         self.songs.append(song)
+
+    def setSongs(self, songs):
+        self.songs = songs
 
     def buildXML(self):
         DeejaydXMLAck.buildXML(self)

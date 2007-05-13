@@ -85,7 +85,7 @@ Response Format :
 """
 
 def formatCmdDoc(name,cmdObj, xml = True):
-    infos = cmdObj("",[]).docInfos()
+    infos = cmdObj("", None, []).docInfos()
     # Args
     argsText = ""
     if "args" in infos:

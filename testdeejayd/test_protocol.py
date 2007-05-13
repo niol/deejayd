@@ -1,16 +1,18 @@
-from testdeejayd import TestCaseWithCommand, TestCaseWithData
+from testdeejayd import TestCaseWithProvidedMusic
+
 from deejayd.net.deejaydProtocol import CommandFactory
+from deejayd.net.xmlbuilders import DeejaydXMLCommand, DeejaydXMLAnswerFactory
 
 
-class testDeejaydProtocol(TestCaseWithCommand):
+class TestDeejaydProtocol(TestCaseWithProvidedMusic):
 
     def setUp(self):
-        TestCaseWithCommand.setUp(self)
+        TestCaseWithProvidedMusic.setUp(self)
         self.cmdFactory = CommandFactory()
-        randomName = self.testcmd().getRandomString()
+        self.rspFactory = DeejaydXMLAnswerFactory()
 
     def tearDown(self):
-        TestCaseWithCommand.tearDown(self)
+        TestCaseWithProvidedMusic.tearDown(self)
 
     def testLinePingCommand(self):
         """Send a ping command with the line protocol"""
@@ -19,24 +21,26 @@ class testDeejaydProtocol(TestCaseWithCommand):
 
     def testXMLPingCommand(self):
         """Send a ping command with the XML protocol"""
-        cmdContent = self.testcmd().createXMLCmd("ping")
-        cmd = self.cmdFactory.createCmdFromXML(cmdContent)
-        self.assertEqual(cmd.execute(), self.testcmd().createSimpleOkanswer("ping"))
+        xmlcmd = DeejaydXMLCommand('ping')
+        cmd = self.cmdFactory.createCmdFromXML(xmlcmd.toXML())
+        ans = self.rspFactory.getDeejaydXMLAnswer('Ack', xmlcmd.name)
+        self.assertEqual(cmd.execute(), ans.toXML())
 
     def testLineUnknownCommand(self):
         """Send a unknown command with the line protocol"""
-        cmdName =  self.testcmd().getRandomString()
+        cmdName =  self.testdata.getRandomString()
         cmd = self.cmdFactory.createCmdFromLine(cmdName)
         rs = cmd.execute()
         self.assert_(rs.startswith("ACK"))
 
     def testXMLUnknownCommand(self):
         """Send a unknown command with the XML protocol"""
-        cmdName =  self.testcmd().getRandomString()
-        cmdContent = self.testcmd().createXMLCmd(cmdName)
-        cmd = self.cmdFactory.createCmdFromXML(cmdContent)
-        rs = cmd.execute()
+        cmdName = self.testdata.getRandomString()
+        xmlcmd = DeejaydXMLCommand(cmdName)
+        cmd = self.cmdFactory.createCmdFromXML(xmlcmd)
+        ans = self.rspFactory.getDeejaydXMLAnswer('error', xmlcmd.name)
+        ans.setErrorText("Unknown command : %s" % cmdName)
+        self.failUnless(cmd.execute(), ans.toXML())
 
-        self.assert_(self.testcmd().isError(rs))
 
 # vim: ts=4 sw=4 expandtab
