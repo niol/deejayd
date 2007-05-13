@@ -194,12 +194,6 @@ RENAME TABLE {video} TO {video_library};
         query = "DELETE FROM {%s} WHERE dir LIKE ?" % table
         self.execute(query, (path.join(root,dir)+"%%",))
 
-    def getDirInfo(self,dir,table = "audio_library"): 
-        query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" % table
-        self.execute(query,(dir,))
-
-        return self.cursor.fetchall()
-
     def getDirContent(self,dir,table = "audio_library"):
         query = "SELECT filename,type FROM {%s} WHERE dir = ?" % table
         self.execute(query, (dir,))
