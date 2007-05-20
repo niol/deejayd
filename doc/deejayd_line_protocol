@@ -30,21 +30,17 @@ close
 ------------------
 description :
 Close connection with deejayd
+=== ping ===
 
------------------
-ping
------------------
-arguments :
+Does nothing, just replies with an acknowledgement that the command was received
 
-description : 
-Does nothing, just to test the connextion with the server
-    
------------------
-status
------------------
-arguments :
+Arguments :
+  * ''This command does not accept any argument.''
 
-description : 
+Expected return value : Ack
+
+=== status ===
+
 Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
@@ -52,27 +48,33 @@ Return status of deejayd. Given informations are :
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
-  * random : 0 (not activate) or 1 (activate) 
-  * repeat : 0 (not activate) or 1 (activate) 
-  * volume : [0-100] current volume value  
-  * state : [play-pause-stop] the current state of deejayd
+  * random : 0 (not activated) or 1 (activated)
+  * repeat : 0 (not activated) or 1 (activated)
+  * volume : [0-100] current volume value
+  * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
   * mode : [playlist-webradio] the current mode
-  * updating_db : _int_ show when an database update is in progress  
-  * updating_error : _string_ error message that apppears when the database
-                     update has failed
-    
------------------
-update
------------------
-arguments :
+  * updating_db : _int_ shows when a database update is in progress
+  * updating_error : _string_ error message following a database update error
 
-description : 
-Update the database. 
-  * updating_db : the id of this task. it appears in the result of status
-    command until the update are finished.
-    
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : KeyValue
+
+=== update ===
+
+Update the database.
+  * updating_db : the id of this task. It appears in the status until the
+    update are completed.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : KeyValue
+
+
 -----------------
 lsinfo
 -----------------
@@ -81,48 +83,52 @@ directory : type->string, required->false
 
 description : 
 lists files of "directory".
-    
------------------
-play
------------------
-arguments :
-id : type->int, required->false
+    === play ===
 
-description : 
 Begin playing at song or webradio with id "id".
-    
------------------
-stop
------------------
-arguments :
 
-description : 
-Stop playing
-    
------------------
-pause
------------------
-arguments :
+Arguments :
+  * {{{id}}} (Simple and Optional) : int
 
-description : 
-Toggle pause/resume playing
-    
------------------
-next
------------------
-arguments :
+Expected return value : Ack
 
-description : 
-Go to next song or webradio
-    
------------------
-previous
------------------
-arguments :
+=== stop ===
 
-description : 
-Go to previous song or webradio
-    
+Stop playing.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : Ack
+
+=== pause ===
+
+Toggle play/pause.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : Ack
+
+=== next ===
+
+Go to next song or webradio.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : Ack
+
+=== previous ===
+
+Go to previous song or webradio.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : Ack
+
+
 -----------------
 setvol
 -----------------
@@ -132,31 +138,31 @@ volume : type->int, required->true
 description : 
 set volume to "volume".
 The range of volume is 0-100
-    
------------------
-seek
------------------
-arguments :
-time : type->int, required->true
+    === seek ===
 
-description : 
-seeks to the position "time" (in seconds) of the current song (in playlist mode).
-    
------------------
-random
------------------
-arguments :
-value : type->list : 0 or 1, required->true
+Seeks to the position "time" (in seconds) of the current song (in
+    playlist mode).
 
-description : 
-set random state to "value", "value" should be 0 or 1
-    
------------------
-repeat
------------------
-arguments :
-value : type->list 0 or 1, required->true
+Arguments :
+  * {{{time}}} (Simple and Mandatory) : int
 
-description : 
-set repeat state to "value", "value" should be 0 or 1
-    
+Expected return value : Ack
+
+=== random ===
+
+Set random state to "value", "value" should be 0 or 1.
+
+Arguments :
+  * {{{value}}} (Simple and Mandatory) : list : 0 or 1
+
+Expected return value : Ack
+
+=== repeat ===
+
+Set repeat state to "value", "value" should be 0 or 1.
+
+Arguments :
+  * {{{value}}} (Simple and Mandatory) : list 0 or 1
+
+Expected return value : Ack
+

@@ -6,70 +6,6 @@ from deejayd import sources
 from os import path
 
 
-def commandsOrders():
-    return ("ping","status","stats","setMode","getMode","update","getdir",
-       "search","getvideodir","play","stop","pause","next","previous",
-       "setVolume","seek","random","repeat","current","fullscreen",
-       "loadsubtitle","playlistInfo","playlistList","playlistAdd",
-       "playlistRemove","playlistClear","playlistMove","playlistShuffle",
-       "playlistErase","playlistLoad","playlistSave","webradioList",
-       "webradioAdd","webradioRemove","webradioClear","playQueue","queueInfo",
-       "queueAdd","queueLoadPlaylist","queueRemove","queueClear","setvideodir")
-
-def commandsList(commandsXML):
-    return {
-        # General Commmands
-        "ping":commandsXML.Ping,
-        "status":commandsXML.Status,
-        "stats":commandsXML.Stats,
-        "setMode":commandsXML.Mode,
-        "getMode":commandsXML.GetMode,
-        # MediaDB Commmands
-        "update":commandsXML.UpdateDB,
-        "getdir":commandsXML.GetDir,
-        "search":commandsXML.Search,
-        "getvideodir":commandsXML.GetVideoDir,
-        # Player commands
-        "play":commandsXML.Play,
-        "stop":commandsXML.Stop,
-        "pause":commandsXML.Pause,
-        "next":commandsXML.Next,
-        "previous":commandsXML.Previous,
-        "setVolume":commandsXML.Volume,
-        "seek":commandsXML.Seek,
-        "random":commandsXML.Random,
-        "repeat":commandsXML.Repeat,
-        "current":commandsXML.CurrentSong,
-        "fullscreen":commandsXML.Fullscreen,
-        "loadsubtitle":commandsXML.Loadsubtitle,
-        # Playlist commands
-        "playlistInfo":commandsXML.PlaylistInfo,
-        "playlistList":commandsXML.PlaylistList,
-        "playlistAdd":commandsXML.PlaylistAdd,
-        "playlistRemove":commandsXML.PlaylistRemove,
-        "playlistClear":commandsXML.PlaylistClear,
-        "playlistMove":commandsXML.PlaylistMove,
-        "playlistShuffle":commandsXML.PlaylistShuffle,
-        "playlistErase":commandsXML.PlaylistErase,
-        "playlistLoad":commandsXML.PlaylistLoad,
-        "playlistSave":commandsXML.PlaylistSave,
-        # Webradios commands
-        "webradioList":commandsXML.WebradioList,
-        "webradioAdd":commandsXML.WebradioAdd,
-        "webradioRemove":commandsXML.WebradioDel,
-        "webradioClear":commandsXML.WebradioClear,
-        # Queue commands
-        "playQueue":commandsXML.PlayQueue,
-        "queueInfo":commandsXML.QueueInfo,
-        "queueAdd":commandsXML.QueueAdd,
-        "queueLoadPlaylist":commandsXML.QueueLoadPlaylist,
-        "queueRemove":commandsXML.QueueRemove,
-        "queueClear":commandsXML.QueueClear,
-        # Video commands
-        "setvideodir":commandsXML.SetVideoDir,
-    }
-
-
 class queueCommands:
     
     def __init__(self,deejaydArgs):
@@ -155,29 +91,19 @@ class UnknownCommand:
 
 
 class Ping(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "description": """
-Does nothing, just to test the connextion with the server
-"""
-        }
+    """Does nothing, just replies with an acknowledgement that the command was received"""
+    command_name = 'ping'
 
     def execute(self):
         return self.getOkAnswer()
 
 
 class Mode(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"mode", "type":"string", "req":1}],
-            "description": """
-Change the player mode. Possible values are :
-  * playlist : to manage and listen songs in playlist mode
-  * webradio : to manage and listen webradio
-"""
-        }
+    """Change the player mode. Possible values are :
+  * playlist : to manage and listen songs
+  * webradio : to manage and listen webradios"""
+    command_name = 'setMode'
+    command_args = [{"name":"mode", "type":"string", "req":True}]
 
     def execute(self):
         if "mode" not in self.args.keys():
@@ -191,30 +117,24 @@ Change the player mode. Possible values are :
 
 
 class Status(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "returnType": "KeyValue", 
-            "description": """
-Return status of deejayd. Given informations are :
+    """Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
-  * random : 0 (not activate) or 1 (activate) 
-  * repeat : 0 (not activate) or 1 (activate) 
-  * volume : [0-100] current volume value  
-  * state : [play-pause-stop] the current state of deejayd
+  * random : 0 (not activated) or 1 (activated)
+  * repeat : 0 (not activated) or 1 (activated)
+  * volume : [0-100] current volume value
+  * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
   * mode : [playlist-webradio] the current mode
-  * updating_db : _int_ show when an database update is in progress  
-  * updating_error : _string_ error message that apppears when the database
-                     update has failed
-"""
-        }
+  * updating_db : _int_ shows when a database update is in progress
+  * updating_error : _string_ error message following a database update error"""
+    command_name = 'status'
+    command_rvalue = 'KeyValue'
 
     def execute(self):
         status = self.deejaydArgs["player"].getStatus()
@@ -225,18 +145,13 @@ Return status of deejayd. Given informations are :
 
 
 class Stats(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "returnType": "KeyValue", 
-            "description": """
-Return statistic informations :
-  * db_update : UNIX time of the last database update
-  * songs : songs number in the database
+    """Return statistical informations :
+  * db_update : UNIX epoch of the last database update
+  * songs : number of songs known by the database
   * artists : number of artists in the database
-  * albums : number of albums in the database
-"""
-        }
+  * albums : number of albums in the database"""
+    command_name = 'stats'
+    command_rvalue = 'KeyValue'
 
     def execute(self):
         stats = self.deejaydArgs["db"].getStats()
@@ -244,17 +159,15 @@ Return statistic informations :
 
 
 class GetMode(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "returnType": "KeyValue", 
-            "description": """
-For each possible sources, show if it activate or not. The answer returns :
-playlist : 0 or 1 (actually always 1 because it does not need optionnal
-                   requirements)
-webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activate)
-"""
-        }
+    """For each available source, shows if it is activated or not. The answer
+    consists in :
+  * playlist : 0 or 1 (actually always 1 because it does not need optionnal
+               dependencies)
+  * webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activated)
+  * video : 0 or 1 (needs video dependencies, X display and needs to be
+            activated in configuration)"""
+    command_name = 'getMode'
+    command_rvalue = 'KeyValue'
 
     def execute(self):
         avSources = self.deejaydArgs["sources"].getAvailableSources()
@@ -271,16 +184,11 @@ webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activate)
 ###################################################
 
 class UpdateDB(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "returnType": "KeyValue", 
-            "description": """
-Update the database. 
-  * updating_db : the id of this task. it appears in the result of status
-    command until the update are finished.
-"""
-        }
+    """Update the database.
+  * updating_db : the id of this task. It appears in the status until the
+    update are completed."""
+    command_name = 'update'
+    command_rvalue = 'KeyValue'
 
     def execute(self):
         try:
@@ -291,15 +199,10 @@ Update the database.
 
 
 class GetDir(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"directory", "type":"string", "req":0}],
-            "returnType": "FileList", 
-            "description": """
-lists files of "directory".
-"""
-        }
+    """List the files of the directory supplied as argument."""
+    command_name = 'getdir'
+    command_args = [{"name":"directory", "type":"string", "req":False}]
+    command_rvalue = 'FileList'
 
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
@@ -319,17 +222,12 @@ lists files of "directory".
 
 
 class Search(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"type", "type":"list : 'all','title',\
-                    'genre','filename','artist','album'","req":1}, 
-                    {"name":"txt", "type":"string", "req":1}],
-            "returnType": "FileList", 
-            "description": """
-Search file where "type" contains "txt" content
-"""
-        }
+    """Search files where "type" contains "txt" content."""
+    command_name = 'search'
+    command_args = [{"name":"type", "type":"list : 'all','title',\
+                    'genre','filename','artist','album'","req":True},
+                    {"name":"txt", "type":"string", "req":True}]
+    command_rvalue = 'FileList'
 
     def execute(self):
         type = "type" in self.args.keys() and self.args["type"] or ""
@@ -353,15 +251,10 @@ Search file where "type" contains "txt" content
 
 
 class GetVideoDir(GetDir):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"directory", "type":"string", "req":0}],
-            "returnType": "FileList", 
-            "description": """
-lists files of video dir "directory".
-"""
-        }
+    """Lists the files in video dir "directory"."""
+    command_name = 'getvideodir'
+    command_args = [{"name":"directory", "type":"string", "req":True}]
+    command_rvalue = 'FileList'
 
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
@@ -386,15 +279,9 @@ lists files of video dir "directory".
 ###################################################
 
 class SetVideoDir(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"directory", "type":"string", "req":0}],
-            "returnType": "Ack", 
-            "description": """
-Set the current video directory at "directory"
-"""
-        }
+    """Set the current video directory to "directory"."""
+    command_name = 'setvideodir'
+    command_args = [{"name":"directory", "type":"string", "req":False}]
 
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
@@ -429,52 +316,34 @@ class SimplePlaylistCommand(UnknownCommand):
 
 
 class PlaylistClear(SimplePlaylistCommand):
+    """Clear the current playlist."""
+    command_name = 'playlistClear'
+
     funcName = "clear"
     requirePlaylist = False
 
-    def docInfos(self):
-        return {
-            "description": """
-Clear the current playlist.
-"""
-        }
-
 
 class PlaylistShuffle(SimplePlaylistCommand):
+    """Shuffle the current playlist."""
+    command_name = 'playlistShuffle'
+
     funcName = "shuffle"
     requirePlaylist = False
 
-    def docInfos(self):
-        return {
-            "args": [],
-            "description": """
-Shuffle the current playlist.
-"""
-        }
-
 
 class PlaylistSave(SimplePlaylistCommand):
-    funcName = "save"
+    """Save the current playlist to "name" in the database."""
+    command_name = 'playlistSave'
+    command_args = [{"name":"name", "type":"string", "req":True}]
 
-    def docInfos(self):
-        return {
-            "args": [{"name":"name", "type":"string", "req":1}],
-            "description": """
-Save the current playlist to "name" in the database
-"""
-        }
+    funcName = "save"
 
 
 class PlaylistLoad(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"name", "type":"string", "req":1,\
-                "mult":"true"}, {"name":"pos", "type":"int", "req":0}],
-            "description": """
-Load playlists passed in arguments ("name") at the position "pos"  
-"""
-        }
+    """Load playlists passed as arguments ("name") at the position "pos"."""
+    command_name = 'playlistLoad'
+    command_args = [{"name":"name", "type":"string", "req":True, "mult":True},
+                    {"name":"pos", "type":"int", "req":False}]
 
     def execute(self):
         pos = "pos" in self.args.keys() and self.args["pos"] or None
@@ -499,14 +368,9 @@ Load playlists passed in arguments ("name") at the position "pos"
 
 
 class PlaylistErase(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"mult":"true","name":"name", "type":"string", "req":1}],
-            "description": """
-Erase playlists passed in arguments 
-"""
-        }
+    """Erase playlists passed as arguments."""
+    command_name = 'playlistErase'
+    command_args = [{"mult":"true","name":"name", "type":"string", "req":True}]
 
     def execute(self):
         plsNames = "name" in self.args.keys() and self.args["name"] or ""
@@ -523,18 +387,13 @@ Erase playlists passed in arguments
 
 
 class PlaylistAdd(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"mult":"true","name":"path", "type":"string", "req":1},
-                {"name":"pos", "type":"int", "req":0},
-                {"name":"name", "type":"string","req":0}],
-            "description": """
-Load files or directories passed in arguments ("path") at the position "pos" in
-the playlist "name". If no playlist name is passed, add files in the current 
-playlist.
-"""
-        }
+    """Load files or directories passed as arguments ("path") at the position
+    "pos" in the playlist "name". If no playlist name is provided, adds files
+    in the current playlist."""
+    command_name = 'playlistAdd'
+    command_args = [{"mult":True,"name":"path", "type":"string", "req":True},
+                    {"name":"pos", "type":"int", "req":False},
+                    {"name":"name", "type":"string","req":False}]
 
     def execute(self):
         pos = "pos" in self.args.keys() and self.args["pos"] or None
@@ -560,16 +419,11 @@ playlist.
 
 
 class PlaylistInfo(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"name", "type":"string", "req":0}],
-            "returnType": "SongList", 
-            "description": """
-Return the content of the playlist "name". 
-If no name are given, return the content of the current playlist
-"""
-        }
+    """Return the content of the playlist "name". If no name is given, return
+    the content of the current playlist."""
+    command_name = 'playlistInfo'
+    command_args = [{"name":"name", "type":"string", "req":True}]
+    command_rvalue = 'SongList'
 
     def execute(self):
         playlistName = "name" in self.args.keys() and self.args["name"] or None
@@ -596,6 +450,11 @@ If no name are given, return the content of the current playlist
 
 
 class PlaylistRemove(UnknownCommand):
+    """Remove songs with ids passed as argument ("id"), from the playlist
+    "name". If no name are given, remove songs from current playlist."""
+    command_name = 'playlistRemove'
+    command_args = [{"mult":True, "name":"id", "type":"int", "req":True},
+                    {"name":"name", "type":"string", "req":False}]
 
     def docInfos(self):
         return {
@@ -630,15 +489,10 @@ If no name are given, remove songs from current playlist
 
 
 class PlaylistMove(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"id", "type":"int", "req":1},
-                {"name":"newPosition", "type":"int", "req":1}],
-            "description": """
-Move song with id equal to "id" to "newPosition "position 
-"""
-        }
+    """Move song with id "id" to newPosition "position"."""
+    command_name = 'playlistMove'
+    command_args = [{"name":"id", "type":"int", "req":True},
+                    {"name":"newPosition", "type":"int", "req":True}]
 
     def execute(self):
         id = "id" in self.args.keys() and self.args["id"] or None
@@ -659,14 +513,9 @@ Move song with id equal to "id" to "newPosition "position
 
 
 class PlaylistList(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "returnType": "PlaylistList", 
-            "description": """
-Return the list of recorded playlists
-"""
-        }
+    """Return the list of recorded playlists."""
+    command_name = 'playlistList'
+    command_rvalue = 'PlaylistList'
 
     def execute(self):
         playlists = self.deejaydArgs["sources"].getSource("playlist").getList()
@@ -693,14 +542,9 @@ class WebradioCommand(UnknownCommand):
 
 
 class WebradioList(WebradioCommand):
-
-    def docInfos(self):
-        return {
-            "returnType": "WebradioList", 
-            "description": """
-Return the list of recorded webradios
-"""
-        }
+    """Return the list of recorded webradios."""
+    command_name = 'webradioList'
+    command_rvalue = 'WebradioList'
 
     def execute(self):
         if not self.wrSource:
@@ -717,13 +561,8 @@ Return the list of recorded webradios
 
 
 class WebradioClear(WebradioCommand):
-
-    def docInfos(self):
-        return {
-            "description": """
-Remove all recorded webradios
-"""
-        }
+    """Remove all recorded webradios."""
+    command_name = 'webradioClear'
 
     def execute(self):
         if not self.wrSource:
@@ -734,14 +573,9 @@ Remove all recorded webradios
 
 
 class WebradioDel(WebradioCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"mult":"true", "name":"id", "type":"int", "req":1}],
-            "description": """
-Remove webradios with id equal to "ids"
-"""
-        }
+    """Remove webradios with id equal to "ids"."""
+    command_name = 'webradioRemove'
+    command_args = [{"mult":True, "name":"id", "type":"int", "req":True}]
 
     def execute(self):
         if not self.wrSource:
@@ -764,16 +598,12 @@ Remove webradios with id equal to "ids"
 
 
 class WebradioAdd(WebradioCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"url", "type":"string", "req":1},
-                {"name":"name", "type":"string", "req":1}],
-            "description": """
-Add a webradio. It's name is "name" and the url of the webradio is "url".
-You can pass a playlist for "url" argument (.pls and .m3u format are supported) 
-"""
-        }
+    """Add a webradio. Its name is "name" and the url of the webradio is
+    "url". You can pass a playlist for "url" argument (.pls and .m3u format
+    are supported)."""
+    command_name = 'webradioAdd'
+    command_args = [{"name":"url", "type":"string", "req":True},
+                    {"name":"name", "type":"string", "req":True}]
 
     def execute(self):
         if not self.wrSource:
@@ -797,14 +627,9 @@ You can pass a playlist for "url" argument (.pls and .m3u format are supported)
 #  Queue Commands                              #
 ###################################################
 class PlayQueue(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"id", "type":"int", "req":1}],
-            "description": """
-Begin playing song with id "id" in the queue.
-"""
-        }
+    """Begin playing song with id "id" in the queue."""
+    command_name = 'playQueue'
+    command_args = [{"name":"id", "type":"int", "req":True}]
 
     def execute(self):
         nb = "id" in self.args.keys() and self.args["id"] or None
@@ -817,16 +642,11 @@ Begin playing song with id "id" in the queue.
 
 
 class QueueAdd(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"mult":"true","name":"path", "type":"string", "req":1},
-                {"name":"pos", "type":"int", "req":0}],
-            "description": """
-Load files or directories passed in arguments ("path") at the position "pos" in
-the queue
-"""
-        }
+    """Load files or directories passed as arguments ("path") at the position
+    "pos" in the queue."""
+    command_name = 'queueAdd'
+    command_args = [{"mult":True, "name":"path", "type":"string", "req":True},
+                    {"name":"pos", "type":"int", "req":False}]
 
     def execute(self):
         pos = "pos" in self.args.keys() and self.args["pos"] or None
@@ -851,15 +671,11 @@ the queue
 
 
 class QueueLoadPlaylist(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"name", "type":"string", "req":1,\
-                "mult":"true"}, {"name":"pos", "type":"int", "req":0}],
-            "description": """
-Load playlists passed in arguments ("name") at the position "pos" in the queue 
-"""
-        }
+    """Load playlists passed in arguments ("name") at the position "pos" in
+    the queue."""
+    command_name = 'queueLoadPlaylist'
+    command_args = [{"name":"name", "type":"string", "req":True, "mult":True},
+                    {"name":"pos", "type":"int", "req":False}]
 
     def execute(self):
         pos = "pos" in self.args.keys() and self.args["pos"] or None
@@ -884,15 +700,9 @@ Load playlists passed in arguments ("name") at the position "pos" in the queue
 
 
 class QueueInfo(PlaylistInfo):
-
-    def docInfos(self):
-        return {
-            "args": [],
-            "returnType": "SongList", 
-            "description": """
-Return the content of the queue
-"""
-        }
+    """Return the content of the queue."""
+    command_name = 'queueInfo'
+    command_rvalue = 'SongList'
 
     def execute(self):
         songs = self.deejaydArgs["sources"].getSource("queue").getContent()
@@ -902,14 +712,9 @@ Return the content of the queue
 
 
 class QueueRemove(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"mult":"true", "name":"id", "type":"int", "req":1}],
-            "description": """
-Remove songs with ids passed as argument ("id"), from the queue. 
-"""
-        }
+    """Remove songs with ids passed as argument ("id"), from the queue."""
+    command_name = 'queueRemove'
+    command_args = [{"mult":True, "name":"id", "type":"int", "req":True}]
 
     def execute(self):
         numbs = "id" in self.args.keys() and self.args["id"] or []
@@ -930,13 +735,8 @@ Remove songs with ids passed as argument ("id"), from the queue.
 
 
 class QueueClear(WebradioCommand):
-
-    def docInfos(self):
-        return {
-            "description": """
-Remove all songs from the queue
-"""
-        }
+    """Remove all songs from the queue."""
+    command_name = 'queueClear'
 
     def execute(self):
         self.deejaydArgs["sources"].getSource("queue").clear()
@@ -954,54 +754,29 @@ class SimplePlayerCommand(UnknownCommand):
 
 
 class Next(SimplePlayerCommand):
-
-    def docInfos(self):
-        return {
-            "description": """
-Go to next song or webradio
-"""
-        }
+    """Go to next song or webradio."""
+    command_name = 'next'
 
 
 class Previous(SimplePlayerCommand):
-
-    def docInfos(self):
-        return {
-            "description": """
-Go to previous song or webradio
-"""
-        }
+    """Go to previous song or webradio."""
+    command_name = 'previous'
 
 
 class Stop(SimplePlayerCommand):
-
-    def docInfos(self):
-        return {
-            "description": """
-Stop playing
-"""
-        }
+    """Stop playing."""
+    command_name = 'stop'
 
 
 class Pause(SimplePlayerCommand):
-
-    def docInfos(self):
-        return {
-            "description": """
-Toggle pause/resume playing
-"""
-        }
+    """Toggle play/pause."""
+    command_name = 'pause'
 
 
 class Play(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"id", "type":"int", "req":0}],
-            "description": """
-Begin playing at song or webradio with id "id".
-"""
-        }
+    """Begin playing at song or webradio with id "id"."""
+    command_name = 'play'
+    command_args = [{"name":"id", "type":"int", "req":False}]
 
     def execute(self):
         nb = "id" in self.args.keys() and self.args["id"] or -1
@@ -1015,15 +790,9 @@ Begin playing at song or webradio with id "id".
 
 
 class Volume(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"volume", "type":"int", "req":1}],
-            "description": """
-set volume to "volume".
-The range of volume is 0-100
-"""
-        }
+    """Set volume to "volume". The volume range is 0-100."""
+    command_name = 'setVolume'
+    command_args = [{"name":"volume", "type":"int", "req":True}]
 
     def execute(self):
         vol = "volume" in self.args.keys() and self.args["volume"] or None
@@ -1039,15 +808,10 @@ The range of volume is 0-100
 
 
 class Seek(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "args": [{"name":"time", "type":"int", "req":1}],
-            "description": """
-seeks to the position "time" (in seconds) of the current song \
-(in playlist mode).
-"""
-        }
+    """Seeks to the position "time" (in seconds) of the current song (in
+    playlist mode)."""
+    command_name = 'seek'
+    command_args = [{"name":"time", "type":"int", "req":True}]
 
     def execute(self):
         t = "time" in self.args.keys() and self.args["time"] or None
@@ -1062,15 +826,11 @@ seeks to the position "time" (in seconds) of the current song \
 
 
 class Random(UnknownCommand):
-    funcName = "random"
+    """Set random state to "value", "value" should be 0 or 1."""
+    command_name = 'random'
+    command_args = [{"name":"value", "type":"list : 0 or 1","req":True}]
 
-    def docInfos(self):
-        return {
-            "args": [{"name":"value", "type":"list : 0 or 1","req":1}],
-            "description": """
-set random state to "value", "value" should be 0 or 1
-"""
-        }
+    funcName = "random"
 
     def execute(self):
         val = "value" in self.args.keys() and self.args["value"] or None
@@ -1086,50 +846,34 @@ set random state to "value", "value" should be 0 or 1
 
 
 class Repeat(Random):
-    funcName = "repeat"
+    """Set repeat state to "value", "value" should be 0 or 1."""
+    command_name = 'repeat'
+    command_args = [{"name":"value", "type":"list 0 or 1","req":True}]
 
-    def docInfos(self):
-        return {
-            "args": [{"name":"value", "type":"list 0 or 1","req":1}],
-            "description": """
-set repeat state to "value", "value" should be 0 or 1
-"""
-        }
+    funcName = "repeat"
 
 
 class Fullscreen(Random):
-    funcName = "fullscreen"
+    """Set video fullscreen to "value", "value" should be 0 (off) or 1 (on)."""
+    command_name = 'fullscreen'
+    command_args = [{"name":"value", "type":"list 0 or 1","req":True}]
 
-    def docInfos(self):
-        return {
-            "args": [{"name":"value", "type":"list 0 or 1","req":1}],
-            "description": """
-set video fullscreen to "value", "value" should be 0 (off) or 1 (on)
-"""
-        }
+    funcName = "fullscreen"
 
 
 class Loadsubtitle(Random):
-    funcName = "loadsubtitle"
+    """By default, load subtitle when it is available ("value"=1) or don't
+    ("value"=0)."""
+    command_name = 'loadsubtitle'
+    command_args = [{"name":"value", "type":"list 0 or 1","req":True}]
 
-    def docInfos(self):
-        return {
-            "args": [{"name":"value", "type":"list 0 or 1","req":1}],
-            "description": """
-by default, load subtitle when it is available ("value"=1) or not ("value"=0)
-"""
-        }
+    funcName = "loadsubtitle"
 
 
 class CurrentSong(UnknownCommand):
-
-    def docInfos(self):
-        return {
-            "returnType": "SongList or WebradioList", 
-            "description": """
-Return informations on the current song or webradio.
-"""
-        }
+    """Return informations on the current song, webradio or video info."""
+    command_name = 'current'
+    command_rvalue = ['SongList', 'WebradioList', 'VideoList']
 
     def execute(self):
         source = self.deejaydArgs["player"].getPlayingSourceName()
@@ -1155,6 +899,19 @@ Return informations on the current song or webradio.
                     ("Album",item["Album"]),("Time",item["Time"])]
                 rsp.addSong(dict(sldict))
         return rsp
+
+
+# Build the list of available commands
+commands = {}
+
+import sys
+thismodule = sys.modules[__name__]
+for itemName in dir(thismodule):
+    try:
+        item = getattr(thismodule, itemName)
+        commands[item.command_name] = item
+    except AttributeError:
+        pass
 
 
 # vim: ts=4 sw=4 expandtab

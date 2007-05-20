@@ -1,17 +1,16 @@
-
-                        deejayd - XML Protocol
+= deejayd - XML Protocol =
 
 All data between the client and server is encoded in UTF-8.
--------------------------------------------------------------------------------
 
-Activate XML protocol :
------------------------
+== Activate XML protocol ==
+
 By default, line protocole is activated.
 To activate XML, you have to send "setXML" command at deejayd 
 
-Commands Format :
------------------
-<?xml version="1.0"?>
+== Commands Format ==
+
+{{{
+<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
     <command name="cmdName1">
         <arg name="argName1" type="simple">value</arg>
@@ -29,15 +28,14 @@ Commands Format :
     </command>
 </deejayd>
 ENDXML
------------------
-ENDXML is used as command delimeter.
-For certain commands, you want to pass several values for an argument. 
-Then, you have to set the type to "multiple" instead of "single".
+}}}
 
+{{{ENDXML}}} is used as command delimeter.
 
--------------------------------------------------------------------------------
-Response Format :
------------------
+For certain commands, you may need to pass several values as an argument. If
+so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
+
+== Response Format ==
 
 There are 6 response types :
   * error : Error notification.
@@ -144,24 +142,19 @@ Responses may be combined in the same physical message :
 
 }}}
 
--------------------------------------------------------------------------------
-Available Commands :
------------------
+== Available Commands ==
 
------------------
-ping
------------------
-arguments :
+=== ping ===
 
-description : 
-Does nothing, just to test the connextion with the server
-    
------------------
-status
------------------
-arguments :
+Does nothing, just replies with an acknowledgement that the command was received
 
-description : 
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : Ack
+
+=== status ===
+
 Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
@@ -169,386 +162,411 @@ Return status of deejayd. Given informations are :
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
-  * random : 0 (not activate) or 1 (activate) 
-  * repeat : 0 (not activate) or 1 (activate) 
-  * volume : [0-100] current volume value  
-  * state : [play-pause-stop] the current state of deejayd
+  * random : 0 (not activated) or 1 (activated)
+  * repeat : 0 (not activated) or 1 (activated)
+  * volume : [0-100] current volume value
+  * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
   * mode : [playlist-webradio] the current mode
-  * updating_db : _int_ show when an database update is in progress  
-  * updating_error : _string_ error message that apppears when the database
-                     update has failed
-    
------------------
-stats
------------------
-arguments :
+  * updating_db : _int_ shows when a database update is in progress
+  * updating_error : _string_ error message following a database update error
 
-description : 
-Return statistic informations :
-  * db_update : UNIX time of the last database update
-  * songs : songs number in the database
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : KeyValue
+
+=== stats ===
+
+Return statistical informations :
+  * db_update : UNIX epoch of the last database update
+  * songs : number of songs known by the database
   * artists : number of artists in the database
   * albums : number of albums in the database
-    
------------------
-setMode
------------------
-arguments :
-mode : type->string, required->true, multiple->false
 
-description : 
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : KeyValue
+
+=== setMode ===
+
 Change the player mode. Possible values are :
-  * playlist : to manage and listen songs in playlist mode
-  * webradio : to manage and listen webradio
-    
------------------
-getMode
------------------
-arguments :
+  * playlist : to manage and listen songs
+  * webradio : to manage and listen webradios
 
-description : 
-For each possible sources, show if it activate or not. The answer returns :
-playlist : 0 or 1 (actually always 1 because it does not need optionnal
-                   requirements)
-webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activate)
-    
------------------
-update
------------------
-arguments :
+Arguments :
+  * {{{mode}}} (Simple and Mandatory) : string
 
-description : 
-Update the database. 
-  * updating_db : the id of this task. it appears in the result of status
-    command until the update are finished.
-    
------------------
-getdir
------------------
-arguments :
-directory : type->string, required->false, multiple->false
+Expected return value : Ack
 
-description : 
-lists files of "directory".
-    
------------------
-search
------------------
-arguments :
-type : type->list : 'all','title',                    'genre','filename','artist','album', required->true, multiple->false
-txt : type->string, required->true, multiple->false
+=== getMode ===
 
-description : 
-Search file where "type" contains "txt" content
-    
------------------
-getvideodir
------------------
-arguments :
-directory : type->string, required->false, multiple->false
+For each available source, shows if it is activated or not. The answer
+    consists in :
+  * playlist : 0 or 1 (actually always 1 because it does not need optionnal
+               dependencies)
+  * webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activated)
+  * video : 0 or 1 (needs video dependencies, X display and needs to be
+            activated in configuration)
 
-description : 
-lists files of video dir "directory".
-    
------------------
-play
------------------
-arguments :
-id : type->int, required->false, multiple->false
+Arguments :
+  * ''This command does not accept any argument.''
 
-description : 
+Expected return value : KeyValue
+
+=== update ===
+
+Update the database.
+  * updating_db : the id of this task. It appears in the status until the
+    update are completed.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : KeyValue
+
+=== getdir ===
+
+List the files of the directory supplied as argument.
+
+Arguments :
+  * {{{directory}}} (Simple and Optional) : string
+
+Expected return value : FileList
+
+=== search ===
+
+Search files where "type" contains "txt" content.
+
+Arguments :
+  * {{{type}}} (Simple and Mandatory) : list : 'all','title',                    'genre','filename','artist','album'
+  * {{{txt}}} (Simple and Mandatory) : string
+
+Expected return value : FileList
+
+=== getvideodir ===
+
+Lists the files in video dir "directory".
+
+Arguments :
+  * {{{directory}}} (Simple and Mandatory) : string
+
+Expected return value : FileList
+
+=== play ===
+
 Begin playing at song or webradio with id "id".
-    
------------------
-stop
------------------
-arguments :
 
-description : 
-Stop playing
-    
------------------
-pause
------------------
-arguments :
+Arguments :
+  * {{{id}}} (Simple and Optional) : int
 
-description : 
-Toggle pause/resume playing
-    
------------------
-next
------------------
-arguments :
+Expected return value : Ack
 
-description : 
-Go to next song or webradio
-    
------------------
-previous
------------------
-arguments :
+=== stop ===
 
-description : 
-Go to previous song or webradio
-    
------------------
-setVolume
------------------
-arguments :
-volume : type->int, required->true, multiple->false
+Stop playing.
 
-description : 
-set volume to "volume".
-The range of volume is 0-100
-    
------------------
-seek
------------------
-arguments :
-time : type->int, required->true, multiple->false
+Arguments :
+  * ''This command does not accept any argument.''
 
-description : 
-seeks to the position "time" (in seconds) of the current song (in playlist mode).
-    
------------------
-random
------------------
-arguments :
-value : type->list : 0 or 1, required->true, multiple->false
+Expected return value : Ack
 
-description : 
-set random state to "value", "value" should be 0 or 1
-    
------------------
-repeat
------------------
-arguments :
-value : type->list 0 or 1, required->true, multiple->false
+=== pause ===
 
-description : 
-set repeat state to "value", "value" should be 0 or 1
-    
------------------
-current
------------------
-arguments :
+Toggle play/pause.
 
-description : 
-Return informations on the current song or webradio.
-    
------------------
-fullscreen
------------------
-arguments :
-value : type->list 0 or 1, required->true, multiple->false
+Arguments :
+  * ''This command does not accept any argument.''
 
-description : 
-set video fullscreen to "value", "value" should be 0 (off) or 1 (on)
-    
------------------
-loadsubtitle
------------------
-arguments :
-value : type->list 0 or 1, required->true, multiple->false
+Expected return value : Ack
 
-description : 
-by default, load subtitle when it is available ("value"=1) or not ("value"=0)
-    
------------------
-playlistInfo
------------------
-arguments :
-name : type->string, required->false, multiple->false
+=== next ===
 
-description : 
-Return the content of the playlist "name". 
-If no name are given, return the content of the current playlist
-    
------------------
-playlistList
------------------
-arguments :
+Go to next song or webradio.
 
-description : 
-Return the list of recorded playlists
-    
------------------
-playlistAdd
------------------
-arguments :
-path : type->string, required->true, multiple->true
-pos : type->int, required->false, multiple->false
-name : type->string, required->false, multiple->false
+Arguments :
+  * ''This command does not accept any argument.''
 
-description : 
-Load files or directories passed in arguments ("path") at the position "pos" in
-the playlist "name". If no playlist name is passed, add files in the current 
-playlist.
-    
------------------
-playlistRemove
------------------
-arguments :
-id : type->int, required->true, multiple->true
-name : type->string, required->false, multiple->false
+Expected return value : Ack
 
-description : 
-Remove songs with ids passed as argument ("id"), from the playlist "name". 
-If no name are given, remove songs from current playlist 
-    
------------------
-playlistClear
------------------
-arguments :
+=== previous ===
 
-description : 
+Go to previous song or webradio.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : Ack
+
+=== setVolume ===
+
+Set volume to "volume". The volume range is 0-100.
+
+Arguments :
+  * {{{volume}}} (Simple and Mandatory) : int
+
+Expected return value : Ack
+
+=== seek ===
+
+Seeks to the position "time" (in seconds) of the current song (in
+    playlist mode).
+
+Arguments :
+  * {{{time}}} (Simple and Mandatory) : int
+
+Expected return value : Ack
+
+=== random ===
+
+Set random state to "value", "value" should be 0 or 1.
+
+Arguments :
+  * {{{value}}} (Simple and Mandatory) : list : 0 or 1
+
+Expected return value : Ack
+
+=== repeat ===
+
+Set repeat state to "value", "value" should be 0 or 1.
+
+Arguments :
+  * {{{value}}} (Simple and Mandatory) : list 0 or 1
+
+Expected return value : Ack
+
+=== current ===
+
+Return informations on the current song, webradio or video info.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : SongList or WebradioList or VideoList
+
+=== fullscreen ===
+
+Set video fullscreen to "value", "value" should be 0 (off) or 1 (on).
+
+Arguments :
+  * {{{value}}} (Simple and Mandatory) : list 0 or 1
+
+Expected return value : Ack
+
+=== loadsubtitle ===
+
+By default, load subtitle when it is available ("value"=1) or don't
+    ("value"=0).
+
+Arguments :
+  * {{{value}}} (Simple and Mandatory) : list 0 or 1
+
+Expected return value : Ack
+
+=== playlistInfo ===
+
+Return the content of the playlist "name". If no name is given, return
+    the content of the current playlist.
+
+Arguments :
+  * {{{name}}} (Simple and Mandatory) : string
+
+Expected return value : SongList
+
+=== playlistList ===
+
+Return the list of recorded playlists.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : PlaylistList
+
+=== playlistAdd ===
+
+Load files or directories passed as arguments ("path") at the position
+    "pos" in the playlist "name". If no playlist name is provided, adds files
+    in the current playlist.
+
+Arguments :
+  * {{{path}}} (Multiple and Mandatory) : string
+  * {{{pos}}} (Simple and Optional) : int
+  * {{{name}}} (Simple and Optional) : string
+
+Expected return value : Ack
+
+=== playlistRemove ===
+
+Remove songs with ids passed as argument ("id"), from the playlist
+    "name". If no name are given, remove songs from current playlist.
+
+Arguments :
+  * {{{id}}} (Multiple and Mandatory) : int
+  * {{{name}}} (Simple and Optional) : string
+
+Expected return value : Ack
+
+=== playlistClear ===
+
 Clear the current playlist.
-    
------------------
-playlistMove
------------------
-arguments :
-id : type->int, required->true, multiple->false
-newPosition : type->int, required->true, multiple->false
 
-description : 
-Move song with id equal to "id" to "newPosition "position 
-    
------------------
-playlistShuffle
------------------
-arguments :
+Arguments :
+  * ''This command does not accept any argument.''
 
-description : 
+Expected return value : Ack
+
+=== playlistMove ===
+
+Move song with id "id" to newPosition "position".
+
+Arguments :
+  * {{{id}}} (Simple and Mandatory) : int
+  * {{{newPosition}}} (Simple and Mandatory) : int
+
+Expected return value : Ack
+
+=== playlistShuffle ===
+
 Shuffle the current playlist.
-    
------------------
-playlistErase
------------------
-arguments :
-name : type->string, required->true, multiple->true
 
-description : 
-Erase playlists passed in arguments 
-    
------------------
-playlistLoad
------------------
-arguments :
-name : type->string, required->true, multiple->true
-pos : type->int, required->false, multiple->false
+Arguments :
+  * ''This command does not accept any argument.''
 
-description : 
-Load playlists passed in arguments ("name") at the position "pos"  
-    
------------------
-playlistSave
------------------
-arguments :
-name : type->string, required->true, multiple->false
+Expected return value : Ack
 
-description : 
-Save the current playlist to "name" in the database
-    
------------------
-webradioList
------------------
-arguments :
+=== playlistErase ===
 
-description : 
-Return the list of recorded webradios
-    
------------------
-webradioAdd
------------------
-arguments :
-url : type->string, required->true, multiple->false
-name : type->string, required->true, multiple->false
+Erase playlists passed as arguments.
 
-description : 
-Add a webradio. It's name is "name" and the url of the webradio is "url".
-You can pass a playlist for "url" argument (.pls and .m3u format are supported) 
-    
------------------
-webradioRemove
------------------
-arguments :
-id : type->int, required->true, multiple->true
+Arguments :
+  * {{{name}}} (Multiple and Mandatory) : string
 
-description : 
-Remove webradios with id equal to "ids"
-    
------------------
-webradioClear
------------------
-arguments :
+Expected return value : Ack
 
-description : 
-Remove all recorded webradios
-    
------------------
-playQueue
------------------
-arguments :
-id : type->int, required->true, multiple->false
+=== playlistLoad ===
 
-description : 
+Load playlists passed as arguments ("name") at the position "pos".
+
+Arguments :
+  * {{{name}}} (Multiple and Mandatory) : string
+  * {{{pos}}} (Simple and Optional) : int
+
+Expected return value : Ack
+
+=== playlistSave ===
+
+Save the current playlist to "name" in the database.
+
+Arguments :
+  * {{{name}}} (Simple and Mandatory) : string
+
+Expected return value : Ack
+
+=== webradioList ===
+
+Return the list of recorded webradios.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : WebradioList
+
+=== webradioAdd ===
+
+Add a webradio. Its name is "name" and the url of the webradio is
+    "url". You can pass a playlist for "url" argument (.pls and .m3u format
+    are supported).
+
+Arguments :
+  * {{{url}}} (Simple and Mandatory) : string
+  * {{{name}}} (Simple and Mandatory) : string
+
+Expected return value : Ack
+
+=== webradioRemove ===
+
+Remove webradios with id equal to "ids".
+
+Arguments :
+  * {{{id}}} (Multiple and Mandatory) : int
+
+Expected return value : Ack
+
+=== webradioClear ===
+
+Remove all recorded webradios.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : Ack
+
+=== playQueue ===
+
 Begin playing song with id "id" in the queue.
-    
------------------
-queueInfo
------------------
-arguments :
 
-description : 
-Return the content of the queue
-    
------------------
-queueAdd
------------------
-arguments :
-path : type->string, required->true, multiple->true
-pos : type->int, required->false, multiple->false
+Arguments :
+  * {{{id}}} (Simple and Mandatory) : int
 
-description : 
-Load files or directories passed in arguments ("path") at the position "pos" in
-the queue
-    
------------------
-queueLoadPlaylist
------------------
-arguments :
-name : type->string, required->true, multiple->true
-pos : type->int, required->false, multiple->false
+Expected return value : Ack
 
-description : 
-Load playlists passed in arguments ("name") at the position "pos" in the queue 
-    
------------------
-queueRemove
------------------
-arguments :
-id : type->int, required->true, multiple->true
+=== queueInfo ===
 
-description : 
-Remove songs with ids passed as argument ("id"), from the queue. 
-    
------------------
-queueClear
------------------
-arguments :
+Return the content of the queue.
 
-description : 
-Remove all songs from the queue
-    
------------------
-setvideodir
------------------
-arguments :
-directory : type->string, required->false, multiple->false
+Arguments :
+  * {{{name}}} (Simple and Mandatory) : string
 
-description : 
-Set the current video directory at "directory"
-    
+Expected return value : SongList
+
+=== queueAdd ===
+
+Load files or directories passed as arguments ("path") at the position
+    "pos" in the queue.
+
+Arguments :
+  * {{{path}}} (Multiple and Mandatory) : string
+  * {{{pos}}} (Simple and Optional) : int
+
+Expected return value : Ack
+
+=== queueLoadPlaylist ===
+
+Load playlists passed in arguments ("name") at the position "pos" in
+    the queue.
+
+Arguments :
+  * {{{name}}} (Multiple and Mandatory) : string
+  * {{{pos}}} (Simple and Optional) : int
+
+Expected return value : Ack
+
+=== queueRemove ===
+
+Remove songs with ids passed as argument ("id"), from the queue.
+
+Arguments :
+  * {{{id}}} (Multiple and Mandatory) : int
+
+Expected return value : Ack
+
+=== queueClear ===
+
+Remove all songs from the queue.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : Ack
+
+=== setvideodir ===
+
+Set the current video directory to "directory".
+
+Arguments :
+  * {{{directory}}} (Simple and Optional) : string
+
+Expected return value : Ack
+

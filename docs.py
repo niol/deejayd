@@ -42,20 +42,19 @@ Close connection with deejayd
 """
 
 def headerXMLCommands():
-    return """
-                        deejayd - XML Protocol
+    return """= deejayd - XML Protocol =
 
 All data between the client and server is encoded in UTF-8.
--------------------------------------------------------------------------------
 
-Activate XML protocol :
------------------------
+== Activate XML protocol ==
+
 By default, line protocole is activated.
 To activate XML, you have to send "setXML" command at deejayd 
 
-Commands Format :
------------------
-<?xml version="1.0"?>
+== Commands Format ==
+
+{{{
+<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
     <command name="cmdName1">
         <arg name="argName1" type="simple">value</arg>
@@ -73,18 +72,99 @@ Commands Format :
     </command>
 </deejayd>
 ENDXML
------------------
-ENDXML is used as command delimeter.
-For certain commands, you want to pass several values for an argument. 
-Then, you have to set the type to "multiple" instead of "single".
+}}}
 
+{{{ENDXML}}} is used as command delimeter.
 
--------------------------------------------------------------------------------
-Response Format :
------------------
+For certain commands, you may need to pass several values as an argument. If
+so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
+
+== Response Format ==
 """
 
-def formatCmdDoc(name,cmdObj, xml = True):
+commandsOrders  = ("ping", "status", "stats", "setMode", "getMode",
+                   "update", "getdir", "search", "getvideodir",
+                   "play", "stop", "pause", "next", "previous", "setVolume",
+                   "seek", "random", "repeat", "current", "fullscreen",
+                   "loadsubtitle", "playlistInfo", "playlistList",
+                   "playlistAdd", "playlistRemove", "playlistClear",
+                   "playlistMove", "playlistShuffle", "playlistErase",
+                   "playlistLoad", "playlistSave", "webradioList",
+                   "webradioAdd", "webradioRemove", "webradioClear",
+                   "playQueue", "queueInfo", "queueAdd","queueLoadPlaylist",
+                   "queueRemove", "queueClear", "setvideodir")
+
+# Check for missing commands in commandsOrder
+missingCmdsInOrderredList = []
+for cmdName in commandsXML.commands.keys():
+    if cmdName not in commandsOrders:
+        missingCmdsInOrderredList.append(cmdName)
+if len(missingCmdsInOrderredList) > 0:
+    import sys
+    sys.exit("Please order the documentation of the following commands : %s."
+             % ', '.join(missingCmdsInOrderredList))
+
+
+def formatCommandDoc(cmd):
+    args = ''
+
+    command_args = None
+    try:
+        command_args = cmd.command_args
+    except AttributeError:
+        command_args = []
+
+    for arg in command_args:
+        props = []
+
+        # An argument is simple by default
+        if 'mult' not in arg.keys():
+            arg['mult'] = False
+        if arg['mult']:
+            props.append('Multiple')
+        else:
+            props.append('Simple')
+
+        # An argument is optional by default
+        if 'req' not in arg.keys():
+            arg['req'] = False
+        if arg['req']:
+            props.append('Mandatory')
+        else:
+            props.append('Optional')
+
+        args += "  * {{{%(name)s}}} (%(props)s) : %(type)s\n"\
+                    % { 'name':  arg['name'],
+                        'props': ' and '.join(props),
+                        'type' : arg['type'] }
+
+    if len(command_args) == 0:
+        args = "  * ''This command does not accept any argument.''\n"
+
+    rvalues = None
+    try:
+        if isinstance(cmd.command_rvalue, list):
+            rvalues = cmd.command_rvalue
+        else:
+            rvalues = [cmd.command_rvalue]
+    except AttributeError:
+        rvalues = ['Ack']
+
+    return """=== %(name)s ===
+
+%(desc)s
+
+Arguments :
+%(args)s
+Expected return value : %(rvalues)s
+
+""" % { 'name'    : cmd.command_name,
+        'desc'    : cmd.__doc__.strip('\n'),
+        'args'    : args,
+        'rvalues' : ' or '.join(rvalues) }
+
+
+def formatCmdDoc(name, cmdObj):
     infos = cmdObj("", None, []).docInfos()
     # Args
     argsText = ""
@@ -94,11 +174,7 @@ def formatCmdDoc(name,cmdObj, xml = True):
             mult = "false"
             if "mult" in arg: mult = arg["mult"]
 
-            if xml:
-                argsText += "%s : type->%s, required->%s, multiple->%s\n" %\
-                    (arg["name"],arg["type"],req,mult)
-            else:
-                argsText += "%s : type->%s, required->%s\n" %\
+            argsText += "%s : type->%s, required->%s\n" %\
                     (arg["name"],arg["type"],req)
 
     return """
@@ -204,7 +280,6 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
 
 if __name__ == "__main__":
     # XML Doc
-    commandsListXML = commandsXML.commandsList(commandsXML)
     docs = headerXMLCommands()
 
     docs += """
@@ -222,12 +297,11 @@ Responses may be combined in the same physical message :
 
     docs += """
 
--------------------------------------------------------------------------------
-Available Commands :
------------------
+== Available Commands ==
+
 """
-    for cmd in commandsXML.commandsOrders():
-        docs += formatCmdDoc(cmd,commandsListXML[cmd])
+    for cmd in commandsOrders:
+        docs += formatCommandDoc(commandsXML.commands[cmd])
 
     f = open("doc/deejayd_xml_protocol","w")
     try: f.write(docs)
@@ -239,9 +313,9 @@ Available Commands :
     for cmd in commandsLine.commandsOrders():
         try: func = getattr(commandsListLine[cmd]("",[]), "docInfos")
         except AttributeError:
-            docs += formatCmdDoc(cmd,commandsListXML[cmd],False)
+            docs += formatCommandDoc(commandsXML.commands[cmd])
         else:
-            docs += formatCmdDoc(cmd,commandsListLine[cmd],False)
+            docs += formatCmdDoc(cmd, commandsListLine[cmd])
 
     f = open("doc/deejayd_line_protocol","w")
     try: f.write(docs)

@@ -170,9 +170,8 @@ class CommandFactory:
                         value.append(val.firstChild.data)
             args[name] = value
             
-        commandsParse = commandsXML.commandsList(commandsXML)
-        if cmdName in commandsParse.keys():
-            return (cmdName,commandsParse[cmdName],args)
+        if cmdName in commandsXML.commands.keys():
+            return (cmdName, commandsXML.commands[cmdName], args)
         else: return (cmdName,commandsXML.UnknownCommand,{})
 
 
