@@ -1,6 +1,5 @@
 Mediadb
-  * remove getState and setState to remove player dependance
-  * Use os.walk function to update library
+  * improve database update process
 
 Player
   * implement xine backend to remove mplayer backend
@@ -13,3 +12,4 @@ Coding style
   variable and function names, camel-case for class names, and run-together
   lower-case for module names. It should perhaps be good to respect this, one
   day...
+  this action is done for database, mediadb and source module

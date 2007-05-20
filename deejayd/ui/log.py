@@ -5,8 +5,7 @@ ERROR = 0
 INFO = 1
 DEBUG = 2
 
-config = DeejaydConfig()
-level = config.get("general","log")
+level = DeejaydConfig().get("general","log")
 log_level = {"error": ERROR, "info": INFO, \
              "debug": DEBUG}[level]
 

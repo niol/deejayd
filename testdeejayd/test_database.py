@@ -1,5 +1,6 @@
 from testdeejayd import TestCaseWithData
-from deejayd.mediadb.database import sqliteDatabase
+from deejayd.mediadb import deejaydDB
+from deejayd.database.sqlite import SqliteDatabase
 import os
 
 class testSqliteDatabase(TestCaseWithData):
@@ -7,21 +8,20 @@ class testSqliteDatabase(TestCaseWithData):
     def setUp(self):
         TestCaseWithData.setUp(self)
 
-        self.dbfilename = '/tmp/testdeejayddb-' + self.testdata.getRandomString()
-        self.db = sqliteDatabase(self.dbfilename)
+        self.dbfilename = '/tmp/testdeejayddb-' + \
+            self.testdata.getRandomString()
+        self.db = SqliteDatabase(self.dbfilename)
         self.db.connect()
 
     def tearDown(self):
         TestCaseWithData.tearDown(self)
-
         self.db.close()
-
         os.remove(self.dbfilename)
 
     def testGetUnexistentPlaylist(self):
         """Unexistent playlist is zero rows"""
         randomName = self.testdata.getRandomString()
-        self.assertEqual(self.db.getPlaylist(randomName), [])
+        self.assertEqual(self.db.get_playlist(randomName), [])
 
 
     def testSaveAndRetrievePlaylist(self):
@@ -38,9 +38,9 @@ class testSqliteDatabase(TestCaseWithData):
             playlistEntry['filename'] = os.path.basename(song['filename'])
             playlistContents.append(playlistEntry)
             i = i + 1
-        self.db.savePlaylist(playlistContents, randomName)
+        self.db.save_playlist(playlistContents, randomName)
 
-        retrievedPlaylist = self.db.getPlaylist(randomName)
+        retrievedPlaylist = self.db.get_playlist(randomName)
 
         self.assertEqual(len(retrievedPlaylist), len(playlistContents))
         i = 0
@@ -57,22 +57,22 @@ class testSqliteDatabase(TestCaseWithData):
         """Add, delete playlists and retrieve playlist list"""
         randomName = self.testdata.getRandomString()
 
-        self.assertEqual(self.db.getPlaylist(randomName), [])
+        self.assertEqual(self.db.get_playlist(randomName), [])
 
         playlistContents = [{ 'Pos':0,
                                 'dir': self.testdata.getRandomString(),
                                 'filename': self.testdata.getRandomString()}]
-        self.db.savePlaylist(playlistContents, randomName)
-        self.assertNotEqual(self.db.getPlaylist(randomName), [])
-        self.assert_((randomName,) in self.db.getPlaylistList())
+        self.db.save_playlist(playlistContents, randomName)
+        self.assertNotEqual(self.db.get_playlist(randomName), [])
+        self.assert_((randomName,) in self.db.get_playlist_list())
 
         anotherRandomName = self.testdata.getRandomString()
-        self.db.savePlaylist(playlistContents, anotherRandomName)
+        self.db.save_playlist(playlistContents, anotherRandomName)
 
-        self.db.deletePlaylist(randomName)
-        self.assertEqual(self.db.getPlaylist(randomName), [])
-        self.assert_((randomName,) not in self.db.getPlaylistList())
-        self.assert_((anotherRandomName,) in self.db.getPlaylistList())
+        self.db.delete_playlist(randomName)
+        self.assertEqual(self.db.get_playlist(randomName), [])
+        self.assert_((randomName,) not in self.db.get_playlist_list())
+        self.assert_((anotherRandomName,) in self.db.get_playlist_list())
 
 
     def testAddWebradio(self):
@@ -81,10 +81,10 @@ class testSqliteDatabase(TestCaseWithData):
                         self.testdata.getRandomString(),
                         self.testdata.getRandomString())]
 
-        self.db.addWebradios(randomData)
+        self.db.add_webradios(randomData)
 
         for garbageWebradio in randomData:
-            self.assert_(garbageWebradio in self.db.getWebradios())
+            self.assert_(garbageWebradio in self.db.get_webradios())
 
 
 # vim: ts=4 sw=4 expandtab

@@ -55,8 +55,8 @@ class Gstreamer(unknownPlayer):
         # init video specific parms
         self.videoWindow = None
         self.deejaydWindow = None
-        self._fullscreen = int(self.db.getState("fullscreen"))
-        self._loadsubtitle = int(self.db.getState("loadsubtitle"))
+        self._fullscreen = int(self.db.get_state("fullscreen"))
+        self._loadsubtitle = int(self.db.get_state("loadsubtitle"))
         # Open a Video pipeline
         pipeline_dict = {"x":"ximagesink", "xv":"xvimagesink",\
             "auto":"autovideosink"}

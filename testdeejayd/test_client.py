@@ -52,7 +52,7 @@ class TestCommandBuildParse(unittest.TestCase):
     </command>
 </deejayd>"""
 
-        self.assertEqual(cmd.toXML(), self.trimXML(expectedAnswer))
+        self.assertEqual(self.trimXML(cmd.toXML()),self.trimXML(expectedAnswer))
 
 
 class TestAnswerParser(TestCaseWithData):

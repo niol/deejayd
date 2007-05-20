@@ -4,7 +4,7 @@ from os import path
 
 
 def commandsOrders():
-    return ("ping","status","update","lsinfo","play","stop",\
+    return ("ping","status","audio_update","lsinfo","play","stop",\
             "pause","next","previous","setvol","seek","random","repeat")
 
 def commandsList(commandsLine):
@@ -13,7 +13,7 @@ def commandsList(commandsLine):
         "ping":commandsLine.Ping,
         "status":commandsLine.Status,
         "stats":commandsLine.Stats,
-        "update":commandsLine.UpdateDB,
+        "audio_update":commandsLine.UpdateDB,
         "lsinfo":commandsLine.LsInfo,
         "play":commandsLine.Play,
         "stop":commandsLine.Stop,

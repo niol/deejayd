@@ -57,7 +57,7 @@ class UnknownCommand:
         rsp.setPairs(dict(keyValueList))
         return rsp
 
-    # FIXME : This function should not exist, dataase structure should not
+    # FIXME : This function should not exist, database structure should not
     # appear here.
     def getFileAndDirs(self, dblist):
         files = []
@@ -68,11 +68,11 @@ class UnknownCommand:
             else:
                 fileI = [("Path",path.join(dir,fn)),("Time",lg),("Title",ti),\
                         ("Artist",ar),("Album",al),("Genre",gn),("Track",tn),\
-                        ("Date",dt)]
+                        ("Date",dt),("Bitrate",bt)]
                 files.append(dict(fileI))
         return (files, dirs)
 
-    # FIXME : This function should not exist, dataase structure should not
+    # FIXME : This function should not exist, database structure should not
     # appear here.
     def getVideosAndDirs(self, dblist):
         videos = []
@@ -101,6 +101,7 @@ class Ping(UnknownCommand):
 class Mode(UnknownCommand):
     """Change the player mode. Possible values are :
   * playlist : to manage and listen songs
+  * video : to manage and wath video file
   * webradio : to manage and listen webradios"""
     command_name = 'setMode'
     command_args = [{"name":"mode", "type":"string", "req":True}]
@@ -109,11 +110,10 @@ class Mode(UnknownCommand):
         if "mode" not in self.args.keys():
              return self.getErrorAnswer('You have to choose a mode') 
         else:
-            try: 
-                self.deejaydArgs["sources"].setSource(self.args["mode"])
-                return self.getOkAnswer()
-            except sources.sources.unknownSourceException:
+            try: self.deejaydArgs["sources"].set_source(self.args["mode"])
+            except sources.sources.UnknownSourceException:
                 return self.getErrorAnswer('Unknown mode') 
+            else: return self.getOkAnswer()
 
 
 class Status(UnknownCommand):
@@ -131,22 +131,29 @@ class Status(UnknownCommand):
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
   * mode : [playlist-webradio] the current mode
-  * updating_db : _int_ shows when a database update is in progress
-  * updating_error : _string_ error message following a database update error"""
+  * audio_updating_db : _int_ show when a audio library update is in progress  
+  * audio_updating_error : _string_ error message that apppears when the 
+                           audio library update has failed
+  * video_updating_db : _int_ show when a video library update is in progress  
+  * video_updating_error : _string_ error message that apppears when the 
+                           video library update has failed"""
     command_name = 'status'
     command_rvalue = 'KeyValue'
 
     def execute(self):
         status = self.deejaydArgs["player"].getStatus()
-        status.extend(self.deejaydArgs["sources"].getStatus())
-        status.extend(self.deejaydArgs["db"].getStatus())
+        status.extend(self.deejaydArgs["sources"].get_status())
+        status.extend(self.deejaydArgs["audio_library"].get_status())
+        if self.deejaydArgs["video_library"]:
+            status.extend(self.deejaydArgs["video_library"].get_status())
 
         return self.getKeyValueAnswer(status)
 
 
 class Stats(UnknownCommand):
     """Return statistical informations :
-  * db_update : UNIX epoch of the last database update
+  * audio_library_update : UNIX time of the last audio library update
+  * video_library_update : UNIX time of the last video library update
   * songs : number of songs known by the database
   * artists : number of artists in the database
   * albums : number of albums in the database"""
@@ -154,7 +161,7 @@ class Stats(UnknownCommand):
     command_rvalue = 'KeyValue'
 
     def execute(self):
-        stats = self.deejaydArgs["db"].getStats()
+        stats = self.deejaydArgs["db"].get_stats()
         return self.getKeyValueAnswer(stats)
 
 
@@ -170,7 +177,7 @@ class GetMode(UnknownCommand):
     command_rvalue = 'KeyValue'
 
     def execute(self):
-        avSources = self.deejaydArgs["sources"].getAvailableSources()
+        avSources = self.deejaydArgs["sources"].get_available_sources()
         modes = []
         for s in ("playlist","webradio","video"):
             act = s in avSources or 1 and 0
@@ -183,19 +190,31 @@ class GetMode(UnknownCommand):
 #   MediaDB Commands                              #
 ###################################################
 
-class UpdateDB(UnknownCommand):
-    """Update the database.
-  * updating_db : the id of this task. It appears in the status until the
+class UpdateAudioLibrary(UnknownCommand):
+    """Update the audio library.
+  * audio_updating_db : the id of this task. It appears in the status until the
     update are completed."""
-    command_name = 'update'
+    command_name = 'audio_update'
     command_rvalue = 'KeyValue'
 
     def execute(self):
-        try:
-            updateDBId = self.deejaydArgs["db"].update()
-            return self.getKeyValueAnswer([('updating_db', updateDBId)])
-        except NotFoundException:
-            return self.getErrorAnswer('Path not found in the music directory')
+        update_id = self.deejaydArgs["audio_library"].update()
+        return self.getKeyValueAnswer([('audio_updating_db', update_id)])
+
+
+class UpdateVideoLibrary(UnknownCommand):
+    """Update the video library.
+  * video_updating_db : the id of this task. It appears in the status until the
+    update are completed."""
+    command_name = 'video_update'
+    command_rvalue = 'KeyValue'
+
+
+    def execute(self):
+        if self.deejaydArgs["video_library"]:
+            update_id = self.deejaydArgs["video_library"].update()
+            return self.getKeyValueAnswer([('video_updating_db', update_id)])
+        else: return self.getErrorAnswer('Video support disabled.')
 
 
 class GetDir(UnknownCommand):
@@ -206,8 +225,10 @@ class GetDir(UnknownCommand):
 
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        try:
-            list = self.deejaydArgs['db'].getDir(dir)
+        try: list = self.deejaydArgs['audio_library'].get_dir_content(dir)
+        except NotFoundException:
+            return self.getErrorAnswer('Directory not found in the database')
+        else:
             rsp = self.getAnswer('FileList')
             rsp.setDirectory(dir)
 
@@ -216,9 +237,6 @@ class GetDir(UnknownCommand):
             rsp.setDirectories(dirs)
 
             return rsp
-
-        except NotFoundException:
-            return self.getErrorAnswer('Directory not found in the database')
 
 
 class Search(UnknownCommand):
@@ -236,8 +254,11 @@ class Search(UnknownCommand):
         else:
             return self.getErrorAnswer('You have to enter text')
 
-        try:
-            list = getattr(self.deejaydArgs["db"],self.name)(type,content)
+        try: list = getattr(self.deejaydArgs["audio_library"],self.name)(type,\
+                                                                        content)
+        except NotFoundException:
+            return self.getErrorAnswer('type %s is not supported' % (type,))
+        else:
             rsp = self.getAnswer('FileList')
 
             dirs, files = self.getFileAndDirs(list)
@@ -245,9 +266,6 @@ class Search(UnknownCommand):
             rsp.setDirectories(dirs)
 
             return rsp
-
-        except NotFoundException:
-            return self.getErrorAnswer('type %s is not supported' % (type,))
 
 
 class GetVideoDir(GetDir):
@@ -257,9 +275,14 @@ class GetVideoDir(GetDir):
     command_rvalue = 'FileList'
 
     def execute(self):
+        if not self.deejaydArgs["video_library"]:
+            return self.getErrorAnswer('Video support disabled.')
+
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        try:
-            list = self.deejaydArgs["db"].getDir(dir,"video")
+        try: list = self.deejaydArgs["video_library"].get_dir_content(dir)
+        except NotFoundException:
+            return self.getErrorAnswer('Directory not found in the database')
+        else:
             rsp = self.getAnswer('FileList')
             rsp.setDirectory(dir)
 
@@ -269,8 +292,6 @@ class GetVideoDir(GetDir):
 
             return rsp
 
-        except NotFoundException:
-            return self.getErrorAnswer('Directory not found in the database')
 
 
 
@@ -286,12 +307,12 @@ class SetVideoDir(UnknownCommand):
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
         try:
-            self.deejaydArgs["sources"].getSource("video").setDirectory(dir)
+            self.deejaydArgs["sources"].get_source("video").set_directory(dir)
             return self.getOkAnswer()
         except NotFoundException:
             return self.getErrorAnswer('Directory not found in the database')
-        #except sources.unknownSourceException:
-        #    return self.getErrorAnswer('Video support disabled')
+        except sources.UnknownSourceException:
+            return self.getErrorAnswer('Video support disabled')
 
 
 ###################################################
@@ -308,7 +329,7 @@ class SimplePlaylistCommand(UnknownCommand):
             return self.getErrorAnswer('You must enter a playlist name')
 
         try:
-            getattr(self.deejaydArgs["sources"].getSource("playlist"),
+            getattr(self.deejaydArgs["sources"].get_source("playlist"),
                     self.__class__.funcName)(playlistName)
             return self.getOkAnswer()
         except sources.playlist.PlaylistNotFoundException:
@@ -360,8 +381,8 @@ class PlaylistLoad(UnknownCommand):
             plsNames = [plsNames]
 
         try:
-            self.deejaydArgs["sources"].getSource("playlist").load(plsNames,
-                                                                   pos)
+            self.deejaydArgs["sources"].get_source("playlist").\
+                                                    load_playlist(plsNames, pos)
             return self.getOkAnswer()
         except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
@@ -379,7 +400,7 @@ class PlaylistErase(UnknownCommand):
 
         for plsName in plsNames:
             try:
-                self.deejaydArgs["sources"].getSource("playlist").\
+                self.deejaydArgs["sources"].get_source("playlist").\
                     rm(plsName)
                 return self.getOkAnswer()
             except sources.playlist.PlaylistNotFoundException:
@@ -411,8 +432,8 @@ class PlaylistAdd(UnknownCommand):
         playlistName = "name" in self.args.keys() and self.args["name"] or None
 
         try: 
-            self.deejaydArgs["sources"].getSource("playlist").\
-                addPath(files,playlistName,pos)
+            self.deejaydArgs["sources"].get_source("playlist").\
+                add_path(files,playlistName,pos)
             return self.getOkAnswer()
         except sources.unknown.ItemNotFoundException:
             return self.getErrorAnswer('%s not found' % (file,))
@@ -427,21 +448,21 @@ class PlaylistInfo(UnknownCommand):
 
     def execute(self):
         playlistName = "name" in self.args.keys() and self.args["name"] or None
-        try:
-            songs = self.deejaydArgs["sources"].getSource("playlist").\
-                getContent(playlistName)
+        try: songs = self.deejaydArgs["sources"].get_source("playlist").\
+                get_content(playlistName)
+        except sources.playlist.PlaylistNotFoundException:
+            return self.getErrorAnswer('Playlist not found')
+        else:
             rsp = self.getAnswer('SongList')
             rsp.setSongs(self.formatSongs(songs))
             return rsp
-        except sources.playlist.PlaylistNotFoundException:
-            return self.getErrorAnswer('Playlist not found')
 
     def formatSongs(self,songs):
         rs = []
         for s in songs:
             s["Path"] = path.join(s["dir"],s["filename"])
             dictKeys = ("Path","Pos","Id","Time","Title","Artist","Album",
-                        "Genre","Track","Date")
+                        "Genre","Track","Date","Bitrate")
             songInfo = {}
             for t in dictKeys:
                 songInfo[t] = s[t]
@@ -473,19 +494,18 @@ If no name are given, remove songs from current playlist
         playlistName = "name" in self.args.keys() and self.args["name"] or None
 
         for nb in numbs:
-            try:nb = int(nb)
+            try: nb = int(nb)
             except ValueError:
-                return self.getErrorAnswer('Need an integer for argument \
-                        number')
+                return self.getErrorAnswer(\
+                                    'Need an integer for argument number')
 
-            try: 
-                self.deejaydArgs["sources"].getSource("playlist").\
+            try: self.deejaydArgs["sources"].get_source("playlist").\
                     delete(nb,"Id",playlistName)
-                return self.getOkAnswer()
             except sources.unknown.ItemNotFoundException:
                 return self.getErrorAnswer('Song not found')
             except sources.playlist.PlaylistNotFoundException:
                 return self.getErrorAnswer('Playlist not found')
+            else: return self.getOkAnswer()
 
 
 class PlaylistMove(UnknownCommand):
@@ -505,11 +525,10 @@ class PlaylistMove(UnknownCommand):
             return self.getErrorAnswer('Need two integers as argument : id \
                 and newPosition')
 
-        try: 
-            self.deejaydArgs["sources"].getSource("playlist").move(id,newPos)
-            return self.getOkAnswer()
+        try: self.deejaydArgs["sources"].get_source("playlist").move(id,newPos)
         except sources.unknown.ItemNotFoundException:
             return self.getErrorAnswer('Song not found')
+        else: return self.getOkAnswer()
 
 
 class PlaylistList(UnknownCommand):
@@ -518,7 +537,7 @@ class PlaylistList(UnknownCommand):
     command_rvalue = 'PlaylistList'
 
     def execute(self):
-        playlists = self.deejaydArgs["sources"].getSource("playlist").getList()
+        playlists=self.deejaydArgs["sources"].get_source("playlist").get_list()
         rsp = self.getAnswer('PlaylistList')
         for pl in playlists: 
             rsp.addPlaylist(pl)
@@ -536,9 +555,9 @@ class WebradioCommand(UnknownCommand):
 
         self.wrSource = None
         if deejaydArgs:
-            try: self.wrSource = self.deejaydArgs["sources"].getSource(\
+            try: self.wrSource = self.deejaydArgs["sources"].get_source(\
                         "webradio")
-            except sources.unknownSourceException:pass
+            except sources.UnknownSourceException:pass
 
 
 class WebradioList(WebradioCommand):
@@ -550,7 +569,7 @@ class WebradioList(WebradioCommand):
         if not self.wrSource:
             return self.getErrorAnswer("Webradio support not available")
 
-        wrs = self.wrSource.getContent()
+        wrs = self.wrSource.get_content()
 
         rsp = self.getAnswer('WebradioList')
         for wr in wrs:
@@ -590,11 +609,10 @@ class WebradioDel(WebradioCommand):
             except ValueError: 
                 return self.getErrorAnswer('Need an integer : id') 
         
-            try:
-                self.wrSource.delete(id)
-                return self.getOkAnswer()
+            try: self.wrSource.delete(id)
             except sources.webradio.WrNotFoundException:
                 return self.getErrorAnswer('Webradio not found')
+            else: return self.getOkAnswer()
 
 
 class WebradioAdd(WebradioCommand):
@@ -614,13 +632,12 @@ class WebradioAdd(WebradioCommand):
         if not url or not wrname:
             return self.getErrorAnswer('Need two arguments : url and name')
 
-        try:
-            self.wrSource.add(url,wrname)
-            return self.getOkAnswer()
+        try: self.wrSource.add(url,wrname)
         except UnsupportedFormatException:
             return self.getErrorAnswer('Webradio URI not supported')
         except NotFoundException:
             return self.getErrorAnswer('Webradio info could not be retrieved')
+        else: return self.getOkAnswer()
 
 
 ###################################################
@@ -637,7 +654,7 @@ class PlayQueue(UnknownCommand):
         except ValueError:
             return self.getErrorAnswer('Need an integer')
 
-        self.deejaydArgs["player"].goTo(nb,"Id",True)
+        self.deejaydArgs["player"].go_to(nb,"Id",True)
         return self.getOkAnswer()
 
 
@@ -663,8 +680,8 @@ class QueueAdd(UnknownCommand):
             files = [files]
 
         try:
-            self.deejaydArgs["sources"].getSource("queue").\
-                add(files,pos)
+            self.deejaydArgs["sources"].get_source("queue").\
+                add_path(files,pos)
             return self.getOkAnswer()
         except sources.unknown.ItemNotFoundException:
             return self.getErrorAnswer('%s not found' % (file,))
@@ -691,12 +708,11 @@ class QueueLoadPlaylist(UnknownCommand):
         if isinstance(plsNames, str):
             plsNames = [plsNames]
 
-        try:
-            self.deejaydArgs["sources"].getSource("queue").\
-                loadPlaylist(plsNames,pos)
-            return self.getOkAnswer()
+        try: self.deejaydArgs["sources"].get_source("queue").\
+                                                    load_playlist(plsNames,pos)
         except sources.playlist.PlaylistNotFoundException:
             return self.getErrorAnswer('Playlist not found')
+        else: return self.getOkAnswer()
 
 
 class QueueInfo(PlaylistInfo):
@@ -705,7 +721,7 @@ class QueueInfo(PlaylistInfo):
     command_rvalue = 'SongList'
 
     def execute(self):
-        songs = self.deejaydArgs["sources"].getSource("queue").getContent()
+        songs = self.deejaydArgs["sources"].get_source("queue").get_content()
         rsp = self.getAnswer('SongList')
         rsp.setSongs(self.formatSongs(songs))
         return rsp
@@ -727,11 +743,11 @@ class QueueRemove(UnknownCommand):
                 return self.getErrorAnswer('Need an integer for argument \
                         number')
 
-            try:
-                self.deejaydArgs["sources"].getSource("queue").delete(nb,"Id")
-                return self.getOkAnswer()
+            try: self.deejaydArgs["sources"].get_source("queue").delete(nb,"Id")
             except sources.unknown.ItemNotFoundException:
                 return self.getErrorAnswer('Song not found')
+
+        return self.getOkAnswer()
 
 
 class QueueClear(WebradioCommand):
@@ -739,7 +755,7 @@ class QueueClear(WebradioCommand):
     command_name = 'queueClear'
 
     def execute(self):
-        self.deejaydArgs["sources"].getSource("queue").clear()
+        self.deejaydArgs["sources"].get_source("queue").clear()
         return self.getOkAnswer()
 
 
@@ -877,8 +893,8 @@ class CurrentSong(UnknownCommand):
 
     def execute(self):
         source = self.deejaydArgs["player"].getPlayingSourceName()
-        item = self.deejaydArgs["sources"].getSource(source).\
-                    getPlayingItem()
+        item = self.deejaydArgs["sources"].get_source(source).\
+                    get_playing_item()
         rsp = None
 
         if item:

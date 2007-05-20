@@ -55,18 +55,22 @@ Return status of deejayd. Given informations are :
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
   * mode : [playlist-webradio] the current mode
-  * updating_db : _int_ shows when a database update is in progress
-  * updating_error : _string_ error message following a database update error
+  * audio_updating_db : _int_ show when a audio library update is in progress  
+  * audio_updating_error : _string_ error message that apppears when the 
+                           audio library update has failed
+  * video_updating_db : _int_ show when a video library update is in progress  
+  * video_updating_error : _string_ error message that apppears when the 
+                           video library update has failed
 
 Arguments :
   * ''This command does not accept any argument.''
 
 Expected return value : KeyValue
 
-=== update ===
+=== audio_update ===
 
-Update the database.
-  * updating_db : the id of this task. It appears in the status until the
+Update the audio library.
+  * audio_updating_db : the id of this task. It appears in the status until the
     update are completed.
 
 Arguments :

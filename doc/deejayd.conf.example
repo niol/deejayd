@@ -22,12 +22,12 @@ media_backend = gstreamer
 [net]
 port = 6800
 
-
-[mediadb]
+[database]
 db_type = sqlite
 db_file = /var/lib/deejayd/mediadb/deejayd.db
 db_prefix = rj
 
+[mediadb]
 music_directory =  /var/lib/deejayd/music
 video_directory =  /var/lib/deejayd/video
 filesystem_charset = utf-8

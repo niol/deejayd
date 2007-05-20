@@ -69,6 +69,19 @@ class TestSong(TestData):
         tagInfo.save()
 
 
+class TestVideo(TestSong):
+
+    def __init__(self):
+        self.testFile,self.ext = "testdeejayd/data/mpg_test.mpg", ".mpg"
+        TestSong.__init__(self)
+        self.tags = {"length": 10, "videowidth": 0, "videoheight": 0}
+
+    def __getitem__(self,key):
+        return key in self.tags and self.tags[key] or None
+
+    def setRandomTag(self):pass
+
+
 class TestMP3Song(TestSong):
 
     def __init__(self):
@@ -162,6 +175,7 @@ class TestProvidedMusicCollection(TestData):
 
 
 class TestMediaCollection(TestProvidedMusicCollection):
+    supported_files_class = ()
 
     def __init__(self):
         self.dir_struct_written = False
@@ -173,17 +187,19 @@ class TestMediaCollection(TestProvidedMusicCollection):
         if self.dir_struct_written and self.clean_library:
             shutil.rmtree(self.datadir)
 
-    def buildMusicDirectoryTree(self, destDir = "/tmp"):
+    def buildLibraryDirectoryTree(self, destDir = "/tmp"):
         # create test data directory in random subdirectory of destDir
         self.datadir = os.path.join(destDir,
-                                   'testdeejayd-music' + self.getRandomString())
+                                   'testdeejayd-media' + self.getRandomString())
         if not os.path.exists(self.datadir):
             os.mkdir(self.datadir)
         else:
-            sys.exit('Test data temporary directory exists, I do not want to mess your stuff.')
+            sys.exit(\
+     'Test data temporary directory exists, I do not want to mess your stuff.')
 
         # Add songs in the root directory
-        for media in (TestOggSong(),TestMP3Song()):
+        for media_class in self.__class__.supported_files_class:
+            media = media_class()
             media.build(self.datadir)
             self.medias[media.name] = media
 
@@ -202,7 +218,8 @@ class TestMediaCollection(TestProvidedMusicCollection):
     def addMedia(self):
         dir = self.getRandomElement(self.dirs.values())
 
-        media = TestOggSong()
+        media_class=self.getRandomElement(self.__class__.supported_files_class)
+        media = media_class()
         dir.addItem(media)
         self.medias[dir.name+"/"+media.name] = media
 
@@ -221,7 +238,8 @@ class TestMediaCollection(TestProvidedMusicCollection):
 
     def addDir(self):
         dir = TestDir()
-        for media in (TestOggSong(),TestMP3Song()):
+        for media_class in self.__class__.supported_files_class:
+            media = media_class()
             self.medias[dir.name+"/"+media.name] = media
             dir.addItem(media)
         dir.buildContent(self.datadir)
@@ -231,7 +249,8 @@ class TestMediaCollection(TestProvidedMusicCollection):
     def addSubdir(self):
         dir = self.getRandomElement(self.dirs.values())
         subdir = TestDir()
-        for media in (TestOggSong(),TestMP3Song()):
+        for media_class in self.__class__.supported_files_class:
+            media = media_class()
             self.medias[dir.name+"/"+subdir.name+"/"+media.name] = media
             subdir.addItem(media)
         subdir.buildContent(self.datadir+"/"+dir.name)
@@ -250,9 +269,16 @@ class TestMediaCollection(TestProvidedMusicCollection):
         dir.remove()
         del self.dirs[dir.name]
 
+
+class TestAudioCollection(TestMediaCollection):
+    supported_files_class = (TestOggSong,TestMP3Song)
+
     def changeMediaTags(self):
         media = self.getRandomElement(self.medias.values())
         media.setRandomTag()
 
+
+class TestVideoCollection(TestMediaCollection):
+    supported_files_class = (TestVideo,)
 
 # vim: ts=4 sw=4 expandtab

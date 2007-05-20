@@ -7,37 +7,37 @@ from mutagen.oggvorbis import OggVorbis
 class NotSupportedFormat:pass
 class UnknownException:pass
 
-class unknownFile:
+class UnknownFile:
 
     def __init__(self,f,player):
         self.player = player
         self.f = f
         (path,filename) = os.path.split(f)
         self.info = {"filename": filename}
-        self._getInfo()
+        self._get_info()
 
-    def __getitem__(self,infoType):
+    def __getitem__(self,key):
         raise NotImplementedError
 
-    def _getInfo(self):
+    def _get_info(self):
         raise NotImplementedError
 
 
-class unknownAudioFile(unknownFile):
-    supportedTag = ("tracknumber","title","genre","artist","album","date")
+class UnknownAudioFile(UnknownFile):
+    supported_tag = ("tracknumber","title","genre","artist","album","date")
 
 
-class videoFile(unknownFile):
-    supportedTag = ("videowidth","length","videoheight")
+class VideoFile(UnknownFile):
+    supported_tag = ("videowidth","length","videoheight")
 
     def __setitem__(self,key,value):
         self.info[key] = value
 
-    def __getitem__(self,infoType):
-        if infoType in self.info: return self.info[infoType]
+    def __getitem__(self,key):
+        if key in self.info: return self.info[key]
         else: return ""
 
-    def _getInfo(self):
+    def _get_info(self):
         def format_title(f):
             (filename,ext) = os.path.splitext(f)
             title = filename.replace(".", " ")
@@ -52,98 +52,78 @@ class videoFile(unknownFile):
         else: self.info["subtitle"] = ""
 
         self.info["title"] = format_title(self.info["filename"])
-        videoInfo = self.player.getVideoFileInfo(self.f)
-        if not isinstance(videoInfo,dict): raise UnknownException
-        for t in self.__class__.supportedTag:
-            if t in videoInfo: self.info[t] = videoInfo[t]
-            else: raise UnknownException
+        video_info = self.player.getVideoFileInfo(self.f)
+        for t in self.__class__.supported_tag:
+            try: self.info[t] = video_info[t]
+            except: raise UnknownException
 
 
-class mp3File(unknownAudioFile):
+class Mp3File(UnknownAudioFile):
 
-    def __getitem__(self,infoType):
-        if infoType in self.info: return self.info[infoType]
+    def __getitem__(self,key):
+        if key in self.info: return self.info[key]
         else: return ""
 
-    def _getInfo(self):
-        mp3Info = MP3(self.f,ID3=EasyID3) 
-        mp3Info.pprint()
-        self.info["bitrate"] = mp3Info.info.bitrate
-        self.info["length"] = int(mp3Info.info.length)
+    def _get_info(self):
+        mp3_info = MP3(self.f,ID3=EasyID3) 
+        self.info["bitrate"] = int(mp3_info.info.bitrate)
+        self.info["length"] = int(mp3_info.info.length)
 
-        for t in self.__class__.supportedTag:
-            try:
-                self.info[t] = mp3Info[t][0]
-                if self.info[t] is unicode:
-                    self.info[t] = self.info[t]
-            except:
-                self.info[t] = '';
+        for t in self.__class__.supported_tag:
+            try: self.info[t] = mp3_info[t][0]
+            except: self.info[t] = '';
 
-class oggFile(unknownAudioFile):
 
-    def __getitem__(self,infoType):
-        if infoType in self.info: return self.info[infoType]
+class OggFile(UnknownAudioFile):
+
+    def __getitem__(self,key):
+        if key in self.info: return self.info[key]
         else: return ""
 
-    def _getInfo(self):
-        oggInfo = OggVorbis(self.f) 
-        oggInfo.pprint()
-        self.info["bitrate"] = oggInfo.info.bitrate
-        self.info["length"] = int(oggInfo.info.length)
+    def _get_info(self):
+        ogg_info = OggVorbis(self.f) 
+        self.info["bitrate"] = int(ogg_info.info.bitrate)
+        self.info["length"] = int(ogg_info.info.length)
 
-        for t in self.__class__.supportedTag:
-            try:
-                self.info[t] = oggInfo[t][0]
-                if self.info[t] is unicode:
-                    self.info[t] = self.info[t]
-            except:
-                self.info[t] = '';
+        for t in self.__class__.supported_tag:
+            try: self.info[t] = ogg_info[t][0]
+            except: self.info[t] = '';
 
 
-class fileTag:
+class FileTagFactory:
 
-    __supportedAudioFormat = None
-    __supportedVideoFormat = None
-    __player = None
+    supported_format = None
+    player = None
 
     def __init__(self,player = None):
-        if fileTag.__player == None:
-            fileTag.__player = player
+        if self.__class__.player == None:
+            self.__class__.player = player
         
-        if fileTag.__supportedAudioFormat == None or \
-            fileTag.__supportedVideoFormat == None and fileTag.__player != None:
-            # Find supported format
-            fileTag.__supportedAudioFormat = {}
-            fileTag.__supportedVideoFormat = {}
-
+        if self.__class__.supported_format == None and \
+                                                self.__class__.player != None:
+            self.__class__.supported_format = {}
             # mp3
-            if fileTag.__player.isSupportedFormat(".mp3"): 
-                fileTag.__supportedAudioFormat[".mp3"] = mp3File
-                fileTag.__supportedAudioFormat[".mp2"] = mp3File
+            if self.__class__.player.isSupportedFormat(".mp3"): 
+                self.__class__.supported_format[".mp3"] = Mp3File
+                self.__class__.supported_format[".mp2"] = Mp3File
 
             # ogg
-            if fileTag.__player.isSupportedFormat(".ogg"): 
-                fileTag.__supportedAudioFormat[".ogg"] = oggFile
+            if self.__class__.player.isSupportedFormat(".ogg"): 
+                self.__class__.supported_format[".ogg"] = OggFile
 
             # video
             for ext in (".avi",".mpeg",".mpg"):
-                if fileTag.__player.isSupportedFormat(ext):
-                    fileTag.__supportedVideoFormat[ext] = videoFile
+                if self.__class__.player.isSupportedFormat(ext):
+                    self.__class__.supported_format[ext] = VideoFile
 
-    def getFileTag(self,realFile,type):
-        (filename,extension) = os.path.splitext(realFile)
+    def get_file_tag(self,real_file):
+        (filename,extension) = os.path.splitext(real_file)
         ext = extension.lower()
 
-        if type == "audio":
-            if ext in fileTag.__supportedAudioFormat.keys():
-                return fileTag.__supportedAudioFormat[ext](realFile,\
-                    fileTag.__player)
-            else: raise NotSupportedFormat
-        elif type == "video":
-            if ext in fileTag.__supportedVideoFormat.keys():
-                return fileTag.__supportedVideoFormat[ext](realFile,\
-                    fileTag.__player)
-            else: raise NotSupportedFormat
+        if ext in self.__class__.supported_format.keys():
+            return self.__class__.supported_format[ext](real_file,\
+                    self.__class__.player)
+        else: raise NotSupportedFormat
 
 
 # vim: ts=4 sw=4 expandtab

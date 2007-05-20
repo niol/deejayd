@@ -8,195 +8,192 @@ class PlaylistNotFoundException:pass
 
 class Playlist(UnknownSource):
 
-    def __init__(self,library,name, content = None, id = 0):
-        UnknownSource.__init__(self,library,id)
+    def __init__(self,db,library,name, content = None, id = 0):
+        UnknownSource.__init__(self,db,library,id)
 
         # Init parms
-        self.playlistName = name
-        self.rootPath = library.getAudioRootPath() 
+        self.playlist_name = name
+        self.root_path = library.get_root_path() 
 
         if content == None:
             # Load the content of this playlist
-            self.sourceContent = self.db.getPlaylist(name)
-            if len(self.sourceContent) == 0:
+            self.source_content = self.db.get_playlist(name)
+            if len(self.source_content) == 0:
                 if name.startswith("__") and name.endswith("__"):
-                    self.sourceContent = []
-                else:
-                    # Playlist not found
-                    raise PlaylistNotFoundException
+                    self.source_content = []
+                else: raise PlaylistNotFoundException # Playlist not found
 
             # Format correctly playlist content
-            self.sourceContent = [self.formatMediadbPlaylistFiles(s)
-                for s in self.sourceContent]
+            self.source_content = [self.format_playlist_files(s)
+                for s in self.source_content]
 
         elif isinstance(content,list):
-            self.sourceContent = content
+            self.source_content = content
 
 
-    def move(self,id,newPos,type):
-        song = self.getSong(id,type)
-        oldPos = song["Pos"]
-        del self.sourceContent[oldPos]
-        self.sourceContent.insert(newPos,song)
+    def move(self,id,new_pos,type):
+        song = self.get_song(id,type)
+        old_pos = song["Pos"]
+        del self.source_content[old_pos]
+        self.source_content.insert(new_pos,song)
 
         # Reorder the playlist
-        ids = range(0,len(self.sourceContent))
+        ids = range(0,len(self.source_content))
         for id in ids:
-            self.sourceContent[id]["Pos"] = id
+            self.source_content[id]["Pos"] = id
 
         # Increment sourceId
-        self.sourceId += 1
+        self.source_id += 1
 
     def shuffle(self,current):
-        newPlaylist = []
-        oldPlaylist = self.sourceContent
+        new_playlist = []
+        old_playlist = self.source_content
         pos = 0
         # First we have to put the current song at the first place
         if current != None:
-            oldPos = current["Pos"]
-            del oldPlaylist[oldPos]
-            newPlaylist.append(current)
-            newPlaylist[pos]["Pos"] = pos
+            old_pos = current["Pos"]
+            del old_playlist[old_pos]
+            new_playlist.append(current)
+            new_playlist[pos]["Pos"] = pos
             pos += 1
 
-        while len(oldPlaylist) > 0:
-            song = random.choice(oldPlaylist) 
-            del oldPlaylist[oldPlaylist.index(song)]
-            newPlaylist.append(song)
-            newPlaylist[pos]["Pos"] = pos
+        while len(old_playlist) > 0:
+            song = random.choice(old_playlist) 
+            del old_playlist[old_playlist.index(song)]
+            new_playlist.append(song)
+            new_playlist[pos]["Pos"] = pos
             pos += 1
 
-        self.sourceContent = newPlaylist
+        self.source_content = new_playlist
         # Increment sourceId
-        self.sourceId += 1
+        self.source_id += 1
             
     def save(self):
         # First we delete all previous record
-        self.db.deletePlaylist(self.playlistName)
+        self.erase()
         # After we record the new playlist
-        self.db.savePlaylist(self.sourceContent,self.playlistName)
+        self.db.save_playlist(self.source_content,self.playlist_name)
 
     def erase(self):
-        self.db.deletePlaylist(self.playlistName)
+        self.db.delete_playlist(self.playlist_name)
 
 
 
 class PlaylistSource(UnknownSourceManagement):
-    currentPlaylistName = "__djcurrent__"
+    current_playlist_name = "__djcurrent__"
 
-    def __init__(self,player,djDB):
-        UnknownSourceManagement.__init__(self,player,djDB)
+    def __init__(self,player,db,library):
+        UnknownSourceManagement.__init__(self,player,db,library)
 
         # Init parms
-        self.sourceName = "playlist"
-        self.db = djDB.getDB()
-        self.__openPlaylists = {}
+        self.source_name = "playlist"
+        self.__open_playlists = {}
 
         # Load current playlist
-        self.currentSource = self.__openPlaylist()
+        self.current_source = self.__open_playlist()
 
-    def getList(self):
-        list = [pl for (pl,) in self.db.getPlaylistList() if not \
+    def get_list(self):
+        list = [pl for (pl,) in self.db.get_playlist_list() if not \
             pl.startswith("__") or not pl.endswith("__")]
         return list
 
-    def getContent(self,playlist = None):
-        playlistObj = self.__openPlaylist(playlist)
-        content = playlistObj.getContent()
+    def get_content(self,playlist = None):
+        playlist_obj = self.__open_playlist(playlist)
+        content = playlist_obj.get_content()
 
         if isinstance(playlist,str):
-            self.__closePlaylist(playlist) 
+            self.__close_playlist(playlist) 
         return content
 
-    def addPath(self,files,playlist = None,pos = None):
-        playlistObj = self.__openPlaylist(playlist)
+    def add_path(self,paths,playlist = None,pos = None):
+        playlist_obj = self.__open_playlist(playlist)
 
         songs = []
-        if isinstance(files,str):
-            files = [files]
-        for file in files:
-            try: songs.extend(self.djDB.getAll(file))
+        if isinstance(paths,str):
+            paths = [paths]
+        for path in paths:
+            try: songs.extend(self.library.get_all_files(path))
             except NotFoundException:
                 # perhaps it is file
-                try: songs.extend(self.djDB.getFile(file))
+                try: songs.extend(self.library.get_file(path))
                 except NotFoundException: raise ItemNotFoundException
 
-        playlistObj.addMediadbFiles(songs,pos)
+        playlist_obj.add_files(songs,pos)
         if playlist != None:
-            self.__closePlaylist(playlist) 
+            self.__close_playlist(playlist) 
 
-    def shuffle(self, playlistName = None):
-        self.currentSource.shuffle(self.currentItem)
+    def shuffle(self, playlist_name = None):
+        playlist_obj = self.__open_playlist(playlist_name)
+        playlist_obj.shuffle(self.current_item)
 
-    def move(self,id,newPos,type = "Id"):
-        self.currentSource.move(id,newPos,type)
+        if isinstance(playlist_name,str):
+            self.__close_playlist(playlist_name) 
+
+    def move(self,id,new_pos,type = "Id"):
+        self.current_source.move(id,new_pos,type)
 
     def clear(self,playlist = None):
-        playlistObj = self.__openPlaylist(playlist)
+        playlist_obj = self.__open_playlist(playlist)
 
         if playlist == None:
-            self.currentItem = None
+            self.current_item = None
             self.player.reset("playlist")
-        playlistObj.clear()
+        playlist_obj.clear()
 
         if isinstance(playlist,str):
-            self.__closePlaylist(playlist) 
+            self.__close_playlist(playlist) 
 
     def delete(self,nb,type = "Id",playlist = None):
-        playlistObj = self.__openPlaylist(playlist)
+        playlist_obj = self.__open_playlist(playlist)
         
-        if playlist == None and self.currentItem != None and\
-                self.currentItem[type] == nb:
+        if playlist == None and self.current_item != None and\
+                self.current_item[type] == nb:
             self.player.stop()
-            pos = self.currentItem["Pos"]
-            self.goTo(pos+1, "Pos")
-        playlistObj.delete(nb,type)
+            pos = self.current_item["Pos"]
+            self.go_to(pos+1, "Pos")
+        playlist_obj.delete(nb,type)
 
         if isinstance(playlist,str):
-            self.__closePlaylist(playlist) 
+            self.__close_playlist(playlist) 
 
-    def load(self,playlists,pos = None):
+    def load_playlist(self,playlists,pos = None):
         songs = []
         if isinstance(playlists,str):
             playlists = [playlists]
         for playlist in playlists:
-            sourceContent = Playlist(self.djDB,playlist)
-            songs.extend(sourceContent.getContent())
+            source_content = Playlist(self.db,self.library,playlist)
+            songs.extend(source_content.get_content())
 
-        self.currentSource.addMediadbFiles(songs,pos)
+        self.current_source.add_files(songs,pos)
 
-    def save(self,playlistName):
-        playlistObj = Playlist(self.djDB,playlistName,\
-            self.currentSource.getContent())
-        playlistObj.save()
+    def save(self,playlist_name):
+        playlist_obj = Playlist(self.db,self.library,playlist_name,\
+            self.current_source.get_content())
+        playlist_obj.save()
 
-    def rm(self,playlistName):
-        Playlist(self.djDB,playlistName).erase()
+    def rm(self,playlist_name):
+        Playlist(self.db,self.library,playlist_name).erase()
 
     def close(self):
-        states = [(str(self.currentSource.sourceId),self.sourceName+"id")]
-        self.djDB.setState(states)
-        self.__closePlaylist(self.__class__.currentPlaylistName)
+        states = [(str(self.current_source.source_id),self.source_name+"id")]
+        self.db.set_state(states)
+        self.__close_playlist(self.__class__.current_playlist_name)
 
-    def getStatus(self):
-        rs = [("playlist",self.currentSource.sourceId),\
-            ("playlistlength",self.currentSource.getContentLength())]
-        return rs
-
-    def __openPlaylist(self,name = None):
+    def __open_playlist(self,name = None):
         id = 0
         if name == None:
-            name = self.__class__.currentPlaylistName
-            id = self.getRecordedId() + 1
+            name = self.__class__.current_playlist_name
+            id = self.get_recorded_id() + 1
 
-        if name not in self.__openPlaylists:
-            self.__openPlaylists[name] = Playlist(self.djDB,name,None,id)
-        return self.__openPlaylists[name]
+        if name not in self.__open_playlists:
+            self.__open_playlists[name] = Playlist(self.db,self.library,name,\
+                                                        None,id)
+        return self.__open_playlists[name]
         
-    def __closePlaylist(self,name):
-        if name in self.__openPlaylists:
-            self.__openPlaylists[name].save()
-            del self.__openPlaylists[name]
+    def __close_playlist(self,name):
+        if name in self.__open_playlists:
+            self.__open_playlists[name].save()
+            del self.__open_playlists[name]
         else:
             raise PlaylistNotFoundException
 

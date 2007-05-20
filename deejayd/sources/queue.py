@@ -3,76 +3,71 @@ from deejayd.mediadb.deejaydDB import NotFoundException
 from deejayd.sources.unknown import *
 
 class Queue(UnknownSource):
-    queueName = "__djqueue__"
+    queue_name = "__djqueue__"
 
-    def __init__(self,library,id):
-        UnknownSource.__init__(self,library,id)
-        self.rootPath = library.getAudioRootPath()
+    def __init__(self,db,library,id):
+        UnknownSource.__init__(self,db,library,id)
 
-        self.sourceContent = self.db.getPlaylist(self.__class__.queueName)
+        self.source_content = self.db.get_playlist(self.__class__.queue_name)
         # Format correctly queue content
-        self.sourceContent = [self.formatMediadbPlaylistFiles(s)
-            for s in self.sourceContent]
+        self.source_content = [self.format_playlist_files(s)
+            for s in self.source_content]
 
     def save(self):
         # First we delete all previous record
-        self.db.deletePlaylist(self.__class__.queueName)
+        self.db.delete_playlist(self.__class__.queue_name)
         # After we record the new playlist
-        self.db.savePlaylist(self.sourceContent,self.__class__.queueName)
+        self.db.save_playlist(self.source_content,self.__class__.queue_name)
 
 
 class QueueSource(UnknownSourceManagement):
 
-    def __init__(self,player,djDB): 
-        UnknownSourceManagement.__init__(self,player,djDB)
-        self.sourceName = "queue"
-        self.currentSource = Queue(self.djDB,self.getRecordedId())
+    def __init__(self,player,db,library): 
+        UnknownSourceManagement.__init__(self,player,db,library)
+        self.source_name = "queue"
+        self.current_source = Queue(db,library,self.get_recorded_id())
 
-    def getCurrent(self):
-        return self.currentItem
+    def get_current(self):
+        return self.current_item
 
-    def add(self,files,pos = None):
+    def add_path(self,paths,pos = None):
         songs = []
-        if isinstance(files,str):
-            files = [files]
-        for file in files:
-            try: songs.extend(self.djDB.getAll(file))
+        if isinstance(paths,str):
+            paths = [paths]
+        for path in paths:
+            try: songs.extend(self.library.get_all_files(path))
             except NotFoundException:
-                try: songs.extend(self.djDB.getFile(file))
+                try: songs.extend(self.library.get_file(path))
                 except NotFoundException: raise ItemNotFoundException
 
-        self.currentSource.addMediadbFiles(songs,pos)
+        self.current_source.add_files(songs,pos)
 
-    def loadPlaylist(self,playlists,pos = None):
+    def load_playlist(self,playlists,pos = None):
         from deejayd.sources.playlist import Playlist
         songs = []
         if isinstance(playlists,str):
             playlists = [playlists]
         for playlist in playlists:
-            sourceContent = Playlist(self.djDB,playlist)
-            songs.extend(sourceContent.getContent())
+            source_content = Playlist(self.db,self.library,playlist)
+            songs.extend(source_content.get_content())
 
-        self.currentSource.addMediadbFiles(songs,pos)
+        self.current_source.add_files(songs,pos)
 
-    def getStatus(self):
-        return [("queue",self.currentSource.sourceId),\
-            ("queuelength",self.currentSource.getContentLength())]
-
-    def goTo(self,nb,type = "Id"):
-        UnknownSourceManagement.goTo(self,nb,type)
-        if self.currentItem != None:
-            self.currentSource.delete(nb,type)
-        return self.currentItem
+    def go_to(self,nb,type = "Id"):
+        UnknownSourceManagement.go_to(self,nb,type)
+        if self.current_item != None:
+            self.current_source.delete(nb,type)
+        return self.current_item
 
     def next(self,rd,rpt):
-        self.goTo(0,'Pos')
-        return self.currentItem
+        self.go_to(0,'Pos')
+        return self.current_item
 
     def previous(self,rd,rpt):
         # Have to be never called
         raise NotImplementedError
 
     def reset(self):
-        self.currentItem = None
+        self.current_item = None
 
 # vim: ts=4 sw=4 expandtab

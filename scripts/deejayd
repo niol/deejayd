@@ -37,7 +37,7 @@ import errno,random,sys,os,pwd,grp
 from deejayd.ui.config import DeejaydConfig
 if options.conffile:
     if os.path.isfile(options.conffile):
-        DeejaydConfig.customConf = options.conffile
+        DeejaydConfig.custom_conf = options.conffile
     else:
         sys.exit("The config file does not exist.")
 

@@ -8,17 +8,18 @@ from xml.dom import minidom
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
 from deejayd.mediadb import deejaydDB
-from deejayd.mediadb.database import DatabaseFactory
+from deejayd.database.database import DatabaseFactory
 from deejayd.sources import sources
 from deejayd.net import commandsXML,commandsLine
 
 class DeejaydProtocol(LineReceiver):
 
-    def __init__(self,player,db,sources):
+    def __init__(self,db,player,audio_library,video_library,sources):
         self.delimiter = "\n"
         self.MAX_LENGTH = 1024
         self.lineProtocol = True
-        self.deejaydArgs = {"player":player,"db":db,"sources":sources}
+        self.deejaydArgs = {"audio_library":audio_library,"player":player,\
+                       "video_library":video_library,"db":db,"sources":sources}
 
     def connectionMade(self):
         from deejayd import __version__
@@ -63,36 +64,29 @@ class DeejaydProtocol(LineReceiver):
 
 class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
-    db_supplied = False
+    obj_supplied = False
 
-    def __init__(self, ddb = None):
-        if ddb != None:
-            self.db_supplied = True
-            self.db = ddb
+    def __init__(self, db = None, player = None, audio_library = None,\
+                                                        video_library = None):
+        if db != None and player != None and audio_library != None:
+            self.__class__.obj_supplied = True
+            self.db = db
+            self.player = player
+            self.audio_library = audio_library
+            self.video_library = video_library
 
     def startFactory(self):
         config = DeejaydConfig()
         log.info("Starting Deejayd ...")
 
+        if self.__class__.obj_supplied:
+            self.sources = sources.SourcesFactory(self.player,self.db,\
+                                      self.audio_library,self.video_library)
+            return True
+
         # Try to Init the MediaDB
-        if not self.db_supplied:
-            try: audio_dir = config.get("mediadb","music_directory")
-            except NoOptionError:
-                sys.exit("You have to choose a music directory")
-
-            if config.get('general', 'video_support') != 'yes':
-                video_dir = None
-                log.msg("Video support disabled.")
-            else:
-                try: video_dir = config.get('mediadb', 'video_directory')
-                except NoOptionError:
-                    log.err('Supplied video directory not found. Video support disabled.')
-                    video_dir = None
-
-            self.db = deejaydDB.DeejaydDB(DatabaseFactory().getDB(),\
-                            audio_dir,video_dir)
-        log.info("MediaDB Initialisation...OK")
-
+        self.db = DatabaseFactory(config).get_db()
+        self.db.connect()
         # Try to Init the player
         media_backend = config.get("general","media_backend")
         if media_backend == "gstreamer":
@@ -115,18 +109,42 @@ class DeejaydFactory(protocol.ServerFactory):
         "Unable to start deejayd : you do not choose a correct media backend\n")
         log.info("Player Initialisation...OK")
 
+        try: audio_dir = config.get("mediadb","music_directory")
+        except NoOptionError:
+            sys.exit("You have to choose a music directory")
+        else: 
+            log.info(" Audio library Initialisation...OK")
+            self.audio_library = deejaydDB.AudioLibrary(self.db,self.player,\
+                                                                    audio_dir)
+
+        if config.get('general', 'video_support') != 'yes':
+            self.video_library = None
+            log.info("Video support disabled.")
+        else:
+            try: video_dir = config.get('mediadb', 'video_directory')
+            except NoOptionError:
+                log.err(\
+                  'Supplied video directory not found. Video support disabled.')
+                self.video_library = None
+            else: 
+                log.info(" Video library Initialisation...OK")
+                self.video_library = deejaydDB.VideoLibrary(self.db,\
+                                                        self.player,video_dir)
+
         # Try to Init sources
-        self.sources = sources.sourcesFactory(self.player,self.db,config)
+        self.sources = sources.SourcesFactory(self.player,self.db,\
+                                 self.audio_library,self.video_library)
         log.info("Sources Initialisation...OK")
 
     def stopFactory(self):
-        self.player.close()
-        self.sources.close()
-        self.db.close()
+        for obj in (self.player,self.sources,self.audio_library,\
+                                                  self.video_library,self.db):
+            if obj != None: obj.close()
 
     def buildProtocol(self, addr):
-        p = self.protocol(player = self.player,
-            db = self.db,sources = self.sources)
+        p = self.protocol(db = self.db,player = self.player,\
+            audio_library = self.audio_library,\
+            video_library = self.video_library,sources = self.sources)
         p.factory = self
         return p
 

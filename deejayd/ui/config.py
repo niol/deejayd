@@ -2,9 +2,9 @@ import ConfigParser, os, sys
 
 class DeejaydConfig:
 
-    customConf = None
-    __globalConf = '/etc/deejayd.conf'
-    __userConf = '~/.deejayd.conf'
+    custom_conf = None
+    __global_conf = '/etc/deejayd.conf'
+    __user_conf = '~/.deejayd.conf'
     __config = None
 
     def __init__(self):
@@ -12,15 +12,15 @@ class DeejaydConfig:
         if DeejaydConfig.__config == None:
             DeejaydConfig.__config = ConfigParser.ConfigParser()
 
-            defaultConfigPath = os.path.abspath(os.path.dirname(__file__))
-            DeejaydConfig.__config.readfp(open(defaultConfigPath\
+            default_config_path = os.path.abspath(os.path.dirname(__file__))
+            DeejaydConfig.__config.readfp(open(default_config_path\
                                         + '/defaults.conf'))
 
-            confFiles = [DeejaydConfig.__globalConf,\
-                         os.path.expanduser(DeejaydConfig.__userConf)]
-            if DeejaydConfig.customConf:
-                confFiles.append(DeejaydConfig.customConf)
-            DeejaydConfig.__config.read(confFiles)
+            conf_files = [DeejaydConfig.__global_conf,\
+                         os.path.expanduser(DeejaydConfig.__user_conf)]
+            if DeejaydConfig.custom_conf:
+                conf_files.append(DeejaydConfig.custom_conf)
+            DeejaydConfig.__config.read(conf_files)
 
     def __getattr__(self, name):
         return getattr(DeejaydConfig.__config, name)

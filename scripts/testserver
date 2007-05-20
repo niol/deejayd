@@ -8,10 +8,12 @@ import sys, os
 print sys.path
 
 from deejayd.net.deejaydProtocol import DeejaydFactory
-from deejayd.mediadb.database import sqliteDatabase
-from deejayd.mediadb.deejaydDB import DeejaydDB
+from deejayd.database.sqlite import SqliteDatabase
+from deejayd.mediadb.deejaydDB import AudioLibrary,VideoLibrary
+from deejayd.ui.config import DeejaydConfig
 from twisted.internet import reactor
 from twisted.python import log
+from deejayd.player import gstreamer
 
 # argv[1] should be port
 # argv[2] should be music dir
@@ -20,19 +22,24 @@ if len(sys.argv) != 4:
     sys.exit('Incorrect invocation')
 
 port = sys.argv[1]
-musicDir = sys.argv[2]
+music_dir = sys.argv[2]
 dbfilename = sys.argv[3]
 
 log.startLogging(open('/tmp/testdeejayd.log', 'w'))
 
-db = sqliteDatabase(dbfilename)
+config = DeejaydConfig()
 
-ddb = DeejaydDB(db, musicDir)
+db = SqliteDatabase(dbfilename)
+db.connect()
 
-factory = DeejaydFactory(ddb)
+player = gstreamer.Gstreamer(db,config)
+
+audio_library = AudioLibrary(db, player, music_dir)
+
+factory = DeejaydFactory(db,player,audio_library)
 reactor.listenTCP(int(port), factory)
 
-ddb.startUpdate()
+audio_library._update()
 
 def printReady():
     os.write(2, 'ready\n')

@@ -10,9 +10,7 @@ class unknownPlayer:
 
     def __init__(self,db,config):
         self.config = config
-
         self.db = db
-        self.db.setPlayer(self)
 
         # Initialise var
         self._videoSupport = False
@@ -27,21 +25,21 @@ class unknownPlayer:
 
     def initVideoSupport(self):
         self._videoSupport = True
-        self._fullscreen = int(self.db.getState("fullscreen"))
-        self._loadsubtitle = int(self.db.getState("loadsubtitle"))
+        self._fullscreen = int(self.db.get_state("fullscreen"))
+        self._loadsubtitle = int(self.db.get_state("loadsubtitle"))
 
     def loadState(self):
         # Restore volume
-        vol = float(self.db.getState("volume"))
+        vol = float(self.db.get_state("volume"))
         self.setVolume(vol)
 
         # Restore current song
-        curPos = int(self.db.getState("currentPos"))
-        self._source.goTo(curPos,"Pos")
+        curPos = int(self.db.get_state("currentPos"))
+        self._source.go_to(curPos,"Pos")
 
         # Random and Repeat
-        self.random(int(self.db.getState("random")))
-        self.repeat(int(self.db.getState("repeat")))
+        self.random(int(self.db.get_state("random")))
+        self.repeat(int(self.db.get_state("repeat")))
 
     def setSource(self,source,name):
         self._source = source
@@ -54,7 +52,7 @@ class unknownPlayer:
         return self._playingSourceName or self._sourceName
 
     def startPlay(self):
-        if self._queue.getCurrent():
+        if self._queue.get_current():
             self._playingSourceName = "queue"
             self._playingSource = self._queue
         else:
@@ -63,7 +61,7 @@ class unknownPlayer:
 
     def play(self):
         if self.getState() == PLAYER_STOP:
-            curSong = self._queue.goTo(0,"Pos") or self._source.getCurrent()
+            curSong = self._queue.go_to(0,"Pos") or self._source.get_current()
             if curSong: self.setURI(curSong["uri"])
             else: return
             self.startPlay()
@@ -100,7 +98,7 @@ class unknownPlayer:
     def goTo(self,nb,type,queue = False):
         self.stop()
         s = queue and self._queue or self._source
-        song = s.goTo(nb,type)
+        song = s.go_to(nb,type)
         if song:
             self.setURI(song["uri"])
             self.startPlay()
@@ -145,7 +143,7 @@ class unknownPlayer:
             ("mode",self._sourceName)]
 
         source = self._playingSource or self._source
-        curSong = source.getCurrent()
+        curSong = source.get_current()
         if curSong:
             status.extend([("song",curSong["Pos"]),("songid",curSong["Id"])])
         if self.getState() != PLAYER_STOP:
@@ -165,7 +163,7 @@ class unknownPlayer:
         return self.getState() != PLAYER_STOP
 
     def close(self):
-        song = self._source.getCurrent()
+        song = self._source.get_current()
         if song: curPos = song["Pos"]
         else: curPos = 0
 
@@ -175,7 +173,7 @@ class unknownPlayer:
         if self._videoSupport:
             states.extend([(str(self._fullscreen),"fullscreen"),
                             (str(self._loadsubtitle),"loadsubtitle")])
-        self.db.setState(states)
+        self.db.set_state(states)
 
         # stop player if necessary
         if self.getState() != PLAYER_STOP:

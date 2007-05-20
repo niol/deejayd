@@ -5,27 +5,27 @@ import urllib
 
 class UnsupportedFormatException: pass
 
-def getPlaylistFileLines(URL):
+def get_playlist_file_lines(URL):
     try: 
-        plsHandle = urllib.urlopen(URL)
-        playlist = plsHandle.read()
+        pls_handle = urllib.urlopen(URL)
+        playlist = pls_handle.read()
     except:
         raise NotFoundException
 
     return playlist.splitlines()
 
-def getUrisFromPls(URL):
+def get_uris_from_pls(URL):
     uris = []
-    lines = getPlaylistFileLines(URL)
+    lines = get_playlist_file_lines(URL)
     for line in lines:
         if line.lower().startswith("file") and line.find("=")!=-1:
             uris.append(line[line.find("=")+1:].strip())
 
     return uris
 
-def getUrisFromM3u(URL):
+def get_uris_from_m3u(URL):
     uris = []
-    lines = getPlaylistFileLines(URL)
+    lines = get_playlist_file_lines(URL)
     for line in lines:
         if not line.startswith("#") and line.strip()!="":
             uris.append(line.strip())
@@ -35,56 +35,50 @@ def getUrisFromM3u(URL):
 
 class Webradio(UnknownSource):
 
-    def __init__(self,library,id): 
-        UnknownSource.__init__(self,library,id)
+    def __init__(self,db,id): 
+        UnknownSource.__init__(self,db,None,id)
 
-        webradios = self.db.getWebradios() 
-        self.sourceContent = [{"Pos":webradio[0],"Id":self.setItemId(), \
+        webradios = self.db.get_webradios() 
+        self.source_content = [{"Pos":webradio[0],"Id":self.set_item_id(), \
             "Title":webradio[1], "uri":webradio[2]} for webradio in webradios]
 
     def add(self,uri,name):
-        pos = len(self.sourceContent)
-        self.sourceContent.append({"Pos":pos,"Id":self.setItemId(),\
+        pos = len(self.source_content)
+        self.source_content.append({"Pos":pos,"Id":self.set_item_id(),\
             "Title":name,"uri":uri})
 
         # Increment webradioId
-        self.sourceId += 1
+        self.source_id += 1
 
     def save(self):
-        self.db.clearWebradios()
+        self.db.clear_webradios()
         values = [(webradio["Pos"],webradio["Title"],webradio["uri"]) \
-            for webradio in self.sourceContent]
-        self.db.addWebradios(values)
+            for webradio in self.source_content]
+        self.db.add_webradios(values)
 
 
 class WebradioSource(UnknownSourceManagement):
 
-    def __init__(self, player, djDB):
-        UnknownSourceManagement.__init__(self,player,djDB)
+    def __init__(self, player, db):
+        UnknownSourceManagement.__init__(self,player,db)
 
         # Init parms
-        self.sourceName = "webradio"
-        self.currentItem = None
-        self.currentSource = Webradio(self.djDB,self.getRecordedId())
+        self.source_name = "webradio"
+        self.current_source = Webradio(self.db,self.get_recorded_id())
 
-    def add(self,URL,name):
-        if URL.lower().startswith("http://"):
-            if URL.lower().endswith(".pls"):
-                uris = getUrisFromPls(URL)
-            elif URL.lower().endswith(".m3u"):
-                uris = getUrisFromM3u(URL)
-            else: uris = [URL]
+    def add(self,url,name):
+        if url.lower().startswith("http://"):
+            if url.lower().endswith(".pls"):
+                uris = get_uris_from_pls(url)
+            elif url.lower().endswith(".m3u"):
+                uris = get_uris_from_m3u(url)
+            else: uris = [url]
         else: raise UnsupportedFormatException
 
         i = 1
         for uri in uris:
-            self.currentSource.add(uri,name + "-%d" % (i,))
+            self.current_source.add(uri,name + "-%d" % (i,))
             i += 1
         return True
-
-    def getStatus(self):
-        return [('webradio',self.currentSource.sourceId),\
-            ("webradiolength",self.currentSource.getContentLength())]
-
 
 # vim: ts=4 sw=4 expandtab
