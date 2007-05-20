@@ -186,6 +186,19 @@ class testAudioLibrary(testVideoLibrary,TestCaseWithAudioData):
         self.testdata.changeMediaTags()
         self.verifyMediaDBContent()
 
+    def testSearchFile(self):
+        """Search a file in audio library"""
+        self.assertRaises(NotFoundException,
+              self.library.search, self.testdata.getRandomString(),\
+              self.testdata.getRandomString())
+
+        self.assertEqual([],
+                  self.library.search("genre", self.testdata.getRandomString()))
+
+        medias = self.testdata.medias.keys()
+        media = self.testdata.medias[medias[0]]
+        self.assertEqual(1,len(self.library.search("genre", media["genre"])))
+
     def verifyTag(self,filePath):
         try: inDBfile = self.library.get_file(filePath)
         except NotFoundException:

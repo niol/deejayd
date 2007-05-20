@@ -254,8 +254,7 @@ class Search(UnknownCommand):
         else:
             return self.getErrorAnswer('You have to enter text')
 
-        try: list = getattr(self.deejaydArgs["audio_library"],self.name)(type,\
-                                                                        content)
+        try: list = self.deejaydArgs["audio_library"].search(type,content)
         except NotFoundException:
             return self.getErrorAnswer('type %s is not supported' % (type,))
         else:
