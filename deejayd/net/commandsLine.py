@@ -1,4 +1,4 @@
-from deejayd.mediadb.deejaydDB import NotFoundException
+from deejayd.mediadb.library import NotFoundException
 from deejayd.sources import sources
 from os import path
 

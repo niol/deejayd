@@ -1,5 +1,4 @@
 from testdeejayd import TestCaseWithData
-from deejayd.mediadb import deejaydDB
 from deejayd.database.sqlite import SqliteDatabase
 import os
 

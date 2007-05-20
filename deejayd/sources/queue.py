@@ -1,5 +1,5 @@
 
-from deejayd.mediadb.deejaydDB import NotFoundException
+from deejayd.mediadb.library import NotFoundException
 from deejayd.sources.unknown import *
 
 class Queue(UnknownSource):

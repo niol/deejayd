@@ -1,5 +1,5 @@
 from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
-from deejayd.mediadb.deejaydDB import NotFoundException
+from deejayd.mediadb.library import NotFoundException
 from deejayd.sources.webradio import UnsupportedFormatException
 from deejayd import sources 
 

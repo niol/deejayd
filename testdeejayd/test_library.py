@@ -4,7 +4,7 @@ Deejayd DB testing module
 from testdeejayd import TestCaseWithAudioData, TestCaseWithVideoData, \
                                                       TestCaseWithProvidedMusic
 from deejayd.database.sqlite import SqliteDatabase
-from deejayd.mediadb.deejaydDB import AudioLibrary, VideoLibrary, \
+from deejayd.mediadb.library import AudioLibrary, VideoLibrary, \
                                                             NotFoundException
 import os,time
 

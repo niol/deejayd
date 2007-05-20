@@ -1,6 +1,6 @@
 
 from os import path
-from deejayd.mediadb.deejaydDB import NotFoundException
+from deejayd.mediadb.library import NotFoundException
 from deejayd.sources.unknown import *
 
 class Video(UnknownSource):

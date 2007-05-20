@@ -7,7 +7,7 @@ from xml.dom import minidom
 
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
-from deejayd.mediadb import deejaydDB
+from deejayd.mediadb import library
 from deejayd.database.database import DatabaseFactory
 from deejayd.sources import sources
 from deejayd.net import commandsXML,commandsLine
@@ -114,7 +114,7 @@ class DeejaydFactory(protocol.ServerFactory):
             sys.exit("You have to choose a music directory")
         else: 
             log.info(" Audio library Initialisation...OK")
-            self.audio_library = deejaydDB.AudioLibrary(self.db,self.player,\
+            self.audio_library = library.AudioLibrary(self.db,self.player,\
                                                                     audio_dir)
 
         if config.get('general', 'video_support') != 'yes':
@@ -128,7 +128,7 @@ class DeejaydFactory(protocol.ServerFactory):
                 self.video_library = None
             else: 
                 log.info(" Video library Initialisation...OK")
-                self.video_library = deejaydDB.VideoLibrary(self.db,\
+                self.video_library = library.VideoLibrary(self.db,\
                                                         self.player,video_dir)
 
         # Try to Init sources

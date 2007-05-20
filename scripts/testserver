@@ -9,7 +9,7 @@ print sys.path
 
 from deejayd.net.deejaydProtocol import DeejaydFactory
 from deejayd.database.sqlite import SqliteDatabase
-from deejayd.mediadb.deejaydDB import AudioLibrary,VideoLibrary
+from deejayd.mediadb.library import AudioLibrary,VideoLibrary
 from deejayd.ui.config import DeejaydConfig
 from twisted.internet import reactor
 from twisted.python import log

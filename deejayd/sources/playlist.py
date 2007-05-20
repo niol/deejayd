@@ -1,5 +1,5 @@
 from deejayd.sources.unknown import *
-from deejayd.mediadb.deejaydDB import NotFoundException 
+from deejayd.mediadb.library import NotFoundException 
 from os import path
 import random
 
