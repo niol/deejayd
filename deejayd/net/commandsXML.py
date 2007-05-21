@@ -194,7 +194,7 @@ class UpdateAudioLibrary(UnknownCommand):
     """Update the audio library.
   * audio_updating_db : the id of this task. It appears in the status until the
     update are completed."""
-    command_name = 'audio_update'
+    command_name = 'audioUpdate'
     command_rvalue = 'KeyValue'
 
     def execute(self):
@@ -206,7 +206,7 @@ class UpdateVideoLibrary(UnknownCommand):
     """Update the video library.
   * video_updating_db : the id of this task. It appears in the status until the
     update are completed."""
-    command_name = 'video_update'
+    command_name = 'videoUpdate'
     command_rvalue = 'KeyValue'
 
 

@@ -222,7 +222,7 @@ Arguments :
 
 Expected return value : KeyValue
 
-=== audio_update ===
+=== audioUpdate ===
 
 Update the audio library.
   * audio_updating_db : the id of this task. It appears in the status until the
@@ -233,7 +233,7 @@ Arguments :
 
 Expected return value : KeyValue
 
-=== video_update ===
+=== videoUpdate ===
 
 Update the video library.
   * video_updating_db : the id of this task. It appears in the status until the
