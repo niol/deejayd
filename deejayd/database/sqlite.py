@@ -4,6 +4,7 @@ from deejayd.ui import log
 from deejayd.database.database import Database
 from pysqlite2 import dbapi2 as sqlite
 from os import path
+import sys
 
 def str_encode(data):
     """Convert a basestring to a valid UTF-8 str."""
