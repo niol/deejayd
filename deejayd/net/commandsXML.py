@@ -70,7 +70,7 @@ class UnknownCommand:
                         ("Artist",ar),("Album",al),("Genre",gn),("Track",tn),\
                         ("Date",dt),("Bitrate",bt)]
                 files.append(dict(fileI))
-        return (files, dirs)
+        return {'files':files, 'dirs': dirs}
 
     # FIXME : This function should not exist, database structure should not
     # appear here.
@@ -87,7 +87,7 @@ class UnknownCommand:
                     ("Subtitle",sub)]
                 videos.append(dict(videoI))
 
-        return (videos, dirs)
+        return {'videos':videos, 'dirs':dirs}
 
 
 class Ping(UnknownCommand):
@@ -232,9 +232,9 @@ class GetDir(UnknownCommand):
             rsp = self.getAnswer('FileList')
             rsp.setDirectory(dir)
 
-            files, dirs = self.getFileAndDirs(list)
-            rsp.setFiles(files)
-            rsp.setDirectories(dirs)
+            filesAndDirs = self.getFileAndDirs(list)
+            rsp.setFiles(filesAndDirs['files'])
+            rsp.setDirectories(filesAndDirs['dirs'])
 
             return rsp
 
@@ -260,9 +260,9 @@ class Search(UnknownCommand):
         else:
             rsp = self.getAnswer('FileList')
 
-            dirs, files = self.getFileAndDirs(list)
-            rsp.setFiles(files)
-            rsp.setDirectories(dirs)
+            filesAndDirs = self.getFileAndDirs(list)
+            rsp.setFiles(filesAndDirs['files'])
+            rsp.setDirectories(filesAndDirs['dirs'])
 
             return rsp
 
@@ -285,9 +285,9 @@ class GetVideoDir(GetDir):
             rsp = self.getAnswer('FileList')
             rsp.setDirectory(dir)
 
-            videos, dirs = self.getVideosAndDirs(list)
-            rsp.setVideos(videos)
-            rsp.setDirectories(dirs)
+            videosAndDirs = self.getVideosAndDirs(list)
+            rsp.setVideos(videosAndDirs['videos'])
+            rsp.setDirectories(videosAndDirs['dirs'])
 
             return rsp
 
