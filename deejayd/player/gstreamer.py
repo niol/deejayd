@@ -161,7 +161,7 @@ class Gstreamer(unknownPlayer):
 
     def setSubtitle(self,val):
         if  self._videoSupport and self._sourceName == "video" and val == 1:
-            currentSong = self._source.getCurrent()
+            currentSong = self._source.get_current()
             subURI = currentSong["Subtitle"]
             if subURI.startswith("file://"): pass
                 # FIXME : these 2 lines induce a general stream error in 
