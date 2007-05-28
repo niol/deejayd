@@ -2,7 +2,7 @@
 # Xine module.  
 #
 # Contains the Xine class which is used to control libxine.
-# Code in here is basically just a wrapper for the functions in xine_impl.c.
+# Code in here is basically just a wrapper for the functions in djdxine.c.
 # See that file if you want to know what's going on under the hood
 #
 ##############################################################################
@@ -29,92 +29,68 @@ cdef extern from "xine.h":
     enum dummy:
         XINE_EVENT_UI_PLAYBACK_FINISHED
 
-cdef extern from "xine_impl.h":
+cdef extern from "djdxine.h":
     ctypedef struct _Xine
 
-    _Xine* xineCreate(xine_event_listener_cb_t event_callback, 
-            void* event_callback_data)
-    void xineDestroy(_Xine* xine)
-    void xineAttach(_Xine* xine, char* displayName, Drawable d)
-    void xineSetArea(_Xine* xine, int xpos, int ypos, int width, int height)
-    void xineDetach(_Xine* xine)
-    int xineCanPlayFile(_Xine* xine, char* filename)
-    int xineFileDuration(_Xine* xine, char* filename)
-    int xineFileScreenshot(_Xine* xine, char* filename, char *screenshot_filename)
-    void xineDataMineClose(_Xine* xine, char* filename)
-    void xineSelectFile(_Xine* xine, char* filename)
-    void xineSetPlaying(_Xine* xine, int isPlaying)
-    void xineSetViz(_Xine* xine, char *viz)
-    void xineSetVolume(_Xine* xine, int volume)
-    int xineGetVolume(_Xine* xine)
-    void xineGotExposeEvent(_Xine* xine, int x, int y, int width, int height)
-    void xineSeek(_Xine* xine, int position)
-    int xineGetPosLength(_Xine* xine, int* position, int* length)
+    _Xine* djdxine_init(char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data) 
+    int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
+    void djdxine_destroy(_Xine* xine)
+    int djdxine_play(_Xine* xine, char* filename, int isvideo)
+    int djdxine_next(_Xine* xine, char* filename, int isvideo)
+    void djdxine_stop(_Xine* xine)
+    int djdxine_file_info(_Xine* xine, char* filename)
+    void djdxine_seek(_Xine* xine, int position)
+    void djdxine_set_playing(_Xine* xine, int is_playing)
+    int djdxine_set_volume(_Xine* xine, int volume)
+    int djdxine_get_volume(_Xine* xine)
+    int djdxine_get_pos_length(_Xine* xine, int* position, int* length)
+    void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height)
+    void djdxine_set_area(_Xine* xine, int xpos, int ypos, int width, int height)
 
-class CantQueryPositionLength(Exception):
-    pass
+
+class NotPlayingError(Exception): pass
+class StartPlayingError(Exception): pass
 
 cdef class Xine:
     # Wrapper for the Xine class
     cdef _Xine* xine
-    cdef object eosCallback
+    cdef object eos_callback
 
-    def __new__(self):
-        self.xine = xineCreate(onXineEvent, <void*>self)
-        self.eosCallback = None
+    def __new__(self,char *audio_driver):
+        self.xine = djdxine_init(audio_driver,onXineEvent,<void*>self)
+        self.eos_callback = None
     def __dealloc__(self):
-        xineDestroy(self.xine)
-    def attach(self, char* displayName, int drawable):
-        xineAttach(self.xine, displayName, drawable)
-    def detach(self):
-        xineDetach(self.xine)
-    def setArea(self, int xpos, int ypos, int width, int height):
-        xineSetArea(self.xine, xpos, ypos, width, height)
-    def canPlayFile(self, char* filename):
-        # we convert xineCanPlayFile's return value to a python boolean
-        return xineCanPlayFile(self.xine, filename) and True or False
-    def fillMovieData(self, char* filename, char *screenshot, movie_data):
-        movie_data["duration"] = xineFileDuration(self.xine, filename)
-        success = xineFileScreenshot(self.xine, filename, screenshot)
-        return success
-    def selectFile(self, char* filename):
-        xineSelectFile(self.xine, filename)
+        djdxine_destroy(self.xine)
+    def video_init(self,char *video_driver,char* display_name):
+        djdxine_video_init(self.xine,video_driver,display_name)
+    def stop(self):
+        djdxine_stop(self.xine)
+    def start_playing(self,char* filename,int isvideo):
+        if djdxine_play(self.xine,filename,isvideo):
+            raise startplayingerror
+    def next(self,char* filename,int isvideo):
+        if djdxine_next(self.xine,filename,isvideo):
+            raise startplayingerror
     def play(self):
-        xineSetPlaying(self.xine, 1)
+        djdxine_set_playing(self.xine, 1)
     def pause(self):
-        xineSetPlaying(self.xine, 0)
-    def setViz(self, viz):
-        xineSetViz(self.xine, viz)
-    def setVolume(self, volume):
+        djdxine_set_playing(self.xine, 0)
+    def set_volume(self, volume):
         volume = min(max(volume, 0), 100)
-        xineSetVolume(self.xine, volume)
-    def getVolume(self):
-        return xineGetVolume(self.xine)
-    def gotExposeEvent(self, int x, int y, int width, int height):
-        xineGotExposeEvent(self.xine, x, y, width, height)
+        if djdxine_set_volume(self.xine, volume):
+            raise NotPlayingError
+    def get_volume(self):
+        rs = djdxine_get_volume(self.xine)
+        if rs == -1:
+            raise NotPlayingError
+        return rs
     def seek(self, int position):
-        xineSeek(self.xine, position)
-    def setEosCallback(self, callback):
-        """Set the callback invoke when xine reaches the end of its stream.
-        Pass in None to clear the callback
-
-        NOTE: this callback will be invoked outside of the gtk main thread,
-        use gobject.idle_add if you need to use any gtk methods.
-        """
-        self.eosCallback = callback
-    def onEosEvent(self):
-        if self.eosCallback:
-            self.eosCallback()
-    def getPositionAndLength(self):
-        """Try to query the current stream position and stream length.  If
-        Xine doesn't know the values yet we throw a CantQueryPositionLength
-        Exception.
-        """
-        cdef int position, length
-        if xineGetPosLength(self.xine, &position, &length) == 0:
-            raise CantQueryPositionLength
-        else:
-            return position, length
+        djdxine_seek(self.xine, position)
+    def set_eos_callback(self, callback):
+        self.eos_callback = callback
+    def on_eos_event(self):
+        if self.eos_callback:
+            self.eos_callback()
 
 cdef void onXineEvent(void* data, xine_event_t* event):
     cdef PyObject* self
@@ -125,7 +101,7 @@ cdef void onXineEvent(void* data, xine_event_t* event):
         self = <PyObject*>data
         gil = PyGILState_Ensure()
         Py_INCREF(self)
-        result = PyObject_CallMethod(self, "onEosEvent", "", NULL)
+        result = PyObject_CallMethod(self, "on_eos_event", "", NULL)
         if(result == NULL):
             PyErr_Print()
         else:

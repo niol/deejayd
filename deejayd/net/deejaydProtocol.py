@@ -104,6 +104,9 @@ class DeejaydFactory(protocol.ServerFactory):
             except gstreamer.NoSinkError:
                 sys.exit(\
                 "Unable to start deejayd : No audio sink found for Gstreamer\n")
+        elif media_backend == "xine":
+            from deejayd.player import xine
+            self.player = xine.XinePlayer(self.db,config)
         else:
             sys.exit(\
         "Unable to start deejayd : you do not choose a correct media backend\n")

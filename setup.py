@@ -73,7 +73,7 @@ xine_options = parsePkgConfig('pkg-config',
         'libxine pygtk-2.0 gtk+-2.0 glib-2.0 gthread-2.0')
 xine_ext = Extension('deejayd.ext.xine', [
         'deejayd/ext/xinelib/xine.pyx',
-        'deejayd/ext/xinelib/xine_impl.c',
+        'deejayd/ext/xinelib/djdxine.c',
         ], **xine_options)
 
 if __name__ == "__main__":
