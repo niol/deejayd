@@ -25,13 +25,13 @@ def getCommandOutput(cmd, warnOnStderr = True, warnOnReturnCode = True):
 
 def parsePkgConfig(command, components, options_dict = None):
     """Helper function to parse compiler/linker arguments from 
-    pkg-config/mozilla-config and update include_dirs, library_dirs, etc.
+    pkg-config and update include_dirs, library_dirs, etc.
 
     We return a dict with the following keys, which match up with keyword
     arguments to the setup function: include_dirs, library_dirs, libraries,
     extra_compile_args.
 
-    Command is the command to run (pkg-config, mozilla-config, etc).
+    Command is the command to run (pkg-config, etc).
     Components is a string that lists the components to get options for.
 
     If options_dict is passed in, we add options to it, instead of starting
@@ -59,15 +59,6 @@ def parsePkgConfig(command, components, options_dict = None):
             options_dict['extra_compile_args'].append(comp)
     return options_dict
 
-#### Xlib Extension ####
-xlib_ext = \
-    Extension("deejayd.ext.xlibhelper", 
-        ['deejayd/ext/xinelib/xlibhelper.pyx'],
-        library_dirs = ['/usr/X11R6/lib'],
-        libraries = ['X11'],
-    )
-
-
 #### Xine Extension ####
 xine_options = parsePkgConfig('pkg-config', 
         'libxine pygtk-2.0 gtk+-2.0 glib-2.0 gthread-2.0')
@@ -88,7 +79,7 @@ if __name__ == "__main__":
                      "deejayd.player","deejayd.sources","deejayd.ui",\
                      "deejayd.database","deejayd.ext"],
            package_data={'deejayd.ui': ['defaults.conf']},
-           ext_modules=[xlib_ext,xine_ext],
+           ext_modules=[xine_ext],
            data_files=[('share/doc/deejayd-'+deejayd.__version__, 
                             glob.glob("doc/*")),
                        ('share/doc/deejayd-'+deejayd.__version__,\
