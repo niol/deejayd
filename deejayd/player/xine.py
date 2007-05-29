@@ -76,7 +76,8 @@ class XinePlayer(unknownPlayer):
         self.xine.stop()
 
     def setFullscreen(self,val):
-        pass
+        try: self.xine.set_fullscreen(val)
+        except xine.NotPlayingError: pass
 
     def setSubtitle(self,val):
         pass

@@ -368,6 +368,7 @@ void djdxine_stop(_Xine* xine)
                        xine->video_player.window[0]);
         XDestroyWindow(xine->video_player.display, 
                        xine->video_player.window[1]);
+        XSync(xine->video_player.display, False);
         XUnlockDisplay(xine->video_player.display);
         xine->isvideo = 0;
     }

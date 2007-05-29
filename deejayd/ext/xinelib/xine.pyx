@@ -44,6 +44,7 @@ cdef extern from "djdxine.h":
     int djdxine_set_volume(_Xine* xine, int volume)
     int djdxine_get_volume(_Xine* xine)
     int djdxine_get_pos_length(_Xine* xine, int* position, int* length)
+    int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
     void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height)
     void djdxine_set_area(_Xine* xine, int xpos, int ypos, int width, int height)
 
@@ -86,6 +87,9 @@ cdef class Xine:
         return rs
     def seek(self, int position):
         djdxine_seek(self.xine, position)
+    def set_fullscreen(self, int fullscreen):
+        if djdxine_set_fullscreen(self.xine,fullscreen):
+            raise NotPlayingError
     def set_eos_callback(self, callback):
         self.eos_callback = callback
     def on_eos_event(self):

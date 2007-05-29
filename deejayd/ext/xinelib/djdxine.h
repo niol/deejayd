@@ -104,8 +104,6 @@ int djdxine_next(_Xine* xine, const char* filename, int isvideo);
 
 void djdxine_stop(_Xine* xine);
 
-int djdxine_file_info(_Xine* xine, const char* filename);
-
 void djdxine_seek(_Xine* xine, int position);
 
 void djdxine_set_playing(_Xine* xine, int is_playing);
@@ -116,7 +114,8 @@ int djdxine_get_volume(_Xine* xine);
 
 int djdxine_get_pos_length(_Xine* xine, int* position, int* length);
 
+int djdxine_set_fullscreen(_Xine* xine,int fullscreen);
+
 void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height);
 
-void djdxine_set_area(_Xine* xine, int xpos, int ypos, int width, int height);
-
+int djdxine_file_info(_Xine* xine, const char* filename);
