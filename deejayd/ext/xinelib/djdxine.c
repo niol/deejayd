@@ -9,6 +9,10 @@
 #include "djdxine.h"
 #include <xine/video_out.h>
 
+/***************************************************************************
+ *  Callback functions
+ *  ************************************************************************/
+
 static void dest_size_callback(void *data, int video_width, int video_height, 
         double video_pixel_aspect, int *dest_width, int *dest_height, double
         *dest_pixel_aspect)  
@@ -19,7 +23,7 @@ static void dest_size_callback(void *data, int video_width, int video_height,
     *dest_width = xine->frame_info.width;
     *dest_height = xine->frame_info.height;
     xmutex_unlock(xine->frame_info.lock);
-    *dest_pixel_aspect = xine->video_player.screen_pixel_aspect;
+    *dest_pixel_aspect = xine->player.screen_pixel_aspect;
 }
 
 static void frame_output_callback(void *data, int video_width, 
@@ -36,16 +40,21 @@ static void frame_output_callback(void *data, int video_width,
     *dest_width        = xine->frame_info.width;
     *dest_height       = xine->frame_info.height;
     xmutex_unlock(xine->frame_info.lock);
-    *dest_pixel_aspect = xine->video_player.screen_pixel_aspect;
+    *dest_pixel_aspect = xine->player.screen_pixel_aspect;
 }
+
+
+/***************************************************************************
+ *  Internal functions
+ *  ************************************************************************/
 
 static void _set_video_area(_Xine* xine)
 {
     Window root;
     int xpos, ypos, width, height, border, depth;
 
-    XGetGeometry(xine->video_player.display,
-        xine->video_player.window[xine->video_player.fullscreen],
+    XGetGeometry(xine->player.display,
+        xine->player.window[xine->player.fullscreen],
         &root,&xpos,&ypos,&width,&height,&border,&depth);
     xmutex_lock(xine->frame_info.lock);
     xine->frame_info.xpos = xpos;
@@ -54,6 +63,83 @@ static void _set_video_area(_Xine* xine)
     xine->frame_info.height = height;
     xmutex_unlock(xine->frame_info.lock);
 }
+
+static void _hide_cursor(Display* display, Drawable window)
+{
+    Pixmap bm_no;
+    Colormap cmap;
+    Cursor no_ptr;
+    XColor black, dummy;
+    static char bm_no_data[] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    cmap = DefaultColormap(display, DefaultScreen(display));
+    XAllocNamedColor(display, cmap, "black", &black, &dummy);
+    bm_no = XCreateBitmapFromData(display, window, bm_no_data, 8, 8);
+    no_ptr = XCreatePixmapCursor(display, bm_no, bm_no, &black, &black, 0, 0);
+
+    XDefineCursor(display, window, no_ptr);
+    XFreeCursor(display, no_ptr);
+    if (bm_no != None)
+        XFreePixmap(display, bm_no);
+    XFreeColors(display, cmap, &black.pixel, 1, 0);
+}
+
+static void _create_windows(_Xine* xine)
+{
+    int xpos, ypos, width, height;
+    MWMHints mwmhints;
+    Atom XA_NO_BORDER;
+
+    XLockDisplay(xine->player.display);
+    XA_NO_BORDER = XInternAtom(xine->player.display, 
+                "_MOTIF_WM_HINTS", False);
+    mwmhints.flags = MWM_HINTS_DECORATIONS;
+    mwmhints.decorations = 0;
+
+    /* create fullscreen window*/
+    xine->player.window[1] = XCreateSimpleWindow( xine->player.display, 
+        XDefaultRootWindow(xine->player.display),0, 0, 
+        (DisplayWidth(xine->player.display, 
+        xine->player.screen)), (DisplayHeight(
+        xine->player.display, xine->player.screen)), 0, 0, 0);
+    XSelectInput(xine->player.display, xine->player.window[1],INPUT_MOTION);
+    XChangeProperty(xine->player.display, xine->player.window[1],XA_NO_BORDER, 
+        XA_NO_BORDER, 32, PropModeReplace, 
+        (unsigned char *) &mwmhints,PROP_MWM_HINTS_ELEMENTS);
+    /* hide cursor */
+    _hide_cursor(xine->player.display,xine->player.window[1]);
+
+    /* create normal window */
+    xpos    = 0;
+    ypos    = 0;
+    width   = 640;
+    height  = 400;
+    xine->player.window[0] = XCreateSimpleWindow( xine->player.display, 
+                XDefaultRootWindow(xine->player.display),
+                xpos,ypos,width,height,1,0,0);
+    XSelectInput(xine->player.display, xine->player.window[0],INPUT_MOTION);
+    XUnlockDisplay(xine->player.display);
+
+    _set_video_area(xine);
+}
+
+static void _destroy_windows(_Xine* xine)
+{
+    int i;
+
+    XLockDisplay(xine->player.display);
+    for (i=0;i<2;i++) {
+        XUnmapWindow(xine->player.display, xine->player.window[i]);
+        XDestroyWindow(xine->player.display, xine->player.window[i]);
+    }
+    XSync(xine->player.display, False);
+    XUnlockDisplay(xine->player.display);
+}
+
+
+/***************************************************************************
+ *  Pubic functions
+ *  ************************************************************************/
 
 _Xine* djdxine_init(const char *audio_driver,
                 xine_event_listener_cb_t event_callback,
@@ -76,21 +162,21 @@ _Xine* djdxine_init(const char *audio_driver,
     xine->audio_driver = strdup(audio_driver);
 
     xine->video_driver = NULL;
-    xine->video_player.init = 0;
+    xine->player.video_init = 0;
     xine->data_mine.init = 0;
 
-    /* create an audio player */
-    xine->audio_player.xine = xine_new();
-    xine_init(xine->audio_player.xine);
-    xine->audio_player.aport = xine_open_audio_driver(xine->audio_player.xine,
-            xine->audio_driver, NULL);
-    xine->audio_player.vport = xine_open_video_driver(xine->audio_player.xine, 
-            "none", XINE_VISUAL_TYPE_NONE, NULL);
-    xine->audio_player.stream = xine_stream_new(xine->audio_player.xine, 
-        xine->audio_player.aport,xine->audio_player.vport);
-    xine->audio_player.event_queue = xine_event_new_queue(
-                                                    xine->audio_player.stream);
-    xine_event_create_listener_thread(xine->audio_player.event_queue,
+    /* create player */
+    xine->player.xine = xine_new();
+    xine_init(xine->player.xine);
+    xine->player.aport = xine_open_audio_driver(xine->player.xine, 
+                                                audio_driver, NULL);
+    xine->player.vport = xine_open_video_driver(xine->player.xine, "none", 
+                                            XINE_VISUAL_TYPE_NONE, NULL);
+    xine->player.stream = xine_stream_new(xine->player.xine,xine->player.aport,
+                                            xine->player.vport);
+
+    xine->player.event_queue = xine_event_new_queue(xine->player.stream);
+    xine_event_create_listener_thread(xine->player.event_queue,
         xine->event_callback,xine->event_callback_data);
 
     return xine;
@@ -100,6 +186,7 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
                         const char* display_name)
 {
     double screen_width, screen_height;
+    x11_visual_t vis;
 
     xine->video_driver = strdup(video_driver);
     if (!XInitThreads()) {
@@ -107,33 +194,57 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     }
 
     /* init video informations and player */
-    xine->video_player.fullscreen = 0;
-    xine->video_player.display = XOpenDisplay(display_name);
-    xine->video_player.screen = XDefaultScreen(xine->video_player.display);
-    screen_width = (DisplayWidth(xine->video_player.display, 
-        xine->video_player.screen) * 1000 / DisplayWidthMM(
-        xine->video_player.display, xine->video_player.screen));
-    screen_height = (DisplayHeight(xine->video_player.display, 
-        xine->video_player.screen) * 1000 / DisplayHeightMM(
-        xine->video_player.display, xine->video_player.screen));
-    xine->video_player.screen_pixel_aspect = screen_height / screen_width;
-    
-    xine->video_player.xine = xine_new();
-    xine_init(xine->video_player.xine);
-    xine->video_player.aport = xine_open_audio_driver(xine->video_player.xine,
-            xine->audio_driver, NULL);
+    xine->player.fullscreen = 0;
+    xine->player.display = XOpenDisplay(display_name);
+    xine->player.screen = XDefaultScreen(xine->player.display);
+    screen_width = (DisplayWidth(xine->player.display, 
+        xine->player.screen) * 1000 / DisplayWidthMM(
+        xine->player.display, xine->player.screen));
+    screen_height = (DisplayHeight(xine->player.display, 
+        xine->player.screen) * 1000 / DisplayHeightMM(
+        xine->player.display, xine->player.screen));
+    xine->player.screen_pixel_aspect = screen_height / screen_width;
 
-    xine->video_player.init = 1;
+    /* create windows */
+    _create_windows(xine);
+
+    /* close current stream to change video driver */
+    xine_event_dispose_queue(xine->player.event_queue);
+    xine_dispose(xine->player.stream);
+    xine_close_video_driver(xine->player.xine, xine->player.vport);
+
+    /* update video driver and create a new stream */
+    vis.display = xine->player.display;
+    vis.screen = xine->player.screen;
+    vis.d = xine->player.window[xine->player.fullscreen];
+    vis.dest_size_cb = dest_size_callback;
+    vis.frame_output_cb = frame_output_callback;
+    vis.user_data = xine;
+
+    xine->player.vport = xine_open_video_driver(xine->player.xine, 
+            xine->video_driver, XINE_VISUAL_TYPE_X11, (void *)&vis);
+    xine->player.stream = xine_stream_new(xine->player.xine, 
+        xine->player.aport,xine->player.vport);
+    xine->player.event_queue = xine_event_new_queue(
+                                                    xine->player.stream);
+    xine_event_create_listener_thread(xine->player.event_queue,
+        xine->event_callback,xine->event_callback_data);
+
+    xine_port_send_gui_data(xine->player.vport, 
+            XINE_GUI_SEND_DRAWABLE_CHANGED,
+            (void *) xine->player.window[xine->player.fullscreen]);
+    xine->player.video_init = 1;
 
     /* Create a xine instance used for querying data about video files */
     xine->data_mine.xine = xine_new();
     xine_init(xine->data_mine.xine);
-    xine->data_mine.video_port = xine_new_framegrab_video_port(
-        xine->data_mine.xine);
-    xine->data_mine.audio_port = xine_open_audio_driver(xine->data_mine.xine, 
-        "none", NULL);
+    xine->data_mine.aport = xine_open_audio_driver(xine->data_mine.xine, 
+                                                "none", NULL);
+    xine->data_mine.vport = xine_open_video_driver(xine->data_mine.xine, 
+                                    "none", XINE_VISUAL_TYPE_NONE, NULL);
     xine->data_mine.stream = xine_stream_new(xine->data_mine.xine,
-            xine->data_mine.audio_port, xine->data_mine.video_port);
+                                xine->data_mine.aport, xine->data_mine.vport);
+
     xine->data_mine.current_filename = NULL;
     xine->data_mine.init = 1;
 
@@ -156,151 +267,45 @@ void djdxine_destroy(_Xine* xine)
             xine_close(xine->data_mine.stream);
         }
         xine_dispose(xine->data_mine.stream);
-        xine_close_audio_driver(xine->data_mine.xine, 
-                                        xine->data_mine.audio_port);
-        xine_close_video_driver(xine->data_mine.xine, 
-                                        xine->data_mine.video_port);
+        xine_close_audio_driver(xine->data_mine.xine, xine->data_mine.aport);
+        xine_close_video_driver(xine->data_mine.xine, xine->data_mine.vport);
         xine_exit(xine->data_mine.xine);
     }
 
-    /* close video player */
-    if (xine->video_player.init) {
-        xine_close_audio_driver(xine->video_player.xine, 
-                                        xine->video_player.aport);
-        xine_exit(xine->video_player.xine);
-        XCloseDisplay(xine->video_player.display);
+    /* close player */
+    xine_event_dispose_queue(xine->player.event_queue);
+    xine_dispose(xine->player.stream);
+    xine_close_audio_driver(xine->player.xine, xine->player.aport);
+    xine_close_video_driver(xine->player.xine, xine->player.vport);
+    xine_exit(xine->player.xine);
+
+    /* close video parm */
+    if (xine->player.video_init) {
+        _destroy_windows(xine);
+        XCloseDisplay(xine->player.display);
     }
 
-    /* close audio player */
-    xine_event_dispose_queue(xine->audio_player.event_queue);
-    xine_dispose(xine->audio_player.stream);
-    xine_close_audio_driver(xine->audio_player.xine, xine->audio_player.aport);
-    xine_close_video_driver(xine->audio_player.xine, xine->audio_player.vport);
-    xine_exit(xine->audio_player.xine);
     xmutex_clear(xine->frame_info.lock);
     free(xine);
-}
-
-
-static void _hide_cursor(Display* display, Drawable window)
-{
-    Pixmap bm_no;
-    Colormap cmap;
-    Cursor no_ptr;
-    XColor black, dummy;
-    static char bm_no_data[] = {0, 0, 0, 0, 0, 0, 0, 0};
-
-    cmap = DefaultColormap(display, DefaultScreen(display));
-    XAllocNamedColor(display, cmap, "black", &black, &dummy);
-    bm_no = XCreateBitmapFromData(display, window, bm_no_data, 8, 8);
-    no_ptr = XCreatePixmapCursor(display, bm_no, bm_no, &black, &black, 0, 0);
-
-    XDefineCursor(display, window, no_ptr);
-    XFreeCursor(display, no_ptr);
-    if (bm_no != None)
-        XFreePixmap(display, bm_no);
-    XFreeColors(display, cmap, &black.pixel, 1, 0);
-}
-
-static void _create_video_player(_Xine* xine)
-{
-    int xpos, ypos, width, height;
-    MWMHints mwmhints;
-    Atom XA_NO_BORDER;
-    x11_visual_t vis;
-
-    XLockDisplay(xine->video_player.display);
-    XA_NO_BORDER = XInternAtom(xine->video_player.display, 
-                "_MOTIF_WM_HINTS", False);
-    mwmhints.flags = MWM_HINTS_DECORATIONS;
-    mwmhints.decorations = 0;
-
-    /* create fullscreen window*/
-    xine->video_player.window[1] = XCreateSimpleWindow(
-        xine->video_player.display, 
-        XDefaultRootWindow(xine->video_player.display),0, 0, 
-        (DisplayWidth(xine->video_player.display, 
-        xine->video_player.screen)), (DisplayHeight(
-        xine->video_player.display, xine->video_player.screen)), 0, 0, 0);
-    XSelectInput(xine->video_player.display, xine->video_player.window[1], 
-                    INPUT_MOTION);
-    XChangeProperty(xine->video_player.display, 
-        xine->video_player.window[1],XA_NO_BORDER, 
-        XA_NO_BORDER, 32, PropModeReplace, 
-        (unsigned char *) &mwmhints,PROP_MWM_HINTS_ELEMENTS);
-    /* hide cursor */
-    _hide_cursor(xine->video_player.display,xine->video_player.window[1]);
-
-    /* create normal window */
-    xpos    = 0;
-    ypos    = 0;
-    width   = 640;
-    height  = 400;
-    xine->video_player.window[0] = XCreateSimpleWindow(
-        xine->video_player.display, 
-        XDefaultRootWindow(xine->video_player.display),
-        xpos,ypos,width,height,1,0,0);
-    XSelectInput(xine->video_player.display, xine->video_player.window[0], 
-                    INPUT_MOTION);
-
-    XMapRaised(xine->video_player.display, 
-        xine->video_player.window[xine->video_player.fullscreen]);
-    XSync(xine->video_player.display, False);
-    XUnlockDisplay(xine->video_player.display);
-
-    vis.display = xine->video_player.display;
-    vis.screen = xine->video_player.screen;
-    vis.d = xine->video_player.window[xine->video_player.fullscreen];
-    vis.dest_size_cb = dest_size_callback;
-    vis.frame_output_cb = frame_output_callback;
-    vis.user_data = xine;
-
-    _set_video_area(xine);
-    xine->video_player.vport = xine_open_video_driver(xine->video_player.xine, 
-            xine->video_driver, XINE_VISUAL_TYPE_X11, (void *)&vis);
-
-    xine->video_player.stream = xine_stream_new(xine->video_player.xine, 
-        xine->video_player.aport,xine->video_player.vport);
-    xine->video_player.event_queue = xine_event_new_queue(
-                                                    xine->video_player.stream);
-    xine_event_create_listener_thread(xine->video_player.event_queue,
-        xine->event_callback,xine->event_callback_data);
-
-    xine_port_send_gui_data(xine->video_player.vport, 
-            XINE_GUI_SEND_DRAWABLE_CHANGED,
-            (void *) xine->video_player.window[xine->video_player.fullscreen]);
-    xine_port_send_gui_data(xine->video_player.vport, 
-            XINE_GUI_SEND_VIDEOWIN_VISIBLE,(void *) 1);
-}
-
-static void _destroy_video_player(_Xine* xine)
-{
-        xine_event_dispose_queue(xine->video_player.event_queue);
-        xine_dispose(xine->video_player.stream);
-
-        xine_close_video_driver(xine->video_player.xine, 
-                                        xine->video_player.vport);
 }
 
 int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
 {
     if ((!xine->playing) || (!xine->isvideo)) return 1;
-    if (xine->video_player.fullscreen == fullscreen) return 0;
+    if (xine->player.fullscreen == fullscreen) return 0;
 
-    XLockDisplay(xine->video_player.display);
-    XUnmapWindow(xine->video_player.display, 
-                 xine->video_player.window[xine->video_player.fullscreen]);
-    XMapRaised(xine->video_player.display, 
-               xine->video_player.window[fullscreen]);
-    XSync(xine->video_player.display, False);
-    XUnlockDisplay(xine->video_player.display);
+    XLockDisplay(xine->player.display);
+    XUnmapWindow(xine->player.display, 
+                 xine->player.window[xine->player.fullscreen]);
+    XMapRaised(xine->player.display, xine->player.window[fullscreen]);
+    XSync(xine->player.display, False);
+    XUnlockDisplay(xine->player.display);
 
-    xine->video_player.fullscreen = fullscreen;
-    xine_port_send_gui_data(xine->video_player.vport, 
-        XINE_GUI_SEND_DRAWABLE_CHANGED,
-        (void*) xine->video_player.window[fullscreen]);
+    xine->player.fullscreen = fullscreen;
+    xine_port_send_gui_data(xine->player.vport, XINE_GUI_SEND_DRAWABLE_CHANGED,
+                (void*) xine->player.window[fullscreen]);
+
     _set_video_area(xine);
-
     return 0;
 }
 
@@ -311,42 +316,20 @@ int djdxine_play(_Xine* xine, const char* filename, int isvideo)
     }
 
     if (isvideo) {
-        _create_video_player(xine);
-        if (!xine_open(xine->video_player.stream, filename) || 
-                               !xine_play(xine->video_player.stream, 0, 0)) {
-            return 1;
-            }
+        XLockDisplay(xine->player.display);
+        XMapRaised(xine->player.display, 
+            xine->player.window[xine->player.fullscreen]);
+        XSync(xine->player.display, False);
+        XUnlockDisplay(xine->player.display);
+
+        xine_port_send_gui_data(xine->player.vport, 
+                XINE_GUI_SEND_VIDEOWIN_VISIBLE,(void *) 1);
     }
-    else {
-        if (!xine_open(xine->audio_player.stream, filename) || 
-                               !xine_play(xine->audio_player.stream, 0, 0)) {
-            return 1;
-            }
+
+    if (!xine_open(xine->player.stream, filename) || 
+                   !xine_play(xine->player.stream, 0, 0)) {
+        return 1;
         }
-
-    xine->isvideo = isvideo;
-    xine->playing = 1;
-    return 0;
-}
-
-int djdxine_next(_Xine* xine, const char* filename, int isvideo)
-{
-    if (isvideo) {
-        if (xine->isvideo) { xine_close(xine->video_player.stream);}
-        else { xine_close(xine->audio_player.stream); }
-        if (!xine_open(xine->video_player.stream, filename) || 
-                               !xine_play(xine->video_player.stream, 0, 0)) {
-            return 1;
-            }
-    }
-    else {
-        if (xine->isvideo) {djdxine_stop(xine); }
-        else { xine_close(xine->audio_player.stream); }
-        if (!xine_open(xine->audio_player.stream, filename) || 
-                               !xine_play(xine->audio_player.stream, 0, 0)) {
-            return 1;
-            }
-    }
 
     xine->isvideo = isvideo;
     xine->playing = 1;
@@ -357,23 +340,20 @@ void djdxine_stop(_Xine* xine)
 {
     if(!xine->playing) return;
 
+    xine_close(xine->player.stream);
     if (xine->isvideo) {
-        xine_close(xine->video_player.stream);
-        _destroy_video_player(xine);
 
-        XLockDisplay(xine->video_player.display);
-        XUnmapWindow(xine->video_player.display, 
-                     xine->video_player.window[xine->video_player.fullscreen]);
-        XDestroyWindow(xine->video_player.display, 
-                       xine->video_player.window[0]);
-        XDestroyWindow(xine->video_player.display, 
-                       xine->video_player.window[1]);
-        XSync(xine->video_player.display, False);
-        XUnlockDisplay(xine->video_player.display);
+        XLockDisplay(xine->player.display);
+        XUnmapWindow(xine->player.display, 
+                     xine->player.window[xine->player.fullscreen]);
+        XUnmapWindow(xine->player.display, 
+                     xine->player.window[0]);
+        XUnmapWindow(xine->player.display, 
+                     xine->player.window[1]);
+        XSync(xine->player.display, False);
+        XUnlockDisplay(xine->player.display);
         xine->isvideo = 0;
     }
-    else {xine_close(xine->audio_player.stream);}
-
     xine->playing = 0;
 }
 
@@ -410,46 +390,41 @@ int djdxine_file_info(_Xine* xine, const char* filename)
 void djdxine_seek(_Xine* xine, int position)
 {
     if(!xine->playing) return;
-    if (xine->isvideo) xine_play(xine->video_player.stream, 0, position);
-    else xine_play(xine->audio_player.stream, 0, position);
+    xine_play(xine->player.stream, 0, position);
 }
 
 void djdxine_set_playing(_Xine* xine, int is_playing)
 {
-    xine_stream_t* stream;
     if(!xine->playing) return;
 
-    if (xine->isvideo) stream = xine->video_player.stream;
-    else stream = xine->audio_player.stream;
-
     if(is_playing) {
-        xine_set_param(stream, XINE_PARAM_SPEED, XINE_SPEED_NORMAL);
+        xine_set_param(xine->player.stream,XINE_PARAM_SPEED,XINE_SPEED_NORMAL);
     } else {
-        xine_set_param(stream, XINE_PARAM_SPEED, XINE_SPEED_PAUSE);
+        xine_set_param(xine->player.stream, XINE_PARAM_SPEED, XINE_SPEED_PAUSE);
     }
 }
 
 int djdxine_set_volume(_Xine* xine, int volume)
 {
-    xine_stream_t* stream;
     if(!xine->playing) return 1;
 
-    if (xine->isvideo) stream = xine->video_player.stream;
-    else stream = xine->audio_player.stream;
-
-    xine_set_param(stream, XINE_PARAM_AUDIO_AMP_LEVEL, volume);
+    xine_set_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL, volume);
     return 0;
 }
 
 int djdxine_get_volume(_Xine* xine)
 {
-    xine_stream_t* stream;
     if(!xine->playing) return -1;
 
-    if (xine->isvideo) stream = xine->video_player.stream;
-    else stream = xine->audio_player.stream;
+    return xine_get_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL);
+}
 
-    return xine_get_param(stream, XINE_PARAM_AUDIO_AMP_LEVEL);
+void djdxine_set_error(_Xine* xine,char *error)
+{
+}
+
+char *djd_get_error(_Xine* xine)
+{
 }
 
 void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height)
@@ -465,28 +440,10 @@ void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height)
     expose.y = y;
     expose.width = width;
     expose.height = height;
-    expose.display = xine->video_player.display;
-    expose.window = xine->video_player.window[0];
-    xine_port_send_gui_data(xine->video_player.vport, 
+    expose.display = xine->player.display;
+    expose.window = xine->player.window[0];
+    xine_port_send_gui_data(xine->player.vport, 
             XINE_GUI_SEND_EXPOSE_EVENT, &expose);
-}
-
-void djdxine_set_area(_Xine* xine, int xpos, int ypos, int width, int height)
-{
-    xmutex_lock(xine->frame_info.lock);
-    xine->frame_info.xpos = xpos;
-    xine->frame_info.ypos = ypos;
-    xine->frame_info.width = width;
-    xine->frame_info.height = height;
-    xmutex_unlock(xine->frame_info.lock);
-}
-
-void djdxine_set_error(_Xine* xine,char *error)
-{
-}
-
-char *djd_get_error(_Xine* xine)
-{
 }
 
 /****************************************************************************

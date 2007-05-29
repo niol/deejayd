@@ -49,17 +49,8 @@ typedef struct {
     char *audio_driver;
     xine_event_listener_cb_t event_callback;
     void* event_callback_data;
-    /* audio player */
-    struct {
-        xine_t* xine;
-        xine_stream_t* stream;
-        xine_video_port_t* vport;
-        xine_audio_port_t* aport;
-        xine_event_queue_t* event_queue;
-        } audio_player;
-    /* video player */
     FrameInfo frame_info;
-    double screen_pixel_aspect;
+    /* player */
     struct {
         Display* display;
         int screen;
@@ -72,14 +63,14 @@ typedef struct {
         xine_video_port_t* vport;
         xine_audio_port_t* aport;
         xine_event_queue_t* event_queue;
-        int init;
-        } video_player;
+        int video_init;
+        } player;
     /* data mine to obtain file infos */
     struct {
         xine_t* xine;
         xine_stream_t* stream;
-        xine_video_port_t* video_port;
-        xine_audio_port_t* audio_port;
+        xine_video_port_t* vport;
+        xine_audio_port_t* aport;
         char *current_filename;
         FileInfo file_info;
         int init;
@@ -99,8 +90,6 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
 void djdxine_destroy(_Xine* xine);
 
 int djdxine_play(_Xine* xine, const char* filename, int isvideo);
-
-int djdxine_next(_Xine* xine, const char* filename, int isvideo);
 
 void djdxine_stop(_Xine* xine);
 

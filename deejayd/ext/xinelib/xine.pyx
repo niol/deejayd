@@ -36,7 +36,6 @@ cdef extern from "djdxine.h":
     int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
     void djdxine_destroy(_Xine* xine)
     int djdxine_play(_Xine* xine, char* filename, int isvideo)
-    int djdxine_next(_Xine* xine, char* filename, int isvideo)
     void djdxine_stop(_Xine* xine)
     int djdxine_file_info(_Xine* xine, char* filename)
     void djdxine_seek(_Xine* xine, int position)
@@ -68,9 +67,6 @@ cdef class Xine:
         djdxine_stop(self.xine)
     def start_playing(self,char* filename,int isvideo):
         if djdxine_play(self.xine,filename,isvideo):
-            raise startplayingerror
-    def next(self,char* filename,int isvideo):
-        if djdxine_next(self.xine,filename,isvideo):
             raise startplayingerror
     def play(self):
         djdxine_set_playing(self.xine, 1)

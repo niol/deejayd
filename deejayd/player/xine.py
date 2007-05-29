@@ -29,17 +29,7 @@ class XinePlayer(unknownPlayer):
         self.xine.set_eos_callback(self.eos)
 
     def eos(self):
-        song = self._queue.next(self._random,self._repeat) or\
-                self._source.next(self._random,self._repeat)
-
-        if song:
-            unknownPlayer.startPlay(self)
-            self.setURI(song["uri"])
-            isvideo = 0
-            if self._playingSourceName == "video":
-                isvideo = 1
-            self.xine.next(self._uri,isvideo)
-        else: self.stop()
+        self.next()
 
     def initVideoSupport(self):
         unknownPlayer.initVideoSupport(self)
