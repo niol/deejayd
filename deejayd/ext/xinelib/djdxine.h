@@ -16,9 +16,9 @@
 #define MWM_HINTS_DECORATIONS   (1L << 1)
 #define PROP_MWM_HINTS_ELEMENTS 5
 
-#define INPUT_MOTION (ExposureMask | ButtonPressMask | KeyPressMask | \
-                      ButtonMotionMask | StructureNotifyMask |        \
-                      PropertyChangeMask | PointerMotionMask)
+#define INPUT_MOTION (ExposureMask | KeyPressMask | \
+                      StructureNotifyMask |        \
+                      PropertyChangeMask)
 
 typedef struct {
     uint32_t  flags;
@@ -97,11 +97,11 @@ void djdxine_seek(_Xine* xine, int position);
 
 void djdxine_set_playing(_Xine* xine, int is_playing);
 
-int djdxine_set_volume(_Xine* xine, int volume);
+void djdxine_set_volume(_Xine* xine, int volume);
 
 int djdxine_get_volume(_Xine* xine);
 
-int djdxine_get_pos_length(_Xine* xine, int* position, int* length);
+int djdxine_get_position(_Xine* xine);
 
 int djdxine_set_fullscreen(_Xine* xine,int fullscreen);
 

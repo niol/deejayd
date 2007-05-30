@@ -43,6 +43,25 @@ static void frame_output_callback(void *data, int video_width,
     *dest_pixel_aspect = xine->player.screen_pixel_aspect;
 }
 
+void got_expose_event(_Xine* xine, int x, int y, int width, int height)
+{
+    XExposeEvent expose;
+
+    if(!xine->playing) return;
+    /* set as much of the XExposeEvent as we can.  Some fields like serial
+     * won't be filled in, but this doesn't cause problems in practice.  Totem
+     * doesn't fill in anything, so our method can't be too bad. */
+    memset(&expose, 0, sizeof(XExposeEvent));
+    expose.x = x;
+    expose.y = y;
+    expose.width = width;
+    expose.height = height;
+    expose.display = xine->player.display;
+    expose.window = xine->player.window[0];
+    xine_port_send_gui_data(xine->player.vport, 
+            XINE_GUI_SEND_EXPOSE_EVENT, &expose);
+}
+
 
 /***************************************************************************
  *  Internal functions
@@ -357,6 +376,46 @@ void djdxine_stop(_Xine* xine)
     xine->playing = 0;
 }
 
+void djdxine_seek(_Xine* xine, int position)
+{
+    if(!xine->playing) return;
+    xine_play(xine->player.stream, 0, position);
+}
+
+void djdxine_set_playing(_Xine* xine, int is_playing)
+{
+    if(!xine->playing) return;
+
+    if(is_playing) {
+        xine_set_param(xine->player.stream,XINE_PARAM_SPEED,XINE_SPEED_NORMAL);
+    } else {
+        xine_set_param(xine->player.stream, XINE_PARAM_SPEED, XINE_SPEED_PAUSE);
+    }
+}
+
+void djdxine_set_volume(_Xine* xine, int volume)
+{
+    xine_set_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL, volume);
+}
+
+int djdxine_get_volume(_Xine* xine)
+{
+    return xine_get_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL);
+}
+
+int djdxine_get_position(_Xine* xine)
+{
+    int pos_stream,pos_time,length_time;
+
+    /*if(!xine->playing) return -1;*/
+    
+    if (xine_get_pos_length(xine->player.stream,&pos_stream, &pos_time,
+                              &length_time)) {
+        return pos_time;
+    }
+    return -1;
+}
+
 int djdxine_set_data_mine(_Xine* xine, const char* filename)
 {
   int rv;
@@ -387,63 +446,12 @@ int djdxine_file_info(_Xine* xine, const char* filename)
     return duration;
 }
 
-void djdxine_seek(_Xine* xine, int position)
-{
-    if(!xine->playing) return;
-    xine_play(xine->player.stream, 0, position);
-}
-
-void djdxine_set_playing(_Xine* xine, int is_playing)
-{
-    if(!xine->playing) return;
-
-    if(is_playing) {
-        xine_set_param(xine->player.stream,XINE_PARAM_SPEED,XINE_SPEED_NORMAL);
-    } else {
-        xine_set_param(xine->player.stream, XINE_PARAM_SPEED, XINE_SPEED_PAUSE);
-    }
-}
-
-int djdxine_set_volume(_Xine* xine, int volume)
-{
-    if(!xine->playing) return 1;
-
-    xine_set_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL, volume);
-    return 0;
-}
-
-int djdxine_get_volume(_Xine* xine)
-{
-    if(!xine->playing) return -1;
-
-    return xine_get_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL);
-}
-
 void djdxine_set_error(_Xine* xine,char *error)
 {
 }
 
 char *djd_get_error(_Xine* xine)
 {
-}
-
-void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height)
-{
-    XExposeEvent expose;
-
-    if(!xine->playing) return;
-    /* set as much of the XExposeEvent as we can.  Some fields like serial
-     * won't be filled in, but this doesn't cause problems in practice.  Totem
-     * doesn't fill in anything, so our method can't be too bad. */
-    memset(&expose, 0, sizeof(XExposeEvent));
-    expose.x = x;
-    expose.y = y;
-    expose.width = width;
-    expose.height = height;
-    expose.display = xine->player.display;
-    expose.window = xine->player.window[0];
-    xine_port_send_gui_data(xine->player.vport, 
-            XINE_GUI_SEND_EXPOSE_EVENT, &expose);
 }
 
 /****************************************************************************

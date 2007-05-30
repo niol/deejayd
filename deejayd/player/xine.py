@@ -12,24 +12,19 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-def wait_for_attach(func):
-    def wait_for_attach_wrapper(self, *args):
-        if self.attached:
-            func(self, *args)
-        else:
-            self.attach_queue.append((func, args))
-    return wait_for_attach_wrapper
-
-
 class XinePlayer(unknownPlayer):
 
     def __init__(self,db,config):
         unknownPlayer.__init__(self,db,config)
         self.xine = xine.Xine("alsa")
         self.xine.set_eos_callback(self.eos)
+        self.xine.set_progress_callback(self.progress)
 
     def eos(self):
         self.next()
+
+    def progress(self,percent):
+        log.info("Buffering, Percent : %d" % percent)
 
     def initVideoSupport(self):
         unknownPlayer.initVideoSupport(self)
@@ -73,22 +68,24 @@ class XinePlayer(unknownPlayer):
         pass
 
     def getVolume(self):
-        try: vol = self.xine.get_volume()
-        except xine.NotPlayingError: return 0
-        else: return vol
+        return self.xine.get_volume()
 
     def setVolume(self,vol):
-        try: self.xine.set_volume(vol)
-        except xine.NotPlayingError: pass
-        return True
+        self.xine.set_volume(vol)
 
     def getPosition(self):
-        #pos, length = self.xine.getPositionAndLength()
-        #return pos / 1000
-        return 0
+        try: pos = self.xine.get_position()
+        except xine.NotPlayingError: return 0
+        else: return pos / 1000
 
     def setPosition(self,pos):
-        self.xine.seek(int(pos * 1000))
+        try: self.xine.seek(int(pos * 1000))
+        except xine.NotPlayingError: pass 
+        else:
+            # FIXME I need to wait to be sure that the command is executed
+            import time
+            time.sleep(0.2)
+            
 
     #
     # file format info

@@ -24,10 +24,14 @@ cdef extern from "Python.h":
 cdef extern from "xine.h":
     ctypedef struct xine_event_t:
         int type
+        void* data
+    ctypedef struct xine_progress_data_t:
+        int percent
     ctypedef void (*xine_event_listener_cb_t) (void *user_data,
             xine_event_t *event)
     enum dummy:
         XINE_EVENT_UI_PLAYBACK_FINISHED
+        XINE_EVENT_PROGRESS
 
 cdef extern from "djdxine.h":
     ctypedef struct _Xine
@@ -40,9 +44,9 @@ cdef extern from "djdxine.h":
     int djdxine_file_info(_Xine* xine, char* filename)
     void djdxine_seek(_Xine* xine, int position)
     void djdxine_set_playing(_Xine* xine, int is_playing)
-    int djdxine_set_volume(_Xine* xine, int volume)
+    void djdxine_set_volume(_Xine* xine, int volume)
     int djdxine_get_volume(_Xine* xine)
-    int djdxine_get_pos_length(_Xine* xine, int* position, int* length)
+    int djdxine_get_position(_Xine* xine)
     int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
     void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height)
     void djdxine_set_area(_Xine* xine, int xpos, int ypos, int width, int height)
@@ -55,10 +59,12 @@ cdef class Xine:
     # Wrapper for the Xine class
     cdef _Xine* xine
     cdef object eos_callback
+    cdef object progress_callback
 
     def __new__(self,char *audio_driver):
         self.xine = djdxine_init(audio_driver,onXineEvent,<void*>self)
         self.eos_callback = None
+        self.progress_callback = None
     def __dealloc__(self):
         djdxine_destroy(self.xine)
     def video_init(self,char *video_driver,char* display_name):
@@ -74,34 +80,55 @@ cdef class Xine:
         djdxine_set_playing(self.xine, 0)
     def set_volume(self, volume):
         volume = min(max(volume, 0), 100)
-        if djdxine_set_volume(self.xine, volume):
-            raise NotPlayingError
+        djdxine_set_volume(self.xine, volume)
     def get_volume(self):
-        rs = djdxine_get_volume(self.xine)
+        return djdxine_get_volume(self.xine)
+    def seek(self, int position):
+        djdxine_seek(self.xine, position)
+    def get_position(self):
+        rs = djdxine_get_position(self.xine)
         if rs == -1:
             raise NotPlayingError
         return rs
-    def seek(self, int position):
-        djdxine_seek(self.xine, position)
     def set_fullscreen(self, int fullscreen):
         if djdxine_set_fullscreen(self.xine,fullscreen):
             raise NotPlayingError
     def set_eos_callback(self, callback):
         self.eos_callback = callback
+    def set_progress_callback(self, callback):
+        self.progress_callback = callback
     def on_eos_event(self):
         if self.eos_callback:
             self.eos_callback()
+    def on_progress_event(self):
+        if self.progress_callback:
+            self.progress_callback()
 
 cdef void onXineEvent(void* data, xine_event_t* event):
     cdef PyObject* self
     cdef PyGILState_STATE gil
     cdef PyObject* result
+    cdef xine_progress_data_t* pevent
+    cdef int percent
 
     if event.type == XINE_EVENT_UI_PLAYBACK_FINISHED:
         self = <PyObject*>data
         gil = PyGILState_Ensure()
         Py_INCREF(self)
         result = PyObject_CallMethod(self, "on_eos_event", "", NULL)
+        if(result == NULL):
+            PyErr_Print()
+        else:
+            Py_DECREF(result)
+        Py_DECREF(self)
+        PyGILState_Release(gil)
+    elif event.type == XINE_EVENT_PROGRESS:
+        pevent = <xine_progress_data_t*>event.data
+        percent = pevent.percent
+        self = <PyObject*>data
+        gil = PyGILState_Ensure()
+        Py_INCREF(self)
+        result = PyObject_CallMethod(self, "on_progress_event", "(i)", percent)
         if(result == NULL):
             PyErr_Print()
         else:
