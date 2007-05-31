@@ -407,7 +407,7 @@ int djdxine_get_position(_Xine* xine)
 {
     int pos_stream,pos_time,length_time;
 
-    /*if(!xine->playing) return -1;*/
+    if(!xine->playing) return -1;
     
     if (xine_get_pos_length(xine->player.stream,&pos_stream, &pos_time,
                               &length_time)) {
@@ -416,15 +416,16 @@ int djdxine_get_position(_Xine* xine)
     return -1;
 }
 
-int djdxine_set_data_mine(_Xine* xine, const char* filename)
+int _set_data_mine(_Xine* xine, const char* filename)
 {
   int rv;
   if (xine->data_mine.current_filename) {
     if (!strcmp (filename, xine->data_mine.current_filename)) {
-      return 1;
+      return 2;
     }
     xine_close(xine->data_mine.stream);
     free (xine->data_mine.current_filename);
+    free (xine->data_mine.file_info.title);
   }
   rv = xine_open(xine->data_mine.stream, filename);
   if (rv) {
@@ -433,17 +434,26 @@ int djdxine_set_data_mine(_Xine* xine, const char* filename)
   return rv;
 }
 
-int djdxine_file_info(_Xine* xine, const char* filename)
+FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
 {
     int rv;
     int duration;
     int dummy, dummy2;
-    rv = djdxine_set_data_mine(xine, filename);
+    rv = _set_data_mine(xine, filename);
     if (rv == 0)
-      return -1;
-    if (rv == 0)
-      return -1;
-    return duration;
+        return NULL;
+    if (rv == 1)
+        xine_get_pos_length(xine->data_mine.stream,&dummy, &dummy2, &duration);
+        xine->data_mine.file_info.duration = duration;
+        xine->data_mine.file_info.width = xine_get_stream_info(
+            xine->data_mine.stream, XINE_STREAM_INFO_VIDEO_WIDTH);
+        xine->data_mine.file_info.height = xine_get_stream_info(
+            xine->data_mine.stream, XINE_STREAM_INFO_VIDEO_HEIGHT);
+
+        xine->data_mine.file_info.title = xine_get_meta_info(
+            xine->data_mine.stream, XINE_META_INFO_TITLE);
+
+    return &(xine->data_mine.file_info);
 }
 
 void djdxine_set_error(_Xine* xine,char *error)

@@ -85,7 +85,6 @@ class XinePlayer(unknownPlayer):
             # FIXME I need to wait to be sure that the command is executed
             import time
             time.sleep(0.2)
-            
 
     #
     # file format info
@@ -97,6 +96,8 @@ class XinePlayer(unknownPlayer):
         return True
 
     def getVideoFileInfo(self,file):
-        return None
+        try: info = self.xine.get_file_info(file)
+        except xine.FileInfoError: return None
+        else: return info
 
 # vim: ts=4 sw=4 expandtab

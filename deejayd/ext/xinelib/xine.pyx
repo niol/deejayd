@@ -35,25 +35,28 @@ cdef extern from "xine.h":
 
 cdef extern from "djdxine.h":
     ctypedef struct _Xine
+    ctypedef struct FileInfo:
+        int width
+        int height
+        int duration
 
     _Xine* djdxine_init(char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data) 
     int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
     void djdxine_destroy(_Xine* xine)
     int djdxine_play(_Xine* xine, char* filename, int isvideo)
     void djdxine_stop(_Xine* xine)
-    int djdxine_file_info(_Xine* xine, char* filename)
     void djdxine_seek(_Xine* xine, int position)
     void djdxine_set_playing(_Xine* xine, int is_playing)
     void djdxine_set_volume(_Xine* xine, int volume)
     int djdxine_get_volume(_Xine* xine)
     int djdxine_get_position(_Xine* xine)
     int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
-    void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height)
-    void djdxine_set_area(_Xine* xine, int xpos, int ypos, int width, int height)
+    FileInfo* djdxine_file_info(_Xine* xine, char* filename)
 
 
 class NotPlayingError(Exception): pass
 class StartPlayingError(Exception): pass
+class FileInfoError(Exception): pass
 
 cdef class Xine:
     # Wrapper for the Xine class
@@ -93,6 +96,12 @@ cdef class Xine:
     def set_fullscreen(self, int fullscreen):
         if djdxine_set_fullscreen(self.xine,fullscreen):
             raise NotPlayingError
+    def get_file_info(self,char* filename):
+        cdef FileInfo *file_info
+        file_info = djdxine_file_info(self.xine,filename)
+        if file_info == NULL:
+            raise FileInfoError 
+        return {"videowidth":file_info.width, "videoheight":file_info.height, "length":file_info.duration}
     def set_eos_callback(self, callback):
         self.eos_callback = callback
     def set_progress_callback(self, callback):

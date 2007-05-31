@@ -40,6 +40,7 @@ typedef struct {
     int width;
     int height;
     int duration;
+    char *title
 } FileInfo;
 
 typedef struct {
@@ -107,4 +108,4 @@ int djdxine_set_fullscreen(_Xine* xine,int fullscreen);
 
 void djdxine_got_expose_event(_Xine* xine, int x, int y, int width, int height);
 
-int djdxine_file_info(_Xine* xine, const char* filename);
+FileInfo* djdxine_file_info(_Xine* xine, const char* filename);
