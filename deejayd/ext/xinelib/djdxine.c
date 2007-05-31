@@ -456,6 +456,16 @@ FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
     return &(xine->data_mine.file_info);
 }
 
+char *djdxine_get_supported_mimetypes(_Xine* xine)
+{
+    return xine_get_mime_types(xine->player.xine);
+}
+
+char *djdxine_get_supported_extensions(_Xine* xine)
+{
+    return xine_get_file_extensions(xine->player.xine);
+}
+
 void djdxine_set_error(_Xine* xine,char *error)
 {
 }

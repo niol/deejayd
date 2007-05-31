@@ -1,8 +1,6 @@
-# gstreamer.py
+# xine.py
 
 import sys
-import time
-from deejayd.ext import xlibhelper
 from deejayd.ext import xine
 
 from deejayd.player.unknown import unknownPlayer
@@ -13,6 +11,8 @@ PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
 class XinePlayer(unknownPlayer):
+    supported_mimetypes = None
+    supported_extensions = None
 
     def __init__(self,db,config):
         unknownPlayer.__init__(self,db,config)
@@ -23,8 +23,11 @@ class XinePlayer(unknownPlayer):
     def eos(self):
         self.next()
 
-    def progress(self,percent):
-        log.info("Buffering, Percent : %d" % percent)
+    def progress(self,description,percent):
+        msg = description
+        if percent > 0:
+            msg += " : %d percent" % percent
+        log.info(msg)
 
     def initVideoSupport(self):
         unknownPlayer.initVideoSupport(self)
@@ -90,10 +93,20 @@ class XinePlayer(unknownPlayer):
     # file format info
     #
     def webradioSupport(self):
-        return True
+        if self.__class__.supported_mimetypes == None:
+            mime_types = self.xine.get_supported_mimetypes()
+            mime_types = mime_types.split(";")
+            self.__class__.supported_mimetypes = [ m.split(":")[0] for m in \
+                mime_types]
+
+        return "audio/mpegurl" in self.__class__.supported_mimetypes
 
     def isSupportedFormat(self,format):
-        return True
+        if self.__class__.supported_extensions == None:
+            extensions = self.xine.get_supported_extensions()
+            self.__class__.supported_extensions = extensions.split()
+
+        return format.strip(".") in self.__class__.supported_extensions
 
     def getVideoFileInfo(self,file):
         try: info = self.xine.get_file_info(file)

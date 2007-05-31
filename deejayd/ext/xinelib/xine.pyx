@@ -27,6 +27,7 @@ cdef extern from "xine.h":
         void* data
     ctypedef struct xine_progress_data_t:
         int percent
+        char* description
     ctypedef void (*xine_event_listener_cb_t) (void *user_data,
             xine_event_t *event)
     enum dummy:
@@ -52,6 +53,8 @@ cdef extern from "djdxine.h":
     int djdxine_get_position(_Xine* xine)
     int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
     FileInfo* djdxine_file_info(_Xine* xine, char* filename)
+    char* djdxine_get_supported_mimetypes(_Xine* xine)
+    char* djdxine_get_supported_extensions(_Xine* xine)
 
 
 class NotPlayingError(Exception): pass
@@ -76,7 +79,7 @@ cdef class Xine:
         djdxine_stop(self.xine)
     def start_playing(self,char* filename,int isvideo):
         if djdxine_play(self.xine,filename,isvideo):
-            raise startplayingerror
+            raise StartPlayingError
     def play(self):
         djdxine_set_playing(self.xine, 1)
     def pause(self):
@@ -102,6 +105,10 @@ cdef class Xine:
         if file_info == NULL:
             raise FileInfoError 
         return {"videowidth":file_info.width, "videoheight":file_info.height, "length":file_info.duration}
+    def get_supported_mimetypes(self):
+        return djdxine_get_supported_mimetypes(self.xine)
+    def get_supported_extensions(self):
+        return djdxine_get_supported_extensions(self.xine)
     def set_eos_callback(self, callback):
         self.eos_callback = callback
     def set_progress_callback(self, callback):
@@ -109,16 +116,15 @@ cdef class Xine:
     def on_eos_event(self):
         if self.eos_callback:
             self.eos_callback()
-    def on_progress_event(self):
+    def on_progress_event(self,percent,description):
         if self.progress_callback:
-            self.progress_callback()
+            self.progress_callback(description,percent)
 
 cdef void onXineEvent(void* data, xine_event_t* event):
     cdef PyObject* self
     cdef PyGILState_STATE gil
     cdef PyObject* result
     cdef xine_progress_data_t* pevent
-    cdef int percent
 
     if event.type == XINE_EVENT_UI_PLAYBACK_FINISHED:
         self = <PyObject*>data
@@ -133,11 +139,10 @@ cdef void onXineEvent(void* data, xine_event_t* event):
         PyGILState_Release(gil)
     elif event.type == XINE_EVENT_PROGRESS:
         pevent = <xine_progress_data_t*>event.data
-        percent = pevent.percent
         self = <PyObject*>data
         gil = PyGILState_Ensure()
         Py_INCREF(self)
-        result = PyObject_CallMethod(self, "on_progress_event", "(i)", percent)
+        result = PyObject_CallMethod(self, "on_progress_event", "(is)", pevent.percent,pevent.description)
         if(result == NULL):
             PyErr_Print()
         else:
