@@ -1,8 +1,7 @@
 """
 Deejayd DB testing module
 """
-from testdeejayd import TestCaseWithAudioData, TestCaseWithVideoData, \
-                                                      TestCaseWithProvidedMusic
+from testdeejayd import TestCaseWithMediaData
 from deejayd.database.sqlite import SqliteDatabase
 from deejayd.mediadb.library import AudioLibrary, VideoLibrary, \
                                                             NotFoundException
@@ -13,16 +12,11 @@ from deejayd.player import xine
 from deejayd.ui.config import DeejaydConfig
 
 
-class testDeejayDBWithProvidedMusic(TestCaseWithProvidedMusic):
-    library_class = AudioLibrary
-
-    def setUp(self):
-        TestCaseWithProvidedMusic.setUp(self)
-        self.setUpDB()
+class TestDeejayDBLibrary(TestCaseWithMediaData):
 
     def tearDown(self):
-        TestCaseWithProvidedMusic.tearDown(self)
         self.removeDB()
+        TestCaseWithMediaData.tearDown(self)
 
     def setUpDB(self):
         self.dbfilename = '/tmp/testdeejayddb-' + \
@@ -39,50 +33,6 @@ class testDeejayDBWithProvidedMusic(TestCaseWithProvidedMusic):
     def removeDB(self):
         self.db.close()
         os.remove(self.dbfilename)
-
-    def testGetDir(self):
-        """Provided music detected by audio library"""
-        self.assertRaises(NotFoundException,
-           self.library.get_dir_content, self.testdata.getRandomString())
-
-        for root, dirs, files in os.walk(self.testdata.getRootDir()):
-            current_root = self.testdata.stripRoot(root)
-            inDBdirsDump = self.library.get_dir_content(current_root)
-
-            inDBdirs = []
-            for record in inDBdirsDump:
-                inDBdirs.append(record[1])
-
-            for dir in dirs:
-                self.assert_(os.path.join(current_root, dir) in inDBdirs,
-                    "'%s' is in directory tree but was not found in DB" % dir)
-
-
-class testVideoLibrary(TestCaseWithVideoData,testDeejayDBWithProvidedMusic):
-    library_class = VideoLibrary
-    supported_ext = (".mpg",".avi")
-
-    def setUp(self):
-        TestCaseWithVideoData.setUp(self)
-        self.setUpDB()
-
-    def tearDown(self):
-        TestCaseWithVideoData.tearDown(self)
-        self.removeDB()
-
-    def testGetDir(self):
-        """built directory detected by video library"""
-        self.verifyMediaDBContent()
-
-    def testAddSubdirectory(self):
-        """Add a subdirectory in video library"""
-        self.testdata.addSubdir()
-        self.verifyMediaDBContent()
-
-    def testAddMedia(self):
-        """Add a media file in video library"""
-        self.testdata.addMedia()
-        self.verifyMediaDBContent()
 
     def verifyMediaDBContent(self, testTag = True):
         # First update mediadb
@@ -125,20 +75,41 @@ class testVideoLibrary(TestCaseWithVideoData,testDeejayDBWithProvidedMusic):
                     % relPath)
                     if testTag: self.verifyTag(relPath)
 
+
+class TestVideoLibrary(TestDeejayDBLibrary):
+    library_class = VideoLibrary
+    supported_ext = (".mpg",".avi")
+
+    def setUp(self):
+        TestDeejayDBLibrary.setUp(self)
+        self.testdata.build_video_library_directory_tree()
+        self.setUpDB()
+
+    def testGetDir(self):
+        """built directory detected by video library"""
+        self.verifyMediaDBContent()
+
+    def testAddSubdirectory(self):
+        """Add a subdirectory in video library"""
+        self.testdata.addSubdir()
+        self.verifyMediaDBContent()
+
+    def testAddMedia(self):
+        """Add a media file in video library"""
+        self.testdata.addMedia()
+        self.verifyMediaDBContent()
+
     def verifyTag(self,relPath):pass
 
 
-class testAudioLibrary(testVideoLibrary,TestCaseWithAudioData):
+class TestAudioLibrary(TestDeejayDBLibrary):
     library_class = AudioLibrary
     supported_ext = (".ogg",".mp3")
 
     def setUp(self):
-        TestCaseWithAudioData.setUp(self)
+        TestDeejayDBLibrary.setUp(self)
+        self.testdata.build_audio_library_directory_tree()
         self.setUpDB()
-
-    def tearDown(self):
-        TestCaseWithAudioData.tearDown(self)
-        self.removeDB()
 
     def testGetDir(self):
         """built directory detected by audio library"""
@@ -212,5 +183,6 @@ class testAudioLibrary(testVideoLibrary,TestCaseWithAudioData):
             self.assert_(realFile[tag] == inDBfile[tags[tag]],
                 "tag %s for %s different between DB and reality %s != %s" % \
                 (tag,realFile["filename"],realFile[tag],inDBfile[tags[tag]]))
+
 
 # vim: ts=4 sw=4 expandtab

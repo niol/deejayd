@@ -1,18 +1,18 @@
-from testdeejayd import TestCaseWithProvidedMusic
+from testdeejayd import TestCaseWithMediaData
 
 from deejayd.net.deejaydProtocol import CommandFactory
 from deejayd.net.xmlbuilders import DeejaydXMLCommand, DeejaydXMLAnswerFactory
 
 
-class TestDeejaydProtocol(TestCaseWithProvidedMusic):
+class TestDeejaydProtocol(TestCaseWithMediaData):
 
     def setUp(self):
-        TestCaseWithProvidedMusic.setUp(self)
+        TestCaseWithMediaData.setUp(self)
         self.cmdFactory = CommandFactory()
         self.rspFactory = DeejaydXMLAnswerFactory()
 
     def tearDown(self):
-        TestCaseWithProvidedMusic.tearDown(self)
+        TestCaseWithMediaData.tearDown(self)
 
     def testLinePingCommand(self):
         """Send a ping command with the line protocol"""

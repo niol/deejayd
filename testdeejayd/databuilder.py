@@ -157,6 +157,9 @@ class TestProvidedMusicCollection(TestData):
     def getRootDir(self):
         return self.datadir
 
+    def get_song_paths(self):
+        return self.songPaths
+
     def stripRoot(self, path):
         """Strips the root directory path turning the argument into a
         path relative to the music root directory."""
@@ -171,17 +174,17 @@ class TestProvidedMusicCollection(TestData):
     def getRandomSongPaths(self, howMuch = 1):
         """Returns the path of a random song in provided music"""
         random.seed(time.time())
-        return random.sample(self.songPaths, howMuch)
+        return random.sample(self.get_song_paths(), howMuch)
 
 
 class TestMediaCollection(TestProvidedMusicCollection):
-    supported_files_class = ()
 
     def __init__(self):
         self.dir_struct_written = False
         self.clean_library = True
         self.dirs = {} 
         self.medias = {} 
+        self.supported_files_class = ()
 
     def cleanLibraryDirectoryTree(self):
         if self.dir_struct_written and self.clean_library:
@@ -198,7 +201,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
      'Test data temporary directory exists, I do not want to mess your stuff.')
 
         # Add songs in the root directory
-        for media_class in self.__class__.supported_files_class:
+        for media_class in self.supported_files_class:
             media = media_class()
             media.build(self.datadir)
             self.medias[media.name] = media
@@ -212,13 +215,21 @@ class TestMediaCollection(TestProvidedMusicCollection):
 
         self.dir_struct_written = True
 
-    def getRootDir(self):
-        return self.datadir 
+    def build_audio_library_directory_tree(self, destDir = "/tmp"):
+        self.supported_files_class = (TestOggSong,TestMP3Song)
+        self.buildLibraryDirectoryTree(destDir)
+
+    def build_video_library_directory_tree(self, destDir = "/tmp"):
+        self.supported_files_class = (TestVideo,)
+        self.buildLibraryDirectoryTree(destDir)
+
+    def get_song_paths(self):
+        return self.medias.keys()
 
     def addMedia(self):
         dir = self.getRandomElement(self.dirs.values())
 
-        media_class=self.getRandomElement(self.__class__.supported_files_class)
+        media_class=self.getRandomElement(self.supported_files_class)
         media = media_class()
         dir.addItem(media)
         self.medias[dir.name+"/"+media.name] = media
@@ -238,7 +249,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
 
     def addDir(self):
         dir = TestDir()
-        for media_class in self.__class__.supported_files_class:
+        for media_class in self.supported_files_class:
             media = media_class()
             self.medias[dir.name+"/"+media.name] = media
             dir.addItem(media)
@@ -249,7 +260,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
     def addSubdir(self):
         dir = self.getRandomElement(self.dirs.values())
         subdir = TestDir()
-        for media_class in self.__class__.supported_files_class:
+        for media_class in self.supported_files_class:
             media = media_class()
             self.medias[dir.name+"/"+subdir.name+"/"+media.name] = media
             subdir.addItem(media)
@@ -269,16 +280,9 @@ class TestMediaCollection(TestProvidedMusicCollection):
         dir.remove()
         del self.dirs[dir.name]
 
-
-class TestAudioCollection(TestMediaCollection):
-    supported_files_class = (TestOggSong,TestMP3Song)
-
     def changeMediaTags(self):
         media = self.getRandomElement(self.medias.values())
         media.setRandomTag()
 
-
-class TestVideoCollection(TestMediaCollection):
-    supported_files_class = (TestVideo,)
 
 # vim: ts=4 sw=4 expandtab

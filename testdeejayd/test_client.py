@@ -1,7 +1,7 @@
 """Deejayd Client library testing"""
 # -*- coding: utf-8 -*-
 
-from testdeejayd import TestCaseWithData, TestCaseWithProvidedMusic
+from testdeejayd import TestCaseWithData, TestCaseWithMediaData
 import testdeejayd.data
 
 from testdeejayd.server import TestServer
@@ -305,11 +305,12 @@ class TestAnswerParser(TestCaseWithData):
             self.failUnless(pl in retrievedPlList)
 
 
-class TestClient(TestCaseWithProvidedMusic):
+class TestClient(TestCaseWithMediaData):
     """Completely test the DeejaydClient library"""
 
     def setUp(self):
-        TestCaseWithProvidedMusic.setUp(self)
+        TestCaseWithMediaData.setUp(self)
+        self.testdata.build_audio_library_directory_tree()
 
         # Set up the test server
         testServerPort = 23344
@@ -338,6 +339,7 @@ class TestClient(TestCaseWithProvidedMusic):
     def tearDown(self):
         self.deejaydaemon.disconnect()
         self.testserver.stop()
+        TestCaseWithMediaData.tearDown(self)
 
     def testPlaylistSaveRetrieve(self):
         """Save a playlist and try to retrieve it."""
