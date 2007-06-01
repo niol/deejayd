@@ -76,7 +76,6 @@ typedef struct {
         FileInfo file_info;
         int init;
     } data_mine;
-    char error[256];
 } _Xine;
 
 /* Construct a Xine object */
@@ -111,3 +110,5 @@ FileInfo* djdxine_file_info(_Xine* xine, const char* filename);
 char* djdxine_get_supported_mimetypes(_Xine* xine);
 
 char* djdxine_get_supported_extensions(_Xine* xine);
+
+char* djdxine_get_error(_Xine* xine);

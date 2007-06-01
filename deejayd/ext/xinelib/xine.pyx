@@ -55,6 +55,7 @@ cdef extern from "djdxine.h":
     FileInfo* djdxine_file_info(_Xine* xine, char* filename)
     char* djdxine_get_supported_mimetypes(_Xine* xine)
     char* djdxine_get_supported_extensions(_Xine* xine)
+    char* djdxine_get_error(_Xine* xine)
 
 
 class NotPlayingError(Exception): pass
@@ -119,6 +120,8 @@ cdef class Xine:
     def on_progress_event(self,percent,description):
         if self.progress_callback:
             self.progress_callback(description,percent)
+    def get_error(self):
+        return djdxine_get_error(self.xine)
 
 cdef void onXineEvent(void* data, xine_event_t* event):
     cdef PyObject* self

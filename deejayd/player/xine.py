@@ -47,7 +47,10 @@ class XinePlayer(unknownPlayer):
         isvideo = 0
         if self._playingSourceName == "video":
             isvideo = 1
-        self.xine.start_playing(self._uri,isvideo)
+        try: self.xine.start_playing(self._uri,isvideo)
+        except xine.StartPlayingError:
+            self.setState(PLAYER_STOP)
+            log.err("Xine error : "+self.xine.get_error())
 
     def pause(self):
         if self.getState() == PLAYER_PLAY:
@@ -57,7 +60,7 @@ class XinePlayer(unknownPlayer):
             self.xine.play()
             self.setState(PLAYER_PLAY)
 
-    def stop(self,widget = None, event = None):
+    def stop(self):
         self.setState(PLAYER_STOP)
         # Reset the queue
         self._queue.reset()

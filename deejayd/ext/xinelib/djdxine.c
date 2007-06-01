@@ -466,12 +466,31 @@ char *djdxine_get_supported_extensions(_Xine* xine)
     return xine_get_file_extensions(xine->player.xine);
 }
 
-void djdxine_set_error(_Xine* xine,char *error)
+char *djdxine_get_error(_Xine* xine)
 {
-}
-
-char *djd_get_error(_Xine* xine)
-{
+    switch (xine_get_error(xine->player.stream)) {
+        case XINE_ERROR_NONE:
+            return "No error";
+            break;
+        case XINE_ERROR_NO_INPUT_PLUGIN:
+            return "No imput plugin to read this file";
+            break;
+        case XINE_ERROR_NO_DEMUX_PLUGIN:
+            return "No demuxer plugin to read this file";
+            break;
+        case XINE_ERROR_DEMUX_FAILED:
+            return "Demuxer failed to read this file";
+            break;
+        case XINE_ERROR_MALFORMED_MRL:
+            return "Malformed MRL";
+            break;
+        case XINE_ERROR_INPUT_FAILED:
+            return "Input failed to read this file";
+            break;
+        default:
+            return "Unknown error";
+            break;
+    }
 }
 
 /****************************************************************************
