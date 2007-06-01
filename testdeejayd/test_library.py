@@ -9,7 +9,7 @@ from deejayd.mediadb.library import AudioLibrary, VideoLibrary, \
 import os,time
 
 # FIXME : Those imports should really go away one day
-from deejayd.player import gstreamer,mplayer
+from deejayd.player import xine
 from deejayd.ui.config import DeejaydConfig
 
 
@@ -30,8 +30,7 @@ class testDeejayDBWithProvidedMusic(TestCaseWithProvidedMusic):
         self.db = SqliteDatabase(self.dbfilename)
         self.db.connect()
 
-        #player = gstreamer.Gstreamer(self.db, DeejaydConfig())
-        player = mplayer.Mplayer(self.db, DeejaydConfig())
+        player = xine.XinePlayer(self.db, DeejaydConfig())
         player.initVideoSupport()
         self.library = self.__class__.library_class(self.db, player, \
                                                     self.testdata.getRootDir())

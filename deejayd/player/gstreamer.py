@@ -9,7 +9,7 @@ import gobject
 import gst
 import gst.interfaces
 
-from deejayd.player.unknown import unknownPlayer
+from deejayd.player.unknown import UnknownPlayer
 from deejayd.ui import log
 
 PLAYER_PLAY = "play"
@@ -18,10 +18,10 @@ PLAYER_STOP = "stop"
 
 class NoSinkError: pass
 
-class Gstreamer(unknownPlayer):
+class GstreamerPlayer(UnknownPlayer):
 
     def __init__(self,db,config):
-        unknownPlayer.__init__(self,db,config)
+        UnknownPlayer.__init__(self,db,config)
 
         self._uri = None
         # Open a Audio pipeline
@@ -94,7 +94,7 @@ class Gstreamer(unknownPlayer):
         self._uri = uri
 
     def startPlay(self,init = True):
-        if init: unknownPlayer.startPlay(self)
+        if init: UnknownPlayer.startPlay(self)
 
         self.setState(PLAYER_PLAY)
         if self._playingSourceName == "video" and not self.deejaydWindow:

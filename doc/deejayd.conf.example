@@ -10,12 +10,7 @@ log = error
 video_support = yes 
 
 # media_backend : choose the media backend for deejayd
-# possible values are : mplayer, gstreamer or both
-# 'both' corresponds to :
-#   * gstreamer to play audio file
-#   * mplayer to play video file
-# this mode will disappear when gstreamer will have a better video support 
-# (in particular for subtitle)
+# possible values are : xine or gstreamer
 media_backend = gstreamer
 
 
@@ -47,7 +42,7 @@ audio_output = alsa
 video_output = xv
 
 
-[mplayer]
+[xine]
 # Audio Ouput
 # Possible values are : alsa, oss...
 audio_output = alsa
@@ -57,5 +52,5 @@ audio_output = alsa
 #alsa_card = hw:2
 
 # Video Ouput
-# Possible values are : xv, x...
-video_output = xv
+# Possible values are : Xv, ..
+video_output = Xv

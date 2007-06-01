@@ -6,7 +6,7 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-class unknownPlayer:
+class UnknownPlayer:
 
     def __init__(self,db,config):
         self.config = config

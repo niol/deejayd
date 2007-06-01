@@ -148,9 +148,6 @@ if __name__ == "__main__":
             # Install glib2 reactor
             from twisted.internet import glib2reactor
             glib2reactor.install()
-    elif media_backend == "both":
-        from twisted.internet import glib2reactor
-        glib2reactor.install()
 
     from twisted.internet import reactor
     ###############################################################

@@ -3,19 +3,19 @@
 import sys
 from deejayd.ext import xine
 
-from deejayd.player.unknown import unknownPlayer
+from deejayd.player.unknown import UnknownPlayer
 from deejayd.ui import log
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-class XinePlayer(unknownPlayer):
+class XinePlayer(UnknownPlayer):
     supported_mimetypes = None
     supported_extensions = None
 
     def __init__(self,db,config):
-        unknownPlayer.__init__(self,db,config)
+        UnknownPlayer.__init__(self,db,config)
         self.xine = xine.Xine("alsa")
         self.xine.set_eos_callback(self.eos)
         self.xine.set_progress_callback(self.progress)
@@ -30,7 +30,7 @@ class XinePlayer(unknownPlayer):
         log.info(msg)
 
     def initVideoSupport(self):
-        unknownPlayer.initVideoSupport(self)
+        UnknownPlayer.initVideoSupport(self)
         self._videoSupport = True
         self.xine.video_init("Xv",":0.0")
 
@@ -38,7 +38,7 @@ class XinePlayer(unknownPlayer):
         self._uri = uri
 
     def startPlay(self,init = True):
-        if init: unknownPlayer.startPlay(self)
+        if init: UnknownPlayer.startPlay(self)
 
         self.setState(PLAYER_PLAY)
         self.startXine()

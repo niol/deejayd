@@ -32,7 +32,7 @@ config = DeejaydConfig()
 db = SqliteDatabase(dbfilename)
 db.connect()
 
-player = gstreamer.Gstreamer(db,config)
+player = gstreamer.GstreamerPlayer(db,config)
 
 audio_library = AudioLibrary(db, player, music_dir)
 
