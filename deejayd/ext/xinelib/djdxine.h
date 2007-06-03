@@ -85,7 +85,7 @@ _Xine* djdxine_init(const char *audio_driver,
 
 /* Init video driver */
 int djdxine_video_init(_Xine* xine, const char *video_driver,
-                        const char* display_name); 
+                        const char* display_name, int fullscreen); 
 
 void djdxine_destroy(_Xine* xine);
 
@@ -104,6 +104,8 @@ int djdxine_get_volume(_Xine* xine);
 int djdxine_get_position(_Xine* xine);
 
 int djdxine_set_fullscreen(_Xine* xine,int fullscreen);
+
+int djdxine_set_subtitle(_Xine* xine,int subtitle);
 
 FileInfo* djdxine_file_info(_Xine* xine, const char* filename);
 

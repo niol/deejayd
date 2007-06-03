@@ -18,7 +18,7 @@ class SourcesFactory:
         self.sources_obj["queue"] = queue.QueueSource(player,db,audio_library)
 
         # Webradio
-        if self.player.webradioSupport():
+        if self.player.webradio_support():
             from deejayd.sources import webradio
             self.sources_obj["webradio"] = webradio.WebradioSource(player, db)
         else: log.msg("Webradio support disabled.")
@@ -28,7 +28,7 @@ class SourcesFactory:
             from deejayd.sources import video
             self.sources_obj["video"] = video.VideoSource(player,db,\
                                                                   video_library)
-            try: self.player.initVideoSupport()
+            try: self.player.init_video_support()
             except(NoSinkError):
                 # Critical error, we have to quit deejayd
                 sys.exit('Cannot initialise video sink, either disable video support or check your gstreamer plugins (video sink).')
@@ -40,8 +40,8 @@ class SourcesFactory:
             log.err("Unable to set recorded source")
             self.set_source("playlist")
 
-        self.player.setQueue(self.sources_obj["queue"])
-        self.player.loadState()
+        self.player.set_queue(self.sources_obj["queue"])
+        self.player.load_state()
 
     def get_source(self,s):
         if s not in self.sources_obj.keys():
@@ -53,7 +53,7 @@ class SourcesFactory:
         if s not in self.sources_obj.keys():
             raise UnknownSourceException
 
-        self.player.setSource(self.sources_obj[s],s)
+        self.player.set_source(self.sources_obj[s],s)
         return True
 
     def get_status(self):

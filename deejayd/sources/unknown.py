@@ -126,7 +126,7 @@ class UnknownSourceManagement:
         return self.current_item
 
     def get_playing_item(self):
-        if self.current_item and self.player.isPlay():
+        if self.current_item and self.player.is_playing():
             return self.current_item
         return None
 

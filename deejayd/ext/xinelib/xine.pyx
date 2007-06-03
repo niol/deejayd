@@ -42,7 +42,7 @@ cdef extern from "djdxine.h":
         int duration
 
     _Xine* djdxine_init(char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data) 
-    int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
+    int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name,int fullscreen)
     void djdxine_destroy(_Xine* xine)
     int djdxine_play(_Xine* xine, char* filename, int isvideo)
     void djdxine_stop(_Xine* xine)
@@ -52,6 +52,7 @@ cdef extern from "djdxine.h":
     int djdxine_get_volume(_Xine* xine)
     int djdxine_get_position(_Xine* xine)
     int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
+    int djdxine_set_subtitle(_Xine* xine,int subtitle)
     FileInfo* djdxine_file_info(_Xine* xine, char* filename)
     char* djdxine_get_supported_mimetypes(_Xine* xine)
     char* djdxine_get_supported_extensions(_Xine* xine)
@@ -74,8 +75,8 @@ cdef class Xine:
         self.progress_callback = None
     def __dealloc__(self):
         djdxine_destroy(self.xine)
-    def video_init(self,char *video_driver,char* display_name):
-        djdxine_video_init(self.xine,video_driver,display_name)
+    def video_init(self,char *video_driver,char* display_name,int fullscreen):
+        djdxine_video_init(self.xine,video_driver,display_name,fullscreen)
     def stop(self):
         djdxine_stop(self.xine)
     def start_playing(self,char* filename,int isvideo):
@@ -99,6 +100,9 @@ cdef class Xine:
         return rs
     def set_fullscreen(self, int fullscreen):
         if djdxine_set_fullscreen(self.xine,fullscreen):
+            raise NotPlayingError
+    def set_subtitle(self, int subtitle):
+        if djdxine_set_subtitle(self.xine,subtitle):
             raise NotPlayingError
     def get_file_info(self,char* filename):
         cdef FileInfo *file_info

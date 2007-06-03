@@ -1,14 +1,9 @@
 # xine.py
 
-import sys
 from deejayd.ext import xine
-
-from deejayd.player.unknown import UnknownPlayer
+from deejayd.player import UnknownPlayer,PLAYER_PLAY,PLAYER_PAUSE,PLAYER_STOP
 from deejayd.ui import log
 
-PLAYER_PLAY = "play"
-PLAYER_PAUSE = "pause"
-PLAYER_STOP = "stop"
 
 class XinePlayer(UnknownPlayer):
     supported_mimetypes = None
@@ -16,7 +11,9 @@ class XinePlayer(UnknownPlayer):
 
     def __init__(self,db,config):
         UnknownPlayer.__init__(self,db,config)
-        self.xine = xine.Xine("alsa")
+
+        audio_driver = self.config.get("xine", "audio_output")
+        self.xine = xine.Xine(audio_driver)
         self.xine.set_eos_callback(self.eos)
         self.xine.set_progress_callback(self.progress)
 
@@ -29,62 +26,72 @@ class XinePlayer(UnknownPlayer):
             msg += " : %d percent" % percent
         log.info(msg)
 
-    def initVideoSupport(self):
-        UnknownPlayer.initVideoSupport(self)
-        self._videoSupport = True
-        self.xine.video_init("Xv",":0.0")
+    def init_video_support(self):
+        UnknownPlayer.init_video_support(self)
 
-    def setURI(self,uri):
-        self._uri = uri
+        video_driver = self.config.get("xine", "video_output")
+        video_display = self.config.get("xine", "video_display")
+        self.xine.video_init(video_driver,video_display,self._fullscreen)
+        self._video_support = True
 
-    def startPlay(self,init = True):
-        if init: UnknownPlayer.startPlay(self)
+    def set_uri(self,song):
+        if song:
+            uri = song["uri"]
+            if "Subtitle" in song.keys() and \
+                song["Subtitle"].startswith("file://") and self._loadsubtitle:
+                uri += "#subtitle:%s" % song["Subtitle"]
+            self._uri = uri
+        else: self._uri = ""
 
-        self.setState(PLAYER_PLAY)
-        self.startXine()
+    def start_play(self):
+        UnknownPlayer.start_play(self)
 
-    def startXine(self):
+        self.set_state(PLAYER_PLAY)
+        self.start_xine()
+
+    def start_xine(self):
         isvideo = 0
-        if self._playingSourceName == "video":
-            isvideo = 1
+        if self._playing_source_name == "video": isvideo = 1
         try: self.xine.start_playing(self._uri,isvideo)
         except xine.StartPlayingError:
-            self.setState(PLAYER_STOP)
+            self.set_state(PLAYER_STOP)
             log.err("Xine error : "+self.xine.get_error())
+        else: self.set_fullscreen(self._fullscreen)
 
     def pause(self):
-        if self.getState() == PLAYER_PLAY:
+        if self.get_state() == PLAYER_PLAY:
             self.xine.pause()
-            self.setState(PLAYER_PAUSE)
-        elif self.getState() == PLAYER_PAUSE:
+            self.set_state(PLAYER_PAUSE)
+        elif self.get_state() == PLAYER_PAUSE:
             self.xine.play()
-            self.setState(PLAYER_PLAY)
+            self.set_state(PLAYER_PLAY)
 
     def stop(self):
-        self.setState(PLAYER_STOP)
+        self.set_state(PLAYER_STOP)
         # Reset the queue
         self._queue.reset()
         self.xine.stop()
 
-    def setFullscreen(self,val):
+    def set_fullscreen(self,val):
         try: self.xine.set_fullscreen(val)
         except xine.NotPlayingError: pass
 
-    def setSubtitle(self,val):
-        pass
+    def set_subtitle(self,val):
+        try: self.xine.set_subtitle(val)
+        except xine.NotPlayingError: pass
 
-    def getVolume(self):
+    def get_volume(self):
         return self.xine.get_volume()
 
-    def setVolume(self,vol):
+    def set_volume(self,vol):
         self.xine.set_volume(vol)
 
-    def getPosition(self):
+    def get_position(self):
         try: pos = self.xine.get_position()
         except xine.NotPlayingError: return 0
         else: return pos / 1000
 
-    def setPosition(self,pos):
+    def set_position(self,pos):
         try: self.xine.seek(int(pos * 1000))
         except xine.NotPlayingError: pass 
         else:
@@ -95,7 +102,7 @@ class XinePlayer(UnknownPlayer):
     #
     # file format info
     #
-    def webradioSupport(self):
+    def webradio_support(self):
         if self.__class__.supported_mimetypes == None:
             mime_types = self.xine.get_supported_mimetypes()
             mime_types = mime_types.split(";")
@@ -104,14 +111,14 @@ class XinePlayer(UnknownPlayer):
 
         return "audio/mpegurl" in self.__class__.supported_mimetypes
 
-    def isSupportedFormat(self,format):
+    def is_supported_format(self,format):
         if self.__class__.supported_extensions == None:
             extensions = self.xine.get_supported_extensions()
             self.__class__.supported_extensions = extensions.split()
 
         return format.strip(".") in self.__class__.supported_extensions
 
-    def getVideoFileInfo(self,file):
+    def get_video_file_info(self,file):
         try: info = self.xine.get_file_info(file)
         except xine.FileInfoError: return None
         else: return info

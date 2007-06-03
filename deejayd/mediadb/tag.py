@@ -52,7 +52,7 @@ class VideoFile(UnknownFile):
         else: self.info["subtitle"] = ""
 
         self.info["title"] = format_title(self.info["filename"])
-        video_info = self.player.getVideoFileInfo(self.f)
+        video_info = self.player.get_video_file_info(self.f)
         for t in self.__class__.supported_tag:
             try: self.info[t] = video_info[t]
             except: raise UnknownException
@@ -103,17 +103,17 @@ class FileTagFactory:
                                                 self.__class__.player != None:
             self.__class__.supported_format = {}
             # mp3
-            if self.__class__.player.isSupportedFormat(".mp3"): 
+            if self.__class__.player.is_supported_format(".mp3"): 
                 self.__class__.supported_format[".mp3"] = Mp3File
                 self.__class__.supported_format[".mp2"] = Mp3File
 
             # ogg
-            if self.__class__.player.isSupportedFormat(".ogg"): 
+            if self.__class__.player.is_supported_format(".ogg"): 
                 self.__class__.supported_format[".ogg"] = OggFile
 
             # video
             for ext in (".avi",".mpeg",".mpg"):
-                if self.__class__.player.isSupportedFormat(ext):
+                if self.__class__.player.is_supported_format(ext):
                     self.__class__.supported_format[ext] = VideoFile
 
     def get_file_tag(self,real_file):

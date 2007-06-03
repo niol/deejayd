@@ -202,7 +202,7 @@ _Xine* djdxine_init(const char *audio_driver,
 }
 
 int djdxine_video_init(_Xine* xine, const char *video_driver,
-                        const char* display_name)
+                        const char* display_name,int fullscreen)
 {
     double screen_width, screen_height;
     x11_visual_t vis;
@@ -213,7 +213,7 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     }
 
     /* init video informations and player */
-    xine->player.fullscreen = 0;
+    xine->player.fullscreen = fullscreen;
     xine->player.display = XOpenDisplay(display_name);
     xine->player.screen = XDefaultScreen(xine->player.display);
     screen_width = (DisplayWidth(xine->player.display, 
@@ -308,26 +308,6 @@ void djdxine_destroy(_Xine* xine)
     free(xine);
 }
 
-int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
-{
-    if ((!xine->playing) || (!xine->isvideo)) return 1;
-    if (xine->player.fullscreen == fullscreen) return 0;
-
-    XLockDisplay(xine->player.display);
-    XUnmapWindow(xine->player.display, 
-                 xine->player.window[xine->player.fullscreen]);
-    XMapRaised(xine->player.display, xine->player.window[fullscreen]);
-    XSync(xine->player.display, False);
-    XUnlockDisplay(xine->player.display);
-
-    xine->player.fullscreen = fullscreen;
-    xine_port_send_gui_data(xine->player.vport, XINE_GUI_SEND_DRAWABLE_CHANGED,
-                (void*) xine->player.window[fullscreen]);
-
-    _set_video_area(xine);
-    return 0;
-}
-
 int djdxine_play(_Xine* xine, const char* filename, int isvideo)
 {
     if (xine->playing) {
@@ -376,12 +356,6 @@ void djdxine_stop(_Xine* xine)
     xine->playing = 0;
 }
 
-void djdxine_seek(_Xine* xine, int position)
-{
-    if(!xine->playing) return;
-    xine_play(xine->player.stream, 0, position);
-}
-
 void djdxine_set_playing(_Xine* xine, int is_playing)
 {
     if(!xine->playing) return;
@@ -403,6 +377,12 @@ int djdxine_get_volume(_Xine* xine)
     return xine_get_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL);
 }
 
+void djdxine_seek(_Xine* xine, int position)
+{
+    if(!xine->playing) return;
+    xine_play(xine->player.stream, 0, position);
+}
+
 int djdxine_get_position(_Xine* xine)
 {
     int pos_stream,pos_time,length_time;
@@ -414,6 +394,34 @@ int djdxine_get_position(_Xine* xine)
         return pos_time;
     }
     return -1;
+}
+
+int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
+{
+    if ((!xine->playing) || (!xine->isvideo)) return 1;
+    if (xine->player.fullscreen == fullscreen) return 0;
+
+    XLockDisplay(xine->player.display);
+    XUnmapWindow(xine->player.display, 
+                 xine->player.window[xine->player.fullscreen]);
+    XMapRaised(xine->player.display, xine->player.window[fullscreen]);
+    XSync(xine->player.display, False);
+    XUnlockDisplay(xine->player.display);
+
+    xine->player.fullscreen = fullscreen;
+    xine_port_send_gui_data(xine->player.vport, XINE_GUI_SEND_DRAWABLE_CHANGED,
+                (void*) xine->player.window[xine->player.fullscreen]);
+
+    _set_video_area(xine);
+    return 0;
+}
+
+int djdxine_set_subtitle(_Xine* xine,int subtitle)
+{
+    if ((!xine->playing) || (!xine->isvideo)) return 1;
+
+    xine_set_param(xine->player.stream,XINE_PARAM_IGNORE_SPU,!subtitle);
+    return 0;
 }
 
 int _set_data_mine(_Xine* xine, const char* filename)

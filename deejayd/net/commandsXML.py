@@ -141,7 +141,7 @@ class Status(UnknownCommand):
     command_rvalue = 'KeyValue'
 
     def execute(self):
-        status = self.deejaydArgs["player"].getStatus()
+        status = self.deejaydArgs["player"].get_status()
         status.extend(self.deejaydArgs["sources"].get_status())
         status.extend(self.deejaydArgs["audio_library"].get_status())
         if self.deejaydArgs["video_library"]:
@@ -800,7 +800,7 @@ class Play(UnknownCommand):
             return self.getErrorAnswer('Need an integer')
 
         if nb == -1: self.deejaydArgs["player"].play()
-        else: self.deejaydArgs["player"].goTo(nb,"Id")
+        else: self.deejaydArgs["player"].go_to(nb,"Id")
         return self.getOkAnswer()
 
 
@@ -818,7 +818,7 @@ class Volume(UnknownCommand):
             return self.getErrorAnswer('Volume must be an integer between 0 \
                 and 100')
 
-        self.deejaydArgs["player"].setVolume(vol)
+        self.deejaydArgs["player"].set_volume(vol)
         return self.getOkAnswer()
 
 
@@ -836,7 +836,7 @@ class Seek(UnknownCommand):
         if t < 0:
             return self.getErrorAnswer('Need an integer > 0')
 
-        self.deejaydArgs["player"].setPosition(t)
+        self.deejaydArgs["player"].set_position(t)
         return self.getOkAnswer()
 
 
@@ -891,7 +891,7 @@ class CurrentSong(UnknownCommand):
     command_rvalue = ['SongList', 'WebradioList', 'VideoList']
 
     def execute(self):
-        source = self.deejaydArgs["player"].getPlayingSourceName()
+        source = self.deejaydArgs["player"].get_playing_source_name()
         item = self.deejaydArgs["sources"].get_source(source).\
                     get_playing_item()
         rsp = None
