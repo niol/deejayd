@@ -43,29 +43,38 @@ static void frame_output_callback(void *data, int video_width,
     *dest_pixel_aspect = xine->player.screen_pixel_aspect;
 }
 
-void got_expose_event(_Xine* xine, int x, int y, int width, int height)
-{
-    XExposeEvent expose;
-
-    if(!xine->playing) return;
-    /* set as much of the XExposeEvent as we can.  Some fields like serial
-     * won't be filled in, but this doesn't cause problems in practice.  Totem
-     * doesn't fill in anything, so our method can't be too bad. */
-    memset(&expose, 0, sizeof(XExposeEvent));
-    expose.x = x;
-    expose.y = y;
-    expose.width = width;
-    expose.height = height;
-    expose.display = xine->player.display;
-    expose.window = xine->player.window[0];
-    xine_port_send_gui_data(xine->player.vport, 
-            XINE_GUI_SEND_EXPOSE_EVENT, &expose);
-}
-
-
 /***************************************************************************
  *  Internal functions
  *  ************************************************************************/
+
+void* _x11_event_handler(void* xine_obj)
+{
+    XEvent xevent;
+    int got_event;
+
+    _Xine* xine = (_Xine*)xine_obj;
+    while (1) {
+        XLockDisplay(xine->player.display);
+        got_event = XPending(xine->player.display);
+        if( got_event )
+            XNextEvent(xine->player.display, &xevent);
+        XUnlockDisplay(xine->player.display);
+
+        if( !got_event ) {
+            xine_usec_sleep(20000);
+            continue;
+        }
+
+        switch(xevent.type) {
+            case Expose:
+                if (xevent.xexpose.count != 0)
+                    break;
+                xine_port_send_gui_data(xine->player.vport, 
+                    XINE_GUI_SEND_EXPOSE_EVENT, &xevent);
+                break;
+        }
+    }
+}
 
 static void _set_video_area(_Xine* xine)
 {
@@ -323,6 +332,12 @@ int djdxine_play(_Xine* xine, const char* filename, int isvideo)
 
         xine_port_send_gui_data(xine->player.vport, 
                 XINE_GUI_SEND_VIDEOWIN_VISIBLE,(void *) 1);
+
+        /*
+         * Create x11 event listener thread
+         */
+        pthread_create(&(xine->player.xevent_thread),NULL,
+                _x11_event_handler, (void *)xine);
     }
 
     if (!xine_open(xine->player.stream, filename) || 
@@ -341,6 +356,7 @@ void djdxine_stop(_Xine* xine)
 
     xine_close(xine->player.stream);
     if (xine->isvideo) {
+        pthread_cancel(xine->player.xevent_thread);
 
         XLockDisplay(xine->player.display);
         XUnmapWindow(xine->player.display, 
@@ -409,10 +425,10 @@ int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
     XUnlockDisplay(xine->player.display);
 
     xine->player.fullscreen = fullscreen;
+    _set_video_area(xine);
     xine_port_send_gui_data(xine->player.vport, XINE_GUI_SEND_DRAWABLE_CHANGED,
                 (void*) xine->player.window[xine->player.fullscreen]);
 
-    _set_video_area(xine);
     return 0;
 }
 

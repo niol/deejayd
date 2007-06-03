@@ -2,6 +2,7 @@
  * xine_impl.h
  **************************************************************************/
 
+#include <pthread.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -58,6 +59,7 @@ typedef struct {
         int fullscreen;
         Drawable window[2];
         double screen_pixel_aspect;
+        pthread_t xevent_thread;
 
         xine_t* xine;
         xine_stream_t* stream;
