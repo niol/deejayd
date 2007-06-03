@@ -109,7 +109,7 @@ cdef class Xine:
         file_info = djdxine_file_info(self.xine,filename)
         if file_info == NULL:
             raise FileInfoError 
-        return {"videowidth":file_info.width, "videoheight":file_info.height, "length":file_info.duration}
+        return {"videowidth":file_info.width, "videoheight":file_info.height, "length":file_info.duration / 1000}
     def get_supported_mimetypes(self):
         return djdxine_get_supported_mimetypes(self.xine)
     def get_supported_extensions(self):
