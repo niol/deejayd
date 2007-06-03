@@ -87,11 +87,11 @@ _Xine* djdxine_init(const char *audio_driver,
 
 /* Init video driver */
 int djdxine_video_init(_Xine* xine, const char *video_driver,
-                        const char* display_name, int fullscreen); 
+                        const char* display_name); 
 
 void djdxine_destroy(_Xine* xine);
 
-int djdxine_play(_Xine* xine, const char* filename, int isvideo);
+int djdxine_play(_Xine* xine,const char* filename,int isvideo,int fullscreen);
 
 void djdxine_stop(_Xine* xine);
 

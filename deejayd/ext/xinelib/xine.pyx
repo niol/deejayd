@@ -42,9 +42,9 @@ cdef extern from "djdxine.h":
         int duration
 
     _Xine* djdxine_init(char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data) 
-    int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name,int fullscreen)
+    int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
     void djdxine_destroy(_Xine* xine)
-    int djdxine_play(_Xine* xine, char* filename, int isvideo)
+    int djdxine_play(_Xine* xine, char* filename, int isvideo,int fullscreen)
     void djdxine_stop(_Xine* xine)
     void djdxine_seek(_Xine* xine, int position)
     void djdxine_set_playing(_Xine* xine, int is_playing)
@@ -75,12 +75,12 @@ cdef class Xine:
         self.progress_callback = None
     def __dealloc__(self):
         djdxine_destroy(self.xine)
-    def video_init(self,char *video_driver,char* display_name,int fullscreen):
-        djdxine_video_init(self.xine,video_driver,display_name,fullscreen)
+    def video_init(self,char *video_driver,char* display_name):
+        djdxine_video_init(self.xine,video_driver,display_name)
     def stop(self):
         djdxine_stop(self.xine)
-    def start_playing(self,char* filename,int isvideo):
-        if djdxine_play(self.xine,filename,isvideo):
+    def start_playing(self,char* filename,int isvideo,int fullscreen):
+        if djdxine_play(self.xine,filename,isvideo,fullscreen):
             raise StartPlayingError
     def play(self):
         djdxine_set_playing(self.xine, 1)

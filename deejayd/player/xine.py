@@ -31,7 +31,7 @@ class XinePlayer(UnknownPlayer):
 
         video_driver = self.config.get("xine", "video_output")
         video_display = self.config.get("xine", "video_display")
-        self.xine.video_init(video_driver,video_display,self._fullscreen)
+        self.xine.video_init(video_driver,video_display)
         self._video_support = True
 
     def set_uri(self,song):
@@ -52,7 +52,7 @@ class XinePlayer(UnknownPlayer):
     def start_xine(self):
         isvideo = 0
         if self._playing_source_name == "video": isvideo = 1
-        try: self.xine.start_playing(self._uri,isvideo)
+        try: self.xine.start_playing(self._uri,isvideo,self._fullscreen)
         except xine.StartPlayingError:
             self.set_state(PLAYER_STOP)
             log.err("Xine error : "+self.xine.get_error())

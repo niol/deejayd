@@ -211,7 +211,7 @@ _Xine* djdxine_init(const char *audio_driver,
 }
 
 int djdxine_video_init(_Xine* xine, const char *video_driver,
-                        const char* display_name,int fullscreen)
+                        const char* display_name)
 {
     double screen_width, screen_height;
     x11_visual_t vis;
@@ -222,7 +222,7 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     }
 
     /* init video informations and player */
-    xine->player.fullscreen = fullscreen;
+    xine->player.fullscreen = 0;
     xine->player.display = XOpenDisplay(display_name);
     xine->player.screen = XDefaultScreen(xine->player.display);
     screen_width = (DisplayWidth(xine->player.display, 
@@ -257,10 +257,6 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
                                                     xine->player.stream);
     xine_event_create_listener_thread(xine->player.event_queue,
         xine->event_callback,xine->event_callback_data);
-
-    xine_port_send_gui_data(xine->player.vport, 
-            XINE_GUI_SEND_DRAWABLE_CHANGED,
-            (void *) xine->player.window[xine->player.fullscreen]);
     xine->player.video_init = 1;
 
     /* Create a xine instance used for querying data about video files */
@@ -317,19 +313,25 @@ void djdxine_destroy(_Xine* xine)
     free(xine);
 }
 
-int djdxine_play(_Xine* xine, const char* filename, int isvideo)
+int djdxine_play(_Xine* xine, const char* filename, int isvideo, int fullscreen)
 {
     if (xine->playing) {
         djdxine_stop(xine);
     }
 
     if (isvideo) {
+        xine->player.fullscreen = fullscreen;
+
         XLockDisplay(xine->player.display);
         XMapRaised(xine->player.display, 
             xine->player.window[xine->player.fullscreen]);
         XSync(xine->player.display, False);
         XUnlockDisplay(xine->player.display);
 
+        _set_video_area(xine);
+        xine_port_send_gui_data(xine->player.vport, 
+            XINE_GUI_SEND_DRAWABLE_CHANGED,
+            (void *) xine->player.window[xine->player.fullscreen]);
         xine_port_send_gui_data(xine->player.vport, 
                 XINE_GUI_SEND_VIDEOWIN_VISIBLE,(void *) 1);
 
@@ -356,6 +358,9 @@ void djdxine_stop(_Xine* xine)
 
     xine_close(xine->player.stream);
     if (xine->isvideo) {
+        /*
+         * Stop x11 event listener thread
+         */
         pthread_cancel(xine->player.xevent_thread);
 
         XLockDisplay(xine->player.display);
