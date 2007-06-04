@@ -210,6 +210,22 @@ _Xine* djdxine_init(const char *audio_driver,
     return xine;
 }
 
+int djdxine_set_config_param(_Xine* xine, const char *param_key, 
+                                int type, void* value)
+{
+    xine_cfg_entry_t entry;
+
+    if (!xine_config_lookup_entry (xine->player.xine, param_key, &entry))
+        return 1;
+
+    if (type == XINE_CONFIG_TYPE_ENUM) 
+        entry.num_value = *(int *)value;
+    else return 1;
+    xine_config_update_entry(xine->player.xine,&entry);
+
+    return 0;
+}
+
 int djdxine_video_init(_Xine* xine, const char *video_driver,
                         const char* display_name)
 {

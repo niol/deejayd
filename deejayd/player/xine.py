@@ -17,6 +17,16 @@ class XinePlayer(UnknownPlayer):
         self.xine.set_eos_callback(self.eos)
         self.xine.set_progress_callback(self.progress)
 
+        # load specific xine config
+        try: subtitle_size = self.config.getint("xine", "subtitle_size")
+        except: 
+            log.err("Unable to read xine.subtitle_size conf parm")
+        else:
+            try: self.xine.set_enum_config_param(\
+                "subtitles.separate.subtitle_size", int(subtitle_size))
+            except xine.XineError:
+                log.err("Xine : unable to load specific xine config")
+
     def eos(self):
         self.next()
 
@@ -53,7 +63,7 @@ class XinePlayer(UnknownPlayer):
         isvideo = 0
         if self._playing_source_name == "video": isvideo = 1
         try: self.xine.start_playing(self._uri,isvideo,self._fullscreen)
-        except xine.StartPlayingError:
+        except xine.XineError:
             self.set_state(PLAYER_STOP)
             log.err("Xine error : "+self.xine.get_error())
         else: self.set_fullscreen(self._fullscreen)

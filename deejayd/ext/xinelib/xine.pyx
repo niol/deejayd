@@ -31,8 +31,12 @@ cdef extern from "xine.h":
     ctypedef void (*xine_event_listener_cb_t) (void *user_data,
             xine_event_t *event)
     enum dummy:
+        # xine event
         XINE_EVENT_UI_PLAYBACK_FINISHED
         XINE_EVENT_PROGRESS
+        # config entry data types
+        XINE_CONFIG_TYPE_ENUM
+
 
 cdef extern from "djdxine.h":
     ctypedef struct _Xine
@@ -42,6 +46,7 @@ cdef extern from "djdxine.h":
         int duration
 
     _Xine* djdxine_init(char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data) 
+    int djdxine_set_config_param(_Xine* xine, char *param_key, int type, void *value)
     int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
     void djdxine_destroy(_Xine* xine)
     int djdxine_play(_Xine* xine, char* filename, int isvideo,int fullscreen)
@@ -60,8 +65,8 @@ cdef extern from "djdxine.h":
 
 
 class NotPlayingError(Exception): pass
-class StartPlayingError(Exception): pass
 class FileInfoError(Exception): pass
+class XineError(Exception): pass
 
 cdef class Xine:
     # Wrapper for the Xine class
@@ -75,13 +80,18 @@ cdef class Xine:
         self.progress_callback = None
     def __dealloc__(self):
         djdxine_destroy(self.xine)
+    def set_enum_config_param(self,char* key,int value):
+        cdef int xine_type
+        xine_type = XINE_CONFIG_TYPE_ENUM
+        if djdxine_set_config_param(self.xine,key,xine_type,<void*>&value):
+            raise XineError
     def video_init(self,char *video_driver,char* display_name):
         djdxine_video_init(self.xine,video_driver,display_name)
     def stop(self):
         djdxine_stop(self.xine)
     def start_playing(self,char* filename,int isvideo,int fullscreen):
         if djdxine_play(self.xine,filename,isvideo,fullscreen):
-            raise StartPlayingError
+            raise XineError
     def play(self):
         djdxine_set_playing(self.xine, 1)
     def pause(self):

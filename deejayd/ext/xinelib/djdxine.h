@@ -85,6 +85,9 @@ _Xine* djdxine_init(const char *audio_driver,
                  xine_event_listener_cb_t event_callback,
                  void* event_callback_data);
 
+int djdxine_set_config_param(_Xine* xine, const char *param_key, int type,
+                              void *value);
+
 /* Init video driver */
 int djdxine_video_init(_Xine* xine, const char *video_driver,
                         const char* display_name); 

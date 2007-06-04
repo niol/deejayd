@@ -38,19 +38,28 @@ audio_output = alsa
 #alsa_card = hw:2
 
 # Video Ouput
-# Possible values are : auto, xv, x
+# Possible values are : auto, xv, x...
 video_output = xv
 
 
 [xine]
 # Audio Ouput
-# Possible values are : alsa, oss...
+# Possible values are : auto,alsa, oss...
 audio_output = alsa
 
-# Alsa Options
-# valid only for alsa output
-#alsa_card = hw:2
-
 # Video Ouput
-# Possible values are : Xv, ..
+# Possible values are : auto,Xv, ..
 video_output = Xv
+
+# Video Display
+video_display= :0.0
+
+
+#
+# Xine speceific options
+#
+
+# subtitle size
+# interger value
+# 0 : tiny, 1 : small, 2 : normal, 3 : large, 4 : very large, 5 : huge
+subtitle_size = 3
