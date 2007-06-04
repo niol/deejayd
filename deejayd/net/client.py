@@ -327,6 +327,7 @@ class DeejayDaemon:
         self.socketToServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         self.host = host
         self.port = port
+        self.connected = False
 
         # Messaging threads
         self.sendingThread = DeejaydCommandThread(self.socketToServer,
@@ -353,6 +354,7 @@ class DeejayDaemon:
         if initAnswer == 'OK\n':
             self.sendingThread.start()
             self.receivingThread.start()
+            self.connected = True
         else:
             self.disconnect()
             raise ConnectError('Initialisation with server failed')
@@ -365,6 +367,7 @@ class DeejayDaemon:
         self.commandQueue.put(StopException())
 
         self.socketToServer.close()
+        self.connected = False
 
     def isAsync(self):
         return self.async
