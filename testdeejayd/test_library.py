@@ -25,7 +25,7 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
         self.db.connect()
 
         player = xine.XinePlayer(self.db, DeejaydConfig())
-        player.initVideoSupport()
+        player.init_video_support()
         self.library = self.__class__.library_class(self.db, player, \
                                                     self.testdata.getRootDir())
         self.library._update()
