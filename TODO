@@ -12,4 +12,5 @@ Coding style
   variable and function names, camel-case for class names, and run-together
   lower-case for module names. It should perhaps be good to respect this, one
   day...
-  this action is done for database, mediadb and source module
+  This is done for the database, mediadb, source, client and xmlbuilders
+  modules.

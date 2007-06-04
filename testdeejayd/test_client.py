@@ -5,7 +5,7 @@ from testdeejayd import TestCaseWithData, TestCaseWithMediaData
 import testdeejayd.data
 
 from testdeejayd.server import TestServer
-from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, AnswerFactory,\
+from deejayd.net.client import DeejayDaemon, DeejaydXMLCommand, _AnswerFactory,\
                                DeejaydAnswer, DeejaydKeyValue,\
                                DeejaydFileList, DeejaydWebradioList,\
                                DeejaydPlaylist, DeejaydError
@@ -27,11 +27,11 @@ class TestCommandBuildParse(unittest.TestCase):
     def testCommandBuilder(self):
         """Client library builds commands according to protocol scheme"""
         cmd = DeejaydXMLCommand('command1')
-        cmd.addSimpleArg('argName1', 'bou')
-        cmd.addSimpleArg('argName2', 'bou2')
-        cmd.addSimpleArg('argName3', ['bou2', 'haha', 'aza'])
-        cmd.addSimpleArg('argName4', 'bou3')
-        cmd.addSimpleArg('argName5', ['bou2', 'hihi', 'aza'])
+        cmd.add_simple_arg('argName1', 'bou')
+        cmd.add_simple_arg('argName2', 'bou2')
+        cmd.add_simple_arg('argName3', ['bou2', 'haha', 'aza'])
+        cmd.add_simple_arg('argName4', 'bou3')
+        cmd.add_simple_arg('argName5', ['bou2', 'hihi', 'aza'])
 
         expectedAnswer = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -52,7 +52,7 @@ class TestCommandBuildParse(unittest.TestCase):
     </command>
 </deejayd>"""
 
-        self.assertEqual(self.trimXML(cmd.toXML()),self.trimXML(expectedAnswer))
+        self.assertEqual(self.trimXML(cmd.to_xml()),self.trimXML(expectedAnswer))
 
 
 class TestAnswerParser(TestCaseWithData):
@@ -63,7 +63,7 @@ class TestAnswerParser(TestCaseWithData):
 
         self.eansq = Queue()
         self.parser = make_parser()
-        self.ansb = AnswerFactory(self.eansq)
+        self.ansb = _AnswerFactory(self.eansq)
         self.parser.setContentHandler(self.ansb)
 
     def parseAnswer(self, str):
@@ -82,8 +82,8 @@ class TestAnswerParser(TestCaseWithData):
         self.eansq.put(ans)
         self.parseAnswer(ackAnswer)
 
-        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        self.failUnless(ans.getContents())
+        self.assertEqual(self.ansb.get_originating_command(), originatingCommand)
+        self.failUnless(ans.get_contents())
 
     def testAnswerParserError(self):
         """Test the client library parsing an error"""
@@ -99,9 +99,9 @@ class TestAnswerParser(TestCaseWithData):
         self.eansq.put(ans)
         self.parseAnswer(errorAnswer)
 
-        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+        self.assertEqual(self.ansb.get_originating_command(), originatingCommand)
         # FIXME : find a way to test the errorText
-        self.assertRaises(DeejaydError, ans.getContents)
+        self.assertRaises(DeejaydError, ans.get_contents)
 
     def testAnswerParserKeyValue(self):
         """Test the client library parsing a key value answer"""
@@ -125,8 +125,8 @@ class TestAnswerParser(TestCaseWithData):
         self.eansq.put(ans)
         self.parseAnswer(keyValueAnswer)
 
-        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        retrievedKeyValues = ans.getContents()
+        self.assertEqual(self.ansb.get_originating_command(), originatingCommand)
+        retrievedKeyValues = ans.get_contents()
 
         for key in origKeyValue.keys():
             self.assertEqual(origKeyValue[key], retrievedKeyValues[key])
@@ -175,12 +175,12 @@ class TestAnswerParser(TestCaseWithData):
         self.eansq.put(ans)
         self.parseAnswer(fileListAnswer)
 
-        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+        self.assertEqual(self.ansb.get_originating_command(), originatingCommand)
 
         for file in origFiles:
 
             # Find corresponding file in retrieved files
-            filesIter = iter(ans.getFiles())
+            filesIter = iter(ans.get_files())
             notFound = True
             retrievedFile = None
             while notFound:
@@ -193,7 +193,7 @@ class TestAnswerParser(TestCaseWithData):
                 self.assertEqual(file[key], retrievedFile[key])
 
         for dir in origDirs:
-            self.failUnless(dir in ans.getDirectories())
+            self.failUnless(dir in ans.get_directories())
 
     def testAnswerParserWebradioList(self):
         """Test the client library parsing a web radio list answer"""
@@ -228,10 +228,11 @@ class TestAnswerParser(TestCaseWithData):
         self.eansq.put(ans)
         self.parseAnswer(webradioListAnswer)
 
-        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
+        self.assertEqual(self.ansb.get_originating_command(),
+                         originatingCommand)
 
         for webradio in origWebradios:
-            self.failUnless(webradio in ans.getContents())
+            self.failUnless(webradio in ans.get_contents())
 
     def testAnswerParserPlaylist(self):
         """Test the client library parsing a song list answer"""
@@ -261,8 +262,9 @@ class TestAnswerParser(TestCaseWithData):
         self.eansq.put(ans)
         self.parseAnswer(songListAnswer)
 
-        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        retrievedSongList = ans.getContents()
+        self.assertEqual(self.ansb.get_originating_command(),
+                         originatingCommand)
+        retrievedSongList = ans.get_contents()
 
         for song in testdeejayd.data.songlibrary:
             for tag in song.keys():
@@ -298,8 +300,9 @@ class TestAnswerParser(TestCaseWithData):
         self.eansq.put(ans)
         self.parseAnswer(plListAnswer)
 
-        self.assertEqual(self.ansb.getOriginatingCommand(), originatingCommand)
-        retrievedPlList = ans.getContents()
+        self.assertEqual(self.ansb.get_originating_command(),
+                         originatingCommand)
+        retrievedPlList = ans.get_contents()
 
         for pl in pls:
             self.failUnless(pl in retrievedPlList)
@@ -326,15 +329,15 @@ class TestClient(TestCaseWithMediaData):
 
     def testPing(self):
         """Ping server"""
-        self.failUnless(self.deejaydaemon.ping().getContents())
+        self.failUnless(self.deejaydaemon.ping().get_contents())
 
     def testPingAsync(self):
         """Ping server asynchroneously"""
-        self.deejaydaemon.setAsync(True)
+        self.deejaydaemon.set_async(True)
         ans = self.deejaydaemon.ping()
-        self.failUnless(ans.getContents(),
+        self.failUnless(ans.get_contents(),
                         'Server did not respond well to ping.')
-        self.deejaydaemon.setAsync(False)
+        self.deejaydaemon.set_async(False)
 
     def tearDown(self):
         self.deejaydaemon.disconnect()
@@ -348,35 +351,35 @@ class TestClient(TestCaseWithMediaData):
         djplname = self.testdata.getRandomString()
 
         # Get current playlist
-        djpl = self.deejaydaemon.getCurrentPlaylist()
-        self.assertEqual(djpl.getContents(), [])
+        djpl = self.deejaydaemon.get_current_playlist()
+        self.assertEqual(djpl.get_contents(), [])
 
         # Add songs to playlist
         howManySongs = 3
         for songPath in self.testdata.getRandomSongPaths(howManySongs):
             pl.append(songPath)
-            self.failUnless(djpl.addSong(songPath).getContents())
+            self.failUnless(djpl.add_song(songPath).get_contents())
 
         # Check for the playlist to be of appropriate length
-        self.assertEqual(self.deejaydaemon.getStatus()['playlistlength'],
+        self.assertEqual(self.deejaydaemon.get_status()['playlistlength'],
                          howManySongs)
 
         # Save the playlist
-        self.failUnless(djpl.save(djplname).getContents())
+        self.failUnless(djpl.save(djplname).get_contents())
 
         # Check for the saved playslit to be available
-        retrievedPls = self.deejaydaemon.getPlaylistList().getContents()
+        retrievedPls = self.deejaydaemon.get_playlist_list().get_contents()
         self.failUnless(djplname in retrievedPls)
 
         # Retrieve the saved playlist
-        retrievedPl = self.deejaydaemon.getPlaylist(djplname)
+        retrievedPl = self.deejaydaemon.get_playlist(djplname)
         for song_nb in range(len(pl)):
             self.assertEqual(pl[song_nb], retrievedPl[song_nb]['Path'])
 
     def testWebradioAddRetrieve(self):
         """Save a webradio and check it is in the list, then delete it."""
 
-        wrList = self.deejaydaemon.getWebradios()
+        wrList = self.deejaydaemon.get_webradios()
 
         # Test for bad URI and inexistant playlist
         for badURI in [[self.testdata.getRandomString(50)],
@@ -384,9 +387,10 @@ class TestClient(TestCaseWithMediaData):
                         self.testdata.getRandomString(50) + '.pls']]:
             # FIXME : provision for the future where the same webradio may have
             # multiple urls.
-            # ans = wrList.addWebradio(self.testdata.getRandomString(), badURI)
-            ans = wrList.addWebradio(self.testdata.getRandomString(), badURI[0])
-            self.assertRaises(DeejaydError, ans.getContents)
+            # ans = wrList.add_webradio(self.testdata.getRandomString(), badURI)
+            ans = wrList.add_webradio(self.testdata.getRandomString(),
+                                      badURI[0])
+            self.assertRaises(DeejaydError, ans.get_contents)
 
         testWrName = self.testdata.getRandomString()
 
@@ -397,18 +401,19 @@ class TestClient(TestCaseWithMediaData):
         #     testWrUrls.append('http://' + self.testdata.getRandomString(50))
         testWrUrls = 'http://' + self.testdata.getRandomString(50)
 
-        ans = wrList.addWebradio(testWrName, testWrUrls)
-        self.failUnless(ans.getContents())
+        ans = wrList.add_webradio(testWrName, testWrUrls)
+        self.failUnless(ans.get_contents())
 
-        wrList = self.deejaydaemon.getWebradios()
+        wrList = self.deejaydaemon.get_webradios()
 
         # FIXME : This should not be, see the future of webradios.
         testWrName += '-1'
 
-        self.failUnless(testWrName in self.deejaydaemon.getWebradios().names())
+        self.failUnless(testWrName in self.deejaydaemon.get_webradios().names())
 
-        retrievedWr1 = wrList.getWebradio(testWrName)
-        retrievedWr2 = self.deejaydaemon.getWebradios().getWebradio(testWrName)
+        retrievedWr1 = wrList.get_webradio(testWrName)
+        retrievedWr2 = self.deejaydaemon.get_webradios().\
+                                                    get_webradio(testWrName)
 
         for retrievedWr in [retrievedWr1, retrievedWr2]:
             # FIXME : Same provision for the future.
@@ -416,8 +421,8 @@ class TestClient(TestCaseWithMediaData):
             #     self.failUnless(url in retrievedWr['Url'])
             self.assertEqual(testWrUrls, retrievedWr['Url'])
 
-        wrList.deleteWebradio(testWrName)
-        wrList = self.deejaydaemon.getWebradios()
+        wrList.delete_webradio(testWrName)
+        wrList = self.deejaydaemon.get_webradios()
         self.failIf(testWrName in wrList.names())
 
 

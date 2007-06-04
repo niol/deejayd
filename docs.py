@@ -200,47 +200,47 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         return parmDict
 
     def getError(self):
-        error = self.getDeejaydXMLAnswer('error', 'cmdName')
-        error.setErrorText('error text')
+        error = self.get_deejayd_xml_answer('error', 'cmdName')
+        error.set_error_text('error text')
         return error
 
     def getAck(self):
-        ack = self.getDeejaydXMLAnswer('Ack', 'cmdName')
+        ack = self.get_deejayd_xml_answer('Ack', 'cmdName')
         return ack
 
     def getKeyValue(self):
-        kv = self.getDeejaydXMLAnswer('KeyValue', 'cmdName')
-        kv.setPairs(self.getSampleParmDict())
+        kv = self.get_deejayd_xml_answer('KeyValue', 'cmdName')
+        kv.set_pairs(self.getSampleParmDict())
         return kv
 
     def getFileList(self):
-        fl = self.getDeejaydXMLAnswer('FileList', 'cmdName')
-        fl.addDirectory('dirName')
+        fl = self.get_deejayd_xml_answer('FileList', 'cmdName')
+        fl.add_directory('dirName')
 
-        fl.addFile(self.getSampleParmDict())
-        fl.addVideo(self.getSampleParmDict())
+        fl.add_file(self.getSampleParmDict())
+        fl.add_video(self.getSampleParmDict())
 
         return fl
 
     def getWebradioList(self):
-        wrl = self.getDeejaydXMLAnswer('WebradioList', 'cmdName')
-        wrl.addWebradio(self.getSampleParmDict())
+        wrl = self.get_deejayd_xml_answer('WebradioList', 'cmdName')
+        wrl.add_webradio(self.getSampleParmDict())
         return wrl
 
     def getSongList(self):
-        sl = self.getDeejaydXMLAnswer('SongList', 'cmdName')
-        sl.addSong(self.getSampleParmDict())
+        sl = self.get_deejayd_xml_answer('SongList', 'cmdName')
+        sl.add_song(self.getSampleParmDict())
         return sl
 
     def getPlaylistList(self):
-        pll = self.getDeejaydXMLAnswer('PlaylistList', 'getPlaylistList')
-        pll.addPlaylist('playlist1')
-        pll.addPlaylist('playlist2')
+        pll = self.get_deejayd_xml_answer('PlaylistList', 'getPlaylistList')
+        pll.add_playlist('playlist1')
+        pll.add_playlist('playlist2')
         return pll
 
     def getVideoList(self):
-        vl = self.getDeejaydXMLAnswer('VideoList', 'cmdName')
-        vl.addVideo(self.getSampleParmDict())
+        vl = self.get_deejayd_xml_answer('VideoList', 'cmdName')
+        vl.add_video(self.getSampleParmDict())
         return vl
 
     responseTypeExBuilders = { DeejaydXMLError: getError,
@@ -261,9 +261,9 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
 
     def formatResponseDoc(self, response):
         info = {}
-        info['type'] = response.responseType
+        info['type'] = response.response_type
         info['desc'] = response.__doc__
-        info['example'] = self.getExample(response).toPrettyXML()
+        info['example'] = self.getExample(response).to_pretty_xml()
 
         responseDoc = """
   * %(type)s : %(desc)s
@@ -274,9 +274,9 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
 
     def formatCombinedResponse(self):
         combi = self.getAck()
-        self.setMother(combi)
+        self.set_mother(combi)
         vl = self.getVideoList()
-        return combi.toPrettyXML()
+        return combi.to_pretty_xml()
 
 if __name__ == "__main__":
     # XML Doc
@@ -286,7 +286,7 @@ if __name__ == "__main__":
 There are 6 response types :"""
 
     respDocBuilder = DeejaydXMLDocFactory()
-    for response in respDocBuilder.responseTypes:
+    for response in respDocBuilder.response_types:
         docs += respDocBuilder.formatResponseDoc(response)
 
     docs += """
@@ -313,7 +313,10 @@ Responses may be combined in the same physical message :
     for cmd in commandsLine.commandsOrders():
         try: func = getattr(commandsListLine[cmd]("",[]), "docInfos")
         except AttributeError:
-            docs += formatCommandDoc(commandsXML.commands[cmd])
+            try:
+                docs += formatCommandDoc(commandsXML.commands[cmd])
+            except KeyError:
+                docs += 'No doc for command %s' % cmd
         else:
             docs += formatCmdDoc(cmd, commandsListLine[cmd])
 

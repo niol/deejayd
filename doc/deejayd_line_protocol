@@ -67,18 +67,7 @@ Arguments :
 
 Expected return value : KeyValue
 
-=== audio_update ===
-
-Update the audio library.
-  * audio_updating_db : the id of this task. It appears in the status until the
-    update are completed.
-
-Arguments :
-  * ''This command does not accept any argument.''
-
-Expected return value : KeyValue
-
-
+No doc for command audio_update
 -----------------
 lsinfo
 -----------------

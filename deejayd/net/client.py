@@ -10,7 +10,7 @@ from StringIO import StringIO
 from xml.sax import make_parser, SAXParseException
 from xml.sax.handler import ContentHandler
 
-msgDelimiter = 'ENDXML\n'
+msg_delimiter = 'ENDXML\n'
 
 
 class DeejaydError(Exception):
@@ -19,24 +19,24 @@ class DeejaydError(Exception):
 class DeejaydAnswer:
 
     def __init__(self, server = None):
-        self.answerReceived = threading.Event()
+        self.answer_received = threading.Event()
         self.contents = None
         self.error = False
         self.server = server
 
     def wait(self):
-        self.answerReceived.wait()
+        self.answer_received.wait()
 
     def received(self, contents):
         self.contents = contents
-        self.answerReceived.set()
+        self.answer_received.set()
 
-    def setError(self, msg):
+    def set_error(self, msg):
         self.contents = msg
         self.error = True
-        self.answerReceived.set()
+        self.answer_received.set()
 
-    def getContents(self):
+    def get_contents(self):
         self.wait()
         if self.error:
             raise DeejaydError(self.contents)
@@ -46,7 +46,7 @@ class DeejaydAnswer:
 class DeejaydKeyValue(DeejaydAnswer):
 
     def __getitem__(self, name):
-        self.getContents()
+        self.get_contents()
         return self.contents[name]
 
 
@@ -57,52 +57,52 @@ class DeejaydFileList(DeejaydAnswer):
         self.files = []
         self.directories = []
 
-    def addFile(self, file):
+    def add_file(self, file):
         self.files.append(file)
 
-    def addDir(self, dir):
+    def add_dir(self, dir):
         self.directories.append(dir)
 
-    def getFiles(self):
-        self.getContents()
+    def get_files(self):
+        self.get_contents()
         return self.files
 
-    def getDirectories(self):
-        self.getContents()
+    def get_directories(self):
+        self.get_contents()
         return self.directories
 
 
 class DeejaydWebradioList(DeejaydAnswer):
 
-    def addWebradio(self, name, urls):
+    def add_webradio(self, name, urls):
         cmd = DeejaydXMLCommand('webradioAdd')
-        cmd.addSimpleArg('name', name)
+        cmd.add_simple_arg('name', name)
         # FIXME : Provision for the future where one webradio may have multiple
         # urls.
-        # cmd.addMultipleArg('url', urls)
-        cmd.addSimpleArg('url', urls)
-        return self.server.sendCommand(cmd)
+        # cmd.add_multiple_arg('url', urls)
+        cmd.add_simple_arg('url', urls)
+        return self.server.send_command(cmd)
 
-    def deleteWebradio(self, name):
+    def delete_webradio(self, name):
         cmd = DeejaydXMLCommand('webradioRemove')
-        wrId = self.getWebradio(name)['Id']
-        cmd.addMultipleArg('id', [wrId])
-        return self.server.sendCommand(cmd)
+        wr_id = self.get_webradio(name)['Id']
+        cmd.add_multiple_arg('id', [wr_id])
+        return self.server.send_command(cmd)
 
     def names(self):
         names = []
-        for wr in self.getContents():
+        for wr in self.get_contents():
             names.append(wr['Title'])
         return names
 
-    def getWebradio(self, name):
-        return self.__getWebradioByField('Title', name)
+    def get_webradio(self, name):
+        return self.__get_webradio_by_field('Title', name)
 
-    def __getWebradioByField(self, field, value):
-        iWr = iter(self.getContents())
+    def __get_webradio_by_field(self, field, value):
+        i_wr = iter(self.get_contents())
         try:
             while True:
-                wr = iWr.next()
+                wr = i_wr.next()
                 if wr[field] == value:
                     return wr
         except StopIteration:
@@ -113,78 +113,78 @@ class DeejaydPlaylist(DeejaydKeyValue):
 
     def save(self, name):
         cmd = DeejaydXMLCommand('playlistSave')
-        cmd.addSimpleArg('name', name)
-        return self.server.sendCommand(cmd)
+        cmd.add_simple_arg('name', name)
+        return self.server.send_command(cmd)
 
-    def addSong(self, path, position = None, name = None):
-        return self.addSongs([path], position, name)
+    def add_song(self, path, position = None, name = None):
+        return self.add_songs([path], position, name)
 
-    def addSongs(self, paths, position = None, name = None):
+    def add_songs(self, paths, position = None, name = None):
         cmd = DeejaydXMLCommand('playlistAdd')
-        cmd.addMultipleArg('path', paths)
+        cmd.add_multiple_arg('path', paths)
         if position != None:
-            cmd.addSimpleArg('pos', position)
+            cmd.add_simple_arg('pos', position)
         if name != None:
-            cmd.addSimpleArg('name', name)
-        return self.server.sendCommand(cmd)
+            cmd.add_simple_arg('name', name)
+        return self.server.send_command(cmd)
 
-    def load(self, name, loadingPosition = 0):
+    def load(self, name, loading_position = 0):
         cmd = DeejaydXMLCommand('playlistLoad')
-        cmd.addSimpleArg('name', name)
-        cmd.addSimpleArg('pos', loadingPosition)
-        return self.server.sendCommand(cmd)
+        cmd.add_simple_arg('name', name)
+        cmd.add_simple_arg('pos', loading_position)
+        return self.server.send_command(cmd)
 
 
-class AnswerFactory(ContentHandler):
+class _AnswerFactory(ContentHandler):
 
-    def __init__(self, expectedAnswersQueue):
-        self.expectedAnswersQueue = expectedAnswersQueue
+    def __init__(self, expected_answers_queue):
+        self.expected_answers_queue = expected_answers_queue
 
         self.answer = None
-        self.originatingCommand = ''
+        self.originating_command = ''
 
         self.xmlpath = []
-        self.responseType = ''
+        self.response_type = ''
         self.parms = {}
 
     def startElement(self, name, attrs):
         self.xmlpath.append(name)
 
         if name in ['error', 'response'] and len(self.xmlpath) == 2:
-            self.originatingCommand = attrs.get('name')
-            self.expectedAnswer = self.expectedAnswersQueue.get()
+            self.originating_command = attrs.get('name')
+            self.expected_answer = self.expected_answers_queue.get()
 
         if name == 'response':
-            self.responseType = attrs.get('type')
-            if self.responseType == 'Ack':
+            self.response_type = attrs.get('type')
+            if self.response_type == 'Ack':
                 self.answer = True
-            elif self.responseType in ['FileList', 'WebradioList',
+            elif self.response_type in ['FileList', 'WebradioList',
                                        'SongList', 'PlaylistList']:
                 self.answer = []
-            elif self.responseType == 'KeyValue':
+            elif self.response_type == 'KeyValue':
                 self.answer = {}
         elif name == 'parm':
             # Parse value into a int if possible
             val = attrs.get('value')
             try:
-                realVal = int(val)
+                real_val = int(val)
             except(ValueError):
-                realVal = val
+                real_val = val
 
-            if self.responseType == 'KeyValue':
-                self.answer[attrs.get('name')] = realVal
+            if self.response_type == 'KeyValue':
+                self.answer[attrs.get('name')] = real_val
             else:
-                self.parms[attrs.get('name')] = realVal
+                self.parms[attrs.get('name')] = real_val
         elif name == 'directory':
-            assert self.responseType == 'FileList'
+            assert self.response_type == 'FileList'
             assert self.xmlpath == ['deejayd', 'response', 'directory']
-            self.expectedAnswer.addDir(attrs.get('name'))
+            self.expected_answer.add_dir(attrs.get('name'))
         elif name == 'playlist':
-            assert self.responseType == 'PlaylistList'
+            assert self.response_type == 'PlaylistList'
             assert self.xmlpath == ['deejayd', 'response', 'playlist']
             self.answer.append(attrs.get('name'))
         elif name == 'error':
-            self.responseType = 'error'
+            self.response_type = 'error'
 
     def characters(self, str):
         if self.xmlpath == ['deejayd', 'error']:
@@ -197,116 +197,116 @@ class AnswerFactory(ContentHandler):
             self.answer.append(self.parms)
             self.parms = {}
         elif name == 'file':
-            self.expectedAnswer.addFile(self.parms)
+            self.expected_answer.add_file(self.parms)
             self.parms = {}
         elif name in ['response', 'error']:
             if name == 'response':
-                self.expectedAnswer.received(self.answer)
+                self.expected_answer.received(self.answer)
             elif name == 'error':
-                self.expectedAnswer.setError(self.answer)
+                self.expected_answer.set_error(self.answer)
 
             self.answer = None
-            self.expectedAnswer = None
+            self.expected_answer = None
 
-    def getOriginatingCommand(self):
-        return self.originatingCommand
+    def get_originating_command(self):
+        return self.originating_command
 
 
-class DeejaydSocketThread(threading.Thread):
+class _DeejaydSocketThread(threading.Thread):
 
     def __init__(self, socket):
         threading.Thread.__init__(self)
 
-        self.socketDieCallback = []
+        self.socket_die_callback = []
 
-        self.socketToServer = socket
+        self.socket_to_server = socket
 
-    def addSocketDieCallback(self, callback):
-        self.socketDieCallback.append(callback)
+    def add_socket_die_callback(self, callback):
+        self.socket_die_callback.append(callback)
 
     def run(self):
-        self.shouldStop = False
+        self.should_stop = False
         try:
-            while not self.shouldStop:
+            while not self.should_stop:
                 try:
-                    self.reallyRun()
-                except StopException:
-                    self.shouldStop = True
+                    self.really_run()
+                except _StopException:
+                    self.should_stop = True
                 except SAXParseException:
                     # XML parsing failed, simply ignore. What should we do here?
                     pass
         except socket.error:
-            for cb in self.socketDieCallback:
+            for cb in self.socket_die_callback:
                 cb()
 
-    def reallyRun(self):
+    def really_run(self):
         # This is implemented by daughter classes. This should be a blocking
         # function.
         raise NotImplementedError
 
 
-class StopException(Exception):
+class _StopException(Exception):
     pass
 
-class DeejaydCommandThread(DeejaydSocketThread):
+class _DeejaydCommandThread(_DeejaydSocketThread):
 
-    def __init__(self, socket, commandQueue):
-        DeejaydSocketThread.__init__(self, socket)
-        self.commandQueue = commandQueue
+    def __init__(self, socket, command_queue):
+        _DeejaydSocketThread.__init__(self, socket)
+        self.command_queue = command_queue
 
-    def reallyRun(self):
-        cmd = self.commandQueue.get()
+    def really_run(self):
+        cmd = self.command_queue.get()
 
         # If we've got a stop exception in the queue, raise it!
-        if cmd.__class__ == StopException:
+        if cmd.__class__ == _StopException:
             raise cmd
 
-        self.__send(cmd.toXML())
+        self.__send(cmd.to_xml())
 
     def __send(self, buf):
-        self.socketToServer.send(buf + msgDelimiter)
+        self.socket_to_server.send(buf + msg_delimiter)
 
 
-class DeejaydAnswerThread(DeejaydSocketThread):
+class _DeejaydAnswerThread(_DeejaydSocketThread):
 
-    def __init__(self, socket, expectedAnswersQueue):
-        DeejaydSocketThread.__init__(self, socket)
-        self.expectedAnswersQueue = expectedAnswersQueue
+    def __init__(self, socket, expected_answers_queue):
+        _DeejaydSocketThread.__init__(self, socket)
+        self.expected_answers_queue = expected_answers_queue
 
         self.parser = make_parser()
-        self.answerBuilder = AnswerFactory(self.expectedAnswersQueue)
-        self.parser.setContentHandler(self.answerBuilder)
+        self.answer_builder = _AnswerFactory(self.expected_answers_queue)
+        self.parser.setContentHandler(self.answer_builder)
 
-    def reallyRun(self):
+    def really_run(self):
         rawmsg = self.__readmsg()
         self.parser.parse(StringIO(rawmsg))
 
     def __readmsg(self):
-        msgChunks = []
+        msg_chunks = []
 
         # This is dirty, but there is no msgdelim in answers...
-        msgDelimiter = '</deejayd>'
+        msg_delimiter = '</deejayd>'
 
-        msgChunk = ''
-        while msgChunk[-len(msgDelimiter):len(msgChunk)] != msgDelimiter:
-            msgChunk = self.socketToServer.recv(4096)
+        msg_chunk = ''
+        while msg_chunk[-len(msg_delimiter):len(msg_chunk)] != msg_delimiter:
+            msg_chunk = self.socket_to_server.recv(4096)
 
             # socket.recv returns an empty string if the socket is closed, so
             # catch this.
-            if msgChunk == '':
-                self.__addConnectErrorAnswer('Could not obtain answer from server.')
+            if msg_chunk == '':
+                self.__add_connect_error_answer('Could not obtain answer from server.')
                 raise socket.error()
             else:
-                msgChunks.append(msgChunk)
+                msg_chunks.append(msg_chunk)
 
         # We should strip the msgdelim, but in our hack, it is part of the XML,
         # so it may not be a good idea to strip it...
-        #return ''.joint(msgChunks)[0:len(msg) - 1 - len(msgDelimiter)]
-        return ''.join(msgChunks)
+        #return ''.joint(msg_chunks)[0:len(msg) - 1 - len(msg_delimiter)]
+        return ''.join(msg_chunks)
 
-    def __addConnectErrorAnswer(self, msg):
+    def __add_connect_error_answer(self, msg):
         try:
-            self.expectedAnswersQueue.get_nowait().setError(msg)
+            self.expected_answers_queue.get_nowait().set_error(msg)
         except Empty:
             # There is no answer there, so no need to set an error.
             pass
@@ -320,40 +320,41 @@ class DeejayDaemon:
 
     def __init__(self, host, port, async = True):
         # Queue setup
-        self.commandQueue = Queue()
-        self.expectedAnswersQueue = Queue()
+        self.command_queue = Queue()
+        self.expected_answers_queue = Queue()
 
         # Socket setup
-        self.socketToServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+        self.socket_to_server = socket.socket(socket.AF_INET,
+                                              socket.SOCK_STREAM)
         self.host = host
         self.port = port
         self.connected = False
 
         # Messaging threads
-        self.sendingThread = DeejaydCommandThread(self.socketToServer,
-                                                  self.commandQueue)
-        self.receivingThread = DeejaydAnswerThread(self.socketToServer,
-                                                   self.expectedAnswersQueue)
-        for thread in [self.sendingThread, self.receivingThread]:
-            thread.addSocketDieCallback(self.disconnect)
+        self.sending_thread = _DeejaydCommandThread(self.socket_to_server,
+                                                   self.command_queue)
+        self.receiving_thread = _DeejaydAnswerThread(self.socket_to_server,
+                                                    self.expected_answers_queue)
+        for thread in [self.sending_thread, self.receiving_thread]:
+            thread.add_socket_die_callback(self.disconnect)
 
         # Library behavior, asynchroneous or not
         self.async = async
 
     def connect(self):
-        self.socketToServer.connect((self.host, self.port))
-        socketFile = self.socketToServer.makefile()
+        self.socket_to_server.connect((self.host, self.port))
+        socketFile = self.socket_to_server.makefile()
 
         # Catch version
         self.version = socketFile.readline()
 
         # Go in XML mode
-        self.socketToServer.send('setXML\n')
-        initAnswer = socketFile.readline()
+        self.socket_to_server.send('setXML\n')
+        init_answer = socketFile.readline()
 
-        if initAnswer == 'OK\n':
-            self.sendingThread.start()
-            self.receivingThread.start()
+        if init_answer == 'OK\n':
+            self.sending_thread.start()
+            self.receiving_thread.start()
             self.connected = True
         else:
             self.disconnect()
@@ -361,60 +362,60 @@ class DeejayDaemon:
 
     def disconnect(self):
         # Stop our processing threads
-        self.receivingThread.shouldStop = True
+        self.receiving_thread.should_stop = True
         # This is tricky because stopping must be notified in the queue for the
         # command thread...
-        self.commandQueue.put(StopException())
+        self.command_queue.put(_StopException())
 
-        self.socketToServer.close()
+        self.socket_to_server.close()
         self.connected = False
 
-    def isAsync(self):
+    def is_async(self):
         return self.async
 
-    def setAsync(self, async):
+    def set_async(self, async):
         self.async = async
 
-    def __returnAsyncOrResult(self, answer):
+    def __return_async_or_result(self, answer):
         if not self.async:
            answer.wait()
         return answer
 
-    def sendCommand(self, cmd, expectedAnswer = None):
+    def send_command(self, cmd, expected_answer = None):
         # Set a default answer by default
-        if expectedAnswer == None:
-            expectedAnswer = DeejaydAnswer(self)
+        if expected_answer == None:
+            expected_answer = DeejaydAnswer(self)
 
-        self.expectedAnswersQueue.put(expectedAnswer)
-        self.commandQueue.put(cmd)
-        return self.__returnAsyncOrResult(expectedAnswer)
+        self.expected_answers_queue.put(expected_answer)
+        self.command_queue.put(cmd)
+        return self.__return_async_or_result(expected_answer)
 
     def ping(self):
         cmd = DeejaydXMLCommand('ping')
-        return self.sendCommand(cmd)
+        return self.send_command(cmd)
 
-    def getStatus(self):
+    def get_status(self):
         cmd = DeejaydXMLCommand('status')
-        return self.sendCommand(cmd, DeejaydKeyValue())
+        return self.send_command(cmd, DeejaydKeyValue())
 
-    def getPlaylist(self, name):
+    def get_playlist(self, name):
         cmd = DeejaydXMLCommand('playlistInfo')
         if name != None:
-            cmd.addSimpleArg('name', name)
+            cmd.add_simple_arg('name', name)
         ans = DeejaydPlaylist(self)
-        return self.sendCommand(cmd, ans)
+        return self.send_command(cmd, ans)
 
-    def getCurrentPlaylist(self):
-        return self.getPlaylist(None)
+    def get_current_playlist(self):
+        return self.get_playlist(None)
 
-    def getPlaylistList(self):
+    def get_playlist_list(self):
         cmd = DeejaydXMLCommand('playlistList')
-        return self.sendCommand(cmd)
+        return self.send_command(cmd)
 
-    def getWebradios(self):
+    def get_webradios(self):
         cmd = DeejaydXMLCommand('webradioList')
         ans = DeejaydWebradioList(self)
-        return self.sendCommand(cmd, ans)
+        return self.send_command(cmd, ans)
 
 
 # vim: ts=4 sw=4 expandtab
