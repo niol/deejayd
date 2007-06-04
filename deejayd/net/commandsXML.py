@@ -722,7 +722,7 @@ class QueueInfo(PlaylistInfo):
     def execute(self):
         songs = self.deejaydArgs["sources"].get_source("queue").get_content()
         rsp = self.get_answer('SongList')
-        rsp.setSongs(self.formatSongs(songs))
+        rsp.set_songs(self.formatSongs(songs))
         return rsp
 
 
