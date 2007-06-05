@@ -117,6 +117,7 @@ static void _create_windows(_Xine* xine)
     int xpos, ypos, width, height;
     MWMHints mwmhints;
     Atom XA_NO_BORDER;
+    XSetWindowAttributes attr;
 
     XLockDisplay(xine->player.display);
     XA_NO_BORDER = XInternAtom(xine->player.display, 
@@ -134,6 +135,10 @@ static void _create_windows(_Xine* xine)
     XChangeProperty(xine->player.display, xine->player.window[1],XA_NO_BORDER, 
         XA_NO_BORDER, 32, PropModeReplace, 
         (unsigned char *) &mwmhints,PROP_MWM_HINTS_ELEMENTS);
+    /* do not manage this window with WM */
+    attr.override_redirect = True;
+    XChangeWindowAttributes(xine->player.display,xine->player.window[1],
+                        CWOverrideRedirect,&attr);
     /* hide cursor */
     _hide_cursor(xine->player.display,xine->player.window[1]);
 
