@@ -318,7 +318,7 @@ class ConnectError(Exception):
 
 class DeejayDaemon:
 
-    def __init__(self, host, port, async = True):
+    def __init__(self, async = True):
         # Queue setup
         self.command_queue = Queue()
         self.expected_answers_queue = Queue()
@@ -326,8 +326,6 @@ class DeejayDaemon:
         # Socket setup
         self.socket_to_server = socket.socket(socket.AF_INET,
                                               socket.SOCK_STREAM)
-        self.host = host
-        self.port = port
         self.connected = False
 
         # Messaging threads
@@ -341,7 +339,13 @@ class DeejayDaemon:
         # Library behavior, asynchroneous or not
         self.async = async
 
-    def connect(self):
+    def connect(self, host, port):
+        if self.connected:
+            self.disconnect()
+
+        self.host = host
+        self.port = port
+
         self.socket_to_server.connect((self.host, self.port))
         socketFile = self.socket_to_server.makefile()
 
@@ -369,6 +373,8 @@ class DeejayDaemon:
 
         self.socket_to_server.close()
         self.connected = False
+        self.host = None
+        self.port = None
 
     def is_async(self):
         return self.async

@@ -324,8 +324,8 @@ class TestClient(TestCaseWithMediaData):
         self.testserver.start()
 
         # Instanciate the server object of the client library
-        self.deejaydaemon = DeejayDaemon('localhost', testServerPort, False)
-        self.deejaydaemon.connect()
+        self.deejaydaemon = DeejayDaemon(False)
+        self.deejaydaemon.connect('localhost', testServerPort)
 
     def testPing(self):
         """Ping server"""
