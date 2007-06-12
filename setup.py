@@ -61,7 +61,7 @@ def parsePkgConfig(command, components, options_dict = None):
 
 #### Xine Extension ####
 xine_options = parsePkgConfig('pkg-config', 
-        'libxine pygtk-2.0 gtk+-2.0 glib-2.0 gthread-2.0')
+        'libxine x11 xext')
 xine_ext = Extension('deejayd.ext.xine', [
         'deejayd/ext/xinelib/xine.pyx',
         'deejayd/ext/xinelib/djdxine.c',

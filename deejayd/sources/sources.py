@@ -1,7 +1,6 @@
 import sys
 
 from deejayd.ui import log
-from deejayd.player.gstreamer import NoSinkError
 
 class UnknownSourceException: pass
 
@@ -29,7 +28,7 @@ class SourcesFactory:
             self.sources_obj["video"] = video.VideoSource(player,db,\
                                                                   video_library)
             try: self.player.init_video_support()
-            except(NoSinkError):
+            except:
                 # Critical error, we have to quit deejayd
                 sys.exit('Cannot initialise video sink, either disable video support or check your gstreamer plugins (video sink).')
 
