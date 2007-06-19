@@ -30,79 +30,14 @@ class Database(UnknownDatabase):
     database_version = "2"    
 
     def create_database(self):
-        create_table = """
-CREATE TABLE {audio_library}(
-    dir TEXT,
-    filename TEXT,
-    type TEXT,
-    title TEXT,
-    artist TEXT,
-    album TEXT, 
-    genre TEXT, 
-    tracknumber INT,
-    date TEXT,
-    length INT,
-    bitrate INT,
-    PRIMARY KEY (dir,filename));
+        p = path.join(path.dirname(__file__),"sql/database_v%s.sql" % 
+                    self.__class__.database_version)
+        try: f = open(p)
+        except IOError: sys.exit("database structure not found")
 
-CREATE TABLE {video_library}(
-    dir TEXT,
-    filename TEXT,
-    type TEXT,
-    id INT,
-    title TEXT,
-    length INT,
-    videowidth TEXT,
-    videoheight TEXT,
-    subtitle TEXT,
-    PRIMARY KEY (dir,filename));
+        sql_script = f.read()
+        self.executescript(sql_script)
 
-CREATE TABLE {webradio}(
-    wid INT,
-    name TEXT,
-    url TEXT,
-    PRIMARY KEY (wid));
-
-CREATE TABLE {playlist}(
-    name TEXT,
-    position INT, 
-    dir TEXT,
-    filename TEXT,
-    PRIMARY KEY (name,position));
-
-CREATE TABLE {stats}(
-    name TEXT,
-    value INT,
-    PRIMARY KEY (name));
-
-CREATE TABLE {variables}(
-    name TEXT,
-    value TEXT,
-    PRIMARY KEY (name));
-"""
-        self.executescript(create_table)
-        
-        # Init stats informations
-        values = [("video_library_update",0),("audio_library_update",0),\
-                                    ("songs",0),("artists",0),("albums",0)]
-        self.executemany("INSERT INTO {stats}(name,value)VALUES(?,?)",values)
-
-        # Init player state
-        values = [("volume","0"),("currentPos","0"),("source","playlist"),\
-            ("random","0"),("repeat","0"),("fullscreen","0"),
-            ("loadsubtitle","0")]
-        self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
-            values)
-
-        # Init source ids
-        values = [("queueid","0"),("playlistid","0"),("webradioid","0"),\
-            ("videodir","")]
-        self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
-            values)
-
-        # Init database version
-        self.execute("INSERT INTO {variables}(name,value)VALUES(?,?)",\
-            ("database_version",self.__class__.database_version))
         self.connection.commit()
         log.info("Database structure successfully created.")
 
@@ -113,37 +48,23 @@ CREATE TABLE {variables}(
         new_version = int(self.__class__.database_version)
         if new_version > current_version:
             log.info("The database structure needs to be updated...")
-            self.update_database(new_version,current_version)
+
+            i = current_version+1
+            while i < new_version+1:
+                p = path.join(path.dirname(__file__),"sql/update_v%d-v%d.sql" \
+                        % (i-1,i))
+                try: f = open(p)
+                except IOError: 
+                    sys.exit("update database file not found")
+                sql_script = f.read()
+                self.executescript(sql_script)
+
+                i += 1
+
+            self.connection.commit()
+            log.msg("The database structure has been updated")
 
         return True
-
-    def update_database(self,new,current):
-        if (new,current) == (2,1):
-            update_table = """
-ALERT TABLE {video} ADD id INT DEFAULT 0 AFTER type;
-ALERT TABLE {video} ADD title TEXT AFTER id;
-ALERT TABLE {video} ADD length INT DEFAULT 0 AFTER title;
-ALERT TABLE {video} ADD videowidth TEXT AFTER length;
-ALERT TABLE {video} ADD videoheight TEXT AFTER videowidth;
-ALERT TABLE {video} ADD subtitle TEXT AFTER videoheight;
-
-RENAME TABLE {library} TO {audio_library};
-RENAME TABLE {video} TO {video_library};
-""" 
-            self.executescript(update_table)
-
-            # Init source ids
-            values = [("queueid","0"),("playlistid","0"),("webradioid","0"),\
-                ("videodir",""),("fullscreen","0"),("database_version",\
-                self.__class__.databaseVersion),("loadsubtitle","0")]
-            self.executemany("INSERT INTO {variables}(name,value)VALUES(?,?)",\
-                values)
-            # Erase db_update
-            self.execute("INSERT INTO {stats}(name,value)VALUES(?,?)",\
-                ("db_update",0))
-
-        self.connection.commit()
-        log.msg("The database structure has been updated")
 
     #
     # Common MediaDB requests
