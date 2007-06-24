@@ -8,8 +8,8 @@ changes since 0.1.0
 --------------------
   * Add a song queue
   * Add video support
-  * Add mplayer backend (EXPERIMENTAL)
-  * Add a python client library
+  * Add xine backend
+  * Rewrite library
   * A lot of cleanups and bugfixes
 
 Description:
@@ -40,8 +40,10 @@ Requirements:
               * mad to play mp3
               * ogg to play ogg
               * for webradio, gst-plugins-gnomevfs >= 0.10
-    * if you want to use mplayer backend
-        * mplayer >= 1.0rc1
+              * for video : xv, ffmpeg
+    * if you want to use xine backend
+        * xine-lib >= 1.1.0
+        * pyrex >= 0.9.4.0 to build the extension
 
 Installation:
 -------------
