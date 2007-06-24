@@ -10,27 +10,35 @@ SRC_URI="http://mroy31.dyndns.org/~roy/archives/deejayd/${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86"
-IUSE="mad vorbis webradio mplayer video"
+IUSE="mad vorbis webradio xine gstreamer video"
 
-DEPEND=">=virtual/python-2.4"
+DEPEND=">=virtual/python-2.4
+	xine? (>=dev-python/pyrex-0.9.4.0
+		>=media-libs/xine-lib-1.1.0)"
 
 RDEPEND="${DEPEND}
 	>=dev-python/twisted-2.0.0
 	>=dev-python/pysqlite-2.2
 	>=media-libs/mutagen-1.9
-	!mplayer? ( >=dev-python/pygtk-2.8
+	gstreamer? ( >=dev-python/pygtk-2.8
 		>=media-libs/gstreamer-0.10.2
 		>=media-libs/gst-plugins-base-0.10.2
 		>=media-libs/gst-plugins-good-0.10.2
-		video? ( >=media-libs/gst-plugins-ffmpeg.10.2 )
 		>=dev-python/gst-python-0.10.2
+		video? ( >=media-plugins/gst-plugins-ffmpeg-0.10.2 )
 		mad? ( >=media-plugins/gst-plugins-mad-0.10.2 )
 		vorbis? ( >=media-plugins/gst-plugins-vorbis-0.10.2
 			>=media-plugins/gst-plugins-ogg-0.10.2 )
-		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))
-	mplayer? (>= media-video/mplayer-1.0rc1)"
+		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))"
 
 pkg_setup() {
+	if use gstreamer && use video && ! built_with_use 'media-libs/gst-plugins-base' 'X' ; then
+		einfo "Build gst-plugins-base with the X useflag"
+		einfo "echo \"media-libs/gst-plugins-base X\" >> /etc/portage/package.use"
+		einfo "emerge -1 gst-plugins-base"
+		die "gst-plugins-base requires X useflag"
+	fi
+
 	enewuser deejayd '' '' "/var/lib/deejayd" audio || die "problem adding user deejayd"
 
 	# also change the homedir if the user has existed before
@@ -57,6 +65,8 @@ src_install() {
 	diropts -m0755 -o deejayd -g audio
 	dodir /var/lib/deejayd/music
 	keepdir /var/lib/deejayd/music
+	dodir /var/lib/deejayd/video
+	keepdir /var/lib/deejayd/video
 	dodir /var/lib/deejayd/mediadb
 	keepdir /var/lib/deejayd/mediadb
 
