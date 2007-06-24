@@ -5,9 +5,8 @@ from distutils.core import setup
 from distutils.extension import Extension
 import subprocess
 import deejayd
-from Pyrex.Distutils import build_ext
 
-def getCommandOutput(cmd, warnOnStderr = True, warnOnReturnCode = True):
+def get_command_output(cmd, warn_on_stderr = True, warn_on_return_code = True):
     """Wait for a command and return its output.  Check for common errors and
     raise an exception if one of these occurs.
     """
@@ -15,15 +14,15 @@ def getCommandOutput(cmd, warnOnStderr = True, warnOnReturnCode = True):
     p = subprocess.Popen(cmd, shell=True, close_fds = True,
             stdout=subprocess.PIPE, stderr = subprocess.PIPE)
     stdout, stderr = p.communicate()
-    if warnOnStderr and stderr != '':
+    if warn_on_stderr and stderr != '':
         raise RuntimeError("%s outputted the following error:\n%s" % 
                 (cmd, stderr))
-    if warnOnReturnCode and p.returncode != 0:
+    if warn_on_return_code and p.returncode != 0:
         raise RuntimeError("%s had non-zero return code %d" % 
                 (cmd, p.returncode))
     return stdout
 
-def parsePkgConfig(command, components, options_dict = None):
+def parse_pkg_config(command, components, options_dict = None):
     """Helper function to parse compiler/linker arguments from 
     pkg-config and update include_dirs, library_dirs, etc.
 
@@ -45,8 +44,8 @@ def parsePkgConfig(command, components, options_dict = None):
             'libraries' : [],
             'extra_compile_args' : []
         }
-    commandLine = "%s --cflags --libs %s" % (command, components)
-    output = getCommandOutput(commandLine).strip()
+    command_line = "%s --cflags --libs %s" % (command, components)
+    output = get_command_output(command_line).strip()
     for comp in output.split():
         prefix, rest = comp[:2], comp[2:]
         if prefix == '-I':
@@ -59,13 +58,23 @@ def parsePkgConfig(command, components, options_dict = None):
             options_dict['extra_compile_args'].append(comp)
     return options_dict
 
-#### Xine Extension ####
-xine_options = parsePkgConfig('pkg-config', 
+
+#
+# Build xine extension if necessary
+#
+cmd_class = {}
+try: 
+    xine_options = parse_pkg_config('pkg-config',\
         'libxine x11 xext')
-xine_ext = Extension('deejayd.ext.xine', [
+    from Pyrex.Distutils import build_ext
+except RuntimeError: ext_mod = []
+else:
+    xine_ext = Extension('deejayd.ext.xine', [
         'deejayd/ext/xinelib/xine.pyx',
         'deejayd/ext/xinelib/djdxine.c',
         ], **xine_options)
+    ext_mod = [xine_ext]
+    cmd_class['build_ext'] = build_ext
 
 if __name__ == "__main__":
     setup( name="deejayd", version=deejayd.__version__,
@@ -77,14 +86,13 @@ if __name__ == "__main__":
            scripts=["scripts/deejayd"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
                      "deejayd.player","deejayd.sources","deejayd.ui",\
-                     "deejayd.database","deejayd.ext"],
-           package_data={'deejayd.ui': ['defaults.conf']},
-           ext_modules=[xine_ext],
+                     "deejayd.database","deejayd.database","deejayd.ext"],
+           package_data={'deejayd.ui': ['defaults.conf'],
+            'deejayd.database': ['sql/*.sql']},
+           ext_modules=ext_mod,
            data_files=[('share/doc/deejayd-'+deejayd.__version__, 
                             glob.glob("doc/*")),
                        ('share/doc/deejayd-'+deejayd.__version__,\
                        glob.glob("README*"))],
-            cmdclass = {
-                'build_ext': build_ext, 
-            },
+            cmdclass = cmd_class
         )

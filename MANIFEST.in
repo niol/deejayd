@@ -3,5 +3,7 @@ include TODO
 include LICENCE
 include docs.py
 include deejayd/ui/defaults.conf
+include deejayd/database/sql/*
+include deejayd/ext/xinelib/djdxine.h
 include gentoo/*
 include gentoo/files/*
