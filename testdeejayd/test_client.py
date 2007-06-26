@@ -385,12 +385,13 @@ class TestClient(TestCaseWithMediaData):
         for badURI in [[self.testdata.getRandomString(50)],
                        ['http://' +\
                         self.testdata.getRandomString(50) + '.pls']]:
+            self.assertRaises(DeejaydError, wrList.add_webradio,
+                                            self.testdata.getRandomString(),
+                                            badURI[0])
             # FIXME : provision for the future where the same webradio may have
             # multiple urls.
-            # ans = wrList.add_webradio(self.testdata.getRandomString(), badURI)
-            ans = wrList.add_webradio(self.testdata.getRandomString(),
-                                      badURI[0])
-            self.assertRaises(DeejaydError, ans.get_contents)
+            #                                 badURI)
+
 
         testWrName = self.testdata.getRandomString()
 

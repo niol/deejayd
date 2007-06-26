@@ -398,7 +398,7 @@ class DeejayDaemon:
 
     def __return_async_or_result(self, answer):
         if not self.async:
-           answer.wait()
+           answer.get_contents()
         return answer
 
     def send_command(self, cmd, expected_answer = None):
