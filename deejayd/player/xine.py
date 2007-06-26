@@ -112,14 +112,11 @@ class XinePlayer(UnknownPlayer):
     #
     # file format info
     #
-    def webradio_support(self):
-        if self.__class__.supported_mimetypes == None:
-            mime_types = self.xine.get_supported_mimetypes()
-            mime_types = mime_types.split(";")
-            self.__class__.supported_mimetypes = [ m.split(":")[0] for m in \
-                mime_types]
+    def dvd_support(self):
+        return self.xine.is_supported_input("DVD")
 
-        return "audio/mpegurl" in self.__class__.supported_mimetypes
+    def webradio_support(self):
+        return self.xine.is_supported_input("http")
 
     def is_supported_format(self,format):
         if self.__class__.supported_extensions == None:

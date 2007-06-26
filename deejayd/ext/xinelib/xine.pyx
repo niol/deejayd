@@ -59,7 +59,7 @@ cdef extern from "djdxine.h":
     int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
     int djdxine_set_subtitle(_Xine* xine,int subtitle)
     FileInfo* djdxine_file_info(_Xine* xine, char* filename)
-    char* djdxine_get_supported_mimetypes(_Xine* xine)
+    int djdxine_is_supported_input(_Xine* xine,char* input)
     char* djdxine_get_supported_extensions(_Xine* xine)
     char* djdxine_get_error(_Xine* xine)
 
@@ -120,8 +120,8 @@ cdef class Xine:
         if file_info == NULL:
             raise FileInfoError 
         return {"videowidth":file_info.width, "videoheight":file_info.height, "length":file_info.duration / 1000}
-    def get_supported_mimetypes(self):
-        return djdxine_get_supported_mimetypes(self.xine)
+    def is_supported_input(self,char* input):
+        return djdxine_is_supported_input(self.xine,input)
     def get_supported_extensions(self):
         return djdxine_get_supported_extensions(self.xine)
     def set_eos_callback(self, callback):

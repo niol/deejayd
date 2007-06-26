@@ -506,14 +506,27 @@ FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
     return &(xine->data_mine.file_info);
 }
 
-char *djdxine_get_supported_mimetypes(_Xine* xine)
-{
-    return xine_get_mime_types(xine->player.xine);
-}
-
 char *djdxine_get_supported_extensions(_Xine* xine)
 {
     return xine_get_file_extensions(xine->player.xine);
+}
+
+int djdxine_is_supported_input(_Xine* xine,const char *input)
+{
+    const char *const *input_plugins;
+    const char* plugin;
+    int rs;
+
+    rs = 0;
+    input_plugins = xine_list_input_plugins(xine->player.xine);
+
+    plugin = *input_plugins++;
+    while(plugin) {
+        if (strcmp(plugin,input) == 0)
+            rs = 1;
+        plugin = *input_plugins++;
+        }
+    return rs;
 }
 
 char *djdxine_get_error(_Xine* xine)

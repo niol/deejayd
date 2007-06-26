@@ -114,8 +114,8 @@ int djdxine_set_subtitle(_Xine* xine,int subtitle);
 
 FileInfo* djdxine_file_info(_Xine* xine, const char* filename);
 
-char* djdxine_get_supported_mimetypes(_Xine* xine);
-
 char* djdxine_get_supported_extensions(_Xine* xine);
+
+int djdxine_is_supported_input(_Xine* xine,const char* input);
 
 char* djdxine_get_error(_Xine* xine);
