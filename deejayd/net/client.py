@@ -235,9 +235,9 @@ class _DeejaydSocketThread(threading.Thread):
                 except SAXParseException:
                     # XML parsing failed, simply ignore. What should we do here?
                     pass
-        except socket.error:
+        except socket.error, msg:
             for cb in self.socket_die_callback:
-                cb()
+                cb(str(msg))
 
     def really_run(self):
         # This is implemented by daughter classes. This should be a blocking
@@ -294,7 +294,6 @@ class _DeejaydAnswerThread(_DeejaydSocketThread):
             # socket.recv returns an empty string if the socket is closed, so
             # catch this.
             if msg_chunk == '':
-                self.__add_connect_error_answer('Could not obtain answer from server.')
                 raise socket.error()
             else:
                 msg_chunks.append(msg_chunk)
@@ -303,13 +302,6 @@ class _DeejaydAnswerThread(_DeejaydSocketThread):
         # so it may not be a good idea to strip it...
         #return ''.joint(msg_chunks)[0:len(msg) - 1 - len(msg_delimiter)]
         return ''.join(msg_chunks)
-
-    def __add_connect_error_answer(self, msg):
-        try:
-            self.expected_answers_queue.get_nowait().set_error(msg)
-        except Empty:
-            # There is no answer there, so no need to set an error.
-            pass
 
 
 class ConnectError(Exception):
@@ -333,8 +325,10 @@ class DeejayDaemon:
                                                    self.command_queue)
         self.receiving_thread = _DeejaydAnswerThread(self.socket_to_server,
                                                     self.expected_answers_queue)
+        self.receiving_thread.add_socket_die_callback(\
+                                             self.__make_answers_obsolete)
         for thread in [self.sending_thread, self.receiving_thread]:
-            thread.add_socket_die_callback(self.disconnect)
+            thread.add_socket_die_callback(self.__disconnect)
 
         # Library behavior, asynchroneous or not
         self.async = async
@@ -346,7 +340,12 @@ class DeejayDaemon:
         self.host = host
         self.port = port
 
-        self.socket_to_server.connect((self.host, self.port))
+        try:
+            self.socket_to_server.connect((self.host, self.port))
+        except socket.error, msg:
+            print msg
+            return
+
         socketFile = self.socket_to_server.makefile()
 
         # Catch version
@@ -365,6 +364,9 @@ class DeejayDaemon:
             raise ConnectError('Initialisation with server failed')
 
     def disconnect(self):
+        if not self.connected:
+            return
+
         # Stop our processing threads
         self.receiving_thread.should_stop = True
         # This is tricky because stopping must be notified in the queue for the
@@ -375,6 +377,18 @@ class DeejayDaemon:
         self.connected = False
         self.host = None
         self.port = None
+
+    def __disconnect(self, msg):
+        self.disconnect()
+
+    def __make_answers_obsolete(self, msg):
+        msg = "Could not obtain answer from server : " + msg
+        try:
+            while True:
+                self.expected_answers_queue.get_nowait().set_error(msg)
+        except Empty:
+            # There is no more answer there, so no need to set any more errors.
+            pass
 
     def is_async(self):
         return self.async
