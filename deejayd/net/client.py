@@ -49,6 +49,10 @@ class DeejaydKeyValue(DeejaydAnswer):
         self.get_contents()
         return self.contents[name]
 
+    def items(self):
+        self.get_contents()
+        return self.contents.items()
+
 
 class DeejaydFileList(DeejaydAnswer):
 
@@ -81,13 +85,13 @@ class DeejaydWebradioList(DeejaydAnswer):
         # urls.
         # cmd.add_multiple_arg('url', urls)
         cmd.add_simple_arg('url', urls)
-        return self.server.send_command(cmd)
+        return self.server._send_command(cmd)
 
     def delete_webradio(self, name):
         cmd = DeejaydXMLCommand('webradioRemove')
         wr_id = self.get_webradio(name)['Id']
         cmd.add_multiple_arg('id', [wr_id])
-        return self.server.send_command(cmd)
+        return self.server._send_command(cmd)
 
     def names(self):
         names = []
@@ -114,7 +118,7 @@ class DeejaydPlaylist(DeejaydKeyValue):
     def save(self, name):
         cmd = DeejaydXMLCommand('playlistSave')
         cmd.add_simple_arg('name', name)
-        return self.server.send_command(cmd)
+        return self.server._send_command(cmd)
 
     def add_song(self, path, position = None, name = None):
         return self.add_songs([path], position, name)
@@ -126,13 +130,13 @@ class DeejaydPlaylist(DeejaydKeyValue):
             cmd.add_simple_arg('pos', position)
         if name != None:
             cmd.add_simple_arg('name', name)
-        return self.server.send_command(cmd)
+        return self.server._send_command(cmd)
 
     def load(self, name, loading_position = 0):
         cmd = DeejaydXMLCommand('playlistLoad')
         cmd.add_simple_arg('name', name)
         cmd.add_simple_arg('pos', loading_position)
-        return self.server.send_command(cmd)
+        return self.server._send_command(cmd)
 
 
 class _AnswerFactory(ContentHandler):
@@ -401,7 +405,7 @@ class DeejayDaemon:
            answer.get_contents()
         return answer
 
-    def send_command(self, cmd, expected_answer = None):
+    def _send_command(self, cmd, expected_answer = None):
         # Set a default answer by default
         if expected_answer == None:
             expected_answer = DeejaydAnswer(self)
@@ -410,32 +414,49 @@ class DeejayDaemon:
         self.command_queue.put(cmd)
         return self.__return_async_or_result(expected_answer)
 
+    def _send_simple_command(self, cmd_name):
+        cmd = DeejaydXMLCommand(cmd_name)
+        return self._send_command(cmd)
+
     def ping(self):
-        cmd = DeejaydXMLCommand('ping')
-        return self.send_command(cmd)
+        return self._send_simple_command('ping')
+
+    def play_toggle(self):
+        return self._send_simple_command('pause')
+
+    def previous(self):
+        return self._send_simple_command('previous')
+
+    def next(self):
+        return self._send_simple_command('next')
+
+    def set_volume(self, volume_value):
+        cmd = DeejaydXMLCommand('setVolume')
+        cmd.add_simple_arg('volume', volume_value)
+        return self._send_command(cmd)
 
     def get_status(self):
         cmd = DeejaydXMLCommand('status')
-        return self.send_command(cmd, DeejaydKeyValue())
+        return self._send_command(cmd, DeejaydKeyValue())
 
     def get_playlist(self, name):
         cmd = DeejaydXMLCommand('playlistInfo')
         if name != None:
             cmd.add_simple_arg('name', name)
         ans = DeejaydPlaylist(self)
-        return self.send_command(cmd, ans)
+        return self._send_command(cmd, ans)
 
     def get_current_playlist(self):
         return self.get_playlist(None)
 
     def get_playlist_list(self):
         cmd = DeejaydXMLCommand('playlistList')
-        return self.send_command(cmd)
+        return self._send_command(cmd)
 
     def get_webradios(self):
         cmd = DeejaydXMLCommand('webradioList')
         ans = DeejaydWebradioList(self)
-        return self.send_command(cmd, ans)
+        return self._send_command(cmd, ans)
 
 
 # vim: ts=4 sw=4 expandtab

@@ -1,0 +1,99 @@
+#!/usr/bin/env python
+
+import sys
+from optparse import OptionParser
+
+from deejayd.net.client import DeejayDaemon, DeejaydError
+
+
+class AvailableCommands:
+
+    def __init__(self, server):
+        self.server = server
+
+    def playtoggle(self, args):
+        """Toggle play/pause"""
+        self.server.play_toggle()
+
+    def previous(self, args):
+        """Previous element in player"""
+        self.server.previous()
+
+    def next(self, args):
+        """Next element in player"""
+        self.server.next()
+
+    def volume(self, args):
+        """Set volume to argument value.
+             If preceeded with 'up'|'down', (in|dea)crease volume with value."""
+        try:
+            if args[0] in ['up', 'down']:
+                volume = self.server.get_status()['volume']
+                possible_delta = int(args[1])
+                if args[0] == 'up':
+                    volume += possible_delta
+                elif args[0] == 'down':
+                    volume -= possible_delta
+            else:
+                volume = int(args[0])
+            self.server.set_volume(volume)
+        except ValueError, IndexError:
+            print 'Bad command line'
+
+    def status(self, args):
+        """Get full deejayd status"""
+        for (key, value) in self.server.get_status().items():
+            print key, ':', value
+
+
+def get_cmds():
+    cmds = []
+    for cmd_name in dir(AvailableCommands):
+        if cmd_name[0] != '_':
+            cmd = getattr(AvailableCommands, cmd_name)
+            cmds.append(' : '.join([cmd_name, cmd.__doc__]))
+    return cmds
+
+
+cmd_sep = "\n  * "
+cmds = cmd_sep.join(get_cmds())
+usage = """usage: %prog [options] COMMAND
+where COMMAND may be :""" + cmd_sep + cmds
+
+parser = OptionParser(usage=usage)
+parser.add_option("", "--host",
+                  action="store", type="string",
+                  dest="host", default="localhost",
+                  help="Hostname or ip address on which deejayd listens. Default is localhost.")
+parser.add_option("", "--port",
+                  action="store", type="int",
+                  dest="port", default=6800,
+                  help="Port on which deejayd listens. Default is 6800.")
+(options, args) = parser.parse_args()
+
+def fail_cmdline():
+    parser.print_help()
+    sys.exit("Bad command line.")
+
+if __name__ == '__main__':
+
+    deejayd = DeejayDaemon(async=False)
+
+    if len(args) < 1:
+        fail_cmdline()
+
+    command = args[0]
+
+    cmds = AvailableCommands(deejayd)
+    if command in dir(cmds):
+        deejayd.connect(options.host, options.port)
+        try:
+            getattr(AvailableCommands, command)(cmds, args[1:])
+        except DeejaydError, msg:
+            print msg
+        deejayd.disconnect()
+    else:
+        fail_cmdline()
+
+
+# vim: ts=4 sw=4 expandtab
