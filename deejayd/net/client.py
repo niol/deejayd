@@ -20,6 +20,7 @@ class DeejaydAnswer:
 
     def __init__(self, server = None):
         self.answer_received = threading.Event()
+        self.callbacks = []
         self.contents = None
         self.error = False
         self.server = server
@@ -27,9 +28,10 @@ class DeejaydAnswer:
     def wait(self):
         self.answer_received.wait()
 
-    def received(self, contents):
+    def _received(self, contents):
         self.contents = contents
         self.answer_received.set()
+        self._run_callbacks()
 
     def set_error(self, msg):
         self.contents = msg
@@ -41,6 +43,17 @@ class DeejaydAnswer:
         if self.error:
             raise DeejaydError(self.contents)
         return self.contents
+
+    def add_callback(self, cb):
+        if self.answer_received.isSet():
+            cb(self)
+        else:
+            self.callbacks.append(cb)
+
+    def _run_callbacks(self):
+        self.wait()
+        for cb in self.callbacks:
+            cb(self)
 
 
 class DeejaydKeyValue(DeejaydAnswer):
@@ -205,7 +218,7 @@ class _AnswerFactory(ContentHandler):
             self.parms = {}
         elif name in ['response', 'error']:
             if name == 'response':
-                self.expected_answer.received(self.answer)
+                self.expected_answer._received(self.answer)
             elif name == 'error':
                 self.expected_answer.set_error(self.answer)
 

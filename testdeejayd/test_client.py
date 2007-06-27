@@ -16,7 +16,7 @@ from Queue import Queue
 from StringIO import StringIO
 from xml.sax import make_parser
 
-import re, unittest
+import re, unittest, threading
 
 class TestCommandBuildParse(unittest.TestCase):
     """Test the Deejayd client library command building"""
@@ -337,6 +337,21 @@ class TestClient(TestCaseWithMediaData):
         ans = self.deejaydaemon.ping()
         self.failUnless(ans.get_contents(),
                         'Server did not respond well to ping.')
+        self.deejaydaemon.set_async(False)
+
+    def test_answer_callback(self):
+        """Ping server asynchroneously and check for the callback to be triggered"""
+        cb_called = threading.Event()
+        def tcb(answer):
+            cb_called.set()
+
+        self.deejaydaemon.set_async(True)
+
+        ans = self.deejaydaemon.ping()
+        ans.add_callback(tcb)
+        cb_called.wait()
+        self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
+
         self.deejaydaemon.set_async(False)
 
     def tearDown(self):
