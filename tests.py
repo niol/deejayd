@@ -3,7 +3,7 @@
 This is the test suite launcher.
 """
 
-import os, glob
+import sys, os, glob
 import unittest
 
 import testdeejayd
@@ -23,7 +23,18 @@ def my_import(name):
         mod = getattr(mod, comp)
     return mod
 
-for fn in glob.glob(os.path.join(testSuitesDirectory, "test_*.py")):
+def get_testfile_from_id(id):
+    return os.path.join(testSuitesDirectory, "test_" + id + ".py")
+
+test_files = None
+if len(sys.argv) > 1:
+    test_files = []
+    for test_file_id in sys.argv[1:]:
+        test_files.append(get_testfile_from_id(test_file_id))
+else:
+    test_files = glob.glob(get_testfile_from_id("*"))
+
+for fn in test_files:
     modulePath = '.'.join([testNamespace, os.path.basename(fn[:-3])])
     testModule = my_import(modulePath)
 
