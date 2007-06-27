@@ -62,12 +62,13 @@ def parse_pkg_config(command, components, options_dict = None):
 #
 # Build xine extension if necessary
 #
-cmd_class = {}
 try: 
     xine_options = parse_pkg_config('pkg-config',\
         'libxine x11 xext')
     from Pyrex.Distutils import build_ext
-except RuntimeError: ext_mod = []
+except RuntimeError: 
+    ext_mod = []
+    cmd_class = {}
 else:
     xine_ext = Extension('deejayd.ext.xine', [
         'deejayd/ext/xinelib/xine.pyx',
@@ -83,7 +84,7 @@ if __name__ == "__main__":
            author="Mikael Royer, Alexandre Rossi",
            author_email="mickael.royer@gmail.com",
            license="GNU GPL v2",
-           scripts=["scripts/deejayd"],
+           scripts=["scripts/deejayd","scripts/djc"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
                      "deejayd.player","deejayd.sources","deejayd.ui",\
                      "deejayd.database","deejayd.database","deejayd.ext"],
