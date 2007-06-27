@@ -67,7 +67,7 @@ class UnknownPlayer:
             if cur_song: self.set_uri(cur_song)
             else: return
             self.start_play()
-        elif self.get_state() == PLAYER_PAUSE:
+        elif self.get_state() in [PLAYER_PAUSE, PLAYER_PLAY]:
             self.pause()
 
     def pause(self):

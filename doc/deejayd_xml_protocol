@@ -274,7 +274,7 @@ Expected return value : FileList
 
 === play ===
 
-Begin playing at song or webradio with id "id".
+Begin playing at song or webradio with id "id" or toggle play/pause.
 
 Arguments :
   * {{{id}}} (Simple and Optional) : int
@@ -292,7 +292,7 @@ Expected return value : Ack
 
 === pause ===
 
-Toggle play/pause.
+Toggle pause on/off.
 
 Arguments :
   * ''This command does not accept any argument.''

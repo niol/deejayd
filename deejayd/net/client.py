@@ -422,7 +422,7 @@ class DeejayDaemon:
         return self._send_simple_command('ping')
 
     def play_toggle(self):
-        return self._send_simple_command('pause')
+        return self._send_simple_command('play')
 
     def previous(self):
         return self._send_simple_command('previous')

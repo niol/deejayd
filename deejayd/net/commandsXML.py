@@ -784,12 +784,12 @@ class Stop(SimplePlayerCommand):
 
 
 class Pause(SimplePlayerCommand):
-    """Toggle play/pause."""
+    """Toggle pause on/off."""
     command_name = 'pause'
 
 
 class Play(UnknownCommand):
-    """Begin playing at song or webradio with id "id"."""
+    """Begin playing at song or webradio with id "id" or toggle play/pause."""
     command_name = 'play'
     command_args = [{"name":"id", "type":"int", "req":False}]
 
