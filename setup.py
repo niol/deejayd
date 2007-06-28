@@ -75,7 +75,7 @@ else:
         'deejayd/ext/xinelib/djdxine.c',
         ], **xine_options)
     ext_mod = [xine_ext]
-    cmd_class['build_ext'] = build_ext
+    cmd_class = {'build_ext': build_ext}
 
 if __name__ == "__main__":
     setup( name="deejayd", version=deejayd.__version__,
