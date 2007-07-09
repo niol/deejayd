@@ -3,6 +3,8 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
+class OptionNotFound: pass
+
 class UnknownPlayer:
 
     def __init__(self,db,config):
@@ -18,26 +20,23 @@ class UnknownPlayer:
         self._playing_source_name = None
         self._playing_source = None
         self._uri = None
-        self._random = 0
-        self._repeat = 0
+
+        self.options = {"random":0, "repeat":0}
 
     def init_video_support(self):
         self._video_support = True
-        self._fullscreen = int(self.db.get_state("fullscreen"))
-        self._loadsubtitle = int(self.db.get_state("loadsubtitle"))
+        self.options["fullscreen"] = int(self.db.get_state("fullscreen"))
+        self.options["loadsubtitle"] = int(self.db.get_state("loadsubtitle"))
 
     def load_state(self):
         # Restore volume
-        vol = float(self.db.get_state("volume"))
-        self.set_volume(vol)
-
+        self.set_volume(float(self.db.get_state("volume")))
         # Restore current song
-        cur_pos = int(self.db.get_state("currentPos"))
-        self._source.go_to(cur_pos,"Pos")
+        self._source.go_to(int(self.db.get_state("currentPos")),"Pos")
 
         # Random and Repeat
-        self.random(int(self.db.get_state("random")))
-        self.repeat(int(self.db.get_state("repeat")))
+        self.options["random"] = int(self.db.get_state("random"))
+        self.options["repeat"] = int(self.db.get_state("random"))
 
     def set_source(self,source,name):
         self._source = source
@@ -83,8 +82,8 @@ class UnknownPlayer:
 
     def next(self):
         self.stop()
-        song = self._queue.next(self._random,self._repeat) or\
-                self._source.next(self._random,self._repeat)
+        song = self._queue.next(self.options["random"],self.options["repeat"]) \
+          or self._source.next(self.options["random"],self.options["repeat"])
 
         if song:
             self.set_uri(song)
@@ -92,7 +91,8 @@ class UnknownPlayer:
 
     def previous(self):
         self.stop()
-        song = self._source.previous(self._random,self._repeat)
+        song = self._source.previous(self.options["random"],\
+                                     self.options["repeat"])
         if song:
             self.set_uri(song)
             self.start_play()
@@ -104,22 +104,6 @@ class UnknownPlayer:
         if song:
             self.set_uri(song)
             self.start_play()
-
-    def random(self,val):
-        self._random = val
-
-    def repeat(self,val):
-        self._repeat = val
-
-    def fullscreen(self,val):
-        self._fullscreen = val
-        if self.get_state() != PLAYER_STOP: 
-            self.set_fullscreen(self._fullscreen)
-
-    def loadsubtitle(self,val):
-        self._loadsubtitle = val
-        if self.get_state() != PLAYER_STOP:
-            self.set_subtitle(self._loadsubtitle)
 
     def get_volume(self):
         raise NotImplementedError
@@ -139,10 +123,23 @@ class UnknownPlayer:
     def set_state(self,state):
         self._state = state
 
+    def set_option(self,name,value):
+        if name not in self.options.keys():
+            raise OptionNotFound
+
+        self.options[name] = value
+        if name == "fullscreen" and self.get_state() != PLAYER_STOP:
+            self.set_fullscreen(self.options["fullscreen"])
+        elif name == "loadsubtitle" and self.get_state() != PLAYER_STOP:
+            self.set_subtitle(self.options["loadsubtitle"])
+
     def get_status(self):
-        status = [("random",self._random),("repeat",self._repeat),\
-            ("state",self.get_state()),("volume",self.get_volume()),\
-            ("mode",self._source_name)]
+        status = []
+        for key in self.options.keys():
+            status.append((key,self.options[key]))
+
+        status.extend([("state",self.get_state()),("volume",self.get_volume()),\
+            ("mode",self._source_name)])
 
         source = self._playing_source or self._source
         cur_song = source.get_current()
@@ -153,11 +150,6 @@ class UnknownPlayer:
                 cur_song["Time"] = self.get_position()
             status.extend([ ("time","%d:%d" % (self.get_position(),\
                 cur_song["Time"])) ])
-                    
-        # Specific video status
-        if self._video_support:
-            status.extend([("fullscreen",self._fullscreen),
-                ("loadsubtitle",self._loadsubtitle)])
 
         return status
 
@@ -169,12 +161,12 @@ class UnknownPlayer:
         if song: cur_pos = song["Pos"]
         else: cur_pos = 0
 
-        states = [(str(self.get_volume()),"volume"),(str(self._repeat),\
-            "repeat"),(str(self._random),"random"),\
-            (self._source_name,"source"),(str(cur_pos),"currentPos")]
-        if self._video_support:
-            states.extend([(str(self._fullscreen),"fullscreen"),
-                            (str(self._loadsubtitle),"loadsubtitle")])
+        states = []
+        for key in self.options:
+            states.append((str(self.options[key]),key))
+
+        states.extend([(str(self.get_volume()),"volume"),\
+            (self._source_name,"source"),(str(cur_pos),"currentPos")])
         self.db.set_state(states)
 
         # stop player if necessary

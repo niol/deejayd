@@ -336,21 +336,19 @@ Arguments :
 
 Expected return value : Ack
 
-=== random ===
+=== setOption ===
 
-Set random state to "value", "value" should be 0 or 1.
-
-Arguments :
-  * {{{value}}} (Simple and Mandatory) : list : 0 or 1
-
-Expected return value : Ack
-
-=== repeat ===
-
-Set repeat state to "value", "value" should be 0 or 1.
+Set player options "name" to "value", "value" should be 0 or 1.
+       Available options are :
+       * random
+       * repeat
+       if you are video support:
+       * fullscreen
+       * loadsubtitle
+       You can pass several options in the same command
 
 Arguments :
-  * {{{value}}} (Simple and Mandatory) : list 0 or 1
+  * {{{option's name}}} (Simple and Mandatory) : list : 0 or 1
 
 Expected return value : Ack
 
@@ -362,25 +360,6 @@ Arguments :
   * ''This command does not accept any argument.''
 
 Expected return value : SongList or WebradioList or VideoList
-
-=== fullscreen ===
-
-Set video fullscreen to "value", "value" should be 0 (off) or 1 (on).
-
-Arguments :
-  * {{{value}}} (Simple and Mandatory) : list 0 or 1
-
-Expected return value : Ack
-
-=== loadsubtitle ===
-
-By default, load subtitle when it is available ("value"=1) or don't
-    ("value"=0).
-
-Arguments :
-  * {{{value}}} (Simple and Mandatory) : list 0 or 1
-
-Expected return value : Ack
 
 === playlistInfo ===
 

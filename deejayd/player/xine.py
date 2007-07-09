@@ -48,7 +48,8 @@ class XinePlayer(UnknownPlayer):
         if song:
             uri = song["uri"]
             if "Subtitle" in song.keys() and \
-                song["Subtitle"].startswith("file://") and self._loadsubtitle:
+                    song["Subtitle"].startswith("file://") and \
+                    self.options["loadsubtitle"]:
                 uri += "#subtitle:%s" % song["Subtitle"]
             self._uri = uri
         else: self._uri = ""
@@ -62,11 +63,12 @@ class XinePlayer(UnknownPlayer):
     def start_xine(self):
         isvideo = 0
         if self._playing_source_name == "video": isvideo = 1
-        try: self.xine.start_playing(self._uri,isvideo,self._fullscreen)
+        try: self.xine.start_playing(self._uri,isvideo,\
+                                                    self.options["fullscreen"])
         except xine.XineError:
             self.set_state(PLAYER_STOP)
             log.err("Xine error : "+self.xine.get_error())
-        else: self.set_fullscreen(self._fullscreen)
+        else: self.set_fullscreen(self.options["fullscreen"])
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:

@@ -1,7 +1,8 @@
 from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources.webradio import UnsupportedFormatException
-from deejayd import sources 
+from deejayd import sources
+from deejayd.player import OptionNotFound
 
 from os import path
 
@@ -830,49 +831,32 @@ class Seek(UnknownCommand):
         return self.get_ok_answer()
 
 
-class Random(UnknownCommand):
-    """Set random state to "value", "value" should be 0 or 1."""
-    command_name = 'random'
-    command_args = [{"name":"value", "type":"list : 0 or 1","req":True}]
-
-    funcName = "random"
+class SetOption(UnknownCommand):
+    """Set player options "name" to "value", "value" should be 0 or 1.
+       Available options are :
+       * random
+       * repeat
+       if you are video support:
+       * fullscreen
+       * loadsubtitle
+       You can pass several options in the same command"""
+    command_name = 'setOption'
+    command_args = [{"name":"option's name", "type":"list : 0 or 1","req":True}]
 
     def execute(self):
-        val = "value" in self.args.keys() and self.args["value"] or None
-        try: val = int(val)
-        except TypeError,ValueError:
-            return self.get_error_answer('Need an integer')
-        else:
-            if val not in (0,1):
-                return self.get_error_answer('value has to be 0 or 1')
+        for name in self.args.keys():
+            try: value = int(self.args[name])
+            except TypeError,ValueError:
+                return self.get_error_answer('Need an integer')
+            else:
+                if value not in (0,1):
+                    return self.get_error_answer('value has to be 0 or 1')
 
-        getattr(self.deejaydArgs["player"],self.__class__.funcName)(val)
+            try: self.deejaydArgs["player"].set_option(name,value)
+            except OptionNotFound:
+                return self.get_error_answer('option %s does not exist' % name)
+
         return self.get_ok_answer()
-
-
-class Repeat(Random):
-    """Set repeat state to "value", "value" should be 0 or 1."""
-    command_name = 'repeat'
-    command_args = [{"name":"value", "type":"list 0 or 1","req":True}]
-
-    funcName = "repeat"
-
-
-class Fullscreen(Random):
-    """Set video fullscreen to "value", "value" should be 0 (off) or 1 (on)."""
-    command_name = 'fullscreen'
-    command_args = [{"name":"value", "type":"list 0 or 1","req":True}]
-
-    funcName = "fullscreen"
-
-
-class Loadsubtitle(Random):
-    """By default, load subtitle when it is available ("value"=1) or don't
-    ("value"=0)."""
-    command_name = 'loadsubtitle'
-    command_args = [{"name":"value", "type":"list 0 or 1","req":True}]
-
-    funcName = "loadsubtitle"
 
 
 class CurrentSong(UnknownCommand):

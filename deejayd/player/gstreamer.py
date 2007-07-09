@@ -43,21 +43,22 @@ class GstreamerPlayer(UnknownPlayer):
         bus.connect('message', self.on_message)
 
     def init_video_support(self):
+        UnknownPlayer.init_video_support(self)
+
         import pygtk
         pygtk.require('2.0')
 
-        # init video specific parms
         self.video_window = None
         self.deejayd_window = None
-        self._fullscreen = int(self.db.get_state("fullscreen"))
-        self._loadsubtitle = int(self.db.get_state("loadsubtitle"))
 
         # Open a Video pipeline
         pipeline_dict = {"x":"ximagesink", "xv":"xvimagesink",\
             "auto":"autovideosink"}
         pipeline =  self.config.get("gstreamer", "video_output")
         try: video_sink = gst.parse_launch(pipeline_dict[pipeline])
-        except gobject.GError, err: raise NoSinkError
+        except gobject.GError, err: 
+            self._video_support = False
+            raise NoSinkError
         else: 
             self.bin.set_property('video-sink', video_sink)
 
@@ -65,7 +66,6 @@ class GstreamerPlayer(UnknownPlayer):
             bus.enable_sync_message_emission()
             bus.connect('sync-message::element', self.on_sync_message)
 
-            self._video_support = True
 
     def on_message(self, bus, message):
         if message.type == gst.MESSAGE_EOS:
@@ -103,7 +103,7 @@ class GstreamerPlayer(UnknownPlayer):
 
     def start_gstreamer(self,widget = None, event = None):
         self.bin.set_property('uri',self._uri)
-        if self._video_support: self.set_subtitle(self._loadsubtitle)
+        if self._video_support: self.set_subtitle(self.options["loadsubtitle"])
 
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         timeout = 4
@@ -114,7 +114,8 @@ class GstreamerPlayer(UnknownPlayer):
             timeout -= 1
         
         if state_ret != gst.STATE_CHANGE_SUCCESS: self.set_state(PLAYER_STOP)
-        elif self._video_support: self.set_fullscreen(self._fullscreen)
+        elif self._video_support: 
+            self.set_fullscreen(self.options["fullscreen"])
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:

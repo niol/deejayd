@@ -141,21 +141,4 @@ Arguments :
 
 Expected return value : Ack
 
-=== random ===
-
-Set random state to "value", "value" should be 0 or 1.
-
-Arguments :
-  * {{{value}}} (Simple and Mandatory) : list : 0 or 1
-
-Expected return value : Ack
-
-=== repeat ===
-
-Set repeat state to "value", "value" should be 0 or 1.
-
-Arguments :
-  * {{{value}}} (Simple and Mandatory) : list 0 or 1
-
-Expected return value : Ack
-
+No doc for command randomNo doc for command repeat
