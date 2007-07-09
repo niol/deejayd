@@ -156,7 +156,7 @@ def formatCommandDoc(cmd):
 
 Arguments :
 %(args)s
-Expected return value : %(rvalues)s
+Expected return value : ''%(rvalues)s''
 
 """ % { 'name'    : cmd.command_name,
         'desc'    : cmd.__doc__.strip('\n'),
@@ -266,7 +266,7 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         info['example'] = self.getExample(response).to_pretty_xml()
 
         responseDoc = """
-  * %(type)s : %(desc)s
+  * '''%(type)s''' : %(desc)s
 {{{
 %(example)s}}}""" % info
 

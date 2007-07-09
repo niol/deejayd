@@ -37,7 +37,7 @@ Does nothing, just replies with an acknowledgement that the command was received
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === status ===
 
@@ -65,7 +65,7 @@ Return status of deejayd. Given informations are :
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : KeyValue
+Expected return value : ''KeyValue''
 
 No doc for command audio_update
 -----------------
@@ -83,7 +83,7 @@ Begin playing at song or webradio with id "id" or toggle play/pause.
 Arguments :
   * {{{id}}} (Simple and Optional) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === stop ===
 
@@ -92,7 +92,7 @@ Stop playing.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === pause ===
 
@@ -101,7 +101,7 @@ Toggle pause on/off.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === next ===
 
@@ -110,7 +110,7 @@ Go to next song or webradio.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === previous ===
 
@@ -119,7 +119,7 @@ Go to previous song or webradio.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 
 -----------------
@@ -139,6 +139,6 @@ Seeks to the position "time" (in seconds) of the current song (in
 Arguments :
   * {{{time}}} (Simple and Mandatory) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 No doc for command randomNo doc for command repeat

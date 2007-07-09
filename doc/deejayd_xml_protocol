@@ -38,7 +38,7 @@ so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
 == Response Format ==
 
 There are 6 response types :
-  * error : Error notification.
+  * '''error''' : Error notification.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -47,14 +47,14 @@ There are 6 response types :
 	</error>
 </deejayd>
 }}}
-  * Ack : Acknowledgement of a command.
+  * '''Ack''' : Acknowledgement of a command.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<response name="cmdName" type="Ack"/>
 </deejayd>
 }}}
-  * KeyValue : A list of key, value pairs.
+  * '''KeyValue''' : A list of key, value pairs.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -64,7 +64,7 @@ There are 6 response types :
 	</response>
 </deejayd>
 }}}
-  * FileList : A list of files and directories.
+  * '''FileList''' : A list of files and directories.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -81,7 +81,7 @@ There are 6 response types :
 	</response>
 </deejayd>
 }}}
-  * WebradioList : A list of webradios with information for each webradio : id, pos, title and url.
+  * '''WebradioList''' : A list of webradios with information for each webradio : id, pos, title and url.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -93,7 +93,7 @@ There are 6 response types :
 	</response>
 </deejayd>
 }}}
-  * SongList : A list of songs with information for each song : artist, album, title, id, etc.
+  * '''SongList''' : A list of songs with information for each song : artist, album, title, id, etc.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -105,7 +105,7 @@ There are 6 response types :
 	</response>
 </deejayd>
 }}}
-  * PlaylistList : A list of playlist names.
+  * '''PlaylistList''' : A list of playlist names.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -115,7 +115,7 @@ There are 6 response types :
 	</response>
 </deejayd>
 }}}
-  * VideoList : A list of videos with information for each video.
+  * '''VideoList''' : A list of videos with information for each video.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -151,7 +151,7 @@ Does nothing, just replies with an acknowledgement that the command was received
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === status ===
 
@@ -179,7 +179,7 @@ Return status of deejayd. Given informations are :
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : KeyValue
+Expected return value : ''KeyValue''
 
 === stats ===
 
@@ -193,7 +193,7 @@ Return statistical informations :
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : KeyValue
+Expected return value : ''KeyValue''
 
 === setMode ===
 
@@ -205,7 +205,7 @@ Change the player mode. Possible values are :
 Arguments :
   * {{{mode}}} (Simple and Mandatory) : string
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === getMode ===
 
@@ -220,7 +220,7 @@ For each available source, shows if it is activated or not. The answer
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : KeyValue
+Expected return value : ''KeyValue''
 
 === audioUpdate ===
 
@@ -231,7 +231,7 @@ Update the audio library.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : KeyValue
+Expected return value : ''KeyValue''
 
 === videoUpdate ===
 
@@ -242,7 +242,7 @@ Update the video library.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : KeyValue
+Expected return value : ''KeyValue''
 
 === getdir ===
 
@@ -251,7 +251,7 @@ List the files of the directory supplied as argument.
 Arguments :
   * {{{directory}}} (Simple and Optional) : string
 
-Expected return value : FileList
+Expected return value : ''FileList''
 
 === search ===
 
@@ -261,7 +261,7 @@ Arguments :
   * {{{type}}} (Simple and Mandatory) : list : 'all','title',                    'genre','filename','artist','album'
   * {{{txt}}} (Simple and Mandatory) : string
 
-Expected return value : FileList
+Expected return value : ''FileList''
 
 === getvideodir ===
 
@@ -270,7 +270,7 @@ Lists the files in video dir "directory".
 Arguments :
   * {{{directory}}} (Simple and Mandatory) : string
 
-Expected return value : FileList
+Expected return value : ''FileList''
 
 === play ===
 
@@ -279,7 +279,7 @@ Begin playing at song or webradio with id "id" or toggle play/pause.
 Arguments :
   * {{{id}}} (Simple and Optional) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === stop ===
 
@@ -288,7 +288,7 @@ Stop playing.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === pause ===
 
@@ -297,7 +297,7 @@ Toggle pause on/off.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === next ===
 
@@ -306,7 +306,7 @@ Go to next song or webradio.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === previous ===
 
@@ -315,7 +315,7 @@ Go to previous song or webradio.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === setVolume ===
 
@@ -324,7 +324,7 @@ Set volume to "volume". The volume range is 0-100.
 Arguments :
   * {{{volume}}} (Simple and Mandatory) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === seek ===
 
@@ -334,7 +334,7 @@ Seeks to the position "time" (in seconds) of the current song (in
 Arguments :
   * {{{time}}} (Simple and Mandatory) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === setOption ===
 
@@ -350,7 +350,7 @@ Set player options "name" to "value", "value" should be 0 or 1.
 Arguments :
   * {{{option's name}}} (Simple and Mandatory) : list : 0 or 1
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === current ===
 
@@ -359,7 +359,7 @@ Return informations on the current song, webradio or video info.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : SongList or WebradioList or VideoList
+Expected return value : ''SongList or WebradioList or VideoList''
 
 === playlistInfo ===
 
@@ -369,7 +369,7 @@ Return the content of the playlist "name". If no name is given, return
 Arguments :
   * {{{name}}} (Simple and Mandatory) : string
 
-Expected return value : SongList
+Expected return value : ''SongList''
 
 === playlistList ===
 
@@ -378,7 +378,7 @@ Return the list of recorded playlists.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : PlaylistList
+Expected return value : ''PlaylistList''
 
 === playlistAdd ===
 
@@ -391,7 +391,7 @@ Arguments :
   * {{{pos}}} (Simple and Optional) : int
   * {{{name}}} (Simple and Optional) : string
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === playlistRemove ===
 
@@ -402,7 +402,7 @@ Arguments :
   * {{{id}}} (Multiple and Mandatory) : int
   * {{{name}}} (Simple and Optional) : string
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === playlistClear ===
 
@@ -411,7 +411,7 @@ Clear the current playlist.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === playlistMove ===
 
@@ -421,7 +421,7 @@ Arguments :
   * {{{id}}} (Simple and Mandatory) : int
   * {{{newPosition}}} (Simple and Mandatory) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === playlistShuffle ===
 
@@ -430,7 +430,7 @@ Shuffle the current playlist.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === playlistErase ===
 
@@ -439,7 +439,7 @@ Erase playlists passed as arguments.
 Arguments :
   * {{{name}}} (Multiple and Mandatory) : string
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === playlistLoad ===
 
@@ -449,7 +449,7 @@ Arguments :
   * {{{name}}} (Multiple and Mandatory) : string
   * {{{pos}}} (Simple and Optional) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === playlistSave ===
 
@@ -458,7 +458,7 @@ Save the current playlist to "name" in the database.
 Arguments :
   * {{{name}}} (Simple and Mandatory) : string
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === webradioList ===
 
@@ -467,7 +467,7 @@ Return the list of recorded webradios.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : WebradioList
+Expected return value : ''WebradioList''
 
 === webradioAdd ===
 
@@ -479,7 +479,7 @@ Arguments :
   * {{{url}}} (Simple and Mandatory) : string
   * {{{name}}} (Simple and Mandatory) : string
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === webradioRemove ===
 
@@ -488,7 +488,7 @@ Remove webradios with id equal to "ids".
 Arguments :
   * {{{id}}} (Multiple and Mandatory) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === webradioClear ===
 
@@ -497,7 +497,7 @@ Remove all recorded webradios.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === playQueue ===
 
@@ -506,7 +506,7 @@ Begin playing song with id "id" in the queue.
 Arguments :
   * {{{id}}} (Simple and Mandatory) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === queueInfo ===
 
@@ -515,7 +515,7 @@ Return the content of the queue.
 Arguments :
   * {{{name}}} (Simple and Mandatory) : string
 
-Expected return value : SongList
+Expected return value : ''SongList''
 
 === queueAdd ===
 
@@ -526,7 +526,7 @@ Arguments :
   * {{{path}}} (Multiple and Mandatory) : string
   * {{{pos}}} (Simple and Optional) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === queueLoadPlaylist ===
 
@@ -537,7 +537,7 @@ Arguments :
   * {{{name}}} (Multiple and Mandatory) : string
   * {{{pos}}} (Simple and Optional) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === queueRemove ===
 
@@ -546,7 +546,7 @@ Remove songs with ids passed as argument ("id"), from the queue.
 Arguments :
   * {{{id}}} (Multiple and Mandatory) : int
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === queueClear ===
 
@@ -555,7 +555,7 @@ Remove all songs from the queue.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
 === setvideodir ===
 
@@ -564,5 +564,5 @@ Set the current video directory to "directory".
 Arguments :
   * {{{directory}}} (Simple and Optional) : string
 
-Expected return value : Ack
+Expected return value : ''Ack''
 
