@@ -476,16 +476,6 @@ class PlaylistRemove(UnknownCommand):
     command_args = [{"mult":True, "name":"id", "type":"int", "req":True},
                     {"name":"name", "type":"string", "req":False}]
 
-    def docInfos(self):
-        return {
-            "args": [{"mult":"true", "name":"id", "type":"int", "req":1},
-                {"name":"name", "type":"string", "req":0}],
-            "description": """
-Remove songs with ids passed as argument ("id"), from the playlist "name". 
-If no name are given, remove songs from current playlist 
-"""
-        }
-
     def execute(self):
         numbs = "id" in self.args.keys() and self.args["id"] or []
         if isinstance(numbs, str):
