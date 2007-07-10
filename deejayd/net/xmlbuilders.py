@@ -6,6 +6,7 @@ class _DeejaydXML:
     def __init__(self, mother_xml_object = None):
         self.appended_xml_objects = None
         self.__is_mother = True
+        self.__xmlbuilt = False
 
         if mother_xml_object == None:
             self.xmldoc = minidom.Document()
@@ -25,9 +26,11 @@ class _DeejaydXML:
 
     def __really_build_xml(self):
         if self.__is_mother:
-            for xml_object in self.appended_xml_objects:
-                xml_object.build_xml()
-                self.xmlroot.appendChild(xml_object.xmlcontent)
+            if not self.__xmlbuilt:
+                for xml_object in self.appended_xml_objects:
+                    xml_object.build_xml()
+                    self.xmlroot.appendChild(xml_object.xmlcontent)
+                self.__xmlbuilt = True
         else:
             raise NotImplementedError('Do not build directly deejayd\
                                        XML that has a mother.')
