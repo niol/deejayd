@@ -311,7 +311,7 @@ class SetVideoDir(UnknownCommand):
             return self.get_ok_answer()
         except NotFoundException:
             return self.get_error_answer('Directory not found in the database')
-        except sources.UnknownSourceException:
+        except sources.sources.UnknownSourceException:
             return self.get_error_answer('Video support disabled')
 
 
@@ -547,7 +547,7 @@ class WebradioCommand(UnknownCommand):
         if deejaydArgs:
             try: self.wrSource = self.deejaydArgs["sources"].get_source(\
                         "webradio")
-            except sources.UnknownSourceException:pass
+            except sources.sources.UnknownSourceException:pass
 
 
 class WebradioList(WebradioCommand):
