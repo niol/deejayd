@@ -152,16 +152,17 @@ class CommandFactory:
 
    # XML Commands
     def createCmdFromXML(self,line):
-        try: xmldoc = minidom.parseString(line)
-        except: 
-            return commandsXML.UnknownCommand('parsing error', [])
-
         queueCmd = commandsXML.queueCommands(self.deejaydArgs)
-        cmds = xmldoc.getElementsByTagName("command")
 
-        for cmd in cmds: 
-            (cmdName,cmdClass,args) = self.parseXMLCommand(cmd)
-            queueCmd.addCommand(cmdName,cmdClass,args)
+        try: xmldoc = minidom.parseString(line)
+        except:
+            queueCmd.addCommand('parsing error',
+                                commandsXML.UnknownCommand, [])
+        else:
+            cmds = xmldoc.getElementsByTagName("command")
+            for cmd in cmds:
+                (cmdName,cmdClass,args) = self.parseXMLCommand(cmd)
+                queueCmd.addCommand(cmdName,cmdClass,args)
 
         return queueCmd
 
