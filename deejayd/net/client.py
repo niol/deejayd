@@ -250,8 +250,9 @@ class _DeejaydSocketThread(threading.Thread):
                 except _StopException:
                     self.should_stop = True
                 except SAXParseException:
-                    # XML parsing failed, simply ignore. What should we do here?
-                    pass
+                    # XML parsing failed, simply ignore. Client and server are
+                    # misaligned, better disconnect.
+                    self.socket_to_server.close()
         except socket.error, msg:
             for cb in self.socket_die_callback:
                 cb(str(msg))
