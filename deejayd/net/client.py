@@ -289,6 +289,11 @@ class _DeejaydAnswerThread(_DeejaydSocketThread):
 
     def __init__(self, socket, expected_answers_queue):
         _DeejaydSocketThread.__init__(self, socket)
+        # socket.recv here is locking. Therefore, make the thread a daemon in
+        # case something goes wrong. I don't like this but this will do for the
+        # moment.
+        self.setDaemon(True)
+
         self.expected_answers_queue = expected_answers_queue
 
         self.parser = make_parser()
