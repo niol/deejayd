@@ -1,7 +1,7 @@
 
 from os import path
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources import ItemNotFoundException,UnknownSource,\
+from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
                             UnknownSourceManagement
 
 class Video(UnknownSource):
@@ -18,7 +18,7 @@ class Video(UnknownSource):
                 "filename":f[1],"Pos":pos,"Id":f[3],\
                 "uri":"file://"+path.join(self.library.get_root_path(),\
                 path.join(f[0],f[1])),"Time":f[5],"Videowidth":f[6],\
-                "Videoheigth":f[7],"Subtitle":f[8]})
+                "Videoheigth":f[7],"Subtitle":f[8],"Type":"video"})
             i += 1
 
         for f in old_content:

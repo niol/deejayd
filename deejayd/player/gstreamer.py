@@ -17,6 +17,7 @@ class NoSinkError: pass
 class GstreamerPlayer(UnknownPlayer):
 
     def __init__(self,db,config):
+        self.name = "gstreamer"
         UnknownPlayer.__init__(self,db,config)
 
         # Open a Audio pipeline
@@ -67,7 +68,6 @@ class GstreamerPlayer(UnknownPlayer):
             bus.enable_sync_message_emission()
             bus.connect('sync-message::element', self.on_sync_message)
 
-
     def on_message(self, bus, message):
         if message.type == gst.MESSAGE_EOS:
             self.next()
@@ -88,10 +88,9 @@ class GstreamerPlayer(UnknownPlayer):
             imagesink.set_xwindow_id(self.video_window.window.xid)
 
     def start_play(self):
-        UnknownPlayer.start_play(self)
+        if not self._media_file: return
 
-        self.set_state(PLAYER_PLAY)
-        if self._playing_source_name == "video" and not self.deejayd_window:
+        if self._media_file["Type"] == "video" and not self.deejayd_window:
             import gtk
             self.deejayd_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             self.deejayd_window.set_title("deejayd")
@@ -103,7 +102,7 @@ class GstreamerPlayer(UnknownPlayer):
         else: self.start_gstreamer()
 
     def start_gstreamer(self,widget = None, event = None):
-        self.bin.set_property('uri',self._uri)
+        self.bin.set_property('uri',self._media_file["uri"])
         if self._video_support: self.set_subtitle(self.options["loadsubtitle"])
 
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
@@ -121,16 +120,14 @@ class GstreamerPlayer(UnknownPlayer):
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
             self.bin.set_state(gst.STATE_PAUSED)
-            self.set_state(PLAYER_PAUSE)
         elif self.get_state() == PLAYER_PAUSE:
             self.bin.set_state(gst.STATE_PLAYING)
-            self.set_state(PLAYER_PLAY)
 
     def stop(self,widget = None, event = None):
+        self._media_file = None
         self.bin.set_state(gst.STATE_NULL)
-        self.set_state(PLAYER_STOP)
-        # Reset the queue
-        self._queue.reset()
+        # FIXME : try to remove this one day ...
+        self._source.queue_reset()
 
         # destroy video window if necessary
         if self._video_support and self.deejayd_window:
@@ -154,9 +151,10 @@ class GstreamerPlayer(UnknownPlayer):
                 self.deejayd_window.fullscreen()
 
     def set_subtitle(self,val):
-        if  self._video_support and self._source_name == "video" and val == 1:
-            current_song = self._source.get_current()
-            sub_uri = current_song["Subtitle"]
+        if not self._media_file: return
+        if  self._video_support and self._media_file["Type"] == "video"\
+                                                                and val == 1:
+            sub_uri = self._media_file["Subtitle"]
             if sub_uri.startswith("file://"): pass
                 # FIXME : these 2 lines induce a general stream error in 
                 #         gstreamer. Find out the reason
@@ -193,19 +191,22 @@ class GstreamerPlayer(UnknownPlayer):
                 gst.SEEK_TYPE_NONE, 0)
             self.bin.send_event(event)
 
+    def get_state(self):
+        gst_state = self.__get_gst_state()
+        if gst_state == gst.STATE_PLAYING:
+            return PLAYER_PLAY
+        elif gst_state == gst.STATE_PAUSED:
+            return PLAYER_PAUSE
+        else:
+            return PLAYER_STOP
+
     def __get_gst_state(self):
         changestatus,state,_state = self.bin.get_state()
         return state
 
-    #
-    # file format info
-    #
-    def webradio_support(self):
-        if gst.element_make_from_uri(gst.URI_SRC, "http://", ""): return True
-        else:
-            log.msg(\
-                "gstreamer requires gst-plugins-gnomevfs to support webradio.")
-            return False
+    def is_supported_uri(self,uri_type):
+        return gst.element_make_from_uri(gst.URI_SRC,uri_type+"://", '') \
+                    is not None
 
     def is_supported_format(self,format):
         # MP3 file

@@ -1,6 +1,6 @@
 
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources import ItemNotFoundException,UnknownSource,\
+from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
                             UnknownSourceManagement
 import urllib
 
@@ -41,12 +41,13 @@ class Webradio(UnknownSource):
 
         webradios = self.db.get_webradios() 
         self.source_content = [{"Pos":webradio[0],"Id":self.set_item_id(), \
-            "Title":webradio[1], "uri":webradio[2]} for webradio in webradios]
+            "Title":webradio[1], "uri":webradio[2], "Type":"webradio"} \
+            for webradio in webradios]
 
     def add(self,uri,name):
         pos = len(self.source_content)
         self.source_content.append({"Pos":pos,"Id":self.set_item_id(),\
-            "Title":name,"uri":uri})
+            "Title":name,"uri":uri,"Type":"webradio"})
 
         # Increment webradioId
         self.source_id += 1

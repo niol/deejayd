@@ -11,22 +11,14 @@ class XinePlayer(UnknownPlayer):
     supported_extensions = None
 
     def __init__(self,db,config):
+        self.name = "xine"
+        self._paused = False
         UnknownPlayer.__init__(self,db,config)
 
         audio_driver = self.config.get("xine", "audio_output")
         self.xine = xine.Xine(audio_driver)
         self.xine.set_eos_callback(self.eos)
         self.xine.set_progress_callback(self.progress)
-
-        # load specific xine config
-        try: subtitle_size = self.config.getint("xine", "subtitle_size")
-        except: 
-            log.err("Unable to read xine.subtitle_size conf parm")
-        else:
-            try: self.xine.set_enum_config_param(\
-                "subtitles.separate.subtitle_size", int(subtitle_size))
-            except xine.XineError:
-                log.err("Xine : unable to load specific xine config")
 
     def eos(self):
         self.next()
@@ -40,49 +32,52 @@ class XinePlayer(UnknownPlayer):
     def init_video_support(self):
         UnknownPlayer.init_video_support(self)
 
+        # load specific xine config
+        try: subtitle_size = self.config.getint("xine", "subtitle_size")
+        except: 
+            log.err("Unable to read xine.subtitle_size conf parm")
+        else:
+            try: self.xine.set_enum_config_param(\
+                "subtitles.separate.subtitle_size", int(subtitle_size))
+            except xine.XineError:
+                log.err("Xine : unable to load specific xine config")
+
         video_driver = self.config.get("xine", "video_output")
         video_display = self.config.get("xine", "video_display")
         self.xine.video_init(video_driver,video_display)
-        self._video_support = True
-
-    def set_uri(self,song):
-        if song:
-            uri = song["uri"]
-            if "Subtitle" in song.keys() and \
-                    song["Subtitle"].startswith("file://") and \
-                    self.options["loadsubtitle"]:
-                uri += "#subtitle:%s" % song["Subtitle"]
-            self._uri = uri
-        else: self._uri = ""
 
     def start_play(self):
-        UnknownPlayer.start_play(self)
+        self._paused = False
+        if not self._media_file: return
 
-        self.set_state(PLAYER_PLAY)
-        self.start_xine()
+        # format correctly the uri
+        uri = self._media_file["uri"]
+        if "Subtitle" in self._media_file.keys() and \
+                self._media_file["Subtitle"].startswith("file://") and \
+                self.options["loadsubtitle"]:
+                uri += "#subtitle:%s" % self._media_file["Subtitle"]
 
-    def start_xine(self):
         isvideo = 0
-        if self._playing_source_name == "video": isvideo = 1
-        try: self.xine.start_playing(self._uri,isvideo,\
-                                                    self.options["fullscreen"])
+        if self._media_file["Type"] == "video": isvideo = 1
+        try: self.xine.start_playing(uri, isvideo, self.options["fullscreen"])
         except xine.XineError:
-            self.set_state(PLAYER_STOP)
             log.err("Xine error : "+self.xine.get_error())
         else: self.set_fullscreen(self.options["fullscreen"])
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
+            self._paused = True
             self.xine.pause()
-            self.set_state(PLAYER_PAUSE)
         elif self.get_state() == PLAYER_PAUSE:
+            self._paused = False
             self.xine.play()
-            self.set_state(PLAYER_PLAY)
 
     def stop(self):
-        self.set_state(PLAYER_STOP)
-        # Reset the queue
-        self._queue.reset()
+        self._paused = False
+        self._media_file = None
+        # FIXME : try to remove this one day ...
+        self._source.queue_reset()
+
         self.xine.stop()
 
     def set_fullscreen(self,val):
@@ -111,15 +106,13 @@ class XinePlayer(UnknownPlayer):
             # FIXME I need to wait to be sure that the command is executed
             import time
             time.sleep(0.2)
+    
+    def get_state(self):
+        if self._paused: return PLAYER_PAUSE
+        else: return self.xine.get_status()
 
-    #
-    # file format info
-    #
-    def dvd_support(self):
-        return self.xine.is_supported_input("DVD")
-
-    def webradio_support(self):
-        return self.xine.is_supported_input("http")
+    def is_supported_uri(self,uri_type):
+        return self.xine.is_supported_input(uri_type)
 
     def is_supported_format(self,format):
         if self.__class__.supported_extensions == None:

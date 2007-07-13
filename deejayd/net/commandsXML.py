@@ -865,23 +865,21 @@ class CurrentSong(UnknownCommand):
     command_rvalue = ['SongList', 'WebradioList', 'VideoList']
 
     def execute(self):
-        source = self.deejaydArgs["player"].get_playing_source_name()
-        item = self.deejaydArgs["sources"].get_source(source).\
-                    get_playing_item()
+        item = self.deejaydArgs["player"].get_playing()
         rsp = None
 
         if item:
-            if source == "webradio":
+            if item["Type"] == "webradio":
                 rsp = self.get_answer('WebradioList')
                 wrdict = [("Title",item["Title"]),("Id",item["Id"]),\
                     ("Pos",item["Pos"]),("Url",item["uri"])]
                 rsp.add_webradio(dict(wrdict))
-            elif source == "video":
+            elif item["Type"] == "video":
                 rsp = self.get_answer('VideoList')
                 vdict = [("Title",item["Title"]),("Id",item["Id"]),\
                     ("Time",item["Time"])]
                 rsp.add_video(dict(vdict))
-            elif source == "playlist" or source == "queue":
+            elif item["Type"] == "song":
                 rsp = self.get_answer('SongList')
                 sldict = [("Title",item["Title"]),("Id",item["Id"]),\
                     ("Pos",item["Pos"]),("Artist",item["Artist"]),\

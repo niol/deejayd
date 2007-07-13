@@ -409,6 +409,11 @@ void djdxine_set_playing(_Xine* xine, int is_playing)
     }
 }
 
+int djdxine_get_status(_Xine* xine)
+{
+    return xine_get_status(xine->player.stream);
+}
+
 void djdxine_set_volume(_Xine* xine, int volume)
 {
     xine_set_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL, volume);

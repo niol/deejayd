@@ -102,6 +102,8 @@ void djdxine_seek(_Xine* xine, int position);
 
 void djdxine_set_playing(_Xine* xine, int is_playing);
 
+int djdxine_get_status(_Xine* xine);
+
 void djdxine_set_volume(_Xine* xine, int volume);
 
 int djdxine_get_volume(_Xine* xine);

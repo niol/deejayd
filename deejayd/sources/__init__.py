@@ -1,240 +1,102 @@
-from os import path
-import random
+
+import sys
+from deejayd.ui import log
+
+class UnknownSourceException: pass
+
+class SourceError(RuntimeError):
+    def __init__(self,desc):
+        self.desc = desc
 
 
-class ItemNotFoundException:pass
+class SourceFactory:
 
-class UnknownSource:
-
-    def __init__(self,db,library, id = 0):
-        self.db = db
-        self.library = library
-        self.source_content = []
-        self.source_id = id
-        self.__item_id = 0
-
-    def get_content(self):
-        return self.source_content
-
-    def get_content_length(self):
-        return len(self.source_content)
-
-    def get_item(self,position, type = "Pos"):
-        item = None
-        for it in self.source_content:
-            if it[type] == position:
-                item = it
-                break
-
-        if item == None:
-            raise ItemNotFoundException
-        return item
-
-    def get_item_ids(self):
-        return [item["Id"] for item in self.source_content]
-
-    def add_files(self,items,first_pos):
-        init_pos = first_pos or len(self.source_content)
-        old_content = self.source_content[init_pos:len(self.source_content)]
-        self.source_content = self.source_content[0:init_pos]
-
-        i = 0
-        for s in items:
-            pos = init_pos+i
-            if isinstance(s,dict): # file extracted from a playlist
-                self.source_content.append({"dir":s["dir"],
-                    "filename":s["filename"],"Pos":pos,"Id":self.set_item_id(),
-                    "Title":s["Title"],"Artist":s["Artist"],"Album":s["Album"],
-                    "Genre":s["Genre"],"Track":s["Track"],"Date":s["Date"],
-                    "Time":s["Time"],"Bitrate":s["Bitrate"],"uri":s["uri"]})
-            else: # file extracted from mediadb
-                self.source_content.append({"dir":s[0],"filename":s[1],
-                    "Pos":pos,"Id":self.set_item_id(),"Title":s[3],
-                    "Artist":s[4],"Album":s[5],"Genre":s[6],"Track":s[7],
-                    "Date":s[8],"Time":s[9],"Bitrate":s[10],"uri":"file://"+\
-                    path.join(self.library.get_root_path(),\
-                                                        path.join(s[0],s[1]))})
-            i += 1
-
-        for song in old_content:
-            song["Pos"] = init_pos+i
-            i+=1
-
-        self.source_content.extend(old_content)
-        # Increment sourceId
-        self.source_id += len(items)
-
-    def clear(self):
-        self.source_content = []
-        # Increment sourceId
-        self.source_id += 1
-
-    def delete(self,nb,type = "Id"):
-        i = 0
-        for item in self.source_content:
-            if item[type] == nb:
-                break
-            i += 1
-        if i == len(self.source_content):
-            raise ItemNotFoundException
-        pos = self.source_content[i]["Pos"]
-        del self.source_content[i]
-
-        # Now we must reorder the item list
-        for item in self.source_content:
-            if item["Pos"] > pos:
-                item["Pos"] -= 1
-
-        # Increment sourceId
-        self.source_id += 1
-
-    def save(self):
-        raise NotImplementedError
-    
-    def format_playlist_files(self,s):
-        return {"dir":s[0],"filename":s[1],"Pos":s[3],"Id":self.set_item_id(),
-            "Title":s[6],"Artist":s[7],"Album":s[8],"Genre":s[9],"Track":s[10],
-            "Date":s[11],"Time":s[12],"Bitrate":s[13],
-            "uri":"file://"+path.join(self.library.get_root_path(),\
-            path.join(s[0],s[1]))}
-
-    def set_item_id(self):
-        self.__item_id += 1
-        return self.__item_id
-    
-
-class UnknownSourceManagement:
-    
-    def __init__(self,player,db,library = None):
-        self.db = db
+    def __init__(self,player,db,audio_library,video_library):
+        self.sources_obj = {}
+        self.current = None
         self.player = player
-        self.library = library
-        self.current_item = None
-        self.played_items = []
+        self.db = db
 
-    def get_recorded_id(self):
-        id = int(self.db.get_state(self.source_name+"id"))
-        return id
+        # Playlist and Queue
+        from deejayd.sources import playlist,queue
+        self.sources_obj["playlist"] = playlist.PlaylistSource(player,db,\
+                audio_library)
+        self.sources_obj["queue"] = queue.QueueSource(player,db,audio_library)
 
-    def get_content(self):
-        return self.current_source.get_content()
+        # Webradio
+        if self.player.is_supported_uri("http"):
+            from deejayd.sources import webradio
+            self.sources_obj["webradio"] = webradio.WebradioSource(player, db)
+        else: log.info("Webradio support disabled for the choosen backend")
 
-    def get_current(self):
-        if self.current_item == None:
-            self.go_to(0,"Pos")
+        # Video
+        if video_library:
+            from deejayd.sources import video
+            self.sources_obj["video"] = video.VideoSource(player,db,\
+                                                                  video_library)
+            try: self.player.init_video_support()
+            except:
+                # Critical error, we have to quit deejayd
+                sys.exit('Cannot initialise video sink, either disable video support or check your gstreamer plugins (video sink).')
 
-        return self.current_item
+        # restore recorded source 
+        source = db.get_state("source")
+        try: self.set_source(source)
+        except UnknownSourceException:
+            log.err("Unable to set recorded source")
+            self.set_source("playlist")
 
-    def get_playing_item(self):
-        if self.current_item and self.player.is_playing():
-            return self.current_item
-        return None
+        self.player.set_source(self)
+        self.player.load_state()
 
-    def go_to(self,nb,type = "Id"):
-        try: self.current_item = self.current_source.get_item(nb,type)
-        except ItemNotFoundException: self.current_item = None
+    def get_source(self,s):
+        if s not in self.sources_obj.keys():
+            raise UnknownSourceException
 
-        self.played_items = []
-        return self.current_item
-        
-    def delete(self,id):
-        self.current_source.delete(id)
+        return self.sources_obj[s]
 
-    def clear(self):
-        self.current_source.clear()
+    def set_source(self,s):
+        if s not in self.sources_obj.keys():
+            raise UnknownSourceException
 
-    def next(self,rd,rpt):
-        if self.current_item == None:
-            self.go_to(0,"Pos")
-            return self.current_item
-
-        # Return a pseudo-random song
-        l = self.current_source.get_content_length()
-        if rd and l > 0: 
-            # first determine if the current song is in playedItems
-            try:
-                id = self.played_items.index(self.current_item["Id"])
-                self.current_item = self.current_source.get_item(\
-                    self.played_items[id+1],"Id")
-                return self.current_item
-            except: pass
-
-            # So we add the current song in playedItems
-            self.played_items.append(self.current_item["Id"])
-
-            # Determine the id of the next song
-            values = [v for v in self.current_source.get_item_ids() \
-                if v not in self.played_items]
-            try: song_id = random.choice(values)
-            except: # All songs are played 
-                if rpt:
-                    self.played_items = []
-                    song_id = random.choice(self.current_source.get_item_ids())
-                else: return None
-
-            # Obtain the choosed song
-            try: self.current_item = self.current_source.get_item(song_id,"Id")
-            except ItemNotFoundException: return None
-            return self.current_item
-            
-        # Reset random
-        self.played_items = []
-
-        current_position = self.current_item["Pos"]
-        if current_position < self.current_source.get_content_length()-1:
-            try: self.current_item = self.current_source.get_item(\
-                self.current_item["Pos"] + 1)
-            except ItemNotFoundException: self.current_item = None
-        elif rpt:
-            self.current_item = self.current_source.get_item(0)
-        else:
-            self.current_item = None
-
-        return self.current_item
-
-    def previous(self,rd,rpt):
-        if self.current_item == None:
-            return None
-
-        # Return the last pseudo-random song
-        l = len(self.played_items)
-        if rd and l > 0:
-            # first determine if the current song is in playedItems
-            try:
-                id = self.played_items.index(self.current_item["Id"])
-                if id == 0: return None
-                self.current_item = self.current_source.get_item(\
-                    self.played_items[id-1],"Id")
-                return self.current_item
-            except ItemNotFoundException: return None 
-            except ValueError: pass
-
-            # So we add the current song in playedItems
-            self.played_items.append(self.current_item["Id"])
-
-            self.current_item = self.current_source.\
-                get_item(self.played_items[l-1],"Id")
-            return self.current_item
-
-        # Reset random
-        self.played_items = []
-
-        current_position = self.current_item["Pos"]
-        if current_position > 0:
-            self.current_item = self.current_source.\
-                get_item(self.current_item["Pos"] - 1)
-        else:
-            self.current_item = None
-
-        return self.current_item
+        self.current = self.sources_obj[s]
+        return True
 
     def get_status(self):
-        return [(self.source_name,self.current_source.source_id),\
-          (self.source_name+"length",self.current_source.get_content_length())]
+        status = []
+        for k in self.sources_obj.keys():
+            status.extend(self.sources_obj[k].get_status())
+
+        return status
+
+    def get_available_sources(self):
+        return self.sources_obj.keys()
 
     def close(self):
-        states = [(str(self.current_source.source_id),self.source_name+"id")]
-        self.db.set_state(states)
-        self.current_source.save()
+        self.db.set_state([(self.current.source_name,"source")])    
+        for k in self.sources_obj.keys():
+            self.sources_obj[k].close()
+
+    #
+    # Functions called from the player
+    #
+    def get(self, nb = None, type = "Id", source_name = None):
+        source = source_name and self.sources_obj[source_name] or \
+                                 self.current
+        return source.go_to(nb,type)        
+    
+    def get_current(self):
+        return self.sources_obj["queue"].get_current() or \
+               self.current.get_current()
+
+    def next(self, random,repeat):
+        return self.sources_obj["queue"].next(random,repeat) or \
+               self.current.next(random,repeat)
+
+    def previous(self,random,repeat):
+        return self.current.previous(random,repeat)
+
+    def queue_reset(self):
+        self.sources_obj["queue"].reset()
 
 # vim: ts=4 sw=4 expandtab

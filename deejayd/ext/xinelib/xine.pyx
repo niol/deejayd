@@ -36,6 +36,11 @@ cdef extern from "xine.h":
         XINE_EVENT_PROGRESS
         # config entry data types
         XINE_CONFIG_TYPE_ENUM
+        # Xine status
+        XINE_STATUS_IDLE
+        XINE_STATUS_STOP
+        XINE_STATUS_PLAY
+        XINE_STATUS_QUIT
 
 
 cdef extern from "djdxine.h":
@@ -53,6 +58,7 @@ cdef extern from "djdxine.h":
     void djdxine_stop(_Xine* xine)
     void djdxine_seek(_Xine* xine, int position)
     void djdxine_set_playing(_Xine* xine, int is_playing)
+    int djdxine_get_status(_Xine* xine)
     void djdxine_set_volume(_Xine* xine, int volume)
     int djdxine_get_volume(_Xine* xine)
     int djdxine_get_position(_Xine* xine)
@@ -96,6 +102,12 @@ cdef class Xine:
         djdxine_set_playing(self.xine, 1)
     def pause(self):
         djdxine_set_playing(self.xine, 0)
+    def get_status(self):
+        status = djdxine_get_status(self.xine)
+        if status == XINE_STATUS_PLAY:
+            return "play"
+        else:
+            return "stop"
     def set_volume(self, volume):
         volume = min(max(volume, 0), 100)
         djdxine_set_volume(self.xine, volume)

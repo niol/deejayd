@@ -1,6 +1,6 @@
 
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources import ItemNotFoundException,UnknownSource,\
+from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
                             UnknownSourceManagement
 
 class Queue(UnknownSource):
@@ -27,9 +27,6 @@ class QueueSource(UnknownSourceManagement):
         UnknownSourceManagement.__init__(self,player,db,library)
         self.source_name = "queue"
         self.current_source = Queue(db,library,self.get_recorded_id())
-
-    def get_current(self):
-        return self.current_item
 
     def add_path(self,paths,pos = None):
         songs = []

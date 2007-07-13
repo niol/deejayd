@@ -1,6 +1,5 @@
 
 class PlayerError(RuntimeError):
-
     def __init__(self,desc):
         self.desc = desc
 

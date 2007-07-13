@@ -9,9 +9,8 @@ from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
 from deejayd.mediadb import library
 from deejayd.database.database import DatabaseFactory
-from deejayd.sources import sources
 from deejayd.net import commandsXML,commandsLine
-from deejayd import player
+from deejayd import player,sources
 
 class DeejaydProtocol(LineReceiver):
 
@@ -81,7 +80,7 @@ class DeejaydFactory(protocol.ServerFactory):
         log.info("Starting Deejayd ...")
 
         if self.__class__.obj_supplied:
-            self.sources = sources.SourcesFactory(self.player,self.db,\
+            self.sources = sources.SourceFactory(self.player,self.db,\
                                       self.audio_library,self.video_library)
             return True
 
@@ -104,7 +103,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
         if config.get('general', 'video_support') != 'yes':
             self.video_library = None
-            log.info("Video support disabled.")
+            log.info("Warning : Video support disabled.")
         else:
             try: video_dir = config.get('mediadb', 'video_directory')
             except NoOptionError:
@@ -117,9 +116,9 @@ class DeejaydFactory(protocol.ServerFactory):
                                                         self.player,video_dir)
 
         # Try to Init sources
-        self.sources = sources.SourcesFactory(self.player,self.db,\
+        log.info("Sources Initialisation")
+        self.sources = sources.SourceFactory(self.player,self.db,\
                                  self.audio_library,self.video_library)
-        log.info("Sources Initialisation...OK")
 
     def stopFactory(self):
         for obj in (self.player,self.sources,self.audio_library,\
