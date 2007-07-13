@@ -12,7 +12,6 @@ class XinePlayer(UnknownPlayer):
 
     def __init__(self,db,config):
         self.name = "xine"
-        self._paused = False
         UnknownPlayer.__init__(self,db,config)
 
         audio_driver = self.config.get("xine", "audio_output")
@@ -47,7 +46,6 @@ class XinePlayer(UnknownPlayer):
         self.xine.video_init(video_driver,video_display)
 
     def start_play(self):
-        self._paused = False
         if not self._media_file: return
 
         # format correctly the uri
@@ -66,14 +64,11 @@ class XinePlayer(UnknownPlayer):
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
-            self._paused = True
             self.xine.pause()
         elif self.get_state() == PLAYER_PAUSE:
-            self._paused = False
             self.xine.play()
 
     def stop(self):
-        self._paused = False
         self._media_file = None
         # FIXME : try to remove this one day ...
         self._source.queue_reset()
@@ -108,8 +103,7 @@ class XinePlayer(UnknownPlayer):
             time.sleep(0.2)
     
     def get_state(self):
-        if self._paused: return PLAYER_PAUSE
-        else: return self.xine.get_status()
+        return self.xine.get_status()
 
     def is_supported_uri(self,uri_type):
         return self.xine.is_supported_input(uri_type)

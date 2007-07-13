@@ -21,6 +21,11 @@
                       StructureNotifyMask |        \
                       PropertyChangeMask)
 
+// djdxine status
+#define DJDXINE_STATUS_STOP 0
+#define DJDXINE_STATUS_PLAY 1
+#define DJDXINE_STATUS_PAUSE 2
+
 typedef struct {
     uint32_t  flags;
     uint32_t  functions;

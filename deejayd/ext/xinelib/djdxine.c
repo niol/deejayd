@@ -411,7 +411,16 @@ void djdxine_set_playing(_Xine* xine, int is_playing)
 
 int djdxine_get_status(_Xine* xine)
 {
-    return xine_get_status(xine->player.stream);
+    int status;
+
+    if(!xine->playing) return DJDXINE_STATUS_STOP; 
+    else {
+        status = xine_get_param(xine->player.stream,XINE_PARAM_SPEED);
+        if (status == XINE_SPEED_PAUSE)
+            return DJDXINE_STATUS_PAUSE;
+        else
+            return DJDXINE_STATUS_PLAY;
+        }
 }
 
 void djdxine_set_volume(_Xine* xine, int volume)
