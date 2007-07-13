@@ -8,7 +8,8 @@ import gobject
 import gst
 import gst.interfaces
 
-from deejayd.player import UnknownPlayer,PLAYER_PLAY,PLAYER_PAUSE,PLAYER_STOP
+from deejayd.player._base import UnknownPlayer,PLAYER_PLAY,PLAYER_PAUSE,\
+                                 PLAYER_STOP
 from deejayd.ui import log
 
 class NoSinkError: pass

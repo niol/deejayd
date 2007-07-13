@@ -1,7 +1,8 @@
 # xine.py
 
 from deejayd.ext import xine
-from deejayd.player import UnknownPlayer,PLAYER_PLAY,PLAYER_PAUSE,PLAYER_STOP
+from deejayd.player._base import UnknownPlayer,PLAYER_PLAY,PLAYER_PAUSE,\
+                                 PLAYER_STOP
 from deejayd.ui import log
 
 

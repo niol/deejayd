@@ -2,7 +2,7 @@ from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources.webradio import UnsupportedFormatException
 from deejayd import sources
-from deejayd.player import OptionNotFound
+from deejayd.player._base import OptionNotFound
 
 from os import path
 

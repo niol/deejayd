@@ -11,6 +11,7 @@ from deejayd.mediadb import library
 from deejayd.database.database import DatabaseFactory
 from deejayd.sources import sources
 from deejayd.net import commandsXML,commandsLine
+from deejayd import player
 
 class DeejaydProtocol(LineReceiver):
 
@@ -84,24 +85,14 @@ class DeejaydFactory(protocol.ServerFactory):
                                       self.audio_library,self.video_library)
             return True
 
-        # Try to Init the MediaDB
+        # Init the Database
+        log.info("Database Initialisation")
         self.db = DatabaseFactory(config).get_db()
         self.db.connect()
-        # Try to Init the player
-        media_backend = config.get("general","media_backend")
-        if media_backend == "gstreamer":
-            from deejayd.player import gstreamer
-            try: self.player = gstreamer.GstreamerPlayer(self.db,config)
-            except gstreamer.NoSinkError:
-                sys.exit(\
-                "Unable to start deejayd : No audio sink found for Gstreamer\n")
-        elif media_backend == "xine":
-            from deejayd.player import xine
-            self.player = xine.XinePlayer(self.db,config)
-        else:
-            sys.exit(\
-        "Unable to start deejayd : you do not choose a correct media backend\n")
-        log.info("Player Initialisation...OK")
+
+        # Init Media Backend
+        log.info("Player Initialisation")
+        self.player = player.init(self.db,config)
 
         try: audio_dir = config.get("mediadb","music_directory")
         except NoOptionError:
