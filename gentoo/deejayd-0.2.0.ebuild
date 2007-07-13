@@ -1,6 +1,7 @@
 # Copyright 1999-2007 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
+NEED_PYTHON=2.4
 inherit distutils
 
 DESCRIPTION="deejayd is a media player daemon based on twisted."
@@ -12,8 +13,7 @@ SLOT="0"
 KEYWORDS="~x86"
 IUSE="mad vorbis webradio xine gstreamer video"
 
-DEPEND=">=virtual/python-2.4
-	xine? (>=dev-python/pyrex-0.9.4.0
+DEPEND=" xine? (>=dev-python/pyrex-0.9.4.0
 		>=media-libs/xine-lib-1.1.0)"
 
 RDEPEND="${DEPEND}
