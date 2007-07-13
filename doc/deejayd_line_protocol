@@ -30,7 +30,7 @@ close
 ------------------
 description :
 Close connection with deejayd
-=== ping ===
+=== `ping` ===
 
 Does nothing, just replies with an acknowledgement that the command was received
 
@@ -39,7 +39,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== status ===
+=== `status` ===
 
 Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
@@ -54,7 +54,7 @@ Return status of deejayd. Given informations are :
   * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
-  * mode : [playlist-webradio] the current mode
+  * mode : [playlist-webradio-video] the current mode
   * audio_updating_db : _int_ show when a audio library update is in progress  
   * audio_updating_error : _string_ error message that apppears when the 
                            audio library update has failed
@@ -76,7 +76,7 @@ directory : type->string, required->false
 
 description : 
 lists files of "directory".
-    === play ===
+    === `play` ===
 
 Begin playing at song or webradio with id "id" or toggle play/pause.
 
@@ -85,7 +85,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== stop ===
+=== `stop` ===
 
 Stop playing.
 
@@ -94,7 +94,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== pause ===
+=== `pause` ===
 
 Toggle pause on/off.
 
@@ -103,7 +103,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== next ===
+=== `next` ===
 
 Go to next song or webradio.
 
@@ -112,7 +112,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== previous ===
+=== `previous` ===
 
 Go to previous song or webradio.
 
@@ -131,7 +131,7 @@ volume : type->int, required->true
 description : 
 set volume to "volume".
 The range of volume is 0-100
-    === seek ===
+    === `seek` ===
 
 Seeks to the position "time" (in seconds) of the current song (in
     playlist mode).

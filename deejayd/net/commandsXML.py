@@ -131,7 +131,7 @@ class Status(UnknownCommand):
   * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
-  * mode : [playlist-webradio] the current mode
+  * mode : [playlist-webradio-video] the current mode
   * audio_updating_db : _int_ show when a audio library update is in progress  
   * audio_updating_error : _string_ error message that apppears when the 
                            audio library update has failed

@@ -1,6 +1,7 @@
 
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources.unknown import *
+from deejayd.sources import ItemNotFoundException,UnknownSource,\
+                            UnknownSourceManagement
 
 class Queue(UnknownSource):
     queue_name = "__djqueue__"

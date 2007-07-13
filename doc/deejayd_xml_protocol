@@ -144,7 +144,7 @@ Responses may be combined in the same physical message :
 
 == Available Commands ==
 
-=== ping ===
+=== `ping` ===
 
 Does nothing, just replies with an acknowledgement that the command was received
 
@@ -153,7 +153,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== status ===
+=== `status` ===
 
 Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
@@ -168,7 +168,7 @@ Return status of deejayd. Given informations are :
   * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
-  * mode : [playlist-webradio] the current mode
+  * mode : [playlist-webradio-video] the current mode
   * audio_updating_db : _int_ show when a audio library update is in progress  
   * audio_updating_error : _string_ error message that apppears when the 
                            audio library update has failed
@@ -181,7 +181,7 @@ Arguments :
 
 Expected return value : ''`KeyValue`''
 
-=== stats ===
+=== `stats` ===
 
 Return statistical informations :
   * audio_library_update : UNIX time of the last audio library update
@@ -195,7 +195,7 @@ Arguments :
 
 Expected return value : ''`KeyValue`''
 
-=== setMode ===
+=== `setMode` ===
 
 Change the player mode. Possible values are :
   * playlist : to manage and listen songs
@@ -207,7 +207,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== getMode ===
+=== `getMode` ===
 
 For each available source, shows if it is activated or not. The answer
     consists in :
@@ -222,7 +222,7 @@ Arguments :
 
 Expected return value : ''`KeyValue`''
 
-=== audioUpdate ===
+=== `audioUpdate` ===
 
 Update the audio library.
   * audio_updating_db : the id of this task. It appears in the status until the
@@ -233,7 +233,7 @@ Arguments :
 
 Expected return value : ''`KeyValue`''
 
-=== videoUpdate ===
+=== `videoUpdate` ===
 
 Update the video library.
   * video_updating_db : the id of this task. It appears in the status until the
@@ -244,7 +244,7 @@ Arguments :
 
 Expected return value : ''`KeyValue`''
 
-=== getdir ===
+=== `getdir` ===
 
 List the files of the directory supplied as argument.
 
@@ -253,7 +253,7 @@ Arguments :
 
 Expected return value : ''`FileList`''
 
-=== search ===
+=== `search` ===
 
 Search files where "type" contains "txt" content.
 
@@ -263,7 +263,7 @@ Arguments :
 
 Expected return value : ''`FileList`''
 
-=== getvideodir ===
+=== `getvideodir` ===
 
 Lists the files in video dir "directory".
 
@@ -272,7 +272,7 @@ Arguments :
 
 Expected return value : ''`FileList`''
 
-=== play ===
+=== `play` ===
 
 Begin playing at song or webradio with id "id" or toggle play/pause.
 
@@ -281,7 +281,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== stop ===
+=== `stop` ===
 
 Stop playing.
 
@@ -290,7 +290,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== pause ===
+=== `pause` ===
 
 Toggle pause on/off.
 
@@ -299,7 +299,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== next ===
+=== `next` ===
 
 Go to next song or webradio.
 
@@ -308,7 +308,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== previous ===
+=== `previous` ===
 
 Go to previous song or webradio.
 
@@ -317,7 +317,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== setVolume ===
+=== `setVolume` ===
 
 Set volume to "volume". The volume range is 0-100.
 
@@ -326,7 +326,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== seek ===
+=== `seek` ===
 
 Seeks to the position "time" (in seconds) of the current song (in
     playlist mode).
@@ -336,7 +336,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== setOption ===
+=== `setOption` ===
 
 Set player options "name" to "value", "value" should be 0 or 1.
        Available options are :
@@ -352,7 +352,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== current ===
+=== `current` ===
 
 Return informations on the current song, webradio or video info.
 
@@ -361,7 +361,7 @@ Arguments :
 
 Expected return value : ''`SongList or WebradioList or VideoList`''
 
-=== playlistInfo ===
+=== `playlistInfo` ===
 
 Return the content of the playlist "name". If no name is given, return
     the content of the current playlist.
@@ -371,7 +371,7 @@ Arguments :
 
 Expected return value : ''`SongList`''
 
-=== playlistList ===
+=== `playlistList` ===
 
 Return the list of recorded playlists.
 
@@ -380,7 +380,7 @@ Arguments :
 
 Expected return value : ''`PlaylistList`''
 
-=== playlistAdd ===
+=== `playlistAdd` ===
 
 Load files or directories passed as arguments ("path") at the position
     "pos" in the playlist "name". If no playlist name is provided, adds files
@@ -393,7 +393,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== playlistRemove ===
+=== `playlistRemove` ===
 
 Remove songs with ids passed as argument ("id"), from the playlist
     "name". If no name are given, remove songs from current playlist.
@@ -404,7 +404,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== playlistClear ===
+=== `playlistClear` ===
 
 Clear the current playlist.
 
@@ -413,7 +413,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== playlistMove ===
+=== `playlistMove` ===
 
 Move song with id "id" to newPosition "position".
 
@@ -423,7 +423,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== playlistShuffle ===
+=== `playlistShuffle` ===
 
 Shuffle the current playlist.
 
@@ -432,7 +432,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== playlistErase ===
+=== `playlistErase` ===
 
 Erase playlists passed as arguments.
 
@@ -441,7 +441,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== playlistLoad ===
+=== `playlistLoad` ===
 
 Load playlists passed as arguments ("name") at the position "pos".
 
@@ -451,7 +451,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== playlistSave ===
+=== `playlistSave` ===
 
 Save the current playlist to "name" in the database.
 
@@ -460,7 +460,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== webradioList ===
+=== `webradioList` ===
 
 Return the list of recorded webradios.
 
@@ -469,7 +469,7 @@ Arguments :
 
 Expected return value : ''`WebradioList`''
 
-=== webradioAdd ===
+=== `webradioAdd` ===
 
 Add a webradio. Its name is "name" and the url of the webradio is
     "url". You can pass a playlist for "url" argument (.pls and .m3u format
@@ -481,7 +481,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== webradioRemove ===
+=== `webradioRemove` ===
 
 Remove webradios with id equal to "ids".
 
@@ -490,7 +490,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== webradioClear ===
+=== `webradioClear` ===
 
 Remove all recorded webradios.
 
@@ -499,7 +499,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== playQueue ===
+=== `playQueue` ===
 
 Begin playing song with id "id" in the queue.
 
@@ -508,7 +508,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== queueInfo ===
+=== `queueInfo` ===
 
 Return the content of the queue.
 
@@ -517,7 +517,7 @@ Arguments :
 
 Expected return value : ''`SongList`''
 
-=== queueAdd ===
+=== `queueAdd` ===
 
 Load files or directories passed as arguments ("path") at the position
     "pos" in the queue.
@@ -528,7 +528,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== queueLoadPlaylist ===
+=== `queueLoadPlaylist` ===
 
 Load playlists passed in arguments ("name") at the position "pos" in
     the queue.
@@ -539,7 +539,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== queueRemove ===
+=== `queueRemove` ===
 
 Remove songs with ids passed as argument ("id"), from the queue.
 
@@ -548,7 +548,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== queueClear ===
+=== `queueClear` ===
 
 Remove all songs from the queue.
 
@@ -557,7 +557,7 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== setvideodir ===
+=== `setvideodir` ===
 
 Set the current video directory to "directory".
 

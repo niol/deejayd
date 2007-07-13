@@ -1,4 +1,5 @@
-from deejayd.sources.unknown import *
+from deejayd.sources import ItemNotFoundException,UnknownSource,\
+                            UnknownSourceManagement
 from deejayd.mediadb.library import NotFoundException 
 from os import path
 import random

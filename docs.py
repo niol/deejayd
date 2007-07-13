@@ -150,7 +150,7 @@ def formatCommandDoc(cmd):
     except AttributeError:
         rvalues = ['Ack']
 
-    return """=== %(name)s ===
+    return """=== `%(name)s` ===
 
 %(desc)s
 

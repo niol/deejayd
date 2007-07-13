@@ -1,7 +1,8 @@
 
 from os import path
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources.unknown import *
+from deejayd.sources import ItemNotFoundException,UnknownSource,\
+                            UnknownSourceManagement
 
 class Video(UnknownSource):
 
