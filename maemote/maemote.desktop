@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=0.1
+Encoding=UTF-8
+Name=Maemote
+Exec=/usr/bin/maemote
+Icon=maemote_icon_26x26
+Type=Application
