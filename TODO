@@ -1,8 +1,5 @@
-Mediadb
-  * improve database update process
-
-Player
-  * implement xine backend to remove mplayer backend
+xmlbuilders
+  * improve way to build dict list
 
 Test
   * Finish to write tests

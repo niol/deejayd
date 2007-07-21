@@ -26,8 +26,9 @@ class UnknownPlayer:
         self.options["repeat"] = int(self.db.get_state("random"))
 
         # Restore the last media_file
-        self._media_file = self._source.get(\
-                int(self.db.get_state("currentPos")), "Pos")
+        cur_id = self.db.get_state("currentPos")
+        if cur_id != 0:
+            self._media_file = self._source.get(cur_id,"Id")
 
     def init_video_support(self):
         self._video_support = True
@@ -67,9 +68,8 @@ class UnknownPlayer:
                                      self.options["repeat"])
         self.start_play()
 
-    def go_to(self,nb,type,queue = False):
+    def go_to(self,nb,type,source = None):
         self.stop()
-        source = queue and "queue" or None
         self._media_file = self._source.get(nb,type,source)
 
         self.start_play()
@@ -87,6 +87,12 @@ class UnknownPlayer:
         raise NotImplementedError
 
     def get_state(self):
+        raise NotImplementedError
+
+    def set_alang(self):
+        raise NotImplementedError
+
+    def set_slang(self):
         raise NotImplementedError
 
     def get_playing(self):
@@ -114,8 +120,11 @@ class UnknownPlayer:
             ("mode",self._source.current.source_name)])
 
         if self._media_file:
-            status.extend([("song",self._media_file["Pos"]),\
-                           ("songid",self._media_file["Id"])])
+            if self._media_file["Type"] == "video":
+                status.append(("videoid",self._media_file["Id"]))
+            else:
+                status.extend([("song",self._media_file["Pos"]),\
+                               ("songid",self._media_file["Id"])])
 
         if self.get_state() != PLAYER_STOP:
             if "Time" not in self._media_file.keys() or \
@@ -127,14 +136,14 @@ class UnknownPlayer:
         return status
 
     def close(self):
-        cur_pos = self._media_file and self._media_file["Pos"] or 0
+        cur_id = self._media_file and self._media_file["Id"] or 0
 
         states = []
         for key in self.options:
             states.append((str(self.options[key]),key))
 
         states.append((str(self.get_volume()),"volume"))
-        states.append((str(cur_pos),"currentPos"))
+        states.append((str(cur_id),"currentPos"))
         self.db.set_state(states)
 
         # stop player if necessary

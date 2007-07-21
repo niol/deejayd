@@ -127,7 +127,7 @@ class Status(UnknownCommand):
   * queuelength : _int_ length of the current queue
   * random : 0 (not activated) or 1 (activated)
   * repeat : 0 (not activated) or 1 (activated)
-  * volume : [0-100] current volume value
+  * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
@@ -173,14 +173,15 @@ class GetMode(UnknownCommand):
                dependencies)
   * webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activated)
   * video : 0 or 1 (needs video dependencies, X display and needs to be
-            activated in configuration)"""
+            activated in configuration)
+  * dvd : 0 or 1 (media backend has to be able to read dvd)"""
     command_name = 'getMode'
     command_rvalue = 'KeyValue'
 
     def execute(self):
         avSources = self.deejaydArgs["sources"].get_available_sources()
         modes = []
-        for s in ("playlist","webradio","video"):
+        for s in ("playlist","webradio","video","dvd"):
             act = s in avSources or 1 and 0
             modes.append((s,act))
 
@@ -633,21 +634,6 @@ class WebradioAdd(WebradioCommand):
 ###################################################
 #  Queue Commands                              #
 ###################################################
-class PlayQueue(UnknownCommand):
-    """Begin playing song with id "id" in the queue."""
-    command_name = 'playQueue'
-    command_args = [{"name":"id", "type":"int", "req":True}]
-
-    def execute(self):
-        nb = "id" in self.args.keys() and self.args["id"] or None
-        try:nb = int(nb)
-        except ValueError:
-            return self.get_error_answer('Need an integer')
-
-        self.deejaydArgs["player"].go_to(nb,"Id",True)
-        return self.get_ok_answer()
-
-
 class QueueAdd(UnknownCommand):
     """Load files or directories passed as arguments ("path") at the position
     "pos" in the queue."""
@@ -750,6 +736,32 @@ class QueueClear(WebradioCommand):
 
 
 ###################################################
+#       DVD Commands                              #
+###################################################
+class DvdLoad(UnknownCommand):
+    """Load the content of the dvd player."""
+    command_name = 'dvdLoad'
+
+    def execute(self):
+        try: self.deejaydArgs["sources"].get_source("dvd").load()
+        except: self.get_error_answer('error in dvd load')
+        return self.get_ok_answer()
+
+
+class DvdInfo(UnknownCommand):
+    """Get the content of the current dvd."""
+    command_name = 'dvdInfo'
+    command_rvalue = 'DvdInfo'
+
+    def execute(self):
+        rsp = self.get_answer('DvdInfo')
+        content = self.deejaydArgs["sources"].get_source("dvd").get_content() \
+                    or {}
+        rsp.set_info(content)
+        return rsp
+
+
+###################################################
 #    Player Commands                              #
 ###################################################
 class SimplePlayerCommand(UnknownCommand):
@@ -780,18 +792,45 @@ class Pause(SimplePlayerCommand):
 
 
 class Play(UnknownCommand):
-    """Begin playing at song or webradio with id "id" or toggle play/pause."""
+    """Begin playing at media file with id "id" or toggle play/pause."""
     command_name = 'play'
-    command_args = [{"name":"id", "type":"int", "req":False}]
+    command_args = [{"name":"id", "type":"int", "req":False},
+                    {"name":"id_type","type":"string","req":False},
+                    {"name":"source","type":"string","req":False},
+                    {"name":"alang","type":"int","req":False},
+                    {"name":"slang","type":"int","req":False}]
 
     def execute(self):
         nb = "id" in self.args.keys() and self.args["id"] or -1
-        try:nb = int(nb)
-        except ValueError:
-            return self.get_error_answer('Need an integer')
+        try: nb = int(nb)
+        except ValueError: pass
+        if nb == -1:
+            self.deejaydArgs["player"].play()
+            return self.get_ok_answer()
 
-        if nb == -1: self.deejaydArgs["player"].play()
-        else: self.deejaydArgs["player"].go_to(nb,"Id")
+        source = "source" in self.args.keys() and self.args["source"] or None 
+        type = "id_type" in self.args.keys() and self.args["id_type"] or "Id"
+        self.deejaydArgs["player"].go_to(nb,type,source)
+        return self.get_ok_answer()
+
+
+class SetAlang(UnknownCommand):
+    """Select audio language"""
+    command_name = 'setAlang'
+    command_args = [{"name":"lang_idx", "type":"int", "req":True}]
+
+    def execute(self):
+        self.deejaydArgs["player"].set_alang(self.args["lang_idx"])
+        return self.get_ok_answer()
+
+
+class SetSlang(UnknownCommand):
+    """Select subtitle language"""
+    command_name = 'setSlang'
+    command_args = [{"name":"lang_idx", "type":"int", "req":True}]
+
+    def execute(self):
+        self.deejaydArgs["player"].set_slang(self.args["lang_idx"])
         return self.get_ok_answer()
 
 

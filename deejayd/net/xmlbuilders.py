@@ -315,6 +315,59 @@ class DeejaydVideoList(DeejaydXMLAck):
             self.xmlcontent.appendChild(xmlvid)
 
 
+class DeejaydDvdInfo(DeejaydXMLAck):
+    """Format dvd content."""
+
+    response_type = 'DvdInfo'
+
+    def __init__(self, originating_cmd, mother_xml_object = None):
+        DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
+        self.dvd_info = None
+
+    def set_info(self,dvd_info):
+        self.dvd_info = dvd_info
+
+    def build_xml(self):
+        DeejaydXMLAck.build_xml(self)
+        xmldvd = self.xmldoc.createElement('dvd')
+        if not self.dvd_info:
+            xmldvd.setAttribute('title',"DVD NOT LOADED")
+            self.xmlcontent.appendChild(xmldvd)
+            return
+
+        xmldvd.setAttribute('title',self.dvd_info['title'])
+        # dvd's title
+        for track in self.dvd_info["track"]: 
+            xmltrack = self.xmldoc.createElement('track')
+            for info in ('ix','length'):
+                xmltrack.setAttribute(info,str(track[info]))
+
+            # avalaible audio channels
+            for audio in track["audio"]: 
+                xmlaudio = self.xmldoc.createElement('audio')
+                for info in ('ix','langcode','language'):
+                    xmlaudio.setAttribute(info,str(audio[info]))
+                xmltrack.appendChild(xmlaudio)
+
+            # avalaible subtitle channels
+            for sub in track["subp"]: 
+                xmlsub = self.xmldoc.createElement('subtitle')
+                for info in ('ix','langcode','language'):
+                    xmlsub.setAttribute(info,str(sub[info]))
+                xmltrack.appendChild(xmlsub)
+
+            # chapter list
+            for chapter in track["chapter"]: 
+                xmlchapter = self.xmldoc.createElement('chapter')
+                for info in ('ix','length'):
+                    xmlchapter.setAttribute(info,str(chapter[info]))
+                xmltrack.appendChild(xmlchapter)
+
+            xmldvd.appendChild(xmltrack)
+
+        self.xmlcontent.appendChild(xmldvd)
+
+
 class DeejaydXMLAnswerFactory:
 
     response_types = [ DeejaydXMLError,
@@ -324,7 +377,8 @@ class DeejaydXMLAnswerFactory:
                       DeejaydWebradioList,
                       DeejaydXMLSongList,
                       DeejaydPlaylistList,
-                      DeejaydVideoList     ]
+                      DeejaydVideoList,
+                      DeejaydDvdInfo    ]
 
     def __init__(self):
         self.mother_answer = None

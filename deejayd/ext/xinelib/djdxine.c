@@ -536,7 +536,7 @@ int djdxine_is_supported_input(_Xine* xine,const char *input)
 
     plugin = *input_plugins++;
     while(plugin) {
-        if (strcmp(plugin,input) == 0)
+        if (strcasecmp(plugin,input) == 0)
             rs = 1;
         plugin = *input_plugins++;
         }

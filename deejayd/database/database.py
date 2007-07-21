@@ -27,7 +27,7 @@ class UnknownDatabase:
 
 
 class Database(UnknownDatabase):
-    database_version = "2"    
+    database_version = "3"    
 
     def create_database(self):
         p = path.join(path.dirname(__file__),"sql/database_v%s.sql" % 

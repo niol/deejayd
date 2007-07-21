@@ -11,7 +11,7 @@ class SourceError(RuntimeError):
 
 class SourceFactory:
 
-    def __init__(self,player,db,audio_library,video_library):
+    def __init__(self,player,db,audio_library,video_library,config):
         self.sources_obj = {}
         self.current = None
         self.player = player
@@ -38,6 +38,14 @@ class SourceFactory:
             except:
                 # Critical error, we have to quit deejayd
                 sys.exit('Cannot initialise video sink, either disable video support or check your gstreamer plugins (video sink).')
+
+        # dvd
+        if self.player.is_supported_uri("dvd"):
+            from deejayd.sources import dvd
+            try: self.sources_obj["dvd"] = dvd.DvdSource(player,db,config)
+            except dvd.DvdError:
+                log.err("Unable to init dvd support")
+        else: log.info("DVD support is disabled")
 
         # restore recorded source 
         source = db.get_state("source")
