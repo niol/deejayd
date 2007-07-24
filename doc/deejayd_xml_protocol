@@ -77,7 +77,7 @@ There are 6 response types :
 	</response>
 </deejayd>
 }}}
-  * '''`MediaList`''' : A list of media (song, webradio or video) with information for each media : 
+  * '''`MediaList`''' : A list of media (song, webradio,playlist or video) with information for each media : 
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
     * artist, album, title, id, etc. if it is a video
@@ -135,8 +135,8 @@ Return status of deejayd. Given informations are :
   * repeat : 0 (not activated) or 1 (activated)
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
-  * song : _int_ the position of the current song
-  * songid : _int_ the id of the current song
+  * mediapos : _int_ the position of the current media file (if exists)
+  * mediaid : _int_ the id of the current media file
   * mode : [playlist-webradio-video] the current mode
   * audio_updating_db : _int_ show when a audio library update is in progress  
   * audio_updating_error : _string_ error message that apppears when the 

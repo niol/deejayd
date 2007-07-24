@@ -120,18 +120,16 @@ class UnknownPlayer:
             ("mode",self._source.current.source_name)])
 
         if self._media_file:
-            if self._media_file["Type"] == "video":
-                status.append(("videoid",self._media_file["id"]))
-            else:
-                status.extend([("song",self._media_file["pos"]),\
-                               ("songid",self._media_file["id"])])
+            status.append(("mediaid",self._media_file["id"]))
+            if "pos" in self._media_file:
+                status.append(("mediapos",self._media_file["pos"]))
 
         if self.get_state() != PLAYER_STOP:
-            if "Time" not in self._media_file.keys() or \
-                                                self._media_file["Time"] == 0:
-                self._media_file["Time"] = self.get_position()
+            if "length" not in self._media_file.keys() or \
+                                              self._media_file["length"] == 0:
+                self._media_file["length"] = self.get_position()
             status.extend([ ("time","%d:%d" % (self.get_position(),\
-                self._media_file["Time"])) ])
+                self._media_file["length"])) ])
 
         return status
 
