@@ -58,38 +58,6 @@ class UnknownCommand:
         rsp.set_pairs(dict(keyValueList))
         return rsp
 
-    # FIXME : This function should not exist, database structure should not
-    # appear here.
-    def getFileAndDirs(self, dblist):
-        files = []
-        dirs = []
-        for (dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in dblist:
-            if t == 'directory':
-                dirs.append(fn)
-            else:
-                fileI = [("Path",path.join(dir,fn)),("Time",lg),("Title",ti),\
-                        ("Artist",ar),("Album",al),("Genre",gn),("Track",tn),\
-                        ("Date",dt),("Bitrate",bt)]
-                files.append(dict(fileI))
-        return {'files':files, 'dirs': dirs}
-
-    # FIXME : This function should not exist, database structure should not
-    # appear here.
-    def getVideosAndDirs(self, dblist):
-        videos = []
-        dirs = []
-        for (dir,fn,t,id,ti,len,videow,videoh,sub) in dblist:
-
-            if t == 'directory':
-                dirs.append(fn)
-            else:
-                videoI = [("Path",path.join(dir,fn)),("Title",ti),("Id",id),\
-                    ("Time",len),("Videowidth",videow),("Videoheight",videoh),\
-                    ("Subtitle",sub)]
-                videos.append(dict(videoI))
-
-        return {'videos':videos, 'dirs':dirs}
-
 
 class Ping(UnknownCommand):
     """Does nothing, just replies with an acknowledgement that the command was received"""
@@ -125,6 +93,7 @@ class Status(UnknownCommand):
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
+  * dvd : _int_ id of the current dvd
   * random : 0 (not activated) or 1 (activated)
   * repeat : 0 (not activated) or 1 (activated)
   * volume : `[0-100]` current volume value
@@ -223,20 +192,20 @@ class GetDir(UnknownCommand):
     """List the files of the directory supplied as argument."""
     command_name = 'getdir'
     command_args = [{"name":"directory", "type":"string", "req":False}]
-    command_rvalue = 'FileList'
+    command_rvalue = 'FileAndDirList'
 
     def execute(self):
         dir = "directory" in self.args.keys() and self.args["directory"] or ""
-        try: list = self.deejaydArgs['audio_library'].get_dir_content(dir)
+        try: content = self.deejaydArgs['audio_library'].get_dir_content(dir)
         except NotFoundException:
             return self.get_error_answer('Directory not found in the database')
         else:
-            rsp = self.get_answer('FileList')
+            rsp = self.get_answer('FileAndDirList')
             rsp.set_directory(dir)
+            rsp.set_filetype('song')
 
-            filesAndDirs = self.getFileAndDirs(list)
-            rsp.set_files(filesAndDirs['files'])
-            rsp.set_directories(filesAndDirs['dirs'])
+            rsp.set_files(content['files'])
+            rsp.set_directories(content['dirs'])
 
             return rsp
 
@@ -247,7 +216,7 @@ class Search(UnknownCommand):
     command_args = [{"name":"type", "type":"list : 'all','title',\
                     'genre','filename','artist','album'","req":True},
                     {"name":"txt", "type":"string", "req":True}]
-    command_rvalue = 'FileList'
+    command_rvalue = 'FileAndDirList'
 
     def execute(self):
         type = "type" in self.args.keys() and self.args["type"] or ""
@@ -260,7 +229,8 @@ class Search(UnknownCommand):
         except NotFoundException:
             return self.get_error_answer('type %s is not supported' % (type,))
         else:
-            rsp = self.get_answer('FileList')
+            rsp = self.get_answer('FileAndDirList')
+            rsp.set_filetype('song')
 
             filesAndDirs = self.getFileAndDirs(list)
             rsp.set_files(filesAndDirs['files'])
@@ -273,7 +243,7 @@ class GetVideoDir(GetDir):
     """Lists the files in video dir "directory"."""
     command_name = 'getvideodir'
     command_args = [{"name":"directory", "type":"string", "req":True}]
-    command_rvalue = 'FileList'
+    command_rvalue = 'FileAndDirList'
 
     def execute(self):
         if not self.deejaydArgs["video_library"]:
@@ -284,11 +254,12 @@ class GetVideoDir(GetDir):
         except NotFoundException:
             return self.get_error_answer('Directory not found in the database')
         else:
-            rsp = self.get_answer('FileList')
+            rsp = self.get_answer('FileAndDirList')
+            rsp.set_filetype('video')
             rsp.set_directory(dir)
 
             videosAndDirs = self.getVideosAndDirs(list)
-            rsp.set_videos(videosAndDirs['videos'])
+            rsp.set_files(videosAndDirs['videos'])
             rsp.set_directories(videosAndDirs['dirs'])
 
             return rsp
@@ -445,7 +416,7 @@ class PlaylistInfo(UnknownCommand):
     the content of the current playlist."""
     command_name = 'playlistInfo'
     command_args = [{"name":"name", "type":"string", "req":True}]
-    command_rvalue = 'SongList'
+    command_rvalue = 'MediaList'
 
     def execute(self):
         playlistName = "name" in self.args.keys() and self.args["name"] or None
@@ -454,21 +425,10 @@ class PlaylistInfo(UnknownCommand):
         except sources.playlist.PlaylistNotFoundException:
             return self.get_error_answer('Playlist not found')
         else:
-            rsp = self.get_answer('SongList')
-            rsp.set_songs(self.formatSongs(songs))
+            rsp = self.get_answer('MediaList')
+            rsp.set_mediatype("song")
+            rsp.set_medias(songs)
             return rsp
-
-    def formatSongs(self,songs):
-        rs = []
-        for s in songs:
-            s["Path"] = path.join(s["dir"],s["filename"])
-            dictKeys = ("Path","Pos","Id","Time","Title","Artist","Album",
-                        "Genre","Track","Date","Bitrate")
-            songInfo = {}
-            for t in dictKeys:
-                songInfo[t] = s[t]
-            rs.append(songInfo)
-        return rs
 
 
 class PlaylistRemove(UnknownCommand):
@@ -525,13 +485,14 @@ class PlaylistMove(UnknownCommand):
 class PlaylistList(UnknownCommand):
     """Return the list of recorded playlists."""
     command_name = 'playlistList'
-    command_rvalue = 'PlaylistList'
+    command_rvalue = 'MediaList'
 
     def execute(self):
         playlists=self.deejaydArgs["sources"].get_source("playlist").get_list()
-        rsp = self.get_answer('PlaylistList')
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype('playlist')
         for pl in playlists: 
-            rsp.add_playlist(pl)
+            rsp.add_media({"name":pl})
 
         return rsp
 
@@ -554,7 +515,7 @@ class WebradioCommand(UnknownCommand):
 class WebradioList(WebradioCommand):
     """Return the list of recorded webradios."""
     command_name = 'webradioList'
-    command_rvalue = 'WebradioList'
+    command_rvalue = 'MediaList'
 
     def execute(self):
         if not self.wrSource:
@@ -562,10 +523,10 @@ class WebradioList(WebradioCommand):
 
         wrs = self.wrSource.get_content()
 
-        rsp = self.get_answer('WebradioList')
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype('webradio')
         for wr in wrs:
-            wrdict = [("Title",wr["Title"]),("Id",wr["Id"]),("Pos",wr["Pos"]),("Url",wr["uri"])]
-            rsp.add_webradio(dict(wrdict))
+            rsp.add_media(wr)
 
         return rsp
 
@@ -694,12 +655,13 @@ class QueueLoadPlaylist(UnknownCommand):
 class QueueInfo(PlaylistInfo):
     """Return the content of the queue."""
     command_name = 'queueInfo'
-    command_rvalue = 'SongList'
+    command_rvalue = 'MediaList'
 
     def execute(self):
         songs = self.deejaydArgs["sources"].get_source("queue").get_content()
-        rsp = self.get_answer('SongList')
-        rsp.set_songs(self.formatSongs(songs))
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype("song")
+        rsp.set_medias(songs)
         return rsp
 
 
@@ -901,29 +863,15 @@ class SetOption(UnknownCommand):
 class CurrentSong(UnknownCommand):
     """Return informations on the current song, webradio or video info."""
     command_name = 'current'
-    command_rvalue = ['SongList', 'WebradioList', 'VideoList']
+    command_rvalue = 'MediaList'
 
     def execute(self):
         item = self.deejaydArgs["player"].get_playing()
-        rsp = None
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype(item["Type"])
 
-        if item:
-            if item["Type"] == "webradio":
-                rsp = self.get_answer('WebradioList')
-                wrdict = [("Title",item["Title"]),("Id",item["Id"]),\
-                    ("Pos",item["Pos"]),("Url",item["uri"])]
-                rsp.add_webradio(dict(wrdict))
-            elif item["Type"] == "video":
-                rsp = self.get_answer('VideoList')
-                vdict = [("Title",item["Title"]),("Id",item["Id"]),\
-                    ("Time",item["Time"])]
-                rsp.add_video(dict(vdict))
-            elif item["Type"] == "song":
-                rsp = self.get_answer('SongList')
-                sldict = [("Title",item["Title"]),("Id",item["Id"]),\
-                    ("Pos",item["Pos"]),("Artist",item["Artist"]),\
-                    ("Album",item["Album"]),("Time",item["Time"])]
-                rsp.add_song(dict(sldict))
+        del item["Type"]
+        rsp.add_media(item)
         return rsp
 
 

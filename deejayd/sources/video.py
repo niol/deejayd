@@ -6,28 +6,6 @@ from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
 
 class Video(UnknownSource):
 
-    def add_files(self,files):
-        init_pos = len(self.source_content)
-        old_content = self.source_content[init_pos:len(self.source_content)]
-        self.source_content = self.source_content[0:init_pos]
-
-        i = 0
-        for f in files:
-            pos = init_pos+i
-            self.source_content.append({"dir":f[0],"Title":f[4],\
-                "filename":f[1],"Pos":pos,"Id":f[3],\
-                "uri":"file://"+path.join(self.library.get_root_path(),\
-                path.join(f[0],f[1])),"Time":f[5],"Videowidth":f[6],\
-                "Videoheigth":f[7],"Subtitle":f[8],"Type":"video"})
-            i += 1
-
-        for f in old_content:
-            f["Pos"] = init_pos+i
-            i += 1
-
-        self.source_content.extend(old_content)
-        self.source_id += len(files)
-
     def save(self):pass
 
 

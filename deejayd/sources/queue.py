@@ -51,14 +51,14 @@ class QueueSource(UnknownSourceManagement):
 
         self.current_source.add_files(songs,pos)
 
-    def go_to(self,nb,type = "Id"):
+    def go_to(self,nb,type = "id"):
         UnknownSourceManagement.go_to(self,nb,type)
         if self.current_item != None:
             self.current_source.delete(nb,type)
         return self.current_item
 
     def next(self,rd,rpt):
-        self.go_to(0,'Pos')
+        self.go_to(0,'pos')
         return self.current_item
 
     def previous(self,rd,rpt):

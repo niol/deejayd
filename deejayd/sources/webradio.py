@@ -40,21 +40,21 @@ class Webradio(UnknownSource):
         UnknownSource.__init__(self,db,None,id)
 
         webradios = self.db.get_webradios() 
-        self.source_content = [{"Pos":webradio[0],"Id":self.set_item_id(), \
-            "Title":webradio[1], "uri":webradio[2], "Type":"webradio"} \
-            for webradio in webradios]
+        self.source_content = [{"pos":webradio[0],"id":self.set_item_id(), \
+            "title":webradio[1], "uri":webradio[2], "type":"webradio",\
+            "url":webradio[2]} for webradio in webradios]
 
     def add(self,uri,name):
         pos = len(self.source_content)
-        self.source_content.append({"Pos":pos,"Id":self.set_item_id(),\
-            "Title":name,"uri":uri,"Type":"webradio"})
+        self.source_content.append({"pos":pos,"id":self.set_item_id(),\
+            "title":name,"uri":uri,"url":uri,"type":"webradio"})
 
         # Increment webradioId
         self.source_id += 1
 
     def save(self):
         self.db.clear_webradios()
-        values = [(webradio["Pos"],webradio["Title"],webradio["uri"]) \
+        values = [(webradio["pos"],webradio["title"],webradio["uri"]) \
             for webradio in self.source_content]
         self.db.add_webradios(values)
 

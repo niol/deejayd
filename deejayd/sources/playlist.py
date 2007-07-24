@@ -34,14 +34,14 @@ class Playlist(UnknownSource):
 
     def move(self,id,new_pos,type):
         song = self.get_song(id,type)
-        old_pos = song["Pos"]
+        old_pos = song["pos"]
         del self.source_content[old_pos]
         self.source_content.insert(new_pos,song)
 
         # Reorder the playlist
         ids = range(0,len(self.source_content))
         for id in ids:
-            self.source_content[id]["Pos"] = id
+            self.source_content[id]["pos"] = id
 
         # Increment sourceId
         self.source_id += 1
@@ -52,17 +52,17 @@ class Playlist(UnknownSource):
         pos = 0
         # First we have to put the current song at the first place
         if current != None:
-            old_pos = current["Pos"]
+            old_pos = current["pos"]
             del old_playlist[old_pos]
             new_playlist.append(current)
-            new_playlist[pos]["Pos"] = pos
+            new_playlist[pos]["pos"] = pos
             pos += 1
 
         while len(old_playlist) > 0:
             song = random.choice(old_playlist) 
             del old_playlist[old_playlist.index(song)]
             new_playlist.append(song)
-            new_playlist[pos]["Pos"] = pos
+            new_playlist[pos]["pos"] = pos
             pos += 1
 
         self.source_content = new_playlist
@@ -130,7 +130,7 @@ class PlaylistSource(UnknownSourceManagement):
         if isinstance(playlist_name,str):
             self.__close_playlist(playlist_name) 
 
-    def move(self,id,new_pos,type = "Id"):
+    def move(self,id,new_pos,type = "id"):
         self.current_source.move(id,new_pos,type)
 
     def clear(self,playlist = None):
@@ -144,14 +144,14 @@ class PlaylistSource(UnknownSourceManagement):
         if isinstance(playlist,str):
             self.__close_playlist(playlist) 
 
-    def delete(self,nb,type = "Id",playlist = None):
+    def delete(self,nb,type = "id",playlist = None):
         playlist_obj = self.__open_playlist(playlist)
         
         if playlist == None and self.current_item != None and\
                 self.current_item[type] == nb:
             self.player.stop()
-            pos = self.current_item["Pos"]
-            self.go_to(pos+1, "Pos")
+            pos = self.current_item["pos"]
+            self.go_to(pos+1, "pos")
         playlist_obj.delete(nb,type)
 
         if isinstance(playlist,str):

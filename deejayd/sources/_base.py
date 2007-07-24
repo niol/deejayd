@@ -19,7 +19,7 @@ class UnknownSource:
     def get_content_length(self):
         return len(self.source_content)
 
-    def get_item(self,position, type = "Pos"):
+    def get_item(self,position, type = "pos"):
         item = None
         for it in self.source_content:
             if it[type] == position:
@@ -31,9 +31,9 @@ class UnknownSource:
         return item
 
     def get_item_ids(self):
-        return [item["Id"] for item in self.source_content]
+        return [item["id"] for item in self.source_content]
 
-    def add_files(self,items,first_pos):
+    def add_files(self,items,first_pos = 0):
         init_pos = first_pos or len(self.source_content)
         old_content = self.source_content[init_pos:len(self.source_content)]
         self.source_content = self.source_content[0:init_pos]
@@ -41,24 +41,15 @@ class UnknownSource:
         i = 0
         for s in items:
             pos = init_pos+i
-            if isinstance(s,dict): # file extracted from a playlist
-                self.source_content.append({"dir":s["dir"],
-                    "filename":s["filename"],"Pos":pos,"Id":self.set_item_id(),
-                    "Title":s["Title"],"Artist":s["Artist"],"Album":s["Album"],
-                    "Genre":s["Genre"],"Track":s["Track"],"Date":s["Date"],
-                    "Time":s["Time"],"Bitrate":s["Bitrate"],"uri":s["uri"],
-                    "Type":"song"})
-            else: # file extracted from mediadb
-                self.source_content.append({"dir":s[0],"filename":s[1],
-                    "Pos":pos,"Id":self.set_item_id(),"Title":s[3],
-                    "Artist":s[4],"Album":s[5],"Genre":s[6],"Track":s[7],
-                    "Date":s[8],"Time":s[9],"Bitrate":s[10],"uri":"file://"+\
-                    path.join(self.library.get_root_path(),\
-                    path.join(s[0],s[1])),"Type":"song"})
+            s["pos"] = pos
+            s["id"] = self.set_item_id()
+            if "uri" not in s.keys():
+                s["uri"] = "file://"+s["path"]
+            self.source_content.append(s)
             i += 1
 
         for song in old_content:
-            song["Pos"] = init_pos+i
+            song["pos"] = init_pos+i
             i+=1
 
         self.source_content.extend(old_content)
@@ -70,7 +61,7 @@ class UnknownSource:
         # Increment sourceId
         self.source_id += 1
 
-    def delete(self,nb,type = "Id"):
+    def delete(self,nb,type = "id"):
         i = 0
         for item in self.source_content:
             if item[type] == nb:
@@ -78,13 +69,13 @@ class UnknownSource:
             i += 1
         if i == len(self.source_content):
             raise ItemNotFoundException
-        pos = self.source_content[i]["Pos"]
+        pos = self.source_content[i]["pos"]
         del self.source_content[i]
 
         # Now we must reorder the item list
         for item in self.source_content:
-            if item["Pos"] > pos:
-                item["Pos"] -= 1
+            if item["pos"] > pos:
+                item["pos"] -= 1
 
         # Increment sourceId
         self.source_id += 1
@@ -93,11 +84,12 @@ class UnknownSource:
         raise NotImplementedError
     
     def format_playlist_files(self,s):
-        return {"dir":s[0],"filename":s[1],"Pos":s[3],"Id":self.set_item_id(),
-            "Title":s[6],"Artist":s[7],"Album":s[8],"Genre":s[9],"Track":s[10],
-            "Date":s[11],"Time":s[12],"Bitrate":s[13],
+        return {"dir":s[0],"filename":s[1],"pos":s[3],"id":self.set_item_id(),
+            "title":s[6],"artist":s[7],"album":s[8],"genre":s[9],"track":s[10],
+            "date":s[11],"length":s[12],"bitrate":s[13],
+            "path":path.join(s[0],s[1]),
             "uri":"file://"+path.join(self.library.get_root_path(),\
-            path.join(s[0],s[1])),"Type":"song"}
+            path.join(s[0],s[1])),"type":"song"}
 
     def set_item_id(self):
         self.__item_id += 1
@@ -122,11 +114,11 @@ class UnknownSourceManagement:
 
     def get_current(self):
         if self.current_item == None:
-            self.go_to(0,"Pos")
+            self.go_to(0,"pos")
 
         return self.current_item
 
-    def go_to(self,nb,type = "Id"):
+    def go_to(self,nb,type = "id"):
         try: self.current_item = self.current_source.get_item(nb,type)
         except ItemNotFoundException: self.current_item = None
 
@@ -141,7 +133,7 @@ class UnknownSourceManagement:
 
     def next(self,rd,rpt):
         if self.current_item == None:
-            self.go_to(0,"Pos")
+            self.go_to(0,"pos")
             return self.current_item
 
         # Return a pseudo-random song
@@ -149,14 +141,14 @@ class UnknownSourceManagement:
         if rd and l > 0: 
             # first determine if the current song is in playedItems
             try:
-                id = self.played_items.index(self.current_item["Id"])
+                id = self.played_items.index(self.current_item["id"])
                 self.current_item = self.current_source.get_item(\
-                    self.played_items[id+1],"Id")
+                    self.played_items[id+1],"id")
                 return self.current_item
             except: pass
 
             # So we add the current song in playedItems
-            self.played_items.append(self.current_item["Id"])
+            self.played_items.append(self.current_item["id"])
 
             # Determine the id of the next song
             values = [v for v in self.current_source.get_item_ids() \
@@ -169,17 +161,17 @@ class UnknownSourceManagement:
                 else: return None
 
             # Obtain the choosed song
-            try: self.current_item = self.current_source.get_item(song_id,"Id")
+            try: self.current_item = self.current_source.get_item(song_id,"id")
             except ItemNotFoundException: return None
             return self.current_item
             
         # Reset random
         self.played_items = []
 
-        current_position = self.current_item["Pos"]
+        current_position = self.current_item["pos"]
         if current_position < self.current_source.get_content_length()-1:
             try: self.current_item = self.current_source.get_item(\
-                self.current_item["Pos"] + 1)
+                self.current_item["pos"] + 1)
             except ItemNotFoundException: self.current_item = None
         elif rpt:
             self.current_item = self.current_source.get_item(0)
@@ -197,28 +189,28 @@ class UnknownSourceManagement:
         if rd and l > 0:
             # first determine if the current song is in playedItems
             try:
-                id = self.played_items.index(self.current_item["Id"])
+                id = self.played_items.index(self.current_item["id"])
                 if id == 0: return None
                 self.current_item = self.current_source.get_item(\
-                    self.played_items[id-1],"Id")
+                    self.played_items[id-1],"id")
                 return self.current_item
             except ItemNotFoundException: return None 
             except ValueError: pass
 
             # So we add the current song in playedItems
-            self.played_items.append(self.current_item["Id"])
+            self.played_items.append(self.current_item["id"])
 
             self.current_item = self.current_source.\
-                get_item(self.played_items[l-1],"Id")
+                get_item(self.played_items[l-1],"id")
             return self.current_item
 
         # Reset random
         self.played_items = []
 
-        current_position = self.current_item["Pos"]
+        current_position = self.current_item["pos"]
         if current_position > 0:
             self.current_item = self.current_source.\
-                get_item(self.current_item["Pos"] - 1)
+                get_item(self.current_item["pos"] - 1)
         else:
             self.current_item = None
 

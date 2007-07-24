@@ -32,7 +32,7 @@ class testSqliteDatabase(TestCaseWithData):
         i = 1
         for song in self.testdata.sampleLibrary[0:3]:
             playlistEntry = {}
-            playlistEntry['Pos'] = i
+            playlistEntry['pos'] = i
             playlistEntry['dir'] = os.path.dirname(song['filename'])
             playlistEntry['filename'] = os.path.basename(song['filename'])
             playlistContents.append(playlistEntry)
@@ -45,9 +45,11 @@ class testSqliteDatabase(TestCaseWithData):
         i = 0
         for retrievedPlaylistEntry in retrievedPlaylist:
             self.assertEqual(retrievedPlaylistEntry[0],
-                            os.path.dirname(self.testdata.sampleLibrary[i]['filename']))
+                            os.path.dirname(self.testdata.sampleLibrary[i]\
+                            ['filename']))
             self.assertEqual(retrievedPlaylistEntry[1],
-                            os.path.basename(self.testdata.sampleLibrary[i]['filename']))
+                            os.path.basename(self.testdata.sampleLibrary[i]\
+                            ['filename']))
             self.assertEqual(retrievedPlaylistEntry[2], randomName)
             self.assertEqual(retrievedPlaylistEntry[3], i + 1)
             i = i + 1
@@ -58,7 +60,7 @@ class testSqliteDatabase(TestCaseWithData):
 
         self.assertEqual(self.db.get_playlist(randomName), [])
 
-        playlistContents = [{ 'Pos':0,
+        playlistContents = [{ 'pos':0,
                                 'dir': self.testdata.getRandomString(),
                                 'filename': self.testdata.getRandomString()}]
         self.db.save_playlist(playlistContents, randomName)

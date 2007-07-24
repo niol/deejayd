@@ -131,12 +131,12 @@ class TestAnswerParser(TestCaseWithData):
         for key in origKeyValue.keys():
             self.assertEqual(origKeyValue[key], retrievedKeyValues[key])
 
-    def testAnswerFileList(self):
-        """Test the client library parsing a file list answer"""
+    def testAnswerFileAndDirList(self):
+        """Test the client library parsing a file/dir list answer"""
         originatingCommand = self.testdata.getRandomString()
         fileListAnswer = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response name="%s" type="FileList">""" % originatingCommand
+    <response name="%s" type="FileAndDirList">""" % originatingCommand
         howMuch = self.testdata.getRandomInt(50)
         origFiles = []
         origDirs = []
@@ -195,19 +195,19 @@ class TestAnswerParser(TestCaseWithData):
         for dir in origDirs:
             self.failUnless(dir in ans.get_directories())
 
-    def testAnswerParserWebradioList(self):
-        """Test the client library parsing a web radio list answer"""
+    def testAnswerParserMediaList(self):
+        """Test the client library parsing a media list answer"""
         originatingCommand = 'webradioList'
         webradioListAnswer = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response name="%s" type="WebradioList">""" % originatingCommand
+    <response name="%s" type="MediaList">""" % originatingCommand
         howMuch = self.testdata.getRandomInt(50)
         origWebradios = []
 
         for count in range(howMuch):
 
             webradioListAnswer = webradioListAnswer + """
-        <webradio>"""
+        <media type="webradio">"""
             howMuchParms = self.testdata.getRandomInt()
             webradio = {}
             for parmCount in range(howMuchParms):
@@ -217,7 +217,7 @@ class TestAnswerParser(TestCaseWithData):
                 webradioListAnswer = webradioListAnswer + """
             <parm name="%s" value="%s" />""" % (name, value)
             webradioListAnswer = webradioListAnswer + """
-        </webradio>"""
+        </media>"""
             origWebradios.append(webradio)
 
         webradioListAnswer = webradioListAnswer + """
@@ -233,79 +233,6 @@ class TestAnswerParser(TestCaseWithData):
 
         for webradio in origWebradios:
             self.failUnless(webradio in ans.get_contents())
-
-    def testAnswerParserPlaylist(self):
-        """Test the client library parsing a song list answer"""
-        originatingCommand = 'playlistInfo'
-        songListAnswer = """<?xml version="1.0" encoding="utf-8"?>
-<deejayd>
-    <response name="%s" type="SongList">""" % originatingCommand
-        songOrder = 0
-        for song in testdeejayd.data.songlibrary:
-            song['plorder'] = songOrder
-            songOrder = songOrder + 1
-
-            songListAnswer = songListAnswer + """
-        <song>"""
-            for tag in song.keys():
-                songListAnswer = songListAnswer + """
-            <parm name="%s" value="%s" />""" % (tag, song[tag])
-
-            songListAnswer = songListAnswer + """
-        </song>"""
-
-        songListAnswer = songListAnswer + """
-    </response>
-</deejayd>"""
-
-        ans = DeejaydPlaylist(None)
-        self.eansq.put(ans)
-        self.parseAnswer(songListAnswer)
-
-        self.assertEqual(self.ansb.get_originating_command(),
-                         originatingCommand)
-        retrievedSongList = ans.get_contents()
-
-        for song in testdeejayd.data.songlibrary:
-            for tag in song.keys():
-                songRank = song['plorder']
-
-                if tag == 'plorder':
-                    self.assertEqual(song[tag],
-                                     retrievedSongList[songRank][tag])
-                else:
-                    self.assertEqual(song[tag].decode('utf-8'),
-                                     retrievedSongList[songRank][tag])
-
-    def testAnswerParserPlaylistList(self):
-        """Test the client library parsing a playlist list answer"""
-        originatingCommand = 'playlistList'
-
-        pls = []
-        for nb in range(5):
-            pls.append(self.testdata.getRandomString())
-
-        plListAnswer = """<?xml version="1.0" encoding="utf-8"?>
-<deejayd>
-    <response name="%s" type="PlaylistList">""" % originatingCommand
-        for pl in pls:
-            plListAnswer = plListAnswer + """
-        <playlist name="%s" />""" % pl
-
-        plListAnswer = plListAnswer + """
-    </response>
-</deejayd>"""
-
-        ans = DeejaydAnswer()
-        self.eansq.put(ans)
-        self.parseAnswer(plListAnswer)
-
-        self.assertEqual(self.ansb.get_originating_command(),
-                         originatingCommand)
-        retrievedPlList = ans.get_contents()
-
-        for pl in pls:
-            self.failUnless(pl in retrievedPlList)
 
 
 class TestClient(TestCaseWithMediaData):
@@ -384,12 +311,12 @@ class TestClient(TestCaseWithMediaData):
 
         # Check for the saved playslit to be available
         retrievedPls = self.deejaydaemon.get_playlist_list().get_contents()
-        self.failUnless(djplname in retrievedPls)
+        self.failUnless(djplname in [p["name"] for p in retrievedPls])
 
         # Retrieve the saved playlist
         retrievedPl = self.deejaydaemon.get_playlist(djplname)
         for song_nb in range(len(pl)):
-            self.assertEqual(pl[song_nb], retrievedPl[song_nb]['Path'])
+            self.assertEqual(pl[song_nb], retrievedPl[song_nb]['path'])
 
     def testWebradioAddRetrieve(self):
         """Save a webradio and check it is in the list, then delete it."""
@@ -435,7 +362,7 @@ class TestClient(TestCaseWithMediaData):
             # FIXME : Same provision for the future.
             # for url in testWrUrls:
             #     self.failUnless(url in retrievedWr['Url'])
-            self.assertEqual(testWrUrls, retrievedWr['Url'])
+            self.assertEqual(testWrUrls, retrievedWr['url'])
 
         wrList.delete_webradio(testWrName)
         wrList = self.deejaydaemon.get_webradios()

@@ -86,6 +86,7 @@ commandsOrders  = ("ping", "status", "stats", "setMode", "getMode",
                    "audioUpdate", "videoUpdate", "getdir", "search", 
                    "getvideodir", "play", "stop", "pause", "next", "previous", 
                    "setVolume", "seek", "setOption", "current", 
+                   "setAlang","setSlang",
                    "playlistInfo", "playlistList",
                    "playlistAdd", "playlistRemove", "playlistClear",
                    "playlistMove", "playlistShuffle", "playlistErase",
@@ -214,44 +215,31 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         kv.set_pairs(self.getSampleParmDict())
         return kv
 
-    def getFileList(self):
-        fl = self.get_deejayd_xml_answer('FileList', 'cmdName')
+    def getFileAndDirList(self):
+        fl = self.get_deejayd_xml_answer('FileAndDirList', 'cmdName')
         fl.add_directory('dirName')
+        fl.set_filetype('song or video')
 
         fl.add_file(self.getSampleParmDict())
-        fl.add_video(self.getSampleParmDict())
 
         return fl
 
-    def getWebradioList(self):
-        wrl = self.get_deejayd_xml_answer('WebradioList', 'cmdName')
-        wrl.add_webradio(self.getSampleParmDict())
-        return wrl
+    def getMediaList(self):
+        ml = self.get_deejayd_xml_answer('MediaList', 'cmdName')
+        ml.set_mediatype("song or video or webradio or playlist")
+        ml.add_media(self.getSampleParmDict())
+        return ml
 
-    def getSongList(self):
-        sl = self.get_deejayd_xml_answer('SongList', 'cmdName')
-        sl.add_song(self.getSampleParmDict())
-        return sl
-
-    def getPlaylistList(self):
-        pll = self.get_deejayd_xml_answer('PlaylistList', 'getPlaylistList')
-        pll.add_playlist('playlist1')
-        pll.add_playlist('playlist2')
-        return pll
-
-    def getVideoList(self):
-        vl = self.get_deejayd_xml_answer('VideoList', 'cmdName')
-        vl.add_video(self.getSampleParmDict())
-        return vl
+    def getDvdInfo(self):
+        dvd = self.get_deejayd_xml_answer('DvdInfo', 'cmdName')
+        return dvd
 
     responseTypeExBuilders = { DeejaydXMLError: getError,
                                DeejaydXMLAck: getAck,
                                DeejaydXMLKeyValue: getKeyValue,
-                               DeejaydXMLFileList: getFileList,
-                               DeejaydWebradioList: getWebradioList,
-                               DeejaydXMLSongList: getSongList,
-                               DeejaydPlaylistList: getPlaylistList,
-                               DeejaydVideoList: getVideoList }
+                               DeejaydXMLFileDirList: getFileAndDirList,
+                               DeejaydXMLDvdInfo: getDvdInfo,
+                               DeejaydXMLMediaList: getMediaList }
  
     def getExample(self, responseClass):
         builder = self.responseTypeExBuilders[responseClass]
@@ -276,7 +264,6 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
     def formatCombinedResponse(self):
         combi = self.getAck()
         self.set_mother(combi)
-        vl = self.getVideoList()
         return combi.to_pretty_xml()
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ class UnknownPlayer:
         # Restore the last media_file
         cur_id = self.db.get_state("currentPos")
         if cur_id != 0:
-            self._media_file = self._source.get(cur_id,"Id")
+            self._media_file = self._source.get(cur_id,"id")
 
     def init_video_support(self):
         self._video_support = True
@@ -121,10 +121,10 @@ class UnknownPlayer:
 
         if self._media_file:
             if self._media_file["Type"] == "video":
-                status.append(("videoid",self._media_file["Id"]))
+                status.append(("videoid",self._media_file["id"]))
             else:
-                status.extend([("song",self._media_file["Pos"]),\
-                               ("songid",self._media_file["Id"])])
+                status.extend([("song",self._media_file["pos"]),\
+                               ("songid",self._media_file["id"])])
 
         if self.get_state() != PLAYER_STOP:
             if "Time" not in self._media_file.keys() or \
@@ -136,7 +136,7 @@ class UnknownPlayer:
         return status
 
     def close(self):
-        cur_id = self._media_file and self._media_file["Id"] or 0
+        cur_id = self._media_file and self._media_file["id"] or 0
 
         states = []
         for key in self.options:

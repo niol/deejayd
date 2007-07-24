@@ -215,7 +215,7 @@ class Database(UnknownDatabase):
         self.connection.commit()
 
     def save_playlist(self,content,playlistName):
-        values = [(playlistName,s["Pos"],s["dir"],s["filename"]) \
+        values = [(playlistName,s["pos"],s["dir"],s["filename"]) \
             for s in content]
         query = "INSERT INTO {playlist}(name,position,dir,filename)\
             VALUES(?,?,?,?)"

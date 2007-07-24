@@ -88,24 +88,25 @@ class Library:
         if len(rs) == 0 and dir != "":
             # nothing found for this directory
             raise NotFoundException
-        return rs
+
+        return self._format_db_rsp(rs)
 
     def get_dir_files(self,dir):
         rs = self.db_con.get_files(dir,self._table)
         if len(rs) == 0 and dir != "": raise NotFoundException
-        return rs
+        return self._format_db_rsp(rs)["files"]
 
     def get_all_files(self,dir):
         rs = self.db_con.get_all_files(dir)
         if len(rs) == 0 and dir != "": raise NotFoundException
-        return rs
+        return self._format_db_rsp(rs)["files"]
 
     def get_file(self,file):
         rs = self.db_con.get_file_info(file,self._table)
         if len(rs) == 0:
             # this file is not found
             raise NotFoundException
-        return rs
+        return self._format_db_rsp(rs)["files"]
 
     def get_root_path(self):
         return self._path
@@ -234,14 +235,31 @@ class AudioLibrary(Library):
         if type not in accepted_type:
             raise NotFoundException
 
-        return self.db_con.search_audio_library(type,content)
+        rs = self.db_con.search_audio_library(type,content)
+        return self._format_db_rsp(rs)["files"]
 
     def find(self,type,content):
         accepted_type = ('title','genre','filename','artist','album')
         if type not in accepted_type:
             raise NotFoundException
 
-        return self.db_con.find_audio_library(type,content)
+        rs = self.db_con.find_audio_library(type,content)
+        return self._format_db_rsp(rs)["files"]
+
+    def _format_db_rsp(self,rs):
+        # format correctly database result
+        files = []
+        dirs = []
+        for (dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in rs:
+            if t == 'directory': dirs.append(fn)
+            else:
+                file_info = {"path":os.path.join(dir,fn),"lenght":lg,
+                             "filename":fn,"dir":dir,
+                             "title":ti,"artist":ar,"album":al,"genre":gn,
+                             "track":tn,"date":dt,"bitrate":bt,
+                             "type":"song"}
+                files.append(file_info)
+        return {'files':files, 'dirs': dirs}
 
 
 class VideoLibrary(Library):
@@ -251,5 +269,20 @@ class VideoLibrary(Library):
         self._table = "video_library"
         self._type = "video"
         self._file_class = DeejaydVideoFile
+
+    def _format_db_rsp(self,rs):
+        # format correctly database result
+        files = []
+        dirs = []
+        for (dir,fn,t,id,ti,len,videow,videoh,sub) in rs:
+            if t == 'directory': dirs.append(fn)
+            else:
+                file_info = {"path":os.path.join(dir,fn),"lenght":len,
+                             "filename":fn,"dir":dir,
+                             "title":ti,"id":id,
+                             "videowidth":videow,"videoheight":videoh,
+                             "subtitle":sub,"type":"video"}
+                files.append(file_info)
+        return {'files':files, 'dirs': dirs}
 
 # vim: ts=4 sw=4 expandtab

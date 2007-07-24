@@ -48,9 +48,10 @@ Return status of deejayd. Given informations are :
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
+  * dvd : _int_ id of the current dvd
   * random : 0 (not activated) or 1 (activated)
   * repeat : 0 (not activated) or 1 (activated)
-  * volume : [0-100] current volume value
+  * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
@@ -78,10 +79,14 @@ description :
 lists files of "directory".
     === `play` ===
 
-Begin playing at song or webradio with id "id" or toggle play/pause.
+Begin playing at media file with id "id" or toggle play/pause.
 
 Arguments :
   * {{{id}}} (Simple and Optional) : int
+  * {{{id_type}}} (Simple and Optional) : string
+  * {{{source}}} (Simple and Optional) : string
+  * {{{alang}}} (Simple and Optional) : int
+  * {{{slang}}} (Simple and Optional) : int
 
 Expected return value : ''`Ack`''
 

@@ -64,66 +64,40 @@ There are 6 response types :
 	</response>
 </deejayd>
 }}}
-  * '''`FileList`''' : A list of files and directories.
+  * '''`FileAndDirList`''' : A list of files and directories.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="FileList">
+	<response name="cmdName" type="FileAndDirList">
 		<directory name="dirName"/>
-		<file>
+		<file type="song or video">
 			<parm name="parmName0" value="parmValue0"/>
 			<parm name="parmName1" value="parmValue1"/>
 		</file>
-		<video>
-			<parm name="parmName0" value="parmValue0"/>
-			<parm name="parmName1" value="parmValue1"/>
-		</video>
 	</response>
 </deejayd>
 }}}
-  * '''`WebradioList`''' : A list of webradios with information for each webradio : id, pos, title and url.
+  * '''`MediaList`''' : A list of media (song, webradio or video) with information for each media : 
+    * artist, album, title, id, etc. if it is a song
+    * title, url, id, etc. if it is a webradio
+    * artist, album, title, id, etc. if it is a video
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="WebradioList">
-		<webradio>
+	<response name="cmdName" type="MediaList">
+		<media type="song or video or webradio or playlist">
 			<parm name="parmName0" value="parmValue0"/>
 			<parm name="parmName1" value="parmValue1"/>
-		</webradio>
+		</media>
 	</response>
 </deejayd>
 }}}
-  * '''`SongList`''' : A list of songs with information for each song : artist, album, title, id, etc.
+  * '''`DvdInfo`''' : Format dvd content.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="SongList">
-		<song>
-			<parm name="parmName0" value="parmValue0"/>
-			<parm name="parmName1" value="parmValue1"/>
-		</song>
-	</response>
-</deejayd>
-}}}
-  * '''`PlaylistList`''' : A list of playlist names.
-{{{
-<?xml version="1.0" encoding="utf-8"?>
-<deejayd>
-	<response name="getPlaylistList" type="PlaylistList">
-		<playlist name="playlist1"/>
-		<playlist name="playlist2"/>
-	</response>
-</deejayd>
-}}}
-  * '''`VideoList`''' : A list of videos with information for each video.
-{{{
-<?xml version="1.0" encoding="utf-8"?>
-<deejayd>
-	<response name="cmdName" type="VideoList">
-		<video>
-			<parm name="parmName0" value="parmValue0"/>
-			<parm name="parmName1" value="parmValue1"/>
-		</video>
+	<response name="cmdName" type="DvdInfo">
+		<dvd title="DVD NOT LOADED"/>
 	</response>
 </deejayd>
 }}}
@@ -132,12 +106,6 @@ Responses may be combined in the same physical message :
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<response name="cmdName" type="Ack"/>
-	<response name="cmdName" type="VideoList">
-		<video>
-			<parm name="parmName0" value="parmValue0"/>
-			<parm name="parmName1" value="parmValue1"/>
-		</video>
-	</response>
 </deejayd>
 
 }}}
@@ -162,9 +130,10 @@ Return status of deejayd. Given informations are :
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
+  * dvd : _int_ id of the current dvd
   * random : 0 (not activated) or 1 (activated)
   * repeat : 0 (not activated) or 1 (activated)
-  * volume : [0-100] current volume value
+  * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
   * song : _int_ the position of the current song
   * songid : _int_ the id of the current song
@@ -216,6 +185,7 @@ For each available source, shows if it is activated or not. The answer
   * webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activated)
   * video : 0 or 1 (needs video dependencies, X display and needs to be
             activated in configuration)
+  * dvd : 0 or 1 (media backend has to be able to read dvd)
 
 Arguments :
   * ''This command does not accept any argument.''
@@ -251,7 +221,7 @@ List the files of the directory supplied as argument.
 Arguments :
   * {{{directory}}} (Simple and Optional) : string
 
-Expected return value : ''`FileList`''
+Expected return value : ''`FileAndDirList`''
 
 === `search` ===
 
@@ -261,7 +231,7 @@ Arguments :
   * {{{type}}} (Simple and Mandatory) : list : 'all','title',                    'genre','filename','artist','album'
   * {{{txt}}} (Simple and Mandatory) : string
 
-Expected return value : ''`FileList`''
+Expected return value : ''`FileAndDirList`''
 
 === `getvideodir` ===
 
@@ -270,14 +240,18 @@ Lists the files in video dir "directory".
 Arguments :
   * {{{directory}}} (Simple and Mandatory) : string
 
-Expected return value : ''`FileList`''
+Expected return value : ''`FileAndDirList`''
 
 === `play` ===
 
-Begin playing at song or webradio with id "id" or toggle play/pause.
+Begin playing at media file with id "id" or toggle play/pause.
 
 Arguments :
   * {{{id}}} (Simple and Optional) : int
+  * {{{id_type}}} (Simple and Optional) : string
+  * {{{source}}} (Simple and Optional) : string
+  * {{{alang}}} (Simple and Optional) : int
+  * {{{slang}}} (Simple and Optional) : int
 
 Expected return value : ''`Ack`''
 
@@ -359,7 +333,25 @@ Return informations on the current song, webradio or video info.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : ''`SongList or WebradioList or VideoList`''
+Expected return value : ''`MediaList`''
+
+=== `setAlang` ===
+
+Select audio language
+
+Arguments :
+  * {{{lang_idx}}} (Simple and Mandatory) : int
+
+Expected return value : ''`Ack`''
+
+=== `setSlang` ===
+
+Select subtitle language
+
+Arguments :
+  * {{{lang_idx}}} (Simple and Mandatory) : int
+
+Expected return value : ''`Ack`''
 
 === `playlistInfo` ===
 
@@ -369,7 +361,7 @@ Return the content of the playlist "name". If no name is given, return
 Arguments :
   * {{{name}}} (Simple and Mandatory) : string
 
-Expected return value : ''`SongList`''
+Expected return value : ''`MediaList`''
 
 === `playlistList` ===
 
@@ -378,7 +370,7 @@ Return the list of recorded playlists.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : ''`PlaylistList`''
+Expected return value : ''`MediaList`''
 
 === `playlistAdd` ===
 
@@ -467,7 +459,7 @@ Return the list of recorded webradios.
 Arguments :
   * ''This command does not accept any argument.''
 
-Expected return value : ''`WebradioList`''
+Expected return value : ''`MediaList`''
 
 === `webradioAdd` ===
 
@@ -499,15 +491,6 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== `playQueue` ===
-
-Begin playing song with id "id" in the queue.
-
-Arguments :
-  * {{{id}}} (Simple and Mandatory) : int
-
-Expected return value : ''`Ack`''
-
 === `queueInfo` ===
 
 Return the content of the queue.
@@ -515,7 +498,7 @@ Return the content of the queue.
 Arguments :
   * {{{name}}} (Simple and Mandatory) : string
 
-Expected return value : ''`SongList`''
+Expected return value : ''`MediaList`''
 
 === `queueAdd` ===
 
@@ -565,4 +548,22 @@ Arguments :
   * {{{directory}}} (Simple and Optional) : string
 
 Expected return value : ''`Ack`''
+
+=== `dvdLoad` ===
+
+Load the content of the dvd player.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`Ack`''
+
+=== `dvdInfo` ===
+
+Get the content of the current dvd.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`DvdInfo`''
 

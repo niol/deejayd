@@ -102,18 +102,18 @@ class DeejaydWebradioList(DeejaydAnswer):
 
     def delete_webradio(self, name):
         cmd = DeejaydXMLCommand('webradioRemove')
-        wr_id = self.get_webradio(name)['Id']
+        wr_id = self.get_webradio(name)['id']
         cmd.add_multiple_arg('id', [wr_id])
         return self.server._send_command(cmd)
 
     def names(self):
         names = []
         for wr in self.get_contents():
-            names.append(wr['Title'])
+            names.append(wr['title'])
         return names
 
     def get_webradio(self, name):
-        return self.__get_webradio_by_field('Title', name)
+        return self.__get_webradio_by_field('title', name)
 
     def __get_webradio_by_field(self, field, value):
         i_wr = iter(self.get_contents())
@@ -175,8 +175,7 @@ class _AnswerFactory(ContentHandler):
             self.response_type = attrs.get('type')
             if self.response_type == 'Ack':
                 self.answer = True
-            elif self.response_type in ['FileList', 'WebradioList',
-                                       'SongList', 'PlaylistList']:
+            elif self.response_type in ['FileAndDirList','MediaList','DvdInfo']:
                 self.answer = []
             elif self.response_type == 'KeyValue':
                 self.answer = {}
@@ -193,13 +192,15 @@ class _AnswerFactory(ContentHandler):
             else:
                 self.parms[attrs.get('name')] = real_val
         elif name == 'directory':
-            assert self.response_type == 'FileList'
+            assert self.response_type == 'FileAndDirList'
             assert self.xmlpath == ['deejayd', 'response', 'directory']
             self.expected_answer.add_dir(attrs.get('name'))
-        elif name == 'playlist':
-            assert self.response_type == 'PlaylistList'
-            assert self.xmlpath == ['deejayd', 'response', 'playlist']
-            self.answer.append(attrs.get('name'))
+        elif name == 'file':
+            assert self.response_type == 'FileAndDirList'
+            assert self.xmlpath == ['deejayd', 'response', 'file']
+        elif name == 'media':
+            assert self.response_type == 'MediaList'
+            assert self.xmlpath == ['deejayd', 'response', 'media']
         elif name == 'error':
             self.response_type = 'error'
 
@@ -210,7 +211,7 @@ class _AnswerFactory(ContentHandler):
     def endElement(self, name):
         self.xmlpath.pop()
 
-        if name in ['song', 'webradio']:
+        if name == 'media':
             self.answer.append(self.parms)
             self.parms = {}
         elif name == 'file':

@@ -47,30 +47,25 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
         for root, dirs, files in os.walk(self.testdata.getRootDir()):
             current_root = self.testdata.stripRoot(root)
 
-            # First, verify directory list
-            try: inDBdirs = [os.path.join(item[0],item[1]) for item\
-                    in self.library.get_dir_content(current_root) \
-                    if item[2] == "directory"] 
+            try: contents = self.library.get_dir_content(current_root)
             except NotFoundException:
-                allDirs = [os.path.join(item[0],item[1]) for item\
-                                in self.library.get_dir_content('') \
-                                if item[2] == "directory"]
+                allContents = self.library.get_dir_content('')
                 self.assert_(False,
                     "'%s' is in directory tree but was not found in DB %s" %\
-                    (current_root,str(allDirs)))
+                    (current_root,str(allContents)))
+
+            # First, verify directory list
             for dir in dirs:
-                self.assert_(os.path.join(current_root, dir) in inDBdirs,
-                    "'%s' is in directory tree but was not found in DB %s in currrent root '%s'" % (dir,str(inDBdirs),current_root))
+                self.assert_(dir in contents["dirs"],
+                    "'%s' is in directory tree but was not found in DB %s in currrent root '%s'" % (dir,str(contents["dirs"]),current_root))
 
             # then, verify file list
-            inDBfiles = [os.path.join(item[0],item[1]) for item \
-                        in self.library.get_dir_content(current_root) \
-                        if item[2] == "file"] 
+            db_files = [f["path"] for f in contents["files"]]
             for file in files:
                 (name,ext) = os.path.splitext(file)
                 relPath = os.path.join(current_root, file)
                 if ext.lower() in self.__class__.supported_ext:
-                    self.assert_(relPath in inDBfiles,
+                    self.assert_(relPath in db_files,
                     "'%s' is a file in directory tree but was not found in DB"\
                     % relPath)
                     if testTag: self.verifyTag(relPath)
@@ -178,11 +173,10 @@ class TestAudioLibrary(TestDeejayDBLibrary):
         else: inDBfile = inDBfile[0]
         
         realFile = self.testdata.medias[filePath]
-        tags = {"title": 3, "artist": 4, "album": 5}
-        for tag in tags.keys():
-            self.assert_(realFile[tag] == inDBfile[tags[tag]],
+        for tag in ("title","artist","album"):
+            self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \
-                (tag,realFile["filename"],realFile[tag],inDBfile[tags[tag]]))
+                (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
 
 
 # vim: ts=4 sw=4 expandtab

@@ -81,7 +81,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
         if self.__class__.obj_supplied:
             self.sources = sources.SourceFactory(self.player,self.db,\
-                                      self.audio_library,self.video_library)
+                               self.audio_library,self.video_library,config)
             return True
 
         # Init the Database

@@ -119,7 +119,8 @@ class _DeejaydXMLAnswer(_DeejaydXML):
         return xml_list_parm
 
     def build_xml_parm_list(self, data, parent_element):
-        for data_key, data_value in data.items():
+        for data_key in data.keys():
+            data_value = data[data_key]
             xml_parm = None
             if type(data_value) is list:
                 xml_parm = self.build_xml_list_parm(data_key, data_value)
@@ -176,22 +177,25 @@ class DeejaydXMLKeyValue(DeejaydXMLAck):
             self.xmlcontent.appendChild(self.build_xml_parm(k, v))
 
 
-class DeejaydXMLFileList(DeejaydXMLAck):
+class DeejaydXMLFileDirList(DeejaydXMLAck):
     """A list of files and directories."""
 
-    response_type = 'FileList'
+    response_type = 'FileAndDirList'
 
     def __init__(self, originating_cmd, mother_xml_object = None):
         DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
 
         self.directory = None
+        self.file_type = None
 
         self.contents = {'directory' : [],
-                         'file'      : [],
-                         'video'     : [] }
+                         'file'      : []}
 
     def set_directory(self, directory):
         self.directory = directory
+
+    def set_filetype(self, file_type):
+        self.file_type = file_type
 
     def add_directory(self, dirname):
         self.contents['directory'].append(dirname)
@@ -205,12 +209,6 @@ class DeejaydXMLFileList(DeejaydXMLAck):
     def set_files(self, file_list):
         self.contents['file'] = file_list
 
-    def add_video(self, video_info):
-        self.contents['video'].append(video_info)
-
-    def set_videos(self, video_list):
-        self.contents['video'] = video_list
-
     def build_xml(self):
         DeejaydXMLAck.build_xml(self)
 
@@ -222,100 +220,44 @@ class DeejaydXMLFileList(DeejaydXMLAck):
             xmldir.setAttribute('name', dirname)
             self.xmlcontent.appendChild(xmldir)
 
-        for mediaType in ['file', 'video']:
-            for item in self.contents[mediaType]:
-                xmlitem = self.xmldoc.createElement(mediaType)
-                self.build_xml_parm_list(item, xmlitem)
-                self.xmlcontent.appendChild(xmlitem)
+        for item in self.contents['file']:
+            xmlitem = self.xmldoc.createElement('file')
+            xmlitem.setAttribute('type',self.file_type)
+            self.build_xml_parm_list(item, xmlitem)
+            self.xmlcontent.appendChild(xmlitem)
 
 
-class DeejaydWebradioList(DeejaydXMLAck):
-    """A list of webradios with information for each webradio : id, pos, title and url."""
+class DeejaydXMLMediaList(DeejaydXMLAck):
+    """A list of media (song, webradio,playlist or video) with information for each media : 
+    * artist, album, title, id, etc. if it is a song
+    * title, url, id, etc. if it is a webradio
+    * artist, album, title, id, etc. if it is a video"""
 
-    response_type = 'WebradioList'
-
-    def __init__(self, originating_cmd, mother_xml_object = None):
-        DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
-        self.webradios = []
-
-    def add_webradio(self, wr):
-        self.webradios.append(wr)
-
-    def set_webradios(self, wr_list):
-        self.webradios = wr_list
-
-    def build_xml(self):
-        DeejaydXMLAck.build_xml(self)
-        for wr in self.webradios:
-            xmlwr = self.xmldoc.createElement('webradio')
-            self.build_xml_parm_list(wr, xmlwr)
-            self.xmlcontent.appendChild(xmlwr)
-
-
-class DeejaydXMLSongList(DeejaydXMLAck):
-    """A list of songs with information for each song : artist, album, title, id, etc."""
-
-    response_type = 'SongList'
+    response_type = 'MediaList'
 
     def __init__(self, originating_cmd, mother_xml_object = None):
         DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
-        self.songs = []
+        self.media_items = []
 
-    def add_song(self, song):
-        self.songs.append(song)
+    def set_mediatype(self,type):
+        self.media_type = type
 
-    def set_songs(self, songs):
-        self.songs = songs
+    def add_media(self, media):
+        self.media_items.append(media)
 
-    def build_xml(self):
-        DeejaydXMLAck.build_xml(self)
-        for song in self.songs:
-            xmlsong = self.xmldoc.createElement('song')
-            self.build_xml_parm_list(song, xmlsong)
-            self.xmlcontent.appendChild(xmlsong)
-
-
-class DeejaydPlaylistList(DeejaydXMLAck):
-    """A list of playlist names."""
-
-    response_type = 'PlaylistList'
-
-    def __init__(self, originating_cmd, mother_xml_object = None):
-        DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
-        self.playlist_names = []
-
-    def add_playlist(self, playlist_name):
-        self.playlist_names.append(playlist_name)
+    def set_medias(self, medias):
+        self.media_items = medias
 
     def build_xml(self):
         DeejaydXMLAck.build_xml(self)
-        for playlist_name in self.playlist_names:
-            xmlpl = self.xmldoc.createElement('playlist')
-            xmlpl.setAttribute('name', playlist_name)
-            self.xmlcontent.appendChild(xmlpl)
+        for item in self.media_items:
+            xmlitem = self.xmldoc.createElement('media')
+            xmlitem.setAttribute("type",self.media_type)
+            self.build_xml_parm_list(item, xmlitem)
+            self.xmlcontent.appendChild(xmlitem)
 
 
-class DeejaydVideoList(DeejaydXMLAck):
-    """A list of videos with information for each video."""
-
-    response_type = 'VideoList'
-
-    def __init__(self, originating_cmd, mother_xml_object = None):
-        DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
-        self.videos = []
-
-    def add_video(self, video):
-        self.videos.append(video)
-
-    def build_xml(self):
-        DeejaydXMLAck.build_xml(self)
-        for video in self.videos:
-            xmlvid = self.xmldoc.createElement('video')
-            self.build_xml_parm_list(video, xmlvid)
-            self.xmlcontent.appendChild(xmlvid)
-
-
-class DeejaydDvdInfo(DeejaydXMLAck):
+class DeejaydXMLDvdInfo(DeejaydXMLAck):
     """Format dvd content."""
 
     response_type = 'DvdInfo'
@@ -331,6 +273,7 @@ class DeejaydDvdInfo(DeejaydXMLAck):
         DeejaydXMLAck.build_xml(self)
         xmldvd = self.xmldoc.createElement('dvd')
         if not self.dvd_info:
+            # FIXME do not appear here
             xmldvd.setAttribute('title',"DVD NOT LOADED")
             self.xmlcontent.appendChild(xmldvd)
             return
@@ -373,12 +316,9 @@ class DeejaydXMLAnswerFactory:
     response_types = [ DeejaydXMLError,
                       DeejaydXMLAck,
                       DeejaydXMLKeyValue,
-                      DeejaydXMLFileList,
-                      DeejaydWebradioList,
-                      DeejaydXMLSongList,
-                      DeejaydPlaylistList,
-                      DeejaydVideoList,
-                      DeejaydDvdInfo    ]
+                      DeejaydXMLFileDirList,
+                      DeejaydXMLMediaList,
+                      DeejaydXMLDvdInfo    ]
 
     def __init__(self):
         self.mother_answer = None
