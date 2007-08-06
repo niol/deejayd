@@ -456,6 +456,14 @@ class DeejayDaemon:
         cmd = DeejaydXMLCommand('status')
         return self._send_command(cmd, DeejaydKeyValue())
 
+    def update_audio_library(self):
+        cmd = DeejaydXMLCommand('audioUpdate')
+        return self._send_command(cmd, DeejaydKeyValue())
+
+    def update_video_library(self):
+        cmd = DeejaydXMLCommand('videoUpdate')
+        return self._send_command(cmd, DeejaydKeyValue())
+
     def get_playlist(self, name):
         cmd = DeejaydXMLCommand('playlistInfo')
         if name != None:

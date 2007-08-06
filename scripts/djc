@@ -45,6 +45,15 @@ class AvailableCommands:
         for (key, value) in self.server.get_status().items():
             print key, ':', value
 
+    def audio_update(self, args):
+        """Update audio library"""
+        for (key, value) in self.server.update_audio_library().items():
+            print key, ':', value
+
+    def video_update(self, args):
+        """Update video library"""
+        for (key, value) in self.server.update_video_library().items():
+            print key, ':', value
 
 def get_cmds():
     cmds = []
