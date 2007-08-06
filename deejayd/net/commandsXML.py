@@ -59,6 +59,14 @@ class UnknownCommand:
         return rsp
 
 
+class Close(UnknownCommand):
+    """Close the connection with the server"""
+    command_name = 'close'
+
+    def execute(self):
+        self.deejaydArgs["protocol"].loseConnection()
+
+
 class Ping(UnknownCommand):
     """Does nothing, just replies with an acknowledgement that the command was received"""
     command_name = 'ping'

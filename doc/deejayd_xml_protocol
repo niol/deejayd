@@ -112,6 +112,15 @@ Responses may be combined in the same physical message :
 
 == Available Commands ==
 
+=== `close` ===
+
+Close the connection with the server
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`Ack`''
+
 === `ping` ===
 
 Does nothing, just replies with an acknowledgement that the command was received

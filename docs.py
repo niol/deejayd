@@ -3,43 +3,8 @@
 Use to create documentation of the protocol
 """
 
-from deejayd.net import commandsXML,commandsLine
+from deejayd.net import commandsXML
 from deejayd.net.xmlbuilders import *
-
-def headerLineCommands():
-    return """
-                        deejayd - Line Protocol
-
-All data between the client and server is encoded in UTF-8.
--------------------------------------------------------------------------------
-
-Commands Format : 
------------------  
-cmdName arg1 arg2
-
-If arguments contain spaces, they should be surrounded by double quotation
-marks, ".
-
-Command Completion :
---------------------
-A command returns "OK\\n" on completion or "ACK some error\\n" on failure.
-These denote the end of command execution.
-
-Available Commands :
------------------
-
-------------------
-setXML
-------------------
-description :
-Activate XML protocol
-
-------------------
-close
-------------------
-description :
-Close connection with deejayd
-"""
 
 def headerXMLCommands():
     return """= deejayd - XML Protocol =
@@ -82,7 +47,7 @@ so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
 == Response Format ==
 """
 
-commandsOrders  = ("ping", "status", "stats", "setMode", "getMode",
+commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
                    "audioUpdate", "videoUpdate", "getdir", "search", 
                    "getvideodir", "play", "stop", "pause", "next", "previous", 
                    "setVolume", "seek", "setOption", "current", 
@@ -294,23 +259,5 @@ Responses may be combined in the same physical message :
     f = open("doc/deejayd_xml_protocol","w")
     try: f.write(docs)
     finally: f.close()
-
-    # Line Doc
-    commandsListLine = commandsLine.commandsList(commandsLine)
-    docs = headerLineCommands()
-    for cmd in commandsLine.commandsOrders():
-        try: func = getattr(commandsListLine[cmd]("",[]), "docInfos")
-        except AttributeError:
-            try:
-                docs += formatCommandDoc(commandsXML.commands[cmd])
-            except KeyError:
-                docs += 'No doc for command %s' % cmd
-        else:
-            docs += formatCmdDoc(cmd, commandsListLine[cmd])
-
-    f = open("doc/deejayd_line_protocol","w")
-    try: f.write(docs)
-    finally: f.close()
-
 
 # vim: ts=4 sw=4 expandtab

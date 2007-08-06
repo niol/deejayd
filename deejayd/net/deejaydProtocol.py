@@ -9,17 +9,17 @@ from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
 from deejayd.mediadb import library
 from deejayd.database.database import DatabaseFactory
-from deejayd.net import commandsXML,commandsLine
+from deejayd.net import commandsXML
 from deejayd import player,sources
 
 class DeejaydProtocol(LineReceiver):
 
     def __init__(self,db,player,audio_library,video_library,sources):
-        self.delimiter = "\n"
-        self.MAX_LENGTH = 1024
-        self.lineProtocol = True
+        self.delimiter = "ENDXML\n"
+        self.MAX_LENGTH = 40960
         self.deejaydArgs = {"audio_library":audio_library,"player":player,\
-                       "video_library":video_library,"db":db,"sources":sources}
+                       "video_library":video_library,"db":db,"sources":sources,\
+                       "protocol":self}
 
     def connectionMade(self):
         from deejayd import __version__
@@ -31,23 +31,10 @@ class DeejaydProtocol(LineReceiver):
 
     def lineReceived(self, line):
         line = line.strip("\r")
-        if line == "close":
-            self.transport.loseConnection()
-            return
-        elif line == "setXML":
-            self.lineProtocol = False
-            self.MAX_LENGTH = 40960
-            self.delimiter = "ENDXML\n"
-            self.transport.write("OK\n")
-            return
         # DEBUG Informations
         log.debug(line)
 
-        if not self.lineProtocol:
-            remoteCmd = self.cmdFactory.createCmdFromXML(line)
-        else:
-            remoteCmd = self.cmdFactory.createCmdFromLine(line)
-
+        remoteCmd = self.cmdFactory.createCmdFromXML(line)
         rsp = remoteCmd.execute()
         if isinstance(rsp, unicode):
             rsp = rsp.encode("utf-8")
@@ -176,20 +163,5 @@ class CommandFactory:
         if cmdName in commandsXML.commands.keys():
             return (cmdName, commandsXML.commands[cmdName], args)
         else: return (cmdName,commandsXML.UnknownCommand,{})
-
-
-  # Line Commands
-    def createCmdFromLine(self, rawCmd):
-        splittedCmd = rawCmd.split(' ',1)
-        cmdName = splittedCmd[0]
-        try: args = splittedCmd[1]
-        except: args = None
-
-        commandsParse = commandsLine.commandsList(commandsLine)
-        if cmdName in commandsParse.keys():
-            return commandsParse[cmdName](cmdName,self.deejaydArgs,args)
-        else:
-            return commandsLine.UnknownCommand(cmdName,self.deejaydArgs,args)
-
 
 # vim: ts=4 sw=4 expandtab

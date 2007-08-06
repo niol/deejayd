@@ -374,18 +374,15 @@ class DeejayDaemon:
 
         # Catch version
         self.version = socketFile.readline()
-
-        # Go in XML mode
-        self.socket_to_server.send('setXML\n')
-        init_answer = socketFile.readline()
-
-        if init_answer == 'OK\n':
+        self.connected = True
+        if self.version.startswith("OK DEEJAYD"):
+            # FIXME extract version number
+            self.connected = True
             self.sending_thread.start()
             self.receiving_thread.start()
-            self.connected = True
         else:
             self.disconnect()
-            raise ConnectError('Initialisation with server failed')
+            raise ConnectError('Connection with server failed')
 
     def disconnect(self):
         if not self.connected:
