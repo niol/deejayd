@@ -4,10 +4,13 @@ xmlbuilders
 Test
   * Finish to write tests
 
+Xine
+  * Should take video_pixel_aspect into account
+
 Coding style
   I red somewhere that the recommended usage is underscore-separated for
   variable and function names, camel-case for class names, and run-together
   lower-case for module names. It should perhaps be good to respect this, one
   day...
-  This is done for the database, mediadb, source, client and xmlbuilders
-  modules.
+  This is done for the commandsXML, database, mediadb, source, 
+  client and xmlbuilders modules.
