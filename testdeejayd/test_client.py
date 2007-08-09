@@ -286,6 +286,18 @@ class TestClient(TestCaseWithMediaData):
         self.testserver.stop()
         TestCaseWithMediaData.tearDown(self)
 
+    def testSetMode(self):
+        """Test setMode command"""
+
+        # ask an unknown mode
+        mode_name = self.testdata.getRandomString()
+        self.assertRaises(DeejaydError, self.deejaydaemon.set_mode, mode_name) 
+
+        # ask a known mode
+        ans = self.deejaydaemon.set_mode("playlist")
+        self.failUnless(ans.get_contents(),
+                        'Server did not respond well to setMode command.')
+
     def testPlaylistSaveRetrieve(self):
         """Save a playlist and try to retrieve it."""
 

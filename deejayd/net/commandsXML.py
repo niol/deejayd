@@ -147,7 +147,7 @@ class Mode(UnknownCommand):
              return self.get_error_answer('You have to choose a mode')
         else:
             try: self.deejayd_args["sources"].set_source(self.args["mode"])
-            except sources.sources.UnknownSourceException:
+            except sources.UnknownSourceException:
                 return self.get_error_answer('Unknown mode')
             else: return self.get_ok_answer()
 
