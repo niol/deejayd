@@ -3,7 +3,7 @@
 import sys
 from optparse import OptionParser
 
-from deejayd.net.client import DeejayDaemon, DeejaydError
+from deejayd.net.client import DeejayDaemon, DeejaydError, DeejaydWebradioList
 
 
 class AvailableCommands:
@@ -37,8 +37,26 @@ class AvailableCommands:
             else:
                 volume = int(args[0])
             self.server.set_volume(volume)
-        except ValueError, IndexError:
+        except (ValueError, IndexError):
             print 'Bad command line'
+
+    def set_option(self, args):
+        """Set option to argument value. ex: djc set_option random 1"""
+        try:
+            option_name = args[0]
+            option_value = int(args[1])
+        except (ValueError, IndexError):
+            print 'Bad command line'
+        else:
+            self.server.set_option(option_name,option_value)
+
+    def set_mode(self, args):
+        """Set option to argument value. ex: djc set_option random 1"""
+        try: mode = args[0]
+        except IndexError:
+            print 'You need to select a mode'
+        else:
+            self.server.set_mode(mode)
 
     def status(self, args):
         """Get full deejayd status"""
@@ -54,6 +72,18 @@ class AvailableCommands:
         """Update video library"""
         for (key, value) in self.server.update_video_library().items():
             print key, ':', value
+
+    def add_webradio(self, args):
+        """Add a webradio. ex: djc add_webradio wr_name url"""
+        try:
+            wr_name = args[0]
+            wr_url = args[1]
+        except IndexError:
+            print 'Bad command line'
+        else:
+            wr = DeejaydWebradioList(self.server)
+            wr.add_webradio(wr_name,wr_url)
+
 
 def get_cmds():
     cmds = []
