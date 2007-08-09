@@ -237,7 +237,7 @@ Expected return value : ''`FileAndDirList`''
 Search files where "type" contains "txt" content.
 
 Arguments :
-  * {{{type}}} (Simple and Mandatory) : list : 'all','title',                    'genre','filename','artist','album'
+  * {{{type}}} (Simple and Mandatory) : enum_str
   * {{{txt}}} (Simple and Mandatory) : string
 
 Expected return value : ''`FileAndDirList`''
@@ -305,7 +305,7 @@ Expected return value : ''`Ack`''
 Set volume to "volume". The volume range is 0-100.
 
 Arguments :
-  * {{{volume}}} (Simple and Mandatory) : int
+  * {{{volume}}} (Simple and Mandatory) : enum_int
 
 Expected return value : ''`Ack`''
 
@@ -331,7 +331,8 @@ Set player options "name" to "value", "value" should be 0 or 1.
        You can pass several options in the same command
 
 Arguments :
-  * {{{option's name}}} (Simple and Mandatory) : list : 0 or 1
+  * {{{option_name}}} (Simple and Mandatory) : enum_str
+  * {{{option_value}}} (Simple and Mandatory) : enum_int
 
 Expected return value : ''`Ack`''
 
@@ -368,7 +369,7 @@ Return the content of the playlist "name". If no name is given, return
     the content of the current playlist.
 
 Arguments :
-  * {{{name}}} (Simple and Mandatory) : string
+  * {{{name}}} (Simple and Optional) : string
 
 Expected return value : ''`MediaList`''
 
@@ -410,17 +411,17 @@ Expected return value : ''`Ack`''
 Clear the current playlist.
 
 Arguments :
-  * ''This command does not accept any argument.''
+  * {{{name}}} (Simple and Optional) : string
 
 Expected return value : ''`Ack`''
 
 === `playlistMove` ===
 
-Move song with id "id" to newPosition "position".
+Move song with id "id" to position "new_position".
 
 Arguments :
   * {{{id}}} (Simple and Mandatory) : int
-  * {{{newPosition}}} (Simple and Mandatory) : int
+  * {{{new_position}}} (Simple and Mandatory) : int
 
 Expected return value : ''`Ack`''
 
@@ -429,7 +430,7 @@ Expected return value : ''`Ack`''
 Shuffle the current playlist.
 
 Arguments :
-  * ''This command does not accept any argument.''
+  * {{{name}}} (Simple and Optional) : string
 
 Expected return value : ''`Ack`''
 
@@ -484,7 +485,7 @@ Expected return value : ''`Ack`''
 
 === `webradioRemove` ===
 
-Remove webradios with id equal to "ids".
+Remove webradios with id equal to "id".
 
 Arguments :
   * {{{id}}} (Multiple and Mandatory) : int
@@ -505,7 +506,7 @@ Expected return value : ''`Ack`''
 Return the content of the queue.
 
 Arguments :
-  * {{{name}}} (Simple and Mandatory) : string
+  * {{{name}}} (Simple and Optional) : string
 
 Expected return value : ''`MediaList`''
 
