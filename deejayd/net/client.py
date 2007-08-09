@@ -452,6 +452,17 @@ class DeejayDaemon:
         cmd.add_simple_arg('volume', volume_value)
         return self._send_command(cmd)
 
+    def set_option(self, option_name, option_value):
+        cmd = DeejaydXMLCommand('setOption')
+        cmd.add_simple_arg('option_name', option_name)
+        cmd.add_simple_arg('option_value', option_value)
+        return self._send_command(cmd)
+
+    def set_mode(self, mode_name):
+        cmd = DeejaydXMLCommand('setMode')
+        cmd.add_simple_arg('mode', mode_name)
+        return self._send_command(cmd)
+
     def get_status(self):
         cmd = DeejaydXMLCommand('status')
         return self._send_command(cmd, DeejaydKeyValue())
@@ -482,6 +493,5 @@ class DeejayDaemon:
         cmd = DeejaydXMLCommand('webradioList')
         ans = DeejaydWebradioList(self)
         return self._send_command(cmd, ans)
-
 
 # vim: ts=4 sw=4 expandtab
