@@ -812,10 +812,11 @@ class CurrentSong(UnknownCommand):
     def execute(self):
         item = self.deejayd_args["player"].get_playing()
         rsp = self.get_answer('MediaList')
-        rsp.set_mediatype(item["Type"])
+        if item:
+            rsp.set_mediatype(item["Type"])
+            del item["Type"]
+            rsp.add_media(item)
 
-        del item["Type"]
-        rsp.add_media(item)
         return rsp
 
 
