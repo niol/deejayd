@@ -245,6 +245,8 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     /* init video informations and player */
     xine->player.fullscreen = 0;
     xine->player.display = XOpenDisplay(display_name);
+    if (!xine->player.display) // Unable to open display
+        return 1;
     xine->player.screen = XDefaultScreen(xine->player.display);
     screen_width = (DisplayWidth(xine->player.display, 
         xine->player.screen) * 1000 / DisplayWidthMM(

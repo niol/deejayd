@@ -37,7 +37,7 @@ class SourceFactory:
             try: self.player.init_video_support()
             except:
                 # Critical error, we have to quit deejayd
-                sys.exit('Cannot initialise video sink, either disable video support or check your gstreamer plugins (video sink).')
+                sys.exit('Cannot initialise video support, either disable video support or check your player video support.')
 
         # dvd
         if self.player.is_supported_uri("dvd"):

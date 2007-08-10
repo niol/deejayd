@@ -91,7 +91,8 @@ cdef class Xine:
         if djdxine_set_config_param(self.xine,key,xine_type,<void*>&value):
             raise XineError
     def video_init(self,char *video_driver,char* display_name):
-        djdxine_video_init(self.xine,video_driver,display_name)
+        if djdxine_video_init(self.xine,video_driver,display_name):
+            raise XineError
     def stop(self):
         djdxine_stop(self.xine)
     def start_playing(self,char* filename,int isvideo,int fullscreen):
