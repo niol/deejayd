@@ -10,17 +10,17 @@ from os import path
 class queueCommands:
     
     def __init__(self,deejayd_args):
-        self.__commandsList = []
+        self.commands = []
         self.deejayd_args = deejayd_args
         self.__rspFactory = DeejaydXMLAnswerFactory()
 
     def addCommand(self,name,cmd,args):
-        self.__commandsList.append((name,cmd,args))
+        self.commands.append((name,cmd,args))
 
     def execute(self):
         motherRsp = None
 
-        for (cmdName, cmdType, args) in self.__commandsList:
+        for (cmdName, cmdType, args) in self.commands:
             cmd = cmdType(cmdName, args, self.__rspFactory, self.deejayd_args)
 
             error = cmd.args_validation()
@@ -123,7 +123,9 @@ class Close(UnknownCommand):
     command_name = 'close'
 
     def execute(self):
-        self.deejayd_args["protocol"].loseConnection()
+        # Connection is closed after the answer has been written (in
+        # deejaydProtocol.py).
+        return self.get_ok_answer()
 
 
 class Ping(UnknownCommand):

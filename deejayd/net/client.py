@@ -388,6 +388,8 @@ class DeejayDaemon:
         if not self.connected:
             return
 
+        self._send_simple_command('close').get_contents()
+
         # Stop our processing threads
         self.receiving_thread.should_stop = True
         # This is tricky because stopping must be notified in the queue for the

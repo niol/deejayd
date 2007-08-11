@@ -43,6 +43,9 @@ class DeejaydProtocol(LineReceiver):
 
         self.transport.write(rsp)
 
+        if 'close' in remoteCmd.commands:
+            self.transport.loseConnection()
+
     def lineLengthExceeded(self, line):
         log.err("Request too long, skip it")
         self.transport.write("ACK line too long\n")
