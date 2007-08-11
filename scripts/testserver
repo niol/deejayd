@@ -25,7 +25,7 @@ port = sys.argv[1]
 music_dir = sys.argv[2]
 dbfilename = sys.argv[3]
 
-log.startLogging(open('/tmp/testdeejayd.log', 'w'))
+log.startLogging(open('/tmp/testdeejayd.log', 'a'))
 
 config = DeejaydConfig()
 

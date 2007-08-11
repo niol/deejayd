@@ -3,6 +3,11 @@ Tools to create a test server.
 """
 import os, signal, os.path, sys, subprocess
 
+logfile = '/tmp/testdeejayd.log'
+if os.path.isfile(logfile):
+    os.unlink(logfile)
+
+
 class TestServer:
     """Implements a server ready for testing."""
     
