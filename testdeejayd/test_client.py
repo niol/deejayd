@@ -294,9 +294,14 @@ class TestClient(TestCaseWithMediaData):
         self.assertRaises(DeejaydError, self.deejaydaemon.set_mode, mode_name) 
 
         # ask a known mode
-        ans = self.deejaydaemon.set_mode("playlist")
+        known_mode = 'playlist'
+        ans = self.deejaydaemon.set_mode(known_mode)
         self.failUnless(ans.get_contents(),
                         'Server did not respond well to setMode command.')
+
+        # Test if the mode has been set
+        status = self.deejaydaemon.get_status()
+        self.assertEqual(status['mode'], known_mode)
 
     def testPlaylistSaveRetrieve(self):
         """Save a playlist and try to retrieve it."""
