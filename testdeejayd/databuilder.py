@@ -7,6 +7,9 @@ import md5
 import random, time, string
 from xml.dom import minidom
 
+DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+
+
 class TestDataError: pass
 
 class TestData:
@@ -72,7 +75,7 @@ class TestSong(TestData):
 class TestVideo(TestSong):
 
     def __init__(self):
-        self.testFile,self.ext = "testdeejayd/data/mpg_test.mpg", ".mpg"
+        self.testFile,self.ext = os.path.join(DATA_DIR, "mpg_test.mpg"), ".mpg"
         TestSong.__init__(self)
         self.tags = {"length": 10, "videowidth": 0, "videoheight": 0}
 
@@ -85,7 +88,7 @@ class TestVideo(TestSong):
 class TestMP3Song(TestSong):
 
     def __init__(self):
-        self.testFile,self.ext = "testdeejayd/data/mp3_test.mp3", ".mp3"
+        self.testFile,self.ext = os.path.join(DATA_DIR, "mp3_test.mp3"), ".mp3"
         TestSong.__init__(self)
 
     def __getitem__(self,key):
@@ -99,7 +102,7 @@ class TestMP3Song(TestSong):
 class TestOggSong(TestSong):
 
     def __init__(self):
-        self.testFile,self.ext = "testdeejayd/data/ogg_test.ogg", ".ogg"
+        self.testFile,self.ext = os.path.join(DATA_DIR, "ogg_test.ogg"), ".ogg"
         TestSong.__init__(self)
 
     def __getitem__(self,key):
@@ -192,7 +195,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
 
     def buildLibraryDirectoryTree(self, destDir = "/tmp"):
         # create test data directory in random subdirectory of destDir
-        self.datadir = os.path.join(destDir,
+        self.datadir = os.path.join(os.path.normpath(destDir),
                                    'testdeejayd-media' + self.getRandomString())
         if not os.path.exists(self.datadir):
             os.mkdir(self.datadir)
@@ -232,7 +235,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
         media_class=self.getRandomElement(self.supported_files_class)
         media = media_class()
         dir.addItem(media)
-        self.medias[dir.name+"/"+media.name] = media
+        self.medias[os.path.join(dir.name, media.name)] = media
 
     def renameMedia(self):
         mediaKey = self.getRandomElement(self.medias.keys())
@@ -240,7 +243,8 @@ class TestMediaCollection(TestProvidedMusicCollection):
         del self.medias[mediaKey]
 
         media.rename()
-        self.medias[os.path.dirname(mediaKey) + "/" + media.name] = media
+        new_path = os.path.join(os.path.dirname(mediaKey), media.name)
+        self.medias[new_path] = media
 
     def removeMedia(self):
         mediaKeys = self.getRandomElement(self.medias.keys())
@@ -251,7 +255,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
         dir = TestDir()
         for media_class in self.supported_files_class:
             media = media_class()
-            self.medias[dir.name+"/"+media.name] = media
+            self.medias[os.path.join(dir.name, media.name)] = media
             dir.addItem(media)
         dir.buildContent(self.datadir)
 
@@ -262,11 +266,13 @@ class TestMediaCollection(TestProvidedMusicCollection):
         subdir = TestDir()
         for media_class in self.supported_files_class:
             media = media_class()
-            self.medias[dir.name+"/"+subdir.name+"/"+media.name] = media
+            media_path = os.path.join(dir.name, subdir.name, media.name)
+            self.medias[media_path] = media
             subdir.addItem(media)
-        subdir.buildContent(self.datadir+"/"+dir.name)
 
-        self.dirs[self.datadir+"/"+dir.name] = dir
+        subdir_path = os.path.join(self.datadir, dir.name)
+        subdir.buildContent(subdir_path)
+        self.dirs[subdir_path] = dir
 
     def renameDir(self):
         dir = self.getRandomElement(self.dirs.values())
