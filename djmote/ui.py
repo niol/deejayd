@@ -9,8 +9,8 @@ gtk.threads_init()
 import hildon
 
 from deejayd.net.client import DeejayDaemon
-from maemote.conf import MaemoteConfig
-from maemote.widgets import *
+from djmote.conf import Config
+from djmote.widgets import *
 
 # This is a decorator for our GUI callbacks : every GUI callback will be GTK
 # thread safe that way.
@@ -24,7 +24,7 @@ def gui_callback(func):
     return gtk_thread_safe_func
 
 
-class MaemoteUi(hildon.Program):
+class DjmoteUI(hildon.Program):
 
     def __init__(self):
         hildon.Program.__init__(self)
@@ -33,8 +33,8 @@ class MaemoteUi(hildon.Program):
         self.__player_state = None
 
         # Conf
-        conffile = os.path.expanduser('~/.maemoterc')
-        self.__conf = MaemoteConfig(conffile)
+        conffile = os.path.expanduser('~/.djmoterc')
+        self.__conf = Config(conffile)
 
     def build(self):
         self.main_window = hildon.Window()

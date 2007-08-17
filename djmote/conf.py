@@ -1,6 +1,6 @@
 import os
 
-class MaemoteConfig:
+class Config:
 
     def __init__(self, file):
         self.file = os.path.normpath(file)

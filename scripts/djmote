@@ -7,11 +7,11 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 
-import maemote.ui
+import djmote.ui
 
-mui = maemote.ui.MaemoteUi()
-mui.build()
-mui.run()
+dui = djmote.ui.DjmoteUI()
+dui.build()
+dui.run()
 
 
 # vim: ts=4 sw=4 expandtab
