@@ -101,19 +101,19 @@ class DvdSource:
         if self.selected_track["selected_chapter"]:
             id += ".%d" % self.selected_track["selected_chapter"]
         uri = "dvd://%d" % self.selected_track["ix"]
-        return {"Title": self.dvd_info["title"], "Type": "video", \
-                "uri": uri, "Alang":self.selected_track["alang_ix"],\
-                "Slang":self.selected_track["slang_ix"],\
-                "Chapter":self.selected_track["selected_chapter"],\
-                "Time": self.selected_track["length"],\
-                "Id": id,
-                "Audio": self.selected_track["audio"]}
+        return {"title": self.dvd_info["title"], "type": "video", \
+                "uri": uri, "alang":self.selected_track["alang_ix"],\
+                "slang":self.selected_track["slang_ix"],\
+                "chapter":self.selected_track["selected_chapter"],\
+                "length": self.selected_track["length"],\
+                "id": id,
+                "audio": self.selected_track["audio"]}
                 #"Subtitle": self.selected_track["subp"]}
 
     def go_to(self,id,type = "track"):
         if type == "track": self.select_track(id)
         elif type == "chapter": self.select_chapter(None,id)
-        elif type == "Id":
+        elif type == "id":
             ids = id.split('.')
             self.select_track(int(ids[0]))
             if len(ids) > 1 and self.selected_track:

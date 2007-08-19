@@ -114,8 +114,8 @@ class _DeejaydXMLAnswer(_DeejaydXML):
         for value in valueList:
             xmlvalue = self.xmldoc.createElement('value')
             value = self.__to_xml_string(value)
-            xmlvalue.appendChild(xmldoc.createTextNode(value))
-            xml_list_parm.appendChild(xmlValue)
+            xmlvalue.appendChild(self.xmldoc.createTextNode(value))
+            xml_list_parm.appendChild(xmlvalue)
         return xml_list_parm
 
     def build_xml_parm_list(self, data, parent_element):

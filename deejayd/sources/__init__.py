@@ -88,7 +88,7 @@ class SourceFactory:
     #
     # Functions called from the player
     #
-    def get(self, nb = None, type = "Id", source_name = None):
+    def get(self, nb = None, type = "id", source_name = None):
         source = source_name and self.sources_obj[source_name] or \
                                  self.current
         return source.go_to(nb,type)        

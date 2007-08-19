@@ -90,7 +90,7 @@ class GstreamerPlayer(UnknownPlayer):
     def start_play(self):
         if not self._media_file: return
 
-        if self._media_file["Type"] == "video" and not self.deejayd_window:
+        if self._media_file["type"] == "video" and not self.deejayd_window:
             import gtk
             self.deejayd_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             self.deejayd_window.set_title("deejayd")
@@ -113,7 +113,7 @@ class GstreamerPlayer(UnknownPlayer):
             state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
             timeout -= 1
         
-        if state_ret != gst.STATE_CHANGE_SUCCESS: self.set_state(PLAYER_STOP)
+        if state_ret != gst.STATE_CHANGE_SUCCESS: return
         elif self._video_support: 
             self.set_fullscreen(self.options["fullscreen"])
 
@@ -152,9 +152,9 @@ class GstreamerPlayer(UnknownPlayer):
 
     def set_subtitle(self,val):
         if not self._media_file: return
-        if  self._video_support and self._media_file["Type"] == "video"\
+        if  self._video_support and self._media_file["type"] == "video"\
                                                                 and val == 1:
-            sub_uri = self._media_file["Subtitle"]
+            sub_uri = self._media_file["subtitle"]
             if sub_uri.startswith("file://"): pass
                 # FIXME : these 2 lines induce a general stream error in 
                 #         gstreamer. Find out the reason

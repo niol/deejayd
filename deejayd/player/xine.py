@@ -51,17 +51,17 @@ class XinePlayer(UnknownPlayer):
         # format correctly the uri
         uri = self._media_file["uri"]
         # For dvd chapter
-        if "Chapter" in self._media_file.keys() and \
-                    self._media_file["Chapter"]:
-            uri += ".%d" % self._media_file["Chapter"]
+        if "chapter" in self._media_file.keys() and \
+                    self._media_file["chapter"]:
+            uri += ".%d" % self._media_file["chapter"]
         # For external subtitle
-        if "Subtitle" in self._media_file.keys() and \
-                self._media_file["Subtitle"].startswith("file://") and \
+        if "subtitle" in self._media_file.keys() and \
+                self._media_file["subtitle"].startswith("file://") and \
                 self.options["loadsubtitle"]:
-                uri += "#subtitle:%s" % self._media_file["Subtitle"]
+                uri += "#subtitle:%s" % self._media_file["subtitle"]
 
         isvideo = 0
-        if self._media_file["Type"] == "video": isvideo = 1
+        if self._media_file["type"] == "video": isvideo = 1
         try: self.xine.start_playing(uri, isvideo, self.options["fullscreen"])
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())

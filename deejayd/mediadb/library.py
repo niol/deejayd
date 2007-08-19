@@ -253,7 +253,7 @@ class AudioLibrary(Library):
         for (dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in rs:
             if t == 'directory': dirs.append(fn)
             else:
-                file_info = {"path":os.path.join(dir,fn),"lenght":lg,
+                file_info = {"path":os.path.join(dir,fn),"length":lg,
                              "filename":fn,"dir":dir,
                              "title":ti,"artist":ar,"album":al,"genre":gn,
                              "track":tn,"date":dt,"bitrate":bt,
@@ -277,7 +277,7 @@ class VideoLibrary(Library):
         for (dir,fn,t,id,ti,len,videow,videoh,sub) in rs:
             if t == 'directory': dirs.append(fn)
             else:
-                file_info = {"path":os.path.join(dir,fn),"lenght":len,
+                file_info = {"path":os.path.join(dir,fn),"length":len,
                              "filename":fn,"dir":dir,
                              "title":ti,"id":id,
                              "videowidth":videow,"videoheight":videoh,

@@ -42,9 +42,11 @@ class UnknownSource:
         for s in items:
             pos = init_pos+i
             s["pos"] = pos
-            s["id"] = self.set_item_id()
+            if "id" not in s.keys():
+                s["id"] = self.set_item_id()
             if "uri" not in s.keys():
-                s["uri"] = "file://"+s["path"]
+                s["uri"] = "file://"+path.join(self.library.get_root_path(),\
+                                s["path"])
             self.source_content.append(s)
             i += 1
 

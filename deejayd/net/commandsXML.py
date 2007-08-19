@@ -70,6 +70,10 @@ class UnknownCommand:
     def args_validation(self):
         for arg in self.__class__.command_args:
             if arg['name'] in self.args:
+                # FIXME need to remove this
+                if self.args[arg['name']] == None: 
+                    self.args[arg['name']] = "" 
+
                 value = self.args[arg['name']]
                 if isinstance(value,list) and "mult" not in arg:
                     return self.get_error_answer(\
@@ -89,7 +93,7 @@ class UnknownCommand:
 
                     elif arg['type'] == "int":
                         try: v = int(v)
-                        except ValueError:
+                        except (ValueError,TypeError):
                             return self.get_error_answer(\
                                 "arg %s (%s) is not a int" % (arg['name'],\
                                 str(v)))
@@ -102,7 +106,7 @@ class UnknownCommand:
 
                     elif arg['type'] == "enum_int":
                         try: v = int(v)
-                        except ValueError:
+                        except (ValueError,TypeError):
                             return self.get_error_answer(\
                                 "arg %s is not a int" % (arg['name'],))
                         else: 
@@ -265,12 +269,13 @@ class GetDir(UnknownCommand):
     command_rvalue = 'FileAndDirList'
 
     def execute(self):
-        try: content = self.deejayd_args['audio_library'].get_dir_content(dir)
+        try: content = self.deejayd_args['audio_library'].\
+                            get_dir_content(self.args["directory"])
         except NotFoundException:
             return self.get_error_answer('Directory not found in the database')
         else:
             rsp = self.get_answer('FileAndDirList')
-            rsp.set_directory(dir)
+            rsp.set_directory(self.args["directory"])
             rsp.set_filetype('song')
 
             rsp.set_files(content['files'])
@@ -302,24 +307,22 @@ class Search(UnknownCommand):
             rsp = self.get_answer('FileAndDirList')
             rsp.set_filetype('song')
 
-            filesAndDirs = self.getFileAndDirs(list)
-            rsp.set_files(filesAndDirs['files'])
-            rsp.set_directories(filesAndDirs['dirs'])
-
+            rsp.set_files(list)
             return rsp
 
 
 class GetVideoDir(GetDir):
     """Lists the files in video dir "directory"."""
     command_name = 'getvideodir'
-    command_args = [{"name":"directory", "type":"string", "req":True}]
+    command_args = [{"name":"directory","type":"string","req":False,\
+                     "default": ""}]
     command_rvalue = 'FileAndDirList'
 
     def execute(self):
         if not self.deejayd_args["video_library"]:
             return self.get_error_answer('Video support disabled.')
 
-        dir = "directory" in self.args.keys() and self.args["directory"] or ""
+        dir = self.args["directory"]
         try: list = self.deejayd_args["video_library"].get_dir_content(dir)
         except NotFoundException:
             return self.get_error_answer('Directory not found in the database')
@@ -328,9 +331,8 @@ class GetVideoDir(GetDir):
             rsp.set_filetype('video')
             rsp.set_directory(dir)
 
-            videosAndDirs = self.getVideosAndDirs(list)
-            rsp.set_files(videosAndDirs['videos'])
-            rsp.set_directories(videosAndDirs['dirs'])
+            rsp.set_files(list['files'])
+            rsp.set_directories(list['dirs'])
 
             return rsp
 
@@ -344,8 +346,7 @@ class GetVideoDir(GetDir):
 class SetVideoDir(UnknownCommand):
     """Set the current video directory to "directory"."""
     command_name = 'setvideodir'
-    command_args = [{"name":"directory", "type":"string", "req":False,
-                     "default":""}]
+    command_args = [{"name":"directory", "type":"string", "req":True}]
 
     def execute(self):
         try:
@@ -486,8 +487,8 @@ class PlaylistRemove(UnknownCommand):
     def execute(self):
         for nb in self.args['id']:
             try: self.deejayd_args["sources"].get_source("playlist").\
-                    delete(int(nb),"Id",self.args["name"])
-            except sources.unknown.ItemNotFoundException:
+                    delete(int(nb),"id",self.args["name"])
+            except sources._base.ItemNotFoundException:
                 return self.get_error_answer('Song not found')
             except sources.playlist.PlaylistNotFoundException:
                 return self.get_error_answer('Playlist not found')
@@ -503,7 +504,7 @@ class PlaylistMove(UnknownCommand):
     def execute(self):
         try: self.deejayd_args["sources"].get_source("playlist").move(\
                 int(self.args["id"]),int(self.args["new_position"]))
-        except sources.unknown.ItemNotFoundException:
+        except sources._base.ItemNotFoundException:
             return self.get_error_answer('Song not found')
         else: return self.get_ok_answer()
 
@@ -610,7 +611,7 @@ class QueueAdd(UnknownCommand):
         pos = self.args["pos"] and int(self.args["pos"]) or None
         try: self.deejayd_args["sources"].get_source("queue").\
                 add_path(self.args["path"],pos)
-        except sources.unknown.ItemNotFoundException:
+        except sources._base.ItemNotFoundException:
             return self.get_error_answer('%s not found' % (file,))
         else: return self.get_ok_answer()
 
@@ -651,10 +652,9 @@ class QueueRemove(UnknownCommand):
 
     def execute(self):
         for id in self.args["id"]:
-            try: 
-                self.deejayd_args["sources"].get_source("queue").delete(\
-                                                                int(id),"Id")
-            except sources.unknown.ItemNotFoundException:
+            try: self.deejayd_args["sources"].get_source("queue").delete(\
+                                                                int(id))
+            except sources._base.ItemNotFoundException:
                 return self.get_error_answer('Song not found')
 
         return self.get_ok_answer()
@@ -729,14 +729,18 @@ class Play(UnknownCommand):
     """Begin playing at media file with id "id" or toggle play/pause."""
     command_name = 'play'
     command_args = [{"name":"id", "type":"int", "req":False, "default":-1},
-                 {"name":"id_type","type":"string","req":False,"default":"Id"},
+                 {"name":"id_type","type":"enum_str","values":("id","pos"),\
+                  "req":False,"default":"id"},
                  {"name":"source","type":"string","req":False,"default":None},
                  {"name":"alang","type":"int","req":False,"default":None},
                  {"name":"slang","type":"int","req":False,"default":None}]
 
     def execute(self):
-        self.deejayd_args["player"].go_to(int(self.args["id"]),\
-                self.args["id_type"], self.args["source"])
+        if self.args["id"] == -1:
+            self.deejayd_args["player"].play()
+        else:
+            self.deejayd_args["player"].go_to(int(self.args["id"]),\
+                    self.args["id_type"], self.args["source"])
         return self.get_ok_answer()
 
 
@@ -815,8 +819,7 @@ class CurrentSong(UnknownCommand):
         item = self.deejayd_args["player"].get_playing()
         rsp = self.get_answer('MediaList')
         if item:
-            rsp.set_mediatype(item["Type"])
-            del item["Type"]
+            rsp.set_mediatype(item["type"])
             rsp.add_media(item)
 
         return rsp
