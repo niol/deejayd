@@ -496,4 +496,11 @@ class DeejayDaemon:
         ans = DeejaydWebradioList(self)
         return self._send_command(cmd, ans)
 
+    def get_audio_dir(self,dir):
+        cmd = DeejaydXMLCommand('getdir')
+        if dir != None:
+            cmd.add_simple_arg('directory', dir)
+        ans = DeejaydFileList(self)
+        return self._send_command(cmd, ans)
+
 # vim: ts=4 sw=4 expandtab

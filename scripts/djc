@@ -68,6 +68,17 @@ class AvailableCommands:
         for (key, value) in self.server.update_audio_library().items():
             print key, ':', value
 
+    def get_audio_dir(self, args):
+        """Get the content of an directory in audio library. 
+           ex: djc get_audio_dir "dirname"
+           if no dirname has been entered, return root directory content"""
+        try: dirname = args[0]
+        except IndexError: dirname = ""
+
+        rsp = self.server.get_audio_dir(dirname)
+        for dir in rsp.get_directories(): print "directory:", dir
+        for file in rsp.get_files(): print "file:", file["filename"]
+
     def video_update(self, args):
         """Update video library"""
         for (key, value) in self.server.update_video_library().items():
@@ -83,7 +94,6 @@ class AvailableCommands:
         else:
             wr = DeejaydWebradioList(self.server)
             wr.add_webradio(wr_name,wr_url)
-
 
 def get_cmds():
     cmds = []
