@@ -92,36 +92,43 @@ class OggFile(UnknownAudioFile):
 
 class FileTagFactory:
 
-    supported_format = None
+    supported_audio_format = None
+    supported_video_format = None
     player = None
 
     def __init__(self,player = None):
         if self.__class__.player == None:
             self.__class__.player = player
         
-        if self.__class__.supported_format == None and \
-                                                self.__class__.player != None:
-            self.__class__.supported_format = {}
+        if self.__class__.supported_audio_format == None or \
+                self.__class__.supported_video_format == None and \
+                self.__class__.player != None:
+            self.__class__.supported_audio_format = {}
+            self.__class__.supported_video_format = {}
             # mp3
             if self.__class__.player.is_supported_format(".mp3"): 
-                self.__class__.supported_format[".mp3"] = Mp3File
-                self.__class__.supported_format[".mp2"] = Mp3File
+                self.__class__.supported_audio_format[".mp3"] = Mp3File
+                self.__class__.supported_audio_format[".mp2"] = Mp3File
 
             # ogg
             if self.__class__.player.is_supported_format(".ogg"): 
-                self.__class__.supported_format[".ogg"] = OggFile
+                self.__class__.supported_audio_format[".ogg"] = OggFile
 
             # video
             for ext in (".avi",".mpeg",".mpg"):
                 if self.__class__.player.is_supported_format(ext):
-                    self.__class__.supported_format[ext] = VideoFile
+                    self.__class__.supported_video_format[ext] = VideoFile
 
-    def get_file_tag(self,real_file):
+    def get_file_tag(self,real_file,library_type = "audio"):
+        supported_format = library_type == "audio" and \
+                    self.__class__.supported_audio_format or\
+                    self.__class__.supported_video_format
+
         (filename,extension) = os.path.splitext(real_file)
         ext = extension.lower()
 
-        if ext in self.__class__.supported_format.keys():
-            return self.__class__.supported_format[ext](real_file,\
+        if ext in supported_format.keys():
+            return supported_format[ext](real_file,\
                     self.__class__.player)
         else: raise NotSupportedFormat
 

@@ -34,7 +34,7 @@ class DeejaydAudioFile:
         real_file = os.path.join(real_dir,f)
         
         try: file_info = tag.FileTagFactory(self.player).\
-                                                        get_file_tag(real_file) 
+                                        get_file_tag(real_file,self.file_type) 
         except tag.NotSupportedFormat: 
             # Not an supported file
             log.info("%s : %s format not supported" % (f,self.file_type))
