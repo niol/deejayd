@@ -29,19 +29,23 @@ class DeejaydAudioFile:
         if file_info:
             self.update_function(self.dir,file_info)
 
+    def force_update(self,f):pass
+        
     def _get_file_info(self,f):
         real_dir = os.path.join(self.root_path, self.dir)
         real_file = os.path.join(real_dir,f)
         
         try: file_info = tag.FileTagFactory(self.player).\
-                                        get_file_tag(real_file,self.file_type) 
+                                get_file_tag_object(real_file,self.file_type) 
         except tag.NotSupportedFormat: 
             # Not an supported file
             log.info("%s : %s format not supported" % (f,self.file_type))
             return None
+
+        try: file_info.load_file_info()
         except tag.UnknownException: 
             log.info(\
-                "%s : unable to obtain metadata form this %s file, skipped"\
+                "%s : unable to obtain metadata from this %s file, skipped"\
                 % (f,self.file_type))
             return None
         else: return file_info
@@ -62,6 +66,16 @@ class DeejaydVideoFile(DeejaydAudioFile):
         if file_info:
             file_info["id"] = self.__get_next_id()
             self.insert_function(self.dir,file_info)
+
+    def force_update(self,f):
+        real_dir = os.path.join(self.root_path, self.dir)
+        real_file = os.path.join(real_dir,f)
+
+        # Update external subtitle
+        file_info = tag.FileTagFactory(self.player).\
+                                get_file_tag_object(real_file,self.file_type) 
+        file_info.load_subtitle()
+        self.db_con.update_video_subtitle(self.dir,file_info)
 
     def __get_next_id(self):
         self.__id += 1
@@ -188,6 +202,10 @@ class Library:
                     if os.stat(os.path.join(root,file)).st_mtime >= \
                                                      int(self.last_update_time):
                         file_object.update(file)
+                    # Even if the media has not been modified, we can need
+                    # to update informations (like external subtitle)
+                    # it is the aim of this function
+                    else: file_object.force_update(file)
                 else: file_object.insert(file)
 
         # Remove unexistent files and directories from library

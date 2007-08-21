@@ -14,12 +14,11 @@ class UnknownFile:
         self.f = f
         (path,filename) = os.path.split(f)
         self.info = {"filename": filename}
-        self._get_info()
 
     def __getitem__(self,key):
         raise NotImplementedError
 
-    def _get_info(self):
+    def load_file_info(self):
         raise NotImplementedError
 
 
@@ -37,7 +36,7 @@ class VideoFile(UnknownFile):
         if key in self.info: return self.info[key]
         else: return ""
 
-    def _get_info(self):
+    def load_file_info(self):
         def format_title(f):
             (filename,ext) = os.path.splitext(f)
             title = filename.replace(".", " ")
@@ -45,17 +44,22 @@ class VideoFile(UnknownFile):
 
             return title.title()
         
-        # Try to find a subtitle (same name with a srt extension)
-        (base_path,ext) = os.path.splitext(self.f)
-        if os.path.isfile(base_path+".srt"):
-            self.info["subtitle"] = "file://" + base_path + ".srt"
-        else: self.info["subtitle"] = ""
-
+        self.load_subtitle()
         self.info["title"] = format_title(self.info["filename"])
         video_info = self.player.get_video_file_info(self.f)
         for t in self.__class__.supported_tag:
             try: self.info[t] = video_info[t]
             except: raise UnknownException
+
+    def load_subtitle(self):
+        # Try to find a subtitle (same name with a srt/sub extension)
+        (base_path,ext) = os.path.splitext(self.f)
+        sub = ""
+        for ext_type in (".srt",".sub"):
+            if os.path.isfile(base_path + ext_type):
+                sub = "file://" + base_path + ext_type
+                break
+        self.info["subtitle"] = sub
 
 
 class Mp3File(UnknownAudioFile):
@@ -64,7 +68,7 @@ class Mp3File(UnknownAudioFile):
         if key in self.info: return self.info[key]
         else: return ""
 
-    def _get_info(self):
+    def load_file_info(self):
         mp3_info = MP3(self.f,ID3=EasyID3) 
         self.info["bitrate"] = int(mp3_info.info.bitrate)
         self.info["length"] = int(mp3_info.info.length)
@@ -80,7 +84,7 @@ class OggFile(UnknownAudioFile):
         if key in self.info: return self.info[key]
         else: return ""
 
-    def _get_info(self):
+    def load_file_info(self):
         ogg_info = OggVorbis(self.f) 
         self.info["bitrate"] = int(ogg_info.info.bitrate)
         self.info["length"] = int(ogg_info.info.length)
@@ -119,7 +123,7 @@ class FileTagFactory:
                 if self.__class__.player.is_supported_format(ext):
                     self.__class__.supported_video_format[ext] = VideoFile
 
-    def get_file_tag(self,real_file,library_type = "audio"):
+    def get_file_tag_object(self,real_file,library_type = "audio"):
         supported_format = library_type == "audio" and \
                     self.__class__.supported_audio_format or\
                     self.__class__.supported_video_format

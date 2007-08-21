@@ -198,6 +198,11 @@ class Database(UnknownDatabase):
             fileInfo["videowidth"],fileInfo["videoheight"],\
             fileInfo["subtitle"],dir,fileInfo["filename"]))
 
+    def update_video_subtitle(self,dir,file_info):
+        query = "UPDATE {video_library} SET subtitle=? \
+            WHERE dir=? AND filename=?"
+        self.execute(query,(file_info["subtitle"],dir,file_info["filename"]))
+
     #
     # Playlist requests
     #
