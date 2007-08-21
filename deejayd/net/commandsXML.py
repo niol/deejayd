@@ -115,6 +115,13 @@ class UnknownCommand:
                                     "arg %s is not in the possible list"\
                                     % (arg['name'],))
 
+                    elif arg['type'] == "regexp":
+                        import re
+                        if not re.compile(arg['value']).search(v):
+                            return self.get_error_answer(\
+                              "arg %s (%s) not match to the regular exp (%s)" %
+                                (arg['name'],v,arg['value']))
+
             elif arg['req']:
                 return self.get_error_answer("arg %s is mising" % arg['name'])
             else: 
@@ -728,8 +735,11 @@ class Pause(SimplePlayerCommand):
 class Play(UnknownCommand):
     """Begin playing at media file with id "id" or toggle play/pause."""
     command_name = 'play'
-    command_args = [{"name":"id", "type":"int", "req":False, "default":-1},
-                 {"name":"id_type","type":"enum_str","values":("id","pos"),\
+    command_args = [{"name":"id", "type":"regexp", \
+                     "value":"^\w{1,}|\w{1,}\.\w{1,}$","req":False,\
+                     "default":-1},
+                 {"name":"id_type","type":"enum_str",\
+                  "values":("dvd_id","track","chapter","id","pos"),\
                   "req":False,"default":"id"},
                  {"name":"source","type":"string","req":False,"default":None},
                  {"name":"alang","type":"int","req":False,"default":None},
@@ -739,7 +749,13 @@ class Play(UnknownCommand):
         if self.args["id"] == -1:
             self.deejayd_args["player"].play()
         else:
-            self.deejayd_args["player"].go_to(int(self.args["id"]),\
+            if self.args["id_type"] != "dvd_id":
+                try: id = int(self.args["id"])
+                except ValueError: 
+                    return self.get_error_answer("Bad value for id parm")
+            else: id = self.args["id"]
+
+            self.deejayd_args["player"].go_to(id,\
                     self.args["id_type"], self.args["source"])
         return self.get_ok_answer()
 

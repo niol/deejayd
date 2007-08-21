@@ -113,7 +113,7 @@ class DvdSource:
     def go_to(self,id,type = "track"):
         if type == "track": self.select_track(id)
         elif type == "chapter": self.select_chapter(None,id)
-        elif type == "id":
+        elif type == "dvd_id":
             ids = id.split('.')
             self.select_track(int(ids[0]))
             if len(ids) > 1 and self.selected_track:
