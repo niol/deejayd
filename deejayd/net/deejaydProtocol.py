@@ -7,10 +7,9 @@ from xml.dom import minidom
 
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
-from deejayd.mediadb import library
 from deejayd.database.database import DatabaseFactory
 from deejayd.net import commandsXML
-from deejayd import player,sources
+from deejayd import player,sources,mediadb
 
 class DeejaydProtocol(LineReceiver):
 
@@ -83,32 +82,17 @@ class DeejaydFactory(protocol.ServerFactory):
         log.info("Player Initialisation")
         self.player = player.init(self.db,config)
 
-        try: audio_dir = config.get("mediadb","music_directory")
-        except NoOptionError:
-            sys.exit("You have to choose a music directory")
-        else: 
-            log.info(" Audio library Initialisation...OK")
-            self.audio_library = library.AudioLibrary(self.db,self.player,\
-                                                                    audio_dir)
-
-        if config.get('general', 'video_support') != 'yes':
-            self.video_library = None
-            log.info("Warning : Video support disabled.")
-        else:
-            try: video_dir = config.get('mediadb', 'video_directory')
-            except NoOptionError:
-                log.err(\
-                  'Supplied video directory not found. Video support disabled.')
-                self.video_library = None
-            else: 
-                log.info(" Video library Initialisation...OK")
-                self.video_library = library.VideoLibrary(self.db,\
-                                                        self.player,video_dir)
+        # Init audio and video library
+        log.info("Libraries Initialisation")
+        self.audio_library,self.video_library = mediadb.init(self.db,\
+                                                             self.player,config)
 
         # Try to Init sources
         log.info("Sources Initialisation")
         self.sources = sources.SourceFactory(self.player,self.db,\
                                  self.audio_library,self.video_library,config)
+
+        log.info("Deejayd started :-)")
 
     def stopFactory(self):
         for obj in (self.player,self.sources,self.audio_library,\
