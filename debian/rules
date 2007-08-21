@@ -1,0 +1,81 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+PYVERS=$(shell pyversions -vr)
+
+build: $(PYVERS:%=build-python%)
+	
+build-python%:
+	python$* setup.py build
+	touch $@
+
+install: build $(PYVERS:%=install-python%)
+
+install-python%:
+	dh_clean -k -i 
+	dh_clean -k -s 
+	python$* setup.py install --debian --no-compile --skip-build\
+	         --root $(CURDIR)/debian/tmp\
+			 --install-lib usr/lib/python$*
+
+	# Fixing example conffile location
+	mkdir $(CURDIR)/debian/tmp/etc
+	mv $(CURDIR)/debian/tmp/usr/share/doc/deejayd-0.3.0/deejayd.conf.example\
+	   $(CURDIR)/debian/tmp/etc/deejayd.conf
+
+	dh_install --sourcedir=$(CURDIR)/debian/tmp
+	dh_installdirs
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-python*
+
+	# Add here commands to clean up after the build process.
+	python setup.py clean --all
+
+	dh_clean 
+
+# Must not depend on anything. This is to be called by
+# binary-arch/binary-indep
+# in another 'make' thread.
+binary-common:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installexamples
+#	dh_installmenu
+#	dh_installdebconf	
+#	dh_installlogrotate	
+	dh_pycentral
+	# Inspired by mpd packaging, so that ALSA scripts can run first
+	dh_installinit -u"defaults 30 15"
+#	dh_installcron
+	dh_installman
+	dh_link
+	dh_strip
+	dh_compress 
+	dh_fixperms
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+# Build architecture independant packages using the common target.
+binary-indep: build install
+	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
+
+# Build architecture dependant packages using the common target.
+binary-arch: build install
+	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
+
+binary: binary-arch binary-indep
+.PHONY: build clean binary-indep binary-arch binary install

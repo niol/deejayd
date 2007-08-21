@@ -1,0 +1,17 @@
+#!/bin/sh -e
+DEEJAYD_USER=deejayd
+
+if ! getent passwd $DEEJAYD_USER >/dev/null; then
+    adduser --quiet --ingroup audio --system --no-create-home \
+            --home /var/lib/deejayd $DEEJAYD_USER
+fi
+
+for i in /var/log/deejayd.log /var/lib/deejayd;
+do
+    if ! dpkg-statoverride --list --quiet "$i" >/dev/null; then
+        dpkg-statoverride --force --quiet --update \
+                          --add deejayd audio 0755 "$i"
+    fi
+done
+
+#DEBHELPER#
