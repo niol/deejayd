@@ -84,10 +84,11 @@ if __name__ == "__main__":
            author="Mikael Royer, Alexandre Rossi",
            author_email="mickael.royer@gmail.com",
            license="GNU GPL v2",
-           scripts=["scripts/deejayd","scripts/djc"],
+           scripts=["scripts/deejayd","scripts/djc","scripts/djmote"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
                      "deejayd.player","deejayd.sources","deejayd.ui",\
-                     "deejayd.database","deejayd.database","deejayd.ext"],
+                     "deejayd.database","deejayd.database","deejayd.ext",\
+                     "djmote"],
            package_data={'deejayd.ui': ['defaults.conf'],
             'deejayd.database': ['sql/*.sql']},
            ext_modules=ext_mod,
