@@ -54,7 +54,7 @@ class DvdSource:
         for track in self.dvd_info['track']:
             if track['ix'] == nb:
                 self.selected_track = track
-                self.selected_track["selected_chapter"] = None
+                self.selected_track["selected_chapter"] = -1
 
                 # select alang index
                 found = False
@@ -90,7 +90,7 @@ class DvdSource:
     def select_alang(self,alang_idx):
         pass
 
-    def select_alang(self,alang_idx):
+    def select_slang(self,alang_idx):
         pass
 
     def get_current(self):
@@ -98,7 +98,7 @@ class DvdSource:
 
         # Construct item info for player
         id = str(self.selected_track["ix"])
-        if self.selected_track["selected_chapter"]:
+        if self.selected_track["selected_chapter"] != -1:
             id += ".%d" % self.selected_track["selected_chapter"]
         uri = "dvd://%d" % self.selected_track["ix"]
         return {"title": self.dvd_info["title"], "type": "video", \
@@ -106,9 +106,8 @@ class DvdSource:
                 "slang":self.selected_track["slang_ix"],\
                 "chapter":self.selected_track["selected_chapter"],\
                 "length": self.selected_track["length"],\
-                "id": id,
-                "audio": self.selected_track["audio"]}
-                #"Subtitle": self.selected_track["subp"]}
+                "id": id, "audio": self.selected_track["audio"],\
+                "subtitle": self.selected_track["subp"]}
 
     def go_to(self,id,type = "track"):
         if type == "track": self.select_track(id)

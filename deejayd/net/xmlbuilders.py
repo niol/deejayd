@@ -109,14 +109,29 @@ class _DeejaydXMLAnswer(_DeejaydXML):
         xmlparm.setAttribute('value', self.__to_xml_string(value))
         return xmlparm
 
-    def build_xml_list_parm(self, name, valueList):
+    def build_xml_list_parm(self, name, value_list):
         xml_list_parm = self.xmldoc.createElement('listparm')
-        for value in valueList:
-            xmlvalue = self.xmldoc.createElement('value')
-            value = self.__to_xml_string(value)
-            xmlvalue.appendChild(self.xmldoc.createTextNode(value))
+        if name: xml_list_parm.setAttribute('name', name)
+        for value in value_list:
+            if type(value) == dict:
+                xmlvalue = self.build_xml_dict_parm(None,value)
+            else:
+                xmlvalue = self.xmldoc.createElement('value')
+                value = self.__to_xml_string(value)
+                xmlvalue.appendChild(self.xmldoc.createTextNode(value))
             xml_list_parm.appendChild(xmlvalue)
         return xml_list_parm
+
+    def build_xml_dict_parm(self, name, value_dict):
+        xml_dict_parm = self.xmldoc.createElement('dictparm')
+        if name: xml_dict_parm.setAttribute('name', name)
+        for key in value_dict.keys():
+            xmlitem = self.xmldoc.createElement('dictitem')
+            value = self.__to_xml_string(value_dict[key])
+            xmlitem.setAttribute('name', key)
+            xmlitem.setAttribute('value', value)
+            xml_dict_parm.appendChild(xmlitem)
+        return xml_dict_parm
 
     def build_xml_parm_list(self, data, parent_element):
         for data_key in data.keys():
@@ -124,6 +139,8 @@ class _DeejaydXMLAnswer(_DeejaydXML):
             xml_parm = None
             if type(data_value) is list:
                 xml_parm = self.build_xml_list_parm(data_key, data_value)
+            elif type(data_value) is dict:
+                xml_parm = self.build_xml_dict_parm(data_key, data_value)
             else:
                 xml_parm = self.build_xml_parm(data_key, data_value)
             parent_element.appendChild(xml_parm)

@@ -52,12 +52,16 @@ class XinePlayer(UnknownPlayer):
         uri = self._media_file["uri"]
         # For dvd chapter
         if "chapter" in self._media_file.keys() and \
-                    self._media_file["chapter"]:
+                    self._media_file["chapter"] != -1:
             uri += ".%d" % self._media_file["chapter"]
-        # For external subtitle
-        if "subtitle" in self._media_file.keys() and \
-                self._media_file["subtitle"].startswith("file://") and \
-                self.options["loadsubtitle"]:
+        if "subtitle" in self._media_file.keys():
+            # dvd subtitle
+            if type(self._media_file["subtitle"]) is list:
+                pass
+
+            # For external subtitle
+            elif self._media_file["subtitle"].startswith("file://") and \
+                    self.options["loadsubtitle"]:
                 uri += "#subtitle:%s" % self._media_file["subtitle"]
 
         isvideo = 0
