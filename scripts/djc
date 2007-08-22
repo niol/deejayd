@@ -3,7 +3,8 @@
 import sys
 from optparse import OptionParser
 
-from deejayd.net.client import DeejayDaemon, DeejaydError, DeejaydWebradioList
+from deejayd.net.client import DeejayDaemon, DeejaydError, DeejaydWebradioList,\
+                               ConnectError
 
 
 class AvailableCommands:
@@ -135,12 +136,15 @@ if __name__ == '__main__':
 
     cmds = AvailableCommands(deejayd)
     if command in dir(cmds):
-        deejayd.connect(options.host, options.port)
-        try:
-            getattr(AvailableCommands, command)(cmds, args[1:])
-        except DeejaydError, msg:
+        try: deejayd.connect(options.host, options.port)
+        except ConnectError, msg:
             print msg
-        deejayd.disconnect()
+        else:
+            try:
+                getattr(AvailableCommands, command)(cmds, args[1:])
+            except DeejaydError, msg:
+                print msg
+            deejayd.disconnect()
     else:
         fail_cmdline()
 

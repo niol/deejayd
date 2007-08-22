@@ -367,8 +367,7 @@ class DeejayDaemon:
         try:
             self.socket_to_server.connect((self.host, self.port))
         except socket.error, msg:
-            print msg
-            return
+            raise ConnectError('Connection with server failed : %s' % msg)
 
         socketFile = self.socket_to_server.makefile()
 
