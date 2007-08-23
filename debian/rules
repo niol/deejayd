@@ -20,9 +20,8 @@ install: build $(PYVERS:%=install-python%)
 install-python%:
 	dh_clean -k -i 
 	dh_clean -k -s 
-	python$* setup.py install --debian --no-compile --skip-build\
-	         --root $(CURDIR)/debian/tmp\
-			 --install-lib usr/lib/python$*
+	python$* setup.py install --no-compile --skip-build\
+	         --root $(CURDIR)/debian/tmp
 
 	# Fixing example conffile location
 	mkdir $(CURDIR)/debian/tmp/etc

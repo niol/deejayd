@@ -1,5 +1,2 @@
-usr/lib/python2.4/djmote/widgets.py
-usr/lib/python2.4/djmote/ui.py
-usr/lib/python2.4/djmote/conf.py
-usr/lib/python2.4/djmote/__init__.py
+usr/lib/python*/site-packages/djmote/*.py
 usr/bin/djmote

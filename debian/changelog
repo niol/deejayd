@@ -1,4 +1,10 @@
-deejayd (0.3-1+darcs20070821) unstable; urgency=low
+deejayd (0.3-1+darcs20070823) unstable; urgency=low
+
+  * Fix public modules location (put them under site-packages).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 23 Aug 2007 07:49:05 +0200
+
+deejayd (0.3-1+darcs20070822) unstable; urgency=low
 
   * Initial debianization.
 
