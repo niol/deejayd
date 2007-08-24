@@ -22,10 +22,13 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Deejayd media player daemon"
 NAME=deejayd
 DAEMON=/usr/bin/$NAME
+DAEMON_USER=$NAME
+HOME=/var/lib/$DAEMON_USER
 PIDFILE=/var/run/$NAME.pid
-LOGFILE=/var/log/deejayd.log
-DAEMON_ARGS="-u deejayd -g audio -p $PIDFILE -l $LOGFILE $DAEMON_OPTS"
+LOGFILE=/var/log/$NAME.log
+DAEMON_ARGS="-u $DAEMON_USER -g audio -p $PIDFILE -l $LOGFILE $DAEMON_OPTS"
 SCRIPTNAME=/etc/init.d/$NAME
+
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
@@ -76,7 +79,7 @@ do_stop()
 	#   1 if daemon was already stopped
 	#   2 if daemon could not be stopped
 	#   other if a failure occurred
-	start-stop-daemon --user deejayd --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
+	start-stop-daemon --user $DAEMON_USER --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
 	RETVAL="$?"
 	[ "$RETVAL" = 2 ] && return 2
 	# Wait for children to finish too if this is a daemon that forks
@@ -85,7 +88,7 @@ do_stop()
 	# that waits for the process to drop all resources that could be
 	# needed by services started subsequently.  A last resort is to
 	# sleep for some time.
-	start-stop-daemon --user deejayd --stop --quiet --oknodo --retry=0/30/KILL/5 --exec $DAEMON
+	start-stop-daemon --user $DAEMON_USER --stop --quiet --oknodo --retry=0/30/KILL/5 --exec $DAEMON
 	[ "$?" = 2 ] && return 2
 	# Many daemons don't delete their pidfiles when they exit.
 	rm -f $PIDFILE
@@ -101,7 +104,7 @@ do_reload() {
 	# restarting (for example, when it is sent a SIGHUP),
 	# then implement that here.
 	#
-	start-stop-daemon --user deejayd --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
+	start-stop-daemon --user $DAEMON_USER --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
 	return 0
 }
 
