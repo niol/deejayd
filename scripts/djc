@@ -59,6 +59,22 @@ class AvailableCommands:
         else:
             self.server.set_mode(mode)
 
+    def set_slang(self, args):
+        """select a subtitle channel"""
+        try: slang = args[0]
+        except IndexError:
+            print 'You need to choose a language index'
+        else:
+            self.server.set_slang(slang)
+
+    def set_alang(self, args):
+        """select a audio channel"""
+        try: alang = args[0]
+        except IndexError:
+            print 'You need to choose a language index'
+        else:
+            self.server.set_alang(alang)
+
     def status(self, args):
         """Get full deejayd status"""
         for (key, value) in self.server.get_status().items():

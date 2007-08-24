@@ -464,6 +464,16 @@ class DeejayDaemon:
         cmd.add_simple_arg('mode', mode_name)
         return self._send_command(cmd)
 
+    def set_alang(self, lang_idx):
+        cmd = DeejaydXMLCommand('setAlang')
+        cmd.add_simple_arg('lang_idx', lang_idx)
+        return self._send_command(cmd)
+
+    def set_slang(self, lang_idx):
+        cmd = DeejaydXMLCommand('setSlang')
+        cmd.add_simple_arg('lang_idx', lang_idx)
+        return self._send_command(cmd)
+
     def get_status(self):
         cmd = DeejaydXMLCommand('status')
         return self._send_command(cmd, DeejaydKeyValue())
