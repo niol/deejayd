@@ -247,7 +247,7 @@ Expected return value : ''`FileAndDirList`''
 Lists the files in video dir "directory".
 
 Arguments :
-  * {{{directory}}} (Simple and Mandatory) : string
+  * {{{directory}}} (Simple and Optional) : string
 
 Expected return value : ''`FileAndDirList`''
 
@@ -256,8 +256,8 @@ Expected return value : ''`FileAndDirList`''
 Begin playing at media file with id "id" or toggle play/pause.
 
 Arguments :
-  * {{{id}}} (Simple and Optional) : int
-  * {{{id_type}}} (Simple and Optional) : string
+  * {{{id}}} (Simple and Optional) : regexp
+  * {{{id_type}}} (Simple and Optional) : enum_str
   * {{{source}}} (Simple and Optional) : string
   * {{{alang}}} (Simple and Optional) : int
   * {{{slang}}} (Simple and Optional) : int
@@ -555,7 +555,7 @@ Expected return value : ''`Ack`''
 Set the current video directory to "directory".
 
 Arguments :
-  * {{{directory}}} (Simple and Optional) : string
+  * {{{directory}}} (Simple and Mandatory) : string
 
 Expected return value : ''`Ack`''
 
