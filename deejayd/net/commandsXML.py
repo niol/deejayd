@@ -2,7 +2,7 @@ from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources.webradio import UnsupportedFormatException
 from deejayd import sources
-from deejayd.player._base import OptionNotFound
+from deejayd.player._base import OptionNotFound,PlayerError
 
 from os import path
 
@@ -766,7 +766,9 @@ class SetAlang(UnknownCommand):
     command_args = [{"name":"lang_idx", "type":"int", "req":True}]
 
     def execute(self):
-        self.deejayd_args["player"].set_alang(int(self.args["lang_idx"]))
+        try: self.deejayd_args["player"].set_alang(int(self.args["lang_idx"]))
+        except PlayerError:
+            return self.get_error_answer("Unable to change audio channel")
         return self.get_ok_answer()
 
 
@@ -776,7 +778,9 @@ class SetSlang(UnknownCommand):
     command_args = [{"name":"lang_idx", "type":"int", "req":True}]
 
     def execute(self):
-        self.deejayd_args["player"].set_slang(int(self.args["lang_idx"]))
+        try: self.deejayd_args["player"].set_slang(int(self.args["lang_idx"]))
+        except PlayerError:
+            return self.get_error_answer("Unable to change subtitle channel")
         return self.get_ok_answer()
 
 

@@ -305,14 +305,14 @@ class DeejaydXMLDvdInfo(DeejaydXMLAck):
             # avalaible audio channels
             for audio in track["audio"]: 
                 xmlaudio = self.xmldoc.createElement('audio')
-                for info in ('ix','langcode','language'):
+                for info in ('ix','lang'):
                     xmlaudio.setAttribute(info,str(audio[info]))
                 xmltrack.appendChild(xmlaudio)
 
             # avalaible subtitle channels
             for sub in track["subp"]: 
                 xmlsub = self.xmldoc.createElement('subtitle')
-                for info in ('ix','langcode','language'):
+                for info in ('ix','lang'):
                     xmlsub.setAttribute(info,str(sub[info]))
                 xmltrack.appendChild(xmlsub)
 

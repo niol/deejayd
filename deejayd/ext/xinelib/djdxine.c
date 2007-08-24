@@ -293,6 +293,7 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
                                 xine->data_mine.aport, xine->data_mine.vport);
 
     xine->data_mine.current_filename = NULL;
+    xine->data_mine.file_info.title = NULL;
     xine->data_mine.init = 1;
 
     return 0;
@@ -425,9 +426,10 @@ int djdxine_get_status(_Xine* xine)
         }
 }
 
-void djdxine_set_volume(_Xine* xine, int volume)
+void djdxine_set_param(_Xine* xine, int param, int value, int need_playing)
 {
-    xine_set_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL, volume);
+    if(need_playing && !xine->playing) return;
+    xine_set_param(xine->player.stream,param,value);
 }
 
 int djdxine_get_volume(_Xine* xine)
@@ -482,7 +484,7 @@ int djdxine_set_subtitle(_Xine* xine,int subtitle)
     return 0;
 }
 
-int _set_data_mine(_Xine* xine, const char* filename)
+int djdxine_set_data_mine(_Xine* xine, const char* filename)
 {
   int rv;
   if (xine->data_mine.current_filename) {
@@ -491,7 +493,10 @@ int _set_data_mine(_Xine* xine, const char* filename)
     }
     xine_close(xine->data_mine.stream);
     free (xine->data_mine.current_filename);
-    free (xine->data_mine.file_info.title);
+    if (xine->data_mine.file_info.title != NULL) {
+        free (xine->data_mine.file_info.title);
+        xine->data_mine.file_info.title = NULL;
+        }
   }
   rv = xine_open(xine->data_mine.stream, filename);
   if (rv) {
@@ -505,7 +510,7 @@ FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
     int rv;
     int duration;
     int dummy, dummy2;
-    rv = _set_data_mine(xine, filename);
+    rv = djdxine_set_data_mine(xine, filename);
     if (rv == 0)
         return NULL;
     if (rv == 1)
@@ -520,6 +525,28 @@ FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
             xine->data_mine.stream, XINE_META_INFO_TITLE);
 
     return &(xine->data_mine.file_info);
+}
+
+char *djdxine_get_audio_lang(_Xine* xine,int channel)
+{
+    char *lang[XINE_LANG_MAX];
+    int rs;
+
+    rs = xine_get_audio_lang(xine->data_mine.stream,channel,lang);
+    if (rs == 0)
+        return "Unknown";
+    return lang;
+}
+
+char *djdxine_get_subtitle_lang(_Xine* xine,int channel)
+{
+    char *lang[XINE_LANG_MAX];
+    int rs;
+
+    rs = xine_get_spu_lang(xine->data_mine.stream,channel,lang);
+    if (rs == 0)
+        return "Unknown";
+    return lang;
 }
 
 char *djdxine_get_supported_extensions(_Xine* xine)

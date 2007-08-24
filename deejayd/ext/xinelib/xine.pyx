@@ -36,6 +36,10 @@ cdef extern from "xine.h":
         XINE_EVENT_PROGRESS
         # config entry data types
         XINE_CONFIG_TYPE_ENUM
+        # xine param
+        XINE_PARAM_SPU_CHANNEL
+        XINE_PARAM_AUDIO_CHANNEL_LOGICAL
+        XINE_PARAM_AUDIO_AMP_LEVEL
 
 
 cdef extern from "djdxine.h":
@@ -58,12 +62,15 @@ cdef extern from "djdxine.h":
     void djdxine_seek(_Xine* xine, int position)
     void djdxine_set_playing(_Xine* xine, int is_playing)
     int djdxine_get_status(_Xine* xine)
-    void djdxine_set_volume(_Xine* xine, int volume)
+    void djdxine_set_param(_Xine* xine, int param, int value, int need_playing)
     int djdxine_get_volume(_Xine* xine)
     int djdxine_get_position(_Xine* xine)
     int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
     int djdxine_set_subtitle(_Xine* xine,int subtitle)
+    int djdxine_set_data_mine(_Xine* xine, char* filename)
     FileInfo* djdxine_file_info(_Xine* xine, char* filename)
+    char *djdxine_get_audio_lang(_Xine* xine,int channel)
+    char *djdxine_get_subtitle_lang(_Xine* xine,int channel)
     int djdxine_is_supported_input(_Xine* xine,char* input)
     char* djdxine_get_supported_extensions(_Xine* xine)
     char* djdxine_get_error(_Xine* xine)
@@ -110,9 +117,13 @@ cdef class Xine:
             return "pause"
         else:
             return "stop"
+    def set_alang(self, lang_idx):
+        djdxine_set_param(self.xine, XINE_PARAM_AUDIO_CHANNEL_LOGICAL, lang_idx, 1)
+    def set_slang(self, lang_idx):
+        djdxine_set_param(self.xine, XINE_PARAM_SPU_CHANNEL, lang_idx, 1)
     def set_volume(self, volume):
         volume = min(max(volume, 0), 100)
-        djdxine_set_volume(self.xine, volume)
+        djdxine_set_param(self.xine, XINE_PARAM_AUDIO_AMP_LEVEL, volume, 0)
     def get_volume(self):
         return djdxine_get_volume(self.xine)
     def seek(self, int position):
@@ -134,6 +145,12 @@ cdef class Xine:
         if file_info == NULL:
             raise FileInfoError 
         return {"videowidth":file_info.width, "videoheight":file_info.height, "length":file_info.duration / 1000}
+    def get_audio_lang(self,uri,channel):
+        djdxine_set_data_mine(self.xine,uri)
+        return djdxine_get_audio_lang(self.xine,channel)
+    def get_subtitle_lang(self,uri,channel):
+        djdxine_set_data_mine(self.xine,uri)
+        return djdxine_get_subtitle_lang(self.xine,channel)
     def is_supported_input(self,char* input):
         return djdxine_is_supported_input(self.xine,input)
     def get_supported_extensions(self):

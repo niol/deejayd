@@ -109,7 +109,7 @@ void djdxine_set_playing(_Xine* xine, int is_playing);
 
 int djdxine_get_status(_Xine* xine);
 
-void djdxine_set_volume(_Xine* xine, int volume);
+void djdxine_set_param(_Xine* xine, int param, int value, int need_playing);
 
 int djdxine_get_volume(_Xine* xine);
 
@@ -119,7 +119,13 @@ int djdxine_set_fullscreen(_Xine* xine,int fullscreen);
 
 int djdxine_set_subtitle(_Xine* xine,int subtitle);
 
+int djdxine_set_data_mine(_Xine* xine, const char* filename);
+
 FileInfo* djdxine_file_info(_Xine* xine, const char* filename);
+
+char *djdxine_get_audio_lang(_Xine* xine,int channel);
+
+char *djdxine_get_subtitle_lang(_Xine* xine,int channel);
 
 char* djdxine_get_supported_extensions(_Xine* xine);
 

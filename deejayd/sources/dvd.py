@@ -12,11 +12,6 @@ class DvdSource:
         self.dvd_info = None
         self.selected_track = None
 
-        # FIXME add configuration options
-        self.options = {"alang": "en", "slang": "en"}
-
-        # FIXME test lsdvd support
-
         # load dvd content
         try: self.load()
         except: pass
@@ -30,20 +25,9 @@ class DvdSource:
         self.selected_track = None
         self.current_id +=1
 
-        import popen2,sys
-        r, w, e = popen2.popen3('lsdvd -c -a -s -Oy')
-        # read error
-        error = e.read()
-        if error: raise DvdError("Unable to load the dvd : %s" % error)
-
-        output = r.read()
-        # close socket
-        r.close()
-        e.close()
-        w.close()
-
-        exec(output)
-        self.dvd_info = lsdvd
+        try: self.dvd_info = self.player.get_dvd_info()
+        except PlayerError, err: 
+            raise DvdError("Unable to load the dvd %s " % err)
         # select the default track of the dvd
         self.select_track()
 
@@ -56,29 +40,8 @@ class DvdSource:
                 self.selected_track = track
                 self.selected_track["selected_chapter"] = -1
 
-                # select alang index
-                found = False
-                if not alang_idx: 
-                    alang = self.options['alang']
-                    for lang in track['audio']:
-                        if lang == alang:
-                            found = True
-                            self.selected_track["alang_ix"] = lang['idx']
-                            break
-                    if not found: self.selected_track["alang_ix"] = 1
-                else: self.selected_track["alang_ix"] = alang_idx
-
-                # select slang index
-                found = False
-                if not slang_idx: 
-                    slang = self.options['slang']
-                    for lang in track['subp']:
-                        if lang == slang:
-                            found = True
-                            self.selected_track["slang_ix"] = lang['idx']
-                            break
-                    if not found: self.selected_track["slang_ix"] = 1
-                else: self.selected_track["slang_ix"] = slang_idx
+                self.selected_track["alang_ix"] = 1
+                self.selected_track["slang_ix"] = 1
 
                 break
 
@@ -86,12 +49,6 @@ class DvdSource:
                         slang = None):
         self.selected_track = self.select_track(track,alang,slang)
         self.selected_track["selected_chapter"] = chapter
-
-    def select_alang(self,alang_idx):
-        pass
-
-    def select_slang(self,alang_idx):
-        pass
 
     def get_current(self):
         if not self.dvd_info or not self.selected_track: return None
@@ -151,8 +108,6 @@ class DvdSource:
 
     def get_status(self):
         status = [("dvd",self.current_id)]
-        if (self.dvd_info):
-            status.extend([('dvd_lang','en')])
         return status
 
     def close(self):

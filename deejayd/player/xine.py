@@ -2,9 +2,8 @@
 
 from deejayd.ext import xine
 from deejayd.player._base import UnknownPlayer,PLAYER_PLAY,PLAYER_PAUSE,\
-                                 PLAYER_STOP
+                                 PLAYER_STOP,PlayerError
 from deejayd.ui import log
-
 
 class XinePlayer(UnknownPlayer):
     supported_mimetypes = None
@@ -84,6 +83,34 @@ class XinePlayer(UnknownPlayer):
 
         self.xine.stop()
 
+    def set_alang(self,lang_idx):
+        if not self._media_file or self.get_state() == PLAYER_STOP: return
+
+        try: audio_tracks = self._media_file["audio"] 
+        except IndexError: raise PlayerError
+        else:
+            found = False
+            for track in audio_tracks:
+                if track['ix'] == lang_idx: # audio track exists
+                    self.xine.set_alang(lang_idx)
+                    found = True
+                    break
+            if not found: raise PlayerError
+
+    def set_slang(self,lang_idx):
+        if not self._media_file or self.get_state() == PLAYER_STOP: return
+
+        try: sub_tracks = self._media_file["subtitle"] 
+        except IndexError: raise PlayerError
+        else:
+            found = False
+            for track in sub_tracks:
+                if track['ix'] == lang_idx: # audio track exists
+                    self.xine.set_slang(lang_idx)
+                    found = True
+                    break
+            if not found: raise PlayerError
+
     def set_fullscreen(self,val):
         try: self.xine.set_fullscreen(val)
         except xine.NotPlayingError: pass
@@ -128,5 +155,43 @@ class XinePlayer(UnknownPlayer):
         try: info = self.xine.get_file_info(file)
         except xine.FileInfoError: return None
         else: return info
+
+    def get_dvd_info(self):
+        import popen2,sys
+        r, w, e = popen2.popen3('lsdvd -s -a -c -Oy')
+        # read error
+        error = e.read()
+        if error: raise PlayerError(error)
+
+        output = r.read()
+        # close socket
+        r.close()
+        e.close()
+        w.close()
+
+        exec(output)
+        dvd_info = lsdvd
+
+        ix = 0
+        for track in dvd_info['track']:
+            # get audio channels info
+            channels_number = len(track['audio'])
+            audio_channels = []
+            for ch in range(0,channels_number):
+                lang = self.xine.get_audio_lang("dvd://%d"%track['ix'],ch)
+                audio_channels.append({'ix':ch, "lang":lang})
+            dvd_info['track'][ix]["audio"] = audio_channels
+
+            # get subtitles channels info
+            channels_number = len(track['subp'])
+            sub_channels = []
+            for ch in range(0,channels_number):
+                lang = self.xine.get_subtitle_lang("dvd://%d"%track['ix'],ch)
+                sub_channels.append({'ix':ch, "lang":lang})
+            dvd_info['track'][ix]["subp"] = sub_channels
+
+            ix += 1
+
+        return dvd_info
 
 # vim: ts=4 sw=4 expandtab
