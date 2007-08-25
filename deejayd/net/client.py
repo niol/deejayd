@@ -442,6 +442,9 @@ class DeejayDaemon:
     def play_toggle(self):
         return self._send_simple_command('play')
 
+    def stop(self):
+        return self._send_simple_command('stop')
+
     def previous(self):
         return self._send_simple_command('previous')
 
