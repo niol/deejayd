@@ -1,25 +1,5 @@
+
 import gtk
-
-
-class PlayPauseButton(gtk.Button):
-
-    def __init__(self):
-        gtk.Button.__init__(self)
-        self.img = gtk.Image()
-
-    def set_play(self, player_state):
-        """Update the play/pause button to have the correct image."""
-        if player_state == "play":
-            pixbuf = self.img.render_icon(gtk.STOCK_MEDIA_PAUSE, 
-                                          gtk.ICON_SIZE_LARGE_TOOLBAR)
-            self.set_label("_Pause")
-        else:
-            pixbuf = self.img.render_icon(gtk.STOCK_MEDIA_PLAY, 
-                                          gtk.ICON_SIZE_LARGE_TOOLBAR)
-            self.set_label("_Play")
-        self.img.set_from_pixbuf(pixbuf)
-        self.set_image(self.img)
-
 
 class ConnectDialog(gtk.Dialog):
 
@@ -72,6 +52,5 @@ class ConnectDialog(gtk.Dialog):
             self.conf.save()
         self.connect_cb(None, self.conf)
         self.hide()
-
 
 # vim: ts=4 sw=4 expandtab
