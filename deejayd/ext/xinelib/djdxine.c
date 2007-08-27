@@ -476,14 +476,6 @@ int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
     return 0;
 }
 
-int djdxine_set_subtitle(_Xine* xine,int subtitle)
-{
-    if ((!xine->playing) || (!xine->isvideo)) return 1;
-
-    xine_set_param(xine->player.stream,XINE_PARAM_IGNORE_SPU,!subtitle);
-    return 0;
-}
-
 int djdxine_set_data_mine(_Xine* xine, const char* filename)
 {
   int rv;

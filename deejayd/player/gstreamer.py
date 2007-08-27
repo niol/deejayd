@@ -103,7 +103,7 @@ class GstreamerPlayer(UnknownPlayer):
 
     def start_gstreamer(self,widget = None, event = None):
         self.bin.set_property('uri',self._media_file["uri"])
-        if self._video_support: self.set_subtitle(self.options["loadsubtitle"])
+        if self._video_support: self.set_subtitle()
 
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         timeout = 4
@@ -150,7 +150,9 @@ class GstreamerPlayer(UnknownPlayer):
                 self.deejayd_window.window.set_cursor(empty_cursor)
                 self.deejayd_window.fullscreen()
 
-    def set_subtitle(self,val):
+    def set_subtitle(self):
+        # FIXME : correct this function
+        return
         if not self._media_file: return
         if  self._video_support and self._media_file["type"] == "video"\
                                                                 and val == 1:

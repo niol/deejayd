@@ -34,7 +34,6 @@ class UnknownPlayer:
     def init_video_support(self):
         self._video_support = True
         self.options["fullscreen"] = int(self.db.get_state("fullscreen"))
-        self.options["loadsubtitle"] = int(self.db.get_state("loadsubtitle"))
 
     def set_source(self,source):
         self._source = source
@@ -106,8 +105,6 @@ class UnknownPlayer:
         self.options[name] = value
         if name == "fullscreen" and self.get_state() != PLAYER_STOP:
             self.set_fullscreen(self.options["fullscreen"])
-        elif name == "loadsubtitle" and self.get_state() != PLAYER_STOP:
-            self.set_subtitle(self.options["loadsubtitle"])
 
     def is_playing(self):
         return self.get_state() != PLAYER_STOP

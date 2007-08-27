@@ -117,8 +117,6 @@ int djdxine_get_position(_Xine* xine);
 
 int djdxine_set_fullscreen(_Xine* xine,int fullscreen);
 
-int djdxine_set_subtitle(_Xine* xine,int subtitle);
-
 int djdxine_set_data_mine(_Xine* xine, const char* filename);
 
 FileInfo* djdxine_file_info(_Xine* xine, const char* filename);

@@ -66,7 +66,6 @@ cdef extern from "djdxine.h":
     int djdxine_get_parm(_Xine* xine, int param)
     int djdxine_get_position(_Xine* xine)
     int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
-    int djdxine_set_subtitle(_Xine* xine,int subtitle)
     int djdxine_set_data_mine(_Xine* xine, char* filename)
     FileInfo* djdxine_file_info(_Xine* xine, char* filename)
     char *djdxine_get_audio_lang(_Xine* xine,int channel)
@@ -139,9 +138,6 @@ cdef class Xine:
         return rs
     def set_fullscreen(self, int fullscreen):
         if djdxine_set_fullscreen(self.xine,fullscreen):
-            raise NotPlayingError
-    def set_subtitle(self, int subtitle):
-        if djdxine_set_subtitle(self.xine,subtitle):
             raise NotPlayingError
     def get_file_info(self,char* filename):
         cdef FileInfo *file_info

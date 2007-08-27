@@ -813,11 +813,10 @@ class SetOption(UnknownCommand):
        * repeat
        if you are video support:
        * fullscreen
-       * loadsubtitle
        You can pass several options in the same command"""
     command_name = 'setOption'
     command_args = [{"name":"option_name", "type":"enum_str","req":True,
-                     "values":("random","repeat","fullscreen","loadsubtitle")},
+                     "values":("random","repeat","fullscreen")},
                     {"name":"option_value","type":"enum_int","req":True,
                      "values":(0,1)} ]
 

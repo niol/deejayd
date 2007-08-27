@@ -59,8 +59,7 @@ class XinePlayer(UnknownPlayer):
                 pass
 
             # For external subtitle
-            elif self._media_file["subtitle"].startswith("file://") and \
-                    self.options["loadsubtitle"]:
+            elif self._media_file["subtitle"].startswith("file://"):
                 uri += "#subtitle:%s" % self._media_file["subtitle"]
                 self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
                                                 {"lang": "auto", "ix": -1},\
@@ -133,10 +132,6 @@ class XinePlayer(UnknownPlayer):
 
     def set_fullscreen(self,val):
         try: self.xine.set_fullscreen(val)
-        except xine.NotPlayingError: pass
-
-    def set_subtitle(self,val):
-        try: self.xine.set_subtitle(val)
         except xine.NotPlayingError: pass
 
     def get_volume(self):
