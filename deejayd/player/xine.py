@@ -62,13 +62,23 @@ class XinePlayer(UnknownPlayer):
             elif self._media_file["subtitle"].startswith("file://") and \
                     self.options["loadsubtitle"]:
                 uri += "#subtitle:%s" % self._media_file["subtitle"]
+                self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
+                                                {"lang": "auto", "ix": -1},\
+                                                {"lang": "external", "ix":0}]
 
         isvideo = 0
         if self._media_file["type"] == "video": isvideo = 1
         try: self.xine.start_playing(uri, isvideo, self.options["fullscreen"])
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())
-        else: self.set_fullscreen(self.options["fullscreen"])
+        else: 
+            # if video get current audio/subtitle channel
+            if self._media_file["type"] == "video":
+                if "audio" in self._media_file:
+                    self._media_file["audio_idx"] = self.xine.get_alang()
+                if "subtitle" in self._media_file:
+                    self._media_file["subtitle_idx"] = self.xine.get_slang()
+            self.set_fullscreen(self.options["fullscreen"])
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
@@ -89,6 +99,10 @@ class XinePlayer(UnknownPlayer):
         try: audio_tracks = self._media_file["audio"] 
         except IndexError: raise PlayerError
         else:
+            if lang_idx in (-2,-1): # disable/auto audio channel
+                self.xine.set_alang(lang_idx)
+                self._media_file["audio_idx"] = self.xine.get_alang()
+                return
             found = False
             for track in audio_tracks:
                 if track['ix'] == lang_idx: # audio track exists
@@ -96,6 +110,7 @@ class XinePlayer(UnknownPlayer):
                     found = True
                     break
             if not found: raise PlayerError
+            self._media_file["audio_idx"] = self.xine.get_alang()
 
     def set_slang(self,lang_idx):
         if not self._media_file or self.get_state() == PLAYER_STOP: return
@@ -103,6 +118,10 @@ class XinePlayer(UnknownPlayer):
         try: sub_tracks = self._media_file["subtitle"] 
         except IndexError: raise PlayerError
         else:
+            if lang_idx in (-2,-1): # disable/auto subtitle channel
+                self.xine.set_slang(lang_idx)
+                self._media_file["subtitle_idx"] = self.xine.get_slang()
+                return
             found = False
             for track in sub_tracks:
                 if track['ix'] == lang_idx: # audio track exists
@@ -110,6 +129,7 @@ class XinePlayer(UnknownPlayer):
                     found = True
                     break
             if not found: raise PlayerError
+            self._media_file["subtitle_idx"] = self.xine.get_slang()
 
     def set_fullscreen(self,val):
         try: self.xine.set_fullscreen(val)
@@ -176,18 +196,18 @@ class XinePlayer(UnknownPlayer):
         for track in dvd_info['track']:
             # get audio channels info
             channels_number = len(track['audio'])
-            audio_channels = []
+            audio_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
             for ch in range(0,channels_number):
                 lang = self.xine.get_audio_lang("dvd://%d"%track['ix'],ch)
-                audio_channels.append({'ix':ch, "lang":lang})
+                audio_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
             dvd_info['track'][ix]["audio"] = audio_channels
 
             # get subtitles channels info
             channels_number = len(track['subp'])
-            sub_channels = []
+            sub_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
             for ch in range(0,channels_number):
                 lang = self.xine.get_subtitle_lang("dvd://%d"%track['ix'],ch)
-                sub_channels.append({'ix':ch, "lang":lang})
+                sub_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
             dvd_info['track'][ix]["subp"] = sub_channels
 
             ix += 1

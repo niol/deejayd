@@ -63,7 +63,7 @@ cdef extern from "djdxine.h":
     void djdxine_set_playing(_Xine* xine, int is_playing)
     int djdxine_get_status(_Xine* xine)
     void djdxine_set_param(_Xine* xine, int param, int value, int need_playing)
-    int djdxine_get_volume(_Xine* xine)
+    int djdxine_get_parm(_Xine* xine, int param)
     int djdxine_get_position(_Xine* xine)
     int djdxine_set_fullscreen(_Xine* xine,int fullscreen)
     int djdxine_set_subtitle(_Xine* xine,int subtitle)
@@ -117,6 +117,10 @@ cdef class Xine:
             return "pause"
         else:
             return "stop"
+    def get_alang(self):
+        return djdxine_get_parm(self.xine,XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
+    def get_slang(self):
+        return djdxine_get_parm(self.xine,XINE_PARAM_SPU_CHANNEL)
     def set_alang(self, lang_idx):
         djdxine_set_param(self.xine, XINE_PARAM_AUDIO_CHANNEL_LOGICAL, lang_idx, 1)
     def set_slang(self, lang_idx):
@@ -125,7 +129,7 @@ cdef class Xine:
         volume = min(max(volume, 0), 100)
         djdxine_set_param(self.xine, XINE_PARAM_AUDIO_AMP_LEVEL, volume, 0)
     def get_volume(self):
-        return djdxine_get_volume(self.xine)
+        return djdxine_get_parm(self.xine,XINE_PARAM_AUDIO_AMP_LEVEL)
     def seek(self, int position):
         djdxine_seek(self.xine, position)
     def get_position(self):

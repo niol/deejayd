@@ -39,10 +39,6 @@ class DvdSource:
             if track['ix'] == nb:
                 self.selected_track = track
                 self.selected_track["selected_chapter"] = -1
-
-                self.selected_track["alang_ix"] = 1
-                self.selected_track["slang_ix"] = 1
-
                 break
 
     def select_chapter(self,track = None, chapter = 1, alang = None, \
@@ -59,9 +55,7 @@ class DvdSource:
             id += ".%d" % self.selected_track["selected_chapter"]
         uri = "dvd://%d" % self.selected_track["ix"]
         return {"title": self.dvd_info["title"], "type": "video", \
-                "uri": uri, "alang":self.selected_track["alang_ix"],\
-                "slang":self.selected_track["slang_ix"],\
-                "chapter":self.selected_track["selected_chapter"],\
+                "uri": uri, "chapter":self.selected_track["selected_chapter"],\
                 "length": self.selected_track["length"],\
                 "id": id, "audio": self.selected_track["audio"],\
                 "subtitle": self.selected_track["subp"]}

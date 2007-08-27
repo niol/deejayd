@@ -432,9 +432,9 @@ void djdxine_set_param(_Xine* xine, int param, int value, int need_playing)
     xine_set_param(xine->player.stream,param,value);
 }
 
-int djdxine_get_volume(_Xine* xine)
+int djdxine_get_parm(_Xine* xine, int param)
 {
-    return xine_get_param(xine->player.stream, XINE_PARAM_AUDIO_AMP_LEVEL);
+    return xine_get_param(xine->player.stream,param);
 }
 
 void djdxine_seek(_Xine* xine, int position)
@@ -541,11 +541,12 @@ char *djdxine_get_audio_lang(_Xine* xine,int channel)
 char *djdxine_get_subtitle_lang(_Xine* xine,int channel)
 {
     char *lang[XINE_LANG_MAX];
-    int rs;
+    int rs,i;
 
     rs = xine_get_spu_lang(xine->data_mine.stream,channel,lang);
     if (rs == 0)
         return "Unknown";
+
     return lang;
 }
 

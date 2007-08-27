@@ -116,9 +116,8 @@ class _DeejaydXMLAnswer(_DeejaydXML):
             if type(value) == dict:
                 xmlvalue = self.build_xml_dict_parm(None,value)
             else:
-                xmlvalue = self.xmldoc.createElement('value')
-                value = self.__to_xml_string(value)
-                xmlvalue.appendChild(self.xmldoc.createTextNode(value))
+                xmlvalue = self.xmldoc.createElement('listvalue')
+                xmlvalue.setAttribute('value',self.__to_xml_string(value))
             xml_list_parm.appendChild(xmlvalue)
         return xml_list_parm
 
