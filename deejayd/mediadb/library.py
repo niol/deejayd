@@ -6,7 +6,7 @@ from deejayd import database
 from deejayd.ui import log
 from twisted.internet import threads
 
-class NotFoundException:pass
+class NotFoundException(Exception):pass
 
 class DeejaydAudioFile:
 
@@ -91,8 +91,13 @@ class Library:
         self._update_error = None
         self._db_con_update = None
 
-        self._path = path
         self._player = player
+        self._path = path
+        # test library path
+        if not os.path.isdir(self._path):
+            msg = "Unable to find directory %s" % (self._path,)
+            log.err(msg)
+            raise NotFoundException(msg)
 
         # Connection to the database
         self.db_con = db_connection
@@ -243,10 +248,10 @@ class Library:
 class AudioLibrary(Library):
 
     def __init__(self, db_connection, player, path):
-        Library.__init__(self, db_connection, player, path)
         self._table = "audio_library"
         self._type = "audio"
         self._file_class = DeejaydAudioFile
+        Library.__init__(self, db_connection, player, path)
 
     def search(self,type,content):
         accepted_type = ('all','title','genre','filename','artist','album')
@@ -283,10 +288,10 @@ class AudioLibrary(Library):
 class VideoLibrary(Library):
 
     def __init__(self, db_connection, player, path):
-        Library.__init__(self, db_connection, player, path)
         self._table = "video_library"
         self._type = "video"
         self._file_class = DeejaydVideoFile
+        Library.__init__(self, db_connection, player, path)
 
     def _format_db_rsp(self,rs):
         # format correctly database result
