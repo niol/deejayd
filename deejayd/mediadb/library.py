@@ -299,7 +299,7 @@ class VideoLibrary(Library):
                              "filename":fn,"dir":dir,
                              "title":ti,"id":id,
                              "videowidth":videow,"videoheight":videoh,
-                             "subtitle":sub,"type":"video"}
+                             "external_subtitle":sub,"type":"video"}
                 files.append(file_info)
         return {'files':files, 'dirs': dirs}
 

@@ -327,7 +327,6 @@ Set player options "name" to "value", "value" should be 0 or 1.
        * repeat
        if you are video support:
        * fullscreen
-       * loadsubtitle
        You can pass several options in the same command
 
 Arguments :

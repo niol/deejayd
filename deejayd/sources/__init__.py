@@ -16,6 +16,7 @@ class SourceFactory:
         self.current = None
         self.player = player
         self.db = db
+        video_support = config.get("general","video_support")
 
         # Playlist and Queue
         from deejayd.sources import playlist,queue
@@ -30,7 +31,7 @@ class SourceFactory:
         else: log.info("Webradio support disabled for the choosen backend")
 
         # Video
-        if video_library:
+        if video_support == "yes" and video_library:
             from deejayd.sources import video
             self.sources_obj["video"] = video.VideoSource(player,db,\
                                                                   video_library)
@@ -40,7 +41,7 @@ class SourceFactory:
                 sys.exit('Cannot initialise video support, either disable video support or check your player video support.')
 
         # dvd
-        if self.player.is_supported_uri("dvd"):
+        if video_support == "yes" and self.player.is_supported_uri("dvd"):
             from deejayd.sources import dvd
             try: self.sources_obj["dvd"] = dvd.DvdSource(player,db,config)
             except dvd.DvdError:

@@ -53,21 +53,19 @@ class XinePlayer(UnknownPlayer):
         if "chapter" in self._media_file.keys() and \
                     self._media_file["chapter"] != -1:
             uri += ".%d" % self._media_file["chapter"]
-        if "subtitle" in self._media_file.keys():
-            # dvd subtitle
-            if type(self._media_file["subtitle"]) is list:
-                pass
+        # load external subtitle
+        if "external_subtitle" in self._media_file and \
+                self._media_file["external_subtitle"].startswith("file://"):
+            uri += "#subtitle:%s" % self._media_file["external_subtitle"]
+            self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
+                                            {"lang": "auto", "ix": -1},\
+                                            {"lang": "external", "ix":0}]
 
-            # For external subtitle
-            elif self._media_file["subtitle"].startswith("file://"):
-                uri += "#subtitle:%s" % self._media_file["subtitle"]
-                self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
-                                                {"lang": "auto", "ix": -1},\
-                                                {"lang": "external", "ix":0}]
-
-        isvideo = 0
-        if self._media_file["type"] == "video": isvideo = 1
-        try: self.xine.start_playing(uri, isvideo, self.options["fullscreen"])
+        isvideo,fullscreen = 0,0
+        if self._media_file["type"] == "video": 
+            isvideo = 1
+            fullscreen = self.options["fullscreen"]
+        try: self.xine.start_playing(uri, isvideo, fullscreen)
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())
         else: 
@@ -77,7 +75,7 @@ class XinePlayer(UnknownPlayer):
                     self._media_file["audio_idx"] = self.xine.get_alang()
                 if "subtitle" in self._media_file:
                     self._media_file["subtitle_idx"] = self.xine.get_slang()
-            self.set_fullscreen(self.options["fullscreen"])
+                self.set_fullscreen(self.options["fullscreen"])
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
@@ -96,7 +94,7 @@ class XinePlayer(UnknownPlayer):
         if not self._media_file or self.get_state() == PLAYER_STOP: return
 
         try: audio_tracks = self._media_file["audio"] 
-        except IndexError: raise PlayerError
+        except KeyError: raise PlayerError
         else:
             if lang_idx in (-2,-1): # disable/auto audio channel
                 self.xine.set_alang(lang_idx)
@@ -115,7 +113,7 @@ class XinePlayer(UnknownPlayer):
         if not self._media_file or self.get_state() == PLAYER_STOP: return
 
         try: sub_tracks = self._media_file["subtitle"] 
-        except IndexError: raise PlayerError
+        except KeyError: raise PlayerError
         else:
             if lang_idx in (-2,-1): # disable/auto subtitle channel
                 self.xine.set_slang(lang_idx)
@@ -157,6 +155,12 @@ class XinePlayer(UnknownPlayer):
         return self.xine.get_status()
 
     def is_supported_uri(self,uri_type):
+        if uri_type == "dvd":
+            # test lsdvd  installation
+            import sys,os
+            bindir = os.path.join(sys.prefix,"bin")
+            filename = os.path.join(bindir,"lsdvd")
+            if not os.path.isfile(filename): return False
         return self.xine.is_supported_input(uri_type)
 
     def is_supported_format(self,format):
@@ -176,7 +180,11 @@ class XinePlayer(UnknownPlayer):
         r, w, e = popen2.popen3('lsdvd -s -a -c -Oy')
         # read error
         error = e.read()
-        if error: raise PlayerError(error)
+        if error: 
+            r.close()
+            e.close()
+            w.close()
+            raise PlayerError(error)
 
         output = r.read()
         # close socket
