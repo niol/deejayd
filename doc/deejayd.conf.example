@@ -15,6 +15,9 @@ media_backend = xine
 
 
 [net]
+# Addresses to bind to, a list of ip addresses separated by ',' or 'all'.
+# bind_addresses = 127.0.0.1, 192.168.0.1
+bind_addresses = all
 port = 6800
 
 [database]

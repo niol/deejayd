@@ -158,7 +158,9 @@ if __name__ == "__main__":
     from deejayd.net.deejaydProtocol import DeejaydFactory
     factory = DeejaydFactory()
     port = config.getint("net", "port")
-    reactor.listenTCP(port, factory)
+    bind = config.get_bind_addresses()
+    for bind_address in bind:
+        reactor.listenTCP(port, factory, interface=bind_address)
     reactor.run()
 
 # vim: ts=4 sw=4 expandtab
