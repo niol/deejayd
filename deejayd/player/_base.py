@@ -3,8 +3,8 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-class PlayerError: pass
-class OptionNotFound: pass
+class PlayerError(Exception): pass
+class OptionNotFound(Exception): pass
 
 class UnknownPlayer:
 

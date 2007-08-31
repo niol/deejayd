@@ -176,6 +176,7 @@ class XinePlayer(UnknownPlayer):
         else: return info
 
     def get_dvd_info(self):
+        import subprocess
         command = 'lsdvd -s -a -c -Oy'
         lsdvd_process = subprocess.Popen(command, shell=True, stdin=None,\
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)

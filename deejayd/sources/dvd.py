@@ -1,5 +1,6 @@
+from deejayd.player._base import PlayerError
 
-class DvdError: pass
+class DvdError(Exception): pass
 
 class DvdSource:
 
@@ -14,7 +15,7 @@ class DvdSource:
 
         # load dvd content
         try: self.load()
-        except: pass
+        except DvdError: pass
 
     def get_content(self):
         return self.dvd_info

@@ -684,8 +684,9 @@ class DvdLoad(UnknownCommand):
     command_name = 'dvdLoad'
 
     def execute(self):
+        from deejayd.sources.dvd import DvdError
         try: self.deejayd_args["sources"].get_source("dvd").load()
-        except: self.get_error_answer('error in dvd load')
+        except DvdError,msg: return self.get_error_answer(msg)
         return self.get_ok_answer()
 
 
