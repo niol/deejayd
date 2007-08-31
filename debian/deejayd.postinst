@@ -4,6 +4,7 @@ DEEJAYD_USER=deejayd
 if ! getent passwd $DEEJAYD_USER >/dev/null; then
     adduser --quiet --ingroup audio --system --no-create-home \
             --home /var/lib/deejayd $DEEJAYD_USER
+    adduser $DEEJAYD_USER cdrom
 fi
 
 for i in /var/log/deejayd.log /var/lib/deejayd;
