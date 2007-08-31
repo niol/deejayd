@@ -176,22 +176,16 @@ class XinePlayer(UnknownPlayer):
         else: return info
 
     def get_dvd_info(self):
-        import popen2,sys
-        r, w, e = popen2.popen3('lsdvd -s -a -c -Oy')
+        command = 'lsdvd -s -a -c -Oy'
+        lsdvd_process = subprocess.Popen(command, shell=True, stdin=None,\
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        lsdvd_process.wait()
+
         # read error
-        error = e.read()
-        if error: 
-            r.close()
-            e.close()
-            w.close()
-            raise PlayerError(error)
+        error = lsdvd_process.stderr.read()
+        if error: raise PlayerError(error)
 
-        output = r.read()
-        # close socket
-        r.close()
-        e.close()
-        w.close()
-
+        output = lsdvd_process.stdout.read()
         exec(output)
         dvd_info = lsdvd
 
