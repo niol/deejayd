@@ -3,9 +3,7 @@
 This module generates the test data.
 """
 import os, sys, shutil
-import md5
 import random, time, string
-from xml.dom import minidom
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 

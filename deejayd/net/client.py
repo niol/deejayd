@@ -500,8 +500,7 @@ class DeejayDaemon:
         return self.get_playlist(None)
 
     def get_playlist_list(self):
-        cmd = DeejaydXMLCommand('playlistList')
-        return self._send_command(cmd)
+        return self._send_simple_command('playlistList')
 
     def get_webradios(self):
         cmd = DeejaydXMLCommand('webradioList')

@@ -11,7 +11,7 @@ class Config:
             self.load()
 
     def __initialize(self):
-        self.contents['host'] = 'localhost'
+        self.contents['host'] = 'media'
         self.contents['port'] = 6800
         self.contents['connect_on_startup'] = False
         self.save()

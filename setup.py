@@ -60,13 +60,13 @@ def parse_pkg_config(command, components, options_dict = None):
 
 
 #
-# Build xine extension if necessary
+# Build xine extension if libxine headers are there.
 #
 try: 
     xine_options = parse_pkg_config('pkg-config',\
         'libxine x11 xext')
     from Pyrex.Distutils import build_ext
-except RuntimeError: 
+except RuntimeError:
     ext_mod = []
     cmd_class = {}
 else:

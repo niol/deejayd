@@ -84,7 +84,7 @@ def removePID(pidfile):
     try: os.unlink(pidfile)
     except OSError, e:
         if e.errno == errno.EACCES or e.errno == errno.EPERM:
-            sys.exit("Unable to remove pid file : %s" % (err,))
+            sys.exit("Unable to remove pid file : %s" % (e,))
 
 
 def setEnv(options):
@@ -164,8 +164,7 @@ if __name__ == "__main__":
     from deejayd.net.deejaydProtocol import DeejaydFactory
     factory = DeejaydFactory()
     port = config.getint("net", "port")
-    bind = config.get_bind_addresses()
-    for bind_address in bind:
+    for bind_address in config.get_bind_addresses():
         reactor.listenTCP(port, factory, interface=bind_address)
     reactor.run()
 

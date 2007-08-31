@@ -48,7 +48,8 @@ class TestClient(TestCaseWithMediaData):
 
         ans = self.deejaydaemon.ping()
         ans.add_callback(tcb)
-        cb_called.wait()
+        # some seconds should be enough for the callback to be called
+        cb_called.wait(4)
         self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
 
         self.deejaydaemon.set_async(False)

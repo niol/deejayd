@@ -57,7 +57,7 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
             # First, verify directory list
             for dir in dirs:
                 self.assert_(dir in contents["dirs"],
-                    "'%s' is in directory tree but was not found in DB %s in currrent root '%s'" % (dir,str(contents["dirs"]),current_root))
+                    "'%s' is in directory tree but was not found in DB %s in current root '%s'" % (dir,str(contents["dirs"]),current_root))
 
             # then, verify file list
             db_files = [f["path"] for f in contents["files"]]
