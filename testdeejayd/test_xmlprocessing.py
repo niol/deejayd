@@ -8,6 +8,7 @@ from deejayd.net.client import DeejaydXMLCommand, _AnswerFactory,\
                                DeejaydAnswer, DeejaydKeyValue,\
                                DeejaydFileList, DeejaydWebradioList,\
                                DeejaydPlaylist, DeejaydError
+from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 
 # FIXME : We should not need those here, this is some code duplication from the
 # client code.
@@ -232,6 +233,22 @@ class TestAnswerParser(TestCaseWithData):
 
         for webradio in origWebradios:
             self.failUnless(webradio in ans.get_contents())
+
+
+class TestAnswerBuilder(TestCaseWithData):
+    """Test answer building"""
+
+    def setUp(self):
+        TestCaseWithData.setUp(self)
+        self.ans_factory = DeejaydXMLAnswerFactory()
+
+    def test_answer_parser_unicode(self):
+        """Test that answers may be loaded with unicode"""
+        ml = self.ans_factory.get_deejayd_xml_answer('MediaList',
+                                     self.testdata.getRandomString())
+        ml.set_mediatype(self.testdata.getRandomString())
+        ml.set_medias(self.testdata.sampleLibrary)
+        self.failUnless(ml.to_xml())
 
 
 # vim: ts=4 sw=4 expandtab

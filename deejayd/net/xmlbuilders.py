@@ -98,10 +98,8 @@ class _DeejaydXMLAnswer(_DeejaydXML):
     def __to_xml_string(self, s):
         if isinstance(s,int) or isinstance(s,float):
             return "%d" % (s,)
-        elif isinstance(s,str):
-            return "%s" % (s)
-        elif isinstance(s,unicode):
-            return "%s" % (s.encode('utf-8'))
+        elif isinstance(s, str) or isinstance(s, unicode):
+            return "%s" % (s.decode('utf-8'))
 
     def build_xml_parm(self, name, value):
         xmlparm = self.xmldoc.createElement('parm')
