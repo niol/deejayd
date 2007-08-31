@@ -37,6 +37,7 @@ Description: Command line basic client to the deejayd server
 Package: deejayd-xine
 Architecture: any
 Depends: ${python:Depends}, ${shlibs:Depends}
+Recommends: lsdvd
 Provides: ${python:Provides}, deejayd-mediabackend
 XB-Python-Version: ${python:Versions}
 Description: Deejayd XINE backend
