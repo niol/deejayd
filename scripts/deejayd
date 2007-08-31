@@ -14,7 +14,7 @@ parser.set_defaults(pidfile="deejayd.pid",kill = False,daemon = True)
 parser.add_option("-u","--uid",dest="uid",type="string",\
     help="the uid to run as")
 parser.add_option("-g","--gid",dest="gid",type="string",\
-    help="the gid to run as")
+    help="the gid to run as (the first one), and the supplementary gids separated by commas.")
 parser.add_option("-n","--nodaemon",action="store_false",dest="daemon",\
     help="no daemonize deejayd")
 parser.add_option("-l","--log-file",type="string",dest="logfile",\
@@ -98,10 +98,16 @@ def setEnv(options):
     open(options.pidfile,'wb').write(str(os.getpid()))
 
     if options.gid:
-        try: gid = int(options.gid)
-        except ValueError:
-            gid = grp.getgrnam(options.gid)[2]
-        try: os.setgid(gid)
+        gids = options.gid.split(',')
+        ngids = []
+        for gid in gids:
+            try: ngid = int(gid)
+            except ValueError:
+                ngid = grp.getgrnam(gid)[2]
+            ngids.append(ngid)
+        try:
+            os.setgroups(ngids)
+            os.setgid(ngids[0])
         except OSError:
             sys.exit("Unable to change gid of the process")
     if options.uid:
