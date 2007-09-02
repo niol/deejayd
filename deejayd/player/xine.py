@@ -14,7 +14,9 @@ class XinePlayer(UnknownPlayer):
         UnknownPlayer.__init__(self,db,config)
 
         audio_driver = self.config.get("xine", "audio_output")
-        self.xine = xine.Xine(audio_driver)
+        try: self.xine = xine.Xine(audio_driver)
+        except xine.XineError:
+            raise PlayerError
         self.xine.set_eos_callback(self.eos)
         self.xine.set_progress_callback(self.progress)
 

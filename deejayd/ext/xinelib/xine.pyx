@@ -87,10 +87,13 @@ cdef class Xine:
 
     def __new__(self,char *audio_driver):
         self.xine = djdxine_init(audio_driver,onXineEvent,<void*>self)
+        if self.xine == NULL:
+            raise XineError
         self.eos_callback = None
         self.progress_callback = None
     def __dealloc__(self):
-        djdxine_destroy(self.xine)
+        if self.xine:
+            djdxine_destroy(self.xine)
     def set_enum_config_param(self,char* key,int value):
         cdef int xine_type
         xine_type = XINE_CONFIG_TYPE_ENUM

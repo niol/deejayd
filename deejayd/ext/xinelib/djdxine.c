@@ -169,6 +169,11 @@ static void _destroy_windows(_Xine* xine)
     XUnlockDisplay(xine->player.display);
 }
 
+void _djdxine_set_error(char *error)
+{
+    printf("XINE ERROR : %s\n",error);
+}
+
 
 /***************************************************************************
  *  Pubic functions
@@ -192,21 +197,39 @@ _Xine* djdxine_init(const char *audio_driver,
     xine->frame_info.height = 0;
     xine->event_callback = event_callback;
     xine->event_callback_data = event_callback_data;
-    xine->audio_driver = strdup(audio_driver);
 
     xine->video_driver = NULL;
+    xine->audio_driver = NULL;
+    xine->player.aport = NULL;
+    xine->player.vport = NULL;
+    xine->player.stream = NULL;
+    xine->player.event_queue = NULL;
     xine->player.video_init = 0;
     xine->data_mine.init = 0;
 
-    /* create player */
+/*** 
+ * Create player 
+ **/
     xine->player.xine = xine_new();
     xine_init(xine->player.xine);
+    // Open audio driver
     xine->player.aport = xine_open_audio_driver(xine->player.xine, 
                                                 audio_driver, NULL);
+    if (xine->player.aport == NULL) {
+        _djdxine_set_error("Unable to init audio driver");
+        return NULL;
+        }
+    xine->audio_driver = strdup(audio_driver);
+    // Open null video driver
     xine->player.vport = xine_open_video_driver(xine->player.xine, "none", 
                                             XINE_VISUAL_TYPE_NONE, NULL);
+    // Init the main stream
     xine->player.stream = xine_stream_new(xine->player.xine,xine->player.aport,
                                             xine->player.vport);
+    if (xine->player.stream == NULL) {
+        _djdxine_set_error("Unable to init the main stream");
+        return NULL;
+        }
 
     xine->player.event_queue = xine_event_new_queue(xine->player.stream);
     xine_event_create_listener_thread(xine->player.event_queue,
@@ -245,8 +268,10 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     /* init video informations and player */
     xine->player.fullscreen = 0;
     xine->player.display = XOpenDisplay(display_name);
-    if (!xine->player.display) // Unable to open display
+    if (!xine->player.display) { // Unable to open display
+        _djdxine_set_error("Unable to open display");
         return 1;
+        }
     xine->player.screen = XDefaultScreen(xine->player.display);
     screen_width = (DisplayWidth(xine->player.display, 
         xine->player.screen) * 1000 / DisplayWidthMM(
@@ -274,8 +299,16 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
 
     xine->player.vport = xine_open_video_driver(xine->player.xine, 
             xine->video_driver, XINE_VISUAL_TYPE_X11, (void *)&vis);
+    if (xine->player.vport == NULL) {
+        _djdxine_set_error("Unable to init video driver");
+        return 1;
+        }
     xine->player.stream = xine_stream_new(xine->player.xine, 
         xine->player.aport,xine->player.vport);
+    if (xine->player.stream == NULL) {
+        _djdxine_set_error("Unable to init the main stream");
+        return 1;
+        }
     xine->player.event_queue = xine_event_new_queue(
                                                     xine->player.stream);
     xine_event_create_listener_thread(xine->player.event_queue,
@@ -301,8 +334,8 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
 
 void djdxine_destroy(_Xine* xine)
 {
-    free(xine->audio_driver);
-    if (xine->video_driver) free(xine->video_driver);
+    if (xine->audio_driver != NULL) free(xine->audio_driver);
+    if (xine->video_driver != NULL) free(xine->video_driver);
 
     if (xine->playing) {
         djdxine_stop(xine);
@@ -321,10 +354,14 @@ void djdxine_destroy(_Xine* xine)
     }
 
     /* close player */
-    xine_event_dispose_queue(xine->player.event_queue);
-    xine_dispose(xine->player.stream);
-    xine_close_audio_driver(xine->player.xine, xine->player.aport);
-    xine_close_video_driver(xine->player.xine, xine->player.vport);
+    if (xine->player.event_queue)
+        xine_event_dispose_queue(xine->player.event_queue);
+    if (xine->player.stream)
+        xine_dispose(xine->player.stream);
+    if (xine->player.aport)
+        xine_close_audio_driver(xine->player.xine, xine->player.aport);
+    if (xine->player.vport)
+        xine_close_video_driver(xine->player.xine, xine->player.vport);
     xine_exit(xine->player.xine);
 
     /* close video parm */
@@ -505,7 +542,7 @@ FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
     rv = djdxine_set_data_mine(xine, filename);
     if (rv == 0)
         return NULL;
-    if (rv == 1)
+    if (rv == 1) {
         xine_get_pos_length(xine->data_mine.stream,&dummy, &dummy2, &duration);
         xine->data_mine.file_info.duration = duration;
         xine->data_mine.file_info.width = xine_get_stream_info(
@@ -515,6 +552,7 @@ FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
 
         xine->data_mine.file_info.title = xine_get_meta_info(
             xine->data_mine.stream, XINE_META_INFO_TITLE);
+        }
 
     return &(xine->data_mine.file_info);
 }

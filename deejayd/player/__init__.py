@@ -10,11 +10,14 @@ def init(db,config):
         try: player = gstreamer.GstreamerPlayer(db,config)
         except gstreamer.NoSinkError:
             raise PlayerError(\
-            "Unable to start deejayd : No audio sink found for Gstreamer \n")
+            "Unable to start deejayd : No audio sink found for Gstreamer")
 
     elif media_backend == "xine":
-        from deejayd.player import xine
-        player = xine.XinePlayer(db,config)
+        from deejayd.player import xine,_base
+        try: player = xine.XinePlayer(db,config)
+        except _base.PlayerError:
+            raise PlayerError(\
+            "Unable to start deejayd : xine initialisation failed")
 
     else: raise PlayerError("Invalid audio backend")
 
