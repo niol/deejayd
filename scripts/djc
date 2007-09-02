@@ -17,6 +17,10 @@ class AvailableCommands:
         """Toggle play/pause"""
         self.server.play_toggle()
 
+    def stop(self, args):
+        """Stop player"""
+        self.server.stop()
+
     def previous(self, args):
         """Previous element in player"""
         self.server.previous()
