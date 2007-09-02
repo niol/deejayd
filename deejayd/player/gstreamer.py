@@ -8,8 +8,7 @@ import gobject
 import gst
 import gst.interfaces
 
-from deejayd.player._base import UnknownPlayer,PLAYER_PLAY,PLAYER_PAUSE,\
-                                 PLAYER_STOP
+from deejayd.player._base import *
 from deejayd.ui import log
 
 class NoSinkError: pass
@@ -93,8 +92,10 @@ class GstreamerPlayer(UnknownPlayer):
         if self._media_file["type"] == "video" and not self.deejayd_window:
             import gtk
             self.deejayd_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            self.deejayd_window.set_default_size(640,400)
             self.deejayd_window.set_title("deejayd")
             self.deejayd_window.connect("destroy", self.stop)
+
             self.video_window = gtk.DrawingArea()
             self.deejayd_window.add(self.video_window)
             self.deejayd_window.connect("map_event",self.start_gstreamer)
@@ -103,7 +104,6 @@ class GstreamerPlayer(UnknownPlayer):
 
     def start_gstreamer(self,widget = None, event = None):
         self.bin.set_property('uri',self._media_file["uri"])
-        if self._video_support: self.set_subtitle()
 
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         timeout = 4
@@ -114,7 +114,13 @@ class GstreamerPlayer(UnknownPlayer):
             timeout -= 1
         
         if state_ret != gst.STATE_CHANGE_SUCCESS: return
-        elif self._video_support: 
+        elif self._media_file["type"] == "video": 
+            if "audio" in self._media_file:
+                self._media_file["audio_idx"] = \
+                                self.bin.get_property("current-audio")
+            if "subtitle" in self._media_file:
+                self._media_file["subtitle_idx"] = \
+                                self.bin.get_property("current-text")
             self.set_fullscreen(self.options["fullscreen"])
 
     def pause(self):
@@ -150,20 +156,6 @@ class GstreamerPlayer(UnknownPlayer):
                 self.deejayd_window.window.set_cursor(empty_cursor)
                 self.deejayd_window.fullscreen()
 
-    def set_subtitle(self):
-        # FIXME : correct this function
-        return
-        if not self._media_file: return
-        if  self._video_support and self._media_file["type"] == "video"\
-                                                                and val == 1:
-            sub_uri = self._media_file["subtitle"]
-            if sub_uri.startswith("file://"): pass
-                # FIXME : these 2 lines induce a general stream error in 
-                #         gstreamer. Find out the reason
-                #self.bin.set_property('suburi', subURI)
-                #self.bin.set_property('subtitle-font-desc','Sans Bold 24')
-        #else: self.bin.set_property('suburi', '')
-
     def get_volume(self):
         return int(self.bin.get_property('volume')*100)
 
@@ -176,7 +168,7 @@ class GstreamerPlayer(UnknownPlayer):
         if gst.STATE_NULL != self.__get_gst_state() and \
                 self.bin.get_property('uri'):
             try: p = self.bin.query_position(gst.FORMAT_TIME)[0]
-            except gst.QueryError: p = 0
+            except gst.QueryError: return 0
             p //= gst.SECOND
             return p
         return 0
@@ -193,6 +185,18 @@ class GstreamerPlayer(UnknownPlayer):
                 gst.SEEK_TYPE_NONE, 0)
             self.bin.send_event(event)
 
+    def _player_get_alang(self):
+        return self.bin.get_property("current-audio")
+
+    def _player_set_alang(self,lang_idx):
+        self.bin.set_property("current-audio",lang_idx)
+
+    def _player_get_slang(self):
+        return self.bin.get_property("current-text")
+
+    def _player_set_slang(self,lang_idx):
+        self.bin.set_property("current-text",lang_idx)
+
     def get_state(self):
         gst_state = self.__get_gst_state()
         if gst_state == gst.STATE_PLAYING:
@@ -207,6 +211,9 @@ class GstreamerPlayer(UnknownPlayer):
         return state
 
     def is_supported_uri(self,uri_type):
+        if uri_type == "dvd":
+            # test lsdvd  installation
+            if not self._is_lsdvd_exists(): return False
         return gst.element_make_from_uri(gst.URI_SRC,uri_type+"://", '') \
                     is not None
 
@@ -227,6 +234,20 @@ class GstreamerPlayer(UnknownPlayer):
 
     def get_video_file_info(self,file):
         return DiscoverVideoFile(file)
+
+    def get_dvd_info(self):
+        dvd_info = self._get_dvd_info()
+        ix = 0
+        for track in dvd_info["track"]:
+            # FIXME find audio channels
+            audio_channels = [{"lang":"none","ix":-1},{"lang":"auto","ix":0}]
+            dvd_info['track'][ix]["audio"] = []
+            # FIXME find subtitles channels
+            sub_channels = [{"lang":"none","ix":-1},{"lang":"auto","ix":0}]
+            dvd_info['track'][ix]["subp"] = []
+
+            ix += 1
+        return dvd_info
 
 
 class InfoNotFound: pass 

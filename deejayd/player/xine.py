@@ -1,8 +1,8 @@
 # xine.py
 
+import time
 from deejayd.ext import xine
-from deejayd.player._base import UnknownPlayer,PLAYER_PLAY,PLAYER_PAUSE,\
-                                 PLAYER_STOP,PlayerError
+from deejayd.player._base import *
 from deejayd.ui import log
 
 class XinePlayer(UnknownPlayer):
@@ -90,43 +90,17 @@ class XinePlayer(UnknownPlayer):
 
         self.xine.stop()
 
-    def set_alang(self,lang_idx):
-        if not self._media_file or self.get_state() == PLAYER_STOP: return
+    def _player_set_alang(self,lang_idx):
+        self.xine.set_alang(lang_idx)
 
-        try: audio_tracks = self._media_file["audio"] 
-        except KeyError: raise PlayerError
-        else:
-            if lang_idx in (-2,-1): # disable/auto audio channel
-                self.xine.set_alang(lang_idx)
-                self._media_file["audio_idx"] = self.xine.get_alang()
-                return
-            found = False
-            for track in audio_tracks:
-                if track['ix'] == lang_idx: # audio track exists
-                    self.xine.set_alang(lang_idx)
-                    found = True
-                    break
-            if not found: raise PlayerError
-            self._media_file["audio_idx"] = self.xine.get_alang()
+    def _player_set_slang(self,lang_idx):
+        self.xine.set_slang(lang_idx)
 
-    def set_slang(self,lang_idx):
-        if not self._media_file or self.get_state() == PLAYER_STOP: return
+    def _player_get_alang(self):
+        return self.xine.get_alang()
 
-        try: sub_tracks = self._media_file["subtitle"] 
-        except KeyError: raise PlayerError
-        else:
-            if lang_idx in (-2,-1): # disable/auto subtitle channel
-                self.xine.set_slang(lang_idx)
-                self._media_file["subtitle_idx"] = self.xine.get_slang()
-                return
-            found = False
-            for track in sub_tracks:
-                if track['ix'] == lang_idx: # audio track exists
-                    self.xine.set_slang(lang_idx)
-                    found = True
-                    break
-            if not found: raise PlayerError
-            self._media_file["subtitle_idx"] = self.xine.get_slang()
+    def _player_get_slang(self):
+        return self.xine.get_slang()
 
     def set_fullscreen(self,val):
         try: self.xine.set_fullscreen(val)
@@ -148,7 +122,6 @@ class XinePlayer(UnknownPlayer):
         except xine.NotPlayingError: pass 
         else:
             # FIXME I need to wait to be sure that the command is executed
-            import time
             time.sleep(0.2)
     
     def get_state(self):
@@ -157,10 +130,7 @@ class XinePlayer(UnknownPlayer):
     def is_supported_uri(self,uri_type):
         if uri_type == "dvd":
             # test lsdvd  installation
-            import sys,os
-            bindir = os.path.join(sys.prefix,"bin")
-            filename = os.path.join(bindir,"lsdvd")
-            if not os.path.isfile(filename): return False
+            if not self._is_lsdvd_exists(): return False
         return self.xine.is_supported_input(uri_type)
 
     def is_supported_format(self,format):
@@ -176,20 +146,7 @@ class XinePlayer(UnknownPlayer):
         else: return info
 
     def get_dvd_info(self):
-        import subprocess
-        command = 'lsdvd -s -a -c -Oy'
-        lsdvd_process = subprocess.Popen(command, shell=True, stdin=None,\
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        lsdvd_process.wait()
-
-        # read error
-        error = lsdvd_process.stderr.read()
-        if error: raise PlayerError(error)
-
-        output = lsdvd_process.stdout.read()
-        exec(output)
-        dvd_info = lsdvd
-
+        dvd_info = self._get_dvd_info()
         ix = 0
         for track in dvd_info['track']:
             # get audio channels info

@@ -1,4 +1,6 @@
 
+import os,subprocess
+
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
@@ -89,11 +91,43 @@ class UnknownPlayer:
     def get_state(self):
         raise NotImplementedError
 
-    def set_alang(self):
-        raise NotImplementedError
+    def set_alang(self,lang_idx):
+        if not self._media_file or self.get_state() == PLAYER_STOP: return
 
-    def set_slang(self):
-        raise NotImplementedError
+        try: audio_tracks = self._media_file["audio"] 
+        except KeyError: raise PlayerError
+        else:
+            if lang_idx in (-2,-1): # disable/auto audio channel
+                self._player_set_alang(lang_idx)
+                self._media_file["audio_idx"] = self._player_get_alang()
+                return
+            found = False
+            for track in audio_tracks:
+                if track['ix'] == lang_idx: # audio track exists
+                    self._player_set_alang(lang_idx)
+                    found = True
+                    break
+            if not found: raise PlayerError
+            self._media_file["audio_idx"] = self._player_get_alang()
+
+    def set_slang(self,lang_idx):
+        if not self._media_file or self.get_state() == PLAYER_STOP: return
+
+        try: sub_tracks = self._media_file["subtitle"] 
+        except KeyError: raise PlayerError
+        else:
+            if lang_idx in (-2,-1): # disable/auto subtitle channel
+                self._player_set_slang(lang_idx)
+                self._media_file["subtitle_idx"] = self._player_get_slang()
+                return
+            found = False
+            for track in sub_tracks:
+                if track['ix'] == lang_idx: # audio track exists
+                    self._player_set_slang(lang_idx)
+                    found = True
+                    break
+            if not found: raise PlayerError
+            self._media_file["subtitle_idx"] = self._player_get_slang()
 
     def get_playing(self):
         return self.get_state() != PLAYER_STOP and self._media_file or None
@@ -145,5 +179,26 @@ class UnknownPlayer:
         # stop player if necessary
         if self.get_state() != PLAYER_STOP:
             self.stop()
+
+    def _is_lsdvd_exists(self):
+        path = os.getenv('PATH')
+        for p in path.split(':'):
+            if os.path.isfile(os.path.join(p,"lsdvd")):
+                return True
+        return False
+
+    def _get_dvd_info(self):
+        command = 'lsdvd -Oy -s -a -c'
+        lsdvd_process = subprocess.Popen(command, shell=True, stdin=None,\
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        lsdvd_process.wait()
+
+        # read error
+        error = lsdvd_process.stderr.read()
+        if error: raise PlayerError(error)
+
+        output = lsdvd_process.stdout.read()
+        exec(output)
+        return lsdvd
 
 # vim: ts=4 sw=4 expandtab

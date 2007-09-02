@@ -96,7 +96,7 @@ class _DeejaydXMLAnswer(_DeejaydXML):
         self.originating_cmd = originating_cmd
 
     def __to_xml_string(self, s):
-        if isinstance(s,int) or isinstance(s,float):
+        if isinstance(s, int) or isinstance(s, float) or isinstance(s, long):
             return "%d" % (s,)
         elif isinstance(s, str) or isinstance(s, unicode):
             return "%s" % (s.decode('utf-8'))
@@ -287,12 +287,13 @@ class DeejaydXMLDvdInfo(DeejaydXMLAck):
         DeejaydXMLAck.build_xml(self)
         xmldvd = self.xmldoc.createElement('dvd')
         if not self.dvd_info:
-            # FIXME do not appear here
             xmldvd.setAttribute('title',"DVD NOT LOADED")
+            xmldvd.setAttribute('longest_track',"0")
             self.xmlcontent.appendChild(xmldvd)
             return
 
-        xmldvd.setAttribute('title',self.dvd_info['title'])
+        xmldvd.setAttribute('title',str(self.dvd_info['title']))
+        xmldvd.setAttribute('longest_track',str(self.dvd_info['longest_track']))
         # dvd's title
         for track in self.dvd_info["track"]: 
             xmltrack = self.xmldoc.createElement('track')
