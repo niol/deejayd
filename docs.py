@@ -11,11 +11,6 @@ def headerXMLCommands():
 
 All data between the client and server is encoded in UTF-8.
 
-== Activate XML protocol ==
-
-By default, line protocole is activated.
-To activate XML, you have to send "setXML" command at deejayd 
-
 == Commands Format ==
 
 {{{
@@ -197,6 +192,29 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
 
     def getDvdInfo(self):
         dvd = self.get_deejayd_xml_answer('DvdInfo', 'cmdName')
+        dvd_info = {'title': "DVD Title", "longest_track": 1,\
+                    'track': 
+                      [ {"ix": 1,\
+                         "length":"track length",\
+                         "audio":[\
+                            { 'ix': 0,\
+                              'lang': 'lang code'\
+                            }],\
+                         "subp":[\
+                            { 'ix': 0,\
+                              'lang': 'lang code'\
+                            },\
+                            { 'ix': 1,\
+                              'lang': 'lang code'\
+                            }],\
+                         "chapter":[
+                            {'ix': 1,\
+                             'length': 'chapter length'\
+                            }]\
+                        },\
+                      ],\
+                   }
+        dvd.set_info(dvd_info)
         return dvd
 
     responseTypeExBuilders = { DeejaydXMLError: getError,
