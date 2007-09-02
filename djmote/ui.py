@@ -8,7 +8,7 @@ gtk.gdk.threads_init()
 
 import hildon
 
-from deejayd.net.client import DeejayDaemon
+from deejayd.net.client import DeejayDaemonAsync
 from djmote.conf import Config
 from djmote import stock
 from djmote.widgets import controls
@@ -31,7 +31,7 @@ class DjmoteUI(hildon.Program):
     def __init__(self):
         hildon.Program.__init__(self)
         self.app = hildon.Program()
-        self.__deejayd = DeejayDaemon()
+        self.__deejayd = DeejayDaemonAsync()
         self.__player_state = None
 
         # Conf

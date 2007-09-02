@@ -3,7 +3,8 @@
 import sys
 from optparse import OptionParser
 
-from deejayd.net.client import DeejayDaemon, DeejaydError, DeejaydWebradioList,\
+from deejayd.net.client import DeejayDaemonSync, DeejaydError,\
+                               DeejaydWebradioList,\
                                ConnectError
 
 
@@ -143,7 +144,7 @@ def fail_cmdline():
 
 if __name__ == '__main__':
 
-    deejayd = DeejayDaemon(async=False)
+    deejayd = DeejayDaemonSync()
 
     if len(args) < 1:
         fail_cmdline()

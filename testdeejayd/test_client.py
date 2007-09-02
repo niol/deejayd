@@ -1,14 +1,14 @@
 """Deejayd Client library testing"""
+import threading
+
 from testdeejayd import TestCaseWithMediaData
 
 from testdeejayd.server import TestServer
-from deejayd.net.client import DeejayDaemon, DeejaydError
-
-import threading
+from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, DeejaydError
 
 
-class TestClient(TestCaseWithMediaData):
-    """Completely test the DeejaydClient library"""
+class TestSyncClient(TestCaseWithMediaData):
+    """Test the DeejaydClient library in synchroneous mode."""
 
     def setUp(self):
         TestCaseWithMediaData.setUp(self)
@@ -23,36 +23,12 @@ class TestClient(TestCaseWithMediaData):
         self.testserver.start()
 
         # Instanciate the server object of the client library
-        self.deejaydaemon = DeejayDaemon(False)
+        self.deejaydaemon = DeejayDaemonSync()
         self.deejaydaemon.connect('localhost', testServerPort)
 
     def testPing(self):
         """Ping server"""
         self.failUnless(self.deejaydaemon.ping().get_contents())
-
-    def testPingAsync(self):
-        """Ping server asynchroneously"""
-        self.deejaydaemon.set_async(True)
-        ans = self.deejaydaemon.ping()
-        self.failUnless(ans.get_contents(),
-                        'Server did not respond well to ping.')
-        self.deejaydaemon.set_async(False)
-
-    def test_answer_callback(self):
-        """Ping server asynchroneously and check for the callback to be triggered"""
-        cb_called = threading.Event()
-        def tcb(answer):
-            cb_called.set()
-
-        self.deejaydaemon.set_async(True)
-
-        ans = self.deejaydaemon.ping()
-        ans.add_callback(tcb)
-        # some seconds should be enough for the callback to be called
-        cb_called.wait(4)
-        self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
-
-        self.deejaydaemon.set_async(False)
 
     def tearDown(self):
         self.deejaydaemon.disconnect()
@@ -64,7 +40,8 @@ class TestClient(TestCaseWithMediaData):
 
         # ask an unknown mode
         mode_name = self.testdata.getRandomString()
-        self.assertRaises(DeejaydError, self.deejaydaemon.set_mode, mode_name) 
+        ans = self.deejaydaemon.set_mode(mode_name)
+        self.assertRaises(DeejaydError, ans.get_contents)
 
         # ask a known mode
         known_mode = 'playlist'
@@ -117,13 +94,12 @@ class TestClient(TestCaseWithMediaData):
         for badURI in [[self.testdata.getRandomString(50)],
                        ['http://' +\
                         self.testdata.getRandomString(50) + '.pls']]:
-            self.assertRaises(DeejaydError, wrList.add_webradio,
-                                            self.testdata.getRandomString(),
-                                            badURI[0])
+            ans = wrList.add_webradio(self.testdata.getRandomString(),
+                                      badURI[0])
             # FIXME : provision for the future where the same webradio may have
             # multiple urls.
-            #                                 badURI)
-
+            #                         badURI)
+            self.assertRaises(DeejaydError, ans.get_contents)
 
         testWrName = self.testdata.getRandomString()
 
@@ -157,6 +133,48 @@ class TestClient(TestCaseWithMediaData):
         wrList.delete_webradio(testWrName)
         wrList = self.deejaydaemon.get_webradios()
         self.failIf(testWrName in wrList.names())
+
+class TestAsyncClient(TestCaseWithMediaData):
+    """Test the DeejaydClient library in asynchroenous mode."""
+
+    def setUp(self):
+        TestCaseWithMediaData.setUp(self)
+        self.testdata.build_audio_library_directory_tree()
+
+        # Set up the test server
+        testServerPort = 23344
+        dbfilename = '/tmp/testdeejayddb-' +\
+                     self.testdata.getRandomString() + '.db'
+        self.testserver = TestServer(testServerPort,
+                                     self.testdata.getRootDir(), dbfilename)
+        self.testserver.start()
+
+        # Instanciate the server object of the client library
+        self.deejaydaemon = DeejayDaemonAsync()
+        self.deejaydaemon.connect('localhost', testServerPort)
+
+    def tearDown(self):
+        self.deejaydaemon.disconnect()
+        self.testserver.stop()
+        TestCaseWithMediaData.tearDown(self)
+
+    def test_ping(self):
+        """Ping server asynchroneously"""
+        ans = self.deejaydaemon.ping()
+        self.failUnless(ans.get_contents(),
+                        'Server did not respond well to ping.')
+
+    def test_answer_callback(self):
+        """Ping server asynchroneously and check for the callback to be triggered"""
+        cb_called = threading.Event()
+        def tcb(answer):
+            cb_called.set()
+
+        ans = self.deejaydaemon.ping()
+        ans.add_callback(tcb)
+        # some seconds should be enough for the callback to be called
+        cb_called.wait(4)
+        self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
 
 
 # vim: ts=4 sw=4 expandtab

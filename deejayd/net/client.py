@@ -1,16 +1,15 @@
 """The Deejayd python client library"""
 
 import socket, threading
-
+from StringIO import StringIO
+from xml.sax import make_parser, SAXParseException
+from xml.sax.handler import ContentHandler
 from Queue import Queue, Empty
 
 from deejayd.net.xmlbuilders import DeejaydXMLCommand
 
-from StringIO import StringIO
-from xml.sax import make_parser, SAXParseException
-from xml.sax.handler import ContentHandler
 
-msg_delimiter = 'ENDXML\n'
+MSG_DELIMITER = 'ENDXML\n'
 
 
 class DeejaydError(Exception):
@@ -230,132 +229,20 @@ class _AnswerFactory(ContentHandler):
         return self.originating_command
 
 
-class _DeejaydSocketThread(threading.Thread):
-
-    def __init__(self, socket):
-        threading.Thread.__init__(self)
-
-        self.socket_die_callback = []
-
-        self.socket_to_server = socket
-
-    def add_socket_die_callback(self, callback):
-        self.socket_die_callback.append(callback)
-
-    def run(self):
-        self.should_stop = False
-        try:
-            while not self.should_stop:
-                try:
-                    self.really_run()
-                except _StopException:
-                    self.should_stop = True
-                except SAXParseException:
-                    # XML parsing failed, simply ignore. Client and server are
-                    # misaligned, better disconnect.
-                    self.socket_to_server.close()
-        except socket.error, msg:
-            for cb in self.socket_die_callback:
-                cb(str(msg))
-
-    def really_run(self):
-        # This is implemented by daughter classes. This should be a blocking
-        # function.
-        raise NotImplementedError
-
-
-class _StopException(Exception):
-    pass
-
-class _DeejaydCommandThread(_DeejaydSocketThread):
-
-    def __init__(self, socket, command_queue):
-        _DeejaydSocketThread.__init__(self, socket)
-        self.command_queue = command_queue
-
-    def really_run(self):
-        cmd = self.command_queue.get()
-
-        # If we've got a stop exception in the queue, raise it!
-        if cmd.__class__ == _StopException:
-            raise cmd
-
-        self.__send(cmd.to_xml())
-
-    def __send(self, buf):
-        self.socket_to_server.send(buf + msg_delimiter)
-
-
-class _DeejaydAnswerThread(_DeejaydSocketThread):
-
-    def __init__(self, socket, expected_answers_queue):
-        _DeejaydSocketThread.__init__(self, socket)
-        # socket.recv here is locking. Therefore, make the thread a daemon in
-        # case something goes wrong. I don't like this but this will do for the
-        # moment.
-        self.setDaemon(True)
-
-        self.expected_answers_queue = expected_answers_queue
-
-        self.parser = make_parser()
-        self.answer_builder = _AnswerFactory(self.expected_answers_queue)
-        self.parser.setContentHandler(self.answer_builder)
-
-    def really_run(self):
-        rawmsg = self.__readmsg()
-        self.parser.parse(StringIO(rawmsg))
-
-    def __readmsg(self):
-        msg_chunks = []
-
-        # This is dirty, but there is no msgdelim in answers...
-        msg_delimiter = '</deejayd>'
-
-        msg_chunk = ''
-        while msg_chunk[-len(msg_delimiter):len(msg_chunk)] != msg_delimiter:
-            msg_chunk = self.socket_to_server.recv(4096)
-
-            # socket.recv returns an empty string if the socket is closed, so
-            # catch this.
-            if msg_chunk == '':
-                raise socket.error()
-            else:
-                msg_chunks.append(msg_chunk)
-
-        # We should strip the msgdelim, but in our hack, it is part of the XML,
-        # so it may not be a good idea to strip it...
-        #return ''.joint(msg_chunks)[0:len(msg) - 1 - len(msg_delimiter)]
-        return ''.join(msg_chunks)
-
-
 class ConnectError(Exception):
     pass
 
 
-class DeejayDaemon:
+class _DeejayDaemon:
+    """Abstract class for a deejay daemon client."""
 
-    def __init__(self, async = True):
-        # Queue setup
-        self.command_queue = Queue()
+    def __init__(self):
         self.expected_answers_queue = Queue()
 
         # Socket setup
         self.socket_to_server = socket.socket(socket.AF_INET,
                                               socket.SOCK_STREAM)
         self.connected = False
-
-        # Messaging threads
-        self.sending_thread = _DeejaydCommandThread(self.socket_to_server,
-                                                   self.command_queue)
-        self.receiving_thread = _DeejaydAnswerThread(self.socket_to_server,
-                                                    self.expected_answers_queue)
-        self.receiving_thread.add_socket_die_callback(\
-                                             self.__make_answers_obsolete)
-        for thread in [self.sending_thread, self.receiving_thread]:
-            thread.add_socket_die_callback(self.__disconnect)
-
-        # Library behavior, asynchroneous or not
-        self.async = async
 
     def connect(self, host, port):
         if self.connected:
@@ -377,8 +264,6 @@ class DeejayDaemon:
         if self.version.startswith("OK DEEJAYD"):
             # FIXME extract version number
             self.connected = True
-            self.sending_thread.start()
-            self.receiving_thread.start()
         else:
             self.disconnect()
             raise ConnectError('Connection with server failed')
@@ -387,50 +272,39 @@ class DeejayDaemon:
         if not self.connected:
             return
 
-        self._send_simple_command('close').get_contents()
-
-        # Stop our processing threads
-        self.receiving_thread.should_stop = True
-        # This is tricky because stopping must be notified in the queue for the
-        # command thread...
-        self.command_queue.put(_StopException())
+        # FIXME : Close here should be checked for answer
+        #self._send_simple_command('close').get_contents()
+        self._send_simple_command('close')
 
         self.socket_to_server.close()
         self.connected = False
         self.host = None
         self.port = None
 
-    def __disconnect(self, msg):
-        self.disconnect()
+    def _sendmsg(self, buf):
+        self.socket_to_server.send(buf + MSG_DELIMITER)
 
-    def __make_answers_obsolete(self, msg):
-        msg = "Could not obtain answer from server : " + msg
-        try:
-            while True:
-                self.expected_answers_queue.get_nowait().set_error(msg)
-        except Empty:
-            # There is no more answer there, so no need to set any more errors.
-            pass
+    def _readmsg(self):
+        msg_chunks = []
 
-    def is_async(self):
-        return self.async
+        # This is dirty, but there is no msgdelim in answers...
+        msg_delimiter = '</deejayd>'
 
-    def set_async(self, async):
-        self.async = async
+        msg_chunk = ''
+        while msg_chunk[-len(msg_delimiter):len(msg_chunk)] != msg_delimiter:
+            msg_chunk = self.socket_to_server.recv(4096)
 
-    def __return_async_or_result(self, answer):
-        if not self.async:
-           answer.get_contents()
-        return answer
+            # socket.recv returns an empty string if the socket is closed, so
+            # catch this.
+            if msg_chunk == '':
+                raise socket.error()
+            else:
+                msg_chunks.append(msg_chunk)
 
-    def _send_command(self, cmd, expected_answer = None):
-        # Set a default answer by default
-        if expected_answer == None:
-            expected_answer = DeejaydAnswer(self)
-
-        self.expected_answers_queue.put(expected_answer)
-        self.command_queue.put(cmd)
-        return self.__return_async_or_result(expected_answer)
+        # We should strip the msgdelim, but in our hack, it is part of the XML,
+        # so it may not be a good idea to strip it...
+        #return ''.joint(msg_chunks)[0:len(msg) - 1 - len(msg_delimiter)]
+        return ''.join(msg_chunks)
 
     def _send_simple_command(self, cmd_name):
         cmd = DeejaydXMLCommand(cmd_name)
@@ -513,5 +387,159 @@ class DeejayDaemon:
             cmd.add_simple_arg('directory', dir)
         ans = DeejaydFileList(self)
         return self._send_command(cmd, ans)
+
+
+class DeejayDaemonSync(_DeejayDaemon):
+    """Synchroneous deejayd client library."""
+
+    def __init__(self):
+        _DeejayDaemon.__init__(self)
+        self.parser = make_parser()
+        self.answer_builder = _AnswerFactory(self.expected_answers_queue)
+        self.parser.setContentHandler(self.answer_builder)
+
+    def _send_command(self, cmd, expected_answer = None):
+        # Set a default answer by default
+        if expected_answer == None:
+            expected_answer = DeejaydAnswer(self)
+        self.expected_answers_queue.put(expected_answer)
+
+        self._sendmsg(cmd.to_xml())
+
+        rawmsg = self._readmsg()
+        self.parser.parse(StringIO(rawmsg))
+        return expected_answer
+
+
+class _DeejaydSocketThread(threading.Thread):
+
+    def __init__(self, deejayd, socket):
+        threading.Thread.__init__(self)
+
+        self.socket_die_callback = []
+
+        self.deejayd = deejayd
+        self.socket_to_server = socket
+
+    def add_socket_die_callback(self, callback):
+        self.socket_die_callback.append(callback)
+
+    def run(self):
+        self.should_stop = False
+        try:
+            while not self.should_stop:
+                try:
+                    self.really_run()
+                except _StopException:
+                    self.should_stop = True
+                except SAXParseException:
+                    # XML parsing failed, simply ignore. Client and server are
+                    # misaligned, better disconnect.
+                    self.socket_to_server.close()
+        except socket.error, msg:
+            for cb in self.socket_die_callback:
+                cb(str(msg))
+
+    def really_run(self):
+        # This is implemented by daughter classes. This should be a blocking
+        # function.
+        raise NotImplementedError
+
+
+class _StopException(Exception):
+    pass
+
+
+class _DeejaydCommandThread(_DeejaydSocketThread):
+
+    def __init__(self, deejayd, socket, command_queue):
+        _DeejaydSocketThread.__init__(self, deejayd, socket)
+        self.command_queue = command_queue
+
+    def really_run(self):
+        cmd = self.command_queue.get()
+
+        # If we've got a stop exception in the queue, raise it!
+        if cmd.__class__ == _StopException:
+            raise cmd
+
+        self.deejayd._sendmsg(cmd.to_xml())
+
+
+class _DeejaydAnswerThread(_DeejaydSocketThread):
+
+    def __init__(self, deejayd, socket, expected_answers_queue):
+        _DeejaydSocketThread.__init__(self, deejayd, socket)
+        # socket.recv here is locking. Therefore, make the thread a daemon in
+        # case something goes wrong. I don't like this but this will do for the
+        # moment.
+        self.setDaemon(True)
+
+        self.expected_answers_queue = expected_answers_queue
+
+        self.parser = make_parser()
+        self.answer_builder = _AnswerFactory(self.expected_answers_queue)
+        self.parser.setContentHandler(self.answer_builder)
+
+    def really_run(self):
+        rawmsg = self.deejayd._readmsg()
+        self.parser.parse(StringIO(rawmsg))
+
+
+class DeejayDaemonAsync(_DeejayDaemon):
+    """Completely aynchroneous deejayd client library."""
+
+    def __init__(self):
+        _DeejayDaemon.__init__(self)
+
+        self.command_queue = Queue()
+
+        # Messaging threads
+        self.sending_thread = _DeejaydCommandThread(self,
+                                                    self.socket_to_server,
+                                                    self.command_queue)
+        self.receiving_thread = _DeejaydAnswerThread(self,
+                                                    self.socket_to_server,
+                                                    self.expected_answers_queue)
+        self.receiving_thread.add_socket_die_callback(\
+                                             self.__make_answers_obsolete)
+        for thread in [self.sending_thread, self.receiving_thread]:
+            thread.add_socket_die_callback(self.__disconnect)
+
+    def __disconnect(self, msg):
+        self.disconnect()
+
+    def __make_answers_obsolete(self, msg):
+        msg = "Could not obtain answer from server : " + msg
+        try:
+            while True:
+                self.expected_answers_queue.get_nowait().set_error(msg)
+        except Empty:
+            # There is no more answer there, so no need to set any more errors.
+            pass
+
+    def connect(self, host, port):
+        _DeejayDaemon.connect(self, host, port)
+        self.sending_thread.start()
+        self.receiving_thread.start()
+
+    def disconnect(self):
+        # Stop our processing threads
+        self.receiving_thread.should_stop = True
+        # This is tricky because stopping must be notified in the queue for the
+        # command thread...
+        self.command_queue.put(_StopException())
+
+        _DeejayDaemon.disconnect(self)
+
+    def _send_command(self, cmd, expected_answer = None):
+        # Set a default answer by default
+        if expected_answer == None:
+            expected_answer = DeejaydAnswer(self)
+
+        self.expected_answers_queue.put(expected_answer)
+        self.command_queue.put(cmd)
+        return expected_answer
+
 
 # vim: ts=4 sw=4 expandtab
