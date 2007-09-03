@@ -70,6 +70,18 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
                     % relPath)
                     if testTag: self.verifyTag(relPath)
 
+    def verifyTag(self,filePath):
+        try: inDBfile = self.library.get_file(filePath)
+        except NotFoundException:
+            self.assert_(False,
+                "'%s' is a file in directory tree but was not found in DB"\
+                % media.name)
+        else: inDBfile = inDBfile[0]
+
+        realFile = self.testdata.medias[filePath]
+
+        return (inDBfile, realFile)
+
 
 class TestVideoLibrary(TestDeejayDBLibrary):
     library_class = VideoLibrary
@@ -94,7 +106,11 @@ class TestVideoLibrary(TestDeejayDBLibrary):
         self.testdata.addMedia()
         self.verifyMediaDBContent()
 
-    def verifyTag(self,relPath):pass
+    def verifyTag(self, filePath):
+        (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
+
+        for tag in ('length', 'videowidth', 'videoheight'):
+            self.assertEqual(realFile[tag], inDBfile[tag])
 
 
 class TestAudioLibrary(TestDeejayDBLibrary):
@@ -165,14 +181,8 @@ class TestAudioLibrary(TestDeejayDBLibrary):
         self.assertEqual(1,len(self.library.search("genre", media["genre"])))
 
     def verifyTag(self,filePath):
-        try: inDBfile = self.library.get_file(filePath)
-        except NotFoundException:
-            self.assert_(False,
-                "'%s' is a file in directory tree but was not found in DB"\
-                % media.name)
-        else: inDBfile = inDBfile[0]
+        (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
         
-        realFile = self.testdata.medias[filePath]
         for tag in ("title","artist","album"):
             self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \

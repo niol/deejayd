@@ -75,7 +75,8 @@ class TestVideo(TestSong):
     def __init__(self):
         self.testFile,self.ext = os.path.join(DATA_DIR, "mpg_test.mpg"), ".mpg"
         TestSong.__init__(self)
-        self.tags = {"length": 10, "videowidth": 0, "videoheight": 0}
+        # FIXME Shoudn't videowidth and videoheight be of type int?
+        self.tags = {"length": 2, "videowidth": '640', "videoheight": '480'}
 
     def __getitem__(self,key):
         return key in self.tags and self.tags[key] or None
