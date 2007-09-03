@@ -35,6 +35,15 @@ class _DeejaydXML:
             raise NotImplementedError('Do not build directly deejayd\
                                        XML that has a mother.')
 
+    def _to_xml_string(self, s):
+        if isinstance(s, int) or isinstance(s, float) or isinstance(s, long):
+            return "%d" % (s,)
+        elif isinstance(s, str):
+            return "%s" % (s.decode('utf-8'))
+        elif isinstance(s, unicode):
+            rs = s.encode("utf-8")
+            return "%s" % (rs.decode('utf-8'))
+
     def to_xml(self):
         self.__really_build_xml()
         return self.xmldoc.toxml('utf-8')
@@ -80,13 +89,14 @@ class DeejaydXMLCommand(_DeejaydXML):
                 for arg_param_value in arg_param:
                     xmlval = self.xmldoc.createElement('value')
                     xmlval.appendChild(self.xmldoc.createTextNode(
-                                str(arg_param_value) ))
+                                self._to_xml_string(arg_param_value) ))
                     xmlarg.appendChild(xmlval)
 
             else:
                 # We've got a simple arg
                 xmlarg.setAttribute('type', 'simple')
-                xmlarg.appendChild(self.xmldoc.createTextNode(str(arg_param)))
+                xmlarg.appendChild(self.xmldoc.createTextNode(\
+                                    self._to_xml_string(arg_param)))
 
 
 class _DeejaydXMLAnswer(_DeejaydXML):
@@ -95,16 +105,10 @@ class _DeejaydXMLAnswer(_DeejaydXML):
         _DeejaydXML.__init__(self, mother_xml_object)
         self.originating_cmd = originating_cmd
 
-    def __to_xml_string(self, s):
-        if isinstance(s, int) or isinstance(s, float) or isinstance(s, long):
-            return "%d" % (s,)
-        elif isinstance(s, str) or isinstance(s, unicode):
-            return "%s" % (s.decode('utf-8'))
-
     def build_xml_parm(self, name, value):
         xmlparm = self.xmldoc.createElement('parm')
         xmlparm.setAttribute('name', name)
-        xmlparm.setAttribute('value', self.__to_xml_string(value))
+        xmlparm.setAttribute('value', self._to_xml_string(value))
         return xmlparm
 
     def build_xml_list_parm(self, name, value_list):
@@ -115,7 +119,7 @@ class _DeejaydXMLAnswer(_DeejaydXML):
                 xmlvalue = self.build_xml_dict_parm(None,value)
             else:
                 xmlvalue = self.xmldoc.createElement('listvalue')
-                xmlvalue.setAttribute('value',self.__to_xml_string(value))
+                xmlvalue.setAttribute('value',self._to_xml_string(value))
             xml_list_parm.appendChild(xmlvalue)
         return xml_list_parm
 
@@ -124,7 +128,7 @@ class _DeejaydXMLAnswer(_DeejaydXML):
         if name: xml_dict_parm.setAttribute('name', name)
         for key in value_dict.keys():
             xmlitem = self.xmldoc.createElement('dictitem')
-            value = self.__to_xml_string(value_dict[key])
+            value = self._to_xml_string(value_dict[key])
             xmlitem.setAttribute('name', key)
             xmlitem.setAttribute('value', value)
             xml_dict_parm.appendChild(xmlitem)
@@ -154,7 +158,8 @@ class DeejaydXMLError(_DeejaydXMLAnswer):
     def build_xml(self):
         self.xmlcontent = self.xmldoc.createElement(self.response_type)
         self.xmlcontent.setAttribute('name', self.originating_cmd)
-        xml_error_text = self.xmldoc.createTextNode(str(self.error_text))
+        xml_error_text = self.xmldoc.createTextNode(\
+                                        self._to_xml_string(self.error_text))
         self.xmlcontent.appendChild(xml_error_text)
 
 
@@ -227,11 +232,12 @@ class DeejaydXMLFileDirList(DeejaydXMLAck):
         DeejaydXMLAck.build_xml(self)
 
         if self.directory != None:
-            self.xmlcontent.setAttribute('directory', self.directory)
+            self.xmlcontent.setAttribute('directory', \
+                self._to_xml_string(self.directory))
 
         for dirname in self.contents['directory']:
             xmldir = self.xmldoc.createElement('directory')
-            xmldir.setAttribute('name', dirname)
+            xmldir.setAttribute('name', self._to_xml_string(dirname))
             self.xmlcontent.appendChild(xmldir)
 
         for item in self.contents['file']:
@@ -292,33 +298,35 @@ class DeejaydXMLDvdInfo(DeejaydXMLAck):
             self.xmlcontent.appendChild(xmldvd)
             return
 
-        xmldvd.setAttribute('title',str(self.dvd_info['title']))
-        xmldvd.setAttribute('longest_track',str(self.dvd_info['longest_track']))
+        xmldvd.setAttribute('title',self._to_xml_string(self.dvd_info['title']))
+        xmldvd.setAttribute('longest_track',\
+                            self._to_xml_string(self.dvd_info['longest_track']))
         # dvd's title
         for track in self.dvd_info["track"]: 
             xmltrack = self.xmldoc.createElement('track')
             for info in ('ix','length'):
-                xmltrack.setAttribute(info,str(track[info]))
+                xmltrack.setAttribute(info,self._to_xml_string(track[info]))
 
             # avalaible audio channels
             for audio in track["audio"]: 
                 xmlaudio = self.xmldoc.createElement('audio')
                 for info in ('ix','lang'):
-                    xmlaudio.setAttribute(info,str(audio[info]))
+                    xmlaudio.setAttribute(info,self._to_xml_string(audio[info]))
                 xmltrack.appendChild(xmlaudio)
 
             # avalaible subtitle channels
             for sub in track["subp"]: 
                 xmlsub = self.xmldoc.createElement('subtitle')
                 for info in ('ix','lang'):
-                    xmlsub.setAttribute(info,str(sub[info]))
+                    xmlsub.setAttribute(info,self._to_xml_string(sub[info]))
                 xmltrack.appendChild(xmlsub)
 
             # chapter list
             for chapter in track["chapter"]: 
                 xmlchapter = self.xmldoc.createElement('chapter')
                 for info in ('ix','length'):
-                    xmlchapter.setAttribute(info,str(chapter[info]))
+                    xmlchapter.setAttribute(info,\
+                                            self._to_xml_string(chapter[info]))
                 xmltrack.appendChild(xmlchapter)
 
             xmldvd.appendChild(xmltrack)
