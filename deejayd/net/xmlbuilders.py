@@ -43,6 +43,8 @@ class _DeejaydXML:
         elif isinstance(s, unicode):
             rs = s.encode("utf-8")
             return "%s" % (rs.decode('utf-8'))
+        else:
+            raise TypeError
 
     def to_xml(self):
         self.__really_build_xml()
@@ -158,8 +160,7 @@ class DeejaydXMLError(_DeejaydXMLAnswer):
     def build_xml(self):
         self.xmlcontent = self.xmldoc.createElement(self.response_type)
         self.xmlcontent.setAttribute('name', self.originating_cmd)
-        xml_error_text = self.xmldoc.createTextNode(\
-                                        self._to_xml_string(self.error_text))
+        xml_error_text = self.xmldoc.createTextNode( str(self.error_text))
         self.xmlcontent.appendChild(xml_error_text)
 
 
