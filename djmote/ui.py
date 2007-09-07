@@ -11,7 +11,7 @@ import hildon
 from deejayd.net.client import DeejayDaemonAsync
 from djmote.conf import Config
 from djmote import stock
-from djmote.widgets import controls
+from djmote.widgets.controls import ControlBox
 from djmote.widgets.dialogs import *
 
 # This is a decorator for our GUI callbacks : every GUI callback will be GTK
@@ -32,7 +32,7 @@ class DjmoteUI(hildon.Program):
         hildon.Program.__init__(self)
         self.app = hildon.Program()
         self.__deejayd = DeejayDaemonAsync()
-        self.__player_state = None
+        self.__widgets = {}
 
         # Conf
         conffile = os.path.expanduser('~/.djmoterc')
@@ -76,24 +76,14 @@ class DjmoteUI(hildon.Program):
         bottom_box = gtk.HBox()
         main_box.pack_end(bottom_box)
 
-        controls_box = gtk.VBox()
-        bottom_box.pack_end(controls_box, fill=False)
-
-        # Controls
-        self.controls_button = controls.buttons
-        for (name,action) in [("previous",self.previous),\
-                              ("stop",self.stop),\
-                              ("play-pause",self.play_toggle),\
-                              ("next",self.next),]:
-            self.controls_button[name].connect("clicked", action)
-            controls_box.pack_end(self.controls_button[name])
+        # widgets
+        self.__widgets['controls'] = ControlBox(self)
+        bottom_box.pack_end(self.__widgets['controls'], fill=False)
 
     def run(self):
         self.main_window.show_all()
-        if not self.__conf['connect_on_startup']:
-            self.show_connect_window()
-        else:
-            self.connect(None, self.__conf)
+        # do post show actions
+        self.__post_show_action()
         gtk.main()
 
     def destroy(self, widget, data=None):
@@ -107,8 +97,17 @@ class DjmoteUI(hildon.Program):
     def show_connect_window(self, widget=None):
         self.connect_window.show()
 
+    def __post_show_action(self):
+        for w in self.__widgets.values():
+            w.post_show_action()
+        if not self.__conf['connect_on_startup']:
+            self.show_connect_window()
+        else:
+            self.connect(None, self.__conf)
+
+    # Player Controls
     def play_toggle(self, widget, data = None):
-        self.__deejayd.play_toggle().add_callback(self.cb_play_toggle)
+        self.__deejayd.play_toggle().add_callback(self.cb_update_status)
 
     def stop(self, widget, data = None):
         self.__deejayd.stop().add_callback(self.cb_update_status)
@@ -119,13 +118,8 @@ class DjmoteUI(hildon.Program):
     def previous(self, widget, data = None):
         self.__deejayd.previous().add_callback(self.cb_update_status)
 
-    @gui_callback
-    def cb_play_toggle(self, answer):
-        if answer.get_contents() == True:
-            if self.__player_state == "play":
-                self.set_player_state("pause")
-            else:
-                self.set_player_state("play")
+    def set_volume(self, volume):
+        self.__deejayd.set_volume(volume)
 
     @gui_callback
     def cb_update_status(self, answer):
@@ -134,11 +128,7 @@ class DjmoteUI(hildon.Program):
 
     @gui_callback
     def cb_get_status(self, answer):
-        self.set_player_state(answer['state'])
-
-    def set_player_state(self, state):
-        self.__player_state = state
-        self.controls_button["play-pause"].set_play(self.__player_state)
-
+        for w in self.__widgets.values():
+            w.update_status(answer)
 
 # vim: ts=4 sw=4 expandtab

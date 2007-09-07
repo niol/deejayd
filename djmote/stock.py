@@ -7,8 +7,10 @@ DJMOTE_PAUSE = "pause_button"
 DJMOTE_STOP = "stop_button"
 DJMOTE_NEXT = "forward_button"
 DJMOTE_PREVIOUS = "backward_button"
+DJMOTE_VOLUME = "volume_button"
 
-_ICONS = [DJMOTE_PLAY,DJMOTE_PAUSE,DJMOTE_STOP,DJMOTE_NEXT,DJMOTE_PREVIOUS]
+_ICONS = [DJMOTE_PLAY,DJMOTE_PAUSE,DJMOTE_STOP,DJMOTE_NEXT,DJMOTE_PREVIOUS,\
+          DJMOTE_VOLUME]
 
 def init():
     factory = gtk.IconFactory()
