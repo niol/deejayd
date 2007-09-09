@@ -11,28 +11,30 @@ class ControlBox(gtk.VBox):
         self.pack_end(vol_button)
 
         self.__current = "pl_controls"
-        self.controls_panels = {"volume":VolumeBar(player),\
-                                "pl_controls": ControlsPanel(player),} 
+        self.__controls_panels = {}
 
-        for panel in self.controls_panels.values():
-            self.pack_end(panel)
+        self.__controls_panels["pl_controls"] = ControlsPanel(player)
+        self.pack_end(self.__controls_panels["pl_controls"])
+
+        self.__controls_panels["volume"] = VolumeBar(player)
+        self.pack_end(self.__controls_panels["volume"])
 
     def volume_toggle(self, widget, data = None):
         if self.__current == "pl_controls":
-            self.controls_panels["volume"].show()
-            self.controls_panels["pl_controls"].hide()
+            self.__controls_panels["volume"].show()
+            self.__controls_panels["pl_controls"].hide()
             self.__current = "volume"
         else:
-            self.controls_panels["volume"].hide()
-            self.controls_panels["pl_controls"].show()
+            self.__controls_panels["volume"].hide()
+            self.__controls_panels["pl_controls"].show()
             self.__current = "pl_controls"
 
     def update_status(self,status):
-        self.controls_panels["pl_controls"].set_player_state(status['state'])
-        self.controls_panels["volume"].update(status['volume'])
+        self.__controls_panels["pl_controls"].set_player_state(status['state'])
+        self.__controls_panels["volume"].update(status['volume'])
 
     def post_show_action(self):
-        self.controls_panels["volume"].hide()
+        self.__controls_panels["volume"].hide()
 
 
 class ControlsPanel(gtk.VBox):
@@ -61,15 +63,17 @@ class VolumeBar(hildon.VVolumebar):
 
     def __init__(self,player):
         hildon.VVolumebar.__init__(self)
-        self.set_size_request(80,300)
+        self.set_size_request(80,278)
         self.__player = player
-        self.__volume_init = False
+        self.__level_signal = self.connect("level_changed",self.set_volume)
+        self.connect("mute_toggled",self.volume_mute_toggle)
 
     def update(self,volume):
-        if not self.__volume_init:
+        if int(self.get_level()) != volume:
+            # we need to update volume bar without send a signal
+            self.handler_block(self.__level_signal)
             self.set_level(volume)
-            self.connect("level_changed",self.set_volume)
-            self.connect("mute_toggled",self.volume_mute_toggle)
+            self.handler_unblock(self.__level_signal)
 
     def set_volume(self,widget):
         self.__player.set_volume(int(self.get_level()))

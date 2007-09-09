@@ -12,6 +12,7 @@ from deejayd.net.client import DeejayDaemonAsync
 from djmote.conf import Config
 from djmote import stock
 from djmote.widgets.controls import ControlBox
+from djmote.widgets.status import StatusBox
 from djmote.widgets.dialogs import *
 
 # This is a decorator for our GUI callbacks : every GUI callback will be GTK
@@ -67,18 +68,18 @@ class DjmoteUI(hildon.Program):
         self.main_window.set_menu(menu)
 
         # Layout
-        main_box = gtk.VBox()
+        main_box = gtk.HBox()
         self.main_window.add(main_box)
 
-        status_box = gtk.HBox()
-        main_box.pack_start(status_box)
-
-        bottom_box = gtk.HBox()
-        main_box.pack_end(bottom_box)
-
-        # widgets
+        # controls
         self.__widgets['controls'] = ControlBox(self)
-        bottom_box.pack_end(self.__widgets['controls'], fill=False)
+        main_box.pack_end(self.__widgets['controls'], fill=False)
+
+        left_box = gtk.VBox()
+        main_box.pack_end(left_box)
+        # toolbar and status
+        self.__widgets['status'] = StatusBox(self)
+        left_box.pack_start(self.__widgets['status'])
 
     def run(self):
         self.main_window.show_all()
@@ -119,7 +120,11 @@ class DjmoteUI(hildon.Program):
         self.__deejayd.previous().add_callback(self.cb_update_status)
 
     def set_volume(self, volume):
-        self.__deejayd.set_volume(volume)
+        self.__deejayd.set_volume(volume).add_callback(self.cb_update_status)
+
+    def set_option(self,option_name,option_value):
+        self.__deejayd.set_option(option_name,option_value).add_callback(\
+                                                        self.cb_update_status)
 
     @gui_callback
     def cb_update_status(self, answer):
