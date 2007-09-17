@@ -11,12 +11,11 @@ class NotFoundException(Exception):pass
 class DeejaydAudioFile:
 
     def __init__(self,db_con,player,dir,root_path):
-        self.db_con = db_con
         self.dir = dir
         self.player = player
         self.root_path = root_path
-        self.update_function = self.db_con.update_audio_file
-        self.insert_function = self.db_con.insert_audio_file
+        self.update_function = db_con.update_audio_file
+        self.insert_function = db_con.insert_audio_file
         self.file_type = "audio"
 
     def insert(self,f):
@@ -55,6 +54,7 @@ class DeejaydVideoFile(DeejaydAudioFile):
 
     def __init__(self,db_con,player,dir,root_path = None):
         DeejaydAudioFile.__init__(self,db_con,player,dir,root_path)
+        self.db_con = db_con
 
         self.update_function = self.db_con.update_video_file
         self.insert_function = self.db_con.insert_video_file

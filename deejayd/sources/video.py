@@ -14,6 +14,7 @@ class VideoSource(UnknownSourceManagement):
         UnknownSourceManagement.__init__(self,player,db,library)
 
         # Init parms
+        self.played_items = []
         self.source_name = "video"
         self.current_source = Video(db,library)
         self.__current_dir = ""

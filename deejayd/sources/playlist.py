@@ -14,7 +14,7 @@ class Playlist(UnknownSource):
 
         # Init parms
         self.playlist_name = name
-        self.root_path = library.get_root_path() 
+        self.played_items = []
 
         if content == None:
             # Load the content of this playlist

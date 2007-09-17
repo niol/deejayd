@@ -105,7 +105,6 @@ class UnknownSourceManagement:
         self.player = player
         self.library = library
         self.current_item = None
-        self.played_items = []
 
     def get_recorded_id(self):
         id = int(self.db.get_state(self.source_name+"id"))
