@@ -13,6 +13,7 @@ from djmote.conf import Config
 from djmote import stock
 from djmote.widgets.controls import ControlBox
 from djmote.widgets.status import StatusBox
+from djmote.widgets.mode import ModeBox
 from djmote.widgets.dialogs import *
 
 # This is a decorator for our GUI callbacks : every GUI callback will be GTK
@@ -41,6 +42,9 @@ class DjmoteUI(hildon.Program):
 
         # Custom Icons
         stock.init()
+
+    def get_server(self):
+        return self.__deejayd
 
     def build(self):
         self.main_window = hildon.Window()
@@ -73,13 +77,18 @@ class DjmoteUI(hildon.Program):
 
         # controls
         self.__widgets['controls'] = ControlBox(self)
-        main_box.pack_end(self.__widgets['controls'], fill=False)
+        main_box.pack_end(self.__widgets['controls'], expand=False, fill=False)
 
-        left_box = gtk.VBox()
+        left_box = gtk.VBox(spacing = 5)
         main_box.pack_end(left_box)
-        # toolbar and status
+        # status
         self.__widgets['status'] = StatusBox(self)
-        left_box.pack_start(self.__widgets['status'])
+        left_box.pack_start(self.__widgets['status'], expand = False,\
+                            fill = False)
+
+        # mode
+        self.__widgets['mode'] = ModeBox(self)
+        left_box.pack_start(self.__widgets['mode'])
 
     def run(self):
         self.main_window.show_all()
@@ -109,6 +118,9 @@ class DjmoteUI(hildon.Program):
     # Player Controls
     def play_toggle(self, widget, data = None):
         self.__deejayd.play_toggle().add_callback(self.cb_update_status)
+
+    def go_to(self, id):
+        self.__deejayd.go_to(id).add_callback(self.cb_update_status)
 
     def stop(self, widget, data = None):
         self.__deejayd.stop().add_callback(self.cb_update_status)
