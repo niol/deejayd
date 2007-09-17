@@ -75,7 +75,7 @@ There are 6 response types :
   * '''`MediaList`''' : A list of media (song, webradio,playlist or video) with information for each media : 
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
-    * artist, album, title, id, etc. if it is a video
+    * title, id, length, subtitle, audio, etc. if it is a video
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -83,6 +83,25 @@ There are 6 response types :
 		<media type="song or video or webradio or playlist">
 			<parm name="parmName0" value="parmValue0"/>
 			<parm name="parmName1" value="parmValue1"/>
+		</media>
+		<media type="song or video or webradio or playlist">
+			<parm name="parmName1" value="parmValue1"/>
+			<listparm name="audio">
+				<dictparm>
+					<dictitem name="lang" value="lang1"/>
+					<dictitem name="idx" value="0"/>
+				</dictparm>
+				<dictparm>
+					<dictitem name="lang" value="lang2"/>
+					<dictitem name="idx" value="1"/>
+				</dictparm>
+			</listparm>
+			<listparm name="subtitle">
+				<dictparm>
+					<dictitem name="lang" value="lang1"/>
+					<dictitem name="idx" value="0"/>
+				</dictparm>
+			</listparm>
 		</media>
 	</response>
 </deejayd>

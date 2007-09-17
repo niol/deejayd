@@ -252,7 +252,7 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
     """A list of media (song, webradio,playlist or video) with information for each media : 
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
-    * artist, album, title, id, etc. if it is a video"""
+    * title, id, length, subtitle, audio, etc. if it is a video"""
 
     response_type = 'MediaList'
 

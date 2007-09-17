@@ -188,6 +188,10 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         ml = self.get_deejayd_xml_answer('MediaList', 'cmdName')
         ml.set_mediatype("song or video or webradio or playlist")
         ml.add_media(self.getSampleParmDict())
+        ml.add_media({"parmName1": "parmValue1", \
+            "audio": [{"idx": "0", "lang": "lang1"}, \
+                      {"idx": "1", "lang": "lang2"}],\
+            "subtitle": [{"idx": "0", "lang": "lang1"}]})
         return ml
 
     def getDvdInfo(self):
