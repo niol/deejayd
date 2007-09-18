@@ -88,7 +88,21 @@ class DeejaydFileList(DeejaydAnswer):
         return self.directories
 
 
-class DeejaydWebradioList(DeejaydAnswer):
+class DeejaydMediaList(DeejaydAnswer):
+
+    def __init__(self, server = None):
+        DeejaydAnswer.__init__(self, server)
+        self.medias = []
+
+    def add_media(self, media):
+        self.medias.append(media)
+
+    def get_medias(self):
+        self.get_contents()
+        return self.medias
+
+
+class DeejaydWebradioList(DeejaydMediaList):
 
     def add_webradio(self, name, urls):
         cmd = DeejaydXMLCommand('webradioAdd')
@@ -115,7 +129,7 @@ class DeejaydWebradioList(DeejaydAnswer):
         return self.__get_webradio_by_field('title', name)
 
     def __get_webradio_by_field(self, field, value):
-        i_wr = iter(self.get_contents())
+        i_wr = iter(self.get_medias())
         try:
             while True:
                 wr = i_wr.next()
@@ -125,29 +139,62 @@ class DeejaydWebradioList(DeejaydAnswer):
             raise DeejaydError('Webradio not found')
 
 
-class DeejaydPlaylist(DeejaydKeyValue):
+class DeejaydPlaylist:
 
-    def save(self, name):
+    def __init__(self, server, pl_name = None):
+        self.server = server
+        self.__pl_name = pl_name
+
+    def get(self):
+        cmd = DeejaydXMLCommand('playlistInfo')
+        if self.__pl_name != None:
+            cmd.add_simple_arg('name', self.__pl_name)
+        ans = DeejaydMediaList(self)
+        return self.server._send_command(cmd, ans)
+
+    def save(self, name = None):
         cmd = DeejaydXMLCommand('playlistSave')
-        cmd.add_simple_arg('name', name)
+        cmd.add_simple_arg('name', name or self.__pl_name)
         return self.server._send_command(cmd)
 
-    def add_song(self, path, position = None, name = None):
-        return self.add_songs([path], position, name)
+    def add_song(self, path, position = None):
+        return self.add_songs([path], position)
 
-    def add_songs(self, paths, position = None, name = None):
+    def add_songs(self, paths, position = None):
         cmd = DeejaydXMLCommand('playlistAdd')
         cmd.add_multiple_arg('path', paths)
         if position != None:
             cmd.add_simple_arg('pos', position)
-        if name != None:
-            cmd.add_simple_arg('name', name)
+        if self.__pl_name != None:
+            cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
 
     def load(self, name, loading_position = 0):
         cmd = DeejaydXMLCommand('playlistLoad')
         cmd.add_simple_arg('name', name)
         cmd.add_simple_arg('pos', loading_position)
+        return self.server._send_command(cmd)
+
+    def shuffle(self):
+        cmd = DeejaydXMLCommand('playlistShuffle')
+        if self.__pl_name != None:
+            cmd.add_simple_arg('name', self.__pl_name)
+        return self.server._send_command(cmd)
+
+    def clear(self):
+        cmd = DeejaydXMLCommand('playlistClear')
+        if self.__pl_name != None:
+            cmd.add_simple_arg('name', self.__pl_name)
+        return self.server._send_command(cmd)
+
+    def del_song(self, id):
+        return self.del_songs([id])
+
+    def del_songs(self, ids):
+        cmd = DeejaydXMLCommand('playlistRemove')
+        cmd.add_multiple_arg('id', ids)
+        if self.__pl_name != None:
+            cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
 
 
@@ -211,7 +258,7 @@ class _AnswerFactory(ContentHandler):
         self.xmlpath.pop()
 
         if name == 'media':
-            self.answer.append(self.parms)
+            self.expected_answer.add_media(self.parms)
             self.parms = {}
         elif name == 'file':
             self.expected_answer.add_file(self.parms)
@@ -363,18 +410,14 @@ class _DeejayDaemon:
         cmd = DeejaydXMLCommand('videoUpdate')
         return self._send_command(cmd, DeejaydKeyValue())
 
-    def get_playlist(self, name):
-        cmd = DeejaydXMLCommand('playlistInfo')
-        if name != None:
-            cmd.add_simple_arg('name', name)
-        ans = DeejaydPlaylist(self)
-        return self._send_command(cmd, ans)
-
-    def get_current_playlist(self):
-        return self.get_playlist(None)
+    def erase_playlist(self, name):
+        cmd = DeejaydXMLCommand('playlistErase')
+        cmd.add_simple_arg('name', name)
+        return self.server._send_command(cmd)
 
     def get_playlist_list(self):
-        return self._send_simple_command('playlistList')
+        cmd = DeejaydXMLCommand('playlistList')
+        return self._send_command(cmd,DeejaydMediaList())
 
     def get_webradios(self):
         cmd = DeejaydXMLCommand('webradioList')
