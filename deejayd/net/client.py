@@ -372,6 +372,13 @@ class _DeejayDaemon:
     def next(self):
         return self._send_simple_command('next')
 
+    def go_to(self, id, id_type = None):
+        cmd = DeejaydXMLCommand('play')
+        cmd.add_simple_arg('id', id)
+        if id_type:
+            cmd.add_simple_arg('id_type', id_type)
+        return self._send_command(cmd)
+
     def set_volume(self, volume_value):
         cmd = DeejaydXMLCommand('setVolume')
         cmd.add_simple_arg('volume', volume_value)
@@ -400,6 +407,10 @@ class _DeejayDaemon:
 
     def get_status(self):
         cmd = DeejaydXMLCommand('status')
+        return self._send_command(cmd, DeejaydKeyValue())
+
+    def get_stats(self):
+        cmd = DeejaydXMLCommand('stats')
         return self._send_command(cmd, DeejaydKeyValue())
 
     def update_audio_library(self):
