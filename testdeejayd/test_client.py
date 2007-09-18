@@ -4,7 +4,8 @@ import threading
 from testdeejayd import TestCaseWithMediaData
 
 from testdeejayd.server import TestServer
-from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, DeejaydError
+from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, \
+                               DeejaydError, DeejaydPlaylist
 
 
 class TestSyncClient(TestCaseWithMediaData):
@@ -60,8 +61,8 @@ class TestSyncClient(TestCaseWithMediaData):
         djplname = self.testdata.getRandomString()
 
         # Get current playlist
-        djpl = self.deejaydaemon.get_current_playlist()
-        self.assertEqual(djpl.get_contents(), [])
+        djpl = DeejaydPlaylist(self.deejaydaemon)
+        self.assertEqual(djpl.get().get_medias(), [])
 
         # Add songs to playlist
         howManySongs = 3
@@ -77,11 +78,12 @@ class TestSyncClient(TestCaseWithMediaData):
         self.failUnless(djpl.save(djplname).get_contents())
 
         # Check for the saved playslit to be available
-        retrievedPls = self.deejaydaemon.get_playlist_list().get_contents()
+        retrievedPls = self.deejaydaemon.get_playlist_list().get_medias()
         self.failUnless(djplname in [p["name"] for p in retrievedPls])
 
         # Retrieve the saved playlist
-        retrievedPl = self.deejaydaemon.get_playlist(djplname)
+        djpl = DeejaydPlaylist(self.deejaydaemon, djplname)
+        retrievedPl = djpl.get().get_medias()
         for song_nb in range(len(pl)):
             self.assertEqual(pl[song_nb], retrievedPl[song_nb]['path'])
 
@@ -176,5 +178,44 @@ class TestAsyncClient(TestCaseWithMediaData):
         cb_called.wait(4)
         self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
 
+    def testPlaylistSaveRetrieve(self):
+        """Test playlist commands asynchroneously and callback"""
+
+        # Get current playlist and add callback
+        self.pl = None
+        cb_called = threading.Event()
+        def tcb(answer):
+            cb_called.set()
+            self.pl = answer.get_medias()
+
+        djpl = DeejaydPlaylist(self.deejaydaemon)
+        djpl.get().add_callback(tcb)
+
+        cb_called.wait(4)
+        self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
+        self.assertEqual(self.pl, [])
+
+        # Add songs to playlist and get status
+        cb_called = threading.Event()
+        self.should_stop = False
+        self.status = None
+
+        def tcb_status(answer):
+            cb_called.set()
+            self.status = answer.get_contents()
+            self.should_stop = True
+
+        def cb_update_status(answer):
+            self.deejaydaemon.get_status().add_callback(tcb_status)
+
+        djpl.add_song(self.testdata.getRandomSongPaths(1)[0]).\
+                add_callback(cb_update_status)
+
+        while not self.should_stop:
+            cb_called.wait(2)
+
+        self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
+        self.assertEqual(self.status['playlistlength'], 1)
+        
 
 # vim: ts=4 sw=4 expandtab
