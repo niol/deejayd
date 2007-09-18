@@ -1,18 +1,6 @@
 import gtk
 from deejayd.net.client import DeejaydPlaylist
 
-# This is a decorator for our GUI callbacks : every GUI callback will be GTK
-# thread safe that way.
-def gui_callback(func):
-    def gtk_thread_safe_func(*__args,**__kw):
-        gtk.gdk.threads_enter()
-        try:
-            func(*__args, **__kw)
-        finally:
-            gtk.gdk.threads_leave()
-    return gtk_thread_safe_func
-
-
 class PlaylistBox(gtk.VBox, DeejaydPlaylist):
 
     def __init__(self, player):
@@ -30,7 +18,15 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
     def update_status(self, status):
         if self.__pl_id == None or status["playlist"] > self.__pl_id:
             self.__pl_id = status["playlist"]
-            self.get().add_callback(self.cb_build_playlist)
+
+            def cb_build_playlist(answer):
+                media_list = answer.get_medias()
+                self.__pl_content.clear()
+                for m in media_list:
+                    self.__pl_content.append([m["id"], m["title"],m["artist"],\
+                                              m["album"]])
+
+            self.get().add_callback(cb_build_playlist)
 
     #
     # widget creation functions
@@ -95,15 +91,6 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
 
     def cb_shuffle_playlist(self, widget):
         self.shuffle().add_callback(self.__player.cb_update_status)
-
-    @gui_callback
-    def cb_build_playlist(self, answer):
-        media_list = answer.get_medias()
-        self.__pl_content.clear()
-
-        for m in media_list:
-            self.__pl_content.append([m["id"], m["title"],m["artist"],\
-                                      m["album"]])
 
 
 # vim: ts=4 sw=4 expandtab
