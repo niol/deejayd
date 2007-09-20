@@ -8,13 +8,13 @@ class ModeBox(gtk.VBox):
         self.__player = player
         self.__content = None
 
-    def update_status(self, status):
+        # Signals
+        player.connect("update-status",self.update)
+
+    def update(self, ui, status):
         if not self.__content:
             self.__build(status)
         self.__content["widget"].update_status(status)
-
-    def post_show_action(self):
-        pass
 
     def __build(self,status):
         if status["mode"] == "playlist":

@@ -19,6 +19,9 @@ class ControlBox(gtk.VBox):
         self.__controls_panels["volume"] = VolumeBar(player)
         self.pack_end(self.__controls_panels["volume"])
 
+        # Signals
+        self.connect("show",self.post_show_action)
+
     def volume_toggle(self, widget, data = None):
         if self.__current == "pl_controls":
             self.__controls_panels["volume"].show()
@@ -29,11 +32,7 @@ class ControlBox(gtk.VBox):
             self.__controls_panels["pl_controls"].show()
             self.__current = "pl_controls"
 
-    def update_status(self,status):
-        self.__controls_panels["pl_controls"].set_player_state(status['state'])
-        self.__controls_panels["volume"].update(status['volume'])
-
-    def post_show_action(self):
+    def post_show_action(self, ui = None):
         self.__controls_panels["volume"].hide()
 
 
@@ -55,8 +54,11 @@ class ControlsPanel(gtk.VBox):
             button.connect("clicked", action)
             self.pack_start(button)
 
-    def set_player_state(self,state):
-        self.__play_pause.set_play(state)
+        # Signals
+        player.connect("update-status",self.update)
+
+    def update(self, ui, status):
+        self.__play_pause.set_play(status["state"])
 
 
 class VolumeBar(hildon.VVolumebar):
@@ -65,14 +67,17 @@ class VolumeBar(hildon.VVolumebar):
         hildon.VVolumebar.__init__(self)
         self.set_size_request(80,278)
         self.__player = player
+
+        # Signals
         self.__level_signal = self.connect("level_changed",self.set_volume)
         self.connect("mute_toggled",self.volume_mute_toggle)
+        player.connect("update-status",self.update)
 
-    def update(self,volume):
-        if int(self.get_level()) != volume:
+    def update(self, ui, status):
+        if int(self.get_level()) != status["volume"]:
             # we need to update volume bar without send a signal
             self.handler_block(self.__level_signal)
-            self.set_level(volume)
+            self.set_level(status["volume"])
             self.handler_unblock(self.__level_signal)
 
     def set_volume(self,widget):

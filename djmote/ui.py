@@ -1,6 +1,6 @@
 import os
 
-import gtk
+import gtk,gobject
 # Initializing GTK thread engine, as UI callbacks of deejayd command will be
 # called from another thread.
 # Thanks http://aruiz.typepad.com/siliconisland/2006/04/threads_on_pygt.html !
@@ -30,6 +30,10 @@ def gui_callback(func):
 
 class DjmoteUI(hildon.Program):
 
+    __gsignals__ = {
+        'update-status':(gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (object,)),
+        }
+
     def __init__(self):
         hildon.Program.__init__(self)
         self.app = hildon.Program()
@@ -54,7 +58,7 @@ class DjmoteUI(hildon.Program):
         # Connect window
         self.connect_window = ConnectDialog(self.main_window,
                                             self.__conf,
-                                            self.connect)
+                                            self.connect_to_server)
 
         # Menu
         menu = gtk.Menu()
@@ -92,28 +96,22 @@ class DjmoteUI(hildon.Program):
 
     def run(self):
         self.main_window.show_all()
-        # do post show actions
-        self.__post_show_action()
+        if not self.__conf['connect_on_startup']:
+            self.show_connect_window()
+        else:
+            self.connect_to_server(None, self.__conf)
         gtk.main()
 
     def destroy(self, widget, data=None):
         self.__deejayd.disconnect()
         gtk.main_quit()
 
-    def connect(self, widget, data):
+    def connect_to_server(self, widget, data):
         self.__deejayd.connect(data['host'], data['port'])
         self.__deejayd.get_status().add_callback(self.cb_get_status)
 
     def show_connect_window(self, widget=None):
         self.connect_window.show()
-
-    def __post_show_action(self):
-        for w in self.__widgets.values():
-            w.post_show_action()
-        if not self.__conf['connect_on_startup']:
-            self.show_connect_window()
-        else:
-            self.connect(None, self.__conf)
 
     # Player Controls
     def play_toggle(self, widget, data = None):
@@ -145,7 +143,6 @@ class DjmoteUI(hildon.Program):
 
     @gui_callback
     def cb_get_status(self, answer):
-        for w in self.__widgets.values():
-            w.update_status(answer)
+        self.emit("update-status",answer)
 
 # vim: ts=4 sw=4 expandtab

@@ -9,11 +9,6 @@ class StatusBox(gtk.HBox):
         self.toolbar = ToolBar(player)
         self.pack_start(self.toolbar)
 
-    def update_status(self,status):
-        self.toolbar.update_status(status)
-
-    def post_show_action(self): pass
-
 
 class ToolBar(gtk.Toolbar):
 
@@ -40,7 +35,9 @@ class ToolBar(gtk.Toolbar):
                 connect("clicked", self.set_option,"fullscreen")
         self.insert(self.__contents["fullscreen"],2)
 
-    def update_status(self,status): 
+        player.connect("update-status", self.update)
+
+    def update(self, ui, status): 
         for option in self.__contents.keys():
             value = self.__contents[option].get_active() and 1 or 0
             if status[option] != value:
