@@ -23,8 +23,8 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
                 media_list = answer.get_medias()
                 self.__pl_content.clear()
                 for m in media_list:
-                    self.__pl_content.append([m["id"], m["title"],m["artist"],\
-                                              m["album"]])
+                    self.__pl_content.append([m["pos"]+1, m["id"], m["title"],\
+                                m["artist"], m["album"]])
 
             self.get().add_callback(cb_build_playlist)
 
@@ -33,36 +33,25 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
     #
     def __build_tree(self):
         # ListStore
-        # id, title, artist, album
-        self.__pl_content = gtk.ListStore(int, str, str, str)
+        # pos, id, title, artist, album
+        self.__pl_content = gtk.ListStore(int, int, str, str, str)
 
         # View
-        # title, artist, album
+        # pos, title, artist, album
         self.__pl_view = gtk.TreeView(self.__pl_content)
-        self.__pl_view.set_vadjustment(gtk.Adjustment())
 
         # create column
-        title_col = gtk.TreeViewColumn("Title")
+        pos_col = gtk.TreeViewColumn("Pos",gtk.CellRendererText(),text=0)
+        self.__pl_view.append_column(pos_col)
+
+        title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=2)
         self.__pl_view.append_column(title_col)
 
-        artist_col = gtk.TreeViewColumn("Artist")
+        artist_col = gtk.TreeViewColumn("Artist",gtk.CellRendererText(),text=3)
         self.__pl_view.append_column(artist_col)
 
-        album_col = gtk.TreeViewColumn("Album")
+        album_col = gtk.TreeViewColumn("Album",gtk.CellRendererText(),text=4)
         self.__pl_view.append_column(album_col)
-
-        # create cells
-        title_cell = gtk.CellRendererText()
-        title_col.pack_start(title_cell, True)
-        title_col.set_attributes(title_cell, text=1)
-
-        artist_cell = gtk.CellRendererText()
-        artist_col.pack_start(artist_cell, True)
-        artist_col.set_attributes(artist_cell, text=2)
-
-        album_cell = gtk.CellRendererText()
-        album_col.pack_start(album_cell, True)
-        album_col.set_attributes(album_cell, text=3)
 
         # signals
         self.__pl_view.connect("row-activated",self.cb_play)
