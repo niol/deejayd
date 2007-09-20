@@ -25,7 +25,7 @@ class ConnectDialog(gtk.Dialog):
         layout.attach(self.port_entry, 1, 2, 1, 2)
 
         startup_connect = gtk.CheckButton("Remember and connect on startup")
-        startup_connect.connect("toggled", self.sartup_connect_toggle)
+        startup_connect.connect("toggled", self.startup_connect_toggle)
         startup_connect.set_active(self.conf['connect_on_startup'])
         layout.attach(startup_connect, 0, 2, 2, 3)
 
@@ -42,7 +42,7 @@ class ConnectDialog(gtk.Dialog):
 
         self.action_area.show_all()
 
-    def sartup_connect_toggle(self, checkbutton, data=None):
+    def startup_connect_toggle(self, checkbutton, data=None):
         self.conf['connect_on_startup'] = checkbutton.get_active()
 
     def connect_now(self, widget, data=None):
