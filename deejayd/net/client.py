@@ -70,8 +70,12 @@ class DeejaydFileList(DeejaydAnswer):
 
     def __init__(self, server = None):
         DeejaydAnswer.__init__(self, server)
+        self.root_dir = ""
         self.files = []
         self.directories = []
+
+    def set_rootdir(self, dir):
+        self.root_dir = dir
 
     def add_file(self, file):
         self.files.append(file)
@@ -221,6 +225,8 @@ class _AnswerFactory(ContentHandler):
             self.response_type = attrs.get('type')
             if self.response_type == 'Ack':
                 self.answer = True
+            elif self.response_type == 'FileAndDirList':
+                self.expected_answer.set_rootdir(attrs.get('directory'))
             elif self.response_type in ['FileAndDirList','MediaList','DvdInfo']:
                 self.answer = []
             elif self.response_type == 'KeyValue':
@@ -435,7 +441,7 @@ class _DeejayDaemon:
         ans = DeejaydWebradioList(self)
         return self._send_command(cmd, ans)
 
-    def get_audio_dir(self,dir):
+    def get_audio_dir(self,dir = None):
         cmd = DeejaydXMLCommand('getdir')
         if dir != None:
             cmd.add_simple_arg('directory', dir)
