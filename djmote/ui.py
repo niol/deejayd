@@ -15,18 +15,7 @@ from djmote.widgets.controls import ControlBox
 from djmote.widgets.status import StatusBox
 from djmote.widgets.mode import ModeBox
 from djmote.widgets.dialogs import *
-
-# This is a decorator for our GUI callbacks : every GUI callback will be GTK
-# thread safe that way.
-def gui_callback(func):
-    def gtk_thread_safe_func(*__args,**__kw):
-        gtk.gdk.threads_enter()
-        try:
-            func(*__args, **__kw)
-        finally:
-            gtk.gdk.threads_leave()
-    return gtk_thread_safe_func
-
+from djmote.utils.decorators import gui_callback
 
 class DjmoteUI(hildon.Program):
 
