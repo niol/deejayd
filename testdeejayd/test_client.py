@@ -216,6 +216,26 @@ class TestAsyncClient(TestCaseWithMediaData):
 
         self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
         self.assertEqual(self.status['playlistlength'], 1)
-        
 
+    def testCallbackProcess(self):
+        """ Send two commands asynchroneously at the same time and check callback """
+
+        firstcb_called = threading.Event()
+        secondcb_called = threading.Event()
+        def first_cb(answer):
+            firstcb_called.set()
+
+        def second_cb(answer):
+            secondcb_called.set()
+
+        self.deejaydaemon.get_audio_dir("").add_callback(first_cb)
+        self.deejaydaemon.get_playlist_list().add_callback(second_cb)
+        
+        secondcb_called.wait(2)
+        firstcb_called.wait(2)
+        self.failUnless(firstcb_called.isSet(), \
+            '1rst Answer callback was not triggered.')
+        self.failUnless(secondcb_called.isSet(), \
+            '2nd Answer callback was not triggered.')
+        
 # vim: ts=4 sw=4 expandtab
