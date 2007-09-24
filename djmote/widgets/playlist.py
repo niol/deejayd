@@ -226,9 +226,6 @@ class LibraryDialog(gtk.Dialog):
         scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scrolled_window.add_with_viewport(self.playlistlist_view)
 
-        # FIXME remove this after fix client bug
-        import time
-        time.sleep(5)
         @gui_callback
         def cb_build(answer):
             model = self.playlistlist_view.get_model()
