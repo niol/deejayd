@@ -27,14 +27,14 @@ class TestSyncClient(TestCaseWithMediaData):
         self.deejaydaemon = DeejayDaemonSync()
         self.deejaydaemon.connect('localhost', testServerPort)
 
-    def testPing(self):
-        """Ping server"""
-        self.failUnless(self.deejaydaemon.ping().get_contents())
-
     def tearDown(self):
         self.deejaydaemon.disconnect()
         self.testserver.stop()
         TestCaseWithMediaData.tearDown(self)
+
+    def testPing(self):
+        """Ping server"""
+        self.failUnless(self.deejaydaemon.ping().get_contents())
 
     def testSetMode(self):
         """Test setMode command"""
@@ -218,24 +218,32 @@ class TestAsyncClient(TestCaseWithMediaData):
         self.assertEqual(self.status['playlistlength'], 1)
 
     def testCallbackProcess(self):
-        """ Send two commands asynchroneously at the same time and check callback """
+        """ Send three commands asynchroneously at the same time and check callback """
 
         firstcb_called = threading.Event()
         secondcb_called = threading.Event()
+        thirdcb_called = threading.Event()
         def first_cb(answer):
             firstcb_called.set()
 
         def second_cb(answer):
             secondcb_called.set()
 
+        def third_cb(answer):
+            thirdcb_called.set()
+
         self.deejaydaemon.get_audio_dir("").add_callback(first_cb)
         self.deejaydaemon.get_playlist_list().add_callback(second_cb)
+        self.deejaydaemon.ping().add_callback(third_cb)
         
-        secondcb_called.wait(2)
         firstcb_called.wait(2)
         self.failUnless(firstcb_called.isSet(), \
             '1rst Answer callback was not triggered.')
+        secondcb_called.wait(2)
         self.failUnless(secondcb_called.isSet(), \
             '2nd Answer callback was not triggered.')
+        thirdcb_called.wait(2)
+        self.failUnless(thirdcb_called.isSet(), \
+            '3rd Answer callback was not triggered.')
         
 # vim: ts=4 sw=4 expandtab

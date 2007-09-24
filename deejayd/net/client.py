@@ -291,6 +291,7 @@ class _DeejayDaemon:
 
     def __init__(self):
         self.expected_answers_queue = Queue()
+        self.next_msg = ""
 
         # Socket setup
         self.socket_to_server = socket.socket(socket.AF_INET,
@@ -338,26 +339,45 @@ class _DeejayDaemon:
         self.socket_to_server.send(buf + MSG_DELIMITER)
 
     def _readmsg(self):
-        msg_chunks = []
-
         # This is dirty, but there is no msgdelim in answers...
         msg_delimiter = '</deejayd>'
 
+        msg_chunks = []
         msg_chunk = ''
-        while msg_chunk[-len(msg_delimiter):len(msg_chunk)] != msg_delimiter:
-            msg_chunk = self.socket_to_server.recv(4096)
+        def split_msg(msg,index):
+            return (msg[0:index+len(msg_delimiter)],\
+                    msg[index+len(msg_delimiter):len(msg)])
 
+        while 1:
+            try: index = self.next_msg.index(msg_delimiter)
+            except ValueError: pass
+            else:
+                (rs,self.next_msg) = split_msg(self.next_msg, index)
+                break
+                
+
+            msg_chunk = self.socket_to_server.recv(4096)
             # socket.recv returns an empty string if the socket is closed, so
             # catch this.
             if msg_chunk == '':
                 raise socket.error()
-            else:
-                msg_chunks.append(msg_chunk)
 
-        # We should strip the msgdelim, but in our hack, it is part of the XML,
+            try: index = msg_chunk.index(msg_delimiter)
+            except ValueError:
+                msg_chunks.append(msg_chunk)
+            else:
+                msg_chunks.append(msg_chunk[0:index+len(msg_delimiter)])
+                rs = self.next_msg.join(msg_chunks)
+                self.next_msg = msg_chunk[index+len(msg_delimiter):\
+                                          len(msg_chunk)]
+                break
+
+        # We should strip the msgdelim, but in our hack, 
+        # it is part of the XML,
         # so it may not be a good idea to strip it...
-        #return ''.joint(msg_chunks)[0:len(msg) - 1 - len(msg_delimiter)]
-        return ''.join(msg_chunks)
+        # return ''.joint(msg_chunks)[0:len(msg) - 1 - 
+        # len(msg_delimiter)]
+        return rs
 
     def _send_simple_command(self, cmd_name):
         cmd = DeejaydXMLCommand(cmd_name)
