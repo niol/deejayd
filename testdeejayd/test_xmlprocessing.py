@@ -232,7 +232,7 @@ class TestAnswerParser(TestCaseWithData):
                          originatingCommand)
 
         for webradio in origWebradios:
-            self.failUnless(webradio in ans.get_contents())
+            self.failUnless(webradio in ans.get_medias())
 
 
 class TestAnswerBuilder(TestCaseWithData):
