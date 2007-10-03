@@ -156,7 +156,7 @@ class DeejaydPlaylist:
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
-    def save(self, name = None):
+    def save(self, name):
         cmd = DeejaydXMLCommand('playlistSave')
         cmd.add_simple_arg('name', name or self.__pl_name)
         return self.server._send_command(cmd)

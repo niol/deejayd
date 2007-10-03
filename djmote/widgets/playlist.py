@@ -101,7 +101,7 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
         dialog = LibraryDialog(self, self.__player.get_server())
 
     def cb_open_save_dialog(self, widget):
-        dialog = SaveDialog()
+        dialog = SaveDialog(self)
 
     def cb_add_song(self,path):
         self.add_song(path).add_callback(self.__player.cb_update_status)
@@ -194,6 +194,10 @@ class LibraryDialog(gtk.Dialog):
         def cb_build(answer):
             model = self.library_view.get_model()
             model.clear()
+
+            if answer.root_dir != "":
+                parent_dir = os.path.dirname(answer.root_dir)
+                model.append(["..",parent_dir,"directory",gtk.STOCK_GOTO_TOP])
             for dir in answer.get_directories():
                 model.append([dir, \
                     os.path.join(answer.root_dir,dir), "directory",\
@@ -237,6 +241,37 @@ class LibraryDialog(gtk.Dialog):
 
 
 class SaveDialog(gtk.Dialog):
-    pass
+
+    def __init__(self, playlist):
+        self.__playlist = playlist
+        gtk.Dialog.__init__(self,"Save playlist",None,\
+            gtk.DIALOG_DESTROY_WITH_PARENT,
+             (gtk.STOCK_SAVE, gtk.RESPONSE_OK,\
+              gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
+
+        # build form
+        label = gtk.Label("Enter the playlist name")
+        self.vbox.pack_start(label)
+        self.entry = gtk.Entry(64)
+        self.vbox.pack_start(self.entry)
+        
+
+        # signal
+        self.connect("response", self.cb_response)
+        self.set_size_request(450,150)
+        self.show_all()
+
+    def cb_response(self, dialog, response_id):
+        @gui_callback
+        def cb_save_playlist(answer):
+            if answer.get_contents():
+                self.destroy()
+
+        if response_id == gtk.RESPONSE_CANCEL:
+            self.destroy()
+        elif response_id == gtk.RESPONSE_OK:
+            pl_name = self.entry.get_text()
+            if pl_name != "":
+                self.__playlist.save(pl_name).add_callback(cb_save_playlist)
 
 # vim: ts=4 sw=4 expandtab
