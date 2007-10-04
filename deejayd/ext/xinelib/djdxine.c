@@ -2,12 +2,15 @@
  * xine_impl.c
  **************************************************************************/
 
-#include "Python.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "djdxine.h"
+
+#include <Python.h>
 #include <xine/video_out.h>
+#include <xine/xineutils.h>
+
+#include "djdxine.h"
 
 /***************************************************************************
  *  Callback functions
