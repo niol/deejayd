@@ -82,7 +82,8 @@ void* _x11_event_handler(void* xine_obj)
 static void _set_video_area(_Xine* xine)
 {
     Window root;
-    int xpos, ypos, width, height, border, depth;
+    int xpos, ypos;
+    unsigned int width, height, border, depth;
 
     XGetGeometry(xine->player.display,
         xine->player.window[xine->player.fullscreen],
@@ -574,7 +575,7 @@ char *djdxine_get_audio_lang(_Xine* xine,int channel)
 char *djdxine_get_subtitle_lang(_Xine* xine,int channel)
 {
     char *lang[XINE_LANG_MAX];
-    int rs,i;
+    int rs;
 
     rs = xine_get_spu_lang(xine->data_mine.stream,channel,lang);
     if (rs == 0)
