@@ -20,7 +20,7 @@ from djmote.utils.decorators import gui_callback
 class DjmoteUI(hildon.Program):
 
     __gsignals__ = {
-        'update-status':(gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (object,)),
+        'update-status':(gobject.SIGNAL_RUN_LAST,gobject.TYPE_NONE,(object,)),
         }
 
     def __init__(self):
@@ -50,18 +50,7 @@ class DjmoteUI(hildon.Program):
                                             self.connect_to_server)
 
         # Menu
-        menu = gtk.Menu()
-
-        menu_connect = gtk.MenuItem("Connect...")
-        menu_connect.connect("activate", self.show_connect_window)
-        menu.append(menu_connect)
-        menu_connect.show()
-
-        menu_quit = gtk.MenuItem("Quit")
-        menu_quit.connect("activate", self.destroy)
-        menu.append(menu_quit)
-        menu_quit.show()
-
+        menu = DjmoteMenu(self)
         self.main_window.set_menu(menu)
 
         # Layout
@@ -97,6 +86,8 @@ class DjmoteUI(hildon.Program):
 
     def connect_to_server(self, widget, data):
         self.__deejayd.connect(data['host'], data['port'])
+
+        # get player status
         self.__deejayd.get_status().add_callback(self.cb_get_status)
 
     def show_connect_window(self, widget=None):
@@ -128,6 +119,9 @@ class DjmoteUI(hildon.Program):
         self.__deejayd.set_option(option_name,option_value).add_callback(\
                                                         self.cb_update_status)
 
+    def set_mode(self, mode):
+        self.__deejayd.set_mode(mode).add_callback(self.cb_update_status)
+
     @gui_callback
     def cb_update_status(self, answer):
         if answer.get_contents() == True:
@@ -136,5 +130,69 @@ class DjmoteUI(hildon.Program):
     @gui_callback
     def cb_get_status(self, answer):
         self.emit("update-status",answer)
+
+
+class DjmoteMenu(gtk.Menu):
+
+    def __init__(self, player):
+        gtk.Menu.__init__(self)
+        self.__player = player
+        self.__mode_menu = None
+
+        # build menu
+        menu_connect = gtk.MenuItem("Connect...")
+        menu_connect.connect("activate", self.__player.show_connect_window)
+        self.append(menu_connect)
+        menu_connect.show()
+
+        menu_quit = gtk.MenuItem("Quit")
+        menu_quit.connect("activate", self.__player.destroy)
+        self.append(menu_quit)
+        menu_quit.show()
+
+        self.__player.connect("update-status", self.update_mode_menu)
+
+    def update_mode_menu(self, ui, status):
+        mode = status["mode"]
+
+        if self.__mode_menu == None:
+            self.__mode_menu = {"current": mode, "items":{}, \
+                "signals": {}}
+            server = self.__player.get_server()
+            server.get_mode().add_callback(self.cb_build_mode_menu)
+
+        elif self.__mode_menu["current"] != mode:
+            self.__mode_menu["current"] = mode
+            self.__mode_menu["items"][mode].handler_block(\
+                self.__mode_menu["signals"][mode])
+            self.__mode_menu["items"][mode].activate()
+            self.__mode_menu["items"][mode].handler_unblock(\
+                self.__mode_menu["signals"][mode])
+
+    def set_mode(self, menuitem, mode):
+        self.__mode_menu["current"] = mode
+        self.__player.set_mode(mode)
+
+    @gui_callback
+    def cb_build_mode_menu(self, answer):
+        radio_item = None
+        sub_menu = gtk.Menu()
+
+        modes = answer.get_contents()
+        for mode in modes.keys():
+            if modes[mode]:
+                radio_item = gtk.RadioMenuItem(radio_item, mode)
+                if mode == self.__mode_menu["current"]:
+                    radio_item.activate()
+                self.__mode_menu["signals"][mode] = radio_item.\
+                    connect("activate", self.set_mode, mode)
+                sub_menu.append(radio_item)
+                self.__mode_menu["items"][mode] = radio_item
+
+        mode_menu = gtk.MenuItem("Mode")
+        mode_menu.set_submenu(sub_menu)
+
+        self.insert(mode_menu, 1)
+        mode_menu.show_all()
 
 # vim: ts=4 sw=4 expandtab

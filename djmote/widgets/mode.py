@@ -3,7 +3,7 @@ from djmote.widgets.playlist import PlaylistBox
 from djmote.widgets.video import VideoBox
 
 class ModeBox(gtk.VBox):
-    _available_mode_ = {"playlist": PlaylistBox, "video": VideoBox}
+    _supported_mode_ = {"playlist": PlaylistBox, "video": VideoBox}
 
     def __init__(self,player):
         gtk.VBox.__init__(self)
@@ -21,13 +21,13 @@ class ModeBox(gtk.VBox):
         self.__content["widget"].update_status(status)
 
     def __build(self,mode):
-        box = self.__class__._available_mode_[mode](self.__player)
+        box = self.__class__._supported_mode_[mode](self.__player)
 
         self.__content = {"name": mode,"widget": box}
         self.pack_start(self.__content["widget"])
         self.show_all()
 
-    def __destroy():
+    def __destroy(self):
         if self.__content:
             self.__content["widget"].destroy()
             self.__content = None
