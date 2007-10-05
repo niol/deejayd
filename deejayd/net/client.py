@@ -468,6 +468,18 @@ class _DeejayDaemon:
         ans = DeejaydFileList(self)
         return self._send_command(cmd, ans)
 
+    def get_video_dir(self,dir = None):
+        cmd = DeejaydXMLCommand('getvideodir')
+        if dir != None:
+            cmd.add_simple_arg('directory', dir)
+        ans = DeejaydFileList(self)
+        return self._send_command(cmd, ans)
+
+    def set_video_dir(self, dir):
+        cmd = DeejaydXMLCommand('setvideodir')
+        cmd.add_simple_arg('directory', dir)
+        return self._send_command(cmd)
+
 
 class DeejayDaemonSync(_DeejayDaemon):
     """Synchroneous deejayd client library."""

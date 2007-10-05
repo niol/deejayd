@@ -121,6 +121,9 @@ class DjmoteUI(hildon.Program):
     def set_volume(self, volume):
         self.__deejayd.set_volume(volume).add_callback(self.cb_update_status)
 
+    def set_video_dir(self,dir):
+        self.__deejayd.set_video_dir(dir).add_callback(self.cb_update_status)
+
     def set_option(self,option_name,option_value):
         self.__deejayd.set_option(option_name,option_value).add_callback(\
                                                         self.cb_update_status)
