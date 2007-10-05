@@ -27,7 +27,6 @@ class DjmoteUI(hildon.Program):
         hildon.Program.__init__(self)
         self.app = hildon.Program()
         self.__deejayd = DeejayDaemonAsync()
-        self.__widgets = {}
 
         # Conf
         conffile = os.path.expanduser('~/.djmoterc')
@@ -58,19 +57,16 @@ class DjmoteUI(hildon.Program):
         self.main_window.add(main_box)
 
         # controls
-        self.__widgets['controls'] = ControlBox(self)
-        main_box.pack_end(self.__widgets['controls'], expand=False, fill=False)
+        main_box.pack_end(ControlBox(self), expand=False, fill=False)
 
         left_box = gtk.VBox(spacing = 5)
         main_box.pack_end(left_box)
         # status
-        self.__widgets['status'] = StatusBox(self)
-        left_box.pack_start(self.__widgets['status'], expand = False,\
+        left_box.pack_start(StatusBox(self), expand = False,\
                             fill = False)
 
         # mode
-        self.__widgets['mode'] = ModeBox(self)
-        left_box.pack_start(self.__widgets['mode'])
+        left_box.pack_start(ModeBox(self))
 
     def run(self):
         self.main_window.show_all()
