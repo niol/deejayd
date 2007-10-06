@@ -106,7 +106,15 @@ class DeejaydMediaList(DeejaydAnswer):
         return self.medias
 
 
-class DeejaydWebradioList(DeejaydMediaList):
+class DeejaydWebradioList:
+
+    def __init__(self, server):
+        self.server = server
+
+    def get(self):
+        cmd = DeejaydXMLCommand('webradioList')
+        ans = DeejaydMediaList(self)
+        return self.server._send_command(cmd, ans)
 
     def add_webradio(self, name, urls):
         cmd = DeejaydXMLCommand('webradioAdd')
@@ -117,30 +125,14 @@ class DeejaydWebradioList(DeejaydMediaList):
         cmd.add_simple_arg('url', urls)
         return self.server._send_command(cmd)
 
-    def delete_webradio(self, name):
+    def delete_webradio(self, wr_id):
         cmd = DeejaydXMLCommand('webradioRemove')
-        wr_id = self.get_webradio(name)['id']
         cmd.add_multiple_arg('id', [wr_id])
         return self.server._send_command(cmd)
 
-    def names(self):
-        names = []
-        for wr in self.get_contents():
-            names.append(wr['title'])
-        return names
-
-    def get_webradio(self, name):
-        return self.__get_webradio_by_field('title', name)
-
-    def __get_webradio_by_field(self, field, value):
-        i_wr = iter(self.get_medias())
-        try:
-            while True:
-                wr = i_wr.next()
-                if wr[field] == value:
-                    return wr
-        except StopIteration:
-            raise DeejaydError('Webradio not found')
+    def clear(self):
+        cmd = DeejaydXMLCommand('webradioClear')
+        return self.server._send_command(cmd)
 
 
 class DeejaydPlaylist:
@@ -459,11 +451,6 @@ class _DeejayDaemon:
     def get_playlist_list(self):
         cmd = DeejaydXMLCommand('playlistList')
         return self._send_command(cmd,DeejaydMediaList())
-
-    def get_webradios(self):
-        cmd = DeejaydXMLCommand('webradioList')
-        ans = DeejaydWebradioList(self)
-        return self._send_command(cmd, ans)
 
     def get_audio_dir(self,dir = None):
         cmd = DeejaydXMLCommand('getdir')

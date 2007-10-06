@@ -6,7 +6,7 @@ import testdeejayd.data
 
 from deejayd.net.client import DeejaydXMLCommand, _AnswerFactory,\
                                DeejaydAnswer, DeejaydKeyValue,\
-                               DeejaydFileList, DeejaydWebradioList,\
+                               DeejaydFileList, DeejaydMediaList,\
                                DeejaydPlaylist, DeejaydError
 from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 
@@ -224,7 +224,7 @@ class TestAnswerParser(TestCaseWithData):
     </response>
 </deejayd>"""
 
-        ans = DeejaydWebradioList()
+        ans = DeejaydMediaList()
         self.eansq.put(ans)
         self.parseAnswer(webradioListAnswer)
 

@@ -1,9 +1,11 @@
 import gtk
 from djmote.widgets.playlist import PlaylistBox
+from djmote.widgets.webradio import WebradioBox
 from djmote.widgets.video import VideoBox
 
 class ModeBox(gtk.VBox):
-    _supported_mode_ = {"playlist": PlaylistBox, "video": VideoBox}
+    _supported_mode_ = {"playlist": PlaylistBox, "video": VideoBox,\
+        "webradio": WebradioBox}
 
     def __init__(self,player):
         gtk.VBox.__init__(self)
