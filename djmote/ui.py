@@ -8,7 +8,7 @@ gtk.gdk.threads_init()
 
 import hildon
 
-from deejayd.net.client import DeejayDaemonAsync
+from deejayd.net.client import DeejayDaemonAsync, DeejaydError, ConnectError
 from djmote.conf import Config
 from djmote import stock
 from djmote.widgets.controls import ControlBox
@@ -81,10 +81,12 @@ class DjmoteUI(hildon.Program):
         gtk.main_quit()
 
     def connect_to_server(self, widget, data):
-        self.__deejayd.connect(data['host'], data['port'])
-
-        # get player status
-        self.__deejayd.get_status().add_callback(self.cb_get_status)
+        try: self.__deejayd.connect(data['host'], data['port'])
+        except ConnectError, msg:
+            self.set_error(msg)
+        else:
+            # get player status
+            self.__deejayd.get_status().add_callback(self.cb_get_status)
 
     def show_connect_window(self, widget=None):
         self.connect_window.show()
@@ -118,14 +120,24 @@ class DjmoteUI(hildon.Program):
     def set_mode(self, mode):
         self.__deejayd.set_mode(mode).add_callback(self.cb_update_status)
 
+    def set_error(self, error):
+        ErrorDialog(self.main_window, error)
+
     @gui_callback
     def cb_update_status(self, answer):
-        if answer.get_contents() == True:
-            self.__deejayd.get_status().add_callback(self.cb_get_status)
+        try: contents = answer.get_contents()
+        except DeejaydError, err: self.set_error(err)
+        else:
+            if contents:
+                self.__deejayd.get_status().add_callback(self.cb_get_status)
+            else: self.set_error("Unknown Error")
 
     @gui_callback
     def cb_get_status(self, answer):
-        self.emit("update-status",answer)
+        try: answer.get_contents()
+        except DeejaydError, err: self.set_error(err)
+        else:
+            self.emit("update-status",answer)
 
 
 class DjmoteMenu(gtk.Menu):

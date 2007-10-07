@@ -53,4 +53,17 @@ class ConnectDialog(gtk.Dialog):
         self.connect_cb(None, self.conf)
         self.hide()
 
+
+class ErrorDialog(gtk.Dialog):
+
+    def __init__(self, parent, error):
+        gtk.Dialog.__init__(self, "Error", parent,\
+                            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+                            (gtk.STOCK_OK, gtk.RESPONSE_OK,)
+                            )
+        label = gtk.Label(error)
+        self.vbox.pack_start(label)
+        self.connect("response", lambda a,b: self.destroy())
+        self.show_all()
+
 # vim: ts=4 sw=4 expandtab

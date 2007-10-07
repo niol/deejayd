@@ -1,7 +1,7 @@
 import os
 import gtk
 from djmote.utils.decorators import gui_callback
-from deejayd.net.client import DeejaydWebradioList
+from deejayd.net.client import DeejaydWebradioList, DeejaydError
 
 class WebradioBox(gtk.VBox, DeejaydWebradioList):
 
@@ -61,11 +61,13 @@ class WebradioBox(gtk.VBox, DeejaydWebradioList):
     #
     @gui_callback
     def cb_build_list(self, answer):
-        media_list = answer.get_medias()
         model = self.__wb_view.get_model()
         model.clear()
-        for w in media_list:
-            model.append([w["id"], w["title"], w["url"]])
+        try: media_list = answer.get_medias()
+        except DeejaydError, err: self.__player.set_error(err)
+        else:
+            for w in media_list:
+                model.append([w["id"], w["title"], w["url"]])
 
     def cb_play(self,treeview, path, view_column):
         model = self.__wb_view.get_model()

@@ -1,7 +1,7 @@
 import os
 import gtk
 from djmote.utils.decorators import gui_callback
-from deejayd.net.client import DeejaydPlaylist
+from deejayd.net.client import DeejaydPlaylist, DeejaydError
 
 class PlaylistBox(gtk.VBox, DeejaydPlaylist):
 
@@ -80,11 +80,13 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
     #
     @gui_callback
     def cb_build_playlist(self, answer):
-        media_list = answer.get_medias()
-        self.__pl_content.clear()
-        for m in media_list:
-            self.__pl_content.append([m["pos"]+1, m["id"], m["title"],\
-                        m["artist"], m["album"]])
+        try: media_list = answer.get_medias()
+        except DeejaydError, err: self.__player.set_error(err)
+        else:
+            self.__pl_content.clear()
+            for m in media_list:
+                self.__pl_content.append([m["pos"]+1, m["id"], m["title"],\
+                            m["artist"], m["album"]])
 
     def cb_play(self,treeview, path, view_column):
         iter = self.__pl_content.get_iter(path)
@@ -264,7 +266,11 @@ class SaveDialog(gtk.Dialog):
     def cb_response(self, dialog, response_id):
         @gui_callback
         def cb_save_playlist(answer):
-            if answer.get_contents():
+            try: answer.get_contents()
+            except DeejaydError, err:
+                label = gtk.Label("Error : " + err)
+                self.vbox.pack_end(label)
+            else:
                 self.destroy()
 
         if response_id == gtk.RESPONSE_CANCEL:

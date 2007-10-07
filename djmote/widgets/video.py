@@ -1,5 +1,6 @@
 import os
 import gtk
+from deejayd.net.client import DeejaydError
 from djmote.utils.decorators import gui_callback
 
 class VideoBox(gtk.VBox):
@@ -25,6 +26,11 @@ class VideoBox(gtk.VBox):
     def cb_build(self, answer):
         model = self.video_view.get_model()
         model.clear()
+
+        try: answer.get_contents()
+        except DeejaydError, err: 
+            self.__player.set_error(err)
+            return
 
         if answer.root_dir != "":
             parent_dir = os.path.dirname(answer.root_dir)
