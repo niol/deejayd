@@ -1,7 +1,8 @@
 [Desktop Entry]
 Version=0.1
 Encoding=UTF-8
-Name=Maemote
+Name=Djmote
 Exec=/usr/bin/djmote
-Icon=djmote_icon_26x26
+Icon=djmote
 Type=Application
+X-Osso-Type=application/x-executable

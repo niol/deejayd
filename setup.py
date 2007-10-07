@@ -66,7 +66,7 @@ try:
     xine_options = parse_pkg_config('pkg-config',\
         'libxine x11 xext')
     from Pyrex.Distutils import build_ext
-except RuntimeError:
+except (RuntimeError, ImportError):
     ext_mod = []
     cmd_class = {}
 else:
@@ -84,11 +84,10 @@ if __name__ == "__main__":
            author="Mikael Royer, Alexandre Rossi",
            author_email="mickael.royer@gmail.com",
            license="GNU GPL v2",
-           scripts=["scripts/deejayd","scripts/djc","scripts/djmote"],
+           scripts=["scripts/deejayd","scripts/djc"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
                      "deejayd.player","deejayd.sources","deejayd.ui",\
-                     "deejayd.database","deejayd.database","deejayd.ext",\
-                     "djmote"],
+                     "deejayd.database","deejayd.database","deejayd.ext",],
            package_data={'deejayd.ui': ['defaults.conf'],
             'deejayd.database': ['sql/*.sql']},
            ext_modules=ext_mod,
@@ -98,3 +97,4 @@ if __name__ == "__main__":
                        glob.glob("README*"))],
             cmdclass = cmd_class
         )
+# vim: ts=4 sw=4 expandtab
