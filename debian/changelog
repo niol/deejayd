@@ -1,3 +1,10 @@
+deejayd (0.3+darcs20071009-1) unstable; urgency=low
+
+  * Sync with darcs20071009.
+  * Remove djmote from this package.
+
+ -- Mickael Royer <mickael.royer@gmail.com>  Tue, 9 Oct 2007 11:42:02 +0200
+
 deejayd (0.3+darcs20070831-1) unstable; urgency=low
 
   * Sync with darcs20070831.

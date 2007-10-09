@@ -52,11 +52,3 @@ Recommends: gstreamer0.10-gnomevfs
 XB-Python-Version: ${python:Versions}
 Description: Deejayd Gstreamer backend
  The deejayd media backend using the gstreamer library.
-
-Package: djmote
-Architecture: all
-Depends: ${python:Depends}, python-hildon
-XB-Python-Version: ${python:Versions}
-Description: A deejayd client for the Maemo platform
- A graphical deejayd client optimized for use on Maemo devices such as the
- Nokia N770 or Nokia N800.
