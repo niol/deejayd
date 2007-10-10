@@ -1,0 +1,41 @@
+#!/sbin/runscript
+# Copyright 1999-2004 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+depend() {
+	need localmount
+	use netmount
+} 
+
+check() {
+    if ! [ -x /usr/bin/deejayd ]; then
+		eerror "Deejayd application not found."
+		return 1
+	fi
+
+	if ! [ -f /etc/deejayd.conf ]; then
+		eerror "Configuration file /etc/deejayd.conf does not exist."
+		return 1
+	fi
+
+	return 0
+}
+
+start() {
+	check || return 1
+
+	ebegin "Starting deejayd" 
+    start-stop-daemon --start --exec /usr/bin/deejayd \
+        --pidfile /var/run/deejayd/deejayd.pid \
+        -- -l /var/log/deejayd/deejayd.log \
+           -u deejayd -g audio,cdrom \
+           -p /var/run/deejayd/deejayd.pid ${DEEJAYD_OPTS}
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping deejayd"
+    start-stop-daemon --stop --exec /usr/bin/deejayd \
+        --pidfile /var/run/deejayd/deejayd.pid
+	eend $? 
+}

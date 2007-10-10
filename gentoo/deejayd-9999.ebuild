@@ -2,18 +2,22 @@
 # Distributed under the terms of the GNU General Public License v2
 
 NEED_PYTHON=2.4
-inherit distutils
+inherit distutils darcs
 
 DESCRIPTION="deejayd is a media player daemon based on twisted."
 HOMEPAGE="http://mroy31.dyndns.org/~roy/projects/deejayd"
-SRC_URI="http://mroy31.dyndns.org/~roy/archives/deejayd/${P}.tar.gz"
+#SRC_URI="http://mroy31.dyndns.org/~roy/archives/deejayd/${P}.tar.gz"
+EDARCS_REPOSITORY="http://mroy31.dyndns.org/~roy/repository/deejayd"
+EDARCS_LOCALREPO="deejayd"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~x86"
-IUSE="mad vorbis webradio xine gstreamer video"
+KEYWORDS="~x86 ~amd64"
+IUSE="dvd mad vorbis webradio xine gstreamer X ffmpeg"
 
 DEPEND=" xine? (>=dev-python/pyrex-0.9.4.0
+		>=dev-util/pkgconfig-0.20
+		>=x11-libs/libXext-1.0.3
 		>=media-libs/xine-lib-1.1.0)"
 
 RDEPEND="${DEPEND}
@@ -25,24 +29,32 @@ RDEPEND="${DEPEND}
 		>=media-libs/gst-plugins-base-0.10.2
 		>=media-libs/gst-plugins-good-0.10.2
 		>=dev-python/gst-python-0.10.2
-		video? ( >=media-plugins/gst-plugins-ffmpeg-0.10.2 )
+		ffmpeg? ( >=media-plugins/gst-plugins-ffmpeg-0.10.2 )
 		mad? ( >=media-plugins/gst-plugins-mad-0.10.2 )
+		dvd?
+			(
+				>=media-plugins/gst-plugins-a52dec-0.10
+				>=media-plugins/gst-plugins-mpeg2dec-0.10
+				>=media-libs/gst-plugins-ugly-0.10
+				>=media-plugins/gst-plugins-dvdread-0.10
+			)
 		vorbis? ( >=media-plugins/gst-plugins-vorbis-0.10.2
 			>=media-plugins/gst-plugins-ogg-0.10.2 )
-		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))"
+		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))
+	dvd? ( >=media-video/lsdvd-0.16 )"
 
 pkg_setup() {
-	if use gstreamer && use video && ! built_with_use 'media-libs/gst-plugins-base' 'X' ; then
+	if use gstreamer && use X && ! built_with_use 'media-libs/gst-plugins-base' 'X' ; then
 		einfo "Build gst-plugins-base with the X useflag"
-		einfo "echo \"media-libs/gst-plugins-base X\" >> /etc/portage/package.use"
+		einfo "echo \"media-libs/gst-plugins-base X\">>/etc/portage/package.use"
 		einfo "emerge -1 gst-plugins-base"
 		die "gst-plugins-base requires X useflag"
 	fi
 
-	enewuser deejayd '' '' "/var/lib/deejayd" audio || die "problem adding user deejayd"
+	enewuser deejayd '' '' "/var/lib/deejayd" audio,cdrom || die "problem adding user deejayd"
 
-	# also change the homedir if the user has existed before
-	usermod -d "/var/lib/deejayd" deejayd
+	# also change homedir and groups if the user has existed before
+	usermod -d "/var/lib/deejayd" -G audio,cdrom deejayd
 }
 
 src_install() {
@@ -58,9 +70,11 @@ src_install() {
 	insinto /etc
 	newins doc/deejayd.conf.example deejayd.conf
 
+	# conf.d
+	newconfd "${FILESDIR}/deejayd.confd" deejayd
+	fperms 600 /etc/conf.d/deejayd
 	# init.d
-	exeinto /etc/init.d
-	newexe ${FILESDIR}/deejayd.initd deejayd
+	newinitd "${FILESDIR}/deejayd.init" deejayd
 
 	diropts -m0755 -o deejayd -g audio
 	dodir /var/lib/deejayd/music
