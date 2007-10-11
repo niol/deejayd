@@ -91,7 +91,10 @@ class DjmoteUI(hildon.Program):
     def show_connect_window(self, widget=None):
         self.connect_window.show()
 
-    # Player Controls
+    # Player Commands
+    def update_ui(self, widget = None, data = None):
+        self.__deejayd.get_status().add_callback(self.cb_get_status)
+
     def play_toggle(self, widget, data = None):
         self.__deejayd.play_toggle().add_callback(self.cb_update_status)
 
@@ -129,7 +132,7 @@ class DjmoteUI(hildon.Program):
         except DeejaydError, err: self.set_error(err)
         else:
             if contents:
-                self.__deejayd.get_status().add_callback(self.cb_get_status)
+                self.update_ui()
             else: self.set_error("Unknown Error")
 
     @gui_callback

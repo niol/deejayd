@@ -29,11 +29,14 @@ class ToolBar(gtk.Toolbar):
                                             self.set_option,"repeat")
         self.insert(self.__contents["repeat"],1)
 
-        self.__contents["fullscreen"] = gtk.ToggleToolButton(\
-                                                        gtk.STOCK_DND)
-        self.__signals["fullscreen"] = self.__contents["fullscreen"].\
-                connect("clicked", self.set_option,"fullscreen")
-        self.insert(self.__contents["fullscreen"],2)
+        sep = gtk.SeparatorToolItem()
+        sep.set_expand(True)
+        sep.set_draw(False)
+        self.insert(sep,2)
+
+        refresh = gtk.ToolButton(gtk.STOCK_REFRESH)
+        refresh.connect("clicked",self.__player.update_ui)
+        self.insert(refresh,3)
 
         player.connect("update-status", self.update)
 
