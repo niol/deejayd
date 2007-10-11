@@ -1,0 +1,5 @@
+djmote (0.0-1+darcs20071009) unstable; urgency=low
+
+  * Initial debianization.
+
+ -- Mickael Royer <mickael.royer@gmail.com>  Tue, 9 Oct 2007 09:53:24 +0200

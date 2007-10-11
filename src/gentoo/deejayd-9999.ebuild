@@ -43,6 +43,7 @@ RDEPEND="${DEPEND}
 		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))
 	dvd? ( >=media-video/lsdvd-0.16 )"
 
+
 pkg_setup() {
 	if use gstreamer && use X && ! built_with_use 'media-libs/gst-plugins-base' 'X' ; then
 		einfo "Build gst-plugins-base with the X useflag"
@@ -55,6 +56,11 @@ pkg_setup() {
 
 	# also change homedir and groups if the user has existed before
 	usermod -d "/var/lib/deejayd" -G audio,cdrom deejayd
+}
+
+src_unpack() {
+	darcs_src_unpack
+	cd "${WORKDIR}/${P}/src"
 }
 
 src_install() {

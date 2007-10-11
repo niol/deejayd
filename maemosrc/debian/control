@@ -1,0 +1,33 @@
+Source: djmote
+Section: user/multimedia
+Priority: optional
+Maintainer: Mickael Royer <mickael.royer@gmail.com>
+Build-Depends: debhelper (>= 4.0.0), python2.5-dev
+Standards-Version: 3.6.0
+
+Package: djmote
+Architecture: all
+Depends: python2.5, python2.5-hildon, python2.5-gtk2, python2.5-gobject
+Description: A deejayd client for the Maemo platform
+ A graphical deejayd client optimized for use on Maemo devices such as the
+ Nokia N770 or Nokia N800.
+XB-Maemo-Icon-26: iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAAXNSR0IArs4c6
+  QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAAN1wAADdcBQiibeAAAAAd0SU1FB9
+  cKBw81NJxR1xEAAAL7SURBVEjHtZY/S/NQFMafe5O0pbRFqP8KokRQRCcRl+IQEEQ
+  kgzg46OLi5hfwA/gBHFzq4AdwEQcpWAcVQbSDKIq6WONg1NpSiY02Tc47tdhW+ud9
+  8z5wlntz7y/nnnuehBERoY6ICJZloVgswrIsAABjDKIowuv1QhCEumt1XUc2m4VYP
+  VkoFKDrOh4fH3F9fY2bmxtomoaPjw98fX2BiMAYg9/vR39/P6LRKKLRKGRZhiRJAA
+  Bd13F6eorj42N0dnZCURSwUkZ3d3dIJBI4OjrCxcUFdF2HYRhwHKdewpAkCT09PRg
+  bG8Pg4CCICOfn55AkCaqqYmFhAW1tbWCFQoHW19exvb2Nl5cXdHd3IxKJoL29HYFA
+  AJxzFItFHB4e4urqCo7jgHP+6wuEQiEoioLZ2VnMzMygq6urPCc+PDzA6/VibW0Nf
+  X196OjogN/vhyRJYIwBAPb393FycgLHcSAIAhYXF8E5x+3tLfL5PILBIMbHxzE1NY
+  WJiQkEg8Ha1B3HoXp6fn4mVVUJAAGg4eFhSqVSZFkWZbNZen19pVwuR432ATXQxsY
+  GCYJQBimKQoZhUKvi9QptmiYSiQRs28a/qi7o8/MTqVSqpjcatF7rIMZY+UL8BLme
+  EWMMnFc+Ytv2/8moGpTL5ZDP590Fcc5rvOz9/R1vb2/ugnw+H8LhcMVYJpPB/f29u
+  yCPxwNZlmtM9/Ly0v0aDQ0NVdSJiJBMJmGapnsgABgZGUEgEKgYOzs7QzKZdBc0MD
+  BQc3zpdBp7e3vugQzDgKZpCIVCFY1LRIjH49A0rXnSbwaYyWQoFouRqqoUDoeJMVY
+  21VKIokibm5tNm2oN6ODggObm5kgUxZrNq2NpaYm+v79bB+3u7tLo6GhDQClWVlbI
+  tu3WQE9PTzQ5Odk0RJZlisfjrR/dzs4OeTyepiGxWKylD5/482+m2kB/c4rp6WksL
+  y9DVdXWrKFENE2TVldXKRKJkCiKxBgjzjn5fD7q7e2l+fl52traonQ6TX+jPzYFUI
+  ad7/RfAAAAAElFTkSuQmCC
+  ===

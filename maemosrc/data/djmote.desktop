@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=0.1
+Encoding=UTF-8
+Name=Djmote
+Exec=/usr/bin/djmote
+Icon=djmote
+Type=Application
+StartupWMClass=djmote
+X-Osso-Type=application/x-executable
+X-Osso-Service=com.nokia.djmote
