@@ -173,34 +173,35 @@ static void _destroy_windows(_Xine* xine)
     XUnlockDisplay(xine->player.display);
 }
 
-void _djdxine_set_error(char *error)
+void _djdxine_set_fatal_error(_Xine* xine, char *error)
 {
-    printf("XINE ERROR : %s\n",error);
+    strcpy(xine->error, error);
 }
 
 
 /***************************************************************************
  *  Pubic functions
  *  ************************************************************************/
-
-_Xine* djdxine_init(const char *audio_driver,
-                xine_event_listener_cb_t event_callback,
-                void* event_callback_data)
+_Xine* djdxine_create()
 {
     _Xine* xine;
 
     xine = (_Xine*)malloc(sizeof(_Xine));
     if(xine == NULL) return NULL;
+
+    strcpy(xine->error,"");
     xine->playing = 0;
     xine->isvideo = 0;
     xine->frame_info.lock = (xmutex_rec*)malloc(sizeof(xmutex_rec));
+    if (xine->frame_info.lock == NULL) {
+        free(xine);
+        return NULL;
+        }
     xmutex_init(xine->frame_info.lock);
     xine->frame_info.xpos = 0;
     xine->frame_info.ypos = 0;
     xine->frame_info.width = 0;
     xine->frame_info.height = 0;
-    xine->event_callback = event_callback;
-    xine->event_callback_data = event_callback_data;
 
     xine->video_driver = NULL;
     xine->audio_driver = NULL;
@@ -211,6 +212,16 @@ _Xine* djdxine_init(const char *audio_driver,
     xine->player.video_init = 0;
     xine->data_mine.init = 0;
 
+    return xine;
+}
+
+int djdxine_init(_Xine* xine, const char *audio_driver,
+                xine_event_listener_cb_t event_callback,
+                void* event_callback_data)
+{
+    xine->event_callback = event_callback;
+    xine->event_callback_data = event_callback_data;
+
 /*** 
  * Create player 
  **/
@@ -220,8 +231,8 @@ _Xine* djdxine_init(const char *audio_driver,
     xine->player.aport = xine_open_audio_driver(xine->player.xine, 
                                                 audio_driver, NULL);
     if (xine->player.aport == NULL) {
-        _djdxine_set_error("Unable to init audio driver");
-        return NULL;
+        _djdxine_set_fatal_error(xine, "Unable to init audio driver");
+        return 1;
         }
     xine->audio_driver = strdup(audio_driver);
     // Open null video driver
@@ -231,15 +242,15 @@ _Xine* djdxine_init(const char *audio_driver,
     xine->player.stream = xine_stream_new(xine->player.xine,xine->player.aport,
                                             xine->player.vport);
     if (xine->player.stream == NULL) {
-        _djdxine_set_error("Unable to init the main stream");
-        return NULL;
+        _djdxine_set_fatal_error(xine, "Unable to init the main stream");
+        return 1;
         }
 
     xine->player.event_queue = xine_event_new_queue(xine->player.stream);
     xine_event_create_listener_thread(xine->player.event_queue,
         xine->event_callback,xine->event_callback_data);
 
-    return xine;
+    return 0;
 }
 
 int djdxine_set_config_param(_Xine* xine, const char *param_key, 
@@ -273,7 +284,7 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     xine->player.fullscreen = 0;
     xine->player.display = XOpenDisplay(display_name);
     if (!xine->player.display) { // Unable to open display
-        _djdxine_set_error("Unable to open display");
+        _djdxine_set_fatal_error(xine, "Unable to open display");
         return 1;
         }
     xine->player.screen = XDefaultScreen(xine->player.display);
@@ -304,13 +315,13 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     xine->player.vport = xine_open_video_driver(xine->player.xine, 
             xine->video_driver, XINE_VISUAL_TYPE_X11, (void *)&vis);
     if (xine->player.vport == NULL) {
-        _djdxine_set_error("Unable to init video driver");
+        _djdxine_set_fatal_error(xine, "Unable to init video driver");
         return 1;
         }
     xine->player.stream = xine_stream_new(xine->player.xine, 
         xine->player.aport,xine->player.vport);
     if (xine->player.stream == NULL) {
-        _djdxine_set_error("Unable to init the main stream");
+        _djdxine_set_fatal_error(xine, "Unable to init the main stream");
         return 1;
         }
     xine->player.event_queue = xine_event_new_queue(
@@ -605,6 +616,11 @@ int djdxine_is_supported_input(_Xine* xine,const char *input)
         plugin = *input_plugins++;
         }
     return rs;
+}
+
+char *djdxine_get_fatal_error(_Xine* xine)
+{
+    return xine->error;
 }
 
 char *djdxine_get_error(_Xine* xine)

@@ -38,7 +38,8 @@ class SourceFactory:
             try: self.player.init_video_support()
             except:
                 # Critical error, we have to quit deejayd
-                sys.exit('Cannot initialise video support, either disable video support or check your player video support.')
+                log.err('Cannot initialise video support, either disable video support or check your player video support.')
+                sys.exit(1)
 
         # dvd
         if video_support == "yes" and self.player.is_supported_uri("dvd"):

@@ -53,7 +53,8 @@ cdef extern from "djdxine.h":
         DJDXINE_STATUS_PLAY
         DJDXINE_STATUS_PAUSE
 
-    _Xine* djdxine_init(char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data) 
+    _Xine* djdxine_create()
+    int djdxine_init(_Xine* xine, char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data) 
     int djdxine_set_config_param(_Xine* xine, char *param_key, int type, void *value)
     int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
     void djdxine_destroy(_Xine* xine)
@@ -72,6 +73,7 @@ cdef extern from "djdxine.h":
     char *djdxine_get_subtitle_lang(_Xine* xine,int channel)
     int djdxine_is_supported_input(_Xine* xine,char* input)
     char* djdxine_get_supported_extensions(_Xine* xine)
+    char* djdxine_get_fatal_error(_Xine* xine)
     char* djdxine_get_error(_Xine* xine)
 
 
@@ -86,9 +88,12 @@ cdef class Xine:
     cdef object progress_callback
 
     def __new__(self,char *audio_driver):
-        self.xine = djdxine_init(audio_driver,onXineEvent,<void*>self)
+        self.xine = djdxine_create()
         if self.xine == NULL:
-            raise XineError
+            raise XineError("Unable to allocate memory")
+        if djdxine_init(self.xine,audio_driver,onXineEvent,<void*>self):
+            err = djdxine_get_fatal_error(self.xine)
+            raise XineError("XINE - " + err)
         self.eos_callback = None
         self.progress_callback = None
     def __dealloc__(self):
@@ -101,7 +106,8 @@ cdef class Xine:
             raise XineError
     def video_init(self,char *video_driver,char* display_name):
         if djdxine_video_init(self.xine,video_driver,display_name):
-            raise XineError
+            err = djdxine_get_fatal_error(self.xine)
+            raise XineError("XINE - " + err)
     def stop(self):
         djdxine_stop(self.xine)
     def start_playing(self,char* filename,int isvideo,int fullscreen):

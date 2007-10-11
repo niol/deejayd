@@ -15,7 +15,8 @@ class XinePlayer(UnknownPlayer):
 
         audio_driver = self.config.get("xine", "audio_output")
         try: self.xine = xine.Xine(audio_driver)
-        except xine.XineError:
+        except xine.XineError, err:
+            log.err(str(err))
             raise PlayerError
         self.xine.set_eos_callback(self.eos)
         self.xine.set_progress_callback(self.progress)
@@ -44,7 +45,10 @@ class XinePlayer(UnknownPlayer):
 
         video_driver = self.config.get("xine", "video_output")
         video_display = self.config.get("xine", "video_display")
-        self.xine.video_init(video_driver,video_display)
+        try: self.xine.video_init(video_driver,video_display)
+        except xine.XineError, err:
+            log.err(str(err))
+            raise PlayerError
 
     def start_play(self):
         if not self._media_file: return

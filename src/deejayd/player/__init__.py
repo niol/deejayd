@@ -1,7 +1,5 @@
 
-class PlayerError(RuntimeError):
-    def __init__(self,desc):
-        self.desc = desc
+class PlayerError(Exception):pass
 
 def init(db,config):
     media_backend = config.get("general","media_backend")

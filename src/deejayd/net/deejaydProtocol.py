@@ -80,7 +80,10 @@ class DeejaydFactory(protocol.ServerFactory):
 
         # Init Media Backend
         log.info("Player Initialisation")
-        self.player = player.init(self.db,config)
+        try: self.player = player.init(self.db,config)
+        except player.PlayerError, err:
+            log.err(str(err))
+            sys.exit(1)
 
         # Init audio and video library
         log.info("Libraries Initialisation")

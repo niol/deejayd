@@ -83,10 +83,13 @@ typedef struct {
         FileInfo file_info;
         int init;
     } data_mine;
+    char error[128];
 } _Xine;
 
 /* Construct a Xine object */
-_Xine* djdxine_init(const char *audio_driver,
+_Xine* djdxine_create();
+
+int djdxine_init(_Xine* xine, const char *audio_driver,
                  xine_event_listener_cb_t event_callback,
                  void* event_callback_data);
 
@@ -128,5 +131,7 @@ char *djdxine_get_subtitle_lang(_Xine* xine,int channel);
 char* djdxine_get_supported_extensions(_Xine* xine);
 
 int djdxine_is_supported_input(_Xine* xine,const char* input);
+
+char* djdxine_get_fatal_error(_Xine* xine);
 
 char* djdxine_get_error(_Xine* xine);
