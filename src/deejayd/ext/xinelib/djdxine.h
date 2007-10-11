@@ -52,8 +52,6 @@ typedef struct {
 typedef struct {
     int playing;
     int isvideo;
-    char *video_driver;
-    char *audio_driver;
     xine_event_listener_cb_t event_callback;
     void* event_callback_data;
     FrameInfo frame_info;

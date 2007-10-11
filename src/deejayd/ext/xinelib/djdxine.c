@@ -203,8 +203,6 @@ _Xine* djdxine_create()
     xine->frame_info.width = 0;
     xine->frame_info.height = 0;
 
-    xine->video_driver = NULL;
-    xine->audio_driver = NULL;
     xine->player.aport = NULL;
     xine->player.vport = NULL;
     xine->player.stream = NULL;
@@ -234,7 +232,6 @@ int djdxine_init(_Xine* xine, const char *audio_driver,
         _djdxine_set_fatal_error(xine, "Unable to init audio driver");
         return 1;
         }
-    xine->audio_driver = strdup(audio_driver);
     // Open null video driver
     xine->player.vport = xine_open_video_driver(xine->player.xine, "none", 
                                             XINE_VISUAL_TYPE_NONE, NULL);
@@ -275,7 +272,6 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     double screen_width, screen_height;
     x11_visual_t vis;
 
-    xine->video_driver = strdup(video_driver);
     if (!XInitThreads()) {
         return 1;
     }
@@ -313,7 +309,7 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     vis.user_data = xine;
 
     xine->player.vport = xine_open_video_driver(xine->player.xine, 
-            xine->video_driver, XINE_VISUAL_TYPE_X11, (void *)&vis);
+            video_driver, XINE_VISUAL_TYPE_X11, (void *)&vis);
     if (xine->player.vport == NULL) {
         _djdxine_set_fatal_error(xine, "Unable to init video driver");
         return 1;
@@ -349,9 +345,6 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
 
 void djdxine_destroy(_Xine* xine)
 {
-    if (xine->audio_driver != NULL) free(xine->audio_driver);
-    if (xine->video_driver != NULL) free(xine->video_driver);
-
     if (xine->playing) {
         djdxine_stop(xine);
         }
