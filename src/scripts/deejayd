@@ -137,7 +137,7 @@ def startLog(options):
 if __name__ == "__main__":
     if options.kill:
         killDeejayd(options.pidfile)
-        sys.exit(1)
+        sys.exit()
 
     ###################
     # install reactor
@@ -161,11 +161,16 @@ if __name__ == "__main__":
     setEnv(options)
     startLog(options)
 
+    from twisted.internet.error import CannotListenError
     from deejayd.net.deejaydProtocol import DeejaydFactory
+    from twisted.python import log
     factory = DeejaydFactory()
     port = config.getint("net", "port")
     for bind_address in config.get_bind_addresses():
-        reactor.listenTCP(port, factory, interface=bind_address)
+        try: reactor.listenTCP(port, factory, interface=bind_address)
+        except CannotListenError, err:
+            log.err(str(err))
+            sys.exit(1)
     reactor.run()
 
 # vim: ts=4 sw=4 expandtab
