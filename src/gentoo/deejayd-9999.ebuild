@@ -42,6 +42,7 @@ RDEPEND="${DEPEND}
 			>=media-plugins/gst-plugins-ogg-0.10.2 )
 		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))
 	dvd? ( >=media-video/lsdvd-0.16 )"
+S="${WORKDIR}/${P}/src"
 
 
 pkg_setup() {
@@ -56,11 +57,6 @@ pkg_setup() {
 
 	# also change homedir and groups if the user has existed before
 	usermod -d "/var/lib/deejayd" -G audio,cdrom deejayd
-}
-
-src_unpack() {
-	darcs_src_unpack
-	cd "${WORKDIR}/${P}/src"
 }
 
 src_install() {
