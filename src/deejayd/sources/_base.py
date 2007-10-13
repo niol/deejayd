@@ -99,15 +99,17 @@ class UnknownSource:
     
 
 class UnknownSourceManagement:
+    name = "unknown"
     
-    def __init__(self,player,db,library = None):
+    def __init__(self,db,library = None):
         self.db = db
-        self.player = player
-        self.library = library
+        if library != None:
+            self.library = library
         self.current_item = None
+        self.played_items = []
 
     def get_recorded_id(self):
-        id = int(self.db.get_state(self.source_name+"id"))
+        id = int(self.db.get_state(self.__class__.name+"id"))
         return id
 
     def get_content(self):
@@ -218,11 +220,11 @@ class UnknownSourceManagement:
         return self.current_item
 
     def get_status(self):
-        return [(self.source_name,self.current_source.source_id),\
-          (self.source_name+"length",self.current_source.get_content_length())]
+        return [(self.__class__.name,self.current_source.source_id),\
+        (self.__class__.name+"length",self.current_source.get_content_length())]
 
     def close(self):
-        states = [(str(self.current_source.source_id),self.source_name+"id")]
+        states = [(str(self.current_source.source_id),self.__class__.name+"id")]
         self.db.set_state(states)
         self.current_source.save()
 

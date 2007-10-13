@@ -9,13 +9,12 @@ class Video(UnknownSource):
 
 
 class VideoSource(UnknownSourceManagement):
+    name = "video"
 
-    def __init__(self, player, db, library):
-        UnknownSourceManagement.__init__(self,player,db,library)
+    def __init__(self, db, library):
+        UnknownSourceManagement.__init__(self,db,library)
 
         # Init parms
-        self.played_items = []
-        self.source_name = "video"
         self.current_source = Video(db,library)
         self.__current_dir = ""
         try: self.set_directory(self.db.get_state("videodir"))

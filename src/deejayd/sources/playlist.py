@@ -14,7 +14,6 @@ class Playlist(UnknownSource):
 
         # Init parms
         self.playlist_name = name
-        self.played_items = []
 
         if content == None:
             # Load the content of this playlist
@@ -82,12 +81,13 @@ class Playlist(UnknownSource):
 
 class PlaylistSource(UnknownSourceManagement):
     current_playlist_name = "__djcurrent__"
+    name = "playlist"
 
     def __init__(self,player,db,library):
-        UnknownSourceManagement.__init__(self,player,db,library)
+        UnknownSourceManagement.__init__(self,db,library)
 
         # Init parms
-        self.source_name = "playlist"
+        self.player = player
         self.__open_playlists = {}
 
         # Load current playlist
@@ -176,7 +176,7 @@ class PlaylistSource(UnknownSourceManagement):
         Playlist(self.db,self.library,playlist_name).erase()
 
     def close(self):
-        states = [(str(self.current_source.source_id),self.source_name+"id")]
+        states = [(str(self.current_source.source_id),self.__class__.name+"id")]
         self.db.set_state(states)
         self.__close_playlist(self.__class__.current_playlist_name)
 

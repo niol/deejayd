@@ -3,9 +3,9 @@ from deejayd.player._base import PlayerError
 class DvdError(Exception): pass
 
 class DvdSource:
+    name = "dvd"
 
     def __init__(self, player, db, config):
-        self.source_name = "dvd"
         self.player = player
         self.db = db
         self.current_id = int(self.db.get_state("dvdid"))
@@ -106,7 +106,7 @@ class DvdSource:
         return status
 
     def close(self):
-        states = [(str(self.current_id),self.source_name+"id")]
+        states = [(str(self.current_id),self.__class__.name+"id")]
         self.db.set_state(states)
 
 # vim: ts=4 sw=4 expandtab

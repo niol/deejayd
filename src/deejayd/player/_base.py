@@ -148,8 +148,7 @@ class UnknownPlayer:
         for key in self.options.keys():
             status.append((key,self.options[key]))
 
-        status.extend([("state",self.get_state()),("volume",self.get_volume()),\
-            ("mode",self._source.current.source_name)])
+        status.extend([("state",self.get_state()),("volume",self.get_volume())])
 
         if self._media_file:
             status.append(("mediaid",self._media_file["id"]))
@@ -182,6 +181,7 @@ class UnknownPlayer:
 
     def _is_lsdvd_exists(self):
         path = os.getenv('PATH')
+        if not path: return False
         for p in path.split(':'):
             if os.path.isfile(os.path.join(p,"lsdvd")):
                 return True

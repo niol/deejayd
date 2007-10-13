@@ -22,10 +22,10 @@ class Queue(UnknownSource):
 
 
 class QueueSource(UnknownSourceManagement):
+    name = "queue"
 
-    def __init__(self,player,db,library): 
-        UnknownSourceManagement.__init__(self,player,db,library)
-        self.source_name = "queue"
+    def __init__(self,db,library): 
+        UnknownSourceManagement.__init__(self,db,library)
         self.current_source = Queue(db,library,self.get_recorded_id())
 
     def add_path(self,paths,pos = None):

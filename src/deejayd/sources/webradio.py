@@ -60,13 +60,12 @@ class Webradio(UnknownSource):
 
 
 class WebradioSource(UnknownSourceManagement):
+    name = "webradio"
 
-    def __init__(self, player, db):
-        UnknownSourceManagement.__init__(self,player,db)
+    def __init__(self, db):
+        UnknownSourceManagement.__init__(self,db)
 
         # Init parms
-        self.source_name = "webradio"
-        self.played_items = []
         self.current_source = Webradio(self.db,self.get_recorded_id())
 
     def add(self,url,name):
