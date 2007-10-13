@@ -1,5 +1,5 @@
 from os import path
-import random
+import random, urllib
 
 
 class ItemNotFoundException:pass
@@ -45,8 +45,9 @@ class UnknownSource:
             if "id" not in s.keys():
                 s["id"] = self.set_item_id()
             if "uri" not in s.keys():
-                s["uri"] = "file://"+path.join(self.library.get_root_path(),\
-                                s["path"])
+                s["uri"] = "file://"+\
+                  urllib.quote(path.join(self.library.get_root_path(),\
+                                s["path"]))
             self.source_content.append(s)
             i += 1
 
@@ -90,8 +91,10 @@ class UnknownSource:
             "title":s[6],"artist":s[7],"album":s[8],"genre":s[9],"track":s[10],
             "date":s[11],"length":s[12],"bitrate":s[13],
             "path":path.join(s[0],s[1]),
-            "uri":"file://"+path.join(self.library.get_root_path(),\
-            path.join(s[0],s[1])),"type":"song"}
+            "uri":"file://"+\
+                urllib.quote(path.join(self.library.get_root_path(),\
+                path.join(s[0],s[1]))),\
+            "type":"song"}
 
     def set_item_id(self):
         self.__item_id += 1

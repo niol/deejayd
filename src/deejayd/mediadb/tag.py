@@ -1,5 +1,5 @@
 
-import os
+import os, urllib
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from mutagen.oggvorbis import OggVorbis
@@ -57,7 +57,7 @@ class VideoFile(UnknownFile):
         sub = ""
         for ext_type in (".srt",".sub"):
             if os.path.isfile(base_path + ext_type):
-                sub = "file://" + base_path + ext_type
+                sub = "file://" + urllib.quote(base_path) + ext_type
                 break
         self.info["subtitle"] = sub
 
