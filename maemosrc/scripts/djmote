@@ -2,16 +2,15 @@
 
 import pygtk
 pygtk.require('2.0')
-import gtk
-
-#import osso
-#osso_c = osso.Context("djmote", "0.1.0", False)
-
+import gtk, osso
 import djmote.ui
 
-dui = djmote.ui.DjmoteUI()
-dui.build()
-dui.run()
 
+if __name__ == '__main__':
+    osso_c = osso.Context("djmote", "0.1.0", False)
+
+    dui = djmote.ui.DjmoteUI()
+    dui.build()
+    dui.run()
 
 # vim: ts=4 sw=4 expandtab

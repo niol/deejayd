@@ -25,7 +25,6 @@ class DjmoteUI(hildon.Program):
 
     def __init__(self):
         hildon.Program.__init__(self)
-        self.app = hildon.Program()
         self.__deejayd = DeejayDaemonAsync()
 
         # Conf
@@ -41,7 +40,7 @@ class DjmoteUI(hildon.Program):
     def build(self):
         self.main_window = hildon.Window()
         self.main_window.connect("destroy", self.destroy)
-        self.app.add_window(self.main_window)
+        self.add_window(self.main_window)
 
         # Connect window
         self.connect_window = ConnectDialog(self.main_window,
@@ -50,7 +49,7 @@ class DjmoteUI(hildon.Program):
 
         # Menu
         menu = DjmoteMenu(self)
-        self.main_window.set_menu(menu)
+        self.set_common_menu(menu)
 
         # Layout
         main_box = gtk.HBox()
