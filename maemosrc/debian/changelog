@@ -1,3 +1,9 @@
+djmote (0.0-1+darcs20071014) unstable; urgency=low
+
+  * Sync with darcs20071014.
+
+ -- Mickael Royer <mickael.royer@gmail.com>  Sun, 14 Oct 2007 23:44:40 +0200
+
 djmote (0.0-1+darcs20071013) unstable; urgency=low
 
   * Add dbus service.
