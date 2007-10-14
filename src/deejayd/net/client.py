@@ -106,6 +106,23 @@ class DeejaydMediaList(DeejaydAnswer):
         return self.medias
 
 
+class DeejaydDvdInfo(DeejaydAnswer):
+
+    def __init__(self, server = None):
+        DeejaydAnswer.__init__(self, server)
+
+    def init_dvd_content(self, infos):
+        self.dvd_content = infos
+        self.dvd_content["tracks"] = []
+
+    def add_track(self, track):
+        self.dvd_content["tracks"].append(track)
+
+    def get_dvd_contents(self):
+        self.get_contents()
+        return self.dvd_content
+
+
 class DeejaydWebradioList:
 
     def __init__(self, server):
@@ -245,6 +262,31 @@ class _AnswerFactory(ContentHandler):
         elif name == 'media':
             assert self.response_type == 'MediaList'
             assert self.xmlpath == ['deejayd', 'response', 'media']
+        elif name == 'dvd':
+            assert self.response_type == 'DvdInfo'
+            infos = {"title": attrs.get('title'), \
+                    "longest_track": attrs.get('longest_track')}
+            self.expected_answer.init_dvd_content(infos)
+        elif name == 'track':
+            assert self.xmlpath == ['deejayd', 'response', 'dvd', 'track']
+            self.current_track = {"id": attrs.get('ix'), \
+                                  "length": attrs.get('length'),\
+                                  "audios": [], "subtitles": [],\
+                                  "chapters": []}
+        elif name == 'audio':
+            assert self.xmlpath == ['deejayd','response','dvd','track','audio']
+            self.current_track["audios"].append({"id": attrs.get('ix'), \
+                "lang": attrs.get('lang')})
+        elif name == 'subtitle':
+            assert self.xmlpath == ['deejayd','response','dvd','track',\
+                                    'subtitle']
+            self.current_track["subtitles"].append({"id": attrs.get('ix'), \
+                "lang": attrs.get('lang')})
+        elif name == 'chapter':
+            assert self.xmlpath == ['deejayd','response','dvd','track',\
+                                    'chapter']
+            self.current_track["chapters"].append({"id": attrs.get('ix'), \
+                "length": attrs.get('length')})
         elif name == 'error':
             self.response_type = 'error'
 
@@ -261,6 +303,8 @@ class _AnswerFactory(ContentHandler):
         elif name == 'file':
             self.expected_answer.add_file(self.parms)
             self.parms = {}
+        elif name == 'track':
+            self.expected_answer.add_track(self.current_track)
         elif name in ['response', 'error']:
             if name == 'response':
                 self.expected_answer._received(self.answer)
@@ -470,6 +514,15 @@ class _DeejayDaemon:
         cmd = DeejaydXMLCommand('setvideodir')
         cmd.add_simple_arg('directory', dir)
         return self._send_command(cmd)
+
+    def dvd_reload(self):
+        cmd = DeejaydXMLCommand('dvdLoad')
+        return self._send_command(cmd)
+
+    def get_dvd_content(self):
+        cmd = DeejaydXMLCommand('dvdInfo')
+        ans = DeejaydDvdInfo(self)
+        return self._send_command(cmd, ans)
 
 
 class DeejayDaemonSync(_DeejayDaemon):
