@@ -117,6 +117,26 @@ class AvailableCommands:
             wr = DeejaydWebradioList(self.server)
             wr.add_webradio(wr_name,wr_url)
 
+    def dvd_reload(self, args):
+        """Reload the dvd"""
+        ans = self.server.dvd_reload()
+        ans.get_contents()
+
+    def get_dvd_content(self, args):
+        """Get contents of the current dvd"""
+        ans = self.server.get_dvd_content()
+        dvd_content = ans.get_dvd_contents()
+        print """
+DVD content
+title : %s
+longest_track : %s
+""" % (dvd_content["title"],dvd_content["longest_track"])
+        for t in dvd_content["tracks"]:
+            print """
+  track : %s (%s)
+""" % (t['id'], t['length'])
+
+
 def get_cmds():
     cmds = []
     for cmd_name in dir(AvailableCommands):
