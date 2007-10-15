@@ -122,6 +122,9 @@ class DjmoteUI(hildon.Program):
     def set_mode(self, mode):
         self.__deejayd.set_mode(mode).add_callback(self.cb_update_status)
 
+    def dvd_reload(self, widget, data = None):
+        self.__deejayd.dvd_reload().add_callback(self.cb_update_status)
+
     def set_error(self, error):
         ErrorDialog(self.main_window, error)
 
