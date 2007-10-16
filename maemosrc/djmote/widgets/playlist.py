@@ -2,21 +2,14 @@ import os
 import gtk
 from djmote.utils.decorators import gui_callback
 from deejayd.net.client import DeejaydPlaylist, DeejaydError
+from djmote.widgets._base import SourceBox
 
-class PlaylistBox(gtk.VBox, DeejaydPlaylist):
+class PlaylistBox(SourceBox, DeejaydPlaylist):
 
     def __init__(self, player):
-        gtk.VBox.__init__(self)
+        SourceBox.__init__(self, player)
         DeejaydPlaylist.__init__(self, player.get_server())
-        self.__player = player
         self.__pl_id = None
-
-        scrolled_window = gtk.ScrolledWindow()
-        scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scrolled_window.add_with_viewport(self.__build_tree())
-        self.pack_start(scrolled_window)
-
-        self.pack_start(self.__build_toolbar(), expand = False, fill = False)
 
     def update_status(self, status):
         if self.__pl_id == None or status["playlist"] > self.__pl_id:
@@ -27,14 +20,14 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
     #
     # widget creation functions
     #
-    def __build_tree(self):
+    def _build_tree(self):
         # ListStore
         # pos, id, title, artist, album
         self.__pl_content = gtk.ListStore(int, int, str, str, str)
 
         # View
         # pos, title, artist, album
-        pl_view = gtk.TreeView(self.__pl_content)
+        pl_view = self._create_treeview(self.__pl_content)
 
         # create column
         pos_col = gtk.TreeViewColumn("Pos",gtk.CellRendererText(),text=0)
@@ -54,7 +47,7 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
 
         return pl_view
 
-    def __build_toolbar(self):
+    def _build_toolbar(self):
         pl_toolbar = gtk.Toolbar()
 
         add_bt = gtk.ToolButton(gtk.STOCK_ADD)
@@ -81,7 +74,7 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
     @gui_callback
     def cb_build_playlist(self, answer):
         try: media_list = answer.get_medias()
-        except DeejaydError, err: self.__player.set_error(err)
+        except DeejaydError, err: self._player.set_error(err)
         else:
             self.__pl_content.clear()
             for m in media_list:
@@ -91,25 +84,25 @@ class PlaylistBox(gtk.VBox, DeejaydPlaylist):
     def cb_play(self,treeview, path, view_column):
         iter = self.__pl_content.get_iter(path)
         id =  self.__pl_content.get_value(iter,1)
-        self.__player.go_to(id)
+        self._player.go_to(id)
 
     def cb_clear_playlist(self, widget):
-        self.clear().add_callback(self.__player.cb_update_status)
+        self.clear().add_callback(self._player.cb_update_status)
 
     def cb_shuffle_playlist(self, widget):
-        self.shuffle().add_callback(self.__player.cb_update_status)
+        self.shuffle().add_callback(self._player.cb_update_status)
 
     def cb_open_file_dialog(self, widget):
-        dialog = LibraryDialog(self, self.__player.get_server())
+        dialog = LibraryDialog(self, self._player.get_server())
 
     def cb_open_save_dialog(self, widget):
         dialog = SaveDialog(self)
 
     def cb_add_song(self,path):
-        self.add_song(path).add_callback(self.__player.cb_update_status)
+        self.add_song(path).add_callback(self._player.cb_update_status)
 
     def cb_load(self,pl_name):
-        self.load(pl_name).add_callback(self.__player.cb_update_status)
+        self.load(pl_name).add_callback(self._player.cb_update_status)
 
 
 class LibraryDialog(gtk.Dialog):
@@ -256,7 +249,7 @@ class SaveDialog(gtk.Dialog):
         self.vbox.pack_start(label)
         self.entry = gtk.Entry(64)
         self.vbox.pack_start(self.entry)
-        
+
 
         # signal
         self.connect("response", self.cb_response)

@@ -2,40 +2,29 @@ import os
 import gtk, gobject
 from deejayd.net.client import DeejaydError
 from djmote.utils.decorators import gui_callback
+from djmote.widgets._base import SourceBox
 
-class VideoBox(gtk.VBox):
+class VideoBox(SourceBox):
 
     def __init__(self, player):
-        gtk.VBox.__init__(self)
-        self.__player = player
+        SourceBox.__init__(self, player)
         self.__video_dir = None
-
-        scrolled_window = gtk.ScrolledWindow()
-        scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scrolled_window.add_with_viewport(self.__build_tree())
-        self.pack_start(scrolled_window)
-
-        # toolbar
-        self.toolbar_box = gtk.HBox()
-        self.toolbar_box.pack_start(self.__build_toolbar(), \
-            expand = True, fill = True)
-        self.pack_start(self.toolbar_box, expand = False, fill = True)
 
     def update_status(self, status):
         if self.__video_dir == None or status["video_dir"] != self.__video_dir:
             self.__video_dir = status["video_dir"]
 
-            server = self.__player.get_server()
+            server = self._player.get_server()
             server.get_video_dir(self.__video_dir).add_callback(self.cb_build)
 
     #
     # widget creation functions
     #
-    def __build_tree(self):
+    def _build_tree(self):
         # ListStore
         # id, title, path, type, icon stock id
         video_content = gtk.ListStore(int, str, str, str, str)
-        self.video_view = gtk.TreeView(video_content)
+        self.video_view = self._create_treeview(video_content)
 
         col = gtk.TreeViewColumn("Filename")
         # construct icon
@@ -54,7 +43,7 @@ class VideoBox(gtk.VBox):
 
         return self.video_view
 
-    def __build_toolbar(self):
+    def _build_toolbar(self):
         toolbar = gtk.Toolbar()
         toolbar.set_style(gtk.TOOLBAR_BOTH)
 
@@ -73,8 +62,8 @@ class VideoBox(gtk.VBox):
         model.clear()
 
         try: answer.get_contents()
-        except DeejaydError, err: 
-            self.__player.set_error(err)
+        except DeejaydError, err:
+            self._player.set_error(err)
             return
 
         if answer.root_dir != "":
@@ -94,7 +83,7 @@ class VideoBox(gtk.VBox):
     def cb_update_trigger(self, ans):
         try: self.__update_id = ans["video_updating_db"]
         except DeejaydError, err:
-            self.__player.set_error(err)
+            self._player.set_error(err)
             return
 
         # create a progress bar
@@ -116,10 +105,10 @@ class VideoBox(gtk.VBox):
                     del self.__update_source_id
                     self.progress_bar.destroy()
                     del self.progress_bar
-                    self.__player.set_video_dir("")
+                    self._player.set_video_dir("")
 
             self.progress_bar.pulse()
-            server = self.__player.get_server()
+            server = self._player.get_server()
             server.get_status().add_callback(cb_verif)
 
         self.__update_source_id = gobject.timeout_add(1500,update_verif)
@@ -129,12 +118,12 @@ class VideoBox(gtk.VBox):
         iter = model.get_iter(path)
         type =  model.get_value(iter,3)
         if type == "directory":
-            self.__player.set_video_dir(model.get_value(iter,2))
+            self._player.set_video_dir(model.get_value(iter,2))
         else:
-            self.__player.go_to(model.get_value(iter,0))
+            self._player.go_to(model.get_value(iter,0))
 
     def cb_update_library(self,widget, data = None):
-        server = self.__player.get_server()
+        server = self._player.get_server()
         server.update_video_library().add_callback(self.cb_update_trigger)
 
 # vim: ts=4 sw=4 expandtab

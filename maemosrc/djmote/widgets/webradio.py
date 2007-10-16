@@ -2,35 +2,28 @@ import os
 import gtk
 from djmote.utils.decorators import gui_callback
 from deejayd.net.client import DeejaydWebradioList, DeejaydError
+from djmote.widgets._base import SourceBox
 
-class WebradioBox(gtk.VBox, DeejaydWebradioList):
+class WebradioBox(SourceBox, DeejaydWebradioList):
 
     def __init__(self, player):
-        gtk.VBox.__init__(self)
+        SourceBox.__init__(self, player)
         DeejaydWebradioList.__init__(self, player.get_server())
         self.__wb_id = None
-        self.__player = player
-
-        scrolled_window = gtk.ScrolledWindow()
-        scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scrolled_window.add_with_viewport(self.__build_tree())
-        self.pack_start(scrolled_window)
-
-        self.pack_start(self.__build_toolbar(), expand = False, fill = False)
 
     def update_status(self, status):
         if self.__wb_id == None or status["webradio"] > self.__wb_id:
             self.__wb_id = status["webradio"]
             self.get().add_callback(self.cb_build_list)
-    
-    def __build_tree(self):
+
+    def _build_tree(self):
         # ListStore
         # id, title, url
         wb_content = gtk.ListStore(int, str, str)
 
         # View
         # title, url
-        self.__wb_view = gtk.TreeView(wb_content)
+        self.__wb_view = self._create_treeview(wb_content)
 
         title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=1)
         self.__wb_view.append_column(title_col)
@@ -43,7 +36,7 @@ class WebradioBox(gtk.VBox, DeejaydWebradioList):
 
         return self.__wb_view
 
-    def __build_toolbar(self):
+    def _build_toolbar(self):
         wb_toolbar = gtk.Toolbar()
 
         add_bt = gtk.ToolButton(gtk.STOCK_ADD)
@@ -64,7 +57,7 @@ class WebradioBox(gtk.VBox, DeejaydWebradioList):
         model = self.__wb_view.get_model()
         model.clear()
         try: media_list = answer.get_medias()
-        except DeejaydError, err: self.__player.set_error(err)
+        except DeejaydError, err: self._player.set_error(err)
         else:
             for w in media_list:
                 model.append([w["id"], w["title"], w["url"]])
@@ -73,13 +66,13 @@ class WebradioBox(gtk.VBox, DeejaydWebradioList):
         model = self.__wb_view.get_model()
         iter = model.get_iter(path)
         id =  model.get_value(iter,0)
-        self.__player.go_to(id)
+        self._player.go_to(id)
 
     def cb_clear(self, widget):
-        self.clear().add_callback(self.__player.cb_update_status)
+        self.clear().add_callback(self._player.cb_update_status)
 
     def cb_add_webradio(self,name,url):
-        self.add_webradio(name,url).add_callback(self.__player.cb_update_status)
+        self.add_webradio(name,url).add_callback(self._player.cb_update_status)
 
     def cb_add_dialog(self, widget):
         dialog = AddDialog(self)
