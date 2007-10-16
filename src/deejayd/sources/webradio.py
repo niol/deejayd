@@ -7,7 +7,7 @@ import urllib
 class UnsupportedFormatException: pass
 
 def get_playlist_file_lines(URL):
-    try: 
+    try:
         pls_handle = urllib.urlopen(URL)
         playlist = pls_handle.read()
     except:
@@ -36,10 +36,10 @@ def get_uris_from_m3u(URL):
 
 class Webradio(UnknownSource):
 
-    def __init__(self,db,id): 
+    def __init__(self,db,id):
         UnknownSource.__init__(self,db,None,id)
 
-        webradios = self.db.get_webradios() 
+        webradios = self.db.get_webradios()
         self.source_content = [{"pos":webradio[0],"id":self.set_item_id(), \
             "title":webradio[1], "uri":webradio[2], "type":"webradio",\
             "url":webradio[2]} for webradio in webradios]

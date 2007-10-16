@@ -47,7 +47,7 @@ class SourceFactory:
                 log.err("Unable to init dvd support")
         else: log.info("DVD support is disabled")
 
-        # restore recorded source 
+        # restore recorded source
         source = db.get_state("source")
         try: self.set_source(source)
         except UnknownSourceException:
@@ -81,7 +81,7 @@ class SourceFactory:
         return self.sources_obj.keys()
 
     def close(self):
-        self.db.set_state([(self.current,"source")])    
+        self.db.set_state([(self.current,"source")])
         for k in self.sources_obj.keys():
             self.sources_obj[k].close()
 
@@ -90,8 +90,8 @@ class SourceFactory:
     #
     def get(self, nb = None, type = "id", source_name = None):
         src = source_name or self.current
-        return self.sources_obj[src].go_to(nb,type)        
-    
+        return self.sources_obj[src].go_to(nb,type)
+
     def get_current(self):
         return self.sources_obj["queue"].get_current() or \
                self.sources_obj[self.current].get_current()

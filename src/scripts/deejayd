@@ -43,7 +43,7 @@ if options.conffile:
 
 if options.debug:
     DeejaydConfig().set('general', 'log', 'debug')
-        
+
 
 ######################################################
 
@@ -70,7 +70,7 @@ def killDeejayd(pidfile):
         try: pid = int(open(pidfile).read())
         except ValueError:
             sys.exit('Pidfile %s contains non-numeric value' % pidfile)
-        try: 
+        try:
             os.kill(pid, 15)
             removePID(pidfile)
         except OSError, err:
@@ -114,7 +114,7 @@ def setEnv(options):
         try: uid = int(options.uid)
         except ValueError:
             uid = pwd.getpwnam(options.uid)[2]
-        try: 
+        try:
             os.setuid(uid)
         except OSError:
             sys.exit("Unable to change uid of the process")
@@ -133,7 +133,7 @@ def startLog(options):
     else: logFile = sys.stdout
     log.startLogging(logFile)
 
-# Start 
+# Start
 if __name__ == "__main__":
     if options.kill:
         killDeejayd(options.pidfile)

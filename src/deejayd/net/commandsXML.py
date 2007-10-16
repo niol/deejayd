@@ -8,7 +8,7 @@ from os import path
 
 
 class queueCommands:
-    
+
     def __init__(self,deejayd_args):
         self.commands = []
         self.deejayd_args = deejayd_args
@@ -71,8 +71,8 @@ class UnknownCommand:
         for arg in self.__class__.command_args:
             if arg['name'] in self.args:
                 # FIXME need to remove this
-                if self.args[arg['name']] == None: 
-                    self.args[arg['name']] = "" 
+                if self.args[arg['name']] == None:
+                    self.args[arg['name']] = ""
 
                 value = self.args[arg['name']]
                 if isinstance(value,list) and "mult" not in arg:
@@ -109,7 +109,7 @@ class UnknownCommand:
                         except (ValueError,TypeError):
                             return self.get_error_answer(\
                                 "arg %s is not a int" % (arg['name'],))
-                        else: 
+                        else:
                             if v not in arg['values']:
                                 return self.get_error_answer(\
                                     "arg %s is not in the possible list"\
@@ -124,7 +124,7 @@ class UnknownCommand:
 
             elif arg['req']:
                 return self.get_error_answer("arg %s is mising" % arg['name'])
-            else: 
+            else:
                 self.args[arg['name']] = arg['default']
         return None
 
@@ -181,11 +181,11 @@ class Status(UnknownCommand):
   * mediapos : _int_ the position of the current media file (if exists)
   * mediaid : _int_ the id of the current media file
   * mode : [playlist-webradio-video] the current mode
-  * audio_updating_db : _int_ show when a audio library update is in progress  
-  * audio_updating_error : _string_ error message that apppears when the 
+  * audio_updating_db : _int_ show when a audio library update is in progress
+  * audio_updating_error : _string_ error message that apppears when the
                            audio library update has failed
-  * video_updating_db : _int_ show when a video library update is in progress  
-  * video_updating_error : _string_ error message that apppears when the 
+  * video_updating_db : _int_ show when a video library update is in progress
+  * video_updating_error : _string_ error message that apppears when the
                            video library update has failed"""
     command_name = 'status'
     command_rvalue = 'KeyValue'
@@ -294,7 +294,7 @@ class GetDir(UnknownCommand):
 class Search(UnknownCommand):
     """Search files where "type" contains "txt" content."""
     command_name = 'search'
-    command_args = [{"name":"type", "type":"enum_str", 
+    command_args = [{"name":"type", "type":"enum_str",
                      "values": ('all','title','genre','filename','artist',
                                 'album'),"req":True},
                     {"name":"txt", "type":"string", "req":True}]
@@ -525,7 +525,7 @@ class PlaylistList(UnknownCommand):
         playlists=self.deejayd_args["sources"].get_source("playlist").get_list()
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype('playlist')
-        for pl in playlists: 
+        for pl in playlists:
             rsp.add_media({"name":pl})
 
         return rsp
@@ -752,7 +752,7 @@ class Play(UnknownCommand):
         else:
             if self.args["id_type"] != "dvd_id":
                 try: id = int(self.args["id"])
-                except ValueError: 
+                except ValueError:
                     return self.get_error_answer("Bad value for id parm")
             else: id = self.args["id"]
 
@@ -788,7 +788,7 @@ class SetSlang(UnknownCommand):
 class Volume(UnknownCommand):
     """Set volume to "volume". The volume range is 0-100."""
     command_name = 'setVolume'
-    command_args = [{"name":"volume", "type":"enum_int", "req":True, 
+    command_args = [{"name":"volume", "type":"enum_int", "req":True,
                      "values": range(0,101)}]
 
     def execute(self):

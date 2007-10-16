@@ -38,10 +38,10 @@ class TestSong(TestData):
         self.tags = {}
 
     def build(self,path):
-        shutil.copy(self.testFile,path) 
+        shutil.copy(self.testFile,path)
         filename = os.path.join(path, self.name)
         os.rename(os.path.join(path, os.path.basename(self.testFile)), filename)
-        self.tags["filename"] = filename 
+        self.tags["filename"] = filename
 
         self.setRandomTag()
 
@@ -141,7 +141,7 @@ class TestDir(TestData):
     def remove(self):
         shutil.rmtree(self.dirPath)
         self.build = False
-        
+
 
 class TestProvidedMusicCollection(TestData):
 
@@ -184,8 +184,8 @@ class TestMediaCollection(TestProvidedMusicCollection):
     def __init__(self):
         self.dir_struct_written = False
         self.clean_library = True
-        self.dirs = {} 
-        self.medias = {} 
+        self.dirs = {}
+        self.medias = {}
         self.supported_files_class = ()
 
     def cleanLibraryDirectoryTree(self):

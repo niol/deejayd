@@ -24,7 +24,7 @@ class Queue(UnknownSource):
 class QueueSource(UnknownSourceManagement):
     name = "queue"
 
-    def __init__(self,db,library): 
+    def __init__(self,db,library):
         UnknownSourceManagement.__init__(self,db,library)
         self.current_source = Queue(db,library,self.get_recorded_id())
 

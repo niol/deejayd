@@ -14,7 +14,7 @@ def str_encode(data):
         return data.decode(filesystem_charset, "replace").encode("utf-8")
     elif isinstance(data, unicode):
         return data.encode("utf-8")
-    
+
     return data
 
 
@@ -41,7 +41,7 @@ class SqliteDatabase(Database):
             log.err(error)
             sys.exit(error)
         else:
-            self.cursor = self.connection.cursor() 
+            self.cursor = self.connection.cursor()
 
         # configure connection
         self.connection.text_factory = str
@@ -59,17 +59,17 @@ class SqliteDatabase(Database):
         try:
             if parm == None: self.cursor.execute(query)
             else: self.cursor.execute(query,parm)
-        except sqlite.OperationalError,err: 
+        except sqlite.OperationalError,err:
             log.err("Unable to execute database request : %s" %(err,))
 
     def executemany(self,query,parm):
         try: self.cursor.executemany(self.__format_query(query),parm)
-        except sqlite.OperationalError,err: 
+        except sqlite.OperationalError,err:
             log.err("Unable to execute database request : %s" %(err,))
 
     def executescript(self,query):
         try: self.cursor.executescript(self.__format_query(query))
-        except sqlite.OperationalError,err: 
+        except sqlite.OperationalError,err:
             log.err("Unable to execute database request : %s" %(err,))
 
     def close(self):
@@ -77,6 +77,6 @@ class SqliteDatabase(Database):
         self.connection.close()
 
     def __format_query(self,query):
-        return query.replace("{",self.db_prefix).replace("}","") 
+        return query.replace("{",self.db_prefix).replace("}","")
 
 # vim: ts=4 sw=4 expandtab

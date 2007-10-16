@@ -10,7 +10,7 @@ if os.path.isfile(logfile):
 
 class TestServer:
     """Implements a server ready for testing."""
-    
+
     def __init__(self, testServerPort, musicDir, dbfilename):
         self.testServerPort = testServerPort
         self.musicDir = musicDir

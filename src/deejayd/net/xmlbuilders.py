@@ -249,7 +249,7 @@ class DeejaydXMLFileDirList(DeejaydXMLAck):
 
 
 class DeejaydXMLMediaList(DeejaydXMLAck):
-    """A list of media (song, webradio,playlist or video) with information for each media : 
+    """A list of media (song, webradio,playlist or video) with information for each media :
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
     * title, id, length, subtitle, audio, etc. if it is a video"""
@@ -303,27 +303,27 @@ class DeejaydXMLDvdInfo(DeejaydXMLAck):
         xmldvd.setAttribute('longest_track',\
                             self._to_xml_string(self.dvd_info['longest_track']))
         # dvd's title
-        for track in self.dvd_info["track"]: 
+        for track in self.dvd_info["track"]:
             xmltrack = self.xmldoc.createElement('track')
             for info in ('ix','length'):
                 xmltrack.setAttribute(info,self._to_xml_string(track[info]))
 
             # avalaible audio channels
-            for audio in track["audio"]: 
+            for audio in track["audio"]:
                 xmlaudio = self.xmldoc.createElement('audio')
                 for info in ('ix','lang'):
                     xmlaudio.setAttribute(info,self._to_xml_string(audio[info]))
                 xmltrack.appendChild(xmlaudio)
 
             # avalaible subtitle channels
-            for sub in track["subp"]: 
+            for sub in track["subp"]:
                 xmlsub = self.xmldoc.createElement('subtitle')
                 for info in ('ix','lang'):
                     xmlsub.setAttribute(info,self._to_xml_string(sub[info]))
                 xmltrack.appendChild(xmlsub)
 
             # chapter list
-            for chapter in track["chapter"]: 
+            for chapter in track["chapter"]:
                 xmlchapter = self.xmldoc.createElement('chapter')
                 for info in ('ix','length'):
                     xmlchapter.setAttribute(info,\

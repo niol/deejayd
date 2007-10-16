@@ -234,7 +234,7 @@ class TestAsyncClient(TestCaseWithMediaData):
         self.deejaydaemon.get_audio_dir("").add_callback(first_cb)
         self.deejaydaemon.get_playlist_list().add_callback(second_cb)
         self.deejaydaemon.ping().add_callback(third_cb)
-        
+
         firstcb_called.wait(2)
         self.failUnless(firstcb_called.isSet(), \
             '1rst Answer callback was not triggered.')
@@ -244,5 +244,5 @@ class TestAsyncClient(TestCaseWithMediaData):
         thirdcb_called.wait(2)
         self.failUnless(thirdcb_called.isSet(), \
             '3rd Answer callback was not triggered.')
-        
+
 # vim: ts=4 sw=4 expandtab

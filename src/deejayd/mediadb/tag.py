@@ -43,7 +43,7 @@ class VideoFile(UnknownFile):
             title = title.replace("_", " ")
 
             return title.title()
-        
+
         self.load_subtitle()
         self.info["title"] = format_title(self.info["filename"])
         video_info = self.player.get_video_file_info(self.f)
@@ -69,7 +69,7 @@ class Mp3File(UnknownAudioFile):
         else: return ""
 
     def load_file_info(self):
-        mp3_info = MP3(self.f,ID3=EasyID3) 
+        mp3_info = MP3(self.f,ID3=EasyID3)
         self.info["bitrate"] = int(mp3_info.info.bitrate)
         self.info["length"] = int(mp3_info.info.length)
 
@@ -85,7 +85,7 @@ class OggFile(UnknownAudioFile):
         else: return ""
 
     def load_file_info(self):
-        ogg_info = OggVorbis(self.f) 
+        ogg_info = OggVorbis(self.f)
         self.info["bitrate"] = int(ogg_info.info.bitrate)
         self.info["length"] = int(ogg_info.info.length)
 
@@ -103,19 +103,19 @@ class FileTagFactory:
     def __init__(self,player = None):
         if self.__class__.player == None:
             self.__class__.player = player
-        
+
         if self.__class__.supported_audio_format == None or \
                 self.__class__.supported_video_format == None and \
                 self.__class__.player != None:
             self.__class__.supported_audio_format = {}
             self.__class__.supported_video_format = {}
             # mp3
-            if self.__class__.player.is_supported_format(".mp3"): 
+            if self.__class__.player.is_supported_format(".mp3"):
                 self.__class__.supported_audio_format[".mp3"] = Mp3File
                 self.__class__.supported_audio_format[".mp2"] = Mp3File
 
             # ogg
-            if self.__class__.player.is_supported_format(".ogg"): 
+            if self.__class__.player.is_supported_format(".ogg"):
                 self.__class__.supported_audio_format[".ogg"] = OggFile
 
             # video

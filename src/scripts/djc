@@ -91,7 +91,7 @@ class AvailableCommands:
             print key, ':', value
 
     def get_audio_dir(self, args):
-        """Get the content of an directory in audio library. 
+        """Get the content of an directory in audio library.
            ex: djc get_audio_dir "dirname"
            if no dirname has been entered, return root directory content"""
         try: dirname = args[0]

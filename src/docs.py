@@ -43,9 +43,9 @@ so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
 """
 
 commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
-                   "audioUpdate", "videoUpdate", "getdir", "search", 
-                   "getvideodir", "play", "stop", "pause", "next", "previous", 
-                   "setVolume", "seek", "setOption", "current", 
+                   "audioUpdate", "videoUpdate", "getdir", "search",
+                   "getvideodir", "play", "stop", "pause", "next", "previous",
+                   "setVolume", "seek", "setOption", "current",
                    "setAlang","setSlang",
                    "playlistInfo", "playlistList",
                    "playlistAdd", "playlistRemove", "playlistClear",
@@ -131,7 +131,7 @@ def formatCmdDoc(name, cmdObj):
     # Args
     argsText = ""
     if "args" in infos:
-        for arg in infos["args"]: 
+        for arg in infos["args"]:
             req = arg["req"] and "true" or "false"
             mult = "false"
             if "mult" in arg: mult = arg["mult"]
@@ -145,7 +145,7 @@ def formatCmdDoc(name, cmdObj):
 -----------------
 arguments :
 %(args)s
-description : 
+description :
 %(descr)s
     """ % {"name":name,
            "args":argsText,
@@ -197,7 +197,7 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
     def getDvdInfo(self):
         dvd = self.get_deejayd_xml_answer('DvdInfo', 'cmdName')
         dvd_info = {'title': "DVD Title", "longest_track": 1,\
-                    'track': 
+                    'track':
                       [ {"ix": 1,\
                          "length":"track length",\
                          "audio":[\
@@ -227,7 +227,7 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
                                DeejaydXMLFileDirList: getFileAndDirList,
                                DeejaydXMLDvdInfo: getDvdInfo,
                                DeejaydXMLMediaList: getMediaList }
- 
+
     def getExample(self, responseClass):
         builder = self.responseTypeExBuilders[responseClass]
         if builder == None:

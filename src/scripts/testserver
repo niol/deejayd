@@ -13,7 +13,8 @@ from deejayd.mediadb.library import AudioLibrary,VideoLibrary
 from deejayd.ui.config import DeejaydConfig
 from twisted.internet import reactor
 from twisted.python import log
-from deejayd.player import gstreamer
+#from deejayd.player import gstreamer
+from deejayd.player import xine
 
 # argv[1] should be port
 # argv[2] should be music dir
@@ -32,7 +33,7 @@ config = DeejaydConfig()
 db = SqliteDatabase(dbfilename)
 db.connect()
 
-player = gstreamer.GstreamerPlayer(db,config)
+player = xine.XinePlayer(db,config)
 
 audio_library = AudioLibrary(db, player, music_dir)
 

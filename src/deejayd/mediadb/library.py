@@ -29,20 +29,20 @@ class DeejaydAudioFile:
             self.update_function(self.dir,file_info)
 
     def force_update(self,f):pass
-        
+
     def _get_file_info(self,f):
         real_dir = os.path.join(self.root_path, self.dir)
         real_file = os.path.join(real_dir,f)
-        
+
         try: file_info = tag.FileTagFactory(self.player).\
-                                get_file_tag_object(real_file,self.file_type) 
-        except tag.NotSupportedFormat: 
+                                get_file_tag_object(real_file,self.file_type)
+        except tag.NotSupportedFormat:
             # Not an supported file
             log.info("%s : %s format not supported" % (f,self.file_type))
             return None
 
         try: file_info.load_file_info()
-        except tag.UnknownException: 
+        except tag.UnknownException:
             log.info(\
                 "%s : unable to obtain metadata from this %s file, skipped"\
                 % (f,self.file_type))
@@ -58,7 +58,7 @@ class DeejaydVideoFile(DeejaydAudioFile):
 
         self.update_function = self.db_con.update_video_file
         self.insert_function = self.db_con.insert_video_file
-        self.__id = self.db_con.get_last_video_id() or 0 
+        self.__id = self.db_con.get_last_video_id() or 0
         self.file_type = "video"
 
     def insert(self,f):
@@ -73,7 +73,7 @@ class DeejaydVideoFile(DeejaydAudioFile):
 
         # Update external subtitle
         file_info = tag.FileTagFactory(self.player).\
-                                get_file_tag_object(real_file,self.file_type) 
+                                get_file_tag_object(real_file,self.file_type)
         file_info.load_subtitle()
         self.db_con.update_video_subtitle(self.dir,file_info)
 
@@ -166,7 +166,7 @@ class Library:
 
             self.defered.unpause()
             return self._update_id
-        
+
         return 0
 
     def _update(self):
@@ -179,12 +179,12 @@ class Library:
             else: rel_path = ''
 
             return rel_path
-            
+
         self._db_con_update = self.db_con.get_new_connection()
         self._db_con_update.connect()
         self._update_end = False
         self.last_update_time = self._db_con_update.get_update_time(self._type)
-        
+
         library_files = [(item[0],item[1]) for item \
                         in self._db_con_update.get_all_files('',self._table)]
         library_dirs = [(item[0],item[1]) for item in \
@@ -196,7 +196,7 @@ class Library:
                 if tuple in library_dirs:
                     library_dirs.remove(tuple)
                 else: self._db_con_update.insert_dir(tuple,self._table)
-                    
+
             # else update files
             file_object = self._file_class(self._db_con_update,self._player,\
                                     strip_root(root,self._path),self._path)
@@ -218,7 +218,7 @@ class Library:
             self._db_con_update.remove_file(dir,filename,self._table)
         for (root,dirname) in library_dirs:
             self._db_con_update.remove_dir(root,dirname,self._table)
-            
+
         # Remove empty dir
         self._db_con_update.erase_empty_dir(self._table)
 
@@ -231,7 +231,7 @@ class Library:
         self._db_con_update.close()
         self._db_con_update = None
 
-    def end_update(self, result = True): 
+    def end_update(self, result = True):
         self._update_end = True
         if result: log.msg("The %s library has been updated" % self._type)
         else:

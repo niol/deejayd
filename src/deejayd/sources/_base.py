@@ -85,7 +85,7 @@ class UnknownSource:
 
     def save(self):
         raise NotImplementedError
-    
+
     def format_playlist_files(self,s):
         return {"dir":s[0],"filename":s[1],"pos":s[3],"id":self.set_item_id(),
             "title":s[6],"artist":s[7],"album":s[8],"genre":s[9],"track":s[10],
@@ -99,11 +99,11 @@ class UnknownSource:
     def set_item_id(self):
         self.__item_id += 1
         return self.__item_id
-    
+
 
 class UnknownSourceManagement:
     name = "unknown"
-    
+
     def __init__(self,db,library = None):
         self.db = db
         if library != None:
@@ -130,7 +130,7 @@ class UnknownSourceManagement:
 
         self.played_items = []
         return self.current_item
-        
+
     def delete(self,id):
         self.current_source.delete(id)
 
@@ -144,7 +144,7 @@ class UnknownSourceManagement:
 
         # Return a pseudo-random song
         l = self.current_source.get_content_length()
-        if rd and l > 0: 
+        if rd and l > 0:
             # first determine if the current song is in playedItems
             try:
                 id = self.played_items.index(self.current_item["id"])
@@ -160,7 +160,7 @@ class UnknownSourceManagement:
             values = [v for v in self.current_source.get_item_ids() \
                 if v not in self.played_items]
             try: song_id = random.choice(values)
-            except: # All songs are played 
+            except: # All songs are played
                 if rpt:
                     self.played_items = []
                     song_id = random.choice(self.current_source.get_item_ids())
@@ -170,7 +170,7 @@ class UnknownSourceManagement:
             try: self.current_item = self.current_source.get_item(song_id,"id")
             except ItemNotFoundException: return None
             return self.current_item
-            
+
         # Reset random
         self.played_items = []
 
@@ -200,7 +200,7 @@ class UnknownSourceManagement:
                 self.current_item = self.current_source.get_item(\
                     self.played_items[id-1],"id")
                 return self.current_item
-            except ItemNotFoundException: return None 
+            except ItemNotFoundException: return None
             except ValueError: pass
 
             # So we add the current song in playedItems

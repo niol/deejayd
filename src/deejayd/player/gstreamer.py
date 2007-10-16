@@ -57,10 +57,10 @@ class GstreamerPlayer(UnknownPlayer):
             "auto":"autovideosink"}
         pipeline =  self.config.get("gstreamer", "video_output")
         try: video_sink = gst.parse_launch(pipeline_dict[pipeline])
-        except gobject.GError, err: 
+        except gobject.GError, err:
             self._video_support = False
             raise NoSinkError
-        else: 
+        else:
             self.bin.set_property('video-sink', video_sink)
 
             bus = self.bin.get_bus()
@@ -112,9 +112,9 @@ class GstreamerPlayer(UnknownPlayer):
         while state_ret == gst.STATE_CHANGE_ASYNC and timeout > 0:
             state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
             timeout -= 1
-        
+
         if state_ret != gst.STATE_CHANGE_SUCCESS: return
-        elif self._media_file["type"] == "video": 
+        elif self._media_file["type"] == "video":
             if "audio" in self._media_file:
                 self._media_file["audio_idx"] = \
                                 self.bin.get_property("current-audio")
@@ -221,12 +221,12 @@ class GstreamerPlayer(UnknownPlayer):
         # MP3 file
         if format in (".mp3",".mp2"):
             return gst.registry_get_default().find_plugin("mad") is not None
-        
+
         # OGG file
         if format in (".ogg",):
             return gst.registry_get_default().find_plugin("ogg") is not None \
                and gst.registry_get_default().find_plugin("vorbis") is not None
-        
+
         # Video file
         if format in (".avi",".mpeg",".mpg"):
             return self._video_support and gst.registry_get_default().\
@@ -250,10 +250,10 @@ class GstreamerPlayer(UnknownPlayer):
         return dvd_info
 
 
-class InfoNotFound: pass 
+class InfoNotFound: pass
 
 class DiscoverVideoFile:
-    
+
     def __init__(self,f):
         self.__file = f.encode('utf-8')
         self.__process = False
@@ -279,10 +279,10 @@ class DiscoverVideoFile:
     def _process_end(self,discoverer,ismedia):
         # format file infos
         self.__file_info = {}
-        self.__file_info["videowidth"] = self.current.videowidth 
-        self.__file_info["videoheight"] = self.current.videoheight 
+        self.__file_info["videowidth"] = self.current.videowidth
+        self.__file_info["videoheight"] = self.current.videoheight
         self.__file_info["length"] = self.__format_time(\
-            max(self.current.audiolength, self.current.videolength)) 
+            max(self.current.audiolength, self.current.videolength))
 
         self.__process = False
 

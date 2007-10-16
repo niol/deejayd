@@ -8,7 +8,7 @@ def init(db, player, config):
     try: audio_dir = config.get("mediadb","music_directory")
     except NoOptionError:
         sys.exit("You have to choose a music directory")
-    else: 
+    else:
         try: audio_library = library.AudioLibrary(db,player,audio_dir)
         except library.NotFoundException,msg:
             sys.exit("Unable to init audio library : %s" % msg)
@@ -22,7 +22,7 @@ def init(db, player, config):
             log.err(\
               'Supplied video directory not found. Video support disabled.')
             video_library = None
-        else: 
+        else:
             try: video_library = library.VideoLibrary(db,player,video_dir)
             except library.NotFoundException,msg:
                 sys.exit("Unable to init video library : %s" % msg)

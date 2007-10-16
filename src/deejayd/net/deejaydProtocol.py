@@ -134,7 +134,7 @@ class CommandFactory:
         return queueCmd
 
     def parseXMLCommand(self,cmd):
-        cmdName = cmd.getAttribute("name") 
+        cmdName = cmd.getAttribute("name")
         args = {}
         for arg in cmd.getElementsByTagName("arg"):
             name = arg.attributes["name"].value
@@ -149,7 +149,7 @@ class CommandFactory:
                     if arg.hasChildNodes():
                         value.append(val.firstChild.data)
             args[name] = value
-            
+
         if cmdName in commandsXML.commands.keys():
             return (cmdName, commandsXML.commands[cmdName], args)
         else: return (cmdName,commandsXML.UnknownCommand,{})

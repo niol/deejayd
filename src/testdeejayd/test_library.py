@@ -182,7 +182,7 @@ class TestAudioLibrary(TestDeejayDBLibrary):
 
     def verifyTag(self,filePath):
         (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
-        
+
         for tag in ("title","artist","album"):
             self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \

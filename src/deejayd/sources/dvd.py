@@ -27,7 +27,7 @@ class DvdSource:
         self.current_id +=1
 
         try: self.dvd_info = self.player.get_dvd_info()
-        except PlayerError, err: 
+        except PlayerError, err:
             raise DvdError("Unable to load the dvd %s " % err)
         # select the default track of the dvd
         self.select_track()
@@ -85,7 +85,7 @@ class DvdSource:
                               self.selected_track["slang_idx"])
 
         return self.get_current()
-            
+
 
     def previous(self,random,repeat):
         if not self.dvd_info or not self.selected_track: return None

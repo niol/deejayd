@@ -42,7 +42,7 @@ class UnknownPlayer:
 
     def play(self):
         if self.get_state() == PLAYER_STOP:
-            if not self._media_file: 
+            if not self._media_file:
                 self._media_file = self._source.get_current()
             self.start_play()
 
@@ -61,7 +61,7 @@ class UnknownPlayer:
     def next(self):
         self.stop()
         self._media_file = self._source.next(self.options["random"],\
-                                       self.options["repeat"]) 
+                                       self.options["repeat"])
         self.start_play()
 
     def previous(self):
@@ -94,7 +94,7 @@ class UnknownPlayer:
     def set_alang(self,lang_idx):
         if not self._media_file or self.get_state() == PLAYER_STOP: return
 
-        try: audio_tracks = self._media_file["audio"] 
+        try: audio_tracks = self._media_file["audio"]
         except KeyError: raise PlayerError
         else:
             if lang_idx in (-2,-1): # disable/auto audio channel
@@ -113,7 +113,7 @@ class UnknownPlayer:
     def set_slang(self,lang_idx):
         if not self._media_file or self.get_state() == PLAYER_STOP: return
 
-        try: sub_tracks = self._media_file["subtitle"] 
+        try: sub_tracks = self._media_file["subtitle"]
         except KeyError: raise PlayerError
         else:
             if lang_idx in (-2,-1): # disable/auto subtitle channel

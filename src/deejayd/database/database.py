@@ -27,10 +27,10 @@ class UnknownDatabase:
 
 
 class Database(UnknownDatabase):
-    database_version = "3"    
+    database_version = "3"
 
     def create_database(self):
-        p = path.join(path.dirname(__file__),"sql/database_v%s.sql" % 
+        p = path.join(path.dirname(__file__),"sql/database_v%s.sql" %
                     self.__class__.database_version)
         try: f = open(p)
         except IOError: sys.exit("database structure not found")
@@ -54,7 +54,7 @@ class Database(UnknownDatabase):
                 p = path.join(path.dirname(__file__),"sql/update_v%d-v%d.sql" \
                         % (i-1,i))
                 try: f = open(p)
-                except IOError: 
+                except IOError:
                     sys.exit("update database file not found")
                 sql_script = f.read()
                 self.executescript(sql_script)
@@ -104,7 +104,7 @@ class Database(UnknownDatabase):
         query = "DELETE FROM {%s} WHERE dir LIKE ?" % table
         self.execute(query, (path.join(root,dir)+"%%",))
 
-    def get_dir_info(self,dir,table = "audio_library"): 
+    def get_dir_info(self,dir,table = "audio_library"):
         query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" % (table,)
         self.execute(query,(dir,))
 
@@ -127,7 +127,7 @@ class Database(UnknownDatabase):
         self.execute(query,(dir+"%%",))
 
         return self.cursor.fetchall()
-    
+
     def get_all_dirs(self,dir,table = "audio_library"):
         query = "SELECT * FROM {%s} WHERE dir LIKE ? AND type = 'directory'" \
                                                                         % table
@@ -263,7 +263,7 @@ class Database(UnknownDatabase):
             'file'")
         albums = len(self.cursor.fetchall())
 
-        # record in the database  
+        # record in the database
         values = [(songs,"songs"),(artists,"artists"),(albums,"albums")]
         self.executemany("UPDATE {stats} SET value = ? WHERE name = ?",values)
 
@@ -290,7 +290,7 @@ class Database(UnknownDatabase):
             ,values)
         self.connection.commit()
 
-    def get_state(self,type): 
+    def get_state(self,type):
         self.execute("SELECT value FROM {variables} WHERE name = ?",(type,))
         (rs,) =  self.cursor.fetchone()
 

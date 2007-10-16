@@ -35,7 +35,7 @@ class XinePlayer(UnknownPlayer):
 
         # load specific xine config
         try: subtitle_size = self.config.getint("xine", "subtitle_size")
-        except: 
+        except:
             log.err("Unable to read xine.subtitle_size conf parm")
         else:
             try: self.xine.set_enum_config_param(\
@@ -68,13 +68,13 @@ class XinePlayer(UnknownPlayer):
                                             {"lang": "external", "ix":0}]
 
         isvideo,fullscreen = 0,0
-        if self._media_file["type"] == "video": 
+        if self._media_file["type"] == "video":
             isvideo = 1
             fullscreen = self.options["fullscreen"]
         try: self.xine.start_playing(uri, isvideo, fullscreen)
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())
-        else: 
+        else:
             # if video get current audio/subtitle channel
             if self._media_file["type"] == "video":
                 if "audio" in self._media_file:
@@ -125,11 +125,11 @@ class XinePlayer(UnknownPlayer):
 
     def set_position(self,pos):
         try: self.xine.seek(int(pos * 1000))
-        except xine.NotPlayingError: pass 
+        except xine.NotPlayingError: pass
         else:
             # FIXME I need to wait to be sure that the command is executed
             time.sleep(0.2)
-    
+
     def get_state(self):
         return self.xine.get_status()
 

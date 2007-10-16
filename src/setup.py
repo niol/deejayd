@@ -15,15 +15,15 @@ def get_command_output(cmd, warn_on_stderr = True, warn_on_return_code = True):
             stdout=subprocess.PIPE, stderr = subprocess.PIPE)
     stdout, stderr = p.communicate()
     if warn_on_stderr and stderr != '':
-        raise RuntimeError("%s outputted the following error:\n%s" % 
+        raise RuntimeError("%s outputted the following error:\n%s" %
                 (cmd, stderr))
     if warn_on_return_code and p.returncode != 0:
-        raise RuntimeError("%s had non-zero return code %d" % 
+        raise RuntimeError("%s had non-zero return code %d" %
                 (cmd, p.returncode))
     return stdout
 
 def parse_pkg_config(command, components, options_dict = None):
-    """Helper function to parse compiler/linker arguments from 
+    """Helper function to parse compiler/linker arguments from
     pkg-config and update include_dirs, library_dirs, etc.
 
     We return a dict with the following keys, which match up with keyword
@@ -62,7 +62,7 @@ def parse_pkg_config(command, components, options_dict = None):
 #
 # Build xine extension if libxine headers are there.
 #
-try: 
+try:
     xine_options = parse_pkg_config('pkg-config',\
         'libxine x11 xext')
     from Pyrex.Distutils import build_ext
@@ -91,7 +91,7 @@ if __name__ == "__main__":
            package_data={'deejayd.ui': ['defaults.conf'],
             'deejayd.database': ['sql/*.sql']},
            ext_modules=ext_mod,
-           data_files=[('share/doc/deejayd-'+deejayd.__version__, 
+           data_files=[('share/doc/deejayd-'+deejayd.__version__,
                             glob.glob("doc/*")),
                        ('share/doc/deejayd-'+deejayd.__version__,\
                        glob.glob("README*"))],

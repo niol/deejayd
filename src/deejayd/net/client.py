@@ -390,7 +390,7 @@ class _DeejayDaemon:
             else:
                 (rs,self.next_msg) = split_msg(self.next_msg, index)
                 break
-                
+
 
             msg_chunk = self.socket_to_server.recv(4096)
             # socket.recv returns an empty string if the socket is closed, so
@@ -408,10 +408,10 @@ class _DeejayDaemon:
                                           len(msg_chunk)]
                 break
 
-        # We should strip the msgdelim, but in our hack, 
+        # We should strip the msgdelim, but in our hack,
         # it is part of the XML,
         # so it may not be a good idea to strip it...
-        # return ''.joint(msg_chunks)[0:len(msg) - 1 - 
+        # return ''.joint(msg_chunks)[0:len(msg) - 1 -
         # len(msg_delimiter)]
         return rs
 

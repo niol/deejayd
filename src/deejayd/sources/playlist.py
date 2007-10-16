@@ -1,6 +1,6 @@
 from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
                             UnknownSourceManagement
-from deejayd.mediadb.library import NotFoundException 
+from deejayd.mediadb.library import NotFoundException
 from os import path
 import random
 
@@ -58,7 +58,7 @@ class Playlist(UnknownSource):
             pos += 1
 
         while len(old_playlist) > 0:
-            song = random.choice(old_playlist) 
+            song = random.choice(old_playlist)
             del old_playlist[old_playlist.index(song)]
             new_playlist.append(song)
             new_playlist[pos]["pos"] = pos
@@ -67,7 +67,7 @@ class Playlist(UnknownSource):
         self.source_content = new_playlist
         # Increment sourceId
         self.source_id += 1
-            
+
     def save(self):
         # First we delete all previous record
         self.erase()
@@ -103,7 +103,7 @@ class PlaylistSource(UnknownSourceManagement):
         content = playlist_obj.get_content()
 
         if isinstance(playlist,str):
-            self.__close_playlist(playlist) 
+            self.__close_playlist(playlist)
         return content
 
     def add_path(self,paths,playlist = None,pos = None):
@@ -121,14 +121,14 @@ class PlaylistSource(UnknownSourceManagement):
 
         playlist_obj.add_files(songs,pos)
         if playlist != None:
-            self.__close_playlist(playlist) 
+            self.__close_playlist(playlist)
 
     def shuffle(self, playlist_name = None):
         playlist_obj = self.__open_playlist(playlist_name)
         playlist_obj.shuffle(self.current_item)
 
         if isinstance(playlist_name,str):
-            self.__close_playlist(playlist_name) 
+            self.__close_playlist(playlist_name)
 
     def move(self,id,new_pos,type = "id"):
         self.current_source.move(id,new_pos,type)
@@ -142,11 +142,11 @@ class PlaylistSource(UnknownSourceManagement):
         playlist_obj.clear()
 
         if isinstance(playlist,str):
-            self.__close_playlist(playlist) 
+            self.__close_playlist(playlist)
 
     def delete(self,nb,type = "id",playlist = None):
         playlist_obj = self.__open_playlist(playlist)
-        
+
         if playlist == None and self.current_item != None and\
                 self.current_item[type] == nb:
             self.player.stop()
@@ -155,7 +155,7 @@ class PlaylistSource(UnknownSourceManagement):
         playlist_obj.delete(nb,type)
 
         if isinstance(playlist,str):
-            self.__close_playlist(playlist) 
+            self.__close_playlist(playlist)
 
     def load_playlist(self,playlists,pos = None):
         songs = []
@@ -190,7 +190,7 @@ class PlaylistSource(UnknownSourceManagement):
             self.__open_playlists[name] = Playlist(self.db,self.library,name,\
                                                         None,id)
         return self.__open_playlists[name]
-        
+
     def __close_playlist(self,name):
         if name in self.__open_playlists:
             self.__open_playlists[name].save()
