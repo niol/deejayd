@@ -22,24 +22,24 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
     #
     def _build_tree(self):
         # ListStore
-        # pos, id, title, artist, album
-        self.__pl_content = gtk.ListStore(int, int, str, str, str)
+        # id, title, artist, album, toggled
+        self.__pl_content = gtk.ListStore(int, str, str, str, 'gboolean')
 
         # View
         # pos, title, artist, album
         pl_view = self._create_treeview(self.__pl_content)
 
         # create column
-        pos_col = gtk.TreeViewColumn("Pos",gtk.CellRendererText(),text=0)
-        pl_view.append_column(pos_col)
+        tog_col = self._build_select_column(self.cb_col_toggled, 4)
+        pl_view.append_column(tog_col)
 
-        title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=2)
+        title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=1)
         pl_view.append_column(title_col)
 
-        artist_col = gtk.TreeViewColumn("Artist",gtk.CellRendererText(),text=3)
+        artist_col = gtk.TreeViewColumn("Artist",gtk.CellRendererText(),text=2)
         pl_view.append_column(artist_col)
 
-        album_col = gtk.TreeViewColumn("Album",gtk.CellRendererText(),text=4)
+        album_col = gtk.TreeViewColumn("Album",gtk.CellRendererText(),text=3)
         pl_view.append_column(album_col)
 
         # signals
@@ -54,17 +54,21 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         add_bt.connect("clicked",self.cb_open_file_dialog)
         pl_toolbar.insert(add_bt,0)
 
+        del_bt = gtk.ToolButton(gtk.STOCK_REMOVE)
+        del_bt.connect("clicked",self.cb_remove_song)
+        pl_toolbar.insert(del_bt,1)
+
         clear_bt = gtk.ToolButton(gtk.STOCK_CLEAR)
         clear_bt.connect("clicked",self.cb_clear_playlist)
-        pl_toolbar.insert(clear_bt,1)
+        pl_toolbar.insert(clear_bt,2)
 
         shuffle_bt = gtk.ToolButton(gtk.STOCK_REFRESH)
         shuffle_bt.connect("clicked",self.cb_shuffle_playlist)
-        pl_toolbar.insert(shuffle_bt,2)
+        pl_toolbar.insert(shuffle_bt,3)
 
         save_bt = gtk.ToolButton(gtk.STOCK_SAVE)
         save_bt.connect("clicked",self.cb_open_save_dialog)
-        pl_toolbar.insert(save_bt,3)
+        pl_toolbar.insert(save_bt,4)
 
         return pl_toolbar
 
@@ -78,13 +82,27 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         else:
             self.__pl_content.clear()
             for m in media_list:
-                self.__pl_content.append([m["pos"]+1, m["id"], m["title"],\
-                            m["artist"], m["album"]])
+                self.__pl_content.append([m["id"], m["title"],\
+                            m["artist"], m["album"], False])
 
     def cb_play(self,treeview, path, view_column):
         iter = self.__pl_content.get_iter(path)
-        id =  self.__pl_content.get_value(iter,1)
+        id =  self.__pl_content.get_value(iter,0)
         self._player.go_to(id)
+
+    def cb_col_toggled(self, cell, path):
+        self.__pl_content[path][4] = not self.__pl_content[path][4]
+
+    def cb_remove_song(self, widget):
+        self.ids = []
+        def create_selection(model, path, iter):
+            toggled =  model.get_value(iter,4)
+            if toggled:
+                self.ids.append(model.get_value(iter,0))
+        self.__pl_content.foreach(create_selection)
+
+        self.del_songs(self.ids).add_callback(self._player.cb_update_status)
+        del self.ids
 
     def cb_clear_playlist(self, widget):
         self.clear().add_callback(self._player.cb_update_status)
@@ -98,11 +116,11 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
     def cb_open_save_dialog(self, widget):
         dialog = SaveDialog(self)
 
-    def cb_add_song(self,path):
-        self.add_song(path).add_callback(self._player.cb_update_status)
+    def cb_add_songs(self,path):
+        self.add_songs(path).add_callback(self._player.cb_update_status)
 
-    def cb_load(self,pl_name):
-        self.load(pl_name).add_callback(self._player.cb_update_status)
+    def cb_loads(self,pl_names):
+        self.loads(pl_names).add_callback(self._player.cb_update_status)
 
 
 class LibraryDialog(gtk.Dialog):
@@ -134,33 +152,39 @@ class LibraryDialog(gtk.Dialog):
         if response_id == gtk.RESPONSE_CLOSE:
             self.destroy()
         elif response_id == gtk.RESPONSE_OK:
+            self.ids = []
+            def create_selection(model, path, iter, col):
+                toggled =  model.get_value(iter,0)
+                if toggled:
+                    self.ids.append(model.get_value(iter,col))
+
             if self.notebook.get_current_page() == 0:
-                selection = self.library_view.get_selection()
-                (model, iter) = selection.get_selected()
-                if iter:
-                    path =  model.get_value(iter,1)
-                    self.__playlist.cb_add_song(path)
+                model = self.library_view.get_model()
+                model.foreach(create_selection, 2)
+                if self.ids != []: self.__playlist.cb_add_songs(self.ids)
             else:
-                selection = self.playlistlist_view.get_selection()
-                (model, iter) = selection.get_selected()
-                if iter:
-                    pl_name =  model.get_value(iter,0)
-                    self.__playlist.cb_load(pl_name)
+                model = self.playlistlist_view.get_model()
+                model.foreach(create_selection, 1)
+                if self.ids != []: self.__playlist.cb_loads(self.ids)
+            del self.ids
 
     def __build_file_tree(self):
-        # filename, path, type, icon stock id
-        library_content = gtk.ListStore(str, str, str, str)
+        # toggled, filename, path, type, icon stock id
+        library_content = gtk.ListStore('gboolean', str, str, str, str)
         self.library_view = gtk.TreeView(library_content)
+
+        tog_col = self.__build_select_column(library_content)
+        self.library_view.append_column(tog_col)
 
         col = gtk.TreeViewColumn("Filename")
         # construct icon
         icon = gtk.CellRendererPixbuf()
         col.pack_start(icon)
-        col.set_attributes(icon, stock_id = 3)
+        col.set_attributes(icon, stock_id = 4)
         # construct filename
         title = gtk.CellRendererText()
         col.pack_start(title)
-        col.set_attributes(title, text = 0)
+        col.set_attributes(title, text = 1)
 
         self.library_view.append_column(col)
 
@@ -194,29 +218,32 @@ class LibraryDialog(gtk.Dialog):
                 parent_dir = os.path.dirname(answer.root_dir)
                 model.append(["..",parent_dir,"directory",gtk.STOCK_GOTO_TOP])
             for dir in answer.get_directories():
-                model.append([dir, \
+                model.append([False, dir, \
                     os.path.join(answer.root_dir,dir), "directory",\
                     gtk.STOCK_DIRECTORY])
             for file in answer.get_files():
-                model.append([file["filename"], \
+                model.append([False, file["filename"], \
                     file["path"], file["type"], gtk.STOCK_FILE])
 
         self.__server.get_audio_dir(root_dir).add_callback(cb_build)
 
     def __build_playlist_list(self):
         # playlist_name, stock_id
-        playlistlist_content = gtk.ListStore(str, str)
+        playlistlist_content = gtk.ListStore('gboolean', str, str)
         self.playlistlist_view = gtk.TreeView(playlistlist_content)
+
+        tog_col = self.__build_select_column(playlistlist_content)
+        self.playlistlist_view.append_column(tog_col)
 
         col = gtk.TreeViewColumn("Playlist Name")
         # construct icon
         icon = gtk.CellRendererPixbuf()
         col.pack_start(icon)
-        col.set_attributes(icon, stock_id = 1)
+        col.set_attributes(icon, stock_id = 2)
         # construct playlist name
         name = gtk.CellRendererText()
         col.pack_start(name)
-        col.set_attributes(name, text = 0)
+        col.set_attributes(name, text = 1)
 
         self.playlistlist_view.append_column(col)
 
@@ -229,10 +256,22 @@ class LibraryDialog(gtk.Dialog):
         def cb_build(answer):
             model = self.playlistlist_view.get_model()
             for pl in answer.get_medias():
-                model.append([pl["name"], gtk.STOCK_FILE])
+                model.append([False, pl["name"], gtk.STOCK_FILE])
         self.__server.get_playlist_list().add_callback(cb_build)
 
         return scrolled_window
+
+    def __build_select_column(self, model):
+        cell = gtk.CellRendererToggle()
+        cell.set_property('activatable', True)
+        cell.connect( 'toggled', self.cb_col_toggled, model)
+        tog_col = gtk.TreeViewColumn("Select",cell)
+        tog_col.add_attribute(cell,'active',0)
+
+        return tog_col
+
+    def cb_col_toggled(self, cell, path, model):
+        model[path][0] = not model[path][0]
 
 
 class SaveDialog(gtk.Dialog):
