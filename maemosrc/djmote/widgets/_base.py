@@ -27,6 +27,15 @@ class SourceBox(gtk.VBox):
     def _build_toolbar(self):
         raise NotImplementedError
 
+    def _build_select_column(self, cb_func, model_col):
+        cell = gtk.CellRendererToggle()
+        cell.set_property('activatable', True)
+        cell.connect( 'toggled', cb_func)
+        tog_col = gtk.TreeViewColumn("Select",cell)
+        tog_col.add_attribute(cell,'active',model_col)
+
+        return tog_col
+
     def _create_treeview(self, model):
         tree_view = gtk.TreeView(model)
         tree_view.set_headers_visible(True)
