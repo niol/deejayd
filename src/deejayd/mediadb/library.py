@@ -92,7 +92,7 @@ class Library:
         self._db_con_update = None
 
         self._player = player
-        self._path = path
+        self._path = os.path.abspath(path)
         # test library path
         if not os.path.isdir(self._path):
             msg = "Unable to find directory %s" % (self._path,)
