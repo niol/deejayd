@@ -169,17 +169,16 @@ class Library:
 
         return 0
 
+    def strip_root(self, path):
+        abs_path = os.path.abspath(path)
+        rel_path = os.path.normpath(abs_path[len(self.get_root_path()):])
+
+        if rel_path != '.': rel_path = rel_path.strip("/")
+        else: rel_path = ''
+
+        return rel_path
+
     def _update(self):
-
-        def strip_root(path,root):
-            abs_path = os.path.abspath(path)
-            rel_path = os.path.normpath(abs_path[len(root):])
-
-            if rel_path != '.': rel_path = rel_path.strip("/")
-            else: rel_path = ''
-
-            return rel_path
-
         self._db_con_update = self.db_con.get_new_connection()
         self._db_con_update.connect()
         self._update_end = False
@@ -192,16 +191,18 @@ class Library:
         for root, dirs, files in os.walk(self._path):
             # first update directory
             for dir in dirs:
-                tuple = (strip_root(root,self._path),dir)
+                tuple = (self.strip_root(root), dir)
                 if tuple in library_dirs:
                     library_dirs.remove(tuple)
                 else: self._db_con_update.insert_dir(tuple,self._table)
 
             # else update files
-            file_object = self._file_class(self._db_con_update,self._player,\
-                                    strip_root(root,self._path),self._path)
+            file_object = self._file_class(self._db_con_update,
+                                           self._player,
+                                           self.strip_root(root),
+                                           self._path)
             for file in files:
-                tuple = (strip_root(root,self._path),file)
+                tuple = (self.strip_root(root), file)
                 if tuple in library_files:
                     library_files.remove(tuple)
                     if os.stat(os.path.join(root,file)).st_mtime >= \
