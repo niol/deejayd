@@ -143,8 +143,11 @@ class DeejaydWebradioList:
         return self.server._send_command(cmd)
 
     def delete_webradio(self, wr_id):
+        return self.delete_webradios([wr_id])
+
+    def delete_webradios(self, wr_ids):
         cmd = DeejaydXMLCommand('webradioRemove')
-        cmd.add_multiple_arg('id', [wr_id])
+        cmd.add_multiple_arg('id', wr_ids)
         return self.server._send_command(cmd)
 
     def clear(self):
@@ -182,10 +185,14 @@ class DeejaydPlaylist:
             cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
 
-    def load(self, name, loading_position = 0):
+    def load(self, name, pos = None):
+        return self.loads([name], pos)
+
+    def loads(self, names, pos = None):
         cmd = DeejaydXMLCommand('playlistLoad')
-        cmd.add_simple_arg('name', name)
-        cmd.add_simple_arg('pos', loading_position)
+        cmd.add_multiple_arg('name', names)
+        if pos != None:
+            cmd.add_simple_arg('pos', pos)
         return self.server._send_command(cmd)
 
     def shuffle(self):
