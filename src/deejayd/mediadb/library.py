@@ -178,6 +178,30 @@ class Library:
 
         return rel_path
 
+    def is_in_root(self, path, root=None):
+        """Checks if a directory is physically in the supplied root (the library root by default)."""
+        if not root:
+            root = self.get_root_path()
+        real_root = os.path.realpath(root)
+        real_path = os.path.realpath(path)
+
+        head = real_path
+        old_head = None
+        while head != old_head:
+            if head == real_root:
+                return True
+            old_head = head
+            head, tail = os.path.split(head)
+        return False
+
+    def is_in_a_root(self, path, roots):
+        """Checks if a directory is physically in one of the supplied roots."""
+        in_a_root = False
+        for root in roots:
+            if self.is_in_root(path, root):
+                in_a_root = True
+        return in_a_root
+
     def _update(self):
         self._db_con_update = self.db_con.get_new_connection()
         self._db_con_update.connect()
@@ -188,31 +212,8 @@ class Library:
                         in self._db_con_update.get_all_files('',self._table)]
         library_dirs = [(item[0],item[1]) for item in \
                             self._db_con_update.get_all_dirs('',self._table)]
-        for root, dirs, files in os.walk(self._path):
-            # first update directory
-            for dir in dirs:
-                tuple = (self.strip_root(root), dir)
-                if tuple in library_dirs:
-                    library_dirs.remove(tuple)
-                else: self._db_con_update.insert_dir(tuple,self._table)
 
-            # else update files
-            file_object = self._file_class(self._db_con_update,
-                                           self._player,
-                                           self.strip_root(root),
-                                           self._path)
-            for file in files:
-                tuple = (self.strip_root(root), file)
-                if tuple in library_files:
-                    library_files.remove(tuple)
-                    if os.stat(os.path.join(root,file)).st_mtime >= \
-                                                     int(self.last_update_time):
-                        file_object.update(file)
-                    # Even if the media has not been modified, we can need
-                    # to update informations (like external subtitle)
-                    # it is the aim of this function
-                    else: file_object.force_update(file)
-                else: file_object.insert(file)
+        self.walk_directory(self.get_root_path(), library_dirs, library_files)
 
         # Remove unexistent files and directories from library
         for (dir,filename) in library_files:
@@ -227,10 +228,54 @@ class Library:
         self._db_con_update.record_mediadb_stats()
         self._db_con_update.set_update_time(self._type)
 
-        # commit changes and close the connextion
+        # commit changes and close the connection
         self._db_con_update.connection.commit()
         self._db_con_update.close()
         self._db_con_update = None
+
+    def walk_directory(self, walk_root,
+                       library_dirs, library_files, forbidden_roots=None):
+        """Walk a directory for files to update. Called recursively to carefully handle symlinks."""
+        if not forbidden_roots:
+            forbidden_roots = [self.get_root_path()]
+
+        for root, dirs, files in os.walk(walk_root):
+            # first update directory
+            for dir in dirs:
+                tuple = (self.strip_root(root), dir)
+                if tuple in library_dirs:
+                    library_dirs.remove(tuple)
+                else:
+                    self._db_con_update.insert_dir(tuple,self._table)
+
+                # Walk only symlinks that aren't in library root or in one of
+                # the forbidden roots which consist in already crawled
+                # and out-of-main-root directories (i.e. other symlinks).
+                dir_path = os.path.join(root, dir)
+                if os.path.islink(dir_path):
+                    if not self.is_in_a_root(dir_path, forbidden_roots):
+                        forbidden_roots.append(dir_path)
+                        self.walk_directory(dir_path,
+                                            library_dirs, library_files,
+                                            forbidden_roots)
+
+            # else update files
+            file_object = self._file_class(self._db_con_update,
+                                           self._player,
+                                           self.strip_root(root),
+                                           self._path)
+            for file in files:
+                tuple = (self.strip_root(root), file)
+                if tuple in library_files:
+                    library_files.remove(tuple)
+                    if os.stat(os.path.join(root,file)).st_mtime >= \
+                                                     int(self.last_update_time):
+                        file_object.update(file)
+                    # Even if the media has not been modified, we may need
+                    # to update some information (like external subtitle)
+                    # it is the aim of this function
+                    else: file_object.force_update(file)
+                else: file_object.insert(file)
 
     def end_update(self, result = True):
         self._update_end = True
