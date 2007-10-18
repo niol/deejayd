@@ -18,12 +18,15 @@ class WebradioBox(SourceBox, DeejaydWebradioList):
 
     def _build_tree(self):
         # ListStore
-        # id, title, url
-        wb_content = gtk.ListStore(int, str, str)
+        # id, title, url, toggled
+        wb_content = gtk.ListStore(int, str, str, 'gboolean')
 
         # View
         # title, url
         self.__wb_view = self._create_treeview(wb_content)
+
+        tog_col = self._build_select_column(self.cb_col_toggled, 3)
+        self.__wb_view.append_column(tog_col)
 
         title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=1)
         self.__wb_view.append_column(title_col)
@@ -43,9 +46,13 @@ class WebradioBox(SourceBox, DeejaydWebradioList):
         add_bt.connect("clicked",self.cb_add_dialog)
         wb_toolbar.insert(add_bt,0)
 
+        del_bt = gtk.ToolButton(gtk.STOCK_REMOVE)
+        del_bt.connect("clicked",self.cb_remove_webradio)
+        wb_toolbar.insert(del_bt,1)
+
         clear_bt = gtk.ToolButton(gtk.STOCK_CLEAR)
         clear_bt.connect("clicked",self.cb_clear)
-        wb_toolbar.insert(clear_bt,1)
+        wb_toolbar.insert(clear_bt,2)
 
         return wb_toolbar
 
@@ -60,13 +67,30 @@ class WebradioBox(SourceBox, DeejaydWebradioList):
         except DeejaydError, err: self._player.set_error(err)
         else:
             for w in media_list:
-                model.append([w["id"], w["title"], w["url"]])
+                model.append([w["id"], w["title"], w["url"], False])
 
     def cb_play(self,treeview, path, view_column):
         model = self.__wb_view.get_model()
         iter = model.get_iter(path)
         id =  model.get_value(iter,0)
         self._player.go_to(id)
+
+    def cb_col_toggled(self, cell, path):
+        model = self.__wb_view.get_model()
+        model[path][3] = not model[path][3]
+
+    def cb_remove_webradio(self, widget):
+        self.ids = []
+        wb_model = self.__wb_view.get_model()
+        def create_selection(model, path, iter):
+            toggled =  model.get_value(iter,3)
+            if toggled:
+                self.ids.append(model.get_value(iter,0))
+        wb_model.foreach(create_selection)
+
+        self.delete_webradios(self.ids).add_callback(\
+            self._player.cb_update_status)
+        del self.ids
 
     def cb_clear(self, widget):
         self.clear().add_callback(self._player.cb_update_status)
