@@ -1,6 +1,14 @@
 
 import gtk
 
+class DjmoteTreeView(gtk.TreeView):
+
+    def __init__(self, model):
+        gtk.TreeView.__init__(self, model)
+        try: self.set_property("allow-checkbox-mode",False)
+        except: pass
+
+
 class SourceBox(gtk.VBox):
 
     def __init__(self, player):
@@ -37,7 +45,7 @@ class SourceBox(gtk.VBox):
         return tog_col
 
     def _create_treeview(self, model):
-        tree_view = gtk.TreeView(model)
+        tree_view = DjmoteTreeView(model)
         tree_view.set_headers_visible(True)
 
         return tree_view

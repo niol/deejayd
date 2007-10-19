@@ -2,7 +2,7 @@ import os
 import gtk
 from djmote.utils.decorators import gui_callback
 from deejayd.net.client import DeejaydPlaylist, DeejaydError
-from djmote.widgets._base import SourceBox
+from djmote.widgets._base import *
 
 class PlaylistBox(SourceBox, DeejaydPlaylist):
 
@@ -156,7 +156,8 @@ class LibraryDialog(gtk.Dialog):
             def create_selection(model, path, iter, col):
                 toggled =  model.get_value(iter,0)
                 if toggled:
-                    self.ids.append(model.get_value(iter,col))
+                    val = model.get_value(iter,col)
+                    if val != "": self.ids.append(val)
 
             if self.notebook.get_current_page() == 0:
                 model = self.library_view.get_model()
@@ -171,7 +172,7 @@ class LibraryDialog(gtk.Dialog):
     def __build_file_tree(self):
         # toggled, filename, path, type, icon stock id
         library_content = gtk.ListStore('gboolean', str, str, str, str)
-        self.library_view = gtk.TreeView(library_content)
+        self.library_view = DjmoteTreeView(library_content)
 
         tog_col = self.__build_select_column(library_content)
         self.library_view.append_column(tog_col)
@@ -199,15 +200,14 @@ class LibraryDialog(gtk.Dialog):
         return scrolled_window
 
     def update_file_list(self,treeview = None, path = None, view_column = None):
-
         if treeview == None: root_dir = ""
         else:
             model = treeview.get_model()
             iter = model.get_iter(path)
-            type =  model.get_value(iter,2)
+            type =  model.get_value(iter,3)
             if type != "directory":
                 return
-            root_dir = model.get_value(iter,1)
+            root_dir = model.get_value(iter,2)
 
         @gui_callback
         def cb_build(answer):
@@ -216,7 +216,8 @@ class LibraryDialog(gtk.Dialog):
 
             if answer.root_dir != "":
                 parent_dir = os.path.dirname(answer.root_dir)
-                model.append(["..",parent_dir,"directory",gtk.STOCK_GOTO_TOP])
+                model.append([False, "..",parent_dir,"directory",\
+                                gtk.STOCK_GOTO_TOP])
             for dir in answer.get_directories():
                 model.append([False, dir, \
                     os.path.join(answer.root_dir,dir), "directory",\
@@ -230,7 +231,7 @@ class LibraryDialog(gtk.Dialog):
     def __build_playlist_list(self):
         # playlist_name, stock_id
         playlistlist_content = gtk.ListStore('gboolean', str, str)
-        self.playlistlist_view = gtk.TreeView(playlistlist_content)
+        self.playlistlist_view = DjmoteTreeView(playlistlist_content)
 
         tog_col = self.__build_select_column(playlistlist_content)
         self.playlistlist_view.append_column(tog_col)
