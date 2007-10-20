@@ -1,0 +1,11 @@
+# KEY Values
+KEY_ENTER = 65293
+KEY_LEFT = 65361
+KEY_RIGHT = 65363
+KEY_VOLUME_UP = 65476
+KEY_VOLUME_DOWN = 65477
+
+# Volume Step
+VOLUME_STEP = 5
+
+# vim: ts=4 sw=4 expandtab

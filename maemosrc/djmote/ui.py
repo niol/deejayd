@@ -10,7 +10,7 @@ import hildon
 
 from deejayd.net.client import DeejayDaemonAsync, DeejaydError, ConnectError
 from djmote.conf import Config
-from djmote import stock
+from djmote import stock, const
 from djmote.widgets.controls import ControlBox
 from djmote.widgets.status import StatusBox
 from djmote.widgets.mode import ModeBox
@@ -26,6 +26,7 @@ class DjmoteUI(hildon.Program):
     def __init__(self):
         hildon.Program.__init__(self)
         self.__deejayd = DeejayDaemonAsync()
+        self.volume = 0
 
         # Conf
         conffile = os.path.expanduser('~/.djmoterc')
@@ -40,6 +41,7 @@ class DjmoteUI(hildon.Program):
     def build(self):
         self.main_window = hildon.Window()
         self.main_window.connect("destroy", self.destroy)
+        self.main_window.connect("key-press-event", self.key_press)
         self.add_window(self.main_window)
 
         # Connect window
@@ -61,8 +63,7 @@ class DjmoteUI(hildon.Program):
         left_box = gtk.VBox(spacing = 5)
         main_box.pack_end(left_box)
         # status
-        left_box.pack_start(StatusBox(self), expand = False,\
-                            fill = False)
+        left_box.pack_start(StatusBox(self), expand = False, fill = False)
 
         # mode
         left_box.pack_start(ModeBox(self))
@@ -79,6 +80,22 @@ class DjmoteUI(hildon.Program):
         self.__deejayd.disconnect()
         gtk.main_quit()
 
+    def key_press(self, widget, event):
+        if event.keyval == const.KEY_ENTER:
+            self.play_toggle()
+        elif event.keyval == const.KEY_LEFT:
+            self.previous()
+        elif event.keyval == const.KEY_RIGHT:
+            self.next()
+        elif event.keyval == const.KEY_VOLUME_UP:
+            val = self.volume + const.VOLUME_STEP
+            self.__deejayd.set_volume(val).add_callback(self.cb_update_status)
+        elif event.keyval == const.KEY_VOLUME_DOWN:
+            val = self.volume - const.VOLUME_STEP
+            self.__deejayd.set_volume(val).add_callback(self.cb_update_status)
+        else: return False
+        return True
+
     def connect_to_server(self, widget, data):
         try: self.__deejayd.connect(data['host'], data['port'])
         except ConnectError, msg:
@@ -94,19 +111,19 @@ class DjmoteUI(hildon.Program):
     def update_ui(self, widget = None, data = None):
         self.__deejayd.get_status().add_callback(self.cb_get_status)
 
-    def play_toggle(self, widget, data = None):
+    def play_toggle(self, widget = None, data = None):
         self.__deejayd.play_toggle().add_callback(self.cb_update_status)
 
     def go_to(self, id):
         self.__deejayd.go_to(id).add_callback(self.cb_update_status)
 
-    def stop(self, widget, data = None):
+    def stop(self, widget = None, data = None):
         self.__deejayd.stop().add_callback(self.cb_update_status)
 
-    def next(self, widget, data = None):
+    def next(self, widget = None, data = None):
         self.__deejayd.next().add_callback(self.cb_update_status)
 
-    def previous(self, widget, data = None):
+    def previous(self, widget = None, data = None):
         self.__deejayd.previous().add_callback(self.cb_update_status)
 
     def set_volume(self, volume):
@@ -142,6 +159,8 @@ class DjmoteUI(hildon.Program):
         try: answer.get_contents()
         except DeejaydError, err: self.set_error(err)
         else:
+            # record volume
+            self.volume = answer["volume"]
             self.emit("update-status",answer)
 
 
