@@ -101,7 +101,7 @@ class SourceFactory:
                self.sources_obj[self.current].next(random,repeat)
 
     def previous(self,random,repeat):
-        return self.sources_obj[current].previous(random,repeat)
+        return self.sources_obj[self.current].previous(random,repeat)
 
     def queue_reset(self):
         self.sources_obj["queue"].reset()
