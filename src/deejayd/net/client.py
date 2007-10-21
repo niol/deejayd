@@ -365,6 +365,9 @@ class _DeejayDaemon:
             self.disconnect()
             raise ConnectError('Connection with server failed')
 
+    def is_connected(self):
+        return self.connected
+
     def disconnect(self):
         if not self.connected:
             return
