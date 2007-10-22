@@ -79,16 +79,19 @@ class VolumeBar(hildon.VVolumebar):
         hildon.VVolumebar.__init__(self)
         self.set_size_request(80,290)
         self.__player = player
+        self.__level_signal = None
 
-        self.ui_disconnected()
+        self.set_level(0)
         # Signals
         player.connect("update-status",self.update_status)
         player.connect("connected",self.ui_connected)
         player.connect("disconnected",self.ui_disconnected)
 
     def ui_disconnected(self, ui = None):
-        self.set_level(0)
         self.set_sensitive(False)
+        if self.__level_signal: self.handler_block(self.__level_signal)
+        self.set_level(0)
+        if self.__level_signal: self.handler_unblock(self.__level_signal)
 
     def ui_connected(self, ui, status):
         self.set_sensitive(True)

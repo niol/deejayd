@@ -47,7 +47,7 @@ class DvdBox(SourceBox):
     # callbacks
     #
     def cb_play(self,treeview, path, view_column):
-        model = self.__wb_view.get_model()
+        model = self.dvd_view.get_model()
         iter = model.get_iter(path)
         id =  model.get_value(iter,0)
         self._player.go_to(id)
