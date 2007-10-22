@@ -6,7 +6,7 @@ class ControlBox(gtk.VBox):
     def __init__(self,player):
         gtk.VBox.__init__(self)
 
-        vol_button = VolumeButton()
+        vol_button = VolumeButton(True)
         vol_button.connect("clicked",self.volume_toggle)
         self.pack_end(vol_button)
 
@@ -55,9 +55,21 @@ class ControlsPanel(gtk.VBox):
             self.pack_start(button)
 
         # Signals
-        player.connect("update-status",self.update)
+        player.connect("update-status",self.update_status)
+        player.connect("connected",self.ui_connected)
+        player.connect("disconnected",self.ui_disconnected)
 
-    def update(self, ui, status):
+    def ui_disconnected(self, ui):
+        for button in self.get_children():
+            button.set_sensitive(False)
+        self.__play_pause.set_play("stop")
+
+    def ui_connected(self, ui, status):
+        for button in self.get_children():
+            button.set_sensitive(True)
+        self.__play_pause.set_play(status["state"])
+
+    def update_status(self, ui, status):
         self.__play_pause.set_play(status["state"])
 
 
@@ -65,15 +77,27 @@ class VolumeBar(hildon.VVolumebar):
 
     def __init__(self,player):
         hildon.VVolumebar.__init__(self)
-        self.set_size_request(80,278)
+        self.set_size_request(80,290)
         self.__player = player
 
+        self.ui_disconnected()
         # Signals
+        player.connect("update-status",self.update_status)
+        player.connect("connected",self.ui_connected)
+        player.connect("disconnected",self.ui_disconnected)
+
+    def ui_disconnected(self, ui = None):
+        self.set_level(0)
+        self.set_sensitive(False)
+
+    def ui_connected(self, ui, status):
+        self.set_sensitive(True)
+        self.set_level(status["volume"])
+        # More Signals
         self.__level_signal = self.connect("level_changed",self.set_volume)
         self.connect("mute_toggled",self.volume_mute_toggle)
-        player.connect("update-status",self.update)
 
-    def update(self, ui, status):
+    def update_status(self, ui, status):
         if int(self.get_level()) != status["volume"]:
             # we need to update volume bar without send a signal
             self.handler_block(self.__level_signal)
@@ -94,10 +118,11 @@ SIZE = gtk.icon_size_register("djmote-control", 72, 72)
 
 class ControlButton(gtk.Button):
 
-    def __init__(self):
+    def __init__(self, sensitive = False):
         gtk.Button.__init__(self)
         self.set_focus_on_click(False)
         self.has_focus = False
+        self.set_sensitive(sensitive)
         self.img = gtk.image_new_from_stock(self.__class__.stock_img,SIZE)
         self.set_image(self.img)
 

@@ -2,13 +2,11 @@
 
 import pygtk
 pygtk.require('2.0')
-import gtk, osso
+import gtk
 import djmote.ui
 
 
 if __name__ == '__main__':
-    osso_c = osso.Context("djmote", "0.1.0", False)
-
     dui = djmote.ui.DjmoteUI()
     dui.build()
     dui.run()

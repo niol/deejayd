@@ -14,9 +14,11 @@ class ModeBox(gtk.VBox):
         self.__content = None
 
         # Signals
-        player.connect("update-status",self.update)
+        player.connect("update-status",self.update_status)
+        player.connect("connected",self.update_status)
+        player.connect("disconnected",self.__destroy)
 
-    def update(self, ui, status):
+    def update_status(self, ui, status):
         if self.__content and self.__content["name"] != status["mode"]:
             self.__destroy()
         if not self.__content:
@@ -30,7 +32,7 @@ class ModeBox(gtk.VBox):
         self.pack_start(self.__content["widget"])
         self.show_all()
 
-    def __destroy(self):
+    def __destroy(self, ui = None):
         if self.__content:
             self.__content["widget"].destroy()
             self.__content = None

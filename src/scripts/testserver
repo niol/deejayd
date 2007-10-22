@@ -5,8 +5,6 @@ This is a deejayd test server executable
 
 import sys, os
 
-print sys.path
-
 from deejayd.net.deejaydProtocol import DeejaydFactory
 from deejayd.database.sqlite import SqliteDatabase
 from deejayd.mediadb.library import AudioLibrary,VideoLibrary

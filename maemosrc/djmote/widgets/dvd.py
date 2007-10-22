@@ -22,7 +22,7 @@ class DvdBox(SourceBox):
     def _build_tree(self):
         # ListStore
         # id, title, length
-        dvd_content = gtk.TreeStore(str, str, str)
+        dvd_content = gtk.ListStore(str, str, str)
         self.dvd_view = self._create_treeview(dvd_content)
 
         title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=1)
@@ -31,6 +31,7 @@ class DvdBox(SourceBox):
         url_col = gtk.TreeViewColumn("Length",gtk.CellRendererText(),text=2)
         self.dvd_view.append_column(url_col)
 
+        self.dvd_view.connect("row-activated", self.cb_play)
         return self.dvd_view
 
     def _build_toolbar(self):
@@ -45,21 +46,23 @@ class DvdBox(SourceBox):
     #
     # callbacks
     #
+    def cb_play(self,treeview, path, view_column):
+        model = self.__wb_view.get_model()
+        iter = model.get_iter(path)
+        id =  model.get_value(iter,0)
+        self._player.go_to(id)
+
     @gui_callback
     def cb_build_content(self, answer):
         model = self.dvd_view.get_model()
         model.clear()
 
         try: content = answer.get_dvd_contents()
-        except DeejaydError, err:
-            self._player.set_error(err)
+        except DeejaydError, err: self._player.set_error(err)
         else:
             for track in content["tracks"]:
-                t_iter = model.append(None,[track['id'], \
-                    "Title "+track['id'], track['length']])
-                for chap in track["chapters"]:
-                    model.append(t_iter,[track['id']+"."+chap['id'], \
-                        "Chapter "+chap['id'], chap['length']])
+                model.append([track['id'], "Title "+ track['id'],\
+                              track['length']])
 
 
 # vim: ts=4 sw=4 expandtab

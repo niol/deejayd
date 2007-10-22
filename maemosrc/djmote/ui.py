@@ -6,7 +6,7 @@ import gtk,gobject
 # Thanks http://aruiz.typepad.com/siliconisland/2006/04/threads_on_pygt.html !
 gtk.gdk.threads_init()
 
-import hildon
+import hildon, osso
 
 from deejayd.net.client import DeejayDaemonAsync, DeejaydError, ConnectError
 from djmote.conf import Config
@@ -17,10 +17,15 @@ from djmote.widgets.mode import ModeBox
 from djmote.widgets.dialogs import *
 from djmote.utils.decorators import gui_callback
 
+osso_c = osso.Context("djmote", "0.1.0", False)
+
 class DjmoteUI(hildon.Program):
 
+    global osso_c
     __gsignals__ = {
         'update-status':(gobject.SIGNAL_RUN_LAST,gobject.TYPE_NONE,(object,)),
+        'connected':(gobject.SIGNAL_RUN_LAST,gobject.TYPE_NONE,(object,)),
+        'disconnected':(gobject.SIGNAL_RUN_LAST,gobject.TYPE_NONE,()),
         }
 
     def __init__(self):
@@ -81,6 +86,8 @@ class DjmoteUI(hildon.Program):
         gtk.main_quit()
 
     def key_press(self, widget, event):
+        if not self.__deejayd.is_connected(): return False
+
         if event.keyval == const.KEY_ENTER:
             self.play_toggle()
         elif event.keyval == const.KEY_LEFT:
@@ -89,23 +96,43 @@ class DjmoteUI(hildon.Program):
             self.next()
         elif event.keyval == const.KEY_VOLUME_UP:
             val = self.volume + const.VOLUME_STEP
+            self.set_banner("increase volume to %d" % val)
             self.__deejayd.set_volume(val).add_callback(self.cb_update_status)
         elif event.keyval == const.KEY_VOLUME_DOWN:
             val = self.volume - const.VOLUME_STEP
+            self.set_banner("decrease volume to %d" % val)
             self.__deejayd.set_volume(val).add_callback(self.cb_update_status)
         else: return False
         return True
 
     def connect_to_server(self, widget, data):
+        if self.__deejayd.is_connected(): self.disconnect_to_server()
         try: self.__deejayd.connect(data['host'], data['port'])
         except ConnectError, msg:
             self.set_error(msg)
         else:
+            @gui_callback
+            def cb_connect_status(answer):
+                try: answer.get_contents()
+                except DeejaydError, err: self.set_error(err)
+                else:
+                    # record volume
+                    self.volume = answer["volume"]
+                    self.emit('connected', answer)
+
             # get player status
-            self.__deejayd.get_status().add_callback(self.cb_get_status)
+            self.__deejayd.get_status().add_callback(cb_connect_status)
+
+    def disconnect_to_server(self, widget = None, data = None):
+        self.__deejayd.disconnect()
+        self.emit('disconnected')
 
     def show_connect_window(self, widget=None):
         self.connect_window.show()
+
+    def set_banner(self, msg):
+        note = osso.SystemNote(osso_c)
+        note.system_note_infoprint(msg)
 
     # Player Commands
     def update_ui(self, widget = None, data = None):
@@ -170,30 +197,44 @@ class DjmoteMenu(gtk.Menu):
         gtk.Menu.__init__(self)
         self.__player = player
         self.__mode_menu = None
+        self.mode_menu = None
 
         # build menu
         menu_connect = gtk.MenuItem("Connect...")
         menu_connect.connect("activate", self.__player.show_connect_window)
         self.append(menu_connect)
-        menu_connect.show()
+
+        menu_disconnect = gtk.MenuItem("Disconnect...")
+        menu_disconnect.connect("activate", self.__player.disconnect_to_server)
+        self.append(menu_disconnect)
 
         menu_quit = gtk.MenuItem("Quit")
         menu_quit.connect("activate", self.__player.destroy)
         self.append(menu_quit)
-        menu_quit.show()
 
+        # Signals
+        self.__player.connect("connected", self.build_mode_menu)
+        self.__player.connect("disconnected", self.erase_mode_menu)
         self.__player.connect("update-status", self.update_mode_menu)
+        self.show_all()
+
+    def build_mode_menu(self, ui, status):
+        mode = status["mode"]
+        self.__mode_menu = {"current": mode, "items":{}, \
+            "signals": {}}
+        server = self.__player.get_server()
+        server.get_mode().add_callback(self.cb_build_mode_menu)
+
+    def erase_mode_menu(self, ui):
+        self.__mode_menu = None
+        # remove mode submenu
+        if self.mode_menu:
+            self.mode_menu.destroy()
+            self.mode_menu = None
 
     def update_mode_menu(self, ui, status):
         mode = status["mode"]
-
-        if self.__mode_menu == None:
-            self.__mode_menu = {"current": mode, "items":{}, \
-                "signals": {}}
-            server = self.__player.get_server()
-            server.get_mode().add_callback(self.cb_build_mode_menu)
-
-        elif self.__mode_menu["current"] != mode:
+        if self.__mode_menu["current"] != mode:
             self.__mode_menu["current"] = mode
             self.__mode_menu["items"][mode].handler_block(\
                 self.__mode_menu["signals"][mode])
@@ -221,10 +262,10 @@ class DjmoteMenu(gtk.Menu):
                 sub_menu.append(radio_item)
                 self.__mode_menu["items"][mode] = radio_item
 
-        mode_menu = gtk.MenuItem("Mode")
-        mode_menu.set_submenu(sub_menu)
+        self.mode_menu = gtk.MenuItem("Mode")
+        self.mode_menu.set_submenu(sub_menu)
 
-        self.insert(mode_menu, 1)
-        mode_menu.show_all()
+        self.insert(self.mode_menu, 1)
+        self.mode_menu.show_all()
 
 # vim: ts=4 sw=4 expandtab
