@@ -6,7 +6,12 @@ class DjmoteTreeView(gtk.TreeView):
     def __init__(self, model):
         gtk.TreeView.__init__(self, model)
         try: self.set_property("allow-checkbox-mode",False)
-        except: pass
+        except: pass # chinook
+
+    def set_grid_lines(self):
+        try: gtk.TreeView.set_grid_lines(self, \
+                gtk.TREE_VIEW_GRID_LINES_HORIZONTAL)
+        except AttributeError: pass # bora and gregale
 
 
 class SourceBox(gtk.VBox):
@@ -47,6 +52,7 @@ class SourceBox(gtk.VBox):
     def _create_treeview(self, model):
         tree_view = DjmoteTreeView(model)
         tree_view.set_headers_visible(True)
+        tree_view.set_grid_lines()
 
         return tree_view
 
