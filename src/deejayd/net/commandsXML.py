@@ -499,7 +499,7 @@ class PlaylistRemove(UnknownCommand):
                 return self.get_error_answer('Song not found')
             except sources.playlist.PlaylistNotFoundException:
                 return self.get_error_answer('Playlist not found')
-            else: return self.get_ok_answer()
+        return self.get_ok_answer()
 
 
 class PlaylistMove(UnknownCommand):
@@ -580,7 +580,7 @@ class WebradioDel(UnknownCommand):
             try: self.wr_source.delete(int(id))
             except sources.webradio.WrNotFoundException:
                 return self.get_error_answer('Webradio not found')
-            else: return self.get_ok_answer()
+        return self.get_ok_answer()
 
 
 class WebradioAdd(UnknownCommand):
