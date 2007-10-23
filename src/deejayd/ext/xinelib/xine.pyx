@@ -1,5 +1,5 @@
 ##############################################################################
-# Xine module.  
+# Xine module.
 #
 # Contains the Xine class which is used to control libxine.
 # Code in here is basically just a wrapper for the functions in djdxine.c.
@@ -54,7 +54,7 @@ cdef extern from "djdxine.h":
         DJDXINE_STATUS_PAUSE
 
     _Xine* djdxine_create()
-    int djdxine_init(_Xine* xine, char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data) 
+    int djdxine_init(_Xine* xine, char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data)
     int djdxine_set_config_param(_Xine* xine, char *param_key, int type, void *value)
     int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
     void djdxine_destroy(_Xine* xine)
@@ -152,7 +152,7 @@ cdef class Xine:
         cdef FileInfo *file_info
         file_info = djdxine_file_info(self.xine,filename)
         if file_info == NULL:
-            raise FileInfoError 
+            raise FileInfoError
         return {"videowidth":file_info.width, "videoheight":file_info.height, "length":file_info.duration / 1000}
     def get_audio_lang(self,uri,channel):
         djdxine_set_data_mine(self.xine,uri)

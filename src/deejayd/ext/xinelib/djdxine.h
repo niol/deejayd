@@ -96,7 +96,7 @@ int djdxine_set_config_param(_Xine* xine, const char *param_key, int type,
 
 /* Init video driver */
 int djdxine_video_init(_Xine* xine, const char *video_driver,
-                        const char* display_name); 
+                        const char* display_name);
 
 void djdxine_destroy(_Xine* xine);
 
