@@ -189,14 +189,27 @@ _Xine* djdxine_create()
     xine = (_Xine*)malloc(sizeof(_Xine));
     if(xine == NULL) return NULL;
 
-    strcpy(xine->error,"");
-    xine->playing = 0;
-    xine->isvideo = 0;
     xine->frame_info.lock = (xmutex_rec*)malloc(sizeof(xmutex_rec));
     if (xine->frame_info.lock == NULL) {
         free(xine);
         return NULL;
         }
+    xine->error = (char *)malloc(sizeof(char)*ERROR_MSG);
+    if (xine->error == NULL) {
+        free(xine->frame_info.lock);
+        free(xine);
+        return NULL;
+        }
+    strcpy(xine->error,"");
+    xine->lang = (char *)malloc(sizeof(char)*XINE_LANG_MAX);
+    if (xine->lang == NULL) {
+        free(xine->error);
+        free(xine->frame_info.lock);
+        free(xine);
+        return NULL;
+        }
+    xine->playing = 0;
+    xine->isvideo = 0;
     xmutex_init(xine->frame_info.lock);
     xine->frame_info.xpos = 0;
     xine->frame_info.ypos = 0;
@@ -378,7 +391,11 @@ void djdxine_destroy(_Xine* xine)
         XCloseDisplay(xine->player.display);
     }
 
+    /* free ressource */
     xmutex_clear(xine->frame_info.lock);
+    xmutex_free(xine->frame_info.lock);
+    free(xine->error);
+    free(xine->lang);
     free(xine);
 }
 
@@ -530,6 +547,7 @@ int djdxine_set_data_mine(_Xine* xine, const char* filename)
     }
     xine_close(xine->data_mine.stream);
     free (xine->data_mine.current_filename);
+    xine->data_mine.current_filename = NULL;
     if (xine->data_mine.file_info.title != NULL) {
         free (xine->data_mine.file_info.title);
         xine->data_mine.file_info.title = NULL;
@@ -558,7 +576,7 @@ FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
         xine->data_mine.file_info.height = xine_get_stream_info(
             xine->data_mine.stream, XINE_STREAM_INFO_VIDEO_HEIGHT);
 
-        xine->data_mine.file_info.title = xine_get_meta_info(
+        xine->data_mine.file_info.title = (char *)xine_get_meta_info(
             xine->data_mine.stream, XINE_META_INFO_TITLE);
         }
 
@@ -567,25 +585,22 @@ FileInfo *djdxine_file_info(_Xine* xine, const char* filename)
 
 char *djdxine_get_audio_lang(_Xine* xine,int channel)
 {
-    char *lang[XINE_LANG_MAX];
     int rs;
 
-    rs = xine_get_audio_lang(xine->data_mine.stream,channel,lang);
+    rs = xine_get_audio_lang(xine->data_mine.stream,channel,xine->lang);
     if (rs == 0)
-        return "Unknown";
-    return lang;
+        strcpy(xine->lang,"Unknown");
+    return xine->lang;
 }
 
 char *djdxine_get_subtitle_lang(_Xine* xine,int channel)
 {
-    char *lang[XINE_LANG_MAX];
     int rs;
 
-    rs = xine_get_spu_lang(xine->data_mine.stream,channel,lang);
+    rs = xine_get_spu_lang(xine->data_mine.stream,channel,xine->lang);
     if (rs == 0)
-        return "Unknown";
-
-    return lang;
+        strcpy(xine->lang,"Unknown");
+    return xine->lang;
 }
 
 char *djdxine_get_supported_extensions(_Xine* xine)

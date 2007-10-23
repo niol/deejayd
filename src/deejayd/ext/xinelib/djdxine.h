@@ -26,6 +26,8 @@
 #define DJDXINE_STATUS_PLAY 1
 #define DJDXINE_STATUS_PAUSE 2
 
+#define ERROR_MSG 128
+
 typedef struct {
     uint32_t  flags;
     uint32_t  functions;
@@ -50,8 +52,6 @@ typedef struct {
 } FileInfo;
 
 typedef struct {
-    int playing;
-    int isvideo;
     xine_event_listener_cb_t event_callback;
     void* event_callback_data;
     FrameInfo frame_info;
@@ -81,7 +81,11 @@ typedef struct {
         FileInfo file_info;
         int init;
     } data_mine;
-    char error[128];
+    /* global vars use in extension */
+    int playing;
+    int isvideo;
+    char *error;
+    char *lang;
 } _Xine;
 
 /* Construct a Xine object */
