@@ -3,8 +3,6 @@
 This is the script used to launch deejayd
 """
 
-import guppy.heapy.RM
-
 ############ Parse Option ############################
 ######################################################
 from optparse import OptionParser
