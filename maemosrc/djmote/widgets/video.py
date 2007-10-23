@@ -45,7 +45,7 @@ class VideoBox(SourceBox):
 
     def _build_toolbar(self):
         toolbar = gtk.Toolbar()
-        toolbar.set_style(gtk.TOOLBAR_BOTH)
+        toolbar.set_style(gtk.TOOLBAR_BOTH_HORIZ)
 
         refresh = gtk.ToolButton(gtk.STOCK_REFRESH)
         refresh.connect("clicked",self.cb_update_library)
@@ -101,17 +101,18 @@ class VideoBox(SourceBox):
                 except KeyError:
                     self.progress_bar.set_fraction(1.0)
                     del self.__update_id
-                    gobject.source_remove(self.__update_source_id)
-                    del self.__update_source_id
                     self.progress_bar.destroy()
                     del self.progress_bar
                     self._player.set_video_dir("")
+                    self._player.set_banner("Video library has been updated")
+                else:
+                    gobject.timeout_add(1000,update_verif)
 
             self.progress_bar.pulse()
             server = self._player.get_server()
             server.get_status().add_callback(cb_verif)
 
-        self.__update_source_id = gobject.timeout_add(1500,update_verif)
+        gobject.timeout_add(1000,update_verif)
 
     def cb_row_activate(self, treeview, path, view_column):
         model = treeview.get_model()
