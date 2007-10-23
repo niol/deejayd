@@ -159,14 +159,21 @@ class LibraryDialog(gtk.Dialog):
                     val = model.get_value(iter,col)
                     if val != "": self.ids.append(val)
 
+            def untoggled(model, path, iter):
+                model.set_value(iter,0,False)
+
             if self.notebook.get_current_page() == 0:
                 model = self.library_view.get_model()
                 model.foreach(create_selection, 2)
-                if self.ids != []: self.__playlist.cb_add_songs(self.ids)
+                if self.ids != []:
+                    model.foreach(untoggled)
+                    self.__playlist.cb_add_songs(self.ids)
             else:
                 model = self.playlistlist_view.get_model()
                 model.foreach(create_selection, 1)
-                if self.ids != []: self.__playlist.cb_loads(self.ids)
+                if self.ids != []:
+                    model.foreach(untoggled)
+                    self.__playlist.cb_loads(self.ids)
             del self.ids
 
     def __build_file_tree(self):
