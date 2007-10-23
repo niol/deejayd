@@ -9,6 +9,7 @@ class DvdBox(SourceBox):
     def __init__(self, player):
         SourceBox.__init__(self, player)
         self.__dvd_id = None
+        self.__dvd_title = None
 
     def update_status(self, status):
         if self.__dvd_id == None or status["dvd"] > self.__dvd_id:
@@ -54,12 +55,20 @@ class DvdBox(SourceBox):
 
     @gui_callback
     def cb_build_content(self, answer):
+        if self.__dvd_title:
+            self.__dvd_title.destroy()
         model = self.dvd_view.get_model()
         model.clear()
 
         try: content = answer.get_dvd_contents()
         except DeejaydError, err: self._player.set_error(err)
         else:
+            # update title
+            self.__dvd_title = gtk.Label(content['title'])
+            self.toolbar_box.pack_start(self.__dvd_title)
+            self.__dvd_title.show()
+
+            # update track
             for track in content["tracks"]:
                 model.append([track['id'], "Title "+ track['id'],\
                               track['length']])
