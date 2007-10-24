@@ -10,10 +10,12 @@ class WebradioBox(SourceBox, DeejaydWebradioList):
         SourceBox.__init__(self, player)
         DeejaydWebradioList.__init__(self, player.get_server())
         self.__wb_id = None
+        self.__webradio_label = None
 
     def update_status(self, status):
         if self.__wb_id == None or status["webradio"] > self.__wb_id:
             self.__wb_id = status["webradio"]
+            self._build_label(status)
             self.get().add_callback(self.cb_build_list)
 
     def _build_tree(self):
@@ -55,6 +57,17 @@ class WebradioBox(SourceBox, DeejaydWebradioList):
         wb_toolbar.insert(clear_bt,2)
 
         return wb_toolbar
+
+    def _build_label(self, status):
+        if self.__webradio_label:
+            self.__webradio_label.destroy()
+            self.__webradio_label = None
+
+        self.__webradio_label = gtk.Label("%s Webradios" % \
+                status["webradiolength"])
+        self.__webradio_label.show()
+        self.toolbar_box.pack_start(self.__webradio_label, expand = False, \
+            fill = False)
 
     #
     # callbacks

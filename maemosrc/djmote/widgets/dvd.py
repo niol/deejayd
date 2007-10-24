@@ -65,7 +65,8 @@ class DvdBox(SourceBox):
         else:
             # update title
             self.__dvd_title = gtk.Label(content['title'])
-            self.toolbar_box.pack_start(self.__dvd_title)
+            self.toolbar_box.pack_start(self.__dvd_title, expand = False,\
+                fill = False)
             self.__dvd_title.show()
 
             # update track
