@@ -153,6 +153,9 @@ class DjmoteUI(hildon.Program):
     def previous(self, widget = None, data = None):
         self.__deejayd.previous().add_callback(self.cb_update_status)
 
+    def seek(self, pos):
+        self.__deejayd.seek(pos).add_callback(self.cb_update_status)
+
     def set_volume(self, volume):
         self.__deejayd.set_volume(volume).add_callback(self.cb_update_status)
 

@@ -1,4 +1,4 @@
-import gtk,hildon
+import gobject,gtk,hildon
 from djmote import stock
 
 class StatusBox(gtk.HBox):
@@ -6,11 +6,58 @@ class StatusBox(gtk.HBox):
     def __init__(self,player):
         gtk.HBox.__init__(self)
 
-        self.toolbar = ToolBar(player)
-        self.pack_start(self.toolbar)
+        self.pack_start(Toolbar(player))
+        self.pack_start(Seekbar(player))
 
 
-class ToolBar(gtk.Toolbar):
+class Seekbar(hildon.Seekbar):
+
+    def __init__(self, player):
+        hildon.Seekbar.__init__(self)
+        self.__action = None
+
+        player.connect("connected", self.update_status)
+        player.connect("disconnected", self.disable_seekbar)
+        player.connect("update-status", self.update_status)
+
+        self.set_sensitive(False)
+        self.__signal = self.connect_after("change-value", self.cb_seek_to,\
+                player)
+        self.show()
+
+    def update_status(self, ui, status):
+        if status["state"] == "stop": self.disable_seekbar()
+        else:
+            self.set_sensitive(True)
+            times = status["time"].split(":")
+            self.handler_block(self.__signal)
+            self.set_total_time(int(times[1]))
+            self.set_fraction(int(times[1]))
+            self.set_position(int(times[0]))
+            self.handler_unblock(self.__signal)
+
+    def disable_seekbar(self, ui = None):
+        self.set_sensitive(False)
+        self.handler_block(self.__signal)
+        self.set_position(0);
+        self.set_fraction(0)
+        self.handler_unblock(self.__signal)
+
+    def cb_seek_to(self, widget, scroll, value, player):
+        pos = self.get_position()
+        if scroll in (gtk.SCROLL_PAGE_FORWARD,gtk.SCROLL_PAGE_BACKWARD):
+            player.seek(pos)
+        elif scroll == gtk.SCROLL_JUMP:
+            if self.__action != None: gobject.source_remove(self.__action)
+            self.__action = gobject.timeout_add(250,self.cb_timeout_seek,\
+                                player,pos)
+
+    def cb_timeout_seek(self,player,pos):
+        player.seek(pos)
+        self.__action = None
+
+
+class Toolbar(gtk.Toolbar):
 
     def __init__(self,player):
         gtk.Toolbar.__init__(self)
@@ -31,8 +78,7 @@ class ToolBar(gtk.Toolbar):
 
         # separator
         sep = gtk.SeparatorToolItem()
-        sep.set_expand(True)
-        sep.set_draw(False)
+        sep.set_draw(True)
         self.insert(sep,2)
 
         refresh = gtk.ToolButton(gtk.STOCK_REFRESH)
