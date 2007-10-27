@@ -4,9 +4,10 @@ import sys
 from optparse import OptionParser
 
 from deejayd.net.client import DeejayDaemonSync, DeejaydError,\
-                               DeejaydWebradioList,\
+                               DeejaydWebradioList,DeejaydPlaylist,\
                                ConnectError
 
+class DjcError(Exception): pass
 
 class AvailableCommands:
 
@@ -29,6 +30,13 @@ class AvailableCommands:
         """Next element in player"""
         self.server.next()
 
+    def seek(self, args):
+        """Set the position in the stream to argument value"""
+        try: pos = int(args[0])
+        except (ValueError, IndexError):
+            raise DjcError('Bad command line')
+        self.server.seek(pos)
+
     def volume(self, args):
         """Set volume to argument value.
              If preceeded with 'up'|'down', (in|dea)crease volume with value."""
@@ -44,7 +52,7 @@ class AvailableCommands:
                 volume = int(args[0])
             self.server.set_volume(volume)
         except (ValueError, IndexError):
-            print 'Bad command line'
+            raise DjcError('Bad command line')
 
     def set_option(self, args):
         """Set option to argument value. ex: djc set_option random 1"""
@@ -52,15 +60,14 @@ class AvailableCommands:
             option_name = args[0]
             option_value = int(args[1])
         except (ValueError, IndexError):
-            print 'Bad command line'
-        else:
-            self.server.set_option(option_name,option_value)
+            raise DjcError('Bad command line')
+        self.server.set_option(option_name,option_value)
 
     def set_mode(self, args):
-        """Set option to argument value. ex: djc set_option random 1"""
+        """Set active mode to argument value. ex: djc set_mode webradio"""
         try: mode = args[0]
         except IndexError:
-            print 'You need to select a mode'
+            raise DjcError('You need to choose a mode')
         else:
             self.server.set_mode(mode)
 
@@ -68,7 +75,7 @@ class AvailableCommands:
         """select a subtitle channel"""
         try: slang = args[0]
         except IndexError:
-            print 'You need to choose a language index'
+            raise DjcError('You need to choose a language index')
         else:
             self.server.set_slang(slang)
 
@@ -76,7 +83,7 @@ class AvailableCommands:
         """select a audio channel"""
         try: alang = args[0]
         except IndexError:
-            print 'You need to choose a language index'
+            raise DjcError('You need to choose a language index')
         else:
             self.server.set_alang(alang)
 
@@ -106,23 +113,97 @@ class AvailableCommands:
         for (key, value) in self.server.update_video_library().items():
             print key, ':', value
 
-    def add_webradio(self, args):
+# Playlist commands
+    def __get_pl_obj(self, args, arg_pos = 0):
+        try: pl_name = args[arg_pos]
+        except IndexError:
+            pl_name = None
+        return DeejaydPlaylist(self.server, pl_name)
+
+    def playlist_save(self, args):
+        """ Save current playlist
+            usage : djc playlist_save pl_name"""
+        try: pl_name = args[0]
+        except IndexError:
+            raise DjcError('You have to enter a playlist name')
+        DeejaydPlaylist(self.server, None).save(pl_name)
+
+    def playlist_erase(self, args):
+        """ Erase a recorded playlist
+            usage : djc playlist_erase pl_name"""
+        try: pl_name = args[0]
+        except IndexError:
+            raise DjcError('You have to enter a playlist name')
+        self.server.erase_playlist(pl_name)
+
+    def playlist_list(self, args):
+        """ Return list of recorded playlist """
+        contents = self.server.get_playlist_list()
+        for media in contents.get_medias():
+            print media["name"]
+
+    def playlist_info(self, args):
+        """ Get playlist's content
+            ex: djc playlist_info pl_name
+            if no name has been entered, return content of the current pl"""
+        contents = self.__get_pl_obj(args).get()
+        for media in contents.get_medias():
+            print media["pos"], '|', media["title"], '|', media["artist"], '|',\
+                  media["album"], '|', media["id"]
+
+    def playlist_clear(self, args):
+        """ clear playlist
+            ex: djc playlist_clear pl_name
+            if no name has been entered, clear the current pl"""
+        self.__get_pl_obj(args).clear().get_contents()
+
+    def playlist_shuffle(self, args):
+        """ shuffle playlist
+            ex: djc playlist_shuffle pl_name
+            if no name has been entered, shuffle the current pl"""
+        self.__get_pl_obj(args).shuffle().get_contents()
+
+    def playlist_add(self, args):
+        """ add dirs/files to playlist
+            ex: djc playlist_add dir/file pl_name
+            if no pl_name has been entered, add to the current pl"""
+        try: item = args[0]
+        except IndexError:
+            raise DjcError('You have to enter dirs/files')
+        self.__get_pl_obj(args, 1).add_song(item).get_contents()
+
+    def playlist_remove(self, args):
+        """ remove songs from playlist
+            ex: djc playlist_remove song_id1,song_id2 pl_name
+            if no pl_name has been entered, remove from the current pl"""
+        try: item = args[0]
+        except IndexError:
+            raise DjcError('Enter song_id please')
+        else:
+            ids = item.split(",")
+            try: ids = [int(id) for id in ids]
+            except ValueError:
+                raise DjcError("song_id has to be an integer")
+        self.__get_pl_obj(args, 1).del_songs(ids).get_contents()
+
+# Webradio commands
+    def webradio_add(self, args):
         """Add a webradio. ex: djc add_webradio wr_name url"""
         try:
             wr_name = args[0]
             wr_url = args[1]
         except IndexError:
-            print 'Bad command line'
-        else:
-            wr = DeejaydWebradioList(self.server)
-            wr.add_webradio(wr_name,wr_url)
+            raise DjcError('Bad command line')
+        wr = DeejaydWebradioList(self.server)
+        wr.add_webradio(wr_name,wr_url)
 
+# dvd commands
     def dvd_reload(self, args):
         """Reload the dvd"""
         ans = self.server.dvd_reload()
         ans.get_contents()
 
-    def get_dvd_content(self, args):
+    def dvd_get_content(self, args):
         """Get contents of the current dvd"""
         ans = self.server.get_dvd_content()
         dvd_content = ans.get_dvd_contents()
@@ -148,7 +229,7 @@ def get_cmds():
 
 cmd_sep = "\n  * "
 cmds = cmd_sep.join(get_cmds())
-usage = """usage: %prog [options] COMMAND
+usage = """usage: %prog [options] COMMAND [COMMAND_OPTIONS]
 where COMMAND may be :""" + cmd_sep + cmds
 
 parser = OptionParser(usage=usage)
@@ -184,7 +265,9 @@ if __name__ == '__main__':
             try:
                 getattr(AvailableCommands, command)(cmds, args[1:])
             except DeejaydError, msg:
-                print msg
+                print "Deejayd Error:", msg
+            except DjcError, msg:
+                print "Djc Error:", msg
             deejayd.disconnect()
     else:
         fail_cmdline()
