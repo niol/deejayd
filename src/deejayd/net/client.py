@@ -518,7 +518,7 @@ class _DeejayDaemon:
     def erase_playlist(self, name):
         cmd = DeejaydXMLCommand('playlistErase')
         cmd.add_simple_arg('name', name)
-        return self.server._send_command(cmd)
+        return self._send_command(cmd)
 
     def get_playlist_list(self):
         cmd = DeejaydXMLCommand('playlistList')
