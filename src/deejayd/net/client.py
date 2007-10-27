@@ -457,6 +457,11 @@ class _DeejayDaemon:
     def next(self):
         return self._send_simple_command('next')
 
+    def seek(self, pos):
+        cmd = DeejaydXMLCommand('seek')
+        cmd.add_simple_arg('time', pos)
+        return self._send_command(cmd)
+
     def go_to(self, id, id_type = None):
         cmd = DeejaydXMLCommand('play')
         cmd.add_simple_arg('id', id)
