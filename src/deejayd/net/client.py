@@ -378,10 +378,7 @@ class _DeejayDaemon:
         if not self.connected:
             return
 
-        # FIXME : Close here should be checked for answer
-        #self._send_simple_command('close').get_contents()
-        self._send_simple_command('close')
-
+        self._send_simple_command('close').get_contents()
         self._reset_socket()
         self.connected = False
         self.host = None
@@ -688,13 +685,16 @@ class DeejayDaemonAsync(_DeejayDaemon):
         self.receiving_thread.start()
 
     def disconnect(self):
+        if not self.connected:
+            return
+
+        _DeejayDaemon.disconnect(self)
         # Stop our processing threads
         self.receiving_thread.should_stop = True
         # This is tricky because stopping must be notified in the queue for the
         # command thread...
         self.command_queue.put(_StopException())
 
-        _DeejayDaemon.disconnect(self)
 
     def _send_command(self, cmd, expected_answer = None):
         # Set a default answer by default
