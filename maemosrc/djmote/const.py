@@ -8,4 +8,7 @@ KEY_VOLUME_DOWN = 65477
 # Volume Step
 VOLUME_STEP = 5
 
+# Playlist Constants
+PL_PAGER_LENGTH = 50
+
 # vim: ts=4 sw=4 expandtab

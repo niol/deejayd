@@ -1,6 +1,7 @@
 import os
 import gtk
 from djmote.utils.decorators import gui_callback
+from djmote.const import PL_PAGER_LENGTH
 from deejayd.net.client import DeejaydPlaylist, DeejaydError
 from djmote.widgets._base import *
 
@@ -10,16 +11,31 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         SourceBox.__init__(self, player)
         DeejaydPlaylist.__init__(self, player.get_server())
         self.__pl_id = None
+        self.__pl_pager = None
+        self.__pl_length = 0
 
     def update_status(self, status):
         if self.__pl_id == None or status["playlist"] > self.__pl_id:
             self.__pl_id = status["playlist"]
-
-            self.get().add_callback(self.cb_build_playlist)
+            self.__pl_length = status["playlistlength"]
+            self._build_pager()
 
     #
     # widget creation functions
     #
+    def _build_pager(self):
+        if self.__pl_pager: # remove previous pager
+            self.__pl_pager.destroy()
+            self.__pl_pager = None
+
+        nb = self.__pl_length/PL_PAGER_LENGTH
+        if nb == 0: # pager not needed
+            self.get().add_callback(self.cb_build_playlist)
+            return
+
+        self.__pl_pager = PagerBox(nb+1, self.cb_get_playlist_page)
+        self.toolbar_box.pack_start(self.__pl_pager, expand = False)
+
     def _build_tree(self):
         # ListStore
         # id, title, artist, album, toggled
@@ -84,6 +100,10 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
             for m in media_list:
                 self.__pl_content.append([m["id"], m["title"],\
                             m["artist"], m["album"], False])
+
+    def cb_get_playlist_page(self, page = 1):
+        self.get(PL_PAGER_LENGTH * (page-1), PL_PAGER_LENGTH).\
+            add_callback(self.cb_build_playlist)
 
     def cb_play(self,treeview, path, view_column):
         iter = self.__pl_content.get_iter(path)
@@ -180,6 +200,7 @@ class LibraryDialog(gtk.Dialog):
         # toggled, filename, path, type, icon stock id
         library_content = gtk.ListStore('gboolean', str, str, str, str)
         self.library_view = DjmoteTreeView(library_content)
+        self.library_view.set_grid_lines()
 
         tog_col = self.__build_select_column(library_content)
         self.library_view.append_column(tog_col)
@@ -239,6 +260,7 @@ class LibraryDialog(gtk.Dialog):
         # playlist_name, stock_id
         playlistlist_content = gtk.ListStore('gboolean', str, str)
         self.playlistlist_view = DjmoteTreeView(playlistlist_content)
+        self.playlistlist_view.set_grid_lines()
 
         tog_col = self.__build_select_column(playlistlist_content)
         self.playlistlist_view.append_column(tog_col)

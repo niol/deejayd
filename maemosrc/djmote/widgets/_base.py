@@ -56,4 +56,62 @@ class SourceBox(gtk.VBox):
 
         return tree_view
 
+
+class PagerBox(gtk.HBox):
+
+    def __init__(self, page_nb, callback):
+        gtk.HBox.__init__(self)
+        self.__current_page = 1
+        self.__page_nb = page_nb
+        self.__callback = callback
+
+        first_button = gtk.Button()
+        first_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GOTO_FIRST,\
+            gtk.ICON_SIZE_MENU))
+        first_button.connect("clicked",self.go_first)
+        self.pack_start(first_button,expand = False, fill = False)
+
+        prev_button = gtk.Button()
+        prev_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GO_BACK,\
+            gtk.ICON_SIZE_MENU))
+        prev_button.connect("clicked",self.go_previous)
+        self.pack_start(prev_button,expand = False, fill = False)
+
+        self.__label = gtk.Label("1/%d" % page_nb)
+        self.pack_start(self.__label,expand=False,fill=False)
+
+        next_button = gtk.Button()
+        next_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GO_FORWARD,\
+            gtk.ICON_SIZE_MENU))
+        next_button.connect("clicked",self.go_next)
+        self.pack_start(next_button,expand = False, fill = False)
+
+        last_button = gtk.Button()
+        last_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GOTO_LAST,\
+            gtk.ICON_SIZE_MENU))
+        last_button.connect("clicked",self.go_last)
+        self.pack_start(last_button,expand = False, fill = False)
+
+        self.show_all()
+        callback(self.__current_page)
+
+    def go_next(self, widget):
+        if self.__current_page < self.__page_nb:
+            self.__update(self.__current_page + 1)
+
+    def go_previous(self, widget):
+        if self.__current_page > 1:
+            self.__update(self.__current_page - 1)
+
+    def go_first(self, widget):
+        self.__update(1)
+
+    def go_last(self, widget):
+        self.__update(self.__page_nb)
+
+    def __update(self, page):
+        self.__current_page = page
+        self.__label.set_text("%d/%d" %(self.__current_page,self.__page_nb))
+        self.__callback(self.__current_page)
+
 # vim: ts=4 sw=4 expandtab
