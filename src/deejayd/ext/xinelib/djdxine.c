@@ -260,6 +260,20 @@ int djdxine_init(_Xine* xine, const char *audio_driver,
     xine_event_create_listener_thread(xine->player.event_queue,
         xine->event_callback,xine->event_callback_data);
 
+    /* Create a xine instance used for querying data about video files */
+    xine->data_mine.xine = xine_new();
+    xine_init(xine->data_mine.xine);
+    xine->data_mine.aport = xine_open_audio_driver(xine->data_mine.xine,
+                                                "none", NULL);
+    xine->data_mine.vport = xine_open_video_driver(xine->data_mine.xine,
+                                    "none", XINE_VISUAL_TYPE_NONE, NULL);
+    xine->data_mine.stream = xine_stream_new(xine->data_mine.xine,
+                                xine->data_mine.aport, xine->data_mine.vport);
+
+    xine->data_mine.current_filename = NULL;
+    xine->data_mine.file_info.title = NULL;
+    xine->data_mine.init = 1;
+
     return 0;
 }
 
@@ -338,20 +352,6 @@ int djdxine_video_init(_Xine* xine, const char *video_driver,
     xine_event_create_listener_thread(xine->player.event_queue,
         xine->event_callback,xine->event_callback_data);
     xine->player.video_init = 1;
-
-    /* Create a xine instance used for querying data about video files */
-    xine->data_mine.xine = xine_new();
-    xine_init(xine->data_mine.xine);
-    xine->data_mine.aport = xine_open_audio_driver(xine->data_mine.xine,
-                                                "none", NULL);
-    xine->data_mine.vport = xine_open_video_driver(xine->data_mine.xine,
-                                    "none", XINE_VISUAL_TYPE_NONE, NULL);
-    xine->data_mine.stream = xine_stream_new(xine->data_mine.xine,
-                                xine->data_mine.aport, xine->data_mine.vport);
-
-    xine->data_mine.current_filename = NULL;
-    xine->data_mine.file_info.title = NULL;
-    xine->data_mine.init = 1;
 
     return 0;
 }
