@@ -482,7 +482,7 @@ class PlaylistInfo(UnknownCommand):
         else:
             rsp = self.get_answer('MediaList')
             rsp.set_mediatype("song")
-            last = self.args["length"] == -1 and -1 or \
+            last = self.args["length"] == -1 and len(songs) or \
                 int(self.args["first"])+int(self.args["length"])-1
             rsp.set_medias(songs[int(self.args["first"]):last])
             return rsp
