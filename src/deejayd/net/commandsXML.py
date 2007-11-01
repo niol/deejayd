@@ -34,6 +34,7 @@ class queueCommands:
                 motherRsp = rsp
                 self.__rspFactory.set_mother(motherRsp)
 
+        del self.__rspFactory
         return motherRsp.to_xml()
 
 

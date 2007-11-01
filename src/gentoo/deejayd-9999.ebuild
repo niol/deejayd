@@ -23,6 +23,7 @@ DEPEND=" xine? (>=dev-python/pyrex-0.9.4.0
 RDEPEND="${DEPEND}
 	>=dev-python/twisted-2.0.0
 	>=dev-python/pysqlite-2.2
+	>=dev-python/celementtree-1.0.2
 	>=media-libs/mutagen-1.9
 	gstreamer? ( >=dev-python/pygtk-2.8
 		>=media-libs/gstreamer-0.10.2

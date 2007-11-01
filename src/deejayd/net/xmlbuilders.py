@@ -1,5 +1,6 @@
-from xml.dom import minidom
-
+try: from xml.etree import cElementTree as ET # python 2.5
+except ImportError: # python 2.4
+    import cElementTree as ET
 
 class _DeejaydXML:
 
@@ -9,14 +10,11 @@ class _DeejaydXML:
         self.__xmlbuilt = False
 
         if mother_xml_object == None:
-            self.xmldoc = minidom.Document()
-            self.xmlroot = self.xmldoc.createElement('deejayd')
-            self.xmldoc.appendChild(self.xmlroot)
+            self.xmlroot = ET.Element('deejayd')
             self.appended_xml_objects = [self]
         else:
             self.__is_mother = False
-            self.xmldoc = mother_xml_object.xmldoc
-            self.xmlroot = self.xmldoc.getElementsByTagName('deejayd').pop()
+            self.xmlroot = mother_xml_object.xmlroot
             mother_xml_object.append_another_xml_object(self)
 
         self.xmlcontent = None
@@ -29,7 +27,8 @@ class _DeejaydXML:
             if not self.__xmlbuilt:
                 for xml_object in self.appended_xml_objects:
                     xml_object.build_xml()
-                    self.xmlroot.appendChild(xml_object.xmlcontent)
+                    self.xmlroot.append(xml_object.xmlcontent)
+                del self.appended_xml_objects
                 self.__xmlbuilt = True
         else:
             raise NotImplementedError('Do not build directly deejayd\
@@ -48,11 +47,13 @@ class _DeejaydXML:
 
     def to_xml(self):
         self.__really_build_xml()
-        return self.xmldoc.toxml('utf-8')
+        return '<?xml version="1.0" encoding="utf-8"?>' + \
+            ET.tostring(self.xmlroot,'utf-8')
 
     def to_pretty_xml(self):
         self.__really_build_xml()
-        return self.xmldoc.toprettyxml(encoding = 'utf-8')
+        return '<?xml version="1.0" encoding="utf-8"?>' + \
+            ET.tostring(self.xmlroot,'utf-8')
 
     def build_xml(self):
         raise NotImplementedError
@@ -73,32 +74,25 @@ class DeejaydXMLCommand(_DeejaydXML):
 
     def build_xml(self):
         # Add command
-        self.xmlcontent = self.xmldoc.createElement('command')
-        self.xmlcontent.setAttribute('name', self.name)
+        self.xmlcontent = ET.Element('command', name = self.name)
 
         # Add args
         for arg in self.args.keys():
-            xmlarg = self.xmldoc.createElement('arg')
-            xmlarg.setAttribute('name', arg)
-            self.xmlcontent.appendChild(xmlarg)
+            xmlarg = ET.SubElement(self.xmlcontent, 'arg', name = arg)
 
             arg_param = self.args[arg]
-
             if type(arg_param) is list:
                 # We've got multiple args
-                xmlarg.setAttribute('type', 'multiple')
+                xmlarg.attrib['type'] = 'multiple'
 
                 for arg_param_value in arg_param:
-                    xmlval = self.xmldoc.createElement('value')
-                    xmlval.appendChild(self.xmldoc.createTextNode(
-                                self._to_xml_string(arg_param_value) ))
-                    xmlarg.appendChild(xmlval)
+                    xmlval = ET.SubElement(xmlarg,'value')
+                    xmlval.text = self._to_xml_string(arg_param_value)
 
             else:
                 # We've got a simple arg
-                xmlarg.setAttribute('type', 'simple')
-                xmlarg.appendChild(self.xmldoc.createTextNode(\
-                                    self._to_xml_string(arg_param)))
+                xmlarg.attrib['type'] = 'simple'
+                xmlarg.text = self._to_xml_string(arg_param)
 
 
 class _DeejaydXMLAnswer(_DeejaydXML):
@@ -108,32 +102,28 @@ class _DeejaydXMLAnswer(_DeejaydXML):
         self.originating_cmd = originating_cmd
 
     def build_xml_parm(self, name, value):
-        xmlparm = self.xmldoc.createElement('parm')
-        xmlparm.setAttribute('name', name)
-        xmlparm.setAttribute('value', self._to_xml_string(value))
+        xmlparm = ET.Element('parm', name = name)
+        xmlparm.attrib['value'] = self._to_xml_string(value)
         return xmlparm
 
     def build_xml_list_parm(self, name, value_list):
-        xml_list_parm = self.xmldoc.createElement('listparm')
-        if name: xml_list_parm.setAttribute('name', name)
+        xml_list_parm = ET.Element('listparm')
+        if name: xml_list_parm.attrib['name'] = name
         for value in value_list:
             if type(value) == dict:
                 xmlvalue = self.build_xml_dict_parm(None,value)
             else:
-                xmlvalue = self.xmldoc.createElement('listvalue')
-                xmlvalue.setAttribute('value',self._to_xml_string(value))
-            xml_list_parm.appendChild(xmlvalue)
+                xmlvalue = ET.Element('listvalue')
+                xmlvalue.attrib['value'] = self._to_xml_string(value)
+            xml_list_parm.append(xmlvalue)
         return xml_list_parm
 
     def build_xml_dict_parm(self, name, value_dict):
-        xml_dict_parm = self.xmldoc.createElement('dictparm')
-        if name: xml_dict_parm.setAttribute('name', name)
+        xml_dict_parm = ET.Element('dictparm')
+        if name: xml_dict_parm.attrib['name'] = name
         for key in value_dict.keys():
-            xmlitem = self.xmldoc.createElement('dictitem')
-            value = self._to_xml_string(value_dict[key])
-            xmlitem.setAttribute('name', key)
-            xmlitem.setAttribute('value', value)
-            xml_dict_parm.appendChild(xmlitem)
+            xmlitem = ET.SubElement(xml_dict_parm, 'dictitem', name = key)
+            xmlitem.attrib['value'] = self._to_xml_string(value_dict[key])
         return xml_dict_parm
 
     def build_xml_parm_list(self, data, parent_element):
@@ -146,7 +136,7 @@ class _DeejaydXMLAnswer(_DeejaydXML):
                 xml_parm = self.build_xml_dict_parm(data_key, data_value)
             else:
                 xml_parm = self.build_xml_parm(data_key, data_value)
-            parent_element.appendChild(xml_parm)
+            parent_element.append(xml_parm)
 
 
 class DeejaydXMLError(_DeejaydXMLAnswer):
@@ -158,10 +148,9 @@ class DeejaydXMLError(_DeejaydXMLAnswer):
         self.error_text = txt
 
     def build_xml(self):
-        self.xmlcontent = self.xmldoc.createElement(self.response_type)
-        self.xmlcontent.setAttribute('name', self.originating_cmd)
-        xml_error_text = self.xmldoc.createTextNode( str(self.error_text))
-        self.xmlcontent.appendChild(xml_error_text)
+        self.xmlcontent = ET.Element(self.response_type, \
+                            name=self.originating_cmd)
+        self.xmlcontent.text = str(self.error_text)
 
 
 class DeejaydXMLAck(_DeejaydXMLAnswer):
@@ -170,9 +159,8 @@ class DeejaydXMLAck(_DeejaydXMLAnswer):
     response_type = 'Ack'
 
     def build_xml(self):
-        self.xmlcontent = self.xmldoc.createElement('response')
-        self.xmlcontent.setAttribute('name', self.originating_cmd)
-        self.xmlcontent.setAttribute('type', self.response_type)
+        self.xmlcontent = ET.Element('response',name = self.originating_cmd,\
+            type = self.response_type)
 
 
 class DeejaydXMLKeyValue(DeejaydXMLAck):
@@ -194,7 +182,7 @@ class DeejaydXMLKeyValue(DeejaydXMLAck):
         DeejaydXMLAck.build_xml(self)
 
         for k, v in self.contents.items():
-            self.xmlcontent.appendChild(self.build_xml_parm(k, v))
+            self.xmlcontent.append(self.build_xml_parm(k, v))
 
 
 class DeejaydXMLFileDirList(DeejaydXMLAck):
@@ -233,19 +221,16 @@ class DeejaydXMLFileDirList(DeejaydXMLAck):
         DeejaydXMLAck.build_xml(self)
 
         if self.directory != None:
-            self.xmlcontent.setAttribute('directory', \
-                self._to_xml_string(self.directory))
+            self.xmlcontent.attrib['directory'] = \
+                self._to_xml_string(self.directory)
 
         for dirname in self.contents['directory']:
-            xmldir = self.xmldoc.createElement('directory')
-            xmldir.setAttribute('name', self._to_xml_string(dirname))
-            self.xmlcontent.appendChild(xmldir)
+            ET.SubElement(self.xmlcontent, 'directory', \
+                name = self._to_xml_string(dirname))
 
         for item in self.contents['file']:
-            xmlitem = self.xmldoc.createElement('file')
-            xmlitem.setAttribute('type',self.file_type)
+            xmlitem = ET.SubElement(self.xmlcontent,'file',type=self.file_type)
             self.build_xml_parm_list(item, xmlitem)
-            self.xmlcontent.appendChild(xmlitem)
 
 
 class DeejaydXMLMediaList(DeejaydXMLAck):
@@ -272,10 +257,9 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
     def build_xml(self):
         DeejaydXMLAck.build_xml(self)
         for item in self.media_items:
-            xmlitem = self.xmldoc.createElement('media')
-            xmlitem.setAttribute("type",self.media_type)
+            xmlitem = ET.SubElement(self.xmlcontent,'media',\
+                type=self.media_type)
             self.build_xml_parm_list(item, xmlitem)
-            self.xmlcontent.appendChild(xmlitem)
 
 
 class DeejaydXMLDvdInfo(DeejaydXMLAck):
@@ -292,47 +276,38 @@ class DeejaydXMLDvdInfo(DeejaydXMLAck):
 
     def build_xml(self):
         DeejaydXMLAck.build_xml(self)
-        xmldvd = self.xmldoc.createElement('dvd')
+        xmldvd = ET.SubElement(self.xmlcontent,'dvd')
         if not self.dvd_info:
-            xmldvd.setAttribute('title',"DVD NOT LOADED")
-            xmldvd.setAttribute('longest_track',"0")
-            self.xmlcontent.appendChild(xmldvd)
+            xmldvd.attrib['title'] = "DVD NOT LOADED"
+            xmldvd.attrib['longest_track'] = "0"
             return
 
-        xmldvd.setAttribute('title',self._to_xml_string(self.dvd_info['title']))
-        xmldvd.setAttribute('longest_track',\
-                            self._to_xml_string(self.dvd_info['longest_track']))
+        xmldvd.attrib['title'] = self._to_xml_string(self.dvd_info['title'])
+        xmldvd.attrib['longest_track'] = \
+            self._to_xml_string(self.dvd_info['longest_track'])
         # dvd's title
         for track in self.dvd_info["track"]:
-            xmltrack = self.xmldoc.createElement('track')
+            xmltrack = ET.SubElement(xmldvd,'track')
             for info in ('ix','length'):
-                xmltrack.setAttribute(info,self._to_xml_string(track[info]))
+                xmltrack.attrib[info] = self._to_xml_string(track[info])
 
             # avalaible audio channels
             for audio in track["audio"]:
-                xmlaudio = self.xmldoc.createElement('audio')
+                xmlaudio = ET.SubElement(xmltrack, 'audio')
                 for info in ('ix','lang'):
-                    xmlaudio.setAttribute(info,self._to_xml_string(audio[info]))
-                xmltrack.appendChild(xmlaudio)
+                    xmlaudio.attrib[info] = self._to_xml_string(audio[info])
 
             # avalaible subtitle channels
             for sub in track["subp"]:
-                xmlsub = self.xmldoc.createElement('subtitle')
+                xmlsub = ET.SubElement(xmltrack, 'subtitle')
                 for info in ('ix','lang'):
-                    xmlsub.setAttribute(info,self._to_xml_string(sub[info]))
-                xmltrack.appendChild(xmlsub)
+                    xmlsub.attrib[info] = self._to_xml_string(sub[info])
 
             # chapter list
             for chapter in track["chapter"]:
-                xmlchapter = self.xmldoc.createElement('chapter')
+                xmlchapter = ET.SubElement(xmltrack, 'chapter')
                 for info in ('ix','length'):
-                    xmlchapter.setAttribute(info,\
-                                            self._to_xml_string(chapter[info]))
-                xmltrack.appendChild(xmlchapter)
-
-            xmldvd.appendChild(xmltrack)
-
-        self.xmlcontent.appendChild(xmldvd)
+                    xmlchapter.attrib[info] = self._to_xml_string(chapter[info])
 
 
 class DeejaydXMLAnswerFactory:

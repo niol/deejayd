@@ -3,7 +3,10 @@ from twisted.application import service, internet
 from twisted.internet import protocol
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
-from xml.dom import minidom
+try: from xml.etree import cElementTree as ET # python 2.5
+except ImportError: # python 2.4
+    import cElementTree as ET
+
 
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
@@ -41,9 +44,11 @@ class DeejaydProtocol(LineReceiver):
         log.debug(rsp)
 
         self.transport.write(rsp)
+        del rsp
 
         if 'close' in remoteCmd.commands:
             self.transport.loseConnection()
+        del remoteCmd
 
     def lineLengthExceeded(self, line):
         log.err("Request too long, skip it")
@@ -121,12 +126,11 @@ class CommandFactory:
     def createCmdFromXML(self,line):
         queueCmd = commandsXML.queueCommands(self.deejaydArgs)
 
-        try: xmldoc = minidom.parseString(line)
+        try: xml_tree = ET.fromstring(line)
         except:
-            queueCmd.addCommand('parsing error',
-                                commandsXML.UnknownCommand, [])
+            queueCmd.addCommand('parsing error', commandsXML.UnknownCommand, [])
         else:
-            cmds = xmldoc.getElementsByTagName("command")
+            cmds = xml_tree.findall("command")
             for cmd in cmds:
                 (cmdName,cmdClass,args) = self.parseXMLCommand(cmd)
                 queueCmd.addCommand(cmdName,cmdClass,args)
@@ -134,20 +138,17 @@ class CommandFactory:
         return queueCmd
 
     def parseXMLCommand(self,cmd):
-        cmdName = cmd.getAttribute("name")
+        cmdName = cmd.attrib["name"]
         args = {}
-        for arg in cmd.getElementsByTagName("arg"):
-            name = arg.attributes["name"].value
-            type = arg.attributes["type"].value
+        for arg in cmd.findall("arg"):
+            name = arg.attrib["name"]
+            type = arg.attrib["type"]
             if type == "simple":
-                value = None
-                if arg.hasChildNodes():
-                    value = arg.firstChild.data
+                value = arg.text
             elif type == "multiple":
                 value = []
-                for val in arg.getElementsByTagName("value"):
-                    if arg.hasChildNodes():
-                        value.append(val.firstChild.data)
+                for val in arg.findall("value"):
+                    value.append(val.text)
             args[name] = value
 
         if cmdName in commandsXML.commands.keys():

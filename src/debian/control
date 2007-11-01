@@ -21,7 +21,7 @@ Description: A media player daemon
 
 Package: deejayd-client
 Architecture: all
-Depends: ${python:Depends}
+Depends: ${python:Depends}, python-celementtree
 XB-Python-Version: ${python:Versions}
 Description: Client bindings to access the deejayd server
  This package provides easy to use classes to manipulate the deejayd server,

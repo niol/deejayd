@@ -60,6 +60,7 @@ class UnknownSource:
         self.source_id += len(items)
 
     def clear(self):
+        del self.source_content
         self.source_content = []
         # Increment sourceId
         self.source_id += 1
