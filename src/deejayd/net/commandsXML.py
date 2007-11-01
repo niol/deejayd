@@ -469,7 +469,9 @@ class PlaylistInfo(UnknownCommand):
     """Return the content of the playlist "name". If no name is given, return
     the content of the current playlist."""
     command_name = 'playlistInfo'
-    command_args = [{"name":"name","type":"string","req":False,"default":None}]
+    command_args = [{"name":"name","type":"string","req":False,"default":None},\
+                    {"name":"first","type":"int","req":False,"default":0},\
+                    {"name":"length","type":"int","req":False,"default":-1}]
     command_rvalue = 'MediaList'
 
     def execute(self):
@@ -480,7 +482,9 @@ class PlaylistInfo(UnknownCommand):
         else:
             rsp = self.get_answer('MediaList')
             rsp.set_mediatype("song")
-            rsp.set_medias(songs)
+            last = self.args["length"] == -1 and -1 or \
+                int(self.args["first"])+int(self.args["length"])-1
+            rsp.set_medias(songs[int(self.args["first"]):last])
             return rsp
 
 

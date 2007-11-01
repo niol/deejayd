@@ -161,10 +161,13 @@ class DeejaydPlaylist:
         self.server = server
         self.__pl_name = pl_name
 
-    def get(self):
+    def get(self, first = 0, length = None):
         cmd = DeejaydXMLCommand('playlistInfo')
         if self.__pl_name != None:
             cmd.add_simple_arg('name', self.__pl_name)
+        cmd.add_simple_arg('first', first)
+        if length != None:
+            cmd.add_simple_arg('length', length)
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
