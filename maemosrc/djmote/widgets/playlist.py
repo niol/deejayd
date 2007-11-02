@@ -211,7 +211,7 @@ class LibraryDialog(gtk.Dialog):
         # construct filename
         title = gtk.CellRendererText()
         title.set_property("ellipsize",pango.ELLIPSIZE_END)
-        title.set_property("font-desc",pango.FontDescription("Sans Normal 12"))
+        title.set_property("font-desc",pango.FontDescription("Sans Normal 13"))
         col.pack_start(title)
         col.set_attributes(title, text = 1)
 
@@ -272,7 +272,7 @@ class LibraryDialog(gtk.Dialog):
         col.set_attributes(icon, stock_id = 2)
         # construct playlist name
         name = gtk.CellRendererText()
-        name.set_property("font-desc",pango.FontDescription("Sans Normal 12"))
+        name.set_property("font-desc",pango.FontDescription("Sans Normal 13"))
         col.pack_start(name)
         col.set_attributes(name, text = 1)
 

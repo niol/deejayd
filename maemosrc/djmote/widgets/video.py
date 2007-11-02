@@ -35,7 +35,7 @@ class VideoBox(SourceBox):
         col.set_attributes(icon, stock_id = 4)
         # construct filename
         title = gtk.CellRendererText()
-        title.set_property("font-desc",pango.FontDescription("Sans Normal 12"))
+        title.set_property("font-desc",pango.FontDescription("Sans Normal 13"))
         col.pack_start(title)
         col.set_attributes(title, text = 1)
 

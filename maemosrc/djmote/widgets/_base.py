@@ -56,7 +56,7 @@ class SourceBox(gtk.VBox):
             cell= gtk.CellRendererText()
             cell.set_property("ellipsize",pango.ELLIPSIZE_END)
             cell.set_property("font-desc",\
-                pango.FontDescription("Sans Normal 12"))
+                pango.FontDescription("Sans Normal 13"))
             col = gtk.TreeViewColumn(title,cell,text=id)
             col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
             col.set_fixed_width(size)
