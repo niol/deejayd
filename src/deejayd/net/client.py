@@ -155,6 +155,39 @@ class DeejaydWebradioList:
         return self.server._send_command(cmd)
 
 
+class DeejaydQueue:
+
+    def __init__(self, server):
+        self.server = server
+
+    def get(self, first = 0, length = None):
+        cmd = DeejaydXMLCommand('queueInfo')
+        cmd.add_simple_arg('first', first)
+        if length != None:
+            cmd.add_simple_arg('length', length)
+        ans = DeejaydMediaList(self)
+        return self.server._send_command(cmd, ans)
+
+    def add_songs(self, paths, position = None):
+        cmd = DeejaydXMLCommand('queueAdd')
+        cmd.add_multiple_arg('path', paths)
+        if position != None:
+            cmd.add_simple_arg('pos', position)
+        return self.server._send_command(cmd)
+
+    def clear(self):
+        cmd = DeejaydXMLCommand('queueClear')
+        return self.server._send_command(cmd)
+
+    def del_song(self, id):
+        return self.del_songs([id])
+
+    def del_songs(self, ids):
+        cmd = DeejaydXMLCommand('queueRemove')
+        cmd.add_multiple_arg('id', ids)
+        return self.server._send_command(cmd)
+
+
 class DeejaydPlaylist:
 
     def __init__(self, server, pl_name = None):
