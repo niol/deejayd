@@ -26,15 +26,13 @@ class WebradioBox(SourceBox, DeejaydWebradioList):
         # View
         # title, url
         self.__wb_view = self._create_treeview(wb_content)
+        self.__wb_view.set_fixed_height_mode(True)
 
+        # create columns
         tog_col = self._build_select_column(self.cb_col_toggled, 3)
         self.__wb_view.append_column(tog_col)
 
-        title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=1)
-        self.__wb_view.append_column(title_col)
-
-        url_col = gtk.TreeViewColumn("URL",gtk.CellRendererText(),text=2)
-        self.__wb_view.append_column(url_col)
+        self._build_text_columns(self.__wb_view,[("Title",1,150),("URL",2,300)])
 
         # signals
         self.__wb_view.connect("row-activated",self.cb_play)

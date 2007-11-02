@@ -25,13 +25,13 @@ class DvdBox(SourceBox):
         # id, title, length
         dvd_content = gtk.ListStore(str, str, str)
         self.dvd_view = self._create_treeview(dvd_content)
+        self.dvd_view.set_fixed_height_mode(True)
 
-        title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=1)
-        self.dvd_view.append_column(title_col)
+        # create columns
+        self._build_text_columns(self.dvd_view, \
+            [("Title",1,300),("Length",2,100)])
 
-        url_col = gtk.TreeViewColumn("Length",gtk.CellRendererText(),text=2)
-        self.dvd_view.append_column(url_col)
-
+        # signals
         self.dvd_view.connect("row-activated", self.cb_play)
         return self.dvd_view
 

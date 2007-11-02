@@ -1,5 +1,5 @@
 import os
-import gtk, gobject
+import gtk, gobject, pango
 from deejayd.net.client import DeejaydError
 from djmote.utils.decorators import gui_callback
 from djmote.widgets._base import SourceBox
@@ -25,14 +25,17 @@ class VideoBox(SourceBox):
         # id, title, path, type, icon stock id
         video_content = gtk.ListStore(int, str, str, str, str)
         self.video_view = self._create_treeview(video_content)
+        self.video_view.set_fixed_height_mode(True)
 
         col = gtk.TreeViewColumn("Filename")
+        col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         # construct icon
         icon = gtk.CellRendererPixbuf()
-        col.pack_start(icon)
+        col.pack_start(icon,expand = False)
         col.set_attributes(icon, stock_id = 4)
         # construct filename
         title = gtk.CellRendererText()
+        title.set_property("font-desc",pango.FontDescription("Sans Normal 12"))
         col.pack_start(title)
         col.set_attributes(title, text = 1)
 

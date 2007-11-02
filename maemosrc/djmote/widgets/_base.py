@@ -1,5 +1,5 @@
 
-import gtk
+import gtk,pango
 
 class DjmoteTreeView(gtk.TreeView):
 
@@ -44,10 +44,24 @@ class SourceBox(gtk.VBox):
         cell = gtk.CellRendererToggle()
         cell.set_property('activatable', True)
         cell.connect( 'toggled', cb_func)
-        tog_col = gtk.TreeViewColumn("Select",cell)
+        tog_col = gtk.TreeViewColumn("",cell)
         tog_col.add_attribute(cell,'active',model_col)
+        tog_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        tog_col.set_fixed_width(40)
 
         return tog_col
+
+    def _build_text_columns(self, treeview, columns):
+        for (title,id,size) in columns:
+            cell= gtk.CellRendererText()
+            cell.set_property("ellipsize",pango.ELLIPSIZE_END)
+            cell.set_property("font-desc",\
+                pango.FontDescription("Sans Normal 12"))
+            col = gtk.TreeViewColumn(title,cell,text=id)
+            col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+            col.set_fixed_width(size)
+            col.set_expand(True)
+            treeview.append_column(col)
 
     def _create_treeview(self, model):
         tree_view = DjmoteTreeView(model)

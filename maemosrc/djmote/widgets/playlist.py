@@ -1,5 +1,5 @@
 import os
-import gtk
+import gtk,pango
 from djmote.utils.decorators import gui_callback
 from djmote.const import PL_PAGER_LENGTH
 from deejayd.net.client import DeejaydPlaylist, DeejaydError
@@ -44,19 +44,14 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         # View
         # pos, title, artist, album
         pl_view = self._create_treeview(self.__pl_content)
+        pl_view.set_fixed_height_mode(True)
 
-        # create column
+        # create columns
         tog_col = self._build_select_column(self.cb_col_toggled, 4)
         pl_view.append_column(tog_col)
 
-        title_col = gtk.TreeViewColumn("Title",gtk.CellRendererText(),text=1)
-        pl_view.append_column(title_col)
-
-        artist_col = gtk.TreeViewColumn("Artist",gtk.CellRendererText(),text=2)
-        pl_view.append_column(artist_col)
-
-        album_col = gtk.TreeViewColumn("Album",gtk.CellRendererText(),text=3)
-        pl_view.append_column(album_col)
+        self._build_text_columns(pl_view, [("Title",1,200),("Artist",2,100),\
+            ("Album",3,100)])
 
         # signals
         pl_view.connect("row-activated",self.cb_play)
@@ -165,7 +160,7 @@ class LibraryDialog(gtk.Dialog):
         self.vbox.pack_start(self.notebook)
         # signal
         self.connect("response", self.cb_response)
-        self.set_size_request(450,350)
+        self.set_size_request(500,350)
         self.show_all()
 
     def cb_response(self, dialog, response_id):
@@ -201,17 +196,22 @@ class LibraryDialog(gtk.Dialog):
         library_content = gtk.ListStore('gboolean', str, str, str, str)
         self.library_view = DjmoteTreeView(library_content)
         self.library_view.set_grid_lines()
+        self.library_view.set_fixed_height_mode(True)
 
         tog_col = self.__build_select_column(library_content)
         self.library_view.append_column(tog_col)
 
         col = gtk.TreeViewColumn("Filename")
+        col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        col.set_fixed_width(300)
         # construct icon
         icon = gtk.CellRendererPixbuf()
-        col.pack_start(icon)
+        col.pack_start(icon,expand = False)
         col.set_attributes(icon, stock_id = 4)
         # construct filename
         title = gtk.CellRendererText()
+        title.set_property("ellipsize",pango.ELLIPSIZE_END)
+        title.set_property("font-desc",pango.FontDescription("Sans Normal 12"))
         col.pack_start(title)
         col.set_attributes(title, text = 1)
 
@@ -223,7 +223,7 @@ class LibraryDialog(gtk.Dialog):
 
         # Set tree inside a ScrolledWindow
         scrolled_window = gtk.ScrolledWindow()
-        scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+        scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scrolled_window.add_with_viewport(self.library_view)
         return scrolled_window
 
@@ -268,10 +268,11 @@ class LibraryDialog(gtk.Dialog):
         col = gtk.TreeViewColumn("Playlist Name")
         # construct icon
         icon = gtk.CellRendererPixbuf()
-        col.pack_start(icon)
+        col.pack_start(icon, expand = False)
         col.set_attributes(icon, stock_id = 2)
         # construct playlist name
         name = gtk.CellRendererText()
+        name.set_property("font-desc",pango.FontDescription("Sans Normal 12"))
         col.pack_start(name)
         col.set_attributes(name, text = 1)
 
@@ -295,8 +296,10 @@ class LibraryDialog(gtk.Dialog):
         cell = gtk.CellRendererToggle()
         cell.set_property('activatable', True)
         cell.connect( 'toggled', self.cb_col_toggled, model)
-        tog_col = gtk.TreeViewColumn("Select",cell)
+        tog_col = gtk.TreeViewColumn("",cell)
         tog_col.add_attribute(cell,'active',0)
+        tog_col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        tog_col.set_fixed_width(40)
 
         return tog_col
 
