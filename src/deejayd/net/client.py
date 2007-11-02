@@ -462,6 +462,10 @@ class _DeejayDaemon:
         cmd.add_simple_arg('time', pos)
         return self._send_command(cmd)
 
+    def get_current(self):
+        cmd = DeejaydXMLCommand('current')
+        return self._send_command(cmd,DeejaydMediaList())
+
     def go_to(self, id, id_type = None):
         cmd = DeejaydXMLCommand('play')
         cmd.add_simple_arg('id', id)
