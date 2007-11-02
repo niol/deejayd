@@ -48,6 +48,7 @@ class DjmoteUI(hildon.Program):
         self.main_window.connect("destroy", self.destroy)
         self.main_window.connect("key-press-event", self.key_press)
         self.add_window(self.main_window)
+        self.__fullscreen = False
 
         # Connect window
         self.connect_window = ConnectDialog(self.main_window,
@@ -94,6 +95,13 @@ class DjmoteUI(hildon.Program):
             self.previous()
         elif event.keyval == const.KEY_RIGHT:
             self.next()
+        elif event.keyval == const.KEY_FULLSCREEN:
+            if self.__fullscreen:
+                self.main_window.unfullscreen()
+                self.__fullscreen = False
+            else:
+                self.main_window.fullscreen()
+                self.__fullscreen = True
         elif event.keyval == const.KEY_VOLUME_UP:
             val = self.volume + const.VOLUME_STEP
             self.set_banner("increase volume to %d" % val)
