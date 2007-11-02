@@ -37,6 +37,15 @@ class AvailableCommands:
             raise DjcError('Bad command line')
         self.server.seek(pos)
 
+    def current(self, args):
+        """Return the current playing media (if ti exists)"""
+        cur = self.server.get_current().get_medias()
+        if len(cur) == 0:
+            print "No current media"
+        else:
+            media = cur[0]
+            print media["title"], '|', media["id"]
+
     def volume(self, args):
         """Set volume to argument value.
              If preceeded with 'up'|'down', (in|dea)crease volume with value."""
