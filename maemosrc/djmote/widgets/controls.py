@@ -122,7 +122,8 @@ SIZE = gtk.icon_size_register("djmote-control", 72, 72)
 class ControlButton(gtk.Button):
 
     def __init__(self, sensitive = False):
-        gtk.Button.__init__(self)
+        # The empty string label is there for the image to show on gtk 2.6.10
+        gtk.Button.__init__(self, label='')
         self.set_focus_on_click(False)
         self.has_focus = False
         self.set_sensitive(sensitive)
