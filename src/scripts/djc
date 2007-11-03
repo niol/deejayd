@@ -231,6 +231,12 @@ class AvailableCommands:
         self.__get_pl_obj(args, 1).del_songs(ids).get_contents()
 
 # Webradio commands
+    def webradio_list(self, args):
+        """ List webradios """
+        wrs = DeejaydWebradioList(self.server).get()
+        for wr in wrs.get_medias():
+            print wr["title"],"|",wr["url"],"|",wr["id"]
+
     def webradio_add(self, args):
         """Add a webradio. ex: djc add_webradio wr_name url"""
         try:
@@ -240,6 +246,24 @@ class AvailableCommands:
             raise DjcError('Bad command line')
         wr = DeejaydWebradioList(self.server)
         wr.add_webradio(wr_name,wr_url)
+
+    def webradio_clear(self, args):
+        """Erase all webradios"""
+        DeejaydWebradioList(self.server).clear().get_contents()
+
+    def webradio_delete(self, args):
+        """Erase webradio(s)
+           ex: djc webradio_erase wr_id1,wr_id2"""
+        try: item = args[0]
+        except IndexError:
+            raise DjcError('Enter webradio_id please')
+        else:
+            ids = item.split(",")
+            try: ids = [int(id) for id in ids]
+            except ValueError:
+                raise DjcError("webradio_id has to be an integer")
+        wr = DeejaydWebradioList(self.server)
+        wr.delete_webradios(ids).get_contents()
 
 # dvd commands
     def dvd_reload(self, args):
