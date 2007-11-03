@@ -21,10 +21,9 @@ class VideoSource(UnknownSourceManagement):
         except NotFoundException: pass
 
     def set_directory(self,dir):
-        self.current_source.clear()
+        video_list = self.library.get_dir_files(dir)
 
-        try: video_list = self.library.get_dir_files(dir)
-        except NotFoundException: video_list = []
+        self.current_source.clear()
         self.current_source.add_files(video_list)
         self.__current_dir = dir
 
