@@ -5,7 +5,7 @@ from optparse import OptionParser
 
 from deejayd.net.client import DeejayDaemonSync, DeejaydError,\
                                DeejaydWebradioList,DeejaydPlaylist,\
-                               ConnectError
+                               DeejaydQueue,ConnectError
 
 class DjcError(Exception): pass
 
@@ -121,6 +121,40 @@ class AvailableCommands:
         """Update video library"""
         for (key, value) in self.server.update_video_library().items():
             print key, ':', value
+
+# Queue commands
+    def queue_info(self, args):
+        """ Get queue's content """
+        contents = DeejaydQueue(self.server).get()
+        for media in contents.get_medias():
+            print media["pos"], '|', media["title"], '|', media["artist"], '|',\
+                  media["album"], '|', media["id"]
+
+    def queue_clear(self, args):
+        """ clear queue """
+        DeejaydQueue(self.server).clear().get_contents()
+
+    def queue_add(self, args):
+        """ add dirs/files to queue
+            ex: djc queue_add dir1,dir2 """
+        try: item = args[0]
+        except IndexError:
+            raise DjcError('You have to enter dirs/files')
+        else: items = item.split(",")
+        DeejaydQueue(self.server).add_songs(items).get_contents()
+
+    def queue_remove(self, args):
+        """ remove songs from queue
+            ex: djc queue_remove song_id1,song_id2 """
+        try: item = args[0]
+        except IndexError:
+            raise DjcError('Enter song_id please')
+        else:
+            ids = item.split(",")
+            try: ids = [int(id) for id in ids]
+            except ValueError:
+                raise DjcError("song_id has to be an integer")
+        DeejaydQueue(self.server).del_songs(ids).get_contents()
 
 # Playlist commands
     def __get_pl_obj(self, args, arg_pos = 0):
