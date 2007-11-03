@@ -21,7 +21,7 @@ def str_encode(data):
 class SqliteDatabase(Database):
 
     def __init__(self,db_file,db_prefix = ""):
-        self.db_file = db_file
+        self.db_file = path.abspath(db_file)
         self.db_prefix = db_prefix
 
     def connect(self):
