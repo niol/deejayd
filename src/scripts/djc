@@ -117,10 +117,31 @@ class AvailableCommands:
         for dir in rsp.get_directories(): print "directory:", dir
         for file in rsp.get_files(): print "file:", file["filename"]
 
+# Video commands
     def video_update(self, args):
         """Update video library"""
         for (key, value) in self.server.update_video_library().items():
             print key, ':', value
+
+    def get_video_dir(self, args):
+        """Get the content of an directory in video library.
+           ex: djc get_video_dir "dirname"
+           if no dirname has been entered, return root directory content"""
+        try: dirname = args[0]
+        except IndexError: dirname = ""
+
+        rsp = self.server.get_video_dir(dirname)
+        for dir in rsp.get_directories(): print "directory:", dir
+        for file in rsp.get_files(): print "file:", file["filename"]
+
+    def set_video_dir(self, args):
+        """Go to a video directory.
+           ex: djc set_video_dir "dirname"
+           if no dirname has been entered, got to root directory"""
+        try: dirname = args[0]
+        except IndexError: dirname = ""
+
+        self.server.set_video_dir(dirname).get_contents()
 
 # Queue commands
     def queue_info(self, args):
