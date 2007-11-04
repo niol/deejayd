@@ -638,7 +638,7 @@ char *djdxine_get_error(_Xine* xine)
             return "No error";
             break;
         case XINE_ERROR_NO_INPUT_PLUGIN:
-            return "No imput plugin to read this file";
+            return "No input plugin to read this file";
             break;
         case XINE_ERROR_NO_DEMUX_PLUGIN:
             return "No demuxer plugin to read this file";
