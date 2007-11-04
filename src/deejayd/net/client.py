@@ -2,8 +2,10 @@
 
 import socket, threading
 from StringIO import StringIO
-from xml.sax import make_parser, SAXParseException
-from xml.sax.handler import ContentHandler
+try: from xml.etree import cElementTree as ET # python 2.5
+except ImportError: # python 2.4
+    import cElementTree as ET
+
 from Queue import Queue, Empty
 
 from deejayd.net.xmlbuilders import DeejaydXMLCommand
@@ -23,6 +25,7 @@ class DeejaydAnswer:
         self.contents = None
         self.error = False
         self.server = server
+        self.originating_command = 'unknown'
 
     def wait(self):
         self.answer_received.wait()
@@ -53,6 +56,12 @@ class DeejaydAnswer:
         self.wait()
         for cb in self.callbacks:
             cb(self)
+
+    def set_originating_command(self, cmd):
+        self.originating_command = cmd
+
+    def get_originating_command(self):
+        return self.originating_command
 
 
 class DeejaydKeyValue(DeejaydAnswer):
@@ -252,113 +261,6 @@ class DeejaydPlaylist:
         if self.__pl_name != None:
             cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
-
-
-class _AnswerFactory(ContentHandler):
-
-    def __init__(self, expected_answers_queue):
-        self.expected_answers_queue = expected_answers_queue
-
-        self.answer = None
-        self.originating_command = ''
-
-        self.xmlpath = []
-        self.response_type = ''
-        self.parms = {}
-
-    def startElement(self, name, attrs):
-        self.xmlpath.append(name)
-
-        if name in ['error', 'response'] and len(self.xmlpath) == 2:
-            self.originating_command = attrs.get('name')
-            self.expected_answer = self.expected_answers_queue.get()
-
-        if name == 'response':
-            self.response_type = attrs.get('type')
-            if self.response_type == 'Ack':
-                self.answer = True
-            elif self.response_type == 'FileAndDirList':
-                self.expected_answer.set_rootdir(attrs.get('directory'))
-            elif self.response_type in ['FileAndDirList','MediaList','DvdInfo']:
-                self.answer = []
-            elif self.response_type == 'KeyValue':
-                self.answer = {}
-        elif name == 'parm':
-            # Parse value into a int if possible
-            val = attrs.get('value')
-            try:
-                real_val = int(val)
-            except(ValueError):
-                real_val = val
-
-            if self.response_type == 'KeyValue':
-                self.answer[attrs.get('name')] = real_val
-            else:
-                self.parms[attrs.get('name')] = real_val
-        elif name == 'directory':
-            assert self.response_type == 'FileAndDirList'
-            assert self.xmlpath == ['deejayd', 'response', 'directory']
-            self.expected_answer.add_dir(attrs.get('name'))
-        elif name == 'file':
-            assert self.response_type == 'FileAndDirList'
-            assert self.xmlpath == ['deejayd', 'response', 'file']
-        elif name == 'media':
-            assert self.response_type == 'MediaList'
-            assert self.xmlpath == ['deejayd', 'response', 'media']
-        elif name == 'dvd':
-            assert self.response_type == 'DvdInfo'
-            infos = {"title": attrs.get('title'), \
-                    "longest_track": attrs.get('longest_track')}
-            self.expected_answer.init_dvd_content(infos)
-        elif name == 'track':
-            assert self.xmlpath == ['deejayd', 'response', 'dvd', 'track']
-            self.current_track = {"id": attrs.get('ix'), \
-                                  "length": attrs.get('length'),\
-                                  "audios": [], "subtitles": [],\
-                                  "chapters": []}
-        elif name == 'audio':
-            assert self.xmlpath == ['deejayd','response','dvd','track','audio']
-            self.current_track["audios"].append({"id": attrs.get('ix'), \
-                "lang": attrs.get('lang')})
-        elif name == 'subtitle':
-            assert self.xmlpath == ['deejayd','response','dvd','track',\
-                                    'subtitle']
-            self.current_track["subtitles"].append({"id": attrs.get('ix'), \
-                "lang": attrs.get('lang')})
-        elif name == 'chapter':
-            assert self.xmlpath == ['deejayd','response','dvd','track',\
-                                    'chapter']
-            self.current_track["chapters"].append({"id": attrs.get('ix'), \
-                "length": attrs.get('length')})
-        elif name == 'error':
-            self.response_type = 'error'
-
-    def characters(self, str):
-        if self.xmlpath == ['deejayd', 'error']:
-            self.answer = str
-
-    def endElement(self, name):
-        self.xmlpath.pop()
-
-        if name == 'media':
-            self.expected_answer.add_media(self.parms)
-            self.parms = {}
-        elif name == 'file':
-            self.expected_answer.add_file(self.parms)
-            self.parms = {}
-        elif name == 'track':
-            self.expected_answer.add_track(self.current_track)
-        elif name in ['response', 'error']:
-            if name == 'response':
-                self.expected_answer._received(self.answer)
-            elif name == 'error':
-                self.expected_answer.set_error(self.answer)
-
-            self.answer = None
-            self.expected_answer = None
-
-    def get_originating_command(self):
-        return self.originating_command
 
 
 class ConnectError(Exception):
@@ -592,15 +494,71 @@ class _DeejayDaemon:
         ans = DeejaydDvdInfo(self)
         return self._send_command(cmd, ans)
 
+    def _build_answer(self, string_io):
+        xmlpath = []
+        originating_command = ''
+        parms = {}
+        answer = True
+        for event, elem in ET.iterparse(string_io,events=("start","end")):
+            if event == "start":
+                xmlpath.append(elem.tag)
+
+                if elem.tag in ('error', 'response') and len(xmlpath) == 2:
+                    expected_answer = self.expected_answers_queue.get()
+                elif elem.tag in ("directory","file","media"):
+                     assert xmlpath == ['deejayd', 'response',elem.tag]
+                elif elem.tag == "track":
+                    assert xmlpath == ['deejayd','response','dvd','track']
+                    track = {"audio":[],"subtitle":[],"chapters":[]}
+                elif elem.tag in ("audio","subtitle","chapter"):
+                    assert xmlpath == ['deejayd','response','dvd','track',\
+                                            elem.tag]
+            else:
+                xmlpath.pop()
+
+                if elem.tag in ('error','response'):
+                    expected_answer.set_originating_command(elem.attrib['name'])
+
+                if elem.tag == "error":
+                    expected_answer.set_error(elem.text)
+                elif elem.tag == "response":
+                    rsp_type = elem.attrib['type']
+                    if rsp_type == "KeyValue":
+                        answer = parms
+                    expected_answer._received(answer)
+                elif elem.tag == "parm":
+                    value = elem.attrib["value"]
+                    try: value = int(value)
+                    except ValueError: pass
+                    parms[elem.attrib["name"]] = value
+                elif elem.tag == "media":
+                    expected_answer.add_media(parms)
+                elif elem.tag == "directory":
+                    expected_answer.add_dir(elem.attrib['name'])
+                elif elem.tag == "file":
+                    expected_answer.add_file(parms)
+                elif elem.tag in ("audio","subtitle"):
+                    track[elem.tag].append({"id": elem.attrib['ix'],\
+                        "lang": elem.attrib['lang']})
+                elif elem.tag == "chapter":
+                    track[elem.tag].append({"id": elem.attrib['ix'],\
+                        "length": elem.attrib['length']})
+                elif elem.tag == "track":
+                    expected_answer.add_track(track)
+                elif elem.tag == "dvd":
+                    infos = {"title": elem.attrib['title'], \
+                             "longest_track": elem.attrib['longest_track']}
+                    expected_answer.init_dvd_content(infos)
+                parms = elem.tag == "parm" and parms or {}
+
+                elem.clear()
+
 
 class DeejayDaemonSync(_DeejayDaemon):
     """Synchroneous deejayd client library."""
 
     def __init__(self):
         _DeejayDaemon.__init__(self)
-        self.parser = make_parser()
-        self.answer_builder = _AnswerFactory(self.expected_answers_queue)
-        self.parser.setContentHandler(self.answer_builder)
 
     def _send_command(self, cmd, expected_answer = None):
         # Set a default answer by default
@@ -611,7 +569,7 @@ class DeejayDaemonSync(_DeejayDaemon):
         self._sendmsg(cmd.to_xml())
 
         rawmsg = self._readmsg()
-        self.parser.parse(StringIO(rawmsg))
+        self._build_answer(StringIO(rawmsg))
         return expected_answer
 
 
@@ -636,7 +594,7 @@ class _DeejaydSocketThread(threading.Thread):
                     self.really_run()
                 except _StopException:
                     self.should_stop = True
-                except SAXParseException:
+                except SyntaxError:
                     # XML parsing failed, simply ignore. Client and server are
                     # misaligned, better disconnect.
                     self.socket_to_server.close()
@@ -681,13 +639,9 @@ class _DeejaydAnswerThread(_DeejaydSocketThread):
 
         self.expected_answers_queue = expected_answers_queue
 
-        self.parser = make_parser()
-        self.answer_builder = _AnswerFactory(self.expected_answers_queue)
-        self.parser.setContentHandler(self.answer_builder)
-
     def really_run(self):
         rawmsg = self.deejayd._readmsg()
-        self.parser.parse(StringIO(rawmsg))
+        self.deejayd._build_answer(StringIO(rawmsg))
 
 
 class DeejayDaemonAsync(_DeejayDaemon):

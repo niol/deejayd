@@ -4,7 +4,7 @@
 from testdeejayd import TestCaseWithData
 import testdeejayd.data
 
-from deejayd.net.client import DeejaydXMLCommand, _AnswerFactory,\
+from deejayd.net.client import DeejaydXMLCommand, _DeejayDaemon,\
                                DeejaydAnswer, DeejaydKeyValue,\
                                DeejaydFileList, DeejaydMediaList,\
                                DeejaydPlaylist, DeejaydError
@@ -12,9 +12,7 @@ from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 
 # FIXME : We should not need those here, this is some code duplication from the
 # client code.
-from Queue import Queue
 from StringIO import StringIO
-from xml.sax import make_parser
 
 import re, unittest
 
@@ -52,7 +50,8 @@ class TestCommandBuildParse(unittest.TestCase):
     </command>
 </deejayd>"""
 
-        self.assertEqual(self.trimXML(cmd.to_xml()),self.trimXML(expectedAnswer))
+        self.assertEqual(self.trimXML(cmd.to_xml()),\
+            self.trimXML(expectedAnswer))
 
 
 class TestAnswerParser(TestCaseWithData):
@@ -60,14 +59,10 @@ class TestAnswerParser(TestCaseWithData):
 
     def setUp(self):
         TestCaseWithData.setUp(self)
-
-        self.eansq = Queue()
-        self.parser = make_parser()
-        self.ansb = _AnswerFactory(self.eansq)
-        self.parser.setContentHandler(self.ansb)
+        self.deejayd = _DeejayDaemon()
 
     def parseAnswer(self, str):
-        self.parser.parse(StringIO(str))
+        self.deejayd._build_answer(StringIO(str))
 
     def testAnswerParserAck(self):
         """Test the client library parsing an ack answer"""
@@ -79,10 +74,9 @@ class TestAnswerParser(TestCaseWithData):
 </deejayd>""" % originatingCommand
 
         ans = DeejaydAnswer()
-        self.eansq.put(ans)
+        self.deejayd.expected_answers_queue.put(ans)
         self.parseAnswer(ackAnswer)
 
-        self.assertEqual(self.ansb.get_originating_command(), originatingCommand)
         self.failUnless(ans.get_contents())
 
     def testAnswerParserError(self):
@@ -96,10 +90,10 @@ class TestAnswerParser(TestCaseWithData):
 </deejayd>""" % (originatingCommand, errorText)
 
         ans = DeejaydAnswer()
-        self.eansq.put(ans)
+        self.deejayd.expected_answers_queue.put(ans)
         self.parseAnswer(errorAnswer)
 
-        self.assertEqual(self.ansb.get_originating_command(), originatingCommand)
+        self.assertEqual(ans.get_originating_command(), originatingCommand)
         # FIXME : find a way to test the errorText
         self.assertRaises(DeejaydError, ans.get_contents)
 
@@ -122,10 +116,10 @@ class TestAnswerParser(TestCaseWithData):
 </deejayd>"""
 
         ans = DeejaydKeyValue()
-        self.eansq.put(ans)
+        self.deejayd.expected_answers_queue.put(ans)
         self.parseAnswer(keyValueAnswer)
 
-        self.assertEqual(self.ansb.get_originating_command(), originatingCommand)
+        self.assertEqual(ans.get_originating_command(), originatingCommand)
         retrievedKeyValues = ans.get_contents()
 
         for key in origKeyValue.keys():
@@ -172,10 +166,10 @@ class TestAnswerParser(TestCaseWithData):
 </deejayd>"""
 
         ans = DeejaydFileList()
-        self.eansq.put(ans)
+        self.deejayd.expected_answers_queue.put(ans)
         self.parseAnswer(fileListAnswer)
 
-        self.assertEqual(self.ansb.get_originating_command(), originatingCommand)
+        self.assertEqual(ans.get_originating_command(), originatingCommand)
 
         for file in origFiles:
 
@@ -225,11 +219,10 @@ class TestAnswerParser(TestCaseWithData):
 </deejayd>"""
 
         ans = DeejaydMediaList()
-        self.eansq.put(ans)
+        self.deejayd.expected_answers_queue.put(ans)
         self.parseAnswer(webradioListAnswer)
 
-        self.assertEqual(self.ansb.get_originating_command(),
-                         originatingCommand)
+        self.assertEqual(ans.get_originating_command(), originatingCommand)
 
         for webradio in origWebradios:
             self.failUnless(webradio in ans.get_medias())
