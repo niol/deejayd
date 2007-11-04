@@ -1,19 +1,16 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          skeleton
+# Provides:          deejayd
 # Required-Start:    $local_fs $remote_fs
 # Required-Stop:     $local_fs $remote_fs
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Example initscript
-# Description:       This file should be used to construct scripts to be
-#                    placed in /etc/init.d.
+# Short-Description: Launch deejayd media player daemon.
+# Description:       Prepare envronement and launch the deejayd music player
+#                    daemon.
 ### END INIT INFO
 
-# Author: Foo Bar <foobar@baz.org>
-#
-# Please remove the "Author" lines above and replace them
-# with your own name if you copy and modify this script.
+# Author: Alexandre Rossi <alexandre.rossi@gmail.com>
 
 # Do NOT "set -e"
 
