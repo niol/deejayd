@@ -10,7 +10,7 @@ export DH_OPTIONS
 PYVERS=$(shell pyversions -vr)
 
 build: $(PYVERS:%=build-python%)
-	
+
 build-python%:
 	python$* setup.py build
 	touch $@
@@ -18,14 +18,14 @@ build-python%:
 install: build $(PYVERS:%=install-python%)
 
 install-python%:
-	dh_clean -k -i 
-	dh_clean -k -s 
+	dh_clean -k -i
+	dh_clean -k -s
 	python$* setup.py install --no-compile --skip-build\
 	         --root $(CURDIR)/debian/tmp
 
 	# Fixing example conffile location
 	mkdir $(CURDIR)/debian/tmp/etc
-	mv $(CURDIR)/debian/tmp/usr/share/doc/deejayd-0.3.0/deejayd.conf.example\
+	mv $(CURDIR)/debian/tmp/usr/share/doc/deejayd-0.4.0/deejayd.conf.example\
 	   $(CURDIR)/debian/tmp/etc/deejayd.conf
 
 	dh_install --sourcedir=$(CURDIR)/debian/tmp
@@ -39,7 +39,7 @@ clean:
 	# Add here commands to clean up after the build process.
 	python setup.py clean --all
 
-	dh_clean 
+	dh_clean
 
 # Must not depend on anything. This is to be called by
 # binary-arch/binary-indep
@@ -47,12 +47,12 @@ clean:
 binary-common:
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs 
+	dh_installchangelogs
 	dh_installdocs
 	dh_installexamples
 #	dh_installmenu
-#	dh_installdebconf	
-#	dh_installlogrotate	
+#	dh_installdebconf
+#	dh_installlogrotate
 	dh_pycentral
 	# Inspired by mpd packaging, so that ALSA scripts can run first
 	dh_installinit -u"defaults 30 15"
@@ -60,7 +60,7 @@ binary-common:
 	dh_installman
 	dh_link
 	dh_strip
-	dh_compress 
+	dh_compress
 	dh_fixperms
 	dh_makeshlibs
 	dh_installdeb
