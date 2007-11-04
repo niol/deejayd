@@ -7,3 +7,4 @@ include deejayd/database/sql/*
 include deejayd/ext/xinelib/djdxine.h
 include gentoo/*
 include gentoo/files/*
+include debian/*
