@@ -1,66 +1,86 @@
 deejayd
 ===========
 
-Actual version : 0.2.0
+Actual version : 0.4.0
 ----------------------
 
-changes since 0.1.0
+changes since 0.2.0
 --------------------
-  * Add a song queue
-  * Add video support
-  * Add xine backend
-  * Rewrite library
+  * Add dvd support
+  * Add a python library client
+  * Add a command line client : djc
+  * Improve performance and memory usage with the use of celementtree module
   * A lot of cleanups and bugfixes
 
 Description:
 ------------
 deejayd is an media player written in python and based on twisted.
 So, it is a network daemon which can be controlled with a client application
-like MPD. The protocol used to control deejayd is an XML protocol. 
+like MPD. The protocol used to control deejayd is an XML protocol.
 Documentation of this protocol can be found in source archive (doc directory)
-Actually, only one client exists for deejayd, it is ajaxdj. It is a web based
-client written in XUL and PHP. 
-See http://mroy31.dyndns.org/~roy/wiki/doku.php?id=ajaxDJ for more informations
 
+Clients:
+--------
+  * djc :
+    -----
+      djc is a command line client available in this package
+  * djmote :
+    --------
+      djmote is a graphical deejayd client optimized for use on Maemo devices
+      such as the Nokia N770 or Nokia N800.
+  * ajaxdj :
+    --------
+      It is a web based client written in XUL and PHP.
+      See http://mroy31.dyndns.org/~roy/wiki/doku.php?id=ajaxDJ
+      for more informations
 
 Requirements:
 -------------
     * python >= 2.4
     * twisted >= 2.0 (http://twistedmatrix.com/trac)
     * pysqlite >= 2.2 (http://www.initd.org/tracker/pysqlite/wiki/pysqlite)
-    * mutagen >= 1.6 (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
+    * mutagen >= 1.6
+        (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
+    * cElementTree (http://effbot.org/zone/celementtree.htm) module.
+      It is include in python 2.5
     * if you want to use gstreamer backend
         * (2.9 > pygtk >= 2.8) or pygobject >= 2.12 (http://www.pygtk.org/)
         * gstreamer >= 0.10 (http://gstreamer.freedesktop.org)
         * gstreamer plugins :
             * Required :
               * gst-python >= 0.10
-            * Optionnal : 
+            * Optionnal :
               * alsa, oss, esd ...
               * mad to play mp3
               * ogg to play ogg
               * for webradio, gst-plugins-gnomevfs >= 0.10
               * for video : xv, ffmpeg
+              * dvd to ply dvd with deejayd
     * if you want to use xine backend
         * xine-lib >= 1.1.0
         * pyrex >= 0.9.4.0 to build the extension
+    * lsdvd (http://untrepid.com/acidrip/lsdvd.html) for dvd support
 
 Installation:
 -------------
-Download deejayd and extract it: 
-  $tar xzvf deejayd-0.2.0.tar.gz
+Download deejayd and extract it:
+  $tar xzvf deejayd-0.4.0.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.2.0
-  $python setup.py install 
+  $cd deejayd-0.4.0
+  $python setup.py build
+  $python setup.py install
 
 Usage:
 ------
-To launch deejayd just do
-  $deejayd
-See "deejayd --help" for more informations 
+  To launch deejayd just do
+    $deejayd
+  See "deejayd --help" for more informations
 
+  To launch djc (command line client), just do
+    $djc COMMANDS ARGS
+  See "djc --help" to see available commands
 
 Documentation and more informations:
 ------------------------------------
-see http://mroy31.dyndns.org/~roy/projects/deejayd 
+see http://mroy31.dyndns.org/~roy/projects/deejayd
