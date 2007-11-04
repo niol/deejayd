@@ -182,7 +182,7 @@ void _djdxine_set_fatal_error(_Xine* xine, char *error)
 /***************************************************************************
  *  Pubic functions
  *  ************************************************************************/
-_Xine* djdxine_create()
+_Xine* djdxine_create(void)
 {
     _Xine* xine;
 

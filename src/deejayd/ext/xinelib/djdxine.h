@@ -89,7 +89,7 @@ typedef struct {
 } _Xine;
 
 /* Construct a Xine object */
-_Xine* djdxine_create();
+_Xine* djdxine_create(void);
 
 int djdxine_init(_Xine* xine, const char *audio_driver,
                  xine_event_listener_cb_t event_callback,
