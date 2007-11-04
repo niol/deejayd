@@ -1,3 +1,15 @@
+deejayd (0.4-1) unstable; urgency=low
+
+  * 0.4 Release.
+  * Changes since 0.2
+    * Add dvd support
+    * Add a python library client
+    * Add a command line client : djc
+    * Improve performance and memory usage with the use of celementtree module
+    * A lot of cleanups and bugfixes
+
+ -- Mickael Royer <mickael.royer@gmail.com>  Sun, 4 Nov 2007 18:32:31 +0100
+
 deejayd (0.3+darcs20071104-1) unstable; urgency=low
 
   * Sync with darcs20071104.
