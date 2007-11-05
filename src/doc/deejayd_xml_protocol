@@ -37,42 +37,36 @@ There are 6 response types :
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<error name="cmdName">
-		error text
-	</error>
-</deejayd>
-}}}
+	<error name="cmdName">error text</error>
+</deejayd>}}}
   * '''`Ack`''' : Acknowledgement of a command.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="Ack"/>
-</deejayd>
-}}}
+	<response name="cmdName" type="Ack" />
+</deejayd>}}}
   * '''`KeyValue`''' : A list of key, value pairs.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<response name="cmdName" type="KeyValue">
-		<parm name="parmName0" value="parmValue0"/>
-		<parm name="parmName1" value="parmValue1"/>
+		<parm name="parmName0" value="parmValue0" />
+		<parm name="parmName1" value="parmValue1" />
 	</response>
-</deejayd>
-}}}
+</deejayd>}}}
   * '''`FileAndDirList`''' : A list of files and directories.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<response name="cmdName" type="FileAndDirList">
-		<directory name="dirName"/>
+		<directory name="dirName" />
 		<file type="song or video">
-			<parm name="parmName0" value="parmValue0"/>
-			<parm name="parmName1" value="parmValue1"/>
+			<parm name="parmName0" value="parmValue0" />
+			<parm name="parmName1" value="parmValue1" />
 		</file>
 	</response>
-</deejayd>
-}}}
-  * '''`MediaList`''' : A list of media (song, webradio,playlist or video) with information for each media : 
+</deejayd>}}}
+  * '''`MediaList`''' : A list of media (song, webradio,playlist or video) with information for each media :
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
     * title, id, length, subtitle, audio, etc. if it is a video
@@ -81,31 +75,30 @@ There are 6 response types :
 <deejayd>
 	<response name="cmdName" type="MediaList">
 		<media type="song or video or webradio or playlist">
-			<parm name="parmName0" value="parmValue0"/>
-			<parm name="parmName1" value="parmValue1"/>
+			<parm name="parmName0" value="parmValue0" />
+			<parm name="parmName1" value="parmValue1" />
 		</media>
 		<media type="song or video or webradio or playlist">
-			<parm name="parmName1" value="parmValue1"/>
+			<parm name="parmName1" value="parmValue1" />
 			<listparm name="audio">
 				<dictparm>
-					<dictitem name="lang" value="lang1"/>
-					<dictitem name="idx" value="0"/>
+					<dictitem name="lang" value="lang1" />
+					<dictitem name="idx" value="0" />
 				</dictparm>
 				<dictparm>
-					<dictitem name="lang" value="lang2"/>
-					<dictitem name="idx" value="1"/>
+					<dictitem name="lang" value="lang2" />
+					<dictitem name="idx" value="1" />
 				</dictparm>
 			</listparm>
 			<listparm name="subtitle">
 				<dictparm>
-					<dictitem name="lang" value="lang1"/>
-					<dictitem name="idx" value="0"/>
+					<dictitem name="lang" value="lang1" />
+					<dictitem name="idx" value="0" />
 				</dictparm>
 			</listparm>
 		</media>
 	</response>
-</deejayd>
-}}}
+</deejayd>}}}
   * '''`DvdInfo`''' : Format dvd content.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -113,22 +106,20 @@ There are 6 response types :
 	<response name="cmdName" type="DvdInfo">
 		<dvd longest_track="1" title="DVD Title">
 			<track ix="1" length="track length">
-				<audio ix="0" lang="lang code"/>
-				<subtitle ix="0" lang="lang code"/>
-				<subtitle ix="1" lang="lang code"/>
-				<chapter ix="1" length="chapter length"/>
+				<audio ix="0" lang="lang code" />
+				<subtitle ix="0" lang="lang code" />
+				<subtitle ix="1" lang="lang code" />
+				<chapter ix="1" length="chapter length" />
 			</track>
 		</dvd>
 	</response>
-</deejayd>
-}}}
+</deejayd>}}}
 Responses may be combined in the same physical message :
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="Ack"/>
+	<response name="cmdName" type="Ack" />
 </deejayd>
-
 }}}
 
 == Available Commands ==
@@ -168,11 +159,11 @@ Return status of deejayd. Given informations are :
   * mediapos : _int_ the position of the current media file (if exists)
   * mediaid : _int_ the id of the current media file
   * mode : [playlist-webradio-video] the current mode
-  * audio_updating_db : _int_ show when a audio library update is in progress  
-  * audio_updating_error : _string_ error message that apppears when the 
+  * audio_updating_db : _int_ show when a audio library update is in progress
+  * audio_updating_error : _string_ error message that apppears when the
                            audio library update has failed
-  * video_updating_db : _int_ show when a video library update is in progress  
-  * video_updating_error : _string_ error message that apppears when the 
+  * video_updating_db : _int_ show when a video library update is in progress
+  * video_updating_error : _string_ error message that apppears when the
                            video library update has failed
 
 Arguments :
@@ -390,6 +381,8 @@ Return the content of the playlist "name". If no name is given, return
 
 Arguments :
   * {{{name}}} (Simple and Optional) : string
+  * {{{first}}} (Simple and Optional) : int
+  * {{{length}}} (Simple and Optional) : int
 
 Expected return value : ''`MediaList`''
 
@@ -527,6 +520,8 @@ Return the content of the queue.
 
 Arguments :
   * {{{name}}} (Simple and Optional) : string
+  * {{{first}}} (Simple and Optional) : int
+  * {{{length}}} (Simple and Optional) : int
 
 Expected return value : ''`MediaList`''
 
