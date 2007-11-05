@@ -50,9 +50,26 @@ class _DeejaydXML:
         return '<?xml version="1.0" encoding="utf-8"?>' + \
             ET.tostring(self.xmlroot,'utf-8')
 
+    def _indent(self,elem, level=0):
+        indent_char = "\t"
+        i = "\n" + level*indent_char
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = i + indent_char
+            for e in elem:
+                self._indent(e, level+1)
+                if not e.tail or not e.tail.strip():
+                    e.tail = i + indent_char
+            if not e.tail or not e.tail.strip():
+                e.tail = i
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
+
     def to_pretty_xml(self):
         self.__really_build_xml()
-        return '<?xml version="1.0" encoding="utf-8"?>' + \
+        self._indent(self.xmlroot)
+        return '<?xml version="1.0" encoding="utf-8"?>' + "\n" +\
             ET.tostring(self.xmlroot,'utf-8')
 
     def build_xml(self):
