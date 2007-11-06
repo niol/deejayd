@@ -251,6 +251,9 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
     def formatCombinedResponse(self):
         combi = self.getAck()
         self.set_mother(combi)
+        combiFact = DeejaydXMLDocFactory()
+        combiFact.set_mother(combi)
+        vl = combiFact.getMediaList()
         return combi.to_pretty_xml()
 
 if __name__ == "__main__":
