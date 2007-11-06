@@ -70,7 +70,7 @@ class _DeejaydXML:
         self.__really_build_xml()
         self._indent(self.xmlroot)
         return '<?xml version="1.0" encoding="utf-8"?>' + "\n" +\
-            ET.tostring(self.xmlroot,'utf-8')
+            ET.tostring(self.xmlroot,'utf-8') + "\n"
 
     def build_xml(self):
         raise NotImplementedError
