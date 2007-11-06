@@ -38,13 +38,15 @@ There are 6 response types :
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<error name="cmdName">error text</error>
-</deejayd>}}}
+</deejayd>
+}}}
   * '''`Ack`''' : Acknowledgement of a command.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<response name="cmdName" type="Ack" />
-</deejayd>}}}
+</deejayd>
+}}}
   * '''`KeyValue`''' : A list of key, value pairs.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -53,7 +55,8 @@ There are 6 response types :
 		<parm name="parmName0" value="parmValue0" />
 		<parm name="parmName1" value="parmValue1" />
 	</response>
-</deejayd>}}}
+</deejayd>
+}}}
   * '''`FileAndDirList`''' : A list of files and directories.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -65,7 +68,8 @@ There are 6 response types :
 			<parm name="parmName1" value="parmValue1" />
 		</file>
 	</response>
-</deejayd>}}}
+</deejayd>
+}}}
   * '''`MediaList`''' : A list of media (song, webradio,playlist or video) with information for each media :
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
@@ -98,7 +102,8 @@ There are 6 response types :
 			</listparm>
 		</media>
 	</response>
-</deejayd>}}}
+</deejayd>
+}}}
   * '''`DvdInfo`''' : Format dvd content.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -113,13 +118,15 @@ There are 6 response types :
 			</track>
 		</dvd>
 	</response>
-</deejayd>}}}
+</deejayd>
+}}}
 Responses may be combined in the same physical message :
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<response name="cmdName" type="Ack" />
 </deejayd>
+
 }}}
 
 == Available Commands ==
