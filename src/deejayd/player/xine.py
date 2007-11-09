@@ -7,6 +7,7 @@ from deejayd.ui import log
 from os import path
 
 class XinePlayer(UnknownPlayer):
+    supported_extensions = None
 
     def __init__(self,db,config):
         self.name = "xine"
