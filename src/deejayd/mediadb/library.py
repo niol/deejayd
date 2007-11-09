@@ -206,32 +206,36 @@ class Library:
         self._db_con_update = self.db_con.get_new_connection()
         self._db_con_update.connect()
         self._update_end = False
-        self.last_update_time = self._db_con_update.get_update_time(self._type)
 
-        library_files = [(item[0],item[1]) for item \
-                        in self._db_con_update.get_all_files('',self._table)]
-        library_dirs = [(item[0],item[1]) for item in \
-                            self._db_con_update.get_all_dirs('',self._table)]
+        try:
+            self.last_update_time =\
+                self._db_con_update.get_update_time(self._type)
+            library_files = [(item[0],item[1]) for item \
+                          in self._db_con_update.get_all_files('',self._table)]
+            library_dirs = [(item[0],item[1]) for item in \
+                          self._db_con_update.get_all_dirs('',self._table)]
 
-        self.walk_directory(self.get_root_path(), library_dirs, library_files)
+            self.walk_directory(self.get_root_path(),library_dirs,library_files)
 
-        # Remove unexistent files and directories from library
-        for (dir,filename) in library_files:
-            self._db_con_update.remove_file(dir,filename,self._table)
-        for (root,dirname) in library_dirs:
-            self._db_con_update.remove_dir(root,dirname,self._table)
+            # Remove unexistent files and directories from library
+            for (dir,filename) in library_files:
+                self._db_con_update.remove_file(dir,filename,self._table)
+            for (root,dirname) in library_dirs:
+                self._db_con_update.remove_dir(root,dirname,self._table)
 
-        # Remove empty dir
-        self._db_con_update.erase_empty_dir(self._table)
+            # Remove empty dir
+            self._db_con_update.erase_empty_dir(self._table)
 
-        # update stat values
-        self._db_con_update.record_mediadb_stats()
-        self._db_con_update.set_update_time(self._type)
+            # update stat values
+            self._db_con_update.record_mediadb_stats()
+            self._db_con_update.set_update_time(self._type)
 
-        # commit changes and close the connection
-        self._db_con_update.connection.commit()
-        self._db_con_update.close()
-        self._db_con_update = None
+            # commit changes
+            self._db_con_update.connection.commit()
+        finally:
+            # close the connection
+            self._db_con_update.close()
+            self._db_con_update = None
 
     def walk_directory(self, walk_root,
                        library_dirs, library_files, forbidden_roots=None):
@@ -284,10 +288,6 @@ class Library:
             msg = "Unable to update the %s library. See log." % self._type
             log.err(msg)
             self._update_error = msg
-            # close opened connection if necessary
-            if self._db_con_update != None:
-                self._db_con_update.close()
-                self._db_con_update = None
         return True
 
 
