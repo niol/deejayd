@@ -69,7 +69,6 @@ typedef struct {
         xine_video_port_t* vport;
         xine_audio_port_t* aport;
         xine_event_queue_t* event_queue;
-        int video_init;
         } player;
     /* data mine to obtain file infos */
     struct {
@@ -79,7 +78,6 @@ typedef struct {
         xine_audio_port_t* aport;
         char *current_filename;
         FileInfo file_info;
-        int init;
     } data_mine;
     /* global vars use in extension */
     int playing;
@@ -89,20 +87,23 @@ typedef struct {
 } _Xine;
 
 /* Construct a Xine object */
-_Xine* djdxine_create(void);
+_Xine* djdxine_create(xine_event_listener_cb_t event_callback,
+                void* event_callback_data);
 
-int djdxine_init(_Xine* xine, const char *audio_driver,
-                 xine_event_listener_cb_t event_callback,
-                 void* event_callback_data);
+int djdxine_audio_init(_Xine* xine, const char *audio_driver);
+int djdxine_video_init(_Xine* xine);
+
+int djdxine_attach(_Xine* xine, const char *video_driver,
+        const char* display_name, int is_video);
+
+void djdxine_detach(_Xine* xine);
+
+void djdxine_destroy(_Xine* xine);
+
+void djdxine_load_config(_Xine* xine, const char *filename);
 
 int djdxine_set_config_param(_Xine* xine, const char *param_key, int type,
                               void *value);
-
-/* Init video driver */
-int djdxine_video_init(_Xine* xine, const char *video_driver,
-                        const char* display_name);
-
-void djdxine_destroy(_Xine* xine);
 
 int djdxine_play(_Xine* xine,const char* filename,int isvideo,int fullscreen);
 

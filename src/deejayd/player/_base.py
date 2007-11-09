@@ -58,23 +58,21 @@ class UnknownPlayer:
     def reset(self,source_name):
         self.stop()
 
-    def next(self):
+    def _change_file(self,new_file):
         self.stop()
-        self._media_file = self._source.next(self.options["random"],\
-                                       self.options["repeat"])
+        self._media_file = new_file
         self.start_play()
+
+    def next(self):
+        self._change_file(self._source.next(self.options["random"],\
+            self.options["repeat"]))
 
     def previous(self):
-        self.stop()
-        self._media_file = self._source.previous(self.options["random"],\
-                                     self.options["repeat"])
-        self.start_play()
+        self._change_file(self._source.previous(self.options["random"],\
+            self.options["repeat"]))
 
     def go_to(self,nb,type,source = None):
-        self.stop()
-        self._media_file = self._source.get(nb,type,source)
-
-        self.start_play()
+        self._change_file(self._source.get(nb,type,source))
 
     def get_volume(self):
         raise NotImplementedError

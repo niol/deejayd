@@ -4,22 +4,33 @@ import time
 from deejayd.ext import xine
 from deejayd.player._base import *
 from deejayd.ui import log
+from os import path
 
 class XinePlayer(UnknownPlayer):
-    supported_mimetypes = None
-    supported_extensions = None
 
     def __init__(self,db,config):
         self.name = "xine"
         UnknownPlayer.__init__(self,db,config)
 
-        audio_driver = self.config.get("xine", "audio_output")
-        try: self.xine = xine.Xine(audio_driver)
+        self.__xine_options = {
+            "audio": self.config.get("xine", "audio_output"),
+            "video": self.config.get("xine", "video_output"),
+            "display" : self.config.get("xine", "video_display"),
+            "subtitle": self.config.getint("xine", "subtitle_size"),
+            }
+
+        try: self.xine = xine.Xine()
         except xine.XineError, err:
             log.err(str(err))
             raise PlayerError
+        # set callback
         self.xine.set_eos_callback(self.eos)
         self.xine.set_progress_callback(self.progress)
+        # try to load user config file
+        config_file = self.config.get("xine", "config_file")
+        self.xine.load_config(path.expanduser(config_file))
+        # init audio driver
+        self.xine.audio_init(self.__xine_options["audio"])
 
     def eos(self):
         self.next()
@@ -32,25 +43,27 @@ class XinePlayer(UnknownPlayer):
 
     def init_video_support(self):
         UnknownPlayer.init_video_support(self)
+        try: self.xine.set_enum_config_param(\
+            "subtitles.separate.subtitle_size",\
+            self.__xine_options["subtitle"])
+        except xine.XineError:
+            log.err("Xine : unable to set subtitle size")
 
-        # load specific xine config
-        try: subtitle_size = self.config.getint("xine", "subtitle_size")
-        except:
-            log.err("Unable to read xine.subtitle_size conf parm")
-        else:
-            try: self.xine.set_enum_config_param(\
-                "subtitles.separate.subtitle_size", int(subtitle_size))
-            except xine.XineError:
-                log.err("Xine : unable to load specific xine config")
-
-        video_driver = self.config.get("xine", "video_output")
-        video_display = self.config.get("xine", "video_display")
-        try: self.xine.video_init(video_driver,video_display)
+        try: self.xine.video_init()
         except xine.XineError, err:
             log.err(str(err))
             raise PlayerError
 
-    def start_play(self):
+    def __attach(self, isvideo):
+        try: self.xine.attach( self.__xine_options["video"],
+            self.__xine_options["display"], isvideo)
+        except xine.XineError:
+            log.err("Xine error : "+self.xine.get_error())
+            raise PlayerError
+        except xine.XineAlreadyAttached:
+            log.err("Strange, xine is already attached")
+
+    def start_play(self, attach = True):
         if not self._media_file: return
 
         # format correctly the uri
@@ -71,6 +84,8 @@ class XinePlayer(UnknownPlayer):
         if self._media_file["type"] == "video":
             isvideo = 1
             fullscreen = self.options["fullscreen"]
+
+        if attach: self.__attach(isvideo)
         try: self.xine.start_playing(uri, isvideo, fullscreen)
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())
@@ -83,18 +98,30 @@ class XinePlayer(UnknownPlayer):
                     self._media_file["subtitle_idx"] = self.xine.get_slang()
                 self.set_fullscreen(self.options["fullscreen"])
 
+    def _change_file(self,new_file):
+        if self._media_file == None or new_file == None:
+            detach = True
+        elif self._media_file["type"] != new_file["type"]:
+            detach = True
+        else: detach = False
+
+        self.stop(detach)
+        self._media_file = new_file
+        self.start_play(detach)
+
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
             self.xine.pause()
         elif self.get_state() == PLAYER_PAUSE:
             self.xine.play()
 
-    def stop(self):
+    def stop(self, detach = True):
         self._media_file = None
         # FIXME : try to remove this one day ...
         self._source.queue_reset()
 
         self.xine.stop()
+        if detach: self.xine.detach()
 
     def _player_set_alang(self,lang_idx):
         self.xine.set_alang(lang_idx)

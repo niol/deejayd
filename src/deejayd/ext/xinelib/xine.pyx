@@ -36,6 +36,7 @@ cdef extern from "xine.h":
         XINE_EVENT_PROGRESS
         # config entry data types
         XINE_CONFIG_TYPE_ENUM
+        XINE_CONFIG_TYPE_STRING
         # xine param
         XINE_PARAM_SPU_CHANNEL
         XINE_PARAM_AUDIO_CHANNEL_LOGICAL
@@ -53,11 +54,14 @@ cdef extern from "djdxine.h":
         DJDXINE_STATUS_PLAY
         DJDXINE_STATUS_PAUSE
 
-    _Xine* djdxine_create()
-    int djdxine_init(_Xine* xine, char *audio_driver, xine_event_listener_cb_t event_callback,void* event_callback_data)
-    int djdxine_set_config_param(_Xine* xine, char *param_key, int type, void *value)
-    int djdxine_video_init(_Xine* xine, char *video_driver,char* display_name)
+    _Xine* djdxine_create(xine_event_listener_cb_t event_callback, void* event_callback_data)
+    int djdxine_audio_init(_Xine* xine, char *audio_driver)
+    int djdxine_video_init(_Xine* xine)
+    int djdxine_attach(_Xine* xine, char *video_driver, char* display_name, int is_video)
+    void djdxine_detach(_Xine* xine)
     void djdxine_destroy(_Xine* xine)
+    void djdxine_load_config(_Xine* xine, char *filename)
+    int djdxine_set_config_param(_Xine* xine, char *param_key, int type, void *value)
     int djdxine_play(_Xine* xine, char* filename, int isvideo,int fullscreen)
     void djdxine_stop(_Xine* xine)
     void djdxine_seek(_Xine* xine, int position)
@@ -80,34 +84,55 @@ cdef extern from "djdxine.h":
 class NotPlayingError(Exception): pass
 class FileInfoError(Exception): pass
 class XineError(Exception): pass
+class XineAlreadyAttached(Exception): pass
 
 cdef class Xine:
     # Wrapper for the Xine class
     cdef _Xine* xine
     cdef object eos_callback
     cdef object progress_callback
+    cdef int volume
 
-    def __new__(self,char *audio_driver):
-        self.xine = djdxine_create()
+    def __new__(self):
+        self.xine = djdxine_create(onXineEvent,<void*>self)
         if self.xine == NULL:
             raise XineError("Unable to allocate memory")
-        if djdxine_init(self.xine,audio_driver,onXineEvent,<void*>self):
-            err = djdxine_get_fatal_error(self.xine)
-            raise XineError("XINE - " + err)
         self.eos_callback = None
         self.progress_callback = None
+        self.volume = 0
     def __dealloc__(self):
         if self.xine:
             djdxine_destroy(self.xine)
+    def audio_init(self,char *audio_driver):
+        if djdxine_audio_init(self.xine, audio_driver):
+            err = djdxine_get_fatal_error(self.xine)
+            raise XineError("XINE - " + err)
+    def video_init(self):
+        if djdxine_video_init(self.xine):
+            err = djdxine_get_fatal_error(self.xine)
+            raise XineError("XINE - " + err)
+    def attach(self,char *video_driver,char *display,int is_video):
+        rs=djdxine_attach(self.xine,video_driver,display,is_video)
+        if rs == 1:
+            err = djdxine_get_fatal_error(self.xine)
+            raise XineError("XINE - " + err)
+        elif rs == -1:
+            raise XineAlreadyAttached
+        djdxine_set_param(self.xine, XINE_PARAM_AUDIO_AMP_LEVEL, self.volume, 0)
+    def detach(self):
+        djdxine_detach(self.xine)
+    def load_config(self, char *filename):
+        djdxine_load_config(self.xine,filename)
     def set_enum_config_param(self,char* key,int value):
         cdef int xine_type
         xine_type = XINE_CONFIG_TYPE_ENUM
         if djdxine_set_config_param(self.xine,key,xine_type,<void*>&value):
             raise XineError
-    def video_init(self,char *video_driver,char* display_name):
-        if djdxine_video_init(self.xine,video_driver,display_name):
-            err = djdxine_get_fatal_error(self.xine)
-            raise XineError("XINE - " + err)
+    def set_string_config_param(self,char* key,char *value):
+        cdef int xine_type
+        xine_type = XINE_CONFIG_TYPE_STRING
+        if djdxine_set_config_param(self.xine,key,xine_type,<void*>value):
+            raise XineError
     def stop(self):
         djdxine_stop(self.xine)
     def start_playing(self,char* filename,int isvideo,int fullscreen):
@@ -136,8 +161,13 @@ cdef class Xine:
     def set_volume(self, volume):
         volume = min(max(volume, 0), 100)
         djdxine_set_param(self.xine, XINE_PARAM_AUDIO_AMP_LEVEL, volume, 0)
+        self.volume = volume
     def get_volume(self):
-        return djdxine_get_parm(self.xine,XINE_PARAM_AUDIO_AMP_LEVEL)
+        cdef int vol
+        vol = djdxine_get_parm(self.xine,XINE_PARAM_AUDIO_AMP_LEVEL)
+        if vol == -2: # stream not initialized
+            return self.volume
+        return vol
     def seek(self, int position):
         djdxine_seek(self.xine, position)
     def get_position(self):
@@ -171,9 +201,9 @@ cdef class Xine:
     def on_eos_event(self):
         if self.eos_callback:
             self.eos_callback()
-    def on_progress_event(self,percent,description):
+    def on_progress_event(self):
         if self.progress_callback:
-            self.progress_callback(description,percent)
+            self.progress_callback()
     def get_error(self):
         return djdxine_get_error(self.xine)
 

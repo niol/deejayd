@@ -1,6 +1,7 @@
 
 import sys
 from deejayd.ui import log
+from deejayd.player import PlayerError
 
 class UnknownSourceException: pass
 
@@ -34,7 +35,7 @@ class SourceFactory:
             from deejayd.sources import video
             self.sources_obj["video"] = video.VideoSource(db, video_library)
             try: player.init_video_support()
-            except:
+            except PlayerError:
                 # Critical error, we have to quit deejayd
                 log.err('Cannot initialise video support, either disable video support or check your player video support.')
                 sys.exit(1)
