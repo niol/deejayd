@@ -1,8 +1,13 @@
 deejayd
 ===========
 
-Actual version : 0.4.0
+Actual version : 0.4.1
 ----------------------
+
+changes since 0.4.0
+--------------------
+  * Fix bugs in mediadb and video source
+  * Fix documentation generation and update it
 
 changes since 0.2.0
 --------------------

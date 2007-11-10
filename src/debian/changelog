@@ -1,3 +1,12 @@
+deejayd (0.4.1-1) unstable; urgency=low
+
+  * 0.4.1 Release.
+  * Changes since 0.4
+    * Fix bugs in mediadb and video source
+    * Fix documentation generation and update it
+
+ -- Mickael Royer <mickael.royer@gmail.com>  Sat, 10 Nov 2007 23:57:08 +0100
+
 deejayd (0.4-1) unstable; urgency=low
 
   * 0.4 Release.
