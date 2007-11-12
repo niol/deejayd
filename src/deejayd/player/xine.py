@@ -31,7 +31,10 @@ class XinePlayer(UnknownPlayer):
         config_file = self.config.get("xine", "config_file")
         self.xine.load_config(path.expanduser(config_file))
         # init audio driver
-        self.xine.audio_init(self.__xine_options["audio"])
+        try: self.xine.audio_init(self.__xine_options["audio"])
+        except xine.XineError, err:
+            log.err(str(err))
+            raise PlayerError
 
     def eos(self):
         self.next()
