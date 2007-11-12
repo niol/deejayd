@@ -119,16 +119,18 @@ class DeejaydDvdInfo(DeejaydAnswer):
 
     def __init__(self, server = None):
         DeejaydAnswer.__init__(self, server)
+        self.tracks = []
+        self.dvd_content = {}
 
-    def init_dvd_content(self, infos):
+    def set_dvd_content(self, infos):
         self.dvd_content = infos
-        self.dvd_content["tracks"] = []
 
     def add_track(self, track):
-        self.dvd_content["tracks"].append(track)
+        self.tracks.append(track)
 
     def get_dvd_contents(self):
         self.get_contents()
+        self.dvd_content["tracks"] = self.tracks
         return self.dvd_content
 
 
@@ -541,14 +543,16 @@ class _DeejayDaemon:
                     track[elem.tag].append({"id": elem.attrib['ix'],\
                         "lang": elem.attrib['lang']})
                 elif elem.tag == "chapter":
-                    track[elem.tag].append({"id": elem.attrib['ix'],\
+                    track["chapters"].append({"id": elem.attrib['ix'],\
                         "length": elem.attrib['length']})
                 elif elem.tag == "track":
+                    track["id"] = elem.attrib["ix"]
+                    track["length"] = elem.attrib["length"]
                     expected_answer.add_track(track)
                 elif elem.tag == "dvd":
                     infos = {"title": elem.attrib['title'], \
                              "longest_track": elem.attrib['longest_track']}
-                    expected_answer.init_dvd_content(infos)
+                    expected_answer.set_dvd_content(infos)
                 parms = elem.tag == "parm" and parms or {}
 
                 elem.clear()
