@@ -367,16 +367,16 @@ class ConnectError(Exception):
 
 class _DeejayDaemon:
     """Abstract class for a deejay daemon client."""
-    timeout = 2
 
     def __init__(self):
+        self.__timeout = 2
         self.expected_answers_queue = Queue()
         self.next_msg = ""
 
         # Socket setup
         self.socket_to_server = socket.socket(socket.AF_INET,
                                               socket.SOCK_STREAM)
-        self.socket_to_server.settimeout(self.__class__.timeout)
+        self.socket_to_server.settimeout(self.__timeout)
         self.connected = False
 
     def connect(self, host, port):
@@ -414,7 +414,10 @@ class _DeejayDaemon:
         if not self.connected:
             return
 
-        self._send_simple_command('close').get_contents()
+        self.socket_to_server.settimeout(self.__timeout)
+        try: self._send_simple_command('close').get_contents()
+        except socket.timeout: pass
+
         self._reset_socket()
         self.connected = False
         self.host = None
@@ -422,10 +425,10 @@ class _DeejayDaemon:
 
     def _reset_socket(self):
         self.socket_to_server.close()
-        # Socket setup
+        # New Socket setup
         self.socket_to_server = socket.socket(socket.AF_INET,
                                               socket.SOCK_STREAM)
-        self.socket_to_server.settimeout(self.__class__.timeout)
+        self.socket_to_server.settimeout(self.__timeout)
 
     def _sendmsg(self, buf):
         self.socket_to_server.send(buf + MSG_DELIMITER)
