@@ -76,6 +76,11 @@ class DjmoteUI(hildon.Program):
 
     def run(self):
         self.main_window.show_all()
+
+        # DBUS initialisation
+        from djmote.utils import maemo
+        maemo.init(self)
+
         if not self.__conf['connect_on_startup']:
             self.show_connect_window()
         else:
@@ -113,8 +118,11 @@ class DjmoteUI(hildon.Program):
         else: return False
         return True
 
+    def is_connected(self):
+        return self.__deejayd.is_connected()
+
     def connect_to_server(self, widget, data):
-        if self.__deejayd.is_connected(): self.disconnect_to_server()
+        if self.is_connected(): self.disconnect_to_server()
         try: self.__deejayd.connect(data['host'], data['port'])
         except ConnectError, msg:
             self.set_error(msg)
@@ -132,6 +140,7 @@ class DjmoteUI(hildon.Program):
             self.__deejayd.get_status().add_callback(cb_connect_status)
 
     def disconnect_to_server(self, widget = None, data = None):
+        if not self.is_connected(): return
         self.__deejayd.disconnect()
         self.emit('disconnected')
 
