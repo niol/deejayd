@@ -85,7 +85,10 @@ class DjmoteUI(hildon.Program):
             self.show_connect_window()
         else:
             self.connect_to_server(None, self.__conf)
+
+        gtk.gdk.threads_enter()
         gtk.main()
+        gtk.gdk.threads_leave()
 
     def destroy(self, widget, data=None):
         self.__deejayd.disconnect()
@@ -207,8 +210,10 @@ class DjmoteUI(hildon.Program):
         except DeejaydError, err: self.set_error(err)
         else:
             # record volume
-            self.volume = answer["volume"]
-            self.emit("update-status",answer)
+            try: self.volume = answer["volume"]
+            except TypeError: self.set_error("Strange, unable to get status")
+            else:
+                self.emit("update-status",answer)
 
 
 class DjmoteMenu(gtk.Menu):
