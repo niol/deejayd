@@ -43,7 +43,7 @@ class DeejaydProtocol(LineReceiver):
         # DEBUG Informations
         log.debug(rsp)
 
-        self.transport.write(rsp)
+        self.transport.write(rsp + self.delimiter)
         del rsp
 
         if 'close' in remoteCmd.commands:

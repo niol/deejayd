@@ -1,7 +1,7 @@
 """The Deejayd python client library"""
 
 import socket, threading
-from StringIO import StringIO
+from cStringIO import StringIO
 try: from xml.etree import cElementTree as ET # python 2.5
 except ImportError: # python 2.4
     import cElementTree as ET
@@ -338,17 +338,13 @@ class _DeejayDaemon:
         self.socket_to_server.send(buf + MSG_DELIMITER)
 
     def _readmsg(self):
-        # This is dirty, but there is no msgdelim in answers...
-        msg_delimiter = '</deejayd>'
-
         msg_chunks = []
         msg_chunk = ''
         def split_msg(msg,index):
-            return (msg[0:index+len(msg_delimiter)],\
-                    msg[index+len(msg_delimiter):len(msg)])
+            return (msg[0:index], msg[index+len(MSG_DELIMITER):len(msg)])
 
         while 1:
-            try: index = self.next_msg.index(msg_delimiter)
+            try: index = self.next_msg.index(MSG_DELIMITER)
             except ValueError: pass
             else:
                 (rs,self.next_msg) = split_msg(self.next_msg, index)
@@ -361,21 +357,16 @@ class _DeejayDaemon:
             if msg_chunk == '':
                 raise socket.error()
 
-            try: index = msg_chunk.index(msg_delimiter)
+            try: index = msg_chunk.index(MSG_DELIMITER)
             except ValueError:
                 msg_chunks.append(msg_chunk)
             else:
-                msg_chunks.append(msg_chunk[0:index+len(msg_delimiter)])
+                msg_chunks.append(msg_chunk[0:index])
                 rs = self.next_msg.join(msg_chunks)
-                self.next_msg = msg_chunk[index+len(msg_delimiter):\
+                self.next_msg = msg_chunk[index+len(MSG_DELIMITER):\
                                           len(msg_chunk)]
                 break
 
-        # We should strip the msgdelim, but in our hack,
-        # it is part of the XML,
-        # so it may not be a good idea to strip it...
-        # return ''.joint(msg_chunks)[0:len(msg) - 1 -
-        # len(msg_delimiter)]
         return rs
 
     def _send_simple_command(self, cmd_name):
@@ -573,7 +564,9 @@ class DeejayDaemonSync(_DeejayDaemon):
         self._sendmsg(cmd.to_xml())
 
         rawmsg = self._readmsg()
-        self._build_answer(StringIO(rawmsg))
+        try: self._build_answer(StringIO(rawmsg))
+        except SyntaxError:
+            raise DeejaydError("Unable to parse server answer : %s" % rawmsg)
         return expected_answer
 
 
