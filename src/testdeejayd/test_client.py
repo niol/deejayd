@@ -210,8 +210,7 @@ class TestAsyncClient(TestCaseWithMediaData):
         djpl.add_song(self.testdata.getRandomSongPaths(1)[0]).\
                 add_callback(cb_update_status)
 
-        while not self.should_stop:
-            cb_called.wait(2)
+        cb_called.wait(4)
 
         self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
         self.assertEqual(self.status['playlistlength'], 1)
