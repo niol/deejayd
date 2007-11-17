@@ -607,8 +607,9 @@ class _DeejaydSocket(asyncore.dispatcher):
         self.state = "connected"
 
     def handle_close(self):
+        if self.state == "xml_protocol":
+            self.__error_callbacks('disconnected')
         self.state = "disconnected"
-        self.__error_callbacks('disconnected')
         self.close()
 
     def handle_read(self):
@@ -618,10 +619,11 @@ class _DeejaydSocket(asyncore.dispatcher):
         if self.state == "connected":
             # Catch version 17 character exactly
             self.version = self.recv(17)
-            self.state = 'xml_protocol'
-            # now we are sure to be connected
-            for cb in self.__connect_callback:
-                cb(True,"")
+            if self.version.startswith("OK DEEJAYD"):
+                self.state = 'xml_protocol'
+                # now we are sure to be connected
+                for cb in self.__connect_callback:
+                    cb(True,"")
 
         elif self.state == "xml_protocol":
             msg_chunk = self.recv(256)
