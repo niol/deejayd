@@ -1,10 +1,11 @@
 # xine.py
 
 import time
+from os import path
+from twisted.internet import threads
 from deejayd.ext import xine
 from deejayd.player._base import *
 from deejayd.ui import log
-from os import path
 
 class XinePlayer(UnknownPlayer):
     supported_extensions = None
@@ -34,10 +35,26 @@ class XinePlayer(UnknownPlayer):
         try: self.xine.audio_init(self.__xine_options["audio"])
         except xine.XineError, err:
             log.err(str(err))
-            raise PlayerError
+            raise PlayerError(err)
 
     def eos(self):
-        self.next()
+        def __play_next(file,detach,delay):
+            if delay > 0: time.sleep(delay)
+            self.stop(detach)
+            self._media_file = file
+            self.start_play()
+        def __delay_detach(delay):
+            time.sleep(delay)
+            self.xine.detach()
+
+        new_file = self._source.next(self.options["random"],\
+                    self.options["repeat"])
+        if new_file == None:
+            threads.deferToThread(__delay_detach,0.2)
+        elif self._media_file["type"] != new_file["type"]:
+            threads.deferToThread(__play_next,new_file,True,0.2)
+        else:
+            __play_next(new_file,False,0)
 
     def progress(self,description,percent):
         msg = description
@@ -64,10 +81,9 @@ class XinePlayer(UnknownPlayer):
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())
             raise PlayerError
-        except xine.XineAlreadyAttached:
-            log.err("Strange, xine is already attached")
+        except xine.XineAlreadyAttached: pass
 
-    def start_play(self, attach = True):
+    def start_play(self):
         if not self._media_file: return
 
         # format correctly the uri
@@ -89,7 +105,7 @@ class XinePlayer(UnknownPlayer):
             isvideo = 1
             fullscreen = self.options["fullscreen"]
 
-        if attach: self.__attach(isvideo)
+        self.__attach(isvideo)
         try: self.xine.start_playing(uri, isvideo, fullscreen)
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())
@@ -111,7 +127,7 @@ class XinePlayer(UnknownPlayer):
 
         self.stop(detach)
         self._media_file = new_file
-        self.start_play(detach)
+        self.start_play()
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
