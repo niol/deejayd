@@ -1,6 +1,7 @@
 """The Deejayd python client library"""
 
-import socket, threading
+import socket, asyncore, threading
+import sys,time
 from cStringIO import StringIO
 try: from xml.etree import cElementTree as ET # python 2.5
 except ImportError: # python 2.4
@@ -566,7 +567,199 @@ class DeejayDaemonSync(_DeejayDaemon):
         return expected_answer
 
 
+class _DeejaydSocket(asyncore.dispatcher):
+    ac_in_buffer_size = 256
+    ac_out_buffer_size = 256
+
+    def __init__(self,deejayd):
+        asyncore.dispatcher.__init__(self)
+        self.deejayd = deejayd
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.socket_die_callback = []
+        self.__connect_callback = []
+
+        self.state = "disconnected"
+        self.msg_chunks = ""
+        self.next_msg = ""
+
+    def add_connect_callback(self, callback):
+        self.__connect_callback.append(callback)
+
+    def add_socket_die_callback(self, callback):
+        self.socket_die_callback.append(callback)
+
+    def __error_callbacks(self, msg):
+        for cb in self.socket_die_callback:
+            cb(msg)
+
+    def handle_error(self):
+        t, v, tb = sys.exc_info()
+        assert tb # Must have a traceback
+        if self.state != "xml_protocol":
+            # error appears when we try to connect
+            for cb in self.__connect_callback:
+                cb(False,str(v))
+
+    def handle_connect(self):
+        self.state = "connected"
+
+    def handle_close(self):
+        self.state = "disconnected"
+        self.__error_callbacks('disconnected')
+        self.close()
+
+    def handle_read(self):
+        def split_msg(msg,index):
+            return (msg[0:index], msg[index+len(MSG_DELIMITER):len(msg)])
+
+        if self.state == "connected":
+            # Catch version 17 character exactly
+            self.version = self.recv(17)
+            self.state = 'xml_protocol'
+            # now we are sure to be connected
+            for cb in self.__connect_callback:
+                cb(True,"")
+
+        elif self.state == "xml_protocol":
+            msg_chunk = self.recv(256)
+            # socket.recv returns an empty string if the socket is closed, so
+            # catch this.
+            if msg_chunk == '':
+                self.close()
+            self.msg_chunks += msg_chunk
+            try: index = self.msg_chunks.index(MSG_DELIMITER)
+            except ValueError: return
+            else:
+                (rawmsg,self.next_msg) = split_msg(self.msg_chunks, index)
+                self.msg_chunks = ""
+                self.answer_received(rawmsg)
+
+                while self.next_msg != '':
+                    try: index = self.next_msg.index(MSG_DELIMITER)
+                    except ValueError:
+                        self.msg_chunks = self.next_msg
+                        self.next_msg = ""
+                        break
+                    else:
+                        (rawmsg,self.next_msg) = split_msg(self.next_msg, index)
+                        self.answer_received(rawmsg)
+
+        elif self.state == "disconnected":
+            # This should not happen
+            raise AttributeError
+
+    def answer_received(self,rawmsg):
+        try: self.deejayd._build_answer(StringIO(rawmsg))
+        except SyntaxError:
+            print "error in parse answer %s" % rawmsg
+            self.__error_callbacks("Unable to parse server answer : %s" %rawmsg)
+            self.close()
+
+    def handle_write(self):
+        cmd = self.deejayd.command_queue.get()
+        self.send(cmd.to_xml()+MSG_DELIMITER)
+
+    def writable(self):
+        if self.state != "xml_protocol": return False
+        return not self.deejayd.command_queue.empty()
+
+
 class _DeejaydSocketThread(threading.Thread):
+
+    def run(self):
+        asyncore.loop(timeout=1)
+
+
+class DeejayDaemonAsync(_DeejayDaemon):
+    """Completely aynchroneous deejayd client library."""
+
+    def __init__(self):
+        _DeejayDaemon.__init__(self)
+        #socket.setdefaulttimeout(5)
+        self.command_queue = Queue()
+        self.__con_cb = []
+        self.__err_cb = []
+        self.socket_to_server = None
+        self.socket_thread = _DeejaydSocketThread()
+
+    def __create_socket(self):
+        self.socket_to_server = _DeejaydSocket(self)
+        self.socket_to_server.add_socket_die_callback(\
+            self.__make_answers_obsolete)
+        self.socket_to_server.add_socket_die_callback(self.__disconnect)
+        self.socket_to_server.add_connect_callback(self.__connect_callback)
+
+    def __disconnect(self, msg):
+        # socket die, so thread do not need to be stopped
+        # just reset the socket
+        self.connected = False
+        del self.socket_to_server
+        self.socket_to_server = None
+        # execute error callback
+        for cb in self.__err_cb:
+            cb(msg)
+
+    def __make_answers_obsolete(self, msg):
+        msg = "Could not obtain answer from server : " + msg
+        try:
+            while True:
+                self.expected_answers_queue.get_nowait().set_error(msg)
+        except Empty:
+            # There is no more answer there, so no need to set any more errors.
+            pass
+
+    def __connect_callback(self, rs, msg = ""):
+        self.connected = rs
+        if not rs: # error happens, reset socket
+            del self.socket_to_server
+            self.socket_to_server = None
+        for cb in self.__con_cb:
+            cb(rs, msg)
+
+    def add_connect_callback(self,cb):
+        self.__con_cb.append(cb)
+
+    def add_error_callback(self,cb):
+        self.__err_cb.append(cb)
+
+    def connect(self, host, port):
+        if self.connected:
+            self.disconnect()
+
+        self.__create_socket()
+        self.socket_to_server.connect((host, port))
+        self.socket_thread.start()
+
+    def disconnect(self):
+        if self.socket_to_server != None:
+            self.__stop_thread()
+        self.connected = False
+
+    def __stop_thread(self):
+        # terminate socket thread
+        self.socket_to_server.close()
+        while self.socket_thread.isAlive():
+            time.sleep(0.2)
+        del self.socket_to_server
+        self.socket_to_server = None
+
+    def _send_command(self, cmd, expected_answer = None):
+        # Set a default answer by default
+        if expected_answer == None:
+            expected_answer = DeejaydAnswer(self)
+
+        self.expected_answers_queue.put(expected_answer)
+        self.command_queue.put(cmd)
+        return expected_answer
+
+
+#############################################################################
+#############################################################################
+#             Old async library client
+#############################################################################
+#############################################################################
+class _OldDeejaydSocketThread(threading.Thread):
 
     def __init__(self, deejayd, socket):
         threading.Thread.__init__(self)
@@ -605,7 +798,7 @@ class _StopException(Exception):
     pass
 
 
-class _DeejaydCommandThread(_DeejaydSocketThread):
+class _DeejaydCommandThread(_OldDeejaydSocketThread):
 
     def __init__(self, deejayd, socket, command_queue):
         _DeejaydSocketThread.__init__(self, deejayd, socket)
@@ -621,7 +814,7 @@ class _DeejaydCommandThread(_DeejaydSocketThread):
         self.deejayd._sendmsg(cmd.to_xml())
 
 
-class _DeejaydAnswerThread(_DeejaydSocketThread):
+class _DeejaydAnswerThread(_OldDeejaydSocketThread):
 
     def __init__(self, deejayd, socket, expected_answers_queue):
         _DeejaydSocketThread.__init__(self, deejayd, socket)
@@ -637,7 +830,7 @@ class _DeejaydAnswerThread(_DeejaydSocketThread):
         self.deejayd._build_answer(StringIO(rawmsg))
 
 
-class DeejayDaemonAsync(_DeejayDaemon):
+class OldDeejayDaemonAsync(_DeejayDaemon):
     """Completely aynchroneous deejayd client library."""
 
     def __init__(self):
