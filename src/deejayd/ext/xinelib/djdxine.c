@@ -366,6 +366,9 @@ int djdxine_attach(_Xine* xine, const char *video_driver,
 
 void djdxine_detach(_Xine* xine)
 {
+#ifdef DJD_DEBUG
+    printf("DEBUG - Enter detach function \n");
+#endif
     if (xine->playing) {
         djdxine_stop(xine);
         }
@@ -389,6 +392,9 @@ void djdxine_detach(_Xine* xine)
     }
 
     _player_reset(xine);
+#ifdef DJD_DEBUG
+    printf("DEBUG - Leave detach function \n");
+#endif
 }
 
 void djdxine_destroy(_Xine* xine)
