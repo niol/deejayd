@@ -117,7 +117,7 @@ cdef class Xine:
             err = djdxine_get_fatal_error(self.xine)
             raise XineError("XINE - " + err)
         elif rs == -1:
-            raise XineAlreadyAttached
+            raise XineAlreadyAttached()
         djdxine_set_param(self.xine, XINE_PARAM_AUDIO_AMP_LEVEL, self.volume, 0)
     def detach(self):
         djdxine_detach(self.xine)
@@ -127,17 +127,17 @@ cdef class Xine:
         cdef int xine_type
         xine_type = XINE_CONFIG_TYPE_ENUM
         if djdxine_set_config_param(self.xine,key,xine_type,<void*>&value):
-            raise XineError
+            raise XineError()
     def set_string_config_param(self,char* key,char *value):
         cdef int xine_type
         xine_type = XINE_CONFIG_TYPE_STRING
         if djdxine_set_config_param(self.xine,key,xine_type,<void*>value):
-            raise XineError
+            raise XineError()
     def stop(self):
         djdxine_stop(self.xine)
     def start_playing(self,char* filename,int isvideo,int fullscreen):
         if djdxine_play(self.xine,filename,isvideo,fullscreen):
-            raise XineError
+            raise XineError()
     def play(self):
         djdxine_set_playing(self.xine, 1)
     def pause(self):
@@ -173,16 +173,16 @@ cdef class Xine:
     def get_position(self):
         rs = djdxine_get_position(self.xine)
         if rs == -1:
-            raise NotPlayingError
+            raise NotPlayingError()
         return rs
     def set_fullscreen(self, int fullscreen):
         if djdxine_set_fullscreen(self.xine,fullscreen):
-            raise NotPlayingError
+            raise NotPlayingError()
     def get_file_info(self,char* filename):
         cdef FileInfo *file_info
         file_info = djdxine_file_info(self.xine,filename)
         if file_info == NULL:
-            raise FileInfoError
+            raise FileInfoError()
         return {"videowidth":file_info.width, "videoheight":file_info.height, "length":file_info.duration / 1000}
     def get_audio_lang(self,uri,channel):
         djdxine_set_data_mine(self.xine,uri)
