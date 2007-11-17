@@ -515,6 +515,8 @@ class _DeejayDaemon:
                     rsp_type = elem.attrib['type']
                     if rsp_type == "KeyValue":
                         answer = parms
+                    elif rsp_type == "FileAndDirList":
+                        expected_answer.set_rootdir(elem.attrib['directory'])
                     expected_answer._received(answer)
                 elif elem.tag == "parm":
                     value = elem.attrib["value"]
