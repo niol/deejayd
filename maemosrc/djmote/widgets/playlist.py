@@ -228,9 +228,9 @@ class LibraryDialog(gtk.Dialog):
         return scrolled_window
 
     def update_file_list(self,treeview = None, path = None, view_column = None):
+        model = self.library_view.get_model()
         if treeview == None: root_dir = ""
         else:
-            model = treeview.get_model()
             iter = model.get_iter(path)
             type =  model.get_value(iter,3)
             if type != "directory":
@@ -254,6 +254,9 @@ class LibraryDialog(gtk.Dialog):
                 model.append([False, file["filename"], \
                     file["path"], file["type"], gtk.STOCK_FILE])
 
+        model.clear()
+        model.append([False, "Update audio dir/file list..","","message",\
+                gtk.STOCK_REFRESH])
         self.__server.get_audio_dir(root_dir).add_callback(cb_build)
 
     def __build_playlist_list(self):

@@ -31,6 +31,8 @@ class DjmoteUI(hildon.Program):
     def __init__(self):
         hildon.Program.__init__(self)
         self.__deejayd = DeejayDaemonAsync()
+        self.__deejayd.add_connect_callback(self.connect_callback)
+        self.__deejayd.add_error_callback(self.error_callback)
         self.volume = 0
 
         # Conf
@@ -74,6 +76,18 @@ class DjmoteUI(hildon.Program):
         # mode
         left_box.pack_start(ModeBox(self))
 
+        # mode
+        self.status_box = gtk.HBox()
+        left_box.pack_start(self.status_box)
+
+    def set_msg_status(self, msg):
+        # remove previous msg
+        for child in self.status_box.get_children():
+            child.destroy()
+        label = gtk.Label(msg)
+        self.status_box.pack_start(label)
+        self.status_box.show_all()
+
     def run(self):
         self.main_window.show_all()
 
@@ -86,9 +100,7 @@ class DjmoteUI(hildon.Program):
         else:
             self.connect_to_server(None, self.__conf)
 
-        gtk.gdk.threads_enter()
         gtk.main()
-        gtk.gdk.threads_leave()
 
     def destroy(self, widget, data=None):
         self.__deejayd.disconnect()
@@ -125,27 +137,14 @@ class DjmoteUI(hildon.Program):
         return self.__deejayd.is_connected()
 
     def connect_to_server(self, widget, data):
-        if self.is_connected(): self.disconnect_to_server()
-        try: self.__deejayd.connect(data['host'], data['port'])
-        except ConnectError, msg:
-            self.set_error(msg)
-        else:
-            @gui_callback
-            def cb_connect_status(answer):
-                try: answer.get_contents()
-                except DeejaydError, err: self.set_error(err)
-                else:
-                    # record volume
-                    self.volume = answer["volume"]
-                    self.emit('connected', answer)
-
-            # get player status
-            self.__deejayd.get_status().add_callback(cb_connect_status)
+        self.disconnect_to_server()
+        self.set_msg_status("Try to connect to server...")
+        self.__deejayd.connect(data['host'], data['port'])
 
     def disconnect_to_server(self, widget = None, data = None):
-        if not self.is_connected(): return
+        self.status_box.hide()
+        if self.is_connected(): self.emit('disconnected')
         self.__deejayd.disconnect()
-        self.emit('disconnected')
 
     def show_connect_window(self, widget=None):
         self.connect_window.show()
@@ -196,6 +195,29 @@ class DjmoteUI(hildon.Program):
         ErrorDialog(self.main_window, error)
 
     @gui_callback
+    def error_callback(self,msg):
+        self.set_error(msg)
+        self.emit('disconnected')
+
+    @gui_callback
+    def connect_callback(self,rs,msg):
+        self.status_box.hide()
+        if rs == False:
+            self.set_error(msg)
+        else:
+            # get player status
+            self.__deejayd.get_status().add_callback(self.cb_connect_status)
+
+    @gui_callback
+    def cb_connect_status(self,answer):
+        try: answer.get_contents()
+        except DeejaydError, err: self.set_error(err)
+        else:
+            # record volume
+            self.volume = answer["volume"]
+            self.emit('connected', answer)
+
+    @gui_callback
     def cb_update_status(self, answer):
         try: contents = answer.get_contents()
         except DeejaydError, err: self.set_error(err)
@@ -211,7 +233,9 @@ class DjmoteUI(hildon.Program):
         else:
             # record volume
             try: self.volume = answer["volume"]
-            except TypeError: self.set_error("Strange, unable to get status")
+            except TypeError:
+                #self.set_error("Strange, unable to get status")
+                print "Strange, unable to get status"
             else:
                 self.emit("update-status",answer)
 
