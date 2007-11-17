@@ -338,7 +338,7 @@ class _DeejayDaemon:
         self.socket_to_server.send(buf + MSG_DELIMITER)
 
     def _readmsg(self):
-        msg_chunks = []
+        msg_chunks = ''
         msg_chunk = ''
         def split_msg(msg,index):
             return (msg[0:index], msg[index+len(MSG_DELIMITER):len(msg)])
@@ -350,21 +350,17 @@ class _DeejayDaemon:
                 (rs,self.next_msg) = split_msg(self.next_msg, index)
                 break
 
-
             msg_chunk = self.socket_to_server.recv(4096)
             # socket.recv returns an empty string if the socket is closed, so
             # catch this.
             if msg_chunk == '':
                 raise socket.error()
 
-            try: index = msg_chunk.index(MSG_DELIMITER)
-            except ValueError:
-                msg_chunks.append(msg_chunk)
+            msg_chunks += msg_chunk
+            try: index = msg_chunks.index(MSG_DELIMITER)
+            except ValueError: pass
             else:
-                msg_chunks.append(msg_chunk[0:index])
-                rs = self.next_msg.join(msg_chunks)
-                self.next_msg = msg_chunk[index+len(MSG_DELIMITER):\
-                                          len(msg_chunk)]
+                (rs,self.next_msg) = split_msg(msg_chunks, index)
                 break
 
         return rs
