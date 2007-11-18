@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
-import glob
 from distutils.core import setup
 from djmote import __version__ as version
 
+inst_icons_26   = [ 'data/icons/26x26/djmote.png' ]
+inst_icons_40   = [ 'data/icons/40x40/djmote.png' ]
+inst_icons_64   = [ 'data/icons/64x64/djmote.png' ]
 data_files = [
-    ('share/pixmaps', [ 'data/djmote.png' ]),
+    ('share/icons/hicolor/26x26/hildon', inst_icons_26),
+    ('share/icons/hicolor/40x40/hildon', inst_icons_40),
+    ('share/icons/hicolor/64x64/hildon', inst_icons_64),
     ('share/applications/hildon', [ 'data/djmote.desktop' ]),
     ('share/dbus-1/services', [ 'data/djmote.service' ]),
     ]
