@@ -31,6 +31,7 @@ class VideoBox(SourceBox):
         col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         # construct icon
         icon = gtk.CellRendererPixbuf()
+        icon.set_property("xpad",6)
         col.pack_start(icon,expand = False)
         col.set_attributes(icon, stock_id = 4)
         # construct filename

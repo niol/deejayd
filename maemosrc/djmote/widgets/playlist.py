@@ -206,6 +206,7 @@ class LibraryDialog(gtk.Dialog):
         col.set_fixed_width(300)
         # construct icon
         icon = gtk.CellRendererPixbuf()
+        icon.set_property("xpad",4)
         col.pack_start(icon,expand = False)
         col.set_attributes(icon, stock_id = 4)
         # construct filename
@@ -271,6 +272,7 @@ class LibraryDialog(gtk.Dialog):
         col = gtk.TreeViewColumn("Playlist Name")
         # construct icon
         icon = gtk.CellRendererPixbuf()
+        icon.set_property("xpad",4)
         col.pack_start(icon, expand = False)
         col.set_attributes(icon, stock_id = 2)
         # construct playlist name
