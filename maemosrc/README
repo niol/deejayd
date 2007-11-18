@@ -6,17 +6,23 @@ Actual version : no release for now
 
 Description:
 ------------
- djmote is a graphical deejayd client optimized for use on Maemo devices 
+ djmote is a graphical deejayd client optimized for use on Maemo devices
  such as the Nokia N770 or Nokia N800.
 
 Requirements:
 -------------
-    * python >= 2.5
+    * python-runtime >= 2.5
 
 Installation:
 -------------
-add :
+for bora (N800) add :
  deb http://mroy31.dyndns.org/~roy/debian bora user
+for gregale (N770) add :
+ deb http://mroy31.dyndns.org/~roy/debian gregale user
+
 to your source.list, then do
 #apt-get-update && apt-get install djmote
 
+Documentation and more informations:
+------------------------------------
+http://mroy31.dyndns.org/~roy/projects/deejayd/wiki/Djmote
