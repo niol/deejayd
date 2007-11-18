@@ -2,7 +2,7 @@ import os
 import gtk
 from deejayd.net.client import DeejaydError
 from djmote.utils.decorators import gui_callback
-from djmote.widgets._base import SourceBox
+from djmote.widgets._base import SourceBox,fraction_seconds
 
 class DvdBox(SourceBox):
 
@@ -72,7 +72,7 @@ class DvdBox(SourceBox):
             # update track
             for track in content["tracks"]:
                 model.append([track['id'], "Title "+ track['id'],\
-                              track['length']])
+                              fraction_seconds(track['length'],True)])
 
 
 # vim: ts=4 sw=4 expandtab

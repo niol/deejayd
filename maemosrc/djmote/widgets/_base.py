@@ -1,6 +1,16 @@
 
 import gtk,pango
 
+def fraction_seconds(seconds, hour = False):
+    try: seconds = int(seconds)
+    except ValueError: return "0"
+
+    min, s = divmod(seconds, 60)
+    if hour:
+        h, min = divmod(min, 60)
+        return "%d:%d:%d" % (h, min, s)
+    return "%d:%d" % (min, s)
+
 class DjmoteTreeView(gtk.TreeView):
 
     def __init__(self, model):
