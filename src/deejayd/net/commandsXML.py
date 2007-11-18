@@ -753,7 +753,10 @@ class Play(UnknownCommand):
 
     def execute(self):
         if self.args["id"] == -1:
-            self.deejayd_args["player"].play()
+            try: self.deejayd_args["player"].play()
+            except PlayerError,err:
+                return self.get_error_answer("Unable to play this file : %s"\
+                    % err)
         else:
             if self.args["id_type"] != "dvd_id":
                 try: id = int(self.args["id"])
@@ -761,8 +764,11 @@ class Play(UnknownCommand):
                     return self.get_error_answer("Bad value for id parm")
             else: id = self.args["id"]
 
-            self.deejayd_args["player"].go_to(id,\
+            try: self.deejayd_args["player"].go_to(id,\
                     self.args["id_type"], self.args["source"])
+            except PlayerError,err:
+                return self.get_error_answer("Unable to play this file : %s"\
+                    % err)
         return self.get_ok_answer()
 
 

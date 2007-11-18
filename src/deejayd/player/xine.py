@@ -42,7 +42,8 @@ class XinePlayer(UnknownPlayer):
             if delay > 0: time.sleep(delay)
             self.stop(detach)
             self._media_file = file
-            self.start_play()
+            try: self.start_play()
+            except PlayerError: pass
         def __delay_detach(delay):
             time.sleep(delay)
             self.xine.detach()
@@ -80,7 +81,7 @@ class XinePlayer(UnknownPlayer):
             self.__xine_options["display"], isvideo)
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())
-            raise PlayerError
+            raise PlayerError(self.xine.get_error())
         except xine.XineAlreadyAttached: pass
 
     def start_play(self):
@@ -109,6 +110,7 @@ class XinePlayer(UnknownPlayer):
         try: self.xine.start_playing(uri, isvideo, fullscreen)
         except xine.XineError:
             log.err("Xine error : "+self.xine.get_error())
+            raise PlayerError(self.xine.get_error())
         else:
             # if video get current audio/subtitle channel
             if self._media_file["type"] == "video":
