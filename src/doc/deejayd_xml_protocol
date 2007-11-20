@@ -25,12 +25,14 @@ All data between the client and server is encoded in UTF-8.
 ENDXML
 }}}
 
-{{{ENDXML}}} is used as command delimeter.
+{{{ENDXML}}} is used as command delimiter.
 
 For certain commands, you may need to pass several values as an argument. If
 so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
 
 == Response Format ==
+
+{{{ENDXML}}} is also used as an answer delimiter.
 
 There are 6 response types :
   * '''`error`''' : Error notification.
@@ -39,14 +41,14 @@ There are 6 response types :
 <deejayd>
 	<error name="cmdName">error text</error>
 </deejayd>
-}}}
+ENDXML}}}
   * '''`Ack`''' : Acknowledgement of a command.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<response name="cmdName" type="Ack" />
 </deejayd>
-}}}
+ENDXML}}}
   * '''`KeyValue`''' : A list of key, value pairs.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -56,7 +58,7 @@ There are 6 response types :
 		<parm name="parmName1" value="parmValue1" />
 	</response>
 </deejayd>
-}}}
+ENDXML}}}
   * '''`FileAndDirList`''' : A list of files and directories.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -69,7 +71,7 @@ There are 6 response types :
 		</file>
 	</response>
 </deejayd>
-}}}
+ENDXML}}}
   * '''`MediaList`''' : A list of media (song, webradio,playlist or video) with information for each media :
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
@@ -103,7 +105,7 @@ There are 6 response types :
 		</media>
 	</response>
 </deejayd>
-}}}
+ENDXML}}}
   * '''`DvdInfo`''' : Format dvd content.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -119,7 +121,7 @@ There are 6 response types :
 		</dvd>
 	</response>
 </deejayd>
-}}}
+ENDXML}}}
 Responses may be combined in the same physical message :
 {{{
 <?xml version="1.0" encoding="utf-8"?>

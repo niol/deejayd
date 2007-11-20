@@ -34,12 +34,14 @@ All data between the client and server is encoded in UTF-8.
 ENDXML
 }}}
 
-{{{ENDXML}}} is used as command delimeter.
+{{{ENDXML}}} is used as command delimiter.
 
 For certain commands, you may need to pass several values as an argument. If
 so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
 
 == Response Format ==
+
+{{{ENDXML}}} is also used as an answer delimiter.
 """
 
 commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
@@ -244,7 +246,7 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         responseDoc = """
   * '''`%(type)s`''' : %(desc)s
 {{{
-%(example)s}}}""" % info
+%(example)sENDXML}}}""" % info
 
         return responseDoc
 
