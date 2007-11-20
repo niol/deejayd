@@ -127,6 +127,11 @@ class ControlButton(gtk.Button):
         self.set_focus_on_click(False)
         self.has_focus = False
         self.set_sensitive(sensitive)
+
+        # Needed for chinook
+        settings = self.get_settings()
+        settings.set_property("gtk-button-images", True)
+
         self.img = gtk.image_new_from_stock(self.__class__.stock_img,SIZE)
         self.set_image(self.img)
 
