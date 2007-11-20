@@ -1,4 +1,4 @@
-import os
+import os,thread
 
 import gtk,gobject
 # Initializing GTK thread engine, as UI callbacks of deejayd command will be
@@ -93,7 +93,7 @@ class DjmoteUI(hildon.Program):
 
         # DBUS initialisation
         from djmote.utils import maemo
-        maemo.init(self)
+        thread.start_new_thread(maemo.init, (self,))
 
         if not self.__conf['connect_on_startup']:
             self.show_connect_window()

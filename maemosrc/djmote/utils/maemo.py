@@ -1,7 +1,5 @@
 
 import dbus
-import dbus.glib
-import dbus.service
 
 class ScreenMonitor:
 
@@ -49,7 +47,7 @@ class ConnectionMonitor:
 
 def init(ui):
     try:
-        mon = ScreenMonitor(ui)
+        #mon = ScreenMonitor(ui)
         con = ConnectionMonitor(ui)
     except dbus.DBusException:
         print "Error : unable to init dbus connection"
