@@ -40,6 +40,7 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         # ListStore
         # id, title, artist, album, toggled
         self.__pl_content = gtk.ListStore(int, str, str, str, 'gboolean')
+        self.__reset_playlist()
 
         # View
         # pos, title, artist, album
@@ -116,6 +117,7 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
                 self.ids.append(model.get_value(iter,0))
         self.__pl_content.foreach(create_selection)
 
+        self.__reset_playlist()
         self.del_songs(self.ids).add_callback(self._player.cb_update_status)
         del self.ids
 
@@ -123,6 +125,7 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         self.clear().add_callback(self._player.cb_update_status)
 
     def cb_shuffle_playlist(self, widget):
+        self.__reset_playlist()
         self.shuffle().add_callback(self._player.cb_update_status)
 
     def cb_open_file_dialog(self, widget):
@@ -132,11 +135,17 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         dialog = SaveDialog(self)
 
     def cb_add_songs(self,path):
+        self.__reset_playlist()
         self.add_songs(path).add_callback(self._player.cb_update_status)
 
     def cb_loads(self,pl_names):
+        self.__reset_playlist()
         self.loads(pl_names).add_callback(self._player.cb_update_status)
 
+    def __reset_playlist(self):
+        self.__pl_content.clear()
+        self.__pl_content.append([0, "Refresh playlist, please wait...","","",\
+                False])
 
 class LibraryDialog(gtk.Dialog):
 
