@@ -1,5 +1,5 @@
 import os
-import gtk,pango
+import gobject,gtk,pango
 from djmote.utils.decorators import gui_callback
 from djmote.const import PL_PAGER_LENGTH
 from deejayd.net.client import DeejaydPlaylist, DeejaydError
@@ -147,6 +147,7 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         self.__pl_content.append([0, "Refresh playlist, please wait...","","",\
                 False])
 
+
 class LibraryDialog(gtk.Dialog):
 
     def __init__(self, playlist, server):
@@ -167,10 +168,23 @@ class LibraryDialog(gtk.Dialog):
         self.notebook.append_page(self.__build_playlist_list(),label)
 
         self.vbox.pack_start(self.notebook)
+        self.vbox.pack_start(self._build_toolbar(),expand = False,fill = False)
         # signal
         self.connect("response", self.cb_response)
         self.set_size_request(500,350)
         self.show_all()
+
+    def _build_toolbar(self):
+        self.toolbar_box = gtk.HBox()
+
+        toolbar = gtk.Toolbar()
+        toolbar.set_style(gtk.TOOLBAR_BOTH_HORIZ)
+        refresh = gtk.ToolButton(gtk.STOCK_REFRESH)
+        refresh.connect("clicked",self.cb_update_library)
+        toolbar.insert(refresh,0)
+
+        self.toolbar_box.pack_start(toolbar)
+        return self.toolbar_box
 
     def cb_response(self, dialog, response_id):
         if response_id == gtk.RESPONSE_CLOSE:
@@ -319,6 +333,41 @@ class LibraryDialog(gtk.Dialog):
 
     def cb_col_toggled(self, cell, path, model):
         model[path][0] = not model[path][0]
+
+    @gui_callback
+    def cb_update_trigger(self, ans):
+        try: self.__update_id = ans["audio_updating_db"]
+        except DeejaydError, err:
+            return
+
+        # create a progress bar
+        self.progress_bar = gtk.ProgressBar()
+        self.progress_bar.set_pulse_step(0.1)
+        self.progress_bar.show()
+        self.toolbar_box.pack_start(self.progress_bar, expand = False, \
+            fill = False)
+
+        # update status every second
+        def update_verif():
+            def cb_verif(ans):
+                status = ans.get_contents()
+                try : id = status["audio_updating_db"]
+                except KeyError:
+                    self.progress_bar.set_fraction(1.0)
+                    del self.__update_id
+                    self.progress_bar.destroy()
+                    del self.progress_bar
+                    self.update_file_list()
+                else:
+                    gobject.timeout_add(1000,update_verif)
+
+            self.progress_bar.pulse()
+            self.__server.get_status().add_callback(cb_verif)
+        gobject.timeout_add(1000,update_verif)
+
+    def cb_update_library(self,widget, data = None):
+        self.__server.update_audio_library().add_callback(\
+            self.cb_update_trigger)
 
 
 class SaveDialog(gtk.Dialog):
