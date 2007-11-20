@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SRCDIR=$(dirname $0)
+SRCDIR=$(pwd)/$(dirname $0)
 
 makeexec (){
     chmod +x $SRCDIR/$1
@@ -12,6 +12,9 @@ makeexec src/debian/rules
 
 makeexec maemosrc/debian/rules
 
+cd $SRCDIR/maemosrc/deejayd/
+ln -sf ../../src/deejayd/__init__.py .
+ln -sf ../../src/deejayd/interfaces.py .
 cd $SRCDIR/maemosrc/deejayd/net
 ln -sf ../../../src/deejayd/net/client.py .
 ln -sf ../../../src/deejayd/net/xmlbuilders.py .

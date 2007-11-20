@@ -9,22 +9,20 @@ except ImportError: # python 2.4
 
 from Queue import Queue, Empty
 
+import deejayd.interfaces
+from deejayd.interfaces import DeejaydError, DeejaydKeyValue
 from deejayd.net.xmlbuilders import DeejaydXMLCommand
 
 
 MSG_DELIMITER = 'ENDXML\n'
 
 
-class DeejaydError(Exception):
-    pass
-
-class DeejaydAnswer:
+class DeejaydAnswer(deejayd.interfaces.DeejaydAnswer):
 
     def __init__(self, server = None):
+        deejayd.interfaces.DeejaydAnswer.__init__(self)
         self.answer_received = threading.Event()
         self.callbacks = []
-        self.contents = None
-        self.error = False
         self.server = server
         self.originating_command = 'unknown'
 
@@ -37,15 +35,12 @@ class DeejaydAnswer:
         self._run_callbacks()
 
     def set_error(self, msg):
-        self.contents = msg
-        self.error = True
+        deejayd.interfaces.DeejaydAnswer.set_error(self, msg)
         self.answer_received.set()
 
     def get_contents(self):
         self.wait()
-        if self.error:
-            raise DeejaydError(self.contents)
-        return self.contents
+        return deejayd.interfaces.DeejaydAnswer.get_contents(self)
 
     def add_callback(self, cb):
         if self.answer_received.isSet():
@@ -65,77 +60,58 @@ class DeejaydAnswer:
         return self.originating_command
 
 
-class DeejaydKeyValue(DeejaydAnswer):
+class DeejaydKeyValue(deejayd.interfaces.DeejaydKeyValue, DeejaydAnswer):
+
+    def __init__(self, server=None):
+        DeejaydAnswer.__init__(self, server)
 
     def __getitem__(self, name):
         self.get_contents()
-        return self.contents[name]
+        return deejayd.interfaces.DeejaydKeyValue.__getitem__(self, name)
 
     def items(self):
         self.get_contents()
-        return self.contents.items()
+        return deejayd.interfaces.DeejaydKeyValue.items(self)
 
 
-class DeejaydFileList(DeejaydAnswer):
+class DeejaydFileList(deejayd.interfaces.DeejaydFileList, DeejaydAnswer):
 
     def __init__(self, server = None):
+        deejayd.interfaces.DeejaydFileList.__init__(self)
         DeejaydAnswer.__init__(self, server)
-        self.root_dir = ""
-        self.files = []
-        self.directories = []
-
-    def set_rootdir(self, dir):
-        self.root_dir = dir
-
-    def add_file(self, file):
-        self.files.append(file)
-
-    def add_dir(self, dir):
-        self.directories.append(dir)
 
     def get_files(self):
         self.get_contents()
-        return self.files
+        return deejayd.interfaces.DeejaydFileList.get_files(self)
 
     def get_directories(self):
         self.get_contents()
-        return self.directories
+        return deejayd.interfaces.DeejaydFileList.get_directories(self)
 
 
-class DeejaydMediaList(DeejaydAnswer):
+class DeejaydMediaList(deejayd.interfaces.DeejaydMediaList, DeejaydAnswer):
 
     def __init__(self, server = None):
+        deejayd.interfaces.DeejaydMediaList.__init__(self)
         DeejaydAnswer.__init__(self, server)
-        self.medias = []
-
-    def add_media(self, media):
-        self.medias.append(media)
 
     def get_medias(self):
         self.get_contents()
-        return self.medias
+        return deejayd.interfaces.DeejaydMediaList.get_medias(self)
 
 
-class DeejaydDvdInfo(DeejaydAnswer):
+class DeejaydDvdInfo(deejayd.interfaces.DeejaydDvdInfo, DeejaydAnswer):
 
     def __init__(self, server = None):
+        deejayd.interfaces.DeejaydDvdInfo.__init__(self)
         DeejaydAnswer.__init__(self, server)
-        self.tracks = []
-        self.dvd_content = {}
-
-    def set_dvd_content(self, infos):
-        self.dvd_content = infos
-
-    def add_track(self, track):
-        self.tracks.append(track)
 
     def get_dvd_contents(self):
         self.get_contents()
-        self.dvd_content["tracks"] = self.tracks
-        return self.dvd_content
+        return  deejayd.interfaces.DeejaydDvdInfo.get_dvd_contents(self)
 
 
-class DeejaydWebradioList:
+class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
 
     def __init__(self, server):
         self.server = server
@@ -154,9 +130,6 @@ class DeejaydWebradioList:
         cmd.add_simple_arg('url', urls)
         return self.server._send_command(cmd)
 
-    def delete_webradio(self, wr_id):
-        return self.delete_webradios([wr_id])
-
     def delete_webradios(self, wr_ids):
         cmd = DeejaydXMLCommand('webradioRemove')
         cmd.add_multiple_arg('id', wr_ids)
@@ -167,7 +140,7 @@ class DeejaydWebradioList:
         return self.server._send_command(cmd)
 
 
-class DeejaydQueue:
+class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
 
     def __init__(self, server):
         self.server = server
@@ -191,20 +164,17 @@ class DeejaydQueue:
         cmd = DeejaydXMLCommand('queueClear')
         return self.server._send_command(cmd)
 
-    def del_song(self, id):
-        return self.del_songs([id])
-
     def del_songs(self, ids):
         cmd = DeejaydXMLCommand('queueRemove')
         cmd.add_multiple_arg('id', ids)
         return self.server._send_command(cmd)
 
 
-class DeejaydPlaylist:
+class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
 
     def __init__(self, server, pl_name = None):
+        deejayd.interfaces.DeejaydPlaylist.__init__(self, pl_name)
         self.server = server
-        self.__pl_name = pl_name
 
     def get(self, first = 0, length = None):
         cmd = DeejaydXMLCommand('playlistInfo')
@@ -221,9 +191,6 @@ class DeejaydPlaylist:
         cmd.add_simple_arg('name', name or self.__pl_name)
         return self.server._send_command(cmd)
 
-    def add_song(self, path, position = None):
-        return self.add_songs([path], position)
-
     def add_songs(self, paths, position = None):
         cmd = DeejaydXMLCommand('playlistAdd')
         cmd.add_multiple_arg('path', paths)
@@ -232,9 +199,6 @@ class DeejaydPlaylist:
         if self.__pl_name != None:
             cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
-
-    def load(self, name, pos = None):
-        return self.loads([name], pos)
 
     def loads(self, names, pos = None):
         cmd = DeejaydXMLCommand('playlistLoad')
@@ -255,9 +219,6 @@ class DeejaydPlaylist:
             cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
 
-    def del_song(self, id):
-        return self.del_songs([id])
-
     def del_songs(self, ids):
         cmd = DeejaydXMLCommand('playlistRemove')
         cmd.add_multiple_arg('id', ids)
@@ -270,7 +231,7 @@ class ConnectError(Exception):
     pass
 
 
-class _DeejayDaemon:
+class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     """Abstract class for a deejay daemon client."""
 
     def __init__(self):

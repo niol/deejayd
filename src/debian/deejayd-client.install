@@ -1,4 +1,5 @@
 usr/lib/python*/site-packages/deejayd/__init__.py
+usr/lib/python*/site-packages/deejayd/interfaces.py
 usr/lib/python*/site-packages/deejayd/net/xmlbuilders.py
 usr/lib/python*/site-packages/deejayd/net/client.py
 usr/lib/python*/site-packages/deejayd/net/__init__.py
