@@ -109,6 +109,7 @@ class VideoBox(SourceBox):
                     del self.progress_bar
                     self._player.set_video_dir("")
                     self._player.set_banner("Video library has been updated")
+                    self.__reset_tree()
                 else:
                     gobject.timeout_add(1000,update_verif)
 
@@ -124,11 +125,18 @@ class VideoBox(SourceBox):
         type =  model.get_value(iter,3)
         if type == "directory":
             self._player.set_video_dir(model.get_value(iter,2))
+            self.__reset_tree()
         else:
             self._player.go_to(model.get_value(iter,0))
 
     def cb_update_library(self,widget, data = None):
         server = self._player.get_server()
         server.update_video_library().add_callback(self.cb_update_trigger)
+
+    def __reset_tree(self):
+        model = self.video_view.get_model()
+        model.clear()
+        model.append([0, "Update video dir/file list..","","message",\
+                gtk.STOCK_REFRESH])
 
 # vim: ts=4 sw=4 expandtab
