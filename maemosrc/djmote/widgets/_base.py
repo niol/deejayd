@@ -89,13 +89,15 @@ class PagerBox(gtk.HBox):
         self.__page_nb = page_nb
         self.__callback = callback
 
-        first_button = gtk.Button()
+        # Empty label is there for the image to show on gtk 2.6.10
+        first_button = gtk.Button(label='')
         first_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GOTO_FIRST,\
             gtk.ICON_SIZE_MENU))
         first_button.connect("clicked",self.go_first)
         self.pack_start(first_button,expand = False, fill = False)
 
-        prev_button = gtk.Button()
+        # Empty label is there for the image to show on gtk 2.6.10
+        prev_button = gtk.Button(label='')
         prev_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GO_BACK,\
             gtk.ICON_SIZE_MENU))
         prev_button.connect("clicked",self.go_previous)
@@ -104,13 +106,15 @@ class PagerBox(gtk.HBox):
         self.__label = gtk.Label("1/%d" % page_nb)
         self.pack_start(self.__label,expand=False,fill=False)
 
-        next_button = gtk.Button()
+        # Empty label is there for the image to show on gtk 2.6.10
+        next_button = gtk.Button(label='')
         next_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GO_FORWARD,\
             gtk.ICON_SIZE_MENU))
         next_button.connect("clicked",self.go_next)
         self.pack_start(next_button,expand = False, fill = False)
 
-        last_button = gtk.Button()
+        # Empty label is there for the image to show on gtk 2.6.10
+        last_button = gtk.Button(label='')
         last_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GOTO_LAST,\
             gtk.ICON_SIZE_MENU))
         last_button.connect("clicked",self.go_last)
