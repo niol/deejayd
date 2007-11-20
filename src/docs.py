@@ -179,6 +179,7 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
 
     def getFileAndDirList(self):
         fl = self.get_deejayd_xml_answer('FileAndDirList', 'cmdName')
+        fl.set_directory('optionnal_described_dirname')
         fl.add_directory('dirName')
         fl.set_filetype('song or video')
 

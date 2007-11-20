@@ -63,7 +63,7 @@ ENDXML}}}
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="FileAndDirList">
+	<response directory="optionnal_described_dirname" name="cmdName" type="FileAndDirList">
 		<directory name="dirName" />
 		<file type="song or video">
 			<parm name="parmName0" value="parmValue0" />

@@ -128,66 +128,75 @@ class TestAnswerParser(TestCaseWithData):
     def testAnswerFileAndDirList(self):
         """Test the client library parsing a file/dir list answer"""
         originatingCommand = self.testdata.getRandomString()
-        fileListAnswer = """<?xml version="1.0" encoding="utf-8"?>
+
+        fileListAnswer_noroot = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
     <response name="%s" type="FileAndDirList">""" % originatingCommand
-        howMuch = self.testdata.getRandomInt(50)
-        origFiles = []
-        origDirs = []
 
-        for count in range(howMuch):
+        fileListAnswer_root = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <response directory="%s" name="%s" type="FileAndDirList">"""\
+            % (self.testdata.getRandomString(), originatingCommand)
 
-            if self.testdata.getRandomElement(['file', 'directory']) == 'file':
-                file = {}
+        for fileListAnswer in [fileListAnswer_noroot, fileListAnswer_root]:
+            howMuch = self.testdata.getRandomInt(50)
+            origFiles = []
+            origDirs = []
 
-                fileListAnswer = fileListAnswer + """
+            for count in range(howMuch):
+
+                if self.testdata.getRandomElement(['file',
+                                                   'directory']) == 'file':
+                    file = {}
+
+                    fileListAnswer = fileListAnswer + """
         <file>
             <parm name="id" value="%s" />""" % count
-                file['id'] = count
+                    file['id'] = count
 
-                howMuchParms = self.testdata.getRandomInt()
-                for parmCount in range(howMuchParms):
-                    name = self.testdata.getRandomString()
-                    value =  self.testdata.getRandomString()
-                    file[name] = value
-                    fileListAnswer = fileListAnswer + """
+                    howMuchParms = self.testdata.getRandomInt()
+                    for parmCount in range(howMuchParms):
+                        name = self.testdata.getRandomString()
+                        value =  self.testdata.getRandomString()
+                        file[name] = value
+                        fileListAnswer = fileListAnswer + """
             <parm name="%s" value="%s" />""" % (name, value)
-                fileListAnswer = fileListAnswer + """
+                    fileListAnswer = fileListAnswer + """
         </file>"""
-                origFiles.append(file)
-            else:
-                dirname = self.testdata.getRandomString()
-                fileListAnswer = fileListAnswer + """
+                    origFiles.append(file)
+                else:
+                    dirname = self.testdata.getRandomString()
+                    fileListAnswer = fileListAnswer + """
         <directory name="%s" />""" % dirname
-                origDirs.append(dirname)
+                    origDirs.append(dirname)
 
-        fileListAnswer = fileListAnswer + """
+            fileListAnswer = fileListAnswer + """
     </response>
 </deejayd>"""
 
-        ans = DeejaydFileList()
-        self.deejayd.expected_answers_queue.put(ans)
-        self.parseAnswer(fileListAnswer)
+            ans = DeejaydFileList()
+            self.deejayd.expected_answers_queue.put(ans)
+            self.parseAnswer(fileListAnswer)
 
-        self.assertEqual(ans.get_originating_command(), originatingCommand)
+            self.assertEqual(ans.get_originating_command(), originatingCommand)
 
-        for file in origFiles:
+            for file in origFiles:
 
-            # Find corresponding file in retrieved files
-            filesIter = iter(ans.get_files())
-            notFound = True
-            retrievedFile = None
-            while notFound:
-                retrievedFile = filesIter.next()
-                if file['id'] == retrievedFile['id']:
-                    notFound = False
+                # Find corresponding file in retrieved files
+                filesIter = iter(ans.get_files())
+                notFound = True
+                retrievedFile = None
+                while notFound:
+                    retrievedFile = filesIter.next()
+                    if file['id'] == retrievedFile['id']:
+                        notFound = False
 
-            for key in file.keys():
-                self.failUnless(key in retrievedFile.keys())
-                self.assertEqual(file[key], retrievedFile[key])
+                for key in file.keys():
+                    self.failUnless(key in retrievedFile.keys())
+                    self.assertEqual(file[key], retrievedFile[key])
 
-        for dir in origDirs:
-            self.failUnless(dir in ans.get_directories())
+            for dir in origDirs:
+                self.failUnless(dir in ans.get_directories())
 
     def testAnswerParserMediaList(self):
         """Test the client library parsing a media list answer"""
