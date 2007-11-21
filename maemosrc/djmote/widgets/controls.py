@@ -1,5 +1,6 @@
 import gtk,hildon
 from djmote import stock
+from djmote.widgets._base import DjmoteButton
 
 class ControlBox(gtk.VBox):
 
@@ -119,18 +120,13 @@ class VolumeBar(hildon.VVolumebar):
 
 SIZE = gtk.icon_size_register("djmote-control", 72, 72)
 
-class ControlButton(gtk.Button):
+class ControlButton(DjmoteButton):
 
     def __init__(self, sensitive = False):
-        # The empty string label is there for the image to show on gtk 2.6.10
-        gtk.Button.__init__(self, label='')
+        DjmoteButton.__init__(self)
         self.set_focus_on_click(False)
         self.has_focus = False
         self.set_sensitive(sensitive)
-
-        # Needed for chinook
-        settings = self.get_settings()
-        settings.set_property("gtk-button-images", True)
 
         self.img = gtk.image_new_from_stock(self.__class__.stock_img,SIZE)
         self.set_image(self.img)

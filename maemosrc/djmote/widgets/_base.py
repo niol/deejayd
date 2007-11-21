@@ -24,6 +24,17 @@ class DjmoteTreeView(gtk.TreeView):
         except AttributeError: pass # bora and gregale
 
 
+class DjmoteButton(gtk.Button):
+
+    def __init__(self):
+        # The empty string label is there for the image to show on gtk 2.6.10
+        gtk.Button.__init__(self, label='')
+        # Needed for chinook
+        settings = self.get_settings()
+        settings.set_property("gtk-button-images", True)
+
+
+
 class SourceBox(gtk.VBox):
 
     def __init__(self, player):
@@ -89,15 +100,13 @@ class PagerBox(gtk.HBox):
         self.__page_nb = page_nb
         self.__callback = callback
 
-        # Empty label is there for the image to show on gtk 2.6.10
-        first_button = gtk.Button(label='')
+        first_button = DjmoteButton()
         first_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GOTO_FIRST,\
             gtk.ICON_SIZE_MENU))
         first_button.connect("clicked",self.go_first)
         self.pack_start(first_button,expand = False, fill = False)
 
-        # Empty label is there for the image to show on gtk 2.6.10
-        prev_button = gtk.Button(label='')
+        prev_button = DjmoteButton()
         prev_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GO_BACK,\
             gtk.ICON_SIZE_MENU))
         prev_button.connect("clicked",self.go_previous)
@@ -106,15 +115,13 @@ class PagerBox(gtk.HBox):
         self.__label = gtk.Label("1/%d" % page_nb)
         self.pack_start(self.__label,expand=False,fill=False)
 
-        # Empty label is there for the image to show on gtk 2.6.10
-        next_button = gtk.Button(label='')
+        next_button = DjmoteButton()
         next_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GO_FORWARD,\
             gtk.ICON_SIZE_MENU))
         next_button.connect("clicked",self.go_next)
         self.pack_start(next_button,expand = False, fill = False)
 
-        # Empty label is there for the image to show on gtk 2.6.10
-        last_button = gtk.Button(label='')
+        last_button = DjmoteButton()
         last_button.set_image(gtk.image_new_from_stock(gtk.STOCK_GOTO_LAST,\
             gtk.ICON_SIZE_MENU))
         last_button.connect("clicked",self.go_last)
