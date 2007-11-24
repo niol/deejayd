@@ -583,7 +583,7 @@ class WebradioDel(UnknownCommand):
 
         for id in self.args["id"]:
             try: self.wr_source.delete(int(id))
-            except sources.webradio.WrNotFoundException:
+            except sources._base.ItemNotFoundException:
                 return self.get_error_answer('Webradio not found')
         return self.get_ok_answer()
 
