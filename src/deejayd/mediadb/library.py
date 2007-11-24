@@ -196,11 +196,10 @@ class Library:
 
     def is_in_a_root(self, path, roots):
         """Checks if a directory is physically in one of the supplied roots."""
-        in_a_root = False
         for root in roots:
             if self.is_in_root(path, root):
-                in_a_root = True
-        return in_a_root
+                return True
+        return False
 
     def _update(self):
         self._db_con_update = self.db_con.get_new_connection()
