@@ -462,7 +462,7 @@ class PlaylistAdd(UnknownCommand):
         try: self.deejayd_args["sources"].get_source("playlist").\
                 add_path(self.args['path'],self.args["name"],pos)
         except sources._base.ItemNotFoundException:
-            return self.get_error_answer('%s not found' % (file,))
+            return self.get_error_answer('%s not found' % (self.args['path'],))
         else: return self.get_ok_answer()
 
 

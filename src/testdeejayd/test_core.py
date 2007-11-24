@@ -55,6 +55,9 @@ class TestCore(TestCaseWithMediaData):
         djpl = self.deejaydcore.get_playlist()
         self.assertEqual(djpl.get().get_medias(), pl)
 
+        self.assertRaises(DeejaydError, djpl.add_song,
+                                        self.testdata.getRandomString())
+
         # Add songs to playlist
         howManySongs = 3
         for songPath in self.testdata.getRandomSongPaths(howManySongs):
