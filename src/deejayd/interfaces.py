@@ -68,6 +68,8 @@ class DeejaydMediaList(DeejaydAnswer):
     def get_medias(self):
         return self.medias
 
+    def set_medias(self, medias):
+        self.medias = medias
 
 class DeejaydDvdInfo(DeejaydAnswer):
     """Dvd information answer."""
@@ -224,6 +226,12 @@ class DeejaydCore:
         raise NotImplementedError
 
     def get_playlist_list(self):
+        raise NotImplementedError
+
+    def get_playlist(self, name=None):
+        raise NotImplementedError
+
+    def get_webradios(self):
         raise NotImplementedError
 
     def get_audio_dir(self, dir=None):

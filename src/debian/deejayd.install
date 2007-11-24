@@ -1,3 +1,4 @@
+usr/lib/python*/site-packages/deejayd/core.py
 usr/lib/python*/site-packages/deejayd/net/commandsXML.py
 usr/lib/python*/site-packages/deejayd/net/deejaydProtocol.py
 usr/lib/python*/site-packages/deejayd/mediadb/*.py
