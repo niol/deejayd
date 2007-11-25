@@ -69,6 +69,10 @@ class DeejaydKeyValue(deejayd.interfaces.DeejaydKeyValue, DeejaydAnswer):
         self.get_contents()
         return deejayd.interfaces.DeejaydKeyValue.__getitem__(self, name)
 
+    def keys(self):
+        self.get_contents()
+        return deejayd.interfaces.DeejaydKeyValue.keys(self)
+
     def items(self):
         self.get_contents()
         return deejayd.interfaces.DeejaydKeyValue.items(self)
@@ -330,6 +334,15 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     def _send_simple_command(self, cmd_name):
         cmd = DeejaydXMLCommand(cmd_name)
         return self._send_command(cmd)
+
+    def get_playlist(self, name = None):
+        return DeejaydPlaylist(self,name)
+
+    def get_webradios(self):
+        return DeejaydWebradioList(self)
+
+    def get_queue(self):
+        return DeejaydQueue(self)
 
     def ping(self):
         return self._send_simple_command('ping')
