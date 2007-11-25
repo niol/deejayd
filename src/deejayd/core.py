@@ -212,6 +212,9 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def get_webradios(self):
         return DeejaydWebradioList(self)
 
+    def get_queue(self):
+        return DeejaydQueue(self)
+
     def go_to(self, id, id_type = None):
         # play
         raise NotImplementedError

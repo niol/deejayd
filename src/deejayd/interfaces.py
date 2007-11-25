@@ -234,6 +234,9 @@ class DeejaydCore:
     def get_webradios(self):
         raise NotImplementedError
 
+    def get_queue(self):
+        raise NotImplementedError
+
     def get_audio_dir(self, dir=None):
         raise NotImplementedError
 
