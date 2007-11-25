@@ -26,6 +26,9 @@ class DeejaydKeyValue(DeejaydAnswer):
     def __getitem__(self, name):
         return self.contents[name]
 
+    def keys(self):
+        return self.contents.keys()
+
     def items(self):
         return self.contents.items()
 
