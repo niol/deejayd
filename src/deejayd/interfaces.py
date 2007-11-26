@@ -118,6 +118,9 @@ class DeejaydQueue:
     def get(self, first = 0, length = None):
         raise NotImplementedError
 
+    def add_song(self, path, position=None):
+        self.add_songs([path], position)
+
     def add_songs(self, paths, position = None):
         raise NotImplementedError
 

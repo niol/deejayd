@@ -71,22 +71,27 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
 
     def __init__(self, deejaydcore):
         self.deejaydcore = deejaydcore
+        self.source = self.deejaydcore.sources.get_source('queue')
 
     def get(self, first = 0, length = None):
-        # queueInfo
-        raise NotImplementedError
+        return self.source.get_content()
 
     def add_songs(self, paths, position = None):
-        # queueAdd
-        raise NotImplementedError
+        position = position and int(position) or None
+        try:
+            self.source.add_path(paths, position)
+        except sources._base.ItemNotFoundException:
+            raise DeejaydError('%s not found' % (paths,))
 
     def clear(self):
-        # queueClear
-        raise NotImplementedError
+        self.source.clear()
 
     def del_songs(self, ids):
-        # queueRemove
-        raise NotImplementedError
+        for id in ids:
+            try:
+                self.source.delete(int(id))
+            except sources._base.ItemNotFoundException:
+                raise DeejaydError('Song with id %d not found', id)
 
 
 class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):

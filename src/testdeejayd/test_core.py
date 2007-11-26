@@ -1,5 +1,5 @@
 """Deejayd Client library testing"""
-import os
+import os, time, random
 
 from testdeejayd import TestCaseWithMediaData
 
@@ -127,6 +127,39 @@ class TestCore(TestCaseWithMediaData):
         wr_list.delete_webradio(retrievedWr1['id'])
         wr_list = self.deejaydcore.get_webradios()
         self.failIf(testWrName in wr_list.names())
+
+    def testQueue(self):
+        """Add songs to the queue, try to retrieve it, delete some songs in it, then clear it."""
+        q = self.deejaydcore.get_queue()
+
+        myq = []
+        how_many_songs = 10
+        for song_path in self.testdata.getRandomSongPaths(how_many_songs):
+            myq.append(song_path)
+            q.add_song(song_path)
+
+        ddq = q.get()
+
+        ddq_paths = [song['path'] for song in ddq]
+        for song_path in myq:
+            self.failUnless(song_path in ddq_paths)
+
+        random.seed(time.time())
+        songs_to_delete = random.sample(myq, how_many_songs / 3)
+        q.del_songs([song['id'] for song in ddq\
+                                if song['path'] in songs_to_delete])
+
+        ddq = q.get()
+        ddq_paths = [song['path'] for song in ddq]
+        for song_path in myq:
+            if song_path in songs_to_delete:
+                self.failIf(song_path in ddq_paths)
+            else:
+                self.failUnless(song_path in ddq_paths)
+
+        q.clear()
+        ddq = q.get()
+        self.assertEqual(ddq, [])
 
 
 # vim: ts=4 sw=4 expandtab
