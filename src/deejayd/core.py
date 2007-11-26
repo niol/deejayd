@@ -3,9 +3,7 @@ from deejayd.interfaces import DeejaydError,\
                                DeejaydAnswer, DeejaydKeyValue, DeejaydFileList,\
                                DeejaydMediaList, DeejaydDvdInfo
 from deejayd.ui.config import DeejaydConfig
-from deejayd.database.sqlite import SqliteDatabase
-from deejayd import player, sources, mediadb
-from deejayd.mediadb.library import AudioLibrary, VideoLibrary
+from deejayd import player, sources, mediadb, database
 
 # Exception imports
 import deejayd.sources.webradio
@@ -161,24 +159,16 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         if not config:
             config = DeejaydConfig()
 
-        dbfilename = config.get('database', 'db_file')
-        db = SqliteDatabase(dbfilename)
+        db = database.init(config).get_db()
         db.connect()
 
         self.player = player.init(db, config)
 
-        music_dir = config.get('mediadb', 'music_directory')
-        self.audio_library = AudioLibrary(db, self.player, music_dir)
-        if config.get('general', 'video_support') == 'yes':
-            video_dir = config.get('mediadb', 'video_directory')
-            self.video_library = VideoLibrary(db, self.player, video_dir)
-        else:
-            self.video_library = None
+        self.audio_library,self.video_library = mediadb.init(db,\
+                                            self.player,config)
 
-        self.sources = sources.SourceFactory(self.player, db,
-                                             self.audio_library,
-                                             self.video_library,
-                                             config)
+        self.sources = sources.init(self.player, db, self.audio_library,
+                                             self.video_library, config)
 
     def play_toggle(self):
         # play

@@ -107,4 +107,10 @@ class SourceFactory:
     def queue_reset(self):
         self.sources_obj["queue"].reset()
 
+
+def init(player,db,audio_library,video_library,config):
+    source = SourceFactory(player,db,audio_library,video_library,config)
+    return source
+
+
 # vim: ts=4 sw=4 expandtab

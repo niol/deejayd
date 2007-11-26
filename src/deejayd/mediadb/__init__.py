@@ -5,6 +5,8 @@ from deejayd.mediadb import library
 import sys
 
 def init(db, player, config):
+    audio_library,video_library = None, None
+
     try: audio_dir = config.get("mediadb","music_directory")
     except NoOptionError:
         sys.exit("You have to choose a music directory")

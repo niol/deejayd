@@ -10,9 +10,8 @@ except ImportError: # python 2.4
 
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
-from deejayd.database.database import DatabaseFactory
 from deejayd.net import commandsXML
-from deejayd import player,sources,mediadb
+from deejayd import player,sources,mediadb,database
 
 class DeejaydProtocol(LineReceiver):
 
@@ -80,7 +79,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
         # Init the Database
         log.info("Database Initialisation")
-        self.db = DatabaseFactory(config).get_db()
+        self.db = database.init(config).get_db()
         self.db.connect()
 
         # Init Media Backend
@@ -97,7 +96,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
         # Try to Init sources
         log.info("Sources Initialisation")
-        self.sources = sources.SourceFactory(self.player,self.db,\
+        self.sources = sources.init(self.player,self.db,\
                                  self.audio_library,self.video_library,config)
 
         log.info("Deejayd started :-)")
