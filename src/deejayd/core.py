@@ -269,6 +269,9 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         # getDir
         raise NotImplementedError
 
+    def audio_search(self, search_txt, type):
+        raise NotImplementedError
+
     def get_video_dir(self,dir = None):
         # getvideodir
         raise NotImplementedError

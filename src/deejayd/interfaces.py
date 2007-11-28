@@ -246,6 +246,9 @@ class DeejaydCore:
     def get_audio_dir(self, dir=None):
         raise NotImplementedError
 
+    def audio_search(self, search_txt, type):
+        raise NotImplementedError
+
     def get_video_dir(self, dir=None):
         raise NotImplementedError
 
