@@ -117,6 +117,20 @@ class AvailableCommands:
         for dir in rsp.get_directories(): print "directory:", dir
         for file in rsp.get_files(): print "file:", file["filename"]
 
+    def audio_search(self, args):
+        """Search in audio library
+           ex: djc audio_search type search_txt
+           type has to be in ('all','artist','album','genre','title')"""
+        try: search_txt = args[0]
+        except IndexError:
+            raise DjcError('You need to enter a search text')
+        try: type = args[1]
+        except IndexError:
+            raise DjcError('You need to enter a search type')
+        rsp self.server.audio_search(search_txt, type)
+        for file in rsp.get_files():
+            print "file:", file["filename"]
+
 # Video commands
     def video_update(self, args):
         """Update video library"""
