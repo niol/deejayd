@@ -210,7 +210,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def get_queue(self):
         return DeejaydQueue(self)
 
-    def go_to(self, id, id_type = None):
+    def go_to(self, id, id_type = None, source = None):
         # play
         raise NotImplementedError
 

@@ -368,11 +368,13 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         cmd = DeejaydXMLCommand('current')
         return self._send_command(cmd,DeejaydMediaList())
 
-    def go_to(self, id, id_type = None):
+    def go_to(self, id, id_type = None, source = None):
         cmd = DeejaydXMLCommand('play')
         cmd.add_simple_arg('id', id)
         if id_type:
             cmd.add_simple_arg('id_type', id_type)
+        if source:
+            cmd.add_simple_arg('source', source)
         return self._send_command(cmd)
 
     def set_volume(self, volume_value):

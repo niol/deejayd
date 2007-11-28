@@ -195,7 +195,7 @@ class DeejaydCore:
     def get_current(self):
         raise NotImplementedError
 
-    def go_to(self, id, id_type = None):
+    def go_to(self, id, id_type = None, source = None):
         raise NotImplementedError
 
     def set_volume(self, volume_value):
