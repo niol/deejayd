@@ -164,6 +164,13 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
             cmd.add_simple_arg('pos', position)
         return self.server._send_command(cmd)
 
+    def loads(self, names, pos = None):
+        cmd = DeejaydXMLCommand('queueLoadPlaylist')
+        cmd.add_multiple_arg('name', names)
+        if pos != None:
+            cmd.add_simple_arg('pos', pos)
+        return self.server._send_command(cmd)
+
     def clear(self):
         cmd = DeejaydXMLCommand('queueClear')
         return self.server._send_command(cmd)

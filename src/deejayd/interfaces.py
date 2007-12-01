@@ -124,6 +124,12 @@ class DeejaydQueue:
     def add_songs(self, paths, position = None):
         raise NotImplementedError
 
+    def load(self, name, pos = None):
+        return self.loads([name], pos)
+
+    def loads(self, names, pos = None):
+        raise NotImplementedError
+
     def clear(self):
         raise NotImplementedError
 

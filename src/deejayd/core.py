@@ -83,6 +83,13 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         except sources._base.ItemNotFoundException:
             raise DeejaydError('%s not found' % (paths,))
 
+    def loads(self, names, pos=None):
+        pos = pos and int(pos) or None
+        try:
+            self.source.load_playlist(self.name, pos)
+        except sources.playlist.PlaylistNotFoundException:
+            raise DeejaydError('Playlist %s does not exist.' % name)
+
     def clear(self):
         self.source.clear()
 
