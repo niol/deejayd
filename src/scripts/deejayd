@@ -19,6 +19,8 @@ parser.add_option("-n","--nodaemon",action="store_false",dest="daemon",\
     help="no daemonize deejayd")
 parser.add_option("-l","--log-file",type="string",dest="logfile",\
     metavar="FILE", help="Specify the log file")
+parser.add_option("-w","--webui-log",type="string",dest="webui_logfile",\
+    metavar="FILE", help="Specify the log file for the webui")
 parser.add_option("-p","--pid-file",type="string",dest="pidfile",\
     metavar="FILE", help="Specify the log file")
 parser.add_option("-c","--conf-file",type="string",dest="conffile",\
@@ -162,15 +164,44 @@ if __name__ == "__main__":
     startLog(options)
 
     from twisted.internet.error import CannotListenError
-    from deejayd.net.deejaydProtocol import DeejaydFactory
     from twisted.python import log
-    factory = DeejaydFactory()
-    port = config.getint("net", "port")
-    for bind_address in config.get_bind_addresses():
-        try: reactor.listenTCP(port, factory, interface=bind_address)
-        except CannotListenError, err:
-            log.err(str(err))
+    service = False
+
+    # net service
+    net_support = config.get("net","enabled")
+    if net_support.lower() == "yes":
+        service = True
+        from deejayd.net.deejaydProtocol import DeejaydFactory
+
+        factory = DeejaydFactory()
+        port = config.getint("net", "port")
+        for bind_address in config.get_bind_addresses('net'):
+            try: reactor.listenTCP(port, factory, interface=bind_address)
+            except CannotListenError, err:
+                log.err(str(err))
+                sys.exit(1)
+
+    # webui service
+    webui_support = config.get("webui","enabled")
+    if webui_support.lower() == "yes":
+        service = True
+        from deejayd.webui import twisted_handler as handler
+        try: site = handler.init(config,options.webui_logfile)
+        except handler.DeejaydWebError, err:
+            log.err(err)
             sys.exit(1)
+
+        port = config.getint("webui","port")
+        for bind_address in config.get_bind_addresses('webui'):
+            try: reactor.listenTCP(port, site, interface=bind_address)
+            except CannotListenError, err:
+                log.err(str(err))
+                sys.exit(1)
+
+    # launch reactor
+    if not service:
+        log.err("No service has been activated")
+        sys.exit(1)
     reactor.run()
 
 # vim: ts=4 sw=4 expandtab
