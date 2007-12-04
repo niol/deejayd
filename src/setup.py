@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import glob
+import glob,os
 from distutils.core import setup
 from distutils.extension import Extension
 import subprocess
@@ -77,6 +77,24 @@ else:
     ext_mod = [xine_ext]
     cmd_class = {'build_ext': build_ext}
 
+#
+# data files
+#
+def build_data_files_list():
+    data = [
+        ('share/doc/deejayd-'+deejayd.__version__, glob.glob("doc/*")),
+        ('share/doc/deejayd-'+deejayd.__version__, glob.glob("README*")),
+        ]
+
+    htdocs_root = 'data/htdocs'
+    for root, dirs, files in os.walk(htdocs_root):
+        paths = [os.path.join(root,f) for f in files]
+        root = root.replace(htdocs_root,'').strip("/")
+        root_path = os.path.join('share/deejayd/htdocs',root)
+        data.append((root_path,paths))
+
+    return data
+
 if __name__ == "__main__":
     setup( name="deejayd", version=deejayd.__version__,
            url="http://mroy31.dyndns.org/~roy/projects/deejayd",
@@ -87,14 +105,13 @@ if __name__ == "__main__":
            scripts=["scripts/deejayd","scripts/djc"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
                      "deejayd.player","deejayd.sources","deejayd.ui",\
-                     "deejayd.database","deejayd.database","deejayd.ext",],
+                     "deejayd.database","deejayd.database","deejayd.ext",\
+                     "deejayd.webui"],
            package_data={'deejayd.ui': ['defaults.conf'],
-            'deejayd.database': ['sql/*.sql']},
+                         'deejayd.database': ['sql/*.sql'],
+                         'deejayd.webui': ['templates/*.xml']},
+           data_files= build_data_files_list(),
            ext_modules=ext_mod,
-           data_files=[('share/doc/deejayd-'+deejayd.__version__,
-                            glob.glob("doc/*")),
-                       ('share/doc/deejayd-'+deejayd.__version__,\
-                       glob.glob("README*"))],
-            cmdclass = cmd_class
+           cmdclass = cmd_class
         )
 # vim: ts=4 sw=4 expandtab

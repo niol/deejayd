@@ -5,6 +5,8 @@ include docs.py
 include deejayd/ui/defaults.conf
 include deejayd/database/sql/*
 include deejayd/ext/xinelib/djdxine.h
+include deejayd/webui/templates/*
 include gentoo/*
 include gentoo/files/*
 include debian/*
+recursive-include data/htdocs *
