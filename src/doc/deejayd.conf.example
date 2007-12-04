@@ -15,10 +15,27 @@ media_backend = xine
 
 
 [net]
+enabled = yes
+port = 6800
 # Addresses to bind to, a list of ip addresses separated by ',' or 'all'.
 # bind_addresses = 127.0.0.1, 192.168.0.1
 bind_addresses = all
-port = 6800
+
+[webui]
+enabled = yes
+port = 6880
+# Addresses to bind to, a list of ip addresses separated by ',' or 'all'.
+# bind_addresses = 127.0.0.1, 192.168.0.1
+bind_addresses = all
+# directory which contains static files for webui
+htdocs_dir = /usr/share/deejayd/htdocs
+# temp directory where deejayd save rdf files for webui
+rdf_dir = /tmp/deejayd_webui
+# Number of seconds between auto-refreshes of ui.
+# set to 0 if you don't want to refresh webui.
+refresh = 0
+# language (only en is supported for the moment)
+lang = en
 
 [database]
 db_type = sqlite
