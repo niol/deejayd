@@ -13,7 +13,7 @@ EDARCS_LOCALREPO="deejayd"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
-IUSE="dvd mad vorbis webradio xine gstreamer X ffmpeg"
+IUSE="dvd mad vorbis webradio xine gstreamer X ffmpeg webui"
 
 DEPEND=" xine? (>=dev-python/pyrex-0.9.4.0
 		>=dev-util/pkgconfig-0.20
@@ -25,6 +25,7 @@ RDEPEND="${DEPEND}
 	>=dev-python/pysqlite-2.2
 	>=dev-python/celementtree-1.0.2
 	>=media-libs/mutagen-1.9
+	webui? ( >=dev-python/twisted-web-0.6.0 )
 	gstreamer? ( >=dev-python/pygtk-2.8
 		>=media-libs/gstreamer-0.10.2
 		>=media-libs/gst-plugins-base-0.10.2
