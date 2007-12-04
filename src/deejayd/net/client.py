@@ -493,7 +493,11 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                 elif elem.tag in ("audio","subtitle","chapter"):
                     assert xmlpath == ['deejayd','response','dvd','track',\
                                             elem.tag]
-            else:
+                elif elem.tag == "listparm":
+                    list_parms = []
+                elif elem.tag == "dictparm":
+                    dict_parms = {}
+            else: # event = "end"
                 xmlpath.pop()
 
                 if elem.tag in ('error','response'):
@@ -510,6 +514,14 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                             expected_answer.set_rootdir(elem.\
                                                            attrib['directory'])
                     expected_answer._received(answer)
+                elif elem.tag == "listparm":
+                    parms[elem.attrib["name"]] = list_parms
+                elif elem.tag == "listvalue":
+                    list_parms.append(elem.attrib["value"])
+                elif elem.tag == "dictparm":
+                    list_parms.append(dict_parms)
+                elif elem.tag == "dictitem":
+                    dict_parms[elem.attrib["name"]] = elem.attrib["value"]
                 elif elem.tag == "parm":
                     value = elem.attrib["value"]
                     try: value = int(value)
@@ -535,7 +547,8 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                     infos = {"title": elem.attrib['title'], \
                              "longest_track": elem.attrib['longest_track']}
                     expected_answer.set_dvd_content(infos)
-                parms = elem.tag == "parm" and parms or {}
+                parms = elem.tag in ("parm","listparm","dictparm","listvalue",\
+                        "dictitem") and parms or {}
 
                 elem.clear()
 
