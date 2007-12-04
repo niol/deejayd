@@ -19,6 +19,13 @@ Description: A media player daemon
  It suppports playlists, searching, many media tags. It can playback many
  music and video formats.
 
+Package: deejayd-webui
+Architecture: all
+Depends: ${python:Depends}, deejayd, python-twisted-web
+XB-Python-Version: ${python:Versions}
+Description: Web interface to control deejayd server
+ This package provides a web interface to control your deejayd server
+
 Package: deejayd-client
 Architecture: all
 Depends: ${python:Depends}, python-celementtree

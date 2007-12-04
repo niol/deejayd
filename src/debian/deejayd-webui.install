@@ -1,0 +1,7 @@
+usr/lib/python*/site-packages/deejayd/webui/*.py
+usr/lib/python*/site-packages/deejayd/webui/templates/*.xml
+usr/share/deejayd/htdocs/js/*.js
+usr/share/deejayd/htdocs/xul/scripts/*.js
+usr/share/deejayd/htdocs/xul/bindings/*.*
+usr/share/deejayd/htdocs/themes/default/*.css
+usr/share/deejayd/htdocs/themes/default/images/*.png
