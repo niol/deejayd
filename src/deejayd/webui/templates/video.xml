@@ -1,0 +1,57 @@
+<hbox flex="1">
+    <vbox flex="5">
+        <toolbar
+            crop="end"
+            style="display:none"
+            id="video-path"/>
+        <listbox
+            id="video-content"
+            onselect="video_ref.updateInfo(this.selectedItem);"
+            flex="1"/>
+    </vbox>
+    <vbox>
+        <deck id="video-update">
+            <button
+                id="video-update-button"
+                class="update-button"
+                oncommand="ajaxdj_ref.send_command('videoUpdate',null,false);"
+                label="&updateDB;"/>
+            <progressmeter
+                id="video-update-progressbar"
+                class="update-progressbar"
+                mode="undetermined"/>
+        </deck>
+        <spacer flex="1"/>
+        <groupbox id="videoinfo-box" flex="1">
+        <caption label="&videoInfo;"/>
+            <vbox pack="center" flex="1">
+                <spacer flex="1"/>
+                <hbox>
+                    <label value="&title; :"/>
+                    <description crop="end" id="video-title"/>
+                </hbox>
+                <spacer flex="1"/>
+                <hbox>
+                    <label value="&length; :"/>
+                    <description id="video-length"/>
+                </hbox>
+                <spacer flex="1"/>
+                <hbox>
+                    <label value="&width; :"/>
+                    <description id="video-videowidth"/>
+                </hbox>
+                <spacer flex="1"/>
+                <hbox>
+                    <label value="&height; :"/>
+                    <description id="video-videoheight"/>
+                </hbox>
+                <spacer flex="1"/>
+                <hbox>
+                    <label value="&subtitle; :"/>
+                    <description crop="end" id="video-external_subtitle"/>
+                </hbox>
+                <spacer flex="1"/>
+            </vbox>
+        </groupbox>
+    </vbox>
+</hbox>

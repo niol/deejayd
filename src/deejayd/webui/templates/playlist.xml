@@ -1,0 +1,263 @@
+<hbox>
+<keyset>
+	<key id="search-key" modifiers="accel" key="s"
+		oncommand="$('search-text').select();"/>
+	<key id="search-key" modifiers="accel" key="l"
+		oncommand="fileList_ref.loadCommand();"/>
+</keyset>
+
+<popupset>
+    <popup id="queue-menu" onpopupshowing="javascript:;">
+        <menuitem
+            class="menuitem-iconic remove-action"
+            label="&remove;"
+            oncommand="queue_ref.removeItems();"/>
+    </popup>
+    <popup id="playlist-menu" onpopupshowing="javascript:;">
+        <menuitem
+            class="menuitem-iconic play-action"
+            label="&play;"
+            oncommand="playlist_ref.play();"/>
+        <menuitem
+            class="menuitem-iconic remove-action"
+            label="&remove;"
+            oncommand="playlist_ref.removeItems();"/>
+    </popup>
+
+    <popup id="fileList-menu" onpopupshowing="javascript:;">
+        <menuitem
+            class="menuitem-iconic add-action"
+            label="&load;"
+            oncommand="fileList_ref.loadFiles(-1);"/>
+        <menuitem
+            class="menuitem-iconic add-action"
+            label="&loadQueue;"
+            oncommand="fileList_ref.loadFilesInQueue(-1);"/>
+        <menu
+            label="&plAdd;">
+            <menupopup id="fileaddplaylist-menu">
+            </menupopup>
+        </menu>
+    </popup>
+
+    <popup id="playlistList-menu" onpopupshowing="javascript:;">
+        <menuitem
+            label="&load;"
+            class="menuitem-iconic add-action"
+            oncommand="fileList_ref.loadPlaylist(-1);"/>
+        <menuitem
+            label="&loadQueue;"
+            class="menuitem-iconic add-action"
+            oncommand="fileList_ref.loadPlaylistInQueue(-1);"/>
+        <menuitem
+            label="&remove;"
+            class="menuitem-iconic remove-action"
+            oncommand="fileList_ref.erasePlaylist();"/>
+    </popup>
+</popupset>
+
+<vbox
+    id="navigation-box"
+    flex="1">
+    <hbox>
+        <toolbar flex="2" id="navigation-menu">
+            <toolbarbutton
+                class="home-menu"
+                id="directory-button"
+                checked="true"
+                oncommand="fileList_ref.setDirectory();"
+                label="&directory;"/>
+            <toolbarbutton
+                class="playlist-menu"
+                id="playlist-button"
+                oncommand="fileList_ref.setPlaylistList();"
+                label="&playlist;"/>
+        </toolbar>
+        <deck id="audio-update">
+            <button
+                id="audio-update-button"
+                class="update-button"
+                oncommand="ajaxdj_ref.send_command('audioUpdate',null,false);"
+                label="&updateDB;"/>
+            <progressmeter
+                id="audio-update-progressbar"
+                mode="undetermined"/>
+        </deck>
+    </hbox>
+
+    <deck
+        flex="1"
+        selectedIndex="0"
+        id="navigation-content">
+        <vbox flex="1">
+            <toolbar
+    	        crop="end"
+	            style="display:none"
+                id="navigation-path"/>
+            <listbox
+                id="file-content"
+                seltype="multiple"
+                flex="1"/>
+            <groupbox>
+            <caption class="search-action" label="&search;"/>
+            <hbox
+                id="search-box">
+                <button
+                    id="search-clear"
+                    class="clear-button"
+                    label="&clear;"
+                    oncommand="fileList_ref.searchClear();"/>
+                <textbox
+                    flex="1"
+                    oncommand="fileList_ref.searchFile();"
+                    timeout="500"
+                    type="timed"
+                    id="search-text"/>
+                <menulist
+                    id="search-type"
+                    label="">
+                    <menupopup>
+                        <menuitem value="all" label="&all;" selected="true"/>
+                        <menuitem value="album" label="&album;"/>
+                        <menuitem value="artist" label="&artist;"/>
+                        <menuitem value="title" label="&title;"/>
+                        <menuitem value="genre" label="&genre;"/>
+                    </menupopup>
+                </menulist>
+            </hbox>
+            </groupbox>
+        </vbox>
+
+        <listbox
+            id="playlistList-content"
+            seltype="multiple"
+            flex="1"/>
+    </deck>
+
+</vbox>
+
+<splitter collapse="before" resizeafter="farthest">
+    <grippy/>
+</splitter>
+
+<vbox
+    flex="6"
+    id="playlist-box">
+
+    <vbox flex="5">
+        <tree
+            id="playlist-tree"
+            enableColumnDrag="true"
+            ref="http://playlist/all-content"
+            datasources="rdf:null"
+	        oncontextmenu="playlist_ref.showPopupMenu(event);"
+            ondblclick = "playlist_ref.play();"
+            ondragover="playlist_ref.dragOver(event);"
+            ondragenter="playlist_ref.dragEnter(event);"
+            ondragexit="playlist_ref.dragExit(event);"
+            ondragdrop="playlist_ref.drop(event);"
+            flex="4">
+            <treecols>
+                <treecol persist="width ordinal hidden" id="pl-status"
+                    label=""/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="pl-track"
+                    flex="1" label="#"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="pl-title"
+                    flex="4" label="&title;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="pl-artist"
+                    flex="3" label="&artist;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="pl-album"
+                    flex="3" label="&album;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="pl-genre"
+                    hidden="true" flex="3" label="&genre;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="pl-time"
+                    flex="2" label="&time;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="pl-bitrate"
+                    hidden="true" flex="2" label="&bitrate;"/>
+            </treecols>
+
+            <template>
+            <rule>
+
+                <treechildren
+                    id="playlist-items">
+                    <treeitem uri="rdf:*">
+                        <treerow>
+                            <treecell label=""/>
+                            <treecell label="rdf:http://playlist/rdf#track"/>
+                            <treecell label="rdf:http://playlist/rdf#title"/>
+                            <treecell label="rdf:http://playlist/rdf#artist"/>
+                            <treecell label="rdf:http://playlist/rdf#album"/>
+                            <treecell label="rdf:http://playlist/rdf#genre"/>
+                            <treecell label="rdf:http://playlist/rdf#length"/>
+                            <treecell label="rdf:http://playlist/rdf#bitrate"/>
+                        </treerow>
+                    </treeitem>
+                </treechildren>
+
+            </rule>
+            </template>
+        </tree>
+        <hbox
+            id="playlist-save-form" style="display:none">
+            <label
+                value="&plName;"
+                control="playlist-save-list"/>
+            <menulist
+                id="playlist-save-list"
+                minwidth="120px" editable="true">
+                <menupopup id="playlist-save-plslist">
+                    <menuitem label=""/>
+                </menupopup>
+            </menulist>
+                <button
+                    height="25px"
+                    label="&ok;"
+                    oncommand="playlist_ref.savePlaylist();"/>
+        </hbox>
+        <hbox
+            flex="0"
+            id="playlist-command">
+            <toolbar>
+                <toolbarbutton
+                    id="playlist-clear"
+                    class="clear-button"
+                   oncommand="ajaxdj_ref.send_command('playlistClear',{},true);"
+                    label="&clear;"/>
+                <toolbarbutton
+                    id="playlist-goCurSong"
+                    oncommand="player_ref.goToCurSong();"
+                    label="&curSong;"/>
+                <toolbarbutton
+                    class="shuffle-button"
+                    id="playlist-shuffle"
+                 oncommand="ajaxdj_ref.send_command('playlistShuffle',{},true);"
+                    label="&shuffle;"/>
+                <deck
+                    id="playlist-save-btn"
+                    selectedIndex="0">
+                    <toolbarbutton
+                        class="save-button"
+                        id="playlist-savebtn"
+                        oncommand="playlist_ref.togglePlaylistForm(1);"
+                        label="&save;"/>
+                    <toolbarbutton
+                        class="cancel-button"
+                        oncommand="playlist_ref.togglePlaylistForm(0);"
+                        label="&cancel;"/>
+                </deck>
+            </toolbar>
+            <spacer flex="1"/>
+            <description id="playlist-description" value=""/>
+        </hbox>
+    </vbox>
+</vbox>
+
+</hbox>

@@ -1,0 +1,491 @@
+
+from deejayd.ui.config import DeejaydConfig
+
+class ArgError(Exception): pass
+
+class _UnknownCommand:
+    method = "get"
+    command_args = []
+
+    def __init__(self, deejayd, answer):
+        self._deejayd = deejayd
+        self._answer = answer
+        self._args = {}
+
+    def argument_validation(self, http_args):
+        print http_args
+        for arg in self.command_args:
+            if arg['name'] in http_args:
+                # format http parms
+                value = http_args[arg['name']]
+                if "mult" in arg.keys() and arg["mult"]:
+                    if not isinstance(value, list): value = [value]
+                    self._args[arg['name']] = value
+                else:
+                    if isinstance(value, list): value = value[0]
+                    self._args[arg['name']] = value
+                    value = [value]
+
+                for v in value:
+                    if arg['type'] == "string":
+                        try: v.split()
+                        except AttributeError:
+                            raise ArgError("arg %s (%s) is not a string" % \
+                                (arg['name'], str(v)))
+
+                    elif arg['type'] == "int":
+                        try: v = int(v)
+                        except (ValueError,TypeError):
+                            raise ArgError("arg %s (%s) is not a int" %\
+                                (arg['name'], str(v)))
+
+                    elif arg['type'] == "enum_str":
+                        if v not in arg['values']:
+                            return self.get_error_answer(\
+                                "arg %s (%s) is not in the possible list"\
+                                % (arg['name'],str(v)))
+
+                    elif arg['type'] == "enum_int":
+                        try: v = int(v)
+                        except (ValueError,TypeError):
+                            return self.get_error_answer(\
+                                "arg %s is not a int" % (arg['name'],))
+                        else:
+                            if v not in arg['values']:
+                                return self.get_error_answer(\
+                                    "arg %s is not in the possible list"\
+                                    % (arg['name'],))
+
+                    elif arg['type'] == "regexp":
+                        import re
+                        if not re.compile(arg['value']).search(v):
+                            return self.get_error_answer(\
+                              "arg %s (%s) not match to the regular exp (%s)" %
+                                (arg['name'],v,arg['value']))
+
+            elif arg['req']:
+                raise ArgError("arg %s is mising" % arg['name'])
+            else:
+                self._args[arg['name']] = arg['default']
+
+    def default_result(self):
+        status = self._deejayd.get_status()
+        # player update
+        cur = None
+        if status["state"] != "stop":
+            cur = self._deejayd.get_current().get_medias()
+            cur = cur[0]
+        self._answer.set_player(status, cur)
+
+        # source update
+        self._answer.set_playlist(status, self._deejayd)
+        self._answer.set_queue(status, self._deejayd)
+        if "webradio" in status.keys():
+            self._answer.set_webradio(status, self._deejayd)
+        if "dvd" in status.keys():
+            self._answer.set_dvd(status, self._deejayd)
+        if "video_dir" in status.keys():
+            self._answer.set_video(status)
+
+    def execute(self):
+        raise NotImplementedError
+
+class Init(_UnknownCommand):
+    name = "init"
+
+    def execute(self):
+        status = self._deejayd.get_status()
+        # available modes
+        av_modes = self._deejayd.get_mode()
+        self._answer.set_available_modes(av_modes)
+
+        # current mode
+        self._answer.set_view_mode(status["mode"])
+
+        # locale string
+        strings = {"confirm": 'Are you sure ?',
+                   "missParm": 'It misses a parameter !',
+                   "replacePls": 'Do you want to replace this playlist ?'}
+        self._answer.set_locale_strings(strings)
+
+        # config parms
+        config = DeejaydConfig()
+        refresh = config.get('webui','refresh')
+        self._answer.set_config({"refresh": refresh})
+
+        # audio files list
+        files_list = self._deejayd.get_audio_dir("")
+        self._answer.set_audiofile_list(files_list, "")
+
+        # video files list
+        try: dir = status["video_dir"]
+        except KeyError: pass # video mode not available
+        else:
+            files_list = self._deejayd.get_video_dir(dir)
+            self._answer.set_videofile_list(files_list, dir)
+
+        # playlist list
+        pls_list = self._deejayd.get_playlist_list()
+        self._answer.set_playlist_list(pls_list.get_medias())
+
+class Refresh(_UnknownCommand):
+    name = "refresh"
+    def execute(self): pass
+
+class SetMode(_UnknownCommand):
+    name = "setMode"
+    command_args = [{"name": "mode", "type": "string", "req": True}]
+
+    def execute(self):
+        self._deejayd.set_mode(self._args["mode"]).get_contents()
+        self._answer.set_view_mode(self._args["mode"])
+
+#
+# Player controls
+#
+class PlayToggle(_UnknownCommand):
+    name = "playtoggle"
+
+    def execute(self):
+        self._deejayd.play_toggle().get_contents()
+
+class GoTo(_UnknownCommand):
+    name = "goto"
+    command_args = [{"name": "id", "type": "int", "req": True},
+          {"name": "id_type", "type": "string", "req": False, "default": None},
+          {"name":"source", "type": "string", "req": False, "default": None}]
+
+    def execute(self):
+        self._deejayd.go_to(self._args["id"], self._args["id_type"], \
+            self._args["source"]).get_contents()
+
+class Stop(_UnknownCommand):
+    name = "stop"
+
+    def execute(self):
+        self._deejayd.stop().get_contents()
+
+class Next(_UnknownCommand):
+    name = "next"
+
+    def execute(self):
+        self._deejayd.next().get_contents()
+
+class Previous(_UnknownCommand):
+    name = "previous"
+
+    def execute(self):
+        self._deejayd.previous().get_contents()
+
+class _Options(_UnknownCommand):
+    def execute(self):
+        status = self._deejayd.get_status()
+        val = status[self.__class__.name] == 1 and (0,) or (1,)
+        self._deejayd.set_option(self.__class__.name,val[0]).get_contents()
+
+class Random(_Options):
+    name = "random"
+
+class Repeat(_Options):
+    name = "repeat"
+
+class Fullscreen(_Options):
+    name = "fullscreen"
+
+class Volume(_UnknownCommand):
+    name = "setVol"
+    command_args = [
+        {"name":"volume", "type":"enum_int", "req":True, "values":range(0,101)}]
+
+    def execute(self):
+        self._deejayd.set_volume(int(self._args["volume"])).get_contents()
+
+class Seek(_UnknownCommand):
+    name = "setTime"
+    command_args = [{"name": "time", "type": "int", "req": True}]
+
+    def execute(self):
+        status = self._deejayd.get_status()
+        if status["state"] != "stop":
+            self._deejayd.seek(self._args["time"])
+
+class AudioLang(_UnknownCommand):
+    name = "setAlang"
+    command_args = [{"name": "lang_idx", "type": "int", "req": True}]
+
+    def execute(self):
+        self._deejayd.set_alang(self._args["lang_idx"]).get_contents()
+
+class SubtitleLang(_UnknownCommand):
+    name = "setSlang"
+    command_args = [{"name": "lang_idx", "type": "int", "req": True}]
+
+    def execute(self):
+        self._deejayd.set_slang(self._args["lang_idx"]).get_contents()
+
+#
+# Library commands
+#
+class _Library(_UnknownCommand):
+    def default_result(self): pass
+
+class AudioLibraryUpdate(_Library):
+    name = "audioUpdate"
+
+    def execute(self):
+        rs = self._deejayd.update_audio_library()
+        self._answer.set_update_library(rs["audio_updating_db"], "audio")
+
+class VideoLibraryUpdate(_Library):
+    name = "videoUpdate"
+
+    def execute(self):
+        rs = self._deejayd.update_video_library()
+        self._answer.set_update_library(rs["video_updating_db"], "video")
+
+class AudioUpdateCheck(_Library):
+    name = "audio_update_check"
+    command_args = [{"name": "id", "type": "int", "req": True}]
+
+    def execute(self):
+        status = self._deejayd.get_status()
+        if "audio_updating_db" in status.keys() and \
+                status["audio_updating_db"] == self._args["id"]:
+            self._answer.set_update_library(self._args["id"], "audio")
+        else:
+            self._answer.set_update_library(self._args["id"], "audio", "0")
+            self._answer.set_msg("The audio library has been updated")
+
+            files_list = self._deejayd.get_audio_dir()
+            self._answer.set_audiofile_list(files_list, "")
+
+class VideoUpdateCheck(_Library):
+    name = "video_update_check"
+    command_args = [{"name": "id", "type": "int", "req": True}]
+
+    def execute(self):
+        status = self._deejayd.get_status()
+        if "video_updating_db" in status.keys() and \
+                status["video_updating_db"] == self._args["id"]:
+            self._answer.set_update_library(self._args["id"], "video")
+        else:
+            self._answer.set_update_library(self._args["id"], "video", 0)
+            self._answer.set_msg("The video library has been updated")
+
+            files_list = self._deejayd.get_video_dir()
+            self._answer.set_videofile_list(files_list, "")
+
+class GetAudioDir(_Library):
+    name = "getdir"
+    method = "post"
+    command_args = [{"name":"dir","type":"string","req":False,"default":""}]
+
+    def execute(self):
+        files_list = self._deejayd.get_audio_dir(self._args["dir"])
+        self._answer.set_audiofile_list(files_list, self._args["dir"])
+
+class AudioSearch(_Library):
+    name = "search"
+    method = "post"
+    command_args = [{"name":"type", "type":"enum_str",
+                     "values": ('all','title','genre','filename','artist',
+                                'album'),"req":True},
+                    {"name":"txt", "type":"string", "req":True}]
+
+    def execute(self):
+        files_list = self._deejayd.audio_search(self._args["txt"],
+                self._args["type"])
+        self._answer.set_audiofile_list(files_list)
+
+#
+# Playlist commands
+#
+class PlaylistAdd(_UnknownCommand):
+    name = "playlistAdd"
+    method = "post"
+    command_args = [{"name":"path","type":"string","req":True,"mult": True},\
+        {"name":"name","type":"string","req":False,"default":None},
+        {"name":"pos","type":"int","req":False,"default":-1}]
+
+    def execute(self):
+        pos = int(self._args["pos"])
+        if pos == -1: pos = None
+
+        pls = self._deejayd.get_playlist(self._args["name"])
+        pls.add_songs(self._args["path"],pos).get_contents()
+
+class PlaylistRemove(_UnknownCommand):
+    name = "playlistRemove"
+    method = "post"
+    command_args = [{"name":"ids","type":"int","req":True,"mult":True},]
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.del_songs(self._args["ids"]).get_contents()
+
+class PlaylistLoad(_UnknownCommand):
+    name = "playlistLoad"
+    method = "post"
+    command_args = [{"name":"pls_name","type":"string","req":True,"mult":True},\
+        {"name":"name","type":"string","req":False,"default":None},
+        {"name":"pos","type":"int","req":True}]
+
+    def execute(self):
+        pos = int(self._args["pos"])
+        if pos == -1: pos = None
+
+        pls = self._deejayd.get_playlist(self._args["name"])
+        pls.loads(self._args["pls_name"],pos).get_contents()
+
+class PlaylistSave(_UnknownCommand):
+    name = "playlistSave"
+    method = "post"
+    command_args = [{"name":"name","type":"string","req":True}]
+
+    def default_result(self):
+        pls_list = self._deejayd.get_playlist_list()
+        self._answer.set_playlist_list(pls_list.get_medias())
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.save(self._args["name"]).get_contents()
+
+class PlaylistErase(_UnknownCommand):
+    name = "playlistSave"
+    method = "post"
+    command_args = [{"name":"name","type":"string","req":True}]
+
+    def default_result(self):
+        pls_list = self._deejayd.get_playlist_list()
+        self._answer.set_playlist_list(pls_list.get_medias())
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.erase(self._args["name"]).get_contents()
+
+class PlaylistShuffle(_UnknownCommand):
+    name = "playlistShuffle"
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.shuffle().get_contents()
+
+class PlaylistClear(_UnknownCommand):
+    name = "playlistClear"
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.clear().get_contents()
+
+#
+# Queue commands
+#
+class QueueAdd(_UnknownCommand):
+    name = "queueAdd"
+    method = "post"
+    command_args = [{"name":"path","type":"string","req":True,"mult":True},\
+                    {"name":"pos","type":"int","req":True}]
+
+    def execute(self):
+        pos = int(self._args["pos"])
+        if pos == -1: pos = None
+
+        queue = self._deejayd.get_queue()
+        queue.add_songs(self._args["path"],pos).get_contents()
+
+class QueueLoad(_UnknownCommand):
+    name = "queueLoad"
+    method = "post"
+    command_args = [{"name":"pls_name","type":"string","req":True,"mult":True},\
+                    {"name":"pos","type":"int","req":True}]
+
+    def execute(self):
+        pos = int(self._args["pos"])
+        if pos == -1: pos = None
+
+        queue = self._deejayd.get_queue()
+        queue.loads(self._args["pls_name"],pos).get_contents()
+
+class QueueRemove(_UnknownCommand):
+    name = "queueRemove"
+    method = "post"
+    command_args = [{"name":"id","type":"int","req":True},]
+
+    def execute(self):
+        queue = self._deejayd.get_queue()
+        queue.del_songs(self._args["id"]).get_contents()
+
+class QueueClear(_UnknownCommand):
+    name = "queueClear"
+
+    def execute(self):
+        queue = self._deejayd.get_queue()
+        queue.clear().get_contents()
+
+#
+# Webradio commands
+#
+class WebradioAdd(_UnknownCommand):
+    name = "webradioAdd"
+    method = "post"
+    command_args = [{"name":"name","type":"string","req":True},\
+                    {"name":"url","type":"string","req":True},]
+
+    def execute(self):
+        wb = self._deejayd.get_webradios()
+        wb.add_webradio(self._args["name"], self._args["url"]).get_contents()
+
+class WebradioDelete(_UnknownCommand):
+    name = "webradioRemove"
+    method = "post"
+    command_args = [{"name":"ids","type":"int","req":True,"mult":True},]
+
+    def execute(self):
+        wb = self._deejayd.get_webradios()
+        wb.delete_webradios(self._args["ids"]).get_contents()
+
+class WebradioClear(_UnknownCommand):
+    name = "webradioClear"
+
+    def execute(self):
+        wb = self._deejayd.get_webradios()
+        wb.clear().get_contents()
+
+#
+# Video commands
+#
+class SetVideoDir(_UnknownCommand):
+    name = "setvideodir"
+    method = "post"
+    command_args = [\
+            {"name":"video_dir","type":"string","req":False,"default":""},]
+
+    def default_result(self):
+        status = self._deejayd.get_status()
+        files_list = self._deejayd.get_video_dir(status["video_dir"])
+        self._answer.set_videofile_list(files_list,status["video_dir"])
+
+    def execute(self):
+        self._deejayd.set_video_dir(self._args["video_dir"]).get_contents()
+
+#
+# Dvd commands
+#
+class DvdLoad(_UnknownCommand):
+    name = "dvdLoad"
+
+    def execute(self):
+        self._deejayd.dvd_reload().get_contents()
+
+###########################################################################
+commands = {}
+
+import sys
+thismodule = sys.modules[__name__]
+for itemName in dir(thismodule):
+    try:
+        item = getattr(thismodule, itemName)
+        commands[item.name] = item
+    except AttributeError:
+        pass
+# Build the list of available commands

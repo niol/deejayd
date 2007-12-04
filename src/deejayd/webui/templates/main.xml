@@ -1,0 +1,320 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="./static/themes/default/theme.css" type="text/css"?>
+<?xml-stylesheet href="./static/xul/bindings/bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE window [
+    <!-- common -->
+    <!ENTITY remove "Remove">
+    <!ENTITY play "Play">
+    <!ENTITY playlist "Playlist">
+    <!ENTITY search "Search">
+    <!ENTITY title "Title">
+    <!ENTITY album "Album">
+    <!ENTITY artist "Artist">
+    <!ENTITY genre "Genre">
+    <!ENTITY time "Time">
+    <!ENTITY bitrate "Bitrate">
+    <!ENTITY all "All">
+    <!ENTITY ok "Ok">
+    <!ENTITY cancel "Cancel">
+    <!ENTITY curSong "Go to Current Song">
+
+    <!-- main.php -->
+    <!ENTITY webradio "Webradio">
+    <!ENTITY video "Video">
+    <!ENTITY dvd "DVD">
+    <!ENTITY navPanel "Navigation Panel">
+    <!ENTITY showDebug "Show Debug Zone">
+    <!ENTITY random "Random">
+    <!ENTITY repeat "Repeat">
+    <!ENTITY audio_channel "Audio Channel :">
+    <!ENTITY subtitle_channel "Subtitle Channel :">
+
+    <!-- playlist.php -->
+    <!ENTITY load "Load">
+    <!ENTITY loadQueue "Load in the queue">
+    <!ENTITY plAdd "Add to playlist">
+    <!ENTITY plName "Playlist Name">
+    <!ENTITY directory "Directory">
+    <!ENTITY updateDB "Update">
+    <!ENTITY clear "Clear">
+    <!ENTITY save "Save">
+    <!ENTITY shuffle "Shuffle">
+
+    <!-- webradio.php -->
+    <!ENTITY wbAdd "Add a Webradio">
+    <!ENTITY wbUrl "URL (.pls and .m3u are supported)">
+    <!ENTITY name "Name">
+    <!ENTITY add "Add">
+    <!ENTITY url "URL">
+    <!ENTITY action "Actions">
+
+    <!-- queue.php -->
+    <!ENTITY queue "Song Queue">
+
+    <!-- dvd.php -->
+    <!ENTITY reload "Reload">
+
+    <!-- video.php -->
+    <!ENTITY fullscreen "Fullscreen">
+    <!ENTITY videoInfo "Video Informations">
+    <!ENTITY length "Length">
+    <!ENTITY width "Width">
+    <!ENTITY height "Height">
+    <!ENTITY subtitle "Subtitle">
+]>
+
+<window
+    id="main-window"
+    title="ajaxDJ"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script src="./static/js/common.js"/>
+<script src="./static/xul/scripts/commonTree.js"/>
+<script src="./static/xul/scripts/commonList.js"/>
+<script src="./static/xul/scripts/fileList.js"/>
+<script src="./static/xul/scripts/player.js"/>
+<script src="./static/xul/scripts/playlist.js"/>
+<script src="./static/xul/scripts/webradio.js"/>
+<script src="./static/xul/scripts/queue.js"/>
+<script src="./static/xul/scripts/video.js"/>
+<script src="./static/xul/scripts/dvd.js"/>
+<script src="./static/js/ajax.js"/>
+<script src="./static/js/main.js"/>
+
+<keyset>
+    <key id="play-key" key="x"
+    	oncommand="ajaxdj_ref.send_command('play','',true);"/>
+    <key id="pause-key" key="c"
+    	oncommand="ajaxdj_ref.send_command('pause','',true);"/>
+    <key id="stop-key" key="v"
+    	oncommand="ajaxdj_ref.send_command('stop','',true);"/>
+    <key id="previous-key" key="w"
+    	oncommand="ajaxdj_ref.send_command('previous','',true);"/>
+    <key id="next-key" key="b"
+    	oncommand="ajaxdj_ref.send_command('next','',true);"/>
+</keyset>
+
+
+<!-- HEADER -->
+<hbox
+    align="start"
+    id="ajaxdj-header" >
+
+    <groupbox id="command-panel">
+        <toolbox align="center" >
+            <toolbar
+                id="command-toolbar">
+                <toolbarbutton
+                 oncommand="return ajaxdj_ref.send_command('previous','',true);"
+                 class="previous-button"
+                 id="previous-button"/>
+                <toolbarbutton
+                 oncommand=
+                        "return ajaxdj_ref.send_command('playtoggle','',true);"
+                 class="play-button"
+                 id="playtoggle-button"/>
+                <toolbarbutton
+                 oncommand="return ajaxdj_ref.send_command('stop','',true);"
+                 class="stop-button"
+                 id="stop-button"/>
+                <toolbarbutton
+                 oncommand="return ajaxdj_ref.send_command('next','',true);"
+                 class="next-button"
+                 id="next-button"/>
+            </toolbar>
+            <toolbar
+                align="center"
+                id="volseek-toolbar">
+                <image
+                    id="volume-image"
+                    src='static/themes/default/images/volume-zero.png'
+                    height="25px"
+                    width="25px"/>
+                <player_volume
+                    class="progressbar"
+                    maxpos="100"
+                    id="player-volume"
+                    progressid="volume-progress"
+                    sliderid="volume-slider"
+                    thumbid="volume-thumb"/>
+            </toolbar>
+        </toolbox>
+    </groupbox>
+
+    <vbox
+        style="visibility: collapse"
+        id="current-song" >
+        <vbox id="media-info" flex="1"/>
+        <hbox>
+            <hbox
+                align="center"
+                id="audio-menubox"
+                style="visibility: collapse">
+                <label value="&audio_channel;"/>
+                <menulist
+                    oncommand="player_ref.set_alang(event.target.value);">
+                    <menupopup id="audio-menu"/>
+                </menulist>
+            </hbox>
+            <hbox
+                align="center"
+                id="subtitle-menubox"
+                style="visibility: collapse">
+                <label value="&subtitle_channel;"/>
+                <menulist
+                    oncommand="player_ref.set_slang(event.target.value);">
+                    <menupopup id="subtitle-menu"/>
+                </menulist>
+            </hbox>
+        </hbox>
+        <hbox
+            id="seekbar"
+            align="center">
+            <button
+                id="seekbar-button"
+                label="0:00 -->"
+                oncommand="player_ref.showSeekbar();"/>
+            <player_seekbar
+                style="visibility: collapse"
+                class="progressbar"
+                maxpos="100"
+                id="player-seekbar"
+                progressid="seek-progress"
+                sliderid="seek-slider"
+                thumbid="seek-thumb"/>
+        </hbox>
+    </vbox>
+
+    <spacer flex="1"/>
+
+    <vbox
+        id="right-header" >
+        <toolbox
+            align="end">
+            <toolbar id="mode-menu-toolbar">
+                <toolbarbutton
+                    class="audio-item"
+                    flex="1"
+                    oncommand="ajaxdj_ref.selectMode('playlist');"
+                    id="playlist-source"
+                    disabled="true"
+                    label="&playlist;"/>
+                <toolbarbutton
+                    class="webradio-item"
+                    flex="1"
+                    oncommand="ajaxdj_ref.selectMode('webradio');"
+                    id="webradio-source"
+                    disabled="true"
+                    label="&webradio;"/>
+                <toolbarbutton
+                    class="video-item"
+                    flex="1"
+                    oncommand="ajaxdj_ref.selectMode('video');"
+                    id="video-source"
+                    disabled="true"
+                    label="&video;"/>
+                <toolbarbutton
+                    class="dvd-item"
+                    flex="1"
+                    oncommand="ajaxdj_ref.selectMode('dvd');"
+                    id="dvd-source"
+                    disabled="true"
+                    label="&dvd;"/>
+            </toolbar>
+        </toolbox>
+    </vbox>
+</hbox>
+<!-- END HEADER -->
+
+<!-- MAIN -->
+<vbox flex="1">
+<deck
+    flex="8"
+    id="main-and-debug"
+    selectedIndex="0">
+    <deck
+        selectedIndex="0"
+        id="main">
+            $playlist
+            $webradio
+            $video
+            $dvd
+    </deck>
+    <textbox
+        id="debug"
+        multiline="true"/>
+</deck>
+
+<!-- Insert Queue -->
+<hbox id="queue-menu">
+    <toolbar>
+        <toolbarbutton
+            id="queue-button"
+            class="collapsed"
+            oncommand="queue_ref.toogleQueue();"
+            label="&queue; :"/>
+    </toolbar>
+    <hbox align="center">
+        <description id="queue-description" value=""/>
+        <button
+            id="queue-clear"
+            class="clear-button"
+            style="visibility: hidden;"
+            oncommand="ajaxdj_ref.send_command('queueClear',{},true);"
+            label="&clear;"/>
+    </hbox>
+</hbox>
+<splitter
+    style="visibility: collapse;"
+    id="queue-splitter"
+    collapse="after"
+    state="collapsed"/>
+<vbox
+    flex="10"
+    id="queue-box">
+    $queue
+</vbox>
+<!-- END Queue -->
+
+</vbox>
+<!-- END MAIN -->
+
+<!-- FOOTER -->
+<hbox
+    id="ajaxdj-footer" >
+    <button
+        id = "debug-button"
+        style = "display: none;"
+        oncommand="ajaxdj_ref.toggleDebugZone();"
+        label="&showDebug;"/>
+    <deck
+        id="msg-loading-box"
+        selectedIndex="0"
+        align="center">
+        <description align="center"/>
+        <description align="center" id="message-box">
+        </description>
+        <progressmeter
+            id="loading-progressbar"
+            mode="undetermined"/>
+    </deck>
+    <spacer flex="1"/>
+    <button
+        id="random-button"
+        oncommand="ajaxdj_ref.send_command('random',null,true);"
+        label="&random;"/>
+    <button
+        id="repeat-button"
+        oncommand="ajaxdj_ref.send_command('repeat',null,true);"
+        label="&repeat;"/>
+    <button
+        class="fullscreen-button"
+        id = "fullscreen-button"
+        oncommand="ajaxdj_ref.send_command('fullscreen',null,true);"
+        label="&fullscreen;"/>
+</hbox>
+<!-- END FOOTER -->
+
+</window>
