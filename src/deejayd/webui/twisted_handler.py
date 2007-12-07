@@ -91,6 +91,8 @@ def init(config, webui_logfile):
     root.putChild("commands",DeejaydCommandHandler())
 
     htdocs_dir = config.get("webui","htdocs_dir")
+    if not os.path.isdir(htdocs_dir):
+        raise DeejaydWebError("Htdocs directory %s does not exists"%htdocs_dir)
     root.putChild("static",static.File(htdocs_dir))
     root.putChild("rdf",static.File(rdf_dir))
 
