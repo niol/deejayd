@@ -250,7 +250,7 @@ class AudioUpdateCheck(_Library):
     def execute(self):
         status = self._deejayd.get_status()
         if "audio_updating_db" in status.keys() and \
-                status["audio_updating_db"] == self._args["id"]:
+                int(status["audio_updating_db"]) == int(self._args["id"]):
             self._answer.set_update_library(self._args["id"], "audio")
         else:
             self._answer.set_update_library(self._args["id"], "audio", "0")
@@ -266,10 +266,10 @@ class VideoUpdateCheck(_Library):
     def execute(self):
         status = self._deejayd.get_status()
         if "video_updating_db" in status.keys() and \
-                status["video_updating_db"] == self._args["id"]:
+                int(status["video_updating_db"]) == int(self._args["id"]):
             self._answer.set_update_library(self._args["id"], "video")
         else:
-            self._answer.set_update_library(self._args["id"], "video", 0)
+            self._answer.set_update_library(self._args["id"], "video", "0")
             self._answer.set_msg("The video library has been updated")
 
             files_list = self._deejayd.get_video_dir()
