@@ -421,7 +421,8 @@ class PlaylistLoad(UnknownCommand):
                     {"name":"pos", "type":"int", "req":False,"default": None}]
 
     def execute(self):
-        pos = self.args["pos"] and int(self.args["pos"]) or None
+        if self.args["pos"] != None: pos = int(self.args["pos"])
+        else: pos = None
         try: self.deejayd_args["sources"].get_source("playlist").\
                 load_playlist(self.args["name"], pos)
         except sources.playlist.PlaylistNotFoundException:
@@ -458,7 +459,8 @@ class PlaylistAdd(UnknownCommand):
                     {"name":"name", "type":"string","req":False,"default":None}]
 
     def execute(self):
-        pos = self.args["pos"] and int(self.args["pos"]) or None
+        if self.args["pos"] != None: pos = int(self.args["pos"])
+        else: pos = None
         try: self.deejayd_args["sources"].get_source("playlist").\
                 add_path(self.args['path'],self.args["name"],pos)
         except sources._base.ItemNotFoundException:
@@ -620,7 +622,8 @@ class QueueAdd(UnknownCommand):
                     {"name":"pos", "type":"int", "req":False, "default":None}]
 
     def execute(self):
-        pos = self.args["pos"] and int(self.args["pos"]) or None
+        if self.args["pos"] != None: pos = int(self.args["pos"])
+        else: pos = None
         try: self.deejayd_args["sources"].get_source("queue").\
                 add_path(self.args["path"],pos)
         except sources._base.ItemNotFoundException:
@@ -636,7 +639,8 @@ class QueueLoadPlaylist(UnknownCommand):
                     {"name":"pos", "type":"int", "req":False, "default":None}]
 
     def execute(self):
-        pos = self.args["pos"] and int(self.args["pos"]) or None
+        if self.args["pos"] != None: pos = int(self.args["pos"])
+        else: pos = None
         try: self.deejayd_args["sources"].get_source("queue").\
                               load_playlist(self.args["name"],pos)
         except sources.playlist.PlaylistNotFoundException:

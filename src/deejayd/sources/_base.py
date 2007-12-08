@@ -33,14 +33,14 @@ class UnknownSource:
     def get_item_ids(self):
         return [item["id"] for item in self.source_content]
 
-    def add_files(self,items,first_pos = 0):
-        init_pos = first_pos or len(self.source_content)
-        old_content = self.source_content[init_pos:len(self.source_content)]
-        self.source_content = self.source_content[0:init_pos]
+    def add_files(self,items,first_pos = None):
+        if first_pos == None: first_pos = len(self.source_content)
+        old_content = self.source_content[first_pos:len(self.source_content)]
+        self.source_content = self.source_content[0:first_pos]
 
         i = 0
         for s in items:
-            pos = init_pos+i
+            pos = first_pos+i
             s["pos"] = pos
             if "id" not in s.keys():
                 s["id"] = self.set_item_id()
@@ -52,7 +52,7 @@ class UnknownSource:
             i += 1
 
         for song in old_content:
-            song["pos"] = init_pos+i
+            song["pos"] = first_pos+i
             i+=1
 
         self.source_content.extend(old_content)
