@@ -743,7 +743,9 @@ class DeejayDaemonAsync(_DeejayDaemon):
             self.disconnect()
 
         self.__create_socket()
-        self.socket_to_server.connect((host, port))
+        try: self.socket_to_server.connect((host, port))
+        except socket.connecterror, msg:
+            raise ConnectError('Connection error %s' % str(msg))
         self.socket_thread.start()
 
     def disconnect(self):
