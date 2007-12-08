@@ -512,12 +512,13 @@ class PlaylistRemove(UnknownCommand):
 class PlaylistMove(UnknownCommand):
     """Move song with id "id" to position "new_position"."""
     command_name = 'playlistMove'
-    command_args = [{"name":"id", "type":"int", "req":True},
-                    {"name":"new_position", "type":"int", "req":True}]
+    command_args = [{"name":"ids", "type":"int", "req":True, "mult": True},
+                    {"name":"new_pos", "type":"int", "req":True}]
 
     def execute(self):
+        ids = [int(id) for id in self.args["ids"]]
         try: self.deejayd_args["sources"].get_source("playlist").move(\
-                int(self.args["id"]),int(self.args["new_position"]))
+                ids,int(self.args["new_pos"]))
         except sources._base.ItemNotFoundException:
             return self.get_error_answer('Song not found')
         else: return self.get_ok_answer()

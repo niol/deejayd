@@ -164,6 +164,9 @@ class DeejaydPlaylist:
     def loads(self, names, pos = None):
         raise NotImplementedError
 
+    def move(self, ids, new_pos):
+        raise NotImplementedError
+
     def shuffle(self):
         raise NotImplementedError
 

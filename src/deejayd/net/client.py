@@ -218,6 +218,12 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
             cmd.add_simple_arg('pos', pos)
         return self.server._send_command(cmd)
 
+    def move(self, ids, new_pos):
+        cmd = DeejaydXMLCommand('playlistMove')
+        cmd.add_multiple_arg('ids', ids)
+        cmd.add_simple_arg('new_pos', new_pos)
+        return self.server._send_command(cmd)
+
     def shuffle(self):
         cmd = DeejaydXMLCommand('playlistShuffle')
         if self.__pl_name != None:

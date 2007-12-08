@@ -31,17 +31,22 @@ class Playlist(UnknownSource):
             self.source_content = content
 
 
-    def move(self,id,new_pos,type):
-        song = self.get_song(id,type)
-        old_pos = song["pos"]
-        del self.source_content[old_pos]
-        self.source_content.insert(new_pos,song)
+    def move(self,ids,new_pos,type):
+        songs = []
+        for id in ids:
+            songs.append(self.get_item(id,type))
+        old_source_content = self.source_content
+        self.source_content = []
+        for index,item in enumerate(old_source_content):
+            if index == new_pos:
+                self.source_content.extend(songs)
+            if item not in songs:
+                self.source_content.append(item)
 
         # Reorder the playlist
         ids = range(0,len(self.source_content))
         for id in ids:
             self.source_content[id]["pos"] = id
-
         # Increment sourceId
         self.source_id += 1
 

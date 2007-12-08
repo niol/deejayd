@@ -139,6 +139,12 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError('Playlist %s does not exist.' % name)
 
+    def move(self, ids, new_pos):
+        try:
+            self.source.move(ids, new_pos)
+        except sources._base.ItemNotFoundException:
+            raise DeejaydError('song with id %d not found' % (id,))
+
     def shuffle(self, name=None):
         try:
             self.source.shuffle(name)
