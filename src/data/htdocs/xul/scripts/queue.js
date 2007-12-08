@@ -25,7 +25,11 @@ var Queue = function()
         return true;
     };
 
-    this.dropAction = function(pos) { fileList_ref.loadItemsInQueue(pos); };
+    this.dropAction = function(pos)
+    {
+        fileList_ref.loadItemsInQueue(pos);
+        fileList_ref.dragItemType = null;
+    };
 
     this.toogleQueue = function()
     {

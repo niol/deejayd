@@ -13,8 +13,6 @@ var FileList = function()
     this.updateBox = "audio-update";
     this.listType = "audio";
 
-    this.dragInit = false;
-
     this.init = function()
     {
         try{
@@ -258,7 +256,6 @@ var FileObserver = {
 
         fileList_ref.dragItemType = evt.target.getAttribute("type");
         var plainText=evt.target.value;
-        var data = new Array(plainText);
 
         var ds = Components.classes["@mozilla.org/widget/dragservice;1"].
                getService(Components.interfaces.nsIDragService);
@@ -268,7 +265,7 @@ var FileObserver = {
         var textWrapper = Components.classes["@mozilla.org/supports-string;1"].
                createInstance(Components.interfaces.nsISupportsString);
         textWrapper.data = plainText;
-        trans.setTransferData("text/plain", textWrapper, textWrapper.data.length);
+        trans.setTransferData("text/plain",textWrapper,textWrapper.data.length);
         // create an array for our drag items, though we only have one this time
         var transArray = Components.classes["@mozilla.org/supports-array;1"].
                 createInstance(Components.interfaces.nsISupportsArray);

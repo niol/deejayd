@@ -337,6 +337,17 @@ class PlaylistLoad(_UnknownCommand):
         pls = self._deejayd.get_playlist(self._args["name"])
         pls.loads(self._args["pls_name"],pos).get_contents()
 
+class PlaylistMove(_UnknownCommand):
+    name = "playlistMove"
+    method = "post"
+    command_args = [{"name":"ids","type":"int","req":True,"mult": True},
+                    {"name":"new_pos","type":"int","req":True}]
+
+    def execute(self):
+        ids = [int(id) for id in self._args["ids"]]
+        pls = self._deejayd.get_playlist()
+        pls.move(ids, int(self._args["new_pos"])).get_contents()
+
 class PlaylistSave(_UnknownCommand):
     name = "playlistSave"
     method = "post"

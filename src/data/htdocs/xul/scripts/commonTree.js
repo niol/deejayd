@@ -3,6 +3,8 @@
 var CommonTreeManagement = function()
 {
     this.treeId = -1;
+    this.canDrop = false;
+    this.mediaDragged = false;
 
     this.init = function()
     {
@@ -91,20 +93,46 @@ var CommonTreeManagement = function()
     /**************************************************************/
     this.row = {obj: null, pos: -1};
 
-    this.dragFileExit = function(evt)
+    this.dragFileExit = function(evt) { evt.target.className = ""; };
+
+    this.dragStart = function(evt)
     {
-        evt.target.className = "";
+        evt.stopPropagation();
+        if (!this.canDrop)
+            return;
+        try{
+            netscape.security.PrivilegeManager.
+                enablePrivilege("UniversalXPConnect");
+            }
+        catch(ex){return} // drag and drop not allowed
+
+        this.mediaDragged = true;
+        var ds = Components.classes["@mozilla.org/widget/dragservice;1"].
+               getService(Components.interfaces.nsIDragService);
+        var trans = Components.classes["@mozilla.org/widget/transferable;1"].
+               createInstance(Components.interfaces.nsITransferable);
+        trans.addDataFlavor("text/plain");
+        var textWrapper = Components.classes["@mozilla.org/supports-string;1"].
+               createInstance(Components.interfaces.nsISupportsString);
+        textWrapper.data = "";
+        trans.setTransferData("text/plain",textWrapper,textWrapper.data.length);
+        // create an array for our drag items, though we only have one this time
+        var transArray = Components.classes["@mozilla.org/supports-array;1"].
+                createInstance(Components.interfaces.nsISupportsArray);
+        transArray.AppendElement(trans);
+        // Actually start dragging
+        ds.invokeDragSession(evt.target, transArray, null,
+            ds.DRAGDROP_ACTION_COPY + ds.DRAGDROP_ACTION_MOVE);
     };
 
     this.dragOver = function(evt)
     {
         evt.stopPropagation();
-
         try{
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
             }
-        catch(ex){return}
+        catch(ex){return} // drag and drop not allowed
 
         var oldRow = this.row.obj;
         var row = this.tree.treeBoxObject.getRowAt(evt.pageX, evt.pageY)
@@ -130,7 +158,7 @@ var CommonTreeManagement = function()
             getService().QueryInterface(Components.interfaces.nsIDragService);
         if (dragService) {
             var dragSession = dragService.getCurrentSession();
-            if (dragSession)
+            if (dragSession && (this.mediaDragged || fileList_ref.dragItemType))
                 dragSession.canDrop = true;
             }
     };
@@ -138,33 +166,29 @@ var CommonTreeManagement = function()
     this.dragEnter = function(evt)
     {
         evt.stopPropagation();
-
         try{
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
             }
-        catch(ex){return}
+        catch(ex){return} // drag and drop not allowed
 
-        var dragService = Components
-            .classes["@mozilla.org/widget/dragservice;1"].
+        var dragService=Components.classes["@mozilla.org/widget/dragservice;1"].
             getService().QueryInterface(Components.interfaces.nsIDragService);
-        if (dragService)
-        {
+        if (dragService) {
             var dragSession = dragService.getCurrentSession();
-            if (dragSession)
+            if (dragSession && (this.mediaDragged || fileList_ref.dragItemType))
                 dragSession.canDrop = true;
-        }
+            }
     };
 
     this.dragExit = function(evt)
     {
         evt.stopPropagation();
-
         try{
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
             }
-        catch(ex){return}
+        catch(ex){return} // drag and drop not allowed
 
         if (this.row.obj) {
             this.row.pos = -1;
@@ -184,13 +208,12 @@ var CommonTreeManagement = function()
 
     this.drop = function(evt)
     {
+        evt.stopPropagation();
         try{
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
             }
-        catch(ex){return}
-
-        evt.stopPropagation();
+        catch(ex){return} // drag and drop not allowed
 
         if (this.row.obj) {
             try{ this.row.obj.setAttribute("properties","");}
