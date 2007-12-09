@@ -9,11 +9,11 @@ class VideoBox(SourceBox):
     def __init__(self, player):
         SourceBox.__init__(self, player)
         self.__video_dir = None
+        self.__video_label = None
 
     def update_status(self, status):
         if self.__video_dir == None or status["video_dir"] != self.__video_dir:
             self.__video_dir = status["video_dir"]
-
             server = self._player.get_server()
             server.get_video_dir(self.__video_dir).add_callback(self.cb_build)
 
@@ -57,6 +57,22 @@ class VideoBox(SourceBox):
 
         return toolbar
 
+    def _build_label(self, video_dir):
+        self._destroy_label()
+        if video_dir != "":
+            self.__video_label = gtk.Label("current directory : %s" %\
+                 video_dir)
+            self.__video_label.modify_font(pango.\
+                FontDescription("Sans Normal 14"))
+            self.__video_label.show_all()
+            self.toolbar_box.pack_start(self.__video_label, expand = False,\
+                fill = False)
+
+    def _destroy_label(self):
+        if self.__video_label:
+            self.__video_label.destroy()
+            self.__video_label = None
+
     #
     # callbacks
     #
@@ -82,6 +98,8 @@ class VideoBox(SourceBox):
             path = os.path.join(self.__video_dir, file["filename"])
             model.append([file["id"], \
                 file["filename"], path, file["type"], gtk.STOCK_FILE])
+        # update label
+        self._build_label(answer.root_dir)
 
     @gui_callback
     def cb_update_trigger(self, ans):
@@ -90,7 +108,8 @@ class VideoBox(SourceBox):
             self._player.set_error(err)
             return
 
-        # create a progress bar
+        # create a progress bar but first destroy label
+        self._destroy_label()
         self.progress_bar = gtk.ProgressBar()
         self.progress_bar.set_pulse_step(0.1)
         self.progress_bar.show()
@@ -107,9 +126,9 @@ class VideoBox(SourceBox):
                     del self.__update_id
                     self.progress_bar.destroy()
                     del self.progress_bar
+                    self.__reset_tree()
                     self._player.set_video_dir("")
                     self._player.set_banner("Video library has been updated")
-                    self.__reset_tree()
                 else:
                     gobject.timeout_add(1000,update_verif)
 
