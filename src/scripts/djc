@@ -127,7 +127,7 @@ class AvailableCommands:
         try: type = args[1]
         except IndexError:
             raise DjcError('You need to enter a search type')
-        rsp self.server.audio_search(search_txt, type)
+        rsp = self.server.audio_search(search_txt, type)
         for file in rsp.get_files():
             print "file:", file["filename"]
 
