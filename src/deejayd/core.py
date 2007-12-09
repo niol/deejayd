@@ -19,6 +19,26 @@ import deejayd.mediadb.library
 # work.
 
 
+def returns_deejaydanswer(answer_class):
+    def returns_deejaydanswer_instance(func):
+        def interface_clean_func(*__args, **__kw):
+            ans = answer_class()
+            try:
+                res = func(*__args, **__kw)
+            except DeejaydError, txt:
+                ans.set_error(txt)
+            else:
+                if res == None:
+                    ans.contents = True
+                elif answer_class == DeejaydMediaList:
+                    ans.set_medias(res)
+                else:
+                    ans.contents = res
+            return ans
+        return interface_clean_func
+    return returns_deejaydanswer_instance
+
+
 class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
 
     def __init__(self, deejaydcore):
@@ -31,23 +51,11 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
         except sources.sources.UnknownSourceException:
             raise DeejaydError('Webradio support not available.')
 
+    @returns_deejaydanswer(DeejaydMediaList)
     def get(self):
         return self.source.get_content()
 
-    def names(self):
-        all_wr = self.get()
-        names = []
-        for wr in all_wr:
-            names.append(wr['title'])
-        return names
-
-    def get_webradio(self, name):
-        all_wr = self.get()
-        for wr in all_wr:
-            if wr['title'] == name:
-                return wr
-        raise DeejaydError('Webradio %s not found' % name)
-
+    @returns_deejaydanswer(DeejaydAnswer)
     def add_webradio(self, name, urls):
         try:
             self.source.add(urls, name)
@@ -56,6 +64,7 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
         except deejayd.mediadb.library.NotFoundException:
             raise DeejaydError('Webradio info could not be retrieved')
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def delete_webradios(self, wr_ids):
         for id in wr_ids:
             try:
@@ -63,6 +72,7 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
             except sources._base.ItemNotFoundException:
                 raise DeejaydError('Webradio with id %d not found' % id)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def clear(self):
         self.source.clear()
 
@@ -73,9 +83,11 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         self.deejaydcore = deejaydcore
         self.source = self.deejaydcore.sources.get_source('queue')
 
+    @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first = 0, length = None):
         return self.source.get_content()
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def add_songs(self, paths, position = None):
         position = position and int(position) or None
         try:
@@ -83,6 +95,7 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         except sources._base.ItemNotFoundException:
             raise DeejaydError('%s not found' % (paths,))
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def loads(self, names, pos=None):
         pos = pos and int(pos) or None
         try:
@@ -90,9 +103,11 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError('Playlist %s does not exist.' % name)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def clear(self):
         self.source.clear()
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def del_songs(self, ids):
         for id in ids:
             try:
@@ -108,23 +123,24 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         self.source = self.deejaydcore.sources.get_source("playlist")
         self.name = name
 
+    @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first=0, length=-1):
         try:
             songs = self.source.get_content(self.name)
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError('Playlist %s not found' % self.name)
         else:
-            ml = DeejaydMediaList()
             last = length == -1 and len(songs) or int(first) + int(length) - 1
-            ml.set_medias(songs[int(first):last])
-            return ml
+            return songs[int(first):last]
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def save(self, name):
         try:
             self.source.save(name)
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError('Playlist %s does not exist.' % name)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def add_songs(self, paths, position=None):
         pos = position and int(position) or None
         try:
@@ -132,6 +148,7 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         except sources._base.ItemNotFoundException:
             raise DeejaydError('%s not found' % (paths,))
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def loads(self, names, pos=None):
         pos = pos and int(pos) or None
         try:
@@ -139,24 +156,28 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError('Playlist %s does not exist.' % name)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def move(self, ids, new_pos):
         try:
             self.source.move(ids, new_pos)
         except sources._base.ItemNotFoundException:
             raise DeejaydError('song with id %d not found' % (id,))
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def shuffle(self, name=None):
         try:
             self.source.shuffle(name)
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError('Playlist %s does not exist.' % name)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def clear(self, name=None):
         try:
             self.source.clear(name)
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError('Playlist %s does not exist.' % name)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def del_songs(self, ids, name=None):
         if not name:
             name = self.name
@@ -235,6 +256,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         # setOption
         raise NotImplementedError
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def set_mode(self, mode_name):
         try:
             self.sources.set_source(mode_name)
@@ -253,6 +275,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         # setSlang
         raise NotImplementedError
 
+    @returns_deejaydanswer(DeejaydKeyValue)
     def get_status(self):
         status = self.player.get_status()
         status.extend(self.sources.get_status())
@@ -265,9 +288,11 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         # stats
         raise NotImplementedError
 
+    @returns_deejaydanswer(DeejaydKeyValue)
     def update_audio_library(self):
         return self.audio_library.update()
 
+    @returns_deejaydanswer(DeejaydKeyValue)
     def update_video_library(self):
         return self.video_library.update()
 
@@ -275,8 +300,12 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         # playlistErase
         raise NotImplementedError
 
+    @returns_deejaydanswer(DeejaydMediaList)
     def get_playlist_list(self):
-        return self.sources.get_source('playlist').get_list()
+        plname_list = []
+        for plname in self.sources.get_source('playlist').get_list():
+            plname_list.append({'name': plname})
+        return plname_list
 
     def get_audio_dir(self,dir = None):
         # getDir

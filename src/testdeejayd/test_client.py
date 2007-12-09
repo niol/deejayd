@@ -4,12 +4,13 @@ import threading
 from testdeejayd import TestCaseWithMediaData
 
 from testdeejayd.server import TestServer
+from testdeejayd.coreinterface import InterfaceTests
 from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, \
                                DeejaydError, DeejaydPlaylist,\
                                DeejaydWebradioList
 
 
-class TestSyncClient(TestCaseWithMediaData):
+class TestSyncClient(TestCaseWithMediaData, InterfaceTests):
     """Test the DeejaydClient library in synchroneous mode."""
 
     def setUp(self):
@@ -25,115 +26,18 @@ class TestSyncClient(TestCaseWithMediaData):
         self.testserver.start()
 
         # Instanciate the server object of the client library
-        self.deejaydaemon = DeejayDaemonSync()
-        self.deejaydaemon.connect('localhost', testServerPort)
+        self.deejayd = DeejayDaemonSync()
+        self.deejayd.connect('localhost', testServerPort)
 
     def tearDown(self):
-        self.deejaydaemon.disconnect()
+        self.deejayd.disconnect()
         self.testserver.stop()
         TestCaseWithMediaData.tearDown(self)
 
     def testPing(self):
         """Ping server"""
-        self.failUnless(self.deejaydaemon.ping().get_contents())
+        self.failUnless(self.deejayd.ping().get_contents())
 
-    def testSetMode(self):
-        """Test setMode command"""
-
-        # ask an unknown mode
-        mode_name = self.testdata.getRandomString()
-        ans = self.deejaydaemon.set_mode(mode_name)
-        self.assertRaises(DeejaydError, ans.get_contents)
-
-        # ask a known mode
-        known_mode = 'playlist'
-        ans = self.deejaydaemon.set_mode(known_mode)
-        self.failUnless(ans.get_contents(),
-                        'Server did not respond well to setMode command.')
-
-        # Test if the mode has been set
-        status = self.deejaydaemon.get_status()
-        self.assertEqual(status['mode'], known_mode)
-
-    def testPlaylistSaveRetrieve(self):
-        """Save a playlist and try to retrieve it."""
-
-        pl = []
-        djplname = self.testdata.getRandomString()
-
-        # Get current playlist
-        djpl = DeejaydPlaylist(self.deejaydaemon)
-        self.assertEqual(djpl.get().get_medias(), [])
-
-        # Add songs to playlist
-        howManySongs = 3
-        for songPath in self.testdata.getRandomSongPaths(howManySongs):
-            pl.append(songPath)
-            self.failUnless(djpl.add_song(songPath).get_contents())
-
-        # Check for the playlist to be of appropriate length
-        self.assertEqual(self.deejaydaemon.get_status()['playlistlength'],
-                         howManySongs)
-
-        # Save the playlist
-        self.failUnless(djpl.save(djplname).get_contents())
-
-        # Check for the saved playslit to be available
-        retrievedPls = self.deejaydaemon.get_playlist_list().get_medias()
-        self.failUnless(djplname in [p["name"] for p in retrievedPls])
-
-        # Retrieve the saved playlist
-        djpl = DeejaydPlaylist(self.deejaydaemon, djplname)
-        retrievedPl = djpl.get().get_medias()
-        for song_nb in range(len(pl)):
-            self.assertEqual(pl[song_nb], retrievedPl[song_nb]['path'])
-
-    def testWebradioAddRetrieve(self):
-        """Save a webradio and check it is in the list, then delete it."""
-
-        wr_list = DeejaydWebradioList(self.deejaydaemon)
-
-        # Test for bad URI and inexistant playlist
-        for badURI in [[self.testdata.getRandomString(50)],
-                       ['http://' +\
-                        self.testdata.getRandomString(50) + '.pls']]:
-            ans = wr_list.add_webradio(self.testdata.getRandomString(),
-                                      badURI[0])
-            # FIXME : provision for the future where the same webradio may have
-            # multiple urls.
-            #                         badURI)
-            self.assertRaises(DeejaydError, ans.get_contents)
-
-        testWrName = self.testdata.getRandomString()
-
-        # FIXME : provision for the future where the same webradio may have
-        # multiple urls.
-        # testWrUrls = []
-        # for urlCount in range(self.testdata.getRandomInt(10)):
-        #     testWrUrls.append('http://' + self.testdata.getRandomString(50))
-        testWrUrls = 'http://' + self.testdata.getRandomString(50)
-
-        ans = wr_list.add_webradio(testWrName, testWrUrls)
-        self.failUnless(ans.get_contents())
-
-        # FIXME : This should not be, see the future of webradios.
-        #testWrName += '-1'
-
-        #self.failUnless(testWrName in self.deejaydaemon.get_webradios().names())
-
-        #retrievedWr1 = wrList.get_webradio(testWrName)
-        #retrievedWr2 = self.deejaydaemon.get_webradios().\
-        #                                            get_webradio(testWrName)
-
-        #for retrievedWr in [retrievedWr1, retrievedWr2]:
-            # FIXME : Same provision for the future.
-            # for url in testWrUrls:
-            #     self.failUnless(url in retrievedWr['Url'])
-        #    self.assertEqual(testWrUrls, retrievedWr['url'])
-
-        #wrList.delete_webradio(testWrName)
-        #wrList = self.deejaydaemon.get_webradios()
-        #self.failIf(testWrName in wrList.names())
 
 class TestAsyncClient(TestCaseWithMediaData):
     """Test the DeejaydClient library in asynchroenous mode."""
