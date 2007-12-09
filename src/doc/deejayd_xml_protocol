@@ -41,14 +41,16 @@ There are 6 response types :
 <deejayd>
 	<error name="cmdName">error text</error>
 </deejayd>
-ENDXML}}}
+ENDXML
+}}}
   * '''`Ack`''' : Acknowledgement of a command.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
 	<response name="cmdName" type="Ack" />
 </deejayd>
-ENDXML}}}
+ENDXML
+}}}
   * '''`KeyValue`''' : A list of key, value pairs.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -58,7 +60,8 @@ ENDXML}}}
 		<parm name="parmName1" value="parmValue1" />
 	</response>
 </deejayd>
-ENDXML}}}
+ENDXML
+}}}
   * '''`FileAndDirList`''' : A list of files and directories.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -71,7 +74,8 @@ ENDXML}}}
 		</file>
 	</response>
 </deejayd>
-ENDXML}}}
+ENDXML
+}}}
   * '''`MediaList`''' : A list of media (song, webradio,playlist or video) with information for each media :
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
@@ -105,7 +109,8 @@ ENDXML}}}
 		</media>
 	</response>
 </deejayd>
-ENDXML}}}
+ENDXML
+}}}
   * '''`DvdInfo`''' : Format dvd content.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -121,7 +126,8 @@ ENDXML}}}
 		</dvd>
 	</response>
 </deejayd>
-ENDXML}}}
+ENDXML
+}}}
 Responses may be combined in the same physical message :
 {{{
 <?xml version="1.0" encoding="utf-8"?>
@@ -467,8 +473,8 @@ Expected return value : ''`Ack`''
 Move song with id "id" to position "new_position".
 
 Arguments :
-  * {{{id}}} (Simple and Mandatory) : int
-  * {{{new_position}}} (Simple and Mandatory) : int
+  * {{{ids}}} (Multiple and Mandatory) : int
+  * {{{new_pos}}} (Simple and Mandatory) : int
 
 Expected return value : ''`Ack`''
 

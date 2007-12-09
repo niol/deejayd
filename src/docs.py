@@ -247,7 +247,8 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         responseDoc = """
   * '''`%(type)s`''' : %(desc)s
 {{{
-%(example)sENDXML}}}""" % info
+%(example)sENDXML
+}}}""" % info
 
         return responseDoc
 
