@@ -1,4 +1,4 @@
-import gobject,gtk,hildon
+import gobject,gtk,hildon,pango
 from djmote import stock
 
 class StatusBox(gtk.HBox):
@@ -7,36 +7,93 @@ class StatusBox(gtk.HBox):
         gtk.HBox.__init__(self)
 
         self.pack_start(Toolbar(player))
-        self.pack_start(Seekbar(player))
+        self.pack_start(Current(player))
 
+class Current(gtk.HBox):
+
+    def __init__(self,player):
+        gtk.HBox.__init__(self)
+        self.__player = player
+        player.connect("connected", self.update_status)
+        player.connect("update-status", self.update_status)
+        player.connect("disconnected", self.cb_disable)
+
+        # name of current song
+        self.__label = gtk.Label("")
+        self.__label.set_line_wrap(True)
+        self.__label.modify_font(pango.FontDescription("Sans Italic 13"))
+        self.__label.set_justify(gtk.JUSTIFY_CENTER)
+        self.__label.set_size_request(250,50)
+        self.pack_start(self.__label, fill = False)
+        # seekbar
+        self.__seekbar = Seekbar(player)
+        self.pack_start(self.__seekbar)
+        # time button
+        self.__time_button = gtk.Button(label = "0/0")
+        self.__time_button.connect("clicked",self.__toggle_display)
+        self.pack_start(self.__time_button, expand = False, fill = False)
+
+        self.connect("show",self.post_show_action)
+
+    def post_show_action(self, ui = None):
+        self.__seekbar.hide()
+
+    def update_status(self, ui, status):
+        if status["state"] != "stop":
+            server = ui.get_server()
+            server.get_current().add_callback(self.cb_update_current)
+            # update time
+            times = status["time"].split(":")
+            self.__time_button.set_label("%s/%s" % (times[0],times[1]))
+            self.__time_button.set_sensitive(True)
+            # update seekbar
+            self.__seekbar.update_time(int(times[0]),int(times[1]))
+        else:
+            self.cb_disable()
+
+    def cb_update_current(self, current):
+        # update media title
+        media = current.get_medias()[0]
+        if media["type"] == "song":
+            title = "%s (%s)" % (media["title"], media["artist"])
+        else:
+            title = media["title"]
+        self.__label.set_text(title)
+
+    def cb_disable(self):
+        self.__label.set_text("No playing media")
+        self.__time_button.set_label("0/0")
+        self.__seekbar.disable_seekbar()
+
+    def __toggle_display(self, widget):
+        if self.__label.get_property("visible") == True:
+            self.__label.hide()
+            self.__seekbar.show_all()
+        else:
+            self.__label.show_all()
+            self.__seekbar.hide()
 
 class Seekbar(hildon.Seekbar):
 
     def __init__(self, player):
         hildon.Seekbar.__init__(self)
+        self.set_size_request(250,50)
         self.__action = None
-
-        player.connect("connected", self.update_status)
-        player.connect("disconnected", self.disable_seekbar)
-        player.connect("update-status", self.update_status)
 
         self.set_sensitive(False)
         self.__signal = self.connect_after("change-value", self.cb_seek_to,\
                 player)
         self.show()
 
-    def update_status(self, ui, status):
-        if status["state"] == "stop": self.disable_seekbar()
-        else:
-            self.set_sensitive(True)
-            times = status["time"].split(":")
-            self.handler_block(self.__signal)
-            self.set_total_time(int(times[1]))
-            self.set_fraction(int(times[1]))
-            self.set_position(int(times[0]))
-            self.handler_unblock(self.__signal)
+    def update_time(self, current_time, total_time):
+        self.set_sensitive(True)
+        self.handler_block(self.__signal)
+        self.set_total_time(total_time)
+        self.set_fraction(total_time)
+        self.set_position(current_time)
+        self.handler_unblock(self.__signal)
 
-    def disable_seekbar(self, ui = None):
+    def disable_seekbar(self):
         self.set_sensitive(False)
         self.handler_block(self.__signal)
         self.set_position(0);
