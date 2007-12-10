@@ -51,6 +51,12 @@ class DeejaydFileList(DeejaydAnswer):
     def add_dir(self, dir):
         self.directories.append(dir)
 
+    def set_files(self, files):
+        self.files = files
+
+    def set_directories(self, dirs):
+        self.directories = dirs
+
     def get_files(self):
         return self.files
 
@@ -255,7 +261,7 @@ class DeejaydCore:
     def get_audio_dir(self, dir=None):
         raise NotImplementedError
 
-    def audio_search(self, search_txt, type):
+    def audio_search(self, search_txt, type = 'all'):
         raise NotImplementedError
 
     def get_video_dir(self, dir=None):

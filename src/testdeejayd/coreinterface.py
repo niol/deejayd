@@ -161,5 +161,28 @@ class InterfaceTests:
         ddq = q.get()
         self.assertEqual(ddq.get_medias(), [])
 
+    def testAudioLibrary(self):
+        """ Test request on audio library (getdir, search)"""
+        # try to get contents of an unknown directory
+        rand_dir = self.testdata.getRandomString()
+        ans = self.deejayd.get_audio_dir(rand_dir)
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        # get contents of root dir and try to get content of a directory
+        ans = self.deejayd.get_audio_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+        ans = self.deejayd.get_audio_dir(dir)
+        song_files = ans.get_files()
+        self.failUnless(len(song_files) > 0)
+
+        # search an unknown terms
+        text = self.testdata.getRandomString()
+        ans = self.deejayd.audio_search(text)
+        self.assertEqual(ans.get_files(), [])
+
+        # search a known terms
+        file = self.testdata.getRandomElement(song_files)
+        ans = self.deejayd.audio_search(file["title"])
+        self.failUnless(len(ans.get_files()) > 0)
 
 # vim: ts=4 sw=4 expandtab

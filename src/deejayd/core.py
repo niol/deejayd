@@ -32,6 +32,12 @@ def returns_deejaydanswer(answer_class):
                     ans.contents = True
                 elif answer_class == DeejaydMediaList:
                     ans.set_medias(res)
+                elif answer_class == DeejaydFileList:
+                    root_dir, dirs, files = res
+                    if root_dir != None:
+                        ans.set_rootdir(root_dir)
+                    ans.set_files(files)
+                    ans.set_directories(dirs)
                 else:
                     ans.contents = res
             return ans
@@ -313,12 +319,22 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             plname_list.append({'name': plname})
         return plname_list
 
+    @returns_deejaydanswer(DeejaydFileList)
     def get_audio_dir(self,dir = None):
-        # getDir
-        raise NotImplementedError
+        if dir == None: dir = ""
+        try: contents = self.audio_library.get_dir_content(dir)
+        except deejayd.mediadb.library.NotFoundException:
+            raise DeejaydError('Directory %s not found in the database' % dir)
 
-    def audio_search(self, search_txt, type):
-        raise NotImplementedError
+        return dir, contents['dirs'], contents['files']
+
+    @returns_deejaydanswer(DeejaydFileList)
+    def audio_search(self, search_txt, type = 'all'):
+        try: list = self.audio_library.search(type, search_txt)
+        except deejayd.mediadb.library.NotFoundException:
+            raise DeejaydError('type %s is not supported' % (type,))
+
+        return None, [], list
 
     def get_video_dir(self,dir = None):
         # getvideodir

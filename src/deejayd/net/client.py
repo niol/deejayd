@@ -452,7 +452,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         ans = DeejaydFileList(self)
         return self._send_command(cmd, ans)
 
-    def audio_search(self, search_txt, type):
+    def audio_search(self, search_txt, type = 'all'):
         cmd = DeejaydXMLCommand('search')
         cmd.add_simple_arg('type', type)
         cmd.add_simple_arg('txt', search_txt)
