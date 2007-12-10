@@ -15,33 +15,54 @@ import deejayd.mediadb.library
 # FIXME : This file is still a big mess. All commands that are flagged not
 # implemented (raising NotImplementedError) should be rewritten as directly
 # calling appropriate methods on deejayd internal objects. See commandXML for
-# implementation. See testdeejayd/test_core.py to known what should already
+# implementation. See testdeejayd/coreinterface.py to known what should already
 # work.
 
 
+# This decorator is used for the core interface to provide :
+# - A simple way of converting python types to deejayd answers as required by
+#   the defined network interface. This is to ensure that the core API stays
+#   the same as the client library API. This way, code written as a deejayd
+#   client can become a full media player for free by swaping
+#   deejayd.net.DeejaydClient and deejayd.core.DeejaydCore .
+# - A simple way to make this optionnal using an optionnal objanswer argument.
+#   Please don't use objanswer=False if you think that what you write may one
+#   day be used as a deejayd network client. This was originally provided for
+#   use in the deejayd.net.commandsXML module.
 def returns_deejaydanswer(answer_class):
     def returns_deejaydanswer_instance(func):
+
         def interface_clean_func(*__args, **__kw):
-            ans = answer_class()
-            try:
-                res = func(*__args, **__kw)
-            except DeejaydError, txt:
-                ans.set_error(txt)
+            if __kw.has_key('objanswer'):
+                objanswer = __kw['objanswer']
+                del __kw['objanswer']
             else:
-                if res == None:
-                    ans.contents = True
-                elif answer_class == DeejaydMediaList:
-                    ans.set_medias(res)
-                elif answer_class == DeejaydFileList:
-                    root_dir, dirs, files = res
-                    if root_dir != None:
-                        ans.set_rootdir(root_dir)
-                    ans.set_files(files)
-                    ans.set_directories(dirs)
+               objanswer = True
+            if objanswer:
+                ans = answer_class()
+                try:
+                    res = func(*__args, **__kw)
+                except DeejaydError, txt:
+                    ans.set_error(txt)
                 else:
-                    ans.contents = res
-            return ans
+                    if res == None:
+                        ans.contents = True
+                    elif answer_class == DeejaydMediaList:
+                        ans.set_medias(res)
+                    elif answer_class == DeejaydFileList:
+                        root_dir, dirs, files = res
+                        if root_dir != None:
+                            ans.set_rootdir(root_dir)
+                        ans.set_files(files)
+                        ans.set_directories(dirs)
+                    else:
+                        ans.contents = res
+                return ans
+            else:
+                return func(*__args, **__kw)
+
         return interface_clean_func
+
     return returns_deejaydanswer_instance
 
 
