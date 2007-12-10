@@ -5,14 +5,12 @@ This is a deejayd test server executable
 
 import sys, os
 
-from deejayd.net.deejaydProtocol import DeejaydFactory
-from deejayd.database.sqlite import SqliteDatabase
-from deejayd.mediadb.library import AudioLibrary,VideoLibrary
-from deejayd.ui.config import DeejaydConfig
 from twisted.internet import reactor
 from twisted.python import log
-#from deejayd.player import gstreamer
-from deejayd.player import xine
+
+from deejayd.ui.config import DeejaydConfig
+from deejayd import player, mediadb, database
+from deejayd.net.deejaydProtocol import DeejaydFactory
 
 # argv[1] should be port
 # argv[2] should be music dir
@@ -27,15 +25,19 @@ dbfilename = sys.argv[3]
 log.startLogging(open('/tmp/testdeejayd.log', 'a'))
 
 config = DeejaydConfig()
+config.set('net', 'port', port)
+config.set('mediadb', 'music_directory', music_dir)
+config.set('database', 'db_file', dbfilename)
+config.set('general', 'media_backend', 'xine')
 
-db = SqliteDatabase(dbfilename)
+db = database.init(config).get_db()
 db.connect()
 
-player = xine.XinePlayer(db,config)
+player = player.init(db, config)
 
-audio_library = AudioLibrary(db, player, music_dir)
+audio_library, video_library = mediadb.init(db, player, config)
 
-factory = DeejaydFactory(db,player,audio_library)
+factory = DeejaydFactory(db, player, audio_library, video_library)
 reactor.listenTCP(int(port), factory)
 
 audio_library._update()
