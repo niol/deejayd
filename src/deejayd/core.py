@@ -198,15 +198,15 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         if not config:
             config = DeejaydConfig()
 
-        db = database.init(config).get_db()
-        db.connect()
+        self.db = database.init(config).get_db()
+        self.db.connect()
 
-        self.player = player.init(db, config)
+        self.player = player.init(self.db, config)
 
-        self.audio_library,self.video_library = mediadb.init(db,\
+        self.audio_library,self.video_library = mediadb.init(self.db,\
                                             self.player,config)
 
-        self.sources = sources.init(self.player, db, self.audio_library,
+        self.sources = sources.init(self.player, self.db, self.audio_library,
                                              self.video_library, config)
 
     def play_toggle(self):
@@ -263,9 +263,14 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         except sources.UnknownSourceException:
             raise DeejaydError('Unknown mode: %s' % mode_name)
 
-    def get_modes(self):
-        # getMode
-        raise NotImplementedError
+    @returns_deejaydanswer(DeejaydKeyValue)
+    def get_mode(self):
+        av_sources = self.sources.get_available_sources()
+        modes = {}
+        for s in self.sources.sources_list:
+            modes[s] = s in av_sources or 1 and 0
+        return modes
+
 
     def set_alang(self, lang_idx):
         # setAland
@@ -284,9 +289,10 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             status.extend(self.video_library.get_status())
         return dict(status)
 
+    @returns_deejaydanswer(DeejaydKeyValue)
     def get_stats(self):
-        # stats
-        raise NotImplementedError
+        ans = self.db.get_stats()
+        return dict(ans)
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def update_audio_library(self):

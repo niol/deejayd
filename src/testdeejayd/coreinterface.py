@@ -23,6 +23,19 @@ class InterfaceTests:
         status = self.deejayd.get_status().get_contents()
         self.assertEqual(status['mode'], known_mode)
 
+    def testGetMode(self):
+        """Test getMode command"""
+        known_keys = ("queue","playlist","dvd","webradio","video")
+        ans = self.deejayd.get_mode()
+        for k in known_keys:
+            self.failUnless(int(ans[k]) in (0,1))
+
+    def testGetStats(self):
+        """Test getStats command"""
+        ans = self.deejayd.get_stats()
+        for k in ("audio_library_update","songs","artists","albums"):
+            self.failUnless(k in ans.keys())
+
     def testPlaylistSaveRetrieve(self):
         """Save a playlist and try to retrieve it."""
 

@@ -11,6 +11,7 @@ class SourceError(RuntimeError):
 
 
 class SourceFactory:
+    sources_list = ("playlist","queue","webradio","video","dvd")
 
     def __init__(self,player,db,audio_library,video_library,config):
         self.sources_obj = {}
