@@ -221,6 +221,8 @@ class GetMode(UnknownCommand):
     consists in :
   * playlist : 0 or 1 (actually always 1 because it does not need optionnal
                dependencies)
+  * queue : 0 or 1 (actually always 1 because it does not need optionnal
+               dependencies)
   * webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activated)
   * video : 0 or 1 (needs video dependencies, X display and needs to be
             activated in configuration)
@@ -231,7 +233,7 @@ class GetMode(UnknownCommand):
     def execute(self):
         avSources = self.deejayd_args["sources"].get_available_sources()
         modes = []
-        for s in ("playlist","webradio","video","dvd"):
+        for s in ("queue", "playlist","webradio","video","dvd"):
             act = s in avSources or 1 and 0
             modes.append((s,act))
 

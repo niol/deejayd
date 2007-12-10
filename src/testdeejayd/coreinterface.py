@@ -28,6 +28,7 @@ class InterfaceTests:
         known_keys = ("queue","playlist","dvd","webradio","video")
         ans = self.deejayd.get_mode()
         for k in known_keys:
+            self.failUnless(k in ans.get_contents().keys())
             self.failUnless(int(ans[k]) in (0,1))
 
     def testGetStats(self):

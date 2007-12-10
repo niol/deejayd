@@ -243,6 +243,8 @@ For each available source, shows if it is activated or not. The answer
     consists in :
   * playlist : 0 or 1 (actually always 1 because it does not need optionnal
                dependencies)
+  * queue : 0 or 1 (actually always 1 because it does not need optionnal
+               dependencies)
   * webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activated)
   * video : 0 or 1 (needs video dependencies, X display and needs to be
             activated in configuration)
