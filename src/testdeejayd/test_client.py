@@ -1,7 +1,7 @@
 """Deejayd Client library testing"""
 import threading
 
-from testdeejayd import TestCaseWithMediaData
+from testdeejayd import TestCaseWithAudioAndVideoData
 
 from testdeejayd.server import TestServer
 from testdeejayd.coreinterface import InterfaceTests
@@ -10,19 +10,19 @@ from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, \
                                DeejaydWebradioList
 
 
-class TestSyncClient(TestCaseWithMediaData, InterfaceTests):
+class TestSyncClient(TestCaseWithAudioAndVideoData, InterfaceTests):
     """Test the DeejaydClient library in synchroneous mode."""
 
     def setUp(self):
-        TestCaseWithMediaData.setUp(self)
-        self.testdata.build_audio_library_directory_tree()
+        TestCaseWithAudioAndVideoData.setUp(self)
 
         # Set up the test server
         testServerPort = 23344
         dbfilename = '/tmp/testdeejayddb-' +\
                      self.testdata.getRandomString() + '.db'
         self.testserver = TestServer(testServerPort,
-                                     self.testdata.getRootDir(), dbfilename)
+            self.test_audiodata.getRootDir(), self.test_videodata.getRootDir(),
+            dbfilename)
         self.testserver.start()
 
         # Instanciate the server object of the client library
@@ -32,26 +32,26 @@ class TestSyncClient(TestCaseWithMediaData, InterfaceTests):
     def tearDown(self):
         self.deejayd.disconnect()
         self.testserver.stop()
-        TestCaseWithMediaData.tearDown(self)
+        TestCaseWithAudioAndVideoData.tearDown(self)
 
     def testPing(self):
         """Ping server"""
         self.failUnless(self.deejayd.ping().get_contents())
 
 
-class TestAsyncClient(TestCaseWithMediaData):
+class TestAsyncClient(TestCaseWithAudioAndVideoData):
     """Test the DeejaydClient library in asynchroenous mode."""
 
     def setUp(self):
-        TestCaseWithMediaData.setUp(self)
-        self.testdata.build_audio_library_directory_tree()
+        TestCaseWithAudioAndVideoData.setUp(self)
 
         # Set up the test server
         testServerPort = 23344
         dbfilename = '/tmp/testdeejayddb-' +\
                      self.testdata.getRandomString() + '.db'
         self.testserver = TestServer(testServerPort,
-                                     self.testdata.getRootDir(), dbfilename)
+            self.test_audiodata.getRootDir(), self.test_videodata.getRootDir(),
+            dbfilename)
         self.testserver.start()
 
         # Instanciate the server object of the client library
@@ -61,7 +61,7 @@ class TestAsyncClient(TestCaseWithMediaData):
     def tearDown(self):
         self.deejaydaemon.disconnect()
         self.testserver.stop()
-        TestCaseWithMediaData.tearDown(self)
+        TestCaseWithAudioAndVideoData.tearDown(self)
 
     def test_ping(self):
         """Ping server asynchroneously"""
@@ -111,7 +111,7 @@ class TestAsyncClient(TestCaseWithMediaData):
         def cb_update_status(answer):
             self.deejaydaemon.get_status().add_callback(tcb_status)
 
-        djpl.add_song(self.testdata.getRandomSongPaths(1)[0]).\
+        djpl.add_song(self.test_audiodata.getRandomSongPaths(1)[0]).\
                 add_callback(cb_update_status)
 
         cb_called.wait(4)

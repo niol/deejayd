@@ -14,21 +14,27 @@ from deejayd.net.deejaydProtocol import DeejaydFactory
 
 # argv[1] should be port
 # argv[2] should be music dir
-# argv[3] should be db filename
-if len(sys.argv) != 4:
+# argv[3] should be video dir
+# argv[4] should be db filename
+if len(sys.argv) != 5:
     sys.exit('Incorrect invocation')
 
 port = sys.argv[1]
 music_dir = sys.argv[2]
-dbfilename = sys.argv[3]
+video_dir = sys.argv[3]
+dbfilename = sys.argv[4]
 
 log.startLogging(open('/tmp/testdeejayd.log', 'a'))
 
 config = DeejaydConfig()
 config.set('net', 'port', port)
 config.set('mediadb', 'music_directory', music_dir)
+config.set('mediadb', 'video_directory', video_dir)
 config.set('database', 'db_file', dbfilename)
+config.set('general', 'video_support', 'yes')
 config.set('general', 'media_backend', 'xine')
+config.set('xine','audio_output',"none")
+config.set('xine','video_output',"none")
 
 db = database.init(config).get_db()
 db.connect()
@@ -41,6 +47,7 @@ factory = DeejaydFactory(db, player, audio_library, video_library)
 reactor.listenTCP(int(port), factory)
 
 audio_library._update()
+video_library._update()
 
 def printReady():
     os.write(2, 'ready\n')

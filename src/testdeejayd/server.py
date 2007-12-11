@@ -11,17 +11,18 @@ if os.path.isfile(logfile):
 class TestServer:
     """Implements a server ready for testing."""
 
-    def __init__(self, testServerPort, musicDir, dbfilename):
+    def __init__(self, testServerPort, musicDir, videoDir, dbfilename):
         self.testServerPort = testServerPort
         self.musicDir = musicDir
+        self.videoDir = videoDir
         self.dbfilename = dbfilename
 
         self.serverExecRelPath = 'scripts/testserver'
         self.srcpath = self.findSrcPath()
 
     def findSrcPath(self):
-        # Get the server executable path, assuming it is names scripts/deejayd
-        # in a subdirectory of $PYTHONPATH
+        # Get the server executable path, assuming it is names
+        # scripts/testserver in a subdirectory of $PYTHONPATH
         absPath = ''
         notFound = True
         sysPathIterator = iter(sys.path)
@@ -45,6 +46,7 @@ class TestServer:
 
         args = [serverExec, str(self.testServerPort),
                             self.musicDir,
+                            self.videoDir,
                             self.dbfilename]
         env = {}
         env['PYTHONPATH'] = self.srcpath

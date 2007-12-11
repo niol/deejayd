@@ -52,7 +52,7 @@ class InterfaceTests:
 
         # Add songs to playlist
         howManySongs = 3
-        for songPath in self.testdata.getRandomSongPaths(howManySongs):
+        for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
             pl.append(songPath)
             ans = djpl.add_song(songPath)
             self.failUnless(ans.get_contents())
@@ -132,7 +132,7 @@ class InterfaceTests:
 
         myq = []
         how_many_songs = 10
-        for song_path in self.testdata.getRandomSongPaths(how_many_songs):
+        for song_path in self.test_audiodata.getRandomSongPaths(how_many_songs):
             myq.append(song_path)
             ans = q.add_song(song_path)
             self.failUnless(ans.get_contents())
