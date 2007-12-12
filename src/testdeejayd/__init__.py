@@ -28,7 +28,7 @@ class TestCaseWithAudioAndVideoData(unittest.TestCase):
 
         # video library
         self.test_videodata = TestMediaCollection()
-        self.test_videodata.build_audio_library_directory_tree()
+        self.test_videodata.build_video_library_directory_tree()
 
     def tearDown(self):
         self.test_audiodata.cleanLibraryDirectoryTree()

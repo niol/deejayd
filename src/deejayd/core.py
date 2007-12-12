@@ -373,13 +373,20 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         return None, [], list
 
+    @returns_deejaydanswer(DeejaydFileList)
     def get_video_dir(self,dir = None):
-        # getvideodir
-        raise NotImplementedError
+        if dir == None: dir = ""
+        try: contents = self.video_library.get_dir_content(dir)
+        except deejayd.mediadb.library.NotFoundException:
+            raise DeejaydError('Directory %s not found in the database' % dir)
 
+        return dir, contents['dirs'], contents['files']
+
+    @returns_deejaydanswer(DeejaydAnswer)
     def set_video_dir(self, dir):
-        # setvideodir
-        raise NotImplementedError
+        try: self.sources.get_source("video").set_directory(dir)
+        except deejayd.mediadb.library.NotFoundException:
+            raise DeejaydError('Directory %s not found in the database' % dir)
 
     def dvd_reload(self):
         # dvdLoad

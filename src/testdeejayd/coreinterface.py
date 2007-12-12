@@ -163,7 +163,7 @@ class InterfaceTests:
         self.assertEqual(ddq.get_medias(), [])
 
     def testAudioLibrary(self):
-        """ Test request on audio library (getdir, search)"""
+        """ Test request on audio library (get_audio_dir, search)"""
         # try to get contents of an unknown directory
         rand_dir = self.testdata.getRandomString()
         ans = self.deejayd.get_audio_dir(rand_dir)
@@ -186,6 +186,20 @@ class InterfaceTests:
         ans = self.deejayd.audio_search(file["title"])
         self.failUnless(len(ans.get_files()) > 0)
 
+    def testVideoLibrary(self):
+        """ Test request on video library """
+        # try to get contents of an unknown directory
+        rand_dir = self.testdata.getRandomString()
+        ans = self.deejayd.get_video_dir(rand_dir)
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        # get contents of root dir and try to get content of a directory
+        ans = self.deejayd.get_video_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+        ans = self.deejayd.get_video_dir(dir)
+        files = ans.get_files()
+        self.failUnless(len(files) > 0)
+
     def testSetOption(self):
         """ Test set_option commands"""
         # unknown option
@@ -200,7 +214,7 @@ class InterfaceTests:
         self.assertEqual(status[opt], 1)
 
     def testAudioPlayer(self):
-        """ Test player commands (play, pause,...) for audio"""
+        """ Test player commands (play, pause,...) for audio """
         # try to set volume
         vol = 30
         ans = self.deejayd.set_volume(vol)
@@ -235,6 +249,29 @@ class InterfaceTests:
         # test get_current command
         cur = self.deejayd.get_current().get_medias()
         self.assertEqual(len(cur), 1)
+
+        self.deejayd.stop().get_contents()
+
+    def testVideoPlayer(self):
+        """ Test player commands (play, pause,...) for video """
+        # set video mode
+        self.deejayd.set_mode("video").get_contents()
+
+        # choose a wrong directory
+        rand_dir = self.testdata.getRandomString()
+        ans = self.deejayd.set_video_dir(rand_dir)
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        # choose a correct directory
+        ans = self.deejayd.get_video_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+        self.deejayd.set_video_dir(dir).get_contents()
+
+        # play video file
+        self.deejayd.play_toggle().get_contents()
+        # verify status
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status["state"], "play")
 
         self.deejayd.stop().get_contents()
 
