@@ -294,7 +294,7 @@ int djdxine_attach(_Xine* xine, const char *video_driver,
     if (xine->player.stream != NULL) // already atached
         return -1;
 
-    if (is_video) { // init video stuff
+    if ( is_video && strcmp(video_driver,"none") ) { // init video stuff
         xine->player.display = XOpenDisplay(display_name);
         if (!xine->player.display) { // Unable to open display
             _djdxine_set_fatal_error(xine, "Unable to open display");
@@ -331,6 +331,7 @@ int djdxine_attach(_Xine* xine, const char *video_driver,
             _djdxine_set_fatal_error(xine, "Unable to init video driver");
             return 1;
             }
+        xine->isvideo = 1;
         }
     else {
 #ifdef DJD_DEBUG
@@ -338,8 +339,8 @@ int djdxine_attach(_Xine* xine, const char *video_driver,
 #endif
         xine->player.vport = xine_open_video_driver(xine->player.xine, "none",
                                             XINE_VISUAL_TYPE_NONE, NULL);
+        xine->isvideo = 0;
         }
-    xine->isvideo = is_video;
 
 /***
  * Create player
@@ -463,7 +464,7 @@ int djdxine_play(_Xine* xine, const char* filename, int isvideo, int fullscreen)
 
     if (xine->playing) djdxine_stop(xine);
 
-    if (isvideo) {
+    if (xine->isvideo) {
         xine->player.fullscreen = fullscreen;
 
         XLockDisplay(xine->player.display);
@@ -492,6 +493,9 @@ int djdxine_play(_Xine* xine, const char* filename, int isvideo, int fullscreen)
         }
 
     xine->playing = 1;
+#ifdef DJD_DEBUG
+    printf("DEBUG - leave play function \n");
+#endif
     return 0;
 }
 
