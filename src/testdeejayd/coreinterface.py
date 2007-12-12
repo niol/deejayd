@@ -186,4 +186,56 @@ class InterfaceTests:
         ans = self.deejayd.audio_search(file["title"])
         self.failUnless(len(ans.get_files()) > 0)
 
+    def testSetOption(self):
+        """ Test set_option commands"""
+        # unknown option
+        opt = self.testdata.getRandomString()
+        ans = self.deejayd.set_option(opt, 1)
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        # known option
+        opt = self.testdata.getRandomElement(('random','repeat','fullscreen'))
+        ans = self.deejayd.set_option(opt, 1).get_contents()
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status[opt], 1)
+
+    def testAudioPlayer(self):
+        """ Test player commands (play, pause,...) for audio"""
+        # try to set volume
+        vol = 30
+        ans = self.deejayd.set_volume(vol)
+        self.failUnless(ans.get_contents())
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status["volume"], vol)
+
+        # load songs in main playlist
+        djpl = self.deejayd.get_playlist()
+        ans = self.deejayd.get_audio_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+        djpl.add_songs([dir]).get_contents()
+
+        # play song
+        self.deejayd.set_mode("playlist").get_contents()
+        self.deejayd.play_toggle().get_contents()
+        # verify status
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status["state"], "play")
+        # pause
+        self.deejayd.play_toggle().get_contents()
+        # verify status
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status["state"], "pause")
+        self.deejayd.play_toggle().get_contents()
+        # next and previous
+        self.deejayd.next().get_contents()
+        self.deejayd.previous().get_contents()
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status["state"], "play")
+
+        # test get_current command
+        cur = self.deejayd.get_current().get_medias()
+        self.assertEqual(len(cur), 1)
+
+        self.deejayd.stop().get_contents()
+
 # vim: ts=4 sw=4 expandtab

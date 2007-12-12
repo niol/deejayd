@@ -236,29 +236,38 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         self.sources = sources.init(self.player, self.db, self.audio_library,
                                              self.video_library, config)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def play_toggle(self):
-        # play
-        raise NotImplementedError
+        if self.player.get_state() == player._base.PLAYER_PLAY:
+            self.player.pause()
+        else:
+            try: self.player.play()
+            except player._base.PlayerError, err:
+                raise DeejaydError("Unable to play this file : %s" % err)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def stop(self):
-        # stop
-        raise NotImplementedError
+        self.player.stop()
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def previous(self):
-        # previous
-        raise NotImplementedError
+        self.player.previous()
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def next(self):
-        # next
-        raise NotImplementedError
+        self.player.next()
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def seek(self, pos):
-        # seek
-        raise NotImplementedError
+        self.player.set_position(pos)
 
+    @returns_deejaydanswer(DeejaydMediaList)
     def get_current(self):
-        # current
-        raise NotImplementedError
+        medias = []
+        current = self.player.get_playing()
+        if current != None:
+            medias.append(current)
+        return medias
 
     def get_playlist(self, name=None):
         pls = DeejaydPlaylist(self, name)
@@ -271,17 +280,21 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def get_queue(self):
         return DeejaydQueue(self)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def go_to(self, id, id_type = None, source = None):
-        # play
-        raise NotImplementedError
+        try: self.player.go_to(id, id_type, source)
+        except player._base.PlayerError, err:
+            raise DeejaydError("Unable to play this file : %s" % err)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def set_volume(self, volume_value):
-        # setVolume
-        raise NotImplementedError
+        self.player.set_volume(volume_value)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def set_option(self, option_name, option_value):
-        # setOption
-        raise NotImplementedError
+        try: self.player.set_option(option_name, option_value)
+        except player._base.OptionNotFound:
+            raise DeejaydError('option %s does not exist' % option_name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_mode(self, mode_name):
@@ -298,14 +311,17 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             modes[s] = s in av_sources or 1 and 0
         return modes
 
-
+    @returns_deejaydanswer(DeejaydAnswer)
     def set_alang(self, lang_idx):
-        # setAland
-        raise NotImplementedError
+        try: self.player.set_alang(lang_idx)
+        except player._base.PlayerError:
+            raise DeejaydError("Unable to change audio channel")
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def set_slang(self, lang_idx):
-        # setSlang
-        raise NotImplementedError
+        try: self.player.set_slang(lang_idx)
+        except player._base.PlayerError:
+            raise DeejaydError("Unable to change subtitle channel")
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_status(self):
