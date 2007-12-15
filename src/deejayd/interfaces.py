@@ -94,6 +94,9 @@ class DeejaydDvdInfo(DeejaydAnswer):
     def add_track(self, track):
         self.tracks.append(track)
 
+    def set_tracks(self, tracks):
+        self.tracks = tracks
+
     def get_dvd_contents(self):
         self.dvd_content["tracks"] = self.tracks
         return self.dvd_content

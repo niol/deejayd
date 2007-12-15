@@ -185,8 +185,9 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def move(self, ids, new_pos):
+        ids = [int(id) for id in self.args["ids"]]
         try:
-            self.source.move(ids, new_pos)
+            self.source.move(ids, int(new_pos))
         except sources._base.ItemNotFoundException:
             raise DeejaydError('song with id %d not found' % (id,))
 
