@@ -18,6 +18,8 @@ class DvdSource:
         except DvdError: pass
 
     def get_content(self):
+        if not self.dvd_info:
+            return {'title': "DVD NOT LOADED", 'longest_track': "0"}
         return self.dvd_info
 
     def load(self):

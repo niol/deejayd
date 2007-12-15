@@ -55,6 +55,8 @@ def returns_deejaydanswer(answer_class):
                             ans.set_rootdir(root_dir)
                         ans.set_files(files)
                         ans.set_directories(dirs)
+                    elif answer_class == DeejaydDvdInfo:
+                        ans.set_dvd_content(res)
                     else:
                         ans.contents = res
                 return ans
@@ -389,13 +391,15 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         except deejayd.mediadb.library.NotFoundException:
             raise DeejaydError('Directory %s not found in the database' % dir)
 
+    @returns_deejaydanswer(DeejaydAnswer)
     def dvd_reload(self):
-        # dvdLoad
-        raise NotImplementedError
+        try: self.sources.get_source("dvd").load()
+        except sources.dvd.DvdError, msg:
+            raise DeejaydError('%s' % msg)
 
+    @returns_deejaydanswer(DeejaydDvdInfo)
     def get_dvd_content(self):
-        # dvdInfo
-        raise NotImplementedError
+        return self.sources.get_source("dvd").get_content()
 
 
 # vim: ts=4 sw=4 expandtab

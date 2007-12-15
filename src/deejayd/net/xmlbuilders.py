@@ -294,10 +294,6 @@ class DeejaydXMLDvdInfo(DeejaydXMLAck):
     def build_xml(self):
         DeejaydXMLAck.build_xml(self)
         xmldvd = ET.SubElement(self.xmlcontent,'dvd')
-        if not self.dvd_info:
-            xmldvd.attrib['title'] = "DVD NOT LOADED"
-            xmldvd.attrib['longest_track'] = "0"
-            return
 
         xmldvd.attrib['title'] = self._to_xml_string(self.dvd_info['title'])
         xmldvd.attrib['longest_track'] = \

@@ -275,4 +275,13 @@ class InterfaceTests:
 
         self.deejayd.stop().get_contents()
 
+    def testDvd(self):
+        """ Test dvd commands"""
+        status = self.deejayd.get_status().get_contents()
+        dvd_id = status["dvd"]
+
+        self.deejayd.dvd_reload().get_contents()
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status["dvd"], dvd_id + 1)
+
 # vim: ts=4 sw=4 expandtab
