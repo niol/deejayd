@@ -305,31 +305,29 @@ Arguments :
 
 Expected return value : ''`FileAndDirList`''
 
-=== `play` ===
+=== `playToggle` ===
 
-Begin playing at media file with id "id" or toggle play/pause.
-
-Arguments :
-  * {{{id}}} (Simple and Optional) : regexp
-  * {{{id_type}}} (Simple and Optional) : enum_str
-  * {{{source}}} (Simple and Optional) : string
-  * {{{alang}}} (Simple and Optional) : int
-  * {{{slang}}} (Simple and Optional) : int
-
-Expected return value : ''`Ack`''
-
-=== `stop` ===
-
-Stop playing.
+Toggle play/pause.
 
 Arguments :
   * ''This command does not accept any argument.''
 
 Expected return value : ''`Ack`''
 
-=== `pause` ===
+=== `goto` ===
 
-Toggle pause on/off.
+Begin playing at media file with id "id" or toggle play/pause.
+
+Arguments :
+  * {{{id}}} (Simple and Mandatory) : regexp
+  * {{{id_type}}} (Simple and Optional) : enum_str
+  * {{{source}}} (Simple and Optional) : string
+
+Expected return value : ''`Ack`''
+
+=== `stop` ===
+
+Stop playing.
 
 Arguments :
   * ''This command does not accept any argument.''

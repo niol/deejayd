@@ -361,7 +361,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         return self._send_simple_command('ping')
 
     def play_toggle(self):
-        return self._send_simple_command('play')
+        return self._send_simple_command('playToggle')
 
     def stop(self):
         return self._send_simple_command('stop')
@@ -382,7 +382,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         return self._send_command(cmd,DeejaydMediaList())
 
     def go_to(self, id, id_type = None, source = None):
-        cmd = DeejaydXMLCommand('play')
+        cmd = DeejaydXMLCommand('goto')
         cmd.add_simple_arg('id', id)
         if id_type:
             cmd.add_simple_arg('id_type', id_type)
@@ -495,7 +495,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                      assert xmlpath == ['deejayd', 'response',elem.tag]
                 elif elem.tag == "track":
                     assert xmlpath == ['deejayd','response','dvd','track']
-                    track = {"audio":[],"subtitle":[],"chapters":[]}
+                    track = {"audio":[],"subtitle":[],"chapter":[]}
                 elif elem.tag in ("audio","subtitle","chapter"):
                     assert xmlpath == ['deejayd','response','dvd','track',\
                                             elem.tag]
@@ -540,13 +540,13 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                 elif elem.tag == "file":
                     expected_answer.add_file(parms)
                 elif elem.tag in ("audio","subtitle"):
-                    track[elem.tag].append({"id": elem.attrib['ix'],\
+                    track[elem.tag].append({"ix": elem.attrib['ix'],\
                         "lang": elem.attrib['lang']})
                 elif elem.tag == "chapter":
-                    track["chapters"].append({"id": elem.attrib['ix'],\
+                    track["chapter"].append({"ix": elem.attrib['ix'],\
                         "length": elem.attrib['length']})
                 elif elem.tag == "track":
-                    track["id"] = elem.attrib["ix"]
+                    track["ix"] = elem.attrib["ix"]
                     track["length"] = elem.attrib["length"]
                     expected_answer.add_track(track)
                 elif elem.tag == "dvd":

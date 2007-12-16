@@ -167,13 +167,17 @@ if __name__ == "__main__":
     from twisted.python import log
     service = False
 
+    # start core
+    from deejayd.core import DeejayDaemonCore
+    deejayd_core = DeejayDaemonCore(config)
+
     # net service
     net_support = config.get("net","enabled")
     if net_support.lower() == "yes":
         service = True
         from deejayd.net.deejaydProtocol import DeejaydFactory
 
-        factory = DeejaydFactory()
+        factory = DeejaydFactory(deejayd_core)
         port = config.getint("net", "port")
         for bind_address in config.get_bind_addresses('net'):
             try: reactor.listenTCP(port, factory, interface=bind_address)
@@ -186,7 +190,7 @@ if __name__ == "__main__":
     if webui_support.lower() == "yes":
         service = True
         from deejayd.webui import twisted_handler as handler
-        try: site = handler.init(config,options.webui_logfile)
+        try: site = handler.init(deejayd_core,config,options.webui_logfile)
         except handler.DeejaydWebError, err:
             log.err(err)
             sys.exit(1)
@@ -203,5 +207,7 @@ if __name__ == "__main__":
         log.err("No service has been activated")
         sys.exit(1)
     reactor.run()
+    # save core state
+    deejayd_core.close()
 
 # vim: ts=4 sw=4 expandtab

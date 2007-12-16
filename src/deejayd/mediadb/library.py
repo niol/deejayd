@@ -146,25 +146,29 @@ class Library:
     #
     # Update process
     #
-    def update(self):
+    def update(self, sync = False):
         if self._update_end:
             self._update_id += 1
-            self.defered = threads.deferToThread(self._update)
-            self.defered.pause()
+            if sync: # synchrone update
+                self._update()
+                self._update_end = True
+            else: # asynchrone update
+                self.defered = threads.deferToThread(self._update)
+                self.defered.pause()
 
-            # Add callback functions
-            succ = lambda *x: self.end_update()
-            self.defered.addCallback(succ)
+                # Add callback functions
+                succ = lambda *x: self.end_update()
+                self.defered.addCallback(succ)
 
-            def error_handler(failure,db_class):
-                # Log the exception to debug pb later
-                failure.printTraceback()
-                db_class.end_update(False)
-                return False
+                def error_handler(failure,db_class):
+                    # Log the exception to debug pb later
+                    failure.printTraceback()
+                    db_class.end_update(False)
+                    return False
 
-            self.defered.addErrback(error_handler,self)
+                self.defered.addErrback(error_handler,self)
 
-            self.defered.unpause()
+                self.defered.unpause()
             return self._update_id
 
         return 0

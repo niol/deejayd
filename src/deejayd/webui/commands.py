@@ -13,7 +13,6 @@ class _UnknownCommand:
         self._args = {}
 
     def argument_validation(self, http_args):
-        print http_args
         for arg in self.command_args:
             if arg['name'] in http_args:
                 # format http parms
@@ -151,8 +150,9 @@ class PlayToggle(_UnknownCommand):
 
 class GoTo(_UnknownCommand):
     name = "goto"
-    command_args = [{"name": "id", "type": "int", "req": True},
-          {"name": "id_type", "type": "string", "req": False, "default": None},
+    command_args = [{"name": "id", "type": "regexp",\
+            "value":"^\w{1,}|\w{1,}\.\w{1,}$","req": True},
+          {"name": "id_type", "type": "string", "req": False, "default": "id"},
           {"name":"source", "type": "string", "req": False, "default": None}]
 
     def execute(self):

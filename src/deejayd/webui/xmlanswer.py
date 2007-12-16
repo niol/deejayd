@@ -162,22 +162,22 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
         # dvd structure
         seq = ET.SubElement(root,"RDF:Seq")
         seq.attrib["RDF:about"] = "http://dvd/all-content"
-        for track in dvd_content["tracks"]:
+        for track in dvd_content["track"]:
             track_li = ET.SubElement(seq,"RDF:li")
-            track_url = "http://dvd/%s" % track["id"]
+            track_url = "http://dvd/%s" % track["ix"]
             track_struct =  ET.SubElement(track_li,"RDF:Seq")
             track_struct.attrib["RDF:about"] = track_url
             self._rdf_description(root,\
-                {"title": "Title %s" % track["id"],\
-                    "id": track["id"], "length": track["length"]},track_url)
+                {"title": "Title %s" % track["ix"],\
+                    "id": track["ix"], "length": track["length"]},track_url)
 
-            for chapter in track["chapters"]:
-                chapter_url = track_url + "/%s" % chapter["id"]
+            for chapter in track["chapter"]:
+                chapter_url = track_url + "/%s" % chapter["ix"]
                 li = ET.SubElement(track_struct,"RDF:li")
                 li.attrib["RDF:resource"] = chapter_url
                 self._rdf_description(root,\
-                  {"title": "Chapter %s" % chapter["id"],\
-                   "id": chapter["id"],"length": chapter["length"]},chapter_url)
+                  {"title": "Chapter %s" % chapter["ix"],\
+                   "id": chapter["ix"],"length": chapter["length"]},chapter_url)
 
         self._save_rdf(root,new_id)
 

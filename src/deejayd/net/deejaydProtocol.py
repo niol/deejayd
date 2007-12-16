@@ -7,24 +7,19 @@ try: from xml.etree import cElementTree as ET # python 2.5
 except ImportError: # python 2.4
     import cElementTree as ET
 
-
 from deejayd.ui import log
-from deejayd.ui.config import DeejaydConfig
 from deejayd.net import commandsXML
-from deejayd import player,sources,mediadb,database
 
 class DeejaydProtocol(LineReceiver):
 
-    def __init__(self,db,player,audio_library,video_library,sources):
+    def __init__(self, deejayd_core = None):
         self.delimiter = "ENDXML\n"
         self.MAX_LENGTH = 40960
-        self.deejaydArgs = {"audio_library":audio_library,"player":player,\
-                       "video_library":video_library,"db":db,"sources":sources,\
-                       "protocol":self}
+        self.deejayd_core = deejayd_core
 
     def connectionMade(self):
         from deejayd import __version__
-        self.cmdFactory = CommandFactory(self.deejaydArgs)
+        self.cmdFactory = CommandFactory(self.deejayd_core)
         self.transport.write("OK DEEJAYD %s\n" % (__version__,))
 
     def connectionLost(self, reason=ConnectionDone):
@@ -43,11 +38,8 @@ class DeejaydProtocol(LineReceiver):
         log.debug(rsp)
 
         self.transport.write(rsp + self.delimiter)
-        del rsp
-
         if 'close' in remoteCmd.commands:
             self.transport.loseConnection()
-        del remoteCmd
 
     def lineLengthExceeded(self, line):
         log.err("Request too long, skip it")
@@ -59,71 +51,28 @@ class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
     obj_supplied = False
 
-    def __init__(self, db = None, player = None, audio_library = None,\
-                                                        video_library = None):
-        if db != None and player != None and audio_library != None:
-            self.__class__.obj_supplied = True
-            self.db = db
-            self.player = player
-            self.audio_library = audio_library
-            self.video_library = video_library
+    def __init__(self, deejayd_core):
+        self.deejayd_core = deejayd_core
 
     def startFactory(self):
-        config = DeejaydConfig()
-        log.info("Starting Deejayd ...")
-
-        if self.__class__.obj_supplied:
-            self.sources = sources.SourceFactory(self.player,self.db,\
-                               self.audio_library,self.video_library,config)
-            return True
-
-        # Init the Database
-        log.info("Database Initialisation")
-        self.db = database.init(config).get_db()
-        self.db.connect()
-
-        # Init Media Backend
-        log.info("Player Initialisation")
-        try: self.player = player.init(self.db,config)
-        except player.PlayerError, err:
-            log.err(str(err))
-            sys.exit(1)
-
-        # Init audio and video library
-        log.info("Libraries Initialisation")
-        self.audio_library,self.video_library = mediadb.init(self.db,\
-                                                             self.player,config)
-
-        # Try to Init sources
-        log.info("Sources Initialisation")
-        self.sources = sources.init(self.player,self.db,\
-                                 self.audio_library,self.video_library,config)
-
-        log.info("Deejayd started :-)")
-
-    def stopFactory(self):
-        for obj in (self.player,self.sources,self.audio_library,\
-                                                  self.video_library,self.db):
-            if obj != None: obj.close()
+        log.info("Net Protocol activated")
 
     def buildProtocol(self, addr):
-        p = self.protocol(db = self.db,player = self.player,\
-            audio_library = self.audio_library,\
-            video_library = self.video_library,sources = self.sources)
+        p = self.protocol(self.deejayd_core)
         p.factory = self
         return p
 
 
 class CommandFactory:
 
-    def __init__(self,deejaydArgs = {}):
+    def __init__(self, deejayd_core):
         self.beginList = False
         self.queueCmdClass = None
-        self.deejaydArgs = deejaydArgs
+        self.deejayd_core = deejayd_core
 
    # XML Commands
     def createCmdFromXML(self,line):
-        queueCmd = commandsXML.queueCommands(self.deejaydArgs)
+        queueCmd = commandsXML.queueCommands(self.deejayd_core)
 
         try: xml_tree = ET.fromstring(line)
         except:

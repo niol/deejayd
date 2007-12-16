@@ -80,9 +80,8 @@ class InterfaceTests:
         wr_list = self.deejayd.get_webradios()
 
         # Test for bad URI and inexistant playlist
-        for badURI in [[self.testdata.getRandomString(50)],
-                       ['http://' +\
-                        self.testdata.getRandomString(50) + '.pls']]:
+        for badURI in [[self.testdata.getRandomString(50)],]:
+                   #['http://' + self.testdata.getRandomString(50) + '.pls']]:
             ans = wr_list.add_webradio(self.testdata.getRandomString(),
                                        badURI[0])
             # FIXME : provision for the future where the same webradio may have

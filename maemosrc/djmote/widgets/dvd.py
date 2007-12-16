@@ -70,8 +70,8 @@ class DvdBox(SourceBox):
             self.__dvd_title.show()
 
             # update track
-            for track in content["tracks"]:
-                model.append([track['id'], "Title "+ track['id'],\
+            for track in content["track"]:
+                model.append([track['ix'], "Title "+ track['ix'],\
                               fraction_seconds(track['length'],True)])
 
 

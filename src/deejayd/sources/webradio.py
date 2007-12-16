@@ -1,17 +1,17 @@
 
-from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
                             UnknownSourceManagement
 import urllib
 
 class UnsupportedFormatException: pass
+class UrlNotFoundException: pass
 
 def get_playlist_file_lines(URL):
     try:
         pls_handle = urllib.urlopen(URL)
         playlist = pls_handle.read()
-    except:
-        raise NotFoundException
+    except IOError:
+        raise UrlNotFoundException
 
     return playlist.splitlines()
 

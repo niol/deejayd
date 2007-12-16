@@ -9,8 +9,8 @@ from twisted.internet import reactor
 from twisted.python import log
 
 from deejayd.ui.config import DeejaydConfig
-from deejayd import player, mediadb, database
 from deejayd.net.deejaydProtocol import DeejaydFactory
+from deejayd.core import DeejayDaemonCore
 
 # argv[1] should be port
 # argv[2] should be music dir
@@ -36,24 +36,18 @@ config.set('general', 'media_backend', 'xine')
 config.set('xine','audio_output',"none")
 config.set('xine','video_output',"none")
 
-db = database.init(config).get_db()
-db.connect()
+# start core
+deejayd_core = DeejayDaemonCore(config)
+deejayd_core.update_audio_library(sync = True, objanswer = False)
+deejayd_core.update_video_library(sync = True, objanswer = False)
 
-player = player.init(db, config)
-
-audio_library, video_library = mediadb.init(db, player, config)
-
-factory = DeejaydFactory(db, player, audio_library, video_library)
+factory = DeejaydFactory(deejayd_core)
 reactor.listenTCP(int(port), factory)
-
-audio_library._update()
-video_library._update()
 
 def printReady():
     os.write(2, 'ready\n')
 
 reactor.addSystemEventTrigger('after', 'startup', printReady)
-
 reactor.run()
 
 # vim: ts=4 sw=4 expandtab

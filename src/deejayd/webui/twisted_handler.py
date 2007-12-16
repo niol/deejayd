@@ -3,6 +3,7 @@ import os,shutil
 from twisted.web import static,server
 from twisted.web.resource import Resource
 
+from deejayd.interfaces import DeejaydError
 from deejayd.webui.xmlanswer import DeejaydWebAnswer,build_web_interface
 from deejayd.webui import commands
 
@@ -30,7 +31,7 @@ class DeejaydMainHandler(Resource):
 class DeejaydCommandHandler(Resource):
     isLeaf = True
 
-    def __init__(self, deejayd = None):
+    def __init__(self, deejayd):
         Resource.__init__(self)
         self.__deejayd = deejayd
 
@@ -57,12 +58,7 @@ class DeejaydCommandHandler(Resource):
         if cmd_cls.method != type:
             ans.set_error("command send with invalid method")
         else:
-            # FIXME use DeejayCore instead of client library
-            from deejayd.net.client import DeejayDaemonSync, DeejaydError
-            deejayd = DeejayDaemonSync()
-            deejayd.connect("localhost", 7200)
-
-            cmd = cmd_cls(deejayd,ans)
+            cmd = cmd_cls(self.__deejayd,ans)
             try:
                 cmd.argument_validation(request.args)
                 cmd.execute()
@@ -71,12 +67,11 @@ class DeejaydCommandHandler(Resource):
                 ans.set_error("%s" % err)
             except commands.ArgError, err:
                 ans.set_error("bad argument : %s" % err)
-            deejayd.disconnect()
 
         return ans.to_xml()
 
 
-def init(config, webui_logfile):
+def init(deejayd_core, config, webui_logfile):
     # create tmp directory
     rdf_dir = config.get("webui","rdf_dir")
     if os.path.isdir(rdf_dir):
@@ -88,7 +83,7 @@ def init(config, webui_logfile):
         raise DeejaydWebError("Unable to create rdf directory %s" % rdf_dir)
 
     root = DeejaydMainHandler(config)
-    root.putChild("commands",DeejaydCommandHandler())
+    root.putChild("commands",DeejaydCommandHandler(deejayd_core))
 
     htdocs_dir = config.get("webui","htdocs_dir")
     if not os.path.isdir(htdocs_dir):

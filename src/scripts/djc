@@ -315,10 +315,10 @@ DVD content
 title : %s
 longest_track : %s
 """ % (dvd_content["title"],dvd_content["longest_track"])
-        for t in dvd_content["tracks"]:
+        for t in dvd_content["track"]:
             print """
   track : %s (%s)
-""" % (t['id'], t['length'])
+""" % (t['ix'], t['length'])
 
 
 def get_cmds():
