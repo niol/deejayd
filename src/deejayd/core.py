@@ -12,13 +12,6 @@ import deejayd.sources.playlist
 import deejayd.mediadb.library
 
 
-# FIXME : This file is still a big mess. All commands that are flagged not
-# implemented (raising NotImplementedError) should be rewritten as directly
-# calling appropriate methods on deejayd internal objects. See commandXML for
-# implementation. See testdeejayd/coreinterface.py to known what should already
-# work.
-
-
 # This decorator is used for the core interface to provide :
 # - A simple way of converting python types to deejayd answers as required by
 #   the defined network interface. This is to ensure that the core API stays
