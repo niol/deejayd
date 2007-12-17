@@ -16,6 +16,7 @@ function ajaxdj()
 
     // Internal parms
     this.message_time = 4000;
+    this.localeStrings = Array();
     this.config = Array();
     this.config["refresh"] = "0";
     this.refreshEvent = null;
@@ -143,6 +144,10 @@ function ajaxdj()
             if (rs)
                 this.parseConfig(rs);
 
+            rs = xmldoc.getElementsByTagName("locale").item(0);
+            if (rs)
+                this.parseLocale(rs);
+
             rs = xmldoc.getElementsByTagName("availableModes").item(0);
             if (rs) {
                 var modes = rs.getElementsByTagName("mode");
@@ -263,6 +268,22 @@ function ajaxdj()
             this.refreshEvent = setInterval(
                 "ajaxdj_ref.send_command('refresh','',false)",
                 this.config["refresh"]*'1000');
+    };
+
+    this.parseLocale = function(locale)
+    {
+        var strings = locale.getElementsByTagName("strings");
+        for (var i=0;str = strings.item(i);i++)
+            this.localeStrings[str.getAttribute("name")] =
+                str.getAttribute("value");
+    };
+
+    this.getString = function(str)
+    {
+        if (this.localeStrings[str])
+            return this.localeStrings[str];
+        else
+            return "";
     };
 
 /************************************************/
