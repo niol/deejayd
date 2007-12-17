@@ -19,7 +19,8 @@ class DvdSource:
 
     def get_content(self):
         if not self.dvd_info:
-            return {'title': "DVD NOT LOADED", 'longest_track': "0"}
+            return {'title': "DVD NOT LOADED", 'longest_track': "0", \
+                    'track': []}
         return self.dvd_info
 
     def load(self):
