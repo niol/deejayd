@@ -119,7 +119,7 @@ class FileTagFactory:
                 self.__class__.supported_audio_format[".ogg"] = OggFile
 
             # video
-            for ext in (".avi",".mpeg",".mpg"):
+            for ext in (".avi",".mpeg",".mpg", ".mkv"):
                 if self.__class__.player.is_supported_format(ext):
                     self.__class__.supported_video_format[ext] = VideoFile
 
