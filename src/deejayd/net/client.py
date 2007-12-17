@@ -436,9 +436,9 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         cmd = DeejaydXMLCommand('videoUpdate')
         return self._send_command(cmd, DeejaydKeyValue())
 
-    def erase_playlist(self, name):
+    def erase_playlist(self, names):
         cmd = DeejaydXMLCommand('playlistErase')
-        cmd.add_simple_arg('name', name)
+        cmd.add_multiple_arg('name', names)
         return self._send_command(cmd)
 
     def get_playlist_list(self):

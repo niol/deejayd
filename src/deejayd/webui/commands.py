@@ -362,17 +362,16 @@ class PlaylistSave(_UnknownCommand):
         pls.save(self._args["name"]).get_contents()
 
 class PlaylistErase(_UnknownCommand):
-    name = "playlistSave"
+    name = "playlistErase"
     method = "post"
-    command_args = [{"name":"name","type":"string","req":True}]
+    command_args = [{"name":"name","type":"string","req":True,"mult":True}]
 
     def default_result(self):
         pls_list = self._deejayd.get_playlist_list()
         self._answer.set_playlist_list(pls_list.get_medias())
 
     def execute(self):
-        pls = self._deejayd.get_playlist()
-        pls.erase(self._args["name"]).get_contents()
+        self._deejayd.erase_playlist(self._args["name"]).get_contents()
 
 class PlaylistShuffle(_UnknownCommand):
     name = "playlistShuffle"

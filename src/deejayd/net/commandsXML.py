@@ -384,8 +384,7 @@ class PlaylistErase(UnknownCommand):
     command_args = [{"mult":"true","name":"name", "type":"string", "req":True}]
 
     def _execute(self):
-        for pls_name in self.args["name"]:
-            self.deejayd_core.erase_playlist(pls_name, objanswer=False)
+        self.deejayd_core.erase_playlist(self.args["name"], objanswer=False)
 
 
 class PlaylistAdd(UnknownCommand):

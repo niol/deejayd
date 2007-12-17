@@ -243,7 +243,7 @@ class DeejaydCore:
     def update_video_library(self):
         raise NotImplementedError
 
-    def erase_playlist(self, name):
+    def erase_playlist(self, names):
         raise NotImplementedError
 
     def get_playlist_list(self):

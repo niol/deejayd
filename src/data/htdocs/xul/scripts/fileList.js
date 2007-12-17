@@ -166,7 +166,7 @@ var FileList = function()
 
         if (rs)
             ajaxdj_ref.send_post_command('playlistErase',
-                this.getSelectedItems("playlistList-content"));
+                {name: this.getSelectedItems("playlistList-content")});
     };
 
     /*************************************/

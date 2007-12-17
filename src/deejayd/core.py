@@ -361,10 +361,11 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         return {'video_updating_db': self.video_library.update(sync)}
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def erase_playlist(self, name):
-        try: self.sources.get_source("playlist").rm(name)
-        except sources.playlist.PlaylistNotFoundException:
-            raise DeejaydError("Playlist not found")
+    def erase_playlist(self, names):
+        for name in names:
+            try: self.sources.get_source("playlist").rm(name)
+            except sources.playlist.PlaylistNotFoundException:
+                raise DeejaydError("Playlist not found")
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get_playlist_list(self):

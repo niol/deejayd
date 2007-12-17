@@ -212,7 +212,7 @@ class AvailableCommands:
         try: pl_name = args[0]
         except IndexError:
             raise DjcError('You have to enter a playlist name')
-        self.server.erase_playlist(pl_name)
+        self.server.erase_playlist([pl_name])
 
     def playlist_list(self, args):
         """ Return list of recorded playlist """
