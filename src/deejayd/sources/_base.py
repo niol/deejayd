@@ -42,7 +42,7 @@ class UnknownSource:
         for s in items:
             pos = first_pos+i
             s["pos"] = pos
-            if "id" not in s.keys():
+            if "id" not in s.keys() or s["type"] == "song":
                 s["id"] = self.set_item_id()
             if "uri" not in s.keys():
                 s["uri"] = "file://"+\
