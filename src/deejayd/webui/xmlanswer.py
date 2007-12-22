@@ -253,7 +253,7 @@ class DeejaydWebAnswer(_DeejaydXML):
     def __build_file_list(self, parent, list):
         for dir in list.get_directories():
             it = ET.SubElement(parent,"item", type = "directory")
-            it.text = dir
+            it.text = self._to_xml_string(dir)
 
         for file in list.get_files():
             it = ET.SubElement(parent,"item")
@@ -262,18 +262,20 @@ class DeejaydWebAnswer(_DeejaydXML):
                 it.attrib[key] = self._to_xml_string(file[key])
 
     def set_audiofile_list(self, files_list, dir = ""):
-        list_elm = ET.SubElement(self.xmlroot, "file-list", directory = dir)
+        list_elm = ET.SubElement(self.xmlroot, "file-list",\
+                                 directory = self._to_xml_string(dir))
         self.__build_file_list(list_elm,files_list)
 
     def set_videofile_list(self, files_list, dir = ""):
-        list_elm = ET.SubElement(self.xmlroot, "video-list", directory = dir)
+        list_elm = ET.SubElement(self.xmlroot, "video-list",\
+                                 directory = self._to_xml_string(dir))
         self.__build_file_list(list_elm,files_list)
 
     def set_playlist_list(self, playlist_list):
         list_elm = ET.SubElement(self.xmlroot, "playlist-list")
         for pls in playlist_list:
             it = ET.SubElement(list_elm,"item", type = "playlist")
-            it.text = pls["name"]
+            it.text = self._to_xml_string(pls["name"])
 
     def set_player(self, status, cur_media):
         # Update player informations
@@ -305,7 +307,7 @@ class DeejaydWebAnswer(_DeejaydXML):
 
     def set_msg(self,msg,type = "confirmation"):
         msg_node = ET.SubElement(self.xmlroot,"message",type = type)
-        msg_node.text = msg
+        msg_node.text = self._to_xml_string(msg)
 
     def set_error(self, error):
         self.set_msg(error,"error")
