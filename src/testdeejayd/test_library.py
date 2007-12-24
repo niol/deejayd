@@ -1,11 +1,12 @@
 """
 Deejayd DB testing module
 """
+import os,time
 from testdeejayd import TestCaseWithMediaData
 from deejayd.database.sqlite import SqliteDatabase
 from deejayd.mediadb.library import AudioLibrary, VideoLibrary, \
                                                             NotFoundException
-import os,time
+from deejayd.mediadb import inotify
 
 # FIXME : Those imports should really go away one day
 from deejayd.player import xine
@@ -24,19 +25,23 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
         self.db = SqliteDatabase(self.dbfilename)
         self.db.connect()
 
-        player = xine.XinePlayer(self.db, DeejaydConfig())
+        # init player
+        config = DeejaydConfig()
+        config.set('xine','audio_output',"none")
+        config.set('xine','video_output',"none")
+        player = xine.XinePlayer(self.db, config)
+
         self.library = self.__class__.library_class(self.db, player, \
                                                     self.testdata.getRootDir())
-        self.library._update()
 
     def removeDB(self):
         self.db.close()
         os.remove(self.dbfilename)
 
-    def verifyMediaDBContent(self, testTag = True):
-        # First update mediadb
-        time.sleep(0.5)
-        self.library._update()
+    def verifyMediaDBContent(self, testTag = True, do_update = True):
+        time.sleep(0.2)
+        if do_update: # First update mediadb
+            self.library._update()
 
         self.assertRaises(NotFoundException,
                   self.library.get_dir_content, self.testdata.getRandomString())
@@ -54,11 +59,13 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
                     (current_root,str(allContents)))
 
             # First, verify directory list
+            self.assertEqual(len(contents["dirs"]), len(dirs))
             for dir in dirs:
                 self.assert_(dir in contents["dirs"],
                     "'%s' is in directory tree but was not found in DB %s in current root '%s'" % (dir,str(contents["dirs"]),current_root))
 
             # then, verify file list
+            self.assertEqual(len(contents["files"]), len(files))
             db_files = [f["path"] for f in contents["files"]]
             for file in files:
                 (name,ext) = os.path.splitext(file)
@@ -90,6 +97,7 @@ class TestVideoLibrary(TestDeejayDBLibrary):
         TestDeejayDBLibrary.setUp(self)
         self.testdata.build_video_library_directory_tree()
         self.setUpDB()
+        self.library._update()
 
     def testGetDir(self):
         """built directory detected by video library"""
@@ -120,6 +128,7 @@ class TestAudioLibrary(TestDeejayDBLibrary):
         TestDeejayDBLibrary.setUp(self)
         self.testdata.build_audio_library_directory_tree()
         self.setUpDB()
+        self.library._update()
 
     def testGetDir(self):
         """built directory detected by audio library"""
@@ -162,7 +171,6 @@ class TestAudioLibrary(TestDeejayDBLibrary):
 
     def testChangeTag(self):
         """Tag value change detected by audio library"""
-        time.sleep(0.5)
         self.testdata.changeMediaTags()
         self.verifyMediaDBContent()
 
@@ -187,5 +195,52 @@ class TestAudioLibrary(TestDeejayDBLibrary):
                 "tag %s for %s different between DB and reality %s != %s" % \
                 (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
 
+
+class TestInotifySupport(TestDeejayDBLibrary):
+    library_class = AudioLibrary
+    supported_ext = (".ogg",".mp3")
+
+    def setUp(self):
+        TestDeejayDBLibrary.setUp(self)
+        self.testdata.build_audio_library_directory_tree()
+        self.setUpDB()
+
+        # start inotify thread
+        self.watcher = inotify.DeejaydInotify(self.db, self.library, None)
+        self.watcher.start()
+
+        self.library._update()
+
+    def tearDown(self):
+        self.watcher.close()
+        TestDeejayDBLibrary.tearDown(self)
+
+    def testAddSubdirectory(self):
+        """Inotify support : Add a subdirectory"""
+        self.testdata.addSubdir()
+        self.verifyMediaDBContent(do_update = False)
+
+    def testRenameDirectory(self):
+        """Inotify support : Rename a directory"""
+        self.testdata.renameDir()
+        self.verifyMediaDBContent(False, do_update = False)
+
+    def testRemoveDirectory(self):
+        """Inotify support : Remove a directory"""
+        self.testdata.removeDir()
+        self.verifyMediaDBContent(do_update = False)
+
+    def testChangeTag(self):
+        """Inotify support : Tag value change detected"""
+        self.testdata.changeMediaTags()
+        self.verifyMediaDBContent(do_update = False)
+
+    def verifyTag(self,filePath):
+        (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
+
+        for tag in ("title","artist","album"):
+            self.assert_(realFile[tag] == inDBfile[tag],
+                "tag %s for %s different between DB and reality %s != %s" % \
+                (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
 
 # vim: ts=4 sw=4 expandtab

@@ -2,6 +2,7 @@ usr/lib/python*/site-packages/deejayd/core.py
 usr/lib/python*/site-packages/deejayd/net/commandsXML.py
 usr/lib/python*/site-packages/deejayd/net/deejaydProtocol.py
 usr/lib/python*/site-packages/deejayd/mediadb/*.py
+usr/lib/python*/site-packages/deejayd/mediadb/formats/*.py
 usr/lib/python*/site-packages/deejayd/player/__init__.py
 usr/lib/python*/site-packages/deejayd/player/_base.py
 usr/lib/python*/site-packages/deejayd/sources/*.py

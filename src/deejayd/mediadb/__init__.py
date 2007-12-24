@@ -1,11 +1,11 @@
 # vim: ts=4 sw=4 expandtab
 
 from deejayd.ui import log
-from deejayd.mediadb import library
+from deejayd.mediadb import library,inotify
 import sys
 
 def init(db, player, config):
-    audio_library,video_library = None, None
+    audio_library,video_library,lib_watcher = None, None, None
 
     try: audio_dir = config.get("mediadb","music_directory")
     except NoOptionError:
@@ -29,4 +29,9 @@ def init(db, player, config):
             except library.NotFoundException,msg:
                 sys.exit("Unable to init video library : %s" % msg)
 
-    return audio_library,video_library
+    if inotify.inotify_support:
+        lib_watcher = inotify.DeejaydInotify(db, audio_library, video_library)
+        lib_watcher.start()
+    else: log.info("inotify support disabled")
+
+    return audio_library,video_library,lib_watcher

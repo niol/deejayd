@@ -206,8 +206,7 @@ if __name__ == "__main__":
     if not service:
         log.err("No service has been activated")
         sys.exit(1)
+    reactor.addSystemEventTrigger('after','shutdown',deejayd_core.close)
     reactor.run()
-    # save core state
-    deejayd_core.close()
 
 # vim: ts=4 sw=4 expandtab

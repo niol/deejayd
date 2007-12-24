@@ -73,11 +73,10 @@ class Database(UnknownDatabase):
         query = "DELETE FROM {%s} WHERE filename = ? AND dir = ?" % table
         self.execute(query, (f,dir))
 
-    def erase_empty_dir(self,table = "audio_library"):
+    def erase_empty_dir(self, table = "audio_library"):
         # FIXME : find a better way to do this
         # get list of dir
-        query = "SELECT dir,filename FROM {%s} WHERE type='directory'" \
-            % (table,)
+        query = "SELECT dir,filename FROM {%s} WHERE type='directory'" % table
         self.execute(query)
 
         for (dir,filename) in self.cursor.fetchall():
@@ -85,8 +84,9 @@ class Database(UnknownDatabase):
                 " % table
             self.execute(query,(path.join(dir,filename)+'%%',))
             rs = self.cursor.fetchone()
-            if rs == (0,):
-                self.remove_dir(dir,filename,table)
+            if rs == (0,): # remove directory
+                query = "DELETE FROM {%s} WHERE dir = ? AND filename = ?"%table
+                self.execute(query, (dir,filename))
 
         return True
 
@@ -96,13 +96,18 @@ class Database(UnknownDatabase):
         self.execute(query, new_dir)
 
     def remove_dir(self,root,dir,table = "audio_library"):
-        log.debug("Erase dir (%s,%s) from mediadb" % (root,dir))
-
         query = "DELETE FROM {%s} WHERE filename = ? AND dir = ?" % table
         self.execute(query, (dir,root))
         # We also need to erase the content of this directory
         query = "DELETE FROM {%s} WHERE dir LIKE ?" % table
         self.execute(query, (path.join(root,dir)+"%%",))
+
+    def is_dir_exist(self, root, dir, table = "audio_library"):
+        query = "SELECT * FROM {%s} WHERE filename = ? AND dir = ? AND\
+            type = 'directory'" % table
+        self.execute(query, (dir,root))
+
+        return len(self.cursor.fetchall())
 
     def get_dir_info(self,dir,table = "audio_library"):
         query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" % (table,)
@@ -159,22 +164,22 @@ class Database(UnknownDatabase):
 
         return self.cursor.fetchall()
 
-    def insert_audio_file(self,dir,fileInfo):
+    def insert_audio_file(self,dir,filename,fileInfo):
         query = "INSERT INTO {audio_library}(type,dir,filename,title,artist,\
             album,genre,date,tracknumber,length,bitrate)VALUES \
             ('file',?,?,?,?,?,?,?,?,?,?)"
-        self.execute(query, (dir,fileInfo["filename"],fileInfo["title"],\
+        self.execute(query, (dir,filename,fileInfo["title"],\
             fileInfo["artist"],fileInfo["album"],fileInfo["genre"],\
             fileInfo["date"], fileInfo["tracknumber"],fileInfo["length"],\
             fileInfo["bitrate"]))
 
-    def update_audio_file(self,dir,fileInfo):
+    def update_audio_file(self,dir,filename,fileInfo):
         query = "UPDATE {audio_library} SET title=?,artist=?,album=?,genre=?,\
             date=?,tracknumber=?,length=?,bitrate=? WHERE dir=? AND filename=?"
         self.execute(query,(fileInfo["title"],fileInfo["artist"],\
             fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
             fileInfo["tracknumber"],fileInfo["length"],fileInfo["bitrate"],\
-            dir,fileInfo["filename"]))
+            dir,filename))
 
     #
     # Video MediaDB specific requests
@@ -184,24 +189,24 @@ class Database(UnknownDatabase):
         (lastId,) = self.cursor.fetchone() or (None,)
         return lastId
 
-    def insert_video_file(self,dir,fileInfo):
+    def insert_video_file(self,dir,filename,fileInfo):
         query = "INSERT INTO {video_library}(type,dir,filename,id,title,length,\
             videowidth,videoheight,subtitle) VALUES ('file',?,?,?,?,?,?,?,?)"
-        self.execute(query, (dir,fileInfo["filename"],fileInfo["id"],\
+        self.execute(query, (dir,filename,fileInfo["id"],\
             fileInfo["title"],fileInfo["length"],fileInfo["videowidth"],\
             fileInfo["videoheight"],fileInfo["subtitle"]))
 
-    def update_video_file(self,dir,fileInfo):
+    def update_video_file(self,dir,filename,fileInfo):
         query = "UPDATE {video_library} SET title=?,length=?,videowidth=?,\
             videoheight=?,subtitle=? WHERE dir=? AND filename=?"
         self.execute(query,(fileInfo["title"],fileInfo["length"],\
             fileInfo["videowidth"],fileInfo["videoheight"],\
-            fileInfo["subtitle"],dir,fileInfo["filename"]))
+            fileInfo["subtitle"],dir,filename))
 
-    def update_video_subtitle(self,dir,file_info):
+    def update_video_subtitle(self,dir,filename,file_info):
         query = "UPDATE {video_library} SET subtitle=? \
             WHERE dir=? AND filename=?"
-        self.execute(query,(file_info["subtitle"],dir,file_info["filename"]))
+        self.execute(query,(file_info["subtitle"],dir,filename))
 
     #
     # Playlist requests

@@ -226,15 +226,15 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         self.player = player.init(self.db, config)
 
-        self.audio_library,self.video_library = mediadb.init(self.db,\
-                                            self.player,config)
+        self.audio_library,self.video_library, self.watcher = \
+            mediadb.init(self.db, self.player,config)
 
         self.sources = sources.init(self.player, self.db, self.audio_library,
                                              self.video_library, config)
 
     def close(self):
         for obj in (self.player,self.sources,self.audio_library,\
-                    self.video_library,self.db):
+                    self.video_library,self.watcher,self.db):
             if obj != None: obj.close()
 
     @returns_deejaydanswer(DeejaydAnswer)
