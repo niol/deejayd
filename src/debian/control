@@ -6,8 +6,8 @@ Build-Depends: debhelper (>= 5.0.38), python-dev (>= 2.4), python-central (>= 0.
 Standards-Version: 3.7.2
 XS-Python-Version: current, >= 2.4
 Homepage: http://mroy31.dyndns.org/~roy/projects/deejayd
-XS-Vcs-Darcs: http://mroy31.dyndns.org/~roy/repository/deejayd
-XS-Vcs-Browser: http://mroy31.dyndns.org/~roy/projects/deejayd/browser
+Vcs-Darcs: http://mroy31.dyndns.org/~roy/repository/deejayd
+Vcs-Browser: http://mroy31.dyndns.org/~roy/darcsweb/darcsweb.cgi?r=deejayd;a=summary
 
 Package: deejayd
 Architecture: all
