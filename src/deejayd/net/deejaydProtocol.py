@@ -12,7 +12,7 @@ from deejayd.net import commandsXML
 
 class DeejaydProtocol(LineReceiver):
 
-    def __init__(self, deejayd_core = None):
+    def __init__(self, deejayd_core):
         self.delimiter = "ENDXML\n"
         self.MAX_LENGTH = 40960
         self.deejayd_core = deejayd_core
