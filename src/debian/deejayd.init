@@ -23,7 +23,8 @@ DAEMON_USER=$NAME
 HOME=/var/lib/$DAEMON_USER
 PIDFILE=/var/run/$NAME.pid
 LOGFILE=/var/log/$NAME.log
-DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom -p $PIDFILE -l $LOGFILE $DAEMON_OPTS"
+WEBUI_LOGFILE=/var/log/$NAME-webui.log
+DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom -p $PIDFILE -l $LOGFILE -w $WEBUI_LOGFILE $DAEMON_OPTS"
 SCRIPTNAME=/etc/init.d/$NAME
 
 
@@ -33,12 +34,15 @@ SCRIPTNAME=/etc/init.d/$NAME
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
-# Create logfile if it does not exist
-if [ ! -r "$LOGFILE" ]
-then
-	touch $LOGFILE
-	chown deejayd:adm $LOGFILE
-fi
+# Create logfiles if they do not exist
+for FILE in "$LOGFILE" "$WEBUI_LOGFILE"
+do
+    if [ ! -r "$FILE" ]
+    then
+        touch $FILE
+        chown deejayd:adm $FILE
+    fi
+done
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh

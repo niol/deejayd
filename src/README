@@ -1,8 +1,15 @@
 deejayd
 ===========
 
-Actual version : 0.4.1
+Actual version : 0.5.0
 ----------------------
+
+changes since 0.4.1
+--------------------
+  * xine backend : close stream when no media has been played
+  * integrate webui in deejayd. Ajaxdj is useless now
+  * support all commands in library client and djc
+  * A lot of cleanups and bugfixes
 
 changes since 0.4.0
 --------------------
@@ -33,11 +40,11 @@ Clients:
     --------
       djmote is a graphical deejayd client optimized for use on Maemo devices
       such as the Nokia N770 or Nokia N800.
-  * ajaxdj :
+  * deejayd-webui :
     --------
-      It is a web based client written in XUL and PHP.
-      See http://mroy31.dyndns.org/~roy/wiki/doku.php?id=ajaxDJ
-      for more informations
+      It is a web based client written in XUL. It is replace ajaxdj and
+      it is included in deejayd. It can be configured in webui section of
+      deejayd configuration file.
 
 Requirements:
 -------------
@@ -48,6 +55,7 @@ Requirements:
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
     * cElementTree (http://effbot.org/zone/celementtree.htm) module.
       It is include in python 2.5
+    * twisted-web >= 0.6.0 if you want to use deejayd-webui
     * if you want to use gstreamer backend
         * (2.9 > pygtk >= 2.8) or pygobject >= 2.12 (http://www.pygtk.org/)
         * gstreamer >= 0.10 (http://gstreamer.freedesktop.org)
@@ -69,10 +77,10 @@ Requirements:
 Installation:
 -------------
 Download deejayd and extract it:
-  $tar xzvf deejayd-0.4.0.tar.gz
+  $tar xzvf deejayd-0.5.0.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.4.0
+  $cd deejayd-0.5.0
   $python setup.py build
   $python setup.py install
 
