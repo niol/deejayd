@@ -11,8 +11,8 @@ import testdeejayd
 suitelist = []
 runner = unittest.TextTestRunner(verbosity = 2)
 
-testNamespace = 'testdeejayd'
-testSuitesDirectory = os.path.join(os.path.dirname(__file__), testNamespace)
+TEST_NAMESPACE = 'testdeejayd'
+test_suites_dir = os.path.join(os.path.dirname(__file__), TEST_NAMESPACE)
 
 # Workaround for __import__ behavior, see
 # http://docs.python.org/lib/built-in-funcs.html
@@ -24,7 +24,7 @@ def my_import(name):
     return mod
 
 def get_testfile_from_id(id):
-    return os.path.join(testSuitesDirectory, "test_" + id + ".py")
+    return os.path.join(test_suites_dir, "test_%s.py" % id)
 
 test_files = None
 if len(sys.argv) > 1:
@@ -35,11 +35,11 @@ else:
     test_files = glob.glob(get_testfile_from_id("*"))
 
 for fn in test_files:
-    modulePath = '.'.join([testNamespace, os.path.basename(fn[:-3])])
-    testModule = my_import(modulePath)
+    module_path = '.'.join([TEST_NAMESPACE, os.path.basename(fn[:-3])])
+    test_module = my_import(module_path)
 
-    testSuite = unittest.defaultTestLoader.loadTestsFromModule(testModule)
-    suitelist.append(testSuite)
+    test_suite = unittest.defaultTestLoader.loadTestsFromModule(test_module)
+    suitelist.append(test_suite)
 
 
 runner.run(unittest.TestSuite(suitelist))
