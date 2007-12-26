@@ -1,20 +1,17 @@
 """Deejayd XML protocol parsing and generation testing"""
 # -*- coding: utf-8 -*-
 
+import re, unittest
+from StringIO import StringIO
+
 from testdeejayd import TestCaseWithData
 import testdeejayd.data
-
 from deejayd.net.client import DeejaydXMLCommand, _DeejayDaemon,\
                                DeejaydAnswer, DeejaydKeyValue,\
                                DeejaydFileList, DeejaydMediaList,\
                                DeejaydPlaylist, DeejaydError
 from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 
-# FIXME : We should not need those here, this is some code duplication from the
-# client code.
-from StringIO import StringIO
-
-import re, unittest
 
 class TestCommandBuildParse(unittest.TestCase):
     """Test the Deejayd client library command building"""
