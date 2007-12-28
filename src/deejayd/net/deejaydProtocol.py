@@ -65,7 +65,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
 class CommandFactory:
 
-    def __init__(self, deejayd_core):
+    def __init__(self, deejayd_core=None):
         self.beginList = False
         self.queueCmdClass = None
         self.deejayd_core = deejayd_core
