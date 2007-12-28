@@ -70,7 +70,6 @@ class CommandFactory:
         self.queueCmdClass = None
         self.deejayd_core = deejayd_core
 
-   # XML Commands
     def createCmdFromXML(self,line):
         queueCmd = commandsXML.queueCommands(self.deejayd_core)
 
