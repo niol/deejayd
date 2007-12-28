@@ -140,7 +140,7 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
 
         firstcb_called.wait(2)
         self.failUnless(firstcb_called.isSet(), \
-            '1rst Answer callback was not triggered.')
+            '1st Answer callback was not triggered.')
         secondcb_called.wait(2)
         self.failUnless(secondcb_called.isSet(), \
             '2nd Answer callback was not triggered.')
