@@ -85,9 +85,9 @@
 
 <keyset>
     <key id="play-key" key="x"
-    	oncommand="ajaxdj_ref.send_command('play','',true);"/>
+    	oncommand="ajaxdj_ref.send_command('playtoggle','',true);"/>
     <key id="pause-key" key="c"
-    	oncommand="ajaxdj_ref.send_command('pause','',true);"/>
+    	oncommand="ajaxdj_ref.send_command('playtoggle','',true);"/>
     <key id="stop-key" key="v"
     	oncommand="ajaxdj_ref.send_command('stop','',true);"/>
     <key id="previous-key" key="w"
