@@ -233,8 +233,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
                                              self.video_library, config)
 
     def close(self):
-        for obj in (self.player,self.sources,self.audio_library,\
-                    self.video_library,self.watcher,self.db):
+        for obj in (self.watcher,self.player,self.sources,self.audio_library,\
+                    self.video_library,self.db):
             if obj != None: obj.close()
 
     @returns_deejaydanswer(DeejaydAnswer)

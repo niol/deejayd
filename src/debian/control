@@ -2,7 +2,7 @@ Source: deejayd
 Section: sound
 Priority: extra
 Maintainer: Alexandre Rossi <alexandre.rossi@gmail.com>
-Build-Depends: debhelper (>= 5.0.38), python-dev (>= 2.4), python-central (>= 0.5.6), libx11-dev, libxine-dev, python-pyrex, pkg-config, libxext-dev
+Build-Depends: debhelper (>= 5.0.38), python-dev (>= 2.4), python-central (>= 0.5.6)
 Standards-Version: 3.7.2
 XS-Python-Version: current, >= 2.4
 Homepage: http://mroy31.dyndns.org/~roy/projects/deejayd
@@ -44,8 +44,8 @@ Description: Command line basic client to the deejayd server
  accessible from the command line.
 
 Package: deejayd-xine
-Architecture: any
-Depends: ${python:Depends}, ${shlibs:Depends}
+Architecture: all
+Depends: ${python:Depends}, python-ctypes (>= 1.0.0), libxine1, libx11-6
 Recommends: lsdvd
 Provides: ${python:Provides}, deejayd-mediabackend
 XB-Python-Version: ${python:Versions}
@@ -56,7 +56,7 @@ Package: deejayd-gstreamer
 Architecture: all
 Depends: ${python:Depends}, gstreamer0.10-plugins-base, python-gst0.10
 Provides: deejayd-mediabackend
-Recommends: gstreamer0.10-gnomevfs
+Recommends: gstreamer0.10-gnomevfs lsdvd
 XB-Python-Version: ${python:Versions}
 Description: Deejayd Gstreamer backend
  The deejayd media backend using the gstreamer library.

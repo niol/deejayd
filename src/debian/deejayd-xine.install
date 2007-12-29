@@ -1,3 +1,3 @@
 usr/lib/python*/site-packages/deejayd/player/xine.py
-usr/lib/python*/site-packages/deejayd/ext/__init__.py
-usr/lib/python*/site-packages/deejayd/ext/xine.so
+usr/lib/python*/site-packages/deejayd/player/_xine.py
+usr/lib/python*/site-packages/deejayd/player/display/*.py

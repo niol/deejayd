@@ -1,10 +1,9 @@
 include doc/*
-include TODO
 include LICENCE
+include README
 include docs.py
 include deejayd/ui/defaults.conf
 include deejayd/database/sql/*
-include deejayd/ext/xinelib/djdxine.h
 include deejayd/webui/templates/*
 include gentoo/*
 include gentoo/files/*
