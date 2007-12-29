@@ -172,8 +172,7 @@ if __name__ == "__main__":
     deejayd_core = DeejayDaemonCore(config)
 
     # net service
-    net_support = config.get("net","enabled")
-    if net_support.lower() == "yes":
+    if config.getboolean("net","enabled"):
         service = True
         from deejayd.net.deejaydProtocol import DeejaydFactory
 
@@ -186,8 +185,7 @@ if __name__ == "__main__":
                 sys.exit(1)
 
     # webui service
-    webui_support = config.get("webui","enabled")
-    if webui_support.lower() == "yes":
+    if config.getboolean("webui","enabled"):
         service = True
         from deejayd.webui import twisted_handler as handler
         try: site = handler.init(deejayd_core,config,options.webui_logfile)
