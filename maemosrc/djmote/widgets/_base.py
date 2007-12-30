@@ -2,14 +2,21 @@
 import gtk,pango
 
 def fraction_seconds(seconds, hour = False):
+    def format_number(n):
+        if n < 10:
+            return "0%d" % n
+        return "%d" % n
+
     try: seconds = int(seconds)
-    except ValueError: return "0"
+    except ValueError: return "00"
 
     min, s = divmod(seconds, 60)
     if hour:
         h, min = divmod(min, 60)
-        return "%d:%d:%d" % (h, min, s)
-    return "%d:%d" % (min, s)
+        return "%s:%s:%s" % (format_number(h), format_number(min),\
+                             format_number(s))
+    return "%d:%d" % (format_number(min), format_number(s))
+
 
 class DjmoteTreeView(gtk.TreeView):
 
@@ -34,7 +41,6 @@ class DjmoteButton(gtk.Button):
         settings.set_property("gtk-button-images", True)
 
 
-
 class SourceBox(gtk.VBox):
 
     def __init__(self, player):
@@ -45,6 +51,12 @@ class SourceBox(gtk.VBox):
         scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scrolled_window.add_with_viewport(self._build_tree())
         self.pack_start(scrolled_window)
+
+        # FOR FUTURE USE : thumb scrollbar
+        #vscrollbar = scrolled_window.get_vscrollbar()
+        #vscrollbar.set_name("hildon-thumb-scrollbar")
+        # set the scrollbar at left
+        #scrolled_window.set_placement(gtk.CORNER_TOP_RIGHT)
 
         # toolbar
         self.toolbar_box = gtk.HBox()

@@ -9,7 +9,7 @@ class ControlBox(gtk.VBox):
 
         vol_button = VolumeButton(True)
         vol_button.connect("clicked",self.volume_toggle)
-        self.pack_end(vol_button)
+        self.pack_end(vol_button, expand = False, fill = False)
 
         self.__current = "pl_controls"
         self.__controls_panels = {}
@@ -78,7 +78,6 @@ class VolumeBar(hildon.VVolumebar):
 
     def __init__(self,player):
         hildon.VVolumebar.__init__(self)
-        self.set_size_request(80,290)
         self.__player = player
         self.__level_signal = None
 

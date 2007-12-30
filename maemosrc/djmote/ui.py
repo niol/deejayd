@@ -62,23 +62,22 @@ class DjmoteUI(hildon.Program):
         self.set_common_menu(menu)
 
         # Layout
-        main_box = gtk.HBox()
+        main_box = gtk.VBox()
         self.main_window.add(main_box)
 
-        # controls
-        main_box.pack_end(ControlBox(self), expand=False, fill=False)
-
-        left_box = gtk.VBox(spacing = 5)
-        main_box.pack_end(left_box)
         # status
-        left_box.pack_start(StatusBox(self), expand = False, fill = False)
+        main_box.pack_start(StatusBox(self), expand = False, fill = False)
 
+        bottom_box = gtk.HBox(spacing = 5)
+        main_box.pack_end(bottom_box)
+        # controls
+        bottom_box.pack_end(ControlBox(self), expand=False, fill=False)
         # mode
-        left_box.pack_start(ModeBox(self))
+        bottom_box.pack_start(ModeBox(self))
 
-        # mode
+        # message status
         self.status_box = gtk.HBox()
-        left_box.pack_start(self.status_box)
+        bottom_box.pack_start(self.status_box)
 
     def set_msg_status(self, msg):
         # remove previous msg

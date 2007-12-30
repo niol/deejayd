@@ -6,7 +6,10 @@ class StatusBox(gtk.HBox):
     def __init__(self,player):
         gtk.HBox.__init__(self)
 
-        self.pack_start(Toolbar(player))
+        # toolbar
+        toolbar = Toolbar(player)
+        self.pack_start(toolbar)
+        # current media
         self.pack_start(Current(player))
 
 class Current(gtk.HBox):
