@@ -3,7 +3,7 @@
 import time
 from os import path
 from ctypes import *
-from twisted.internet import threads
+from twisted.internet import reactor
 from deejayd.player._base import *
 from deejayd.player._xine import *
 from deejayd.player.display import x11
@@ -316,18 +316,43 @@ class XinePlayer(UnknownPlayer):
             try: self.start_play()
             except PlayerError: pass
 
+    def _update_metadata(self):
+        if not self._media_file or self._media_file["type"] != "webradio":
+            return False
+
+        # update webradio song info
+        meta = [
+            (XINE_META_INFO_TITLE, 'song-title'),
+            (XINE_META_INFO_ARTIST, 'song-artist'),
+            (XINE_META_INFO_ALBUM, 'song-album'),
+        ]
+        for info, name in meta:
+            text = xine_get_meta_info(self.__stream, info)
+            if not text:
+                continue
+            text = text.decode('UTF-8', 'replace')
+            if name not in self._media_file.keys() or\
+                           self._media_file[name] != text:
+                self._media_file[name] = text
+            return False
+
     def _event_callback(self, user_data, event):
         event = event.contents
         if event.type == XINE_EVENT_UI_PLAYBACK_FINISHED:
-            threads.deferToThread(self._eof)
+            log.info("Xine event : playback finished")
+            reactor.callLater(0, self._eof)
+        elif event.type == XINE_EVENT_UI_SET_TITLE:
+            log.info("Xine event : set title")
+            reactor.callLater(0, self._update_metadata)
         elif event.type == XINE_EVENT_UI_MESSAGE:
+            log.info("Xine event : message")
             msg = cast(event.data, POINTER(xine_ui_message_data_t)).contents
             if msg.type != XINE_MSG_NO_ERROR:
                 if msg.explanation:
                     message = string_at(addressof(msg) + msg.explanation)
                 else:
                     message = "xine error %s" % msg.type
-                threads.deferToThread(log.err, message)
+                reactor.callLater(0, log.err, message)
 
     def _dest_size_cb(self, data, video_width, video_height,\
                       video_pixel_aspect, dest_width, dest_height,\
