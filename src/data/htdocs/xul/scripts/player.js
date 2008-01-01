@@ -36,9 +36,10 @@ var Player = function()
         // Now we try to obtain current song info
         var cur_song = playerObj.getElementsByTagName("cursong").item(0);
         if (cur_song) {
-            this.__build_title(cur_song);
             switch(cur_song.getAttribute("type")) {
                 case "song":
+                // title
+                this.__build_title(cur_song);
                 // Artist
                 var artist = cur_song.getElementsByTagName("artist").item(0);
                 if (artist)
@@ -50,6 +51,13 @@ var Player = function()
                 break;
 
                 case "webradio":
+                // title
+                var title = cur_song.getElementsByTagName("title").item(0).
+                    firstChild.data;
+                var song = cur_song.getElementsByTagName("song-title").item(0);
+                if (song)
+                    title += " : " + song.firstChild.data;
+                this.__build_label_item("title", title);
                 // Url
                 var url = cur_song.getElementsByTagName("url").item(0);
                 if (url)
@@ -57,6 +65,8 @@ var Player = function()
                 break;
 
                 case "video":
+                // title
+                this.__build_title(cur_song);
                 var a = Array("audio","subtitle");
                 for (ix in a) {
                     var obj = cur_song.getElementsByTagName(a[ix]).item(0);
