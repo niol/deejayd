@@ -244,7 +244,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         else:
             try: self.player.play()
             except player._base.PlayerError, err:
-                raise DeejaydError("Unable to play this file : %s" % err)
+                raise DeejaydError(str(err))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def stop(self):
@@ -252,11 +252,15 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def previous(self):
-        self.player.previous()
+        try: self.player.previous()
+        except player._base.PlayerError, err:
+            raise DeejaydError(str(err))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def next(self):
-        self.player.next()
+        try: self.player.next()
+        except player._base.PlayerError, err:
+            raise DeejaydError(str(err))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def seek(self, pos):
