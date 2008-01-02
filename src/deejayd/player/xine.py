@@ -16,7 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import time
 from os import path
 from ctypes import *
 from twisted.internet import reactor
@@ -56,6 +55,7 @@ class XinePlayer(UnknownPlayer):
             raise PlayerError("Unable to open audio driver")
 
         # init vars
+        self.__supports_gapless = xine_check_version(1, 1, 1) == 1
         self.__volume = 0
         self.__video_port = None
         self.__stream = None
@@ -100,6 +100,7 @@ class XinePlayer(UnknownPlayer):
             msg = "Unable to play files %s" % uri
             log.err(msg)
             raise PlayerError(msg)
+
         # if video get current audio/subtitle channel
         if self._media_file["type"] == "video":
             if "audio" in self._media_file:
@@ -109,16 +110,18 @@ class XinePlayer(UnknownPlayer):
                 self._media_file["subtitle_idx"] = \
                     self.__do_get_property(XINE_PARAM_SPU_CHANNEL)
 
-    def _change_file(self,new_file):
-        if self._media_file == None or new_file == None:
-            detach = True
-        elif self._media_file["type"] != new_file["type"]:
-            detach = True
-        else: detach = False
+    def _change_file(self,new_file, gapless = False):
+        if self._media_file == None or new_file == None or \
+                self._media_file["type"] != new_file["type"]:
+            self._destroy_stream()
+            gapless = False
 
-        self.stop(detach)
         self._media_file = new_file
+        if gapless and self.__supports_gapless:
+            xine_set_param(self.__stream, XINE_PARAM_GAPLESS_SWITCH, 1)
         self.start_play()
+        if gapless and self.__supports_gapless:
+            xine_set_param(self.__stream, XINE_PARAM_GAPLESS_SWITCH, 0)
 
     def pause(self):
         if self.get_state() == PLAYER_PAUSE:
@@ -126,14 +129,9 @@ class XinePlayer(UnknownPlayer):
         elif self.get_state() == PLAYER_PLAY:
             self.__do_set_property(XINE_PARAM_SPEED, XINE_SPEED_PAUSE)
 
-    def stop(self, detach = True):
-        self._media_file = None
-        # FIXME : try to remove this one day ...
+    def stop(self):
         self._source.queue_reset()
-
-        if not self.__stream: return
-        xine_stop(self.__stream)
-        if detach: self._destroy_stream()
+        self._change_file(None)
 
     def _player_set_alang(self,lang_idx):
         self.__do_set_property(XINE_PARAM_AUDIO_CHANNEL_LOGICAL, lang_idx)
@@ -161,8 +159,15 @@ class XinePlayer(UnknownPlayer):
 
     def get_position(self):
         if not self.__stream: return 0
-        pos_stream, pos_time, length_time = xine_get_pos_length(self.__stream)
-        return int(pos_time / 1000)
+        # Workaround for problems when you seek too quickly
+        i = 0
+        while i < 4:
+            pos_s, pos_t, length = xine_get_pos_length(self.__stream)
+            if int(pos_t) > 0:  break
+            xine_usec_sleep(100000)
+            i += 1
+
+        return int(pos_t / 1000)
 
     def set_position(self,pos):
         pos = int(pos * 1000)
@@ -172,7 +177,6 @@ class XinePlayer(UnknownPlayer):
             xine_set_param(self.__stream, XINE_PARAM_SPEED, XINE_SPEED_PAUSE)
         elif state == PLAYER_PLAY:
             xine_play(self.__stream, 0, pos)
-        time.sleep(0.2)
 
     def get_state(self):
         if not self.__stream: return PLAYER_STOP
@@ -296,15 +300,26 @@ class XinePlayer(UnknownPlayer):
         # create stream
         self.__stream = xine_stream_new(self.__xine, self.__audio_port,\
                             self.__video_port)
+        if not self.__video_port:
+            xine_set_param(self.__stream, XINE_PARAM_IGNORE_VIDEO, 1)
+            xine_set_param(self.__stream, XINE_PARAM_IGNORE_SPU, 1)
+        if self.__supports_gapless:
+            xine_set_param(self.__stream, XINE_PARAM_EARLY_FINISHED_EVENT, 1)
+
         # add event listener
+        if self.__event_queue:
+            xine_event_dispose_queue(self.__event_queue)
         self.__event_queue = xine_event_new_queue(self.__stream)
         xine_event_create_listener_thread(self.__event_queue,
             self._event_callback, None)
 
     def _destroy_stream(self):
         if self.__stream:
-            xine_event_dispose_queue(self.__event_queue)
+            xine_stop(self.__stream)
             xine_close(self.__stream)
+            xine_set_param(self.__stream, XINE_PARAM_AUDIO_CLOSE_DEVICE, 1)
+            if self.__event_queue:
+                xine_event_dispose_queue(self.__event_queue)
             xine_dispose(self.__stream)
 
             # close video driver
@@ -323,14 +338,8 @@ class XinePlayer(UnknownPlayer):
     def _eof(self):
         new_file = self._source.next(self.options["random"],\
                     self.options["repeat"])
-        if new_file == None:
-            self._destroy_stream()
-        else:
-            detach = self._media_file["type"] != new_file["type"]
-            self.stop(detach)
-            self._media_file = new_file
-            try: self.start_play()
-            except PlayerError: pass
+        try: self._change_file(new_file, gapless = True)
+        except PlayerError: pass
 
     def _update_metadata(self):
         if not self._media_file or self._media_file["type"] != "webradio":

@@ -59,10 +59,8 @@ class UnknownPlayer:
 
     def play(self):
         if self.get_state() == PLAYER_STOP:
-            if not self._media_file:
-                self._media_file = self._source.get_current()
-            self.start_play()
-
+            file = self._media_file or self._source.get_current()
+            self._change_file(file)
         elif self.get_state() in (PLAYER_PAUSE, PLAYER_PLAY):
             self.pause()
 
