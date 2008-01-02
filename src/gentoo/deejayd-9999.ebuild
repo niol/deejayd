@@ -13,7 +13,7 @@ EDARCS_LOCALREPO="deejayd"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
-IUSE="dvd mad vorbis webradio xine gstreamer X ffmpeg webui inotify"
+IUSE="dvd mad vorbis webradio xine gstreamer X ffmpeg webui inotify logrotate"
 
 DEPEND=""
 RDEPEND="${DEPEND}
@@ -21,6 +21,7 @@ RDEPEND="${DEPEND}
 	>=dev-python/pysqlite-2.2
 	>=dev-python/celementtree-1.0.2
 	>=media-libs/mutagen-1.9
+	logrotate? ( app-admin/logrotate )
 	webui? ( >=dev-python/twisted-web-0.6.0 )
 	inotify? ( >=dev-python/pyinotify-0.6.0 )
 	gstreamer? ( >=dev-python/pygtk-2.8
@@ -91,4 +92,10 @@ src_install() {
 	# Log
 	dodir /var/log/deejayd
 	keepdir /var/log/deejayd
+
+	# Logrotate support
+	if use logrotate ; then
+		insinto /etc/logrotate.d
+		newins "${FILESDIR}/deejayd.logrotate" deejayd
+	fi
 }
