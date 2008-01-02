@@ -40,7 +40,7 @@ RDEPEND="${DEPEND}
 		vorbis? ( >=media-plugins/gst-plugins-vorbis-0.10.2
 			>=media-plugins/gst-plugins-ogg-0.10.2 )
 		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))
-	xine? ( ( >=dev-python/ctypes.1.0.0 || >=dev-lang/python-2.5.0 )
+	xine? ( >=dev-python/ctypes-1.0.0
 			>=x11-libs/libX11-1.0.0
 			>=media-libs/xine-lib-1.1.0)
 	dvd? ( >=media-video/lsdvd-0.16 )"
