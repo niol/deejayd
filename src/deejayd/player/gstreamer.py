@@ -227,26 +227,30 @@ class GstreamerPlayer(UnknownPlayer):
         return state
 
     def is_supported_uri(self,uri_type):
-        if uri_type == "dvd":
+        if uri_type == "dvd" and not self._is_lsdvd_exists():
             # test lsdvd  installation
-            if not self._is_lsdvd_exists(): return False
+            return False
         return gst.element_make_from_uri(gst.URI_SRC,uri_type+"://", '') \
                     is not None
 
     def is_supported_format(self,format):
-        # MP3 file
-        if format in (".mp3",".mp2"):
-            return gst.registry_get_default().find_plugin("mad") is not None
+        formats = {
+            ".mp3": ("mad",),
+            ".mp2": ("mad",),
+            ".ogg": ("ogg", "vorbis"),
+            ".mp4": ("faad",),
+            ".avi": ("ffmpeg",),
+            ".mpeg": ("ffmpeg",),
+            ".mpg": ("ffmpeg",),
+            }
 
-        # OGG file
-        if format in (".ogg",):
-            return gst.registry_get_default().find_plugin("ogg") is not None \
-               and gst.registry_get_default().find_plugin("vorbis") is not None
+        if format in formats.keys():
+            for plugin in formats[format]:
+                if gst.registry_get_default().find_plugin(plugin) == None:
+                    return False
+            return True
 
-        # Video file
-        if format in (".avi",".mpeg",".mpg"):
-            return self._video_support and gst.registry_get_default().\
-                find_plugin("ffmpeg") is not None
+        return False
 
     def get_video_file_info(self,file):
         return DiscoverVideoFile(file)

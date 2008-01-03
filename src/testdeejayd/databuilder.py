@@ -116,6 +116,43 @@ class TestMP3Song(TestSong):
         return EasyID3(self.tags["filename"])
 
 
+class TestMP4Song(TestSong):
+    __translate = {
+        "\xa9nam": "title",
+        "\xa9alb": "album",
+        "\xa9ART": "artist",
+        "\xa9day": "date",
+        "\xa9gen": "genre",
+        }
+    __tupletranslate = {
+        "trkn": "tracknumber",
+        }
+
+    def __init__(self):
+        self.testFile,self.ext = os.path.join(DATA_DIR, "mp4_test.mp4"), ".mp4"
+        TestSong.__init__(self)
+
+    def __getitem__(self,key):
+        return key in self.tags and self.tags[key] or None
+
+    def setRandomTag(self):
+        from mutagen.mp4 import MP4
+        tag_info = MP4(self.tags["filename"])
+        for tag, name in self.__translate.iteritems():
+            if name == "date": value = str(self.getRandomInt(2010,1971))
+            else: value = self.getRandomString()
+
+            tag_info[tag] = unicode(value)
+            self.tags[name] = value
+
+        for tag, name in self.__tupletranslate.iteritems():
+            cur = self.getRandomInt(15)
+            value = (cur, 15)
+            tag_info[tag] = [value]
+            self.tags[name] = "%d/15" % cur
+
+        tag_info.save()
+
 class TestOggSong(TestSong):
 
     def __init__(self):
@@ -170,7 +207,7 @@ class TestProvidedMusicCollection(TestData):
         for root, dir, files in os.walk(self.datadir):
             for file in files:
                 (name,ext) = os.path.splitext(file)
-                if ext.lower() in ('.mp3','.ogg'):
+                if ext.lower() in ('.mp3','.ogg','.mp4'):
                     self.songPaths.append(self.stripRoot(os.path.join(root,
                                                                         file)))
 
@@ -236,7 +273,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
         self.dir_struct_written = True
 
     def build_audio_library_directory_tree(self, destDir = "/tmp"):
-        self.supported_files_class = (TestOggSong,TestMP3Song)
+        self.supported_files_class = (TestOggSong,TestMP3Song,TestMP4Song)
         self.buildLibraryDirectoryTree(destDir)
 
     def build_video_library_directory_tree(self, destDir = "/tmp"):

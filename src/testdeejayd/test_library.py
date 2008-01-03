@@ -48,6 +48,7 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
         config.set('xine','audio_output',"none")
         config.set('xine','video_output',"none")
         player = xine.XinePlayer(self.db, config)
+        player.init_video_support()
 
         self.library = self.__class__.library_class(self.db, player, \
                                                     self.testdata.getRootDir())
@@ -140,7 +141,7 @@ class TestVideoLibrary(TestDeejayDBLibrary):
 
 class TestAudioLibrary(TestDeejayDBLibrary):
     library_class = AudioLibrary
-    supported_ext = (".ogg",".mp3")
+    supported_ext = (".ogg",".mp3",".mp4")
 
     def setUp(self):
         TestDeejayDBLibrary.setUp(self)
@@ -216,7 +217,7 @@ class TestAudioLibrary(TestDeejayDBLibrary):
 
 class TestInotifySupport(TestDeejayDBLibrary):
     library_class = AudioLibrary
-    supported_ext = (".ogg",".mp3")
+    supported_ext = (".ogg",".mp3",".mp4")
 
     def setUp(self):
         TestDeejayDBLibrary.setUp(self)
