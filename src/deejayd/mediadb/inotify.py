@@ -76,6 +76,13 @@ if inotify_support:
             else:
                 self.__library.update_file(event.path, event.name)
 
+        def process_IN_IGNORED(self, event):
+            # This is said to be useless in documentation, and is effectively
+            # useless for us except from adding extreme verbosity to the tests.
+            # Farewell, IN_IGNORED!
+            pass
+
+
 #############################################################################
 
 class DeejaydInotify(threading.Thread):
