@@ -78,7 +78,7 @@ class TestServer:
         if not firstLine == 'ready\n':
             # Should not occur
             print firstLine
-            print self.__serverProcess.stderr.read(16000)
+            self.stop()
             raise Exception('Reactor does not seem to be ready')
 
     def stop(self):

@@ -26,6 +26,7 @@ import sys, os
 
 from twisted.internet import reactor
 from twisted.python import log
+import twisted.internet.error
 
 from deejayd.ui.config import DeejaydConfig
 from deejayd.net.deejaydProtocol import DeejaydFactory
@@ -61,12 +62,18 @@ deejayd_core.update_audio_library(sync = True, objanswer = False)
 deejayd_core.update_video_library(sync = True, objanswer = False)
 
 factory = DeejaydFactory(deejayd_core)
-reactor.listenTCP(int(port), factory)
+try:
+    reactor.listenTCP(int(port), factory)
+except twisted.internet.error.CannotListenError:
+    # This is to avoid locking the test suite when the server used in the
+    # previous test has not stopped listenning.
+    os.write(2, 'stopped\n')
 
 def printReady():
     os.write(2, 'ready\n')
 
 reactor.addSystemEventTrigger('after', 'startup', printReady)
 reactor.run()
+
 
 # vim: ts=4 sw=4 expandtab
