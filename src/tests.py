@@ -61,7 +61,7 @@ if len(sys.argv) > 1:
     for test_id in sys.argv[1:]:
         try:
             test_module, test_name = test_id.split('/')
-        except IndexError:
+        except ValueError:
             test_module = test_id
             test_name = None
 
