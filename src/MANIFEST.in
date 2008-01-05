@@ -9,3 +9,5 @@ include gentoo/*
 include gentoo/files/*
 include debian/*
 recursive-include data/htdocs *
+include po/*po
+include po/deejayd.pot

@@ -43,16 +43,78 @@ class _DeejaydXML:
 ############################################################################
 #### build web interface from templates
 ############################################################################
-def build_web_interface(language):
+def build_language_dtd():
+    __translates = {
+        # common
+        "remove": _("Remove"),
+        "play": _("Play"),
+        "playlist": _("Playlist"),
+        "search": _("Search"),
+        "title": _("Title"),
+        "album": _("Album"),
+        "artist": _("Artist"),
+        "genre": _("Genre"),
+        "time": _("Time"),
+        "bitrate": _("Bitrate"),
+        "all": _("All"),
+        "ok": _("Ok"),
+        "cancel": _("Cancel"),
+        "curSong": _("Go to current song"),
+        # main
+        "webradio": _("Webradio"),
+        "video": _("Video"),
+        "dvd": _("Dvd"),
+        "navPanel": _("Navigation Panel"),
+        "showDebug": _("Show debug zone"),
+        "random": _("Random"),
+        "repeat": _("Repeat"),
+        "audio_channel": _("Audio Channel:"),
+        "subtitle_channel": _("Subtitle Channel:"),
+        # playlist
+        "load": _("Load"),
+        "loadQueue": _("Load in the queue"),
+        "plAdd": _("Add to playlist"),
+        "plName": _("Playlist name"),
+        "directory": _("Directory"),
+        "updateDB": _("update"),
+        "clear": _("Clear"),
+        "save": _("Save"),
+        "shuffle": _("Shuffle"),
+        # webradio
+        "wbAdd": _("Add a Webradio"),
+        "wbUrl": _("URL (.pls and .m3u are supported)"),
+        "name": _("Name"),
+        "add": _("Add"),
+        "url": _("URL"),
+        "action": _("Actions"),
+        # queue
+        "queue": _("Song Queue"),
+        # dvd
+        "reload": _("Reload"),
+        # video
+        "fullscreen": _("Fullscreen"),
+        "videoInfo": _("Video Informations"),
+        "length": _("Length"),
+        "width": _("Width"),
+        "height": _("Height"),
+        "subtitle": _("Subtitle"),
+        }
+    entities = "\n"
+    for k, v in __translates.iteritems():
+        entities += "<!ENTITY %s \"%s\">\n" % (k, v)
+
+    return entities
+
+def build_web_interface():
     default_path = os.path.abspath(os.path.dirname(__file__))
     # get templates
     template_dir = os.path.join(default_path,"templates")
 
-    templates = {}
+    templates = {"dtd": build_language_dtd()}
     #get source template
     for temp in ("dvd","playlist","webradio","video","queue"):
         fd = open(os.path.join(template_dir,temp+".xml"))
-        templates[temp] = fd.read()
+        templates[temp+"_box"] = fd.read()
         fd.close()
     # open main template
     fd = open(os.path.join(template_dir,"main.xml"))
@@ -170,9 +232,10 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
         seq.attrib["RDF:about"] = "http://dvd/infos"
         i = 0
         infos = [{"name": "title",\
-                  "value": "DVD Title : %s" % dvd_content["title"]},\
+                  "value": _("DVD Title : %s") % dvd_content["title"]},\
                  {"name": "longest_track",
-                  "value": "Longest Track : %s" % dvd_content["longest_track"]}]
+                  "value": _("Longest Track : %s")\
+                                % dvd_content["longest_track"]}]
         for inf in infos:
             li = ET.SubElement(seq,"RDF:li")
             self._rdf_description(li,inf,"http://dvd/%d" % i)
@@ -186,7 +249,7 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
             track_struct =  ET.SubElement(track_li,"RDF:Seq")
             track_struct.attrib["RDF:about"] = track_url
             self._rdf_description(root,\
-                {"title": "Title %s" % track["ix"],\
+                {"title": _("Title %s") % track["ix"],\
                     "id": track["ix"], "length": track["length"]},track_url)
 
             for chapter in track["chapter"]:
@@ -194,7 +257,7 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
                 li = ET.SubElement(track_struct,"RDF:li")
                 li.attrib["RDF:resource"] = chapter_url
                 self._rdf_description(root,\
-                  {"title": "Chapter %s" % chapter["ix"],\
+                  {"title": _("Chapter %s") % chapter["ix"],\
                    "id": chapter["ix"],"length": chapter["length"]},chapter_url)
 
         self._save_rdf(root,new_id)
@@ -242,21 +305,24 @@ class DeejaydWebAnswer(_DeejaydXML):
     def set_playlist(self,status,deejayd):
         pls = ET.SubElement(self.xmlroot,"playlist",\
             id = self._to_xml_string(status["playlist"]),\
-            description = "%s Songs" % str(status["playlistlength"]),\
+            description = ngettext("%s Song", "%s Songs",\
+              int(status["playlistlength"])) % str(status["playlistlength"]),\
             length = self._to_xml_string(status["playlistlength"]));
         DeejaydPlaylistRdf(deejayd,self.__rdf_dir).update(status["playlist"])
 
     def set_queue(self,status,deejayd):
         queue = ET.SubElement(self.xmlroot,"queue",\
             id = self._to_xml_string(status["queue"]),\
-            description = "%s Songs" % str(status["queuelength"]),\
+            description = ngettext("%s Song", "%s Songs",\
+              int(status["queuelength"])) % str(status["queuelength"]),\
             length = self._to_xml_string(status["queuelength"]));
         DeejaydQueueRdf(deejayd,self.__rdf_dir).update(status["queue"])
 
     def set_webradio(self,status,deejayd):
         wb = ET.SubElement(self.xmlroot,"webradio",\
             id = self._to_xml_string(status["webradio"]),\
-            description = "%s Webradios" % str(status["webradiolength"]),\
+            description = ngettext("%s Webradio", "%s Webradios",\
+              int(status["webradiolength"])) % str(status["webradiolength"]),\
             length = self._to_xml_string(status["webradiolength"]));
         DeejaydWebradioRdf(deejayd,self.__rdf_dir).update(status["webradio"])
 

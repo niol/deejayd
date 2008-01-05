@@ -31,7 +31,7 @@ if inotify_support:
 
     def log_event(func):
         def log_event_func(self, event):
-            log.debug("inotify event %s: %s" % \
+            log.debug(_("Inotify event %s: %s") % \
                 (event.event_name,os.path.join(event.path, event.name)))
             func(self,event)
 

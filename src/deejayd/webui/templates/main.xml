@@ -3,67 +3,7 @@
 <?xml-stylesheet href="./static/xul/bindings/bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<!DOCTYPE window [
-    <!-- common -->
-    <!ENTITY remove "Remove">
-    <!ENTITY play "Play">
-    <!ENTITY playlist "Playlist">
-    <!ENTITY search "Search">
-    <!ENTITY title "Title">
-    <!ENTITY album "Album">
-    <!ENTITY artist "Artist">
-    <!ENTITY genre "Genre">
-    <!ENTITY time "Time">
-    <!ENTITY bitrate "Bitrate">
-    <!ENTITY all "All">
-    <!ENTITY ok "Ok">
-    <!ENTITY cancel "Cancel">
-    <!ENTITY curSong "Go to Current Song">
-
-    <!-- main.php -->
-    <!ENTITY webradio "Webradio">
-    <!ENTITY video "Video">
-    <!ENTITY dvd "DVD">
-    <!ENTITY navPanel "Navigation Panel">
-    <!ENTITY showDebug "Show Debug Zone">
-    <!ENTITY random "Random">
-    <!ENTITY repeat "Repeat">
-    <!ENTITY audio_channel "Audio Channel :">
-    <!ENTITY subtitle_channel "Subtitle Channel :">
-
-    <!-- playlist.php -->
-    <!ENTITY load "Load">
-    <!ENTITY loadQueue "Load in the queue">
-    <!ENTITY plAdd "Add to playlist">
-    <!ENTITY plName "Playlist Name">
-    <!ENTITY directory "Directory">
-    <!ENTITY updateDB "Update">
-    <!ENTITY clear "Clear">
-    <!ENTITY save "Save">
-    <!ENTITY shuffle "Shuffle">
-
-    <!-- webradio.php -->
-    <!ENTITY wbAdd "Add a Webradio">
-    <!ENTITY wbUrl "URL (.pls and .m3u are supported)">
-    <!ENTITY name "Name">
-    <!ENTITY add "Add">
-    <!ENTITY url "URL">
-    <!ENTITY action "Actions">
-
-    <!-- queue.php -->
-    <!ENTITY queue "Song Queue">
-
-    <!-- dvd.php -->
-    <!ENTITY reload "Reload">
-
-    <!-- video.php -->
-    <!ENTITY fullscreen "Fullscreen">
-    <!ENTITY videoInfo "Video Informations">
-    <!ENTITY length "Length">
-    <!ENTITY width "Width">
-    <!ENTITY height "Height">
-    <!ENTITY subtitle "Subtitle">
-]>
+<!DOCTYPE window [ $dtd ]>
 
 <window
     id="main-window"
@@ -237,10 +177,10 @@
     <deck
         selectedIndex="0"
         id="main">
-            $playlist
-            $webradio
-            $video
-            $dvd
+            $playlist_box
+            $webradio_box
+            $video_box
+            $dvd_box
     </deck>
     <textbox
         id="debug"
@@ -274,7 +214,7 @@
 <vbox
     flex="10"
     id="queue-box">
-    $queue
+    $queue_box
 </vbox>
 <!-- END Queue -->
 

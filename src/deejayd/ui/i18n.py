@@ -16,25 +16,18 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-class PlayerError(Exception):pass
+import __builtin__
+import gettext
 
-def init(db,config):
-    media_backend = config.get("general","media_backend")
+class DeejaydTranslations(gettext.GNUTranslations):
 
-    if media_backend == "gstreamer":
-        from deejayd.player import gstreamer
-        try: player = gstreamer.GstreamerPlayer(db,config)
-        except gstreamer.NoSinkError:
-            raise PlayerError(_("No audio sink found for Gstreamer"))
+    def __init__(self, *args, **kwargs):
+        self._catalog = {}
+        self.plural = lambda n: n > 1
+        gettext.GNUTranslations.__init__(self, *args, **kwargs)
 
-    elif media_backend == "xine":
-        from deejayd.player import xine,_base
-        try: player = xine.XinePlayer(db,config)
-        except _base.PlayerError:
-            raise PlayerError(_("Xine initialisation failed"))
-
-    else: raise PlayerError(_("Invalid audio backend"))
-
-    return player
+    def install(self):
+        __builtin__.__dict__["_"] = self.gettext
+        __builtin__.__dict__["ngettext"] = self.ngettext
 
 # vim: ts=4 sw=4 expandtab

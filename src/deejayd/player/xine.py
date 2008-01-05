@@ -42,8 +42,8 @@ class XinePlayer(UnknownPlayer):
         # init main instance
         self.__xine = xine_new()
         if not self.__xine:
-            log.err("Unable to init a xine instance")
-            raise PlayerError("Unable to open audio driver")
+            log.err(_("Unable to init a xine instance"))
+            raise PlayerError
         xine_config_load(self.__xine, xine_get_homedir() + "/.xine/config")
         xine_init(self.__xine)
 
@@ -51,8 +51,8 @@ class XinePlayer(UnknownPlayer):
         driver_name = self.config.get("xine", "audio_output")
         self.__audio_port = xine_open_audio_driver(self.__xine,driver_name,None)
         if not self.__audio_port:
-            log.err("Unable to open audio driver")
-            raise PlayerError("Unable to open audio driver")
+            log.err(_("Unable to open audio driver"))
+            raise PlayerError
 
         # init vars
         self.__supports_gapless = xine_check_version(1, 1, 1) == 1
@@ -97,7 +97,7 @@ class XinePlayer(UnknownPlayer):
 
         if not xine_open(self.__stream, uri) or \
            not xine_play(self.__stream, 0, 0):
-            msg = "Unable to play files %s" % uri
+            msg = _("Unable to play file %s") % uri
             log.err(msg)
             raise PlayerError(msg)
 
@@ -269,7 +269,7 @@ class XinePlayer(UnknownPlayer):
 
     def _create_stream(self, isvideo):
         if self.__stream != None:
-            raise PlayerError("a stream already exists")
+            raise PlayerError
         # open video driver
         if isvideo and self._video_support and \
                         self.__xine_options["video"] != "none":
@@ -294,8 +294,9 @@ class XinePlayer(UnknownPlayer):
                 self.__xine_options["video"], XINE_VISUAL_TYPE_X11,\
                 cast(byref(vis), c_void_p))
             if not self.__video_port:
-                log.err("Unable to open video driver")
-                raise PlayerError("Unable to open video driver")
+                msg = _("Unable to open video driver")
+                log.err(msg)
+                raise PlayerError(msg)
 
         # create stream
         self.__stream = xine_stream_new(self.__xine, self.__audio_port,\
@@ -376,7 +377,7 @@ class XinePlayer(UnknownPlayer):
                 if msg.explanation:
                     message = string_at(addressof(msg) + msg.explanation)
                 else:
-                    message = "xine error %s" % msg.type
+                    message = _("Xine error %s") % msg.type
                 reactor.callLater(0, log.err, message)
 
     def _dest_size_cb(self, data, video_width, video_height,\

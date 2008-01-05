@@ -89,7 +89,7 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
         try:
             return self.deejaydcore.sources.get_source('webradio')
         except sources.sources.UnknownSourceException:
-            raise DeejaydError('Webradio support not available.')
+            raise DeejaydError(_('Webradio support not available.'))
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self):
@@ -100,9 +100,9 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
         try:
             self.source.add(urls, name)
         except sources.webradio.UnsupportedFormatException:
-            raise DeejaydError('Webradio URI not supported')
+            raise DeejaydError(_('Webradio URI not supported'))
         except sources.webradio.UrlNotFoundException:
-            raise DeejaydError('Webradio info could not be retrieved')
+            raise DeejaydError(_('Webradio info could not be retrieved'))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def delete_webradios(self, wr_ids):
@@ -110,7 +110,7 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
             try:
                 self.source.delete(int(id))
             except sources._base.ItemNotFoundException:
-                raise DeejaydError('Webradio with id %d not found' % int(id))
+                raise DeejaydError(_('Webradio with id %d not found') % int(id))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def clear(self):
@@ -133,7 +133,7 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         try:
             self.source.add_path(paths, position)
         except sources._base.ItemNotFoundException:
-            raise DeejaydError('%s not found' % (paths,))
+            raise DeejaydError(_('%s not found') % (paths,))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def loads(self, names, pos=None):
@@ -141,7 +141,7 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         try:
             self.source.load_playlist(names, pos)
         except sources.playlist.PlaylistNotFoundException:
-            raise DeejaydError('Playlist %s does not exist.' % name)
+            raise DeejaydError(_('Playlist %s does not exist.') % name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def clear(self):
@@ -153,7 +153,7 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
             try:
                 self.source.delete(int(id))
             except sources._base.ItemNotFoundException:
-                raise DeejaydError('Song with id %d not found', id)
+                raise DeejaydError(_('Song with id %d not found'), id)
 
 
 class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
@@ -168,7 +168,7 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         try:
             songs = self.source.get_content(self.name)
         except sources.playlist.PlaylistNotFoundException:
-            raise DeejaydError('Playlist %s not found' % self.name)
+            raise DeejaydError(_('Playlist %s not found') % self.name)
         else:
             last = length == -1 and len(songs) or int(first) + int(length) - 1
             return songs[int(first):last]
@@ -178,7 +178,7 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         try:
             self.source.save(name)
         except sources.playlist.PlaylistNotFoundException:
-            raise DeejaydError('Playlist %s does not exist.' % name)
+            raise DeejaydError(_('Playlist %s does not exist.') % name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_songs(self, paths, position=None):
@@ -186,7 +186,7 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         try:
             self.source.add_path(paths, self.name, pos)
         except sources._base.ItemNotFoundException:
-            raise DeejaydError('%s not found' % (paths,))
+            raise DeejaydError(_('%s not found') % (paths,))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def loads(self, names, pos=None):
@@ -194,7 +194,7 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         try:
             self.source.load_playlist(names, pos)
         except sources.playlist.PlaylistNotFoundException:
-            raise DeejaydError('Playlist %s does not exist.' % name)
+            raise DeejaydError(_('Playlist %s does not exist.') % name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def move(self, ids, new_pos):
@@ -202,21 +202,21 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         try:
             self.source.move(ids, int(new_pos))
         except sources._base.ItemNotFoundException:
-            raise DeejaydError('song with ids %s not found' % (str(ids),))
+            raise DeejaydError(_('song with ids %s not found') % (str(ids),))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def shuffle(self, name=None):
         try:
             self.source.shuffle(name)
         except sources.playlist.PlaylistNotFoundException:
-            raise DeejaydError('Playlist %s does not exist.' % name)
+            raise DeejaydError(_('Playlist %s does not exist.') % name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def clear(self, name=None):
         try:
             self.source.clear(name)
         except sources.playlist.PlaylistNotFoundException:
-            raise DeejaydError('Playlist %s does not exist.' % name)
+            raise DeejaydError(_('Playlist %s does not exist.') % name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def del_songs(self, ids, name=None):
@@ -227,10 +227,10 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
             try:
                 self.source.delete(int(nb), "id", name)
             except sources._base.ItemNotFoundException:
-                raise DeejaydError('Playlist %s does not have a song of id %d'
-                                   % (name, nb))
+                raise DeejaydError(\
+                  _('Playlist %s does not have a song of id %d') % (name, nb))
             except sources.playlist.PlaylistNotFoundException:
-                raise DeejaydError('Playlist %s does not exist.' % name)
+                raise DeejaydError(_('Playlist %s does not exist.') % name)
 
 
 class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
@@ -308,11 +308,11 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         if id_type != "dvd_id":
             try: id = int(id)
             except ValueError:
-                raise DeejaydError("Bad value for id parm")
+                raise DeejaydError(_("Bad value for id parm"))
 
         try: self.player.go_to(id, id_type, source)
         except player._base.PlayerError, err:
-            raise DeejaydError("Unable to play this file : %s" % err)
+            raise DeejaydError(_("Unable to play this file : %s") % err)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_volume(self, volume_value):
@@ -322,14 +322,14 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def set_option(self, option_name, option_value):
         try: self.player.set_option(option_name, int(option_value))
         except player._base.OptionNotFound:
-            raise DeejaydError('option %s does not exist' % option_name)
+            raise DeejaydError(_('Option %s does not exist') % option_name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_mode(self, mode_name):
         try:
             self.sources.set_source(mode_name)
         except sources.UnknownSourceException:
-            raise DeejaydError('Unknown mode: %s' % mode_name)
+            raise DeejaydError(_('Unknown mode: %s') % mode_name)
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_mode(self):
@@ -343,13 +343,13 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def set_alang(self, lang_idx):
         try: self.player.set_alang(int(lang_idx))
         except player._base.PlayerError:
-            raise DeejaydError("Unable to change audio channel")
+            raise DeejaydError(_("Unable to change audio channel"))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_slang(self, lang_idx):
         try: self.player.set_slang(int(lang_idx))
         except player._base.PlayerError:
-            raise DeejaydError("Unable to change subtitle channel")
+            raise DeejaydError(_("Unable to change subtitle channel"))
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_status(self):
@@ -372,7 +372,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     @returns_deejaydanswer(DeejaydKeyValue)
     def update_video_library(self, sync = False):
         if not self.video_library:
-            raise DeejaydError("Video mode disabled")
+            raise DeejaydError(_("Video mode disabled"))
         return {'video_updating_db': self.video_library.update(sync)}
 
     @returns_deejaydanswer(DeejaydAnswer)
@@ -380,7 +380,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         for name in names:
             try: self.sources.get_source("playlist").rm(name)
             except sources.playlist.PlaylistNotFoundException:
-                raise DeejaydError("Playlist not found")
+                raise DeejaydError(_("Playlist %s not found") % name)
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get_playlist_list(self):
@@ -394,7 +394,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         if dir == None: dir = ""
         try: contents = self.audio_library.get_dir_content(dir)
         except deejayd.mediadb.library.NotFoundException:
-            raise DeejaydError('Directory %s not found in the database' % dir)
+            raise DeejaydError(_('Directory %s not found in database') % dir)
 
         return dir, contents['dirs'], contents['files']
 
@@ -402,19 +402,19 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def audio_search(self, search_txt, type = 'all'):
         try: list = self.audio_library.search(type, search_txt)
         except deejayd.mediadb.library.NotFoundException:
-            raise DeejaydError('type %s is not supported' % (type,))
+            raise DeejaydError(_('Type %s is not supported') % (type,))
 
         return None, [], list
 
     @returns_deejaydanswer(DeejaydFileList)
     def get_video_dir(self,dir = None):
         if not self.video_library:
-            raise DeejaydError("Video mode disabled")
+            raise DeejaydError(_("Video mode disabled"))
 
         if dir == None: dir = ""
         try: contents = self.video_library.get_dir_content(dir)
         except deejayd.mediadb.library.NotFoundException:
-            raise DeejaydError('Directory %s not found in the database' % dir)
+            raise DeejaydError(_('Directory %s not found in database') % dir)
 
         return dir, contents['dirs'], contents['files']
 
@@ -422,9 +422,9 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def set_video_dir(self, dir):
         try: self.sources.get_source("video").set_directory(dir)
         except deejayd.mediadb.library.NotFoundException:
-            raise DeejaydError('Directory %s not found in the database' % dir)
+            raise DeejaydError(_('Directory %s not found in database') % dir)
         except deejayd.sources.UnknownSourceException:
-            raise DeejaydError("Video mode disabled")
+            raise DeejaydError(_("Video mode disabled"))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def dvd_reload(self):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Deejayd, a media player daemon
 # Copyright (C) 2007 Mickael Royer <mickael.royer@gmail.com>
 #                    Alexandre Rossi <alexandre.rossi@gmail.com>
@@ -15,7 +16,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-# -*- coding: utf-8 -*-
 
 """Deejayd XML protocol parsing and generation testing"""
 import re, unittest

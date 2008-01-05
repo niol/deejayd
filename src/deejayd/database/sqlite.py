@@ -45,7 +45,8 @@ class SqliteDatabase(Database):
         pysqlite_min_version = [2, 2]
         pysqlite_version = map(int, sqlite.version.split('.'))
         if pysqlite_version < pysqlite_min_version:
-            sqlite_error='This program requires pysqlite version %s or later.'\
+            sqlite_error=_(\
+                'This program requires pysqlite version %s or later.')\
                 % '.'.join(map(str, pysqlite_min_version))
             log.err(sqlite_error)
             sys.exit(sqlite_error)
@@ -53,7 +54,7 @@ class SqliteDatabase(Database):
         init = path.isfile(self.db_file) and (0,) or (1,)
         try: self.connection = sqlite.connect(self.db_file)
         except:
-            error = "Could not connect to sqlite database."
+            error = _("Could not connect to sqlite database.")
             log.err(error)
             sys.exit(error)
         else:
@@ -75,18 +76,18 @@ class SqliteDatabase(Database):
         try:
             if parm == None: self.cursor.execute(query)
             else: self.cursor.execute(query,parm)
-        except sqlite.OperationalError,err:
-            log.err("Unable to execute database request : %s" %(err,))
+        except sqlite.OperationalError, err:
+            log.err(_("Unable to execute database request : %s") % err)
 
     def executemany(self,query,parm):
         try: self.cursor.executemany(self.__format_query(query),parm)
-        except sqlite.OperationalError,err:
-            log.err("Unable to execute database request : %s" %(err,))
+        except sqlite.OperationalError, err:
+            log.err(_("Unable to execute database request : %s") % err)
 
     def executescript(self,query):
         try: self.cursor.executescript(self.__format_query(query))
-        except sqlite.OperationalError,err:
-            log.err("Unable to execute database request : %s" %(err,))
+        except sqlite.OperationalError, err:
+            log.err(_("Unable to execute database request : %s") % err)
 
     def close(self):
         self.cursor.close()

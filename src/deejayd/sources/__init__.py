@@ -34,7 +34,7 @@ class SourceFactory:
         self.sources_obj = {}
         self.current = ""
         self.db = db
-        video_support = config.get("general","video_support")
+        video_support = config.getboolean("general","video_support")
 
         # Playlist and Queue
         from deejayd.sources import playlist,queue
@@ -46,16 +46,16 @@ class SourceFactory:
         if player.is_supported_uri("http"):
             from deejayd.sources import webradio
             self.sources_obj["webradio"] = webradio.WebradioSource(db)
-        else: log.info("Webradio support disabled for the choosen backend")
+        else: log.info(_("Webradio support disabled for the choosen backend"))
 
         # Video
-        if video_support == "yes" and video_library:
+        if video_support and video_library:
             from deejayd.sources import video
             self.sources_obj["video"] = video.VideoSource(db, video_library)
             try: player.init_video_support()
             except PlayerError:
                 # Critical error, we have to quit deejayd
-                log.err('Cannot initialise video support, either disable video support or check your player video support.')
+                log.err(_('Cannot initialise video support, either disable video support or check your player video support.'))
                 sys.exit(1)
 
         # dvd
@@ -63,14 +63,14 @@ class SourceFactory:
             from deejayd.sources import dvd
             try: self.sources_obj["dvd"] = dvd.DvdSource(player,db,config)
             except dvd.DvdError:
-                log.err("Unable to init dvd support")
-        else: log.info("DVD support is disabled")
+                log.err(_("Unable to init dvd support"))
+        else: log.info(_("DVD support is disabled"))
 
         # restore recorded source
         source = db.get_state("source")
         try: self.set_source(source)
         except UnknownSourceException:
-            log.err("Unable to set recorded source")
+            log.err(_("Unable to set recorded source %s") % str(source))
             self.set_source("playlist")
 
         player.set_source(self)

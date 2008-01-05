@@ -39,7 +39,7 @@ class DeejaydMainHandler(Resource):
 
     def render_GET(self, request):
         request.setHeader("Content-Type", "application/vnd.mozilla.xul+xml")
-        try: rs = build_web_interface(self.lang)
+        try: rs = build_web_interface()
         except IOError, err:
             raise DeejaydWebError(err)
         return rs
@@ -66,15 +66,15 @@ class DeejaydCommandHandler(Resource):
 
         try: action = request.args["action"]
         except KeyError:
-            ans.set_error("you have to enter an action")
+            ans.set_error(_("You have to enter an action."))
             return ans.to_xml()
         try: cmd_cls = commands.commands[action[0]]
         except KeyError:
-            ans.set_error("Command %s not found" % action[0])
+            ans.set_error(_("Command %s not found") % action[0])
             return ans.to_xml()
 
         if cmd_cls.method != type:
-            ans.set_error("command send with invalid method")
+            ans.set_error(_("Command send with invalid method"))
         else:
             cmd = cmd_cls(self.__deejayd,ans)
             try:
@@ -84,7 +84,7 @@ class DeejaydCommandHandler(Resource):
             except DeejaydError, err:
                 ans.set_error("%s" % err)
             except commands.ArgError, err:
-                ans.set_error("bad argument : %s" % err)
+                ans.set_error(_("Bad argument : %s") % err)
 
         return ans.to_xml()
 
@@ -95,17 +95,19 @@ def init(deejayd_core, config, webui_logfile):
     if os.path.isdir(rdf_dir):
         try: shutil.rmtree(rdf_dir)
         except IOError:
-            raise DeejaydWebError("Unable to remove rdf directory %s"%rdf_dir)
+            raise DeejaydWebError(_("Unable to remove rdf directory %s") % \
+                    rdf_dir)
     try: os.mkdir(rdf_dir)
     except IOError:
-        raise DeejaydWebError("Unable to create rdf directory %s" % rdf_dir)
+        raise DeejaydWebError(_("Unable to create rdf directory %s") % rdf_dir)
 
     root = DeejaydMainHandler(config)
     root.putChild("commands",DeejaydCommandHandler(deejayd_core, rdf_dir))
 
     htdocs_dir = config.get("webui","htdocs_dir")
     if not os.path.isdir(htdocs_dir):
-        raise DeejaydWebError("Htdocs directory %s does not exists"%htdocs_dir)
+        raise DeejaydWebError(_("Htdocs directory %s does not exists") % \
+                htdocs_dir)
     root.putChild("static",static.File(htdocs_dir))
     root.putChild("rdf",static.File(rdf_dir))
 

@@ -24,12 +24,20 @@ from testdeejayd.databuilder import TestData, TestMediaCollection
 class TestCaseWithData(unittest.TestCase):
 
     def setUp(self):
+        from deejayd.ui.i18n import DeejaydTranslations
+        t = DeejaydTranslations()
+        t.install()
+
         self.testdata = TestData()
 
 
 class TestCaseWithMediaData(unittest.TestCase):
 
     def setUp(self):
+        from deejayd.ui.i18n import DeejaydTranslations
+        t = DeejaydTranslations()
+        t.install()
+
         self.testdata = TestMediaCollection()
 
     def tearDown(self):
@@ -39,6 +47,10 @@ class TestCaseWithMediaData(unittest.TestCase):
 class TestCaseWithAudioAndVideoData(unittest.TestCase):
 
     def setUp(self):
+        from deejayd.ui.i18n import DeejaydTranslations
+        t = DeejaydTranslations()
+        t.install()
+
         self.testdata = TestData()
         # audio library
         self.test_audiodata = TestMediaCollection()

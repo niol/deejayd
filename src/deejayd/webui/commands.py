@@ -46,41 +46,42 @@ class _UnknownCommand:
                     if arg['type'] == "string":
                         try: v.split()
                         except AttributeError:
-                            raise ArgError("arg %s (%s) is not a string" % \
+                            raise ArgError(_("Arg %s (%s) is not a string") % \
                                 (arg['name'], str(v)))
 
                     elif arg['type'] == "int":
                         try: v = int(v)
                         except (ValueError,TypeError):
-                            raise ArgError("arg %s (%s) is not a int" %\
+                            raise ArgError(_("Arg %s (%s) is not a int") %\
                                 (arg['name'], str(v)))
 
                     elif arg['type'] == "enum_str":
                         if v not in arg['values']:
-                            return self.get_error_answer(\
-                                "arg %s (%s) is not in the possible list"\
+                            raise ArgError(\
+                                _("Arg %s (%s) is not in the possible list")\
                                 % (arg['name'],str(v)))
 
                     elif arg['type'] == "enum_int":
                         try: v = int(v)
                         except (ValueError,TypeError):
-                            return self.get_error_answer(\
-                                "arg %s is not a int" % (arg['name'],))
+                            raise ArgError(_("Arg %s (%s) is not a int") %\
+                                (arg['name'], str(v)))
                         else:
                             if v not in arg['values']:
-                                return self.get_error_answer(\
-                                    "arg %s is not in the possible list"\
-                                    % (arg['name'],))
+                                raise ArgError(\
+                                    _(\
+                                    "Arg %s (%s) is not in the possible list")\
+                                    % (arg['name'],str(v)))
 
                     elif arg['type'] == "regexp":
                         import re
                         if not re.compile(arg['value']).search(v):
-                            return self.get_error_answer(\
-                              "arg %s (%s) not match to the regular exp (%s)" %
-                                (arg['name'],v,arg['value']))
+                            raise ArgError(\
+                            _("Arg %s (%s) not match to the regular exp (%s)") %
+                                (arg['name'],str(v),arg['value']))
 
             elif arg['req']:
-                raise ArgError("arg %s is mising" % arg['name'])
+                raise ArgError(_("Arg %s is mising") % arg['name'])
             else:
                 self._args[arg['name']] = arg['default']
 
@@ -119,9 +120,9 @@ class Init(_UnknownCommand):
         self._answer.set_view_mode(status["mode"])
 
         # locale string
-        strings = {"confirm": 'Are you sure ?',
-                   "missParm": 'It misses a parameter !',
-                   "replacePls": 'Do you want to replace this playlist ?'}
+        strings = {"confirm": _('Are you sure ?'),
+                   "missParm": _('It misses a parameter !'),
+                   "replacePls": _('Do you want to replace this playlist ?')}
         self._answer.set_locale_strings(strings)
 
         # config parms
@@ -271,7 +272,7 @@ class AudioUpdateCheck(_Library):
             self._answer.set_update_library(self._args["id"], "audio")
         else:
             self._answer.set_update_library(self._args["id"], "audio", "0")
-            self._answer.set_msg("The audio library has been updated")
+            self._answer.set_msg(_("The audio library has been updated"))
 
             files_list = self._deejayd.get_audio_dir()
             self._answer.set_audiofile_list(files_list, "")
@@ -287,7 +288,7 @@ class VideoUpdateCheck(_Library):
             self._answer.set_update_library(self._args["id"], "video")
         else:
             self._answer.set_update_library(self._args["id"], "video", "0")
-            self._answer.set_msg("The video library has been updated")
+            self._answer.set_msg(_("The video library has been updated"))
 
             files_list = self._deejayd.get_video_dir()
             self._answer.set_videofile_list(files_list, "")

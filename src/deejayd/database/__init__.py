@@ -25,11 +25,11 @@ class DatabaseFactory:
         try: self.db_type =  config.get("database","db_type")
         except:
             raise SystemExit(\
-                "You do not choose a database.Verify your config file.")
+                _("You do not choose a database. Verify your config file."))
         else:
             if self.db_type not in self.__class__.supported_database:
                 raise SystemExit(\
-       "You chose a database which is not supported. Verify your config file.")
+     _("You chose a database which is not supported. Verify your config file."))
 
     def get_db(self):
         if self.db_type == "sqlite":

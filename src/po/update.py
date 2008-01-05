@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Deejayd, a media player daemon
 # Copyright (C) 2007 Mickael Royer <mickael.royer@gmail.com>
 #                    Alexandre Rossi <alexandre.rossi@gmail.com>
@@ -16,25 +18,31 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-class PlayerError(Exception):pass
+import glob,os
+from distutils.dep_util import newer
+from distutils.spawn import spawn
 
-def init(db,config):
-    media_backend = config.get("general","media_backend")
+def update_po():
+    po_package = "deejayd"
+    po_dir = "po"
 
-    if media_backend == "gstreamer":
-        from deejayd.player import gstreamer
-        try: player = gstreamer.GstreamerPlayer(db,config)
-        except gstreamer.NoSinkError:
-            raise PlayerError(_("No audio sink found for Gstreamer"))
+    pot_file = os.path.join(po_dir, po_package + ".pot")
+    po_files = glob.glob(os.path.join(po_dir, "*.po"))
+    infilename = os.path.join(po_dir, "POTFILES.in")
+    infiles = file(infilename).read().splitlines()
 
-    elif media_backend == "xine":
-        from deejayd.player import xine,_base
-        try: player = xine.XinePlayer(db,config)
-        except _base.PlayerError:
-            raise PlayerError(_("Xine initialisation failed"))
+    for filename in infiles:
+        if newer(filename, pot_file):
+            oldpath = os.getcwd()
+            os.chdir(po_dir)
+            spawn(["intltool-update", "--pot", "--gettext-package", po_package])
+            for po in po_files:
+                spawn(["intltool-update", "--dist",
+                            "--gettext-package", po_package,
+                            os.path.basename(po[:-3])])
+            os.chdir(oldpath)
 
-    else: raise PlayerError(_("Invalid audio backend"))
-
-    return player
+if __name__ == "__main__":
+    update_po()
 
 # vim: ts=4 sw=4 expandtab

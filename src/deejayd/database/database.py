@@ -51,13 +51,13 @@ class Database(UnknownDatabase):
         p = path.join(path.dirname(__file__),"sql/database_v%s.sql" %
                     self.__class__.database_version)
         try: f = open(p)
-        except IOError: sys.exit("database structure not found")
+        except IOError: sys.exit(_("Database structure not found"))
 
         sql_script = f.read()
         self.executescript(sql_script)
 
         self.connection.commit()
-        log.info("Database structure successfully created.")
+        log.info(_("Database structure successfully created."))
 
     def verify_database_version(self):
         # Get current database version
@@ -65,7 +65,7 @@ class Database(UnknownDatabase):
 
         new_version = int(self.__class__.database_version)
         if new_version > current_version:
-            log.info("The database structure needs to be updated...")
+            log.info(_("The database structure needs to be updated..."))
 
             i = current_version+1
             while i < new_version+1:
@@ -73,14 +73,14 @@ class Database(UnknownDatabase):
                         % (i-1,i))
                 try: f = open(p)
                 except IOError:
-                    sys.exit("update database file not found")
+                    sys.exit(_("Update database file not found"))
                 sql_script = f.read()
                 self.executescript(sql_script)
 
                 i += 1
 
             self.connection.commit()
-            log.msg("The database structure has been updated")
+            log.msg(_("The database structure has been updated"))
 
         return True
 

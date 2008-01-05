@@ -165,7 +165,7 @@ if __name__ == "__main__":
     ##################
     config = DeejaydConfig()
     media_backend = config.get("general","media_backend")
-    video_support = config.get("general","video_support") == "yes"
+    video_support = config.getboolean("general","video_support")
     if media_backend == "gstreamer":
         if video_support:
             # Install gtk2 reactor
@@ -184,12 +184,20 @@ if __name__ == "__main__":
 
     from twisted.internet.error import CannotListenError
     from twisted.python import log
-    service = False
+
+    # init translation
+    import gettext
+    from deejayd.ui.i18n import DeejaydTranslations
+    try: t = gettext.translation("deejayd", class_=DeejaydTranslations)
+    except IOError:
+        t = DeejaydTranslations()
+    t.install()
 
     # start core
     from deejayd.core import DeejayDaemonCore
     deejayd_core = DeejayDaemonCore(config)
 
+    service = False
     # net service
     if config.getboolean("net","enabled"):
         service = True

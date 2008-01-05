@@ -10,5 +10,6 @@ usr/lib/python*/site-packages/deejayd/ui/*.py
 usr/lib/python*/site-packages/deejayd/ui/defaults.conf
 usr/lib/python*/site-packages/deejayd/database/*.py
 usr/lib/python*/site-packages/deejayd/database/sql/*.sql
-usr/bin/deejayd
+usr/lib/python*/site-packages/deejayd/database/sql/*.sql
+usr/share/locale/fr/LC_MESSAGES/deejayd.mo
 etc/deejayd.conf

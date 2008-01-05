@@ -17,13 +17,21 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
+import gettext
 from mod_python import apache,util
 from deejayd.net.client import DeejayDaemonSync, ConnectError
 from deejayd.webui import commands, xmlanswer
 from deejayd.interfaces import DeejaydError
+from deejayd.ui.i18n import DeejaydTranslations
 
 class InitError(Exception): pass
 class NotFoundError(Exception): pass
+
+# init translation
+try: t = gettext.translation("deejayd", class_=DeejaydTranslations)
+except IOError:
+    t = DeejaydTranslations()
+t.install()
 
 class Gateway:
 

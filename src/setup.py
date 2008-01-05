@@ -19,8 +19,51 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import glob,os
-from distutils.core import setup
+from distutils.command.build import build as distutils_build
+from distutils.core import setup,Command
 import deejayd
+
+#
+# i18n
+#
+class build_i18n(Command):
+    user_options = []
+    po_package = None
+    po_directory = None
+    po_files = None
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        self.po_directory = "po"
+        self.po_package = "deejayd"
+        self.po_files = glob.glob(os.path.join(self.po_directory, "*.po"))
+
+    def run(self):
+        data_files = self.distribution.data_files
+
+        for po_file in self.po_files:
+            lang = os.path.basename(po_file[:-3])
+            mo_dir =  os.path.join("build", "mo", lang, "LC_MESSAGES")
+            mo_file = os.path.join(mo_dir, "%s.mo" % self.po_package)
+            if not os.path.exists(mo_dir):
+                os.makedirs(mo_dir)
+
+            cmd = ["msgfmt", po_file, "-o", mo_file]
+            self.spawn(cmd)
+
+            targetpath = os.path.join("share/locale", lang, "LC_MESSAGES")
+            data_files.append((targetpath, (mo_file,)))
+
+
+class deejayd_build(distutils_build):
+
+    def finalize_options(self):
+        def has_i18n(command):
+            return self.distribution.cmdclass.has_key("build_i18n")
+        distutils_build.finalize_options(self)
+        self.sub_commands.append(("build_i18n", has_i18n))
 
 #
 # data files
@@ -56,6 +99,7 @@ if __name__ == "__main__":
                          'deejayd.database': ['sql/*.sql'],
                          'deejayd.webui': ['templates/*.xml']},
            data_files= build_data_files_list(),
+           cmdclass={"build": deejayd_build, "build_i18n": build_i18n}
         )
 
 # vim: ts=4 sw=4 expandtab

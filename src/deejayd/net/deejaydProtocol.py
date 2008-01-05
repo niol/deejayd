@@ -60,8 +60,7 @@ class DeejaydProtocol(LineReceiver):
             self.transport.loseConnection()
 
     def lineLengthExceeded(self, line):
-        log.err("Request too long, skip it")
-        self.transport.write("ACK line too long\n")
+        log.err(_("Request too long, close the connection"))
         self.transport.loseConnection()
 
 
@@ -73,7 +72,7 @@ class DeejaydFactory(protocol.ServerFactory):
         self.deejayd_core = deejayd_core
 
     def startFactory(self):
-        log.info("Net Protocol activated")
+        log.info(_("Net Protocol activated"))
 
     def buildProtocol(self, addr):
         p = self.protocol(self.deejayd_core)

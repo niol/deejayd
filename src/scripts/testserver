@@ -56,6 +56,11 @@ config.set('general', 'media_backend', 'xine')
 config.set('xine','audio_output',"none")
 config.set('xine','video_output',"none")
 
+# init translation
+from deejayd.ui.i18n import DeejaydTranslations
+t = DeejaydTranslations()
+t.install()
+
 # start core
 deejayd_core = DeejayDaemonCore(config)
 deejayd_core.update_audio_library(sync = True, objanswer = False)

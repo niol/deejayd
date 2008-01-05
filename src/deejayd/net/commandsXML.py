@@ -75,7 +75,7 @@ class UnknownCommand:
             return rsp
 
     def _execute(self):
-        return self.get_error_answer("Unknown command : %s" % (self.name,))
+        return self.get_error_answer(_("Unknown command : %s") % self.name)
 
     def get_answer(self, type):
         return self.__rspFactory.get_deejayd_xml_answer(type, self.name)
@@ -103,7 +103,7 @@ class UnknownCommand:
                 value = self.args[arg['name']]
                 if isinstance(value,list) and "mult" not in arg:
                     return self.get_error_answer(\
-                        "arg %s can not be a list" % (arg['name'],))
+                        _("Arg %s can not be a list") % arg['name'])
                 elif not isinstance(value,list):
                     value = [value]
                     if "mult" in arg:
@@ -114,42 +114,43 @@ class UnknownCommand:
                         try: v.split()
                         except AttributeError:
                             return self.get_error_answer(\
-                                "arg %s (%s) is not a string" % (arg['name'],\
-                                str(v)))
+                                _("Arg %s (%s) is not a string") % \
+                                    (arg['name'], str(v)))
 
                     elif arg['type'] == "int":
                         try: v = int(v)
                         except (ValueError,TypeError):
                             return self.get_error_answer(\
-                                "arg %s (%s) is not a int" % (arg['name'],\
+                                _("Arg %s (%s) is not a int") % (arg['name'],\
                                 str(v)))
 
                     elif arg['type'] == "enum_str":
                         if v not in arg['values']:
                             return self.get_error_answer(\
-                                "arg %s is not in the possible list"\
-                                % (arg['name'],))
+                                _("Arg %s (%s) is not in the possible list")\
+                                % (arg['name'],str(v)))
 
                     elif arg['type'] == "enum_int":
                         try: v = int(v)
                         except (ValueError,TypeError):
                             return self.get_error_answer(\
-                                "arg %s is not a int" % (arg['name'],))
+                                _("Arg %s (%s) is not a int") %\
+                                (arg['name'],str(v)))
                         else:
                             if v not in arg['values']:
                                 return self.get_error_answer(\
-                                    "arg %s is not in the possible list"\
-                                    % (arg['name'],))
+                                _("Arg %s (%s) is not in the possible list")\
+                                % (arg['name'],str(v)))
 
                     elif arg['type'] == "regexp":
                         import re
                         if not re.compile(arg['value']).search(v):
                             return self.get_error_answer(\
-                              "arg %s (%s) not match to the regular exp (%s)" %
+                            _("Arg %s (%s) not match to the regular exp (%s)") %
                                 (arg['name'],v,arg['value']))
 
             elif arg['req']:
-                return self.get_error_answer("arg %s is mising" % arg['name'])
+                return self.get_error_answer(_("Arg %s is mising")%arg['name'])
             else:
                 self.args[arg['name']] = arg['default']
         return None

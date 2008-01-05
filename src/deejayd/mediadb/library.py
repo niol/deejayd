@@ -55,7 +55,7 @@ class DeejaydAudioFile(_DeejaydFile):
     def insert(self):
         try: file_info = self.info.parse(self.file)
         except:
-            log.err("Unable to get audio metadata from %s" % self.file)
+            log.err(_("Unable to get audio metadata from %s") % self.file)
             return False
         self.db_con.insert_audio_file(self.dir,self.filename,file_info)
         return True
@@ -63,7 +63,7 @@ class DeejaydAudioFile(_DeejaydFile):
     def update(self):
         try: file_info = self.info.parse(self.file)
         except:
-            log.err("Unable to get audio metadata from %s" % self.file)
+            log.err(_("Unable to get audio metadata from %s") % self.file)
             return False
         self.db_con.update_audio_file(self.dir,self.filename,file_info)
         return True
@@ -81,7 +81,7 @@ class DeejaydVideoFile(_DeejaydFile):
     def insert(self):
         try: file_info = self.info.parse(self.file)
         except:
-            log.err("Unable to get video metadata from %s" % self.file)
+            log.err(_("Unable to get video metadata from %s") % self.file)
             return False
         file_info["id"] = self.__get_next_id()
         self.db_con.insert_video_file(self.dir,self.filename,file_info)
@@ -90,7 +90,7 @@ class DeejaydVideoFile(_DeejaydFile):
     def update(self):
         try: file_info = self.info.parse(self.file)
         except:
-            log.err("Unable to get video metadata from %s" % self.file)
+            log.err(_("Unable to get video metadata from %s") % self.file)
             return False
         self.db_con.update_video_file(self.dir,self.filename,file_info)
         return True
@@ -135,7 +135,7 @@ class _Library:
         self._path = os.path.abspath(path)
         # test library path
         if not os.path.isdir(self._path):
-            msg = "Unable to find directory %s" % (self._path,)
+            msg = _("Unable to find directory %s") % self._path
             log.err(msg)
             raise NotFoundException(msg)
 
@@ -317,7 +317,7 @@ class _Library:
             for file in files:
                 try: obj_cls = self._get_file_info(file)
                 except NotSupportedFormat:
-                    log.info("file %s not supported" % file)
+                    log.info(_("File %s not supported") % file)
                     continue
                 file_object = self.file_class(db_con,\
                                 self.strip_root(root),\
@@ -337,9 +337,9 @@ class _Library:
 
     def end_update(self, result = True):
         self._update_end = True
-        if result: log.msg("The %s library has been updated" % self.type)
+        if result: log.msg(_("The %s library has been updated") % self.type)
         else:
-            msg = "Unable to update the %s library. See log." % self.type
+            msg = _("Unable to update the %s library. See log.") % self.type
             log.err(msg)
             self._update_error = msg
         return True
