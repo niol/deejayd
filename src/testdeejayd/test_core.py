@@ -50,6 +50,7 @@ class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests):
         self.deejayd.video_library._update()
 
     def tearDown(self):
+        self.deejayd.close()
         os.unlink(self.dbfilename)
         TestCaseWithAudioAndVideoData.tearDown(self)
 
