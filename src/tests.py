@@ -19,7 +19,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """
-This is the test suite launcher.
+This is the test suite launcher :
+    * Without arguments, it runs the whole test suite.
+    * It accepts a list of arguments which can be :
+        - a test module name without the 'test_' prefix.
+          e.g. : ./tests.py xmlprocessing
+        - a test module name without the 'test_' prefix, a slash, and a test
+          name in unittest dotted notation (See the documentation of
+          loadTestsFromName at
+          http://docs.python.org/lib/testloader-objects.html)
+          e.g. : ./tests.py xmlprocessing/TestAnswerParser
+              or ./tests.py xmlprocessing/TestAnswerParser.testAnswerParserError
 """
 
 import sys, os, glob
@@ -45,22 +55,34 @@ def my_import(name):
 def get_testfile_from_id(id):
     return os.path.join(test_suites_dir, "test_%s.py" % id)
 
-test_files = None
+tests_to_run = None
 if len(sys.argv) > 1:
-    test_files = []
-    for test_file_id in sys.argv[1:]:
-        test_files.append(get_testfile_from_id(test_file_id))
-else:
-    test_files = glob.glob(get_testfile_from_id("*"))
+    tests_to_run = []
+    for test_id in sys.argv[1:]:
+        try:
+            test_module, test_name = test_id.split('/')
+        except IndexError:
+            test_module = test_id
+            test_name = None
 
-for fn in test_files:
+        tests_to_run.append((get_testfile_from_id(test_module), test_name))
+else:
+    tests_to_run = [(x, None) for x in glob.glob(get_testfile_from_id("*"))]
+
+for test_id in tests_to_run:
+    fn, test_name = test_id
     module_path = '.'.join([TEST_NAMESPACE, os.path.basename(fn[:-3])])
     test_module = my_import(module_path)
 
-    test_suite = unittest.defaultTestLoader.loadTestsFromModule(test_module)
+    test_suite = None
+    if test_name:
+        test_suite = unittest.defaultTestLoader.loadTestsFromName(test_name,
+                                                                  test_module)
+    else:
+        test_suite = unittest.defaultTestLoader.loadTestsFromModule(test_module)
     suitelist.append(test_suite)
 
-
 runner.run(unittest.TestSuite(suitelist))
+
 
 # vim: ts=4 sw=4 expandtab
