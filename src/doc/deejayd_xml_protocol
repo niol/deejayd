@@ -39,7 +39,7 @@ There are 6 response types :
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<error name="cmdName">error text</error>
+    <error name="cmdName">error text</error>
 </deejayd>
 ENDXML
 }}}
@@ -47,7 +47,7 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="Ack" />
+    <response name="cmdName" type="Ack" />
 </deejayd>
 ENDXML
 }}}
@@ -55,10 +55,10 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="KeyValue">
-		<parm name="parmName0" value="parmValue0" />
-		<parm name="parmName1" value="parmValue1" />
-	</response>
+    <response name="cmdName" type="KeyValue">
+        <parm name="parmName0" value="parmValue0" />
+        <parm name="parmName1" value="parmValue1" />
+    </response>
 </deejayd>
 ENDXML
 }}}
@@ -66,13 +66,13 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response directory="optionnal_described_dirname" name="cmdName" type="FileAndDirList">
-		<directory name="dirName" />
-		<file type="song or video">
-			<parm name="parmName0" value="parmValue0" />
-			<parm name="parmName1" value="parmValue1" />
-		</file>
-	</response>
+    <response directory="optionnal_described_dirname" name="cmdName" type="FileAndDirList">
+        <directory name="dirName" />
+        <file type="song or video">
+            <parm name="parmName0" value="parmValue0" />
+            <parm name="parmName1" value="parmValue1" />
+        </file>
+    </response>
 </deejayd>
 ENDXML
 }}}
@@ -83,31 +83,31 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="MediaList">
-		<media type="song or video or webradio or playlist">
-			<parm name="parmName0" value="parmValue0" />
-			<parm name="parmName1" value="parmValue1" />
-		</media>
-		<media type="song or video or webradio or playlist">
-			<parm name="parmName1" value="parmValue1" />
-			<listparm name="audio">
-				<dictparm>
-					<dictitem name="lang" value="lang1" />
-					<dictitem name="idx" value="0" />
-				</dictparm>
-				<dictparm>
-					<dictitem name="lang" value="lang2" />
-					<dictitem name="idx" value="1" />
-				</dictparm>
-			</listparm>
-			<listparm name="subtitle">
-				<dictparm>
-					<dictitem name="lang" value="lang1" />
-					<dictitem name="idx" value="0" />
-				</dictparm>
-			</listparm>
-		</media>
-	</response>
+    <response name="cmdName" type="MediaList">
+        <media type="song or video or webradio or playlist">
+            <parm name="parmName0" value="parmValue0" />
+            <parm name="parmName1" value="parmValue1" />
+        </media>
+        <media type="song or video or webradio or playlist">
+            <parm name="parmName1" value="parmValue1" />
+            <listparm name="audio">
+                <dictparm>
+                    <dictitem name="lang" value="lang1" />
+                    <dictitem name="idx" value="0" />
+                </dictparm>
+                <dictparm>
+                    <dictitem name="lang" value="lang2" />
+                    <dictitem name="idx" value="1" />
+                </dictparm>
+            </listparm>
+            <listparm name="subtitle">
+                <dictparm>
+                    <dictitem name="lang" value="lang1" />
+                    <dictitem name="idx" value="0" />
+                </dictparm>
+            </listparm>
+        </media>
+    </response>
 </deejayd>
 ENDXML
 }}}
@@ -115,16 +115,16 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="DvdInfo">
-		<dvd longest_track="1" title="DVD Title">
-			<track ix="1" length="track length">
-				<audio ix="0" lang="lang code" />
-				<subtitle ix="0" lang="lang code" />
-				<subtitle ix="1" lang="lang code" />
-				<chapter ix="1" length="chapter length" />
-			</track>
-		</dvd>
-	</response>
+    <response name="cmdName" type="DvdInfo">
+        <dvd longest_track="1" title="DVD Title">
+            <track ix="1" length="track length">
+                <audio ix="0" lang="lang code" />
+                <subtitle ix="0" lang="lang code" />
+                <subtitle ix="1" lang="lang code" />
+                <chapter ix="1" length="chapter length" />
+            </track>
+        </dvd>
+    </response>
 </deejayd>
 ENDXML
 }}}
@@ -132,32 +132,32 @@ Responses may be combined in the same physical message :
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-	<response name="cmdName" type="Ack" />
-	<response name="cmdName" type="MediaList">
-		<media type="song or video or webradio or playlist">
-			<parm name="parmName0" value="parmValue0" />
-			<parm name="parmName1" value="parmValue1" />
-		</media>
-		<media type="song or video or webradio or playlist">
-			<parm name="parmName1" value="parmValue1" />
-			<listparm name="audio">
-				<dictparm>
-					<dictitem name="lang" value="lang1" />
-					<dictitem name="idx" value="0" />
-				</dictparm>
-				<dictparm>
-					<dictitem name="lang" value="lang2" />
-					<dictitem name="idx" value="1" />
-				</dictparm>
-			</listparm>
-			<listparm name="subtitle">
-				<dictparm>
-					<dictitem name="lang" value="lang1" />
-					<dictitem name="idx" value="0" />
-				</dictparm>
-			</listparm>
-		</media>
-	</response>
+    <response name="cmdName" type="Ack" />
+    <response name="cmdName" type="MediaList">
+        <media type="song or video or webradio or playlist">
+            <parm name="parmName0" value="parmValue0" />
+            <parm name="parmName1" value="parmValue1" />
+        </media>
+        <media type="song or video or webradio or playlist">
+            <parm name="parmName1" value="parmValue1" />
+            <listparm name="audio">
+                <dictparm>
+                    <dictitem name="lang" value="lang1" />
+                    <dictitem name="idx" value="0" />
+                </dictparm>
+                <dictparm>
+                    <dictitem name="lang" value="lang2" />
+                    <dictitem name="idx" value="1" />
+                </dictparm>
+            </listparm>
+            <listparm name="subtitle">
+                <dictparm>
+                    <dictitem name="lang" value="lang1" />
+                    <dictitem name="idx" value="0" />
+                </dictparm>
+            </listparm>
+        </media>
+    </response>
 </deejayd>
 
 }}}

@@ -69,7 +69,7 @@ class _DeejaydXML:
             ET.tostring(self.xmlroot,'utf-8')
 
     def _indent(self,elem, level=0):
-        indent_char = "\t"
+        indent_char = "    "
         i = "\n" + level*indent_char
         if len(elem):
             if not elem.text or not elem.text.strip():
