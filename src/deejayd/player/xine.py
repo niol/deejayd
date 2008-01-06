@@ -92,7 +92,8 @@ class XinePlayer(UnknownPlayer):
         isvideo = self._media_file["type"] == "video"
         if not self.__stream:
             self._create_stream(isvideo)
-        if isvideo: self.__display.show()
+        if isvideo and self.__video_port:
+            self.__display.show()
 
         if not xine_open(self.__stream, uri) or \
            not xine_play(self.__stream, 0, 0):
