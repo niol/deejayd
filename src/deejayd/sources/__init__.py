@@ -22,11 +22,6 @@ from deejayd.player import PlayerError
 
 class UnknownSourceException: pass
 
-class SourceError(RuntimeError):
-    def __init__(self,desc):
-        self.desc = desc
-
-
 class SourceFactory:
     sources_list = ("playlist","queue","webradio","video","dvd")
 
@@ -34,7 +29,7 @@ class SourceFactory:
         self.sources_obj = {}
         self.current = ""
         self.db = db
-        video_support = config.getboolean("general","video_support")
+        video_support = config.getboolean('general', 'video_support')
 
         # Playlist and Queue
         from deejayd.sources import playlist,queue
@@ -49,14 +44,15 @@ class SourceFactory:
         else: log.info(_("Webradio support disabled for the choosen backend"))
 
         # Video
-        if video_support and video_library:
+        if video_library:
             from deejayd.sources import video
-            self.sources_obj["video"] = video.VideoSource(db, video_library)
             try: player.init_video_support()
             except PlayerError:
                 # Critical error, we have to quit deejayd
-                log.err(_('Cannot initialise video support, either disable video support or check your player video support.'))
-                sys.exit(1)
+                msg = _('Cannot initialise video support, either disable video support or check your player video support.')
+                log.err(msg)
+                sys.exit(msg)
+            self.sources_obj["video"] = video.VideoSource(db, video_library)
 
         # dvd
         if video_support and player.is_supported_uri("dvd"):
