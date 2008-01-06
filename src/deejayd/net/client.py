@@ -602,8 +602,8 @@ class _DeejaydSocket(asyncore.dispatcher):
     ac_in_buffer_size = 256
     ac_out_buffer_size = 256
 
-    def __init__(self,deejayd):
-        asyncore.dispatcher.__init__(self)
+    def __init__(self, socket_map, deejayd):
+        asyncore.dispatcher.__init__(self, map=socket_map)
         self.deejayd = deejayd
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -698,14 +698,33 @@ class _DeejaydSocket(asyncore.dispatcher):
         return not self.deejayd.command_queue.empty()
 
 
-class _DeejaydSocketThread(threading.Thread):
+class _DeejaydSocketThread:
 
-    def run(self):
-        asyncore.loop(timeout=1)
+    def __init__(self):
+        self.__th = None
+        self.socket_map = {}
+
+    # Thanks
+    # http://mail.python.org/pipermail/python-list/2004-November/290798.html
+    def __asyncore_loop(self):
+        self.__stop_asyncore_loop = False
+        while self.socket_map and not self.__stop_asyncore_loop:
+            asyncore.loop(timeout=1, map=self.socket_map, count=1)
+
+    def stop(self):
+        self.__stop_asyncore_loop = True
+        self.__th.join()
+
+    def start(self):
+        self.__th = threading.Thread(target=self.__asyncore_loop)
+        self.__th.start()
 
 
 class DeejayDaemonAsync(_DeejayDaemon):
     """Completely aynchroneous deejayd client library."""
+
+    # There is only one socket thread for all the async client instances
+    socket_thread = _DeejaydSocketThread()
 
     def __init__(self):
         _DeejayDaemon.__init__(self)
@@ -714,10 +733,10 @@ class DeejayDaemonAsync(_DeejayDaemon):
         self.__con_cb = []
         self.__err_cb = []
         self.socket_to_server = None
-        self.socket_thread = _DeejaydSocketThread()
 
     def __create_socket(self):
-        self.socket_to_server = _DeejaydSocket(self)
+        self.socket_to_server = _DeejaydSocket(self.socket_thread.socket_map,
+                                               self)
         self.socket_to_server.add_socket_die_callback(\
             self.__make_answers_obsolete)
         self.socket_to_server.add_socket_die_callback(self.__disconnect)
@@ -764,7 +783,10 @@ class DeejayDaemonAsync(_DeejayDaemon):
         try: self.socket_to_server.connect((host, port))
         except socket.connecterror, msg:
             raise ConnectError('Connection error %s' % str(msg))
-        self.socket_thread.start()
+
+        if len(self.socket_thread.socket_map) < 2:
+            # This is the first client to ask for a connection
+            self.socket_thread.start()
 
     def disconnect(self):
         if self.socket_to_server != None:
@@ -774,8 +796,9 @@ class DeejayDaemonAsync(_DeejayDaemon):
     def __stop_thread(self):
         # terminate socket thread
         self.socket_to_server.close()
-        while self.socket_thread.isAlive():
-            time.sleep(0.2)
+        if len(self.socket_thread.socket_map) < 1:
+            # This is the last client to disconnect
+            self.socket_thread.stop()
         del self.socket_to_server
         self.socket_to_server = None
 

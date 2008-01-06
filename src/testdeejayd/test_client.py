@@ -64,22 +64,32 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
         TestCaseWithAudioAndVideoData.setUp(self)
 
         # Set up the test server
-        testServerPort = 23344
+        self.testServerPort = 23344
         dbfilename = '/tmp/testdeejayddb-' +\
                      self.testdata.getRandomString() + '.db'
-        self.testserver = TestServer(testServerPort,
+        self.testserver = TestServer(self.testServerPort,
             self.test_audiodata.getRootDir(), self.test_videodata.getRootDir(),
             dbfilename)
         self.testserver.start()
 
         # Instanciate the server object of the client library
         self.deejaydaemon = DeejayDaemonAsync()
-        self.deejaydaemon.connect('localhost', testServerPort)
+        self.deejaydaemon.connect('localhost', self.testServerPort)
+
+        # Prepare in case we need other clients
+        self.clients = [self.deejaydaemon]
 
     def tearDown(self):
-        self.deejaydaemon.disconnect()
+        for client in self.clients:
+            client.disconnect()
+
         self.testserver.stop()
         TestCaseWithAudioAndVideoData.tearDown(self)
+
+    def get_another_client(self):
+        client = DeejayDaemonAsync()
+        self.clients.append(client)
+        return client
 
     def test_ping(self):
         """Ping server asynchroneously"""
@@ -165,5 +175,14 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
         thirdcb_called.wait(2)
         self.failUnless(thirdcb_called.isSet(), \
             '3rd Answer callback was not triggered.')
+
+    def test_two_clients(self):
+        """Checks that it is possible to instanciate two clients in the same process."""
+        client2 = self.get_another_client()
+        client2.connect('localhost', self.testServerPort)
+
+        self.failUnless(self.deejaydaemon.ping().get_contents())
+        self.failUnless(client2.ping().get_contents())
+
 
 # vim: ts=4 sw=4 expandtab
