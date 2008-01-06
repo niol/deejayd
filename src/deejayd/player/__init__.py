@@ -16,6 +16,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import sys
+from deejayd.ui import log
+
 class PlayerError(Exception):pass
 
 def init(db,config):
@@ -24,16 +27,18 @@ def init(db,config):
     if media_backend == "gstreamer":
         from deejayd.player import gstreamer
         try: player = gstreamer.GstreamerPlayer(db,config)
-        except gstreamer.NoSinkError:
-            raise PlayerError(_("No audio sink found for Gstreamer"))
+        except PlayerError, err:
+            log.err(str(err))
+            sys.exit(str(err))
 
     elif media_backend == "xine":
         from deejayd.player import xine,_base
         try: player = xine.XinePlayer(db,config)
-        except _base.PlayerError:
-            raise PlayerError(_("Xine initialisation failed"))
+        except PlayerError, err:
+            log.err(str(err))
+            sys.exit(str(err))
 
-    else: raise PlayerError(_("Invalid audio backend"))
+    else: sys.exit(_("Invalid media backend"))
 
     return player
 

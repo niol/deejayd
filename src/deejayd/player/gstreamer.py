@@ -24,10 +24,9 @@ import gobject
 import gst
 import gst.interfaces
 
+from deejayd.player import PlayerError
 from deejayd.player._base import *
 from deejayd.ui import log
-
-class NoSinkError: pass
 
 class GstreamerPlayer(UnknownPlayer):
 
@@ -42,12 +41,12 @@ class GstreamerPlayer(UnknownPlayer):
         try: audio_sink = gst.parse_launch(pipeline_dict[pipeline])
         except gobject.GError, err: audio_sink = None
         if audio_sink==None:
-            raise NoSinkError
+            raise PlayerError(_("No audio sink found for Gstreamer"))
 
         # More audio-sink option
         if pipeline == "alsa":
             try: alsa_card = self.config.get("gstreamer", "alsa_card")
-            except: pass
+            except NoOptionError: pass
             else: audio_sink.set_property('device',alsa_card)
 
         self.bin = gst.element_factory_make('playbin')
@@ -75,7 +74,7 @@ class GstreamerPlayer(UnknownPlayer):
         try: video_sink = gst.parse_launch(pipeline_dict[pipeline])
         except gobject.GError, err:
             self._video_support = False
-            raise NoSinkError
+            raise PlayerError(_("No video sink found for Gstreamer"))
         else:
             self.bin.set_property('video-sink', video_sink)
 
@@ -148,7 +147,9 @@ class GstreamerPlayer(UnknownPlayer):
             state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
             timeout -= 1
 
-        if state_ret != gst.STATE_CHANGE_SUCCESS: return
+        if state_ret != gst.STATE_CHANGE_SUCCESS:
+            msg = _("Unable to play file %s") % self._media_file["uri"]
+            raise PlayerError(msg)
         elif self._media_file["type"] == "video":
             if "audio" in self._media_file:
                 self._media_file["audio_idx"] = \
@@ -287,8 +288,6 @@ class GstreamerPlayer(UnknownPlayer):
         return dvd_info
 
 
-class InfoNotFound: pass
-
 class DiscoverVideoFile:
 
     def __init__(self,f):
@@ -301,7 +300,7 @@ class DiscoverVideoFile:
             self.__getinfo()
 
         if key in self.__file_info: return self.__file_info[key]
-        else: raise InfoNotFound
+        else: raise PlayerError
 
     def __getinfo(self):
         self.__process = True

@@ -17,13 +17,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os,subprocess
+from deejayd.player import PlayerError
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
-
-class PlayerError(Exception): pass
-class OptionNotFound(Exception): pass
 
 class UnknownPlayer:
 
@@ -147,7 +145,7 @@ class UnknownPlayer:
 
     def set_option(self,name,value):
         if name not in self.options.keys():
-            raise OptionNotFound
+            raise PlayerError
         self.options[name] = value
 
     def is_playing(self):

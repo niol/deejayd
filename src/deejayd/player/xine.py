@@ -19,6 +19,7 @@
 from os import path
 from ctypes import *
 from twisted.internet import reactor
+from deejayd.player import PlayerError
 from deejayd.player._base import *
 from deejayd.player._xine import *
 from deejayd.player.display import x11
@@ -41,8 +42,7 @@ class XinePlayer(UnknownPlayer):
         # init main instance
         self.__xine = xine_new()
         if not self.__xine:
-            log.err(_("Unable to init a xine instance"))
-            raise PlayerError
+            raise PlayerError(_("Unable to init a xine instance"))
         xine_config_load(self.__xine, xine_get_homedir() + "/.xine/config")
         xine_init(self.__xine)
 
@@ -50,8 +50,7 @@ class XinePlayer(UnknownPlayer):
         driver_name = self.config.get("xine", "audio_output")
         self.__audio_port = xine_open_audio_driver(self.__xine,driver_name,None)
         if not self.__audio_port:
-            log.err(_("Unable to open audio driver"))
-            raise PlayerError
+            raise PlayerError(_("Unable to open audio driver"))
 
         # init vars
         self.__supports_gapless = xine_check_version(1, 1, 1) == 1
