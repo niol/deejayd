@@ -59,7 +59,7 @@ class SourceFactory:
                 sys.exit(1)
 
         # dvd
-        if video_support == "yes" and player.is_supported_uri("dvd"):
+        if video_support and player.is_supported_uri("dvd"):
             from deejayd.sources import dvd
             try: self.sources_obj["dvd"] = dvd.DvdSource(player,db,config)
             except dvd.DvdError:
