@@ -17,11 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import sys
+from ConfigParser import NoOptionError
 
 def init(config):
-    try: db_type =  config.get("database","db_type")
-    except NoOptionError:
-        sys.exit(_("You do not choose a database. Verify your config file."))
+    db_type =  config.get("database","db_type")
 
     if db_type == "sqlite":
         db_file = config.get("database","db_file")

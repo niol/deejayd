@@ -24,6 +24,7 @@ import gobject
 import gst
 import gst.interfaces
 
+from ConfigParser import NoOptionError
 from deejayd.player import PlayerError
 from deejayd.player._base import *
 from deejayd.ui import log
