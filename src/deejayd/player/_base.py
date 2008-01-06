@@ -68,9 +68,6 @@ class UnknownPlayer:
     def stop(self):
         raise NotImplementedError
 
-    def reset(self,source_name):
-        self.stop()
-
     def _change_file(self,new_file):
         self.stop()
         self._media_file = new_file

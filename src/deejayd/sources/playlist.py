@@ -106,11 +106,10 @@ class PlaylistSource(UnknownSourceManagement):
     current_playlist_name = "__djcurrent__"
     name = "playlist"
 
-    def __init__(self,player,db,library):
+    def __init__(self,db,library):
         UnknownSourceManagement.__init__(self,db,library)
 
         # Init parms
-        self.player = player
         self.__open_playlists = {}
 
         # Load current playlist
@@ -161,7 +160,6 @@ class PlaylistSource(UnknownSourceManagement):
 
         if playlist == None:
             self.current_item = None
-            self.player.reset("playlist")
         playlist_obj.clear()
 
         if isinstance(playlist,str):
@@ -172,9 +170,7 @@ class PlaylistSource(UnknownSourceManagement):
 
         if playlist == None and self.current_item != None and\
                 self.current_item[type] == nb:
-            self.player.stop()
             pos = self.current_item["pos"]
-            self.go_to(pos+1, "pos")
         playlist_obj.delete(nb,type)
 
         if isinstance(playlist,str):

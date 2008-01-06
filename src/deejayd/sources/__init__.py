@@ -33,8 +33,7 @@ class SourceFactory:
 
         # Playlist and Queue
         from deejayd.sources import playlist,queue
-        self.sources_obj["playlist"] = playlist.PlaylistSource(player,db,\
-                audio_library)
+        self.sources_obj["playlist"] = playlist.PlaylistSource(db,audio_library)
         self.sources_obj["queue"] = queue.QueueSource(db,audio_library)
 
         # Webradio
