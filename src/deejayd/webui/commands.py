@@ -207,9 +207,6 @@ class Random(_Options):
 class Repeat(_Options):
     name = "repeat"
 
-class Fullscreen(_Options):
-    name = "fullscreen"
-
 class Volume(_UnknownCommand):
     name = "setVol"
     command_args = [

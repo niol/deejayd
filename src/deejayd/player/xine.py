@@ -35,7 +35,6 @@ class XinePlayer(UnknownPlayer):
         self.__xine_options = {
             "video": self.config.get("xine", "video_output"),
             "display" : self.config.get("xine", "video_display"),
-            "fullscreen": self.config.getboolean("xine", "fullscreen"),
             "subtitle": self.config.getint("xine", "subtitle_size"),
             }
 
@@ -65,7 +64,8 @@ class XinePlayer(UnknownPlayer):
     def init_video_support(self):
         UnknownPlayer.init_video_support(self)
         # init display
-        try: self.__display = x11.X11Display(self.__xine_options)
+        try: self.__display = x11.X11Display(self.__xine_options,\
+                                             self._fullscreen)
         except x11.X11Error, err:
             log.err(str(err))
             raise PlayerError(str(err))
@@ -144,8 +144,6 @@ class XinePlayer(UnknownPlayer):
 
     def _player_get_slang(self):
         return self.__do_get_property(XINE_PARAM_SPU_CHANNEL)
-
-    def set_fullscreen(self,val): pass
 
     def get_volume(self):
         rs = self.__do_get_property(XINE_PARAM_AUDIO_VOLUME)

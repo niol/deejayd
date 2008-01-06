@@ -696,12 +696,10 @@ class SetOption(UnknownCommand):
        Available options are :
        * random
        * repeat
-       if you are video support:
-       * fullscreen
        You can pass several options in the same command"""
     command_name = 'setOption'
     command_args = [{"name":"option_name", "type":"enum_str","req":True,
-                     "values":("random","repeat","fullscreen")},
+                     "values":("random","repeat")},
                     {"name":"option_value","type":"enum_int","req":True,
                      "values":(0,1)} ]
 

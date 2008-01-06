@@ -24,9 +24,9 @@ class X11Error(Exception): pass
 
 class X11Display:
 
-    def __init__(self, opts):
+    def __init__(self, opts, fullscreen):
         self.__dsp_name = opts["display"]
-        self.__fullscreen = opts["fullscreen"]
+        self.__fullscreen = fullscreen
         if not XInitThreads():
             raise X11Error("Unable to init X Threads")
 

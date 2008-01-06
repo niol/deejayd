@@ -377,8 +377,6 @@ Set player options "name" to "value", "value" should be 0 or 1.
        Available options are :
        * random
        * repeat
-       if you are video support:
-       * fullscreen
        You can pass several options in the same command
 
 Arguments :

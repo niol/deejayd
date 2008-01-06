@@ -117,6 +117,14 @@ class GstreamerPlayer(UnknownPlayer):
             self.video_window = gtk.DrawingArea()
             self.deejayd_window.add(self.video_window)
             self.deejayd_window.connect("map_event",self.start_gstreamer)
+            if self._fullscreen:
+                # Hide the cursor
+                empty_pixmap = gtk.gdk.Pixmap(None, 1, 1, 1)
+                empty_color = gtk.gdk.Color()
+                empty_cursor = gtk.gdk.Cursor(empty_pixmap, empty_pixmap,
+                    empty_color, empty_color, 0, 0)
+                self.deejayd_window.window.set_cursor(empty_cursor)
+                self.deejayd_window.fullscreen()
             self.deejayd_window.show_all()
         else: self.start_gstreamer()
 
@@ -148,7 +156,6 @@ class GstreamerPlayer(UnknownPlayer):
             if "subtitle" in self._media_file:
                 self._media_file["subtitle_idx"] = \
                                 self.bin.get_property("current-text")
-            self.set_fullscreen(self.options["fullscreen"])
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
@@ -166,22 +173,6 @@ class GstreamerPlayer(UnknownPlayer):
         if self._video_support and self.deejayd_window:
             self.deejayd_window.destroy()
             self.deejayd_window = None
-
-    def set_fullscreen(self,val):
-        if  self._video_support and self.deejayd_window:
-            import gtk
-            if val == 0:
-                # Set the cursor visible
-                self.deejayd_window.window.set_cursor(None)
-                self.deejayd_window.unfullscreen()
-            else:
-                # Hide the cursor
-                empty_pixmap = gtk.gdk.Pixmap(None, 1, 1, 1)
-                empty_color = gtk.gdk.Color()
-                empty_cursor = gtk.gdk.Cursor(empty_pixmap, empty_pixmap,
-                    empty_color, empty_color, 0, 0)
-                self.deejayd_window.window.set_cursor(empty_cursor)
-                self.deejayd_window.fullscreen()
 
     def get_volume(self):
         return int(self.bin.get_property('volume')*100)

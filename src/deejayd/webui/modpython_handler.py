@@ -67,7 +67,7 @@ class Gateway:
         path = path.lstrip(self.__opt["root_uri"])
         if path == '': # init
             self.__req.content_type = "application/vnd.mozilla.xul+xml"
-            self.__req.write(xmlanswer.build_web_interface("en"))
+            self.__req.write(xmlanswer.build_web_interface())
 
         elif path == 'commands':
             args = util.FieldStorage(self.__req)

@@ -249,11 +249,6 @@
         id="repeat-button"
         oncommand="ajaxdj_ref.send_command('repeat',null,true);"
         label="&repeat;"/>
-    <button
-        class="fullscreen-button"
-        id = "fullscreen-button"
-        oncommand="ajaxdj_ref.send_command('fullscreen',null,true);"
-        label="&fullscreen;"/>
 </hbox>
 <!-- END FOOTER -->
 

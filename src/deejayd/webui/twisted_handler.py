@@ -31,7 +31,6 @@ class DeejaydMainHandler(Resource):
 
     def __init__(self, config):
         Resource.__init__(self)
-        self.lang = config.get("webui","lang")
 
     def getChild(self, name, request):
         if name == '': return self

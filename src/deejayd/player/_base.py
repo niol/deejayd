@@ -52,7 +52,7 @@ class UnknownPlayer:
 
     def init_video_support(self):
         self._video_support = True
-        self.options["fullscreen"] = int(self.db.get_state("fullscreen"))
+        self._fullscreen = self.config.getboolean("general", "fullscreen")
 
     def set_source(self,source):
         self._source = source
@@ -148,10 +148,7 @@ class UnknownPlayer:
     def set_option(self,name,value):
         if name not in self.options.keys():
             raise OptionNotFound
-
         self.options[name] = value
-        if name == "fullscreen" and self.get_state() != PLAYER_STOP:
-            self.set_fullscreen(self.options["fullscreen"])
 
     def is_playing(self):
         return self.get_state() != PLAYER_STOP

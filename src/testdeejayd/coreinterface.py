@@ -224,7 +224,7 @@ class InterfaceTests:
         self.assertRaises(DeejaydError, ans.get_contents)
 
         # known option
-        opt = self.testdata.getRandomElement(('random','repeat','fullscreen'))
+        opt = self.testdata.getRandomElement(('random','repeat'))
         ans = self.deejayd.set_option(opt, 1).get_contents()
         status = self.deejayd.get_status().get_contents()
         self.assertEqual(status[opt], 1)

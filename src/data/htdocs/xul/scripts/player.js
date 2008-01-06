@@ -98,7 +98,7 @@ var Player = function()
         $('player-seekbar').updateSeekbar(seekbarValue);
 
         // Update option buttons
-        var options = Array("random","repeat","fullscreen");
+        var options = Array("random","repeat");
         for (var opt in options) {
             var opt_obj = playerObj.getElementsByTagName(options[opt]).item(0);
             if (opt_obj)
