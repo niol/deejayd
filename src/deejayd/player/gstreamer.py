@@ -180,7 +180,6 @@ class GstreamerPlayer(UnknownPlayer):
     def set_volume(self,vol):
         v = float(vol)/100
         self.bin.set_property('volume', v)
-        return True
 
     def get_position(self):
         if gst.STATE_NULL != self.__get_gst_state() and \
