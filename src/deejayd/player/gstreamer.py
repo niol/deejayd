@@ -86,6 +86,8 @@ class GstreamerPlayer(UnknownPlayer):
     def on_message(self, bus, message):
         if message.type == gst.MESSAGE_EOS:
             self.next()
+        elif message.type == gst.MESSAGE_TAG:
+            self._update_metadata(message.parse_tag())
         elif message.type == gst.MESSAGE_ERROR:
             err, debug = message.parse_error()
             err = str(err).decode("utf8", 'replace')
@@ -120,6 +122,15 @@ class GstreamerPlayer(UnknownPlayer):
 
     def start_gstreamer(self,widget = None, event = None):
         self.bin.set_property('uri',self._media_file["uri"])
+        # load external subtitle if available
+        self.bin.set_property("suburi",'')
+        if "external_subtitle" in self._media_file and \
+                self._media_file["external_subtitle"].startswith("file://"):
+            self.bin.set_property("suburi",\
+                self._media_file["external_subtitle"])
+            self.bin.set_property("subtitle-font-desc", "Sans Normal 24")
+            #self._media_file["subtitle"] = [{"lang": "none", "ix": -1},\
+            #                                {"lang": "external", "ix":0}]
 
         state_ret = self.bin.set_state(gst.STATE_PLAYING)
         timeout = 4
@@ -212,6 +223,22 @@ class GstreamerPlayer(UnknownPlayer):
 
     def _player_set_slang(self,lang_idx):
         self.bin.set_property("current-text",lang_idx)
+
+    def _update_metadata(self, tags):
+        if not self._media_file or self._media_file["type"] != "webradio":
+            return
+
+        for k in tags.keys():
+            value = str(tags[k]).strip()
+            if not value: continue
+            if k in ("emphasis", "mode", "layer"):
+                continue
+            elif isinstance(value, basestring):
+                if k in ("title", "album", "artist"):
+                    name = "song-" + k
+                    if name not in self._media_file.keys() or\
+                                   self._media_file[name] != value:
+                        self._media_file[name] = value
 
     def get_state(self):
         gst_state = self.__get_gst_state()
