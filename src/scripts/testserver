@@ -72,12 +72,15 @@ try:
 except twisted.internet.error.CannotListenError:
     # This is to avoid locking the test suite when the server used in the
     # previous test has not stopped listenning.
+    deejayd_core.close()
     os.write(2, 'stopped\n')
+    sys.exit()
 
 def printReady():
     os.write(2, 'ready\n')
 
 reactor.addSystemEventTrigger('after', 'startup', printReady)
+reactor.addSystemEventTrigger('after', 'shutdown', deejayd_core.close)
 reactor.run()
 
 

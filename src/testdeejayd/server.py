@@ -82,8 +82,8 @@ class TestServer:
             raise Exception('Reactor does not seem to be ready')
 
     def stop(self):
-        # Send kill signal
-        os.kill(self.__serverProcess.pid, signal.SIGKILL)
+        # Send stop signal to reactor
+        os.kill(self.__serverProcess.pid, signal.SIGINT)
 
         # Wait for the process to finish
         self.__serverProcess.wait()
