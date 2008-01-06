@@ -47,7 +47,6 @@ def init(db, player, config):
 
     if inotify.inotify_support:
         lib_watcher = inotify.DeejaydInotify(db, audio_library, video_library)
-        lib_watcher.start()
     else: log.info(_("Inotify support disabled"))
 
     return audio_library,video_library,lib_watcher

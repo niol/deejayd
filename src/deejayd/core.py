@@ -239,7 +239,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         if not config:
             config = DeejaydConfig()
 
-        self.db = database.init(config).get_db()
+        self.db = database.init(config)
         self.db.connect()
 
         self.player = player.init(self.db, config)
@@ -249,6 +249,10 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         self.sources = sources.init(self.player, self.db, self.audio_library,
                                              self.video_library, config)
+
+        # start inotify thread when we are sure that all init stuff are ok
+        if self.watcher:
+            self.watcher.start()
 
     def close(self):
         for obj in (self.watcher,self.player,self.sources,self.audio_library,\
@@ -261,7 +265,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             self.player.pause()
         else:
             try: self.player.play()
-            except player._base.PlayerError, err:
+            except player.PlayerError, err:
                 raise DeejaydError(str(err))
 
     @returns_deejaydanswer(DeejaydAnswer)
@@ -271,13 +275,13 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     @returns_deejaydanswer(DeejaydAnswer)
     def previous(self):
         try: self.player.previous()
-        except player._base.PlayerError, err:
+        except player.PlayerError, err:
             raise DeejaydError(str(err))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def next(self):
         try: self.player.next()
-        except player._base.PlayerError, err:
+        except player.PlayerError, err:
             raise DeejaydError(str(err))
 
     @returns_deejaydanswer(DeejaydAnswer)
@@ -311,8 +315,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
                 raise DeejaydError(_("Bad value for id parm"))
 
         try: self.player.go_to(id, id_type, source)
-        except player._base.PlayerError, err:
-            raise DeejaydError(_("Unable to play this file : %s") % err)
+        except player.PlayerError, err:
+            raise DeejaydError(str(err))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_volume(self, volume_value):
@@ -321,7 +325,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     @returns_deejaydanswer(DeejaydAnswer)
     def set_option(self, option_name, option_value):
         try: self.player.set_option(option_name, int(option_value))
-        except player._base.OptionNotFound:
+        except player.PlayerError:
             raise DeejaydError(_('Option %s does not exist') % option_name)
 
     @returns_deejaydanswer(DeejaydAnswer)
@@ -342,13 +346,13 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     @returns_deejaydanswer(DeejaydAnswer)
     def set_alang(self, lang_idx):
         try: self.player.set_alang(int(lang_idx))
-        except player._base.PlayerError:
+        except player.PlayerError:
             raise DeejaydError(_("Unable to change audio channel"))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_slang(self, lang_idx):
         try: self.player.set_slang(int(lang_idx))
-        except player._base.PlayerError:
+        except player.PlayerError:
             raise DeejaydError(_("Unable to change subtitle channel"))
 
     @returns_deejaydanswer(DeejaydKeyValue)
