@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-05 17:41+0100\n"
+"POT-Creation-Date: 2008-01-06 15:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,7 +50,7 @@ msgstr ""
 msgid "Song with id %d not found"
 msgstr ""
 
-#: ../deejayd/core.py:171 ../deejayd/core.py:383
+#: ../deejayd/core.py:171 ../deejayd/core.py:387
 #, python-format
 msgid "Playlist %s not found"
 msgstr ""
@@ -65,53 +65,50 @@ msgstr ""
 msgid "Playlist %s does not have a song of id %d"
 msgstr ""
 
-#: ../deejayd/core.py:311
+#: ../deejayd/core.py:315
 msgid "Bad value for id parm"
 msgstr ""
 
-#: ../deejayd/core.py:315
-#, python-format
-msgid "Unable to play this file : %s"
-msgstr ""
-
-#: ../deejayd/core.py:325
+#: ../deejayd/core.py:329
 #, python-format
 msgid "Option %s does not exist"
 msgstr ""
 
-#: ../deejayd/core.py:332
+#: ../deejayd/core.py:336
 #, python-format
 msgid "Unknown mode: %s"
 msgstr ""
 
-#: ../deejayd/core.py:346
+#: ../deejayd/core.py:350
 msgid "Unable to change audio channel"
 msgstr ""
 
-#: ../deejayd/core.py:352
+#: ../deejayd/core.py:356
 msgid "Unable to change subtitle channel"
 msgstr ""
 
-#: ../deejayd/core.py:375 ../deejayd/core.py:412 ../deejayd/core.py:427
+#: ../deejayd/core.py:379 ../deejayd/core.py:416 ../deejayd/core.py:431
 msgid "Video mode disabled"
 msgstr ""
 
-#: ../deejayd/core.py:397 ../deejayd/core.py:417 ../deejayd/core.py:425
+#: ../deejayd/core.py:401 ../deejayd/core.py:421 ../deejayd/core.py:429
 #, python-format
 msgid "Directory %s not found in database"
 msgstr ""
 
-#: ../deejayd/core.py:405
+#: ../deejayd/core.py:409
 #, python-format
 msgid "Type %s is not supported"
 msgstr ""
 
-#: ../deejayd/database/__init__.py:28
+#: ../deejayd/database/__init__.py:24
 msgid "You do not choose a database. Verify your config file."
 msgstr ""
 
-#: ../deejayd/database/__init__.py:32
-msgid "You chose a database which is not supported. Verify your config file."
+#: ../deejayd/database/__init__.py:34
+msgid ""
+"You chose a database which is not supported.                    Verify your "
+"config file."
 msgstr ""
 
 #: ../deejayd/database/database.py:54
@@ -171,7 +168,7 @@ msgstr ""
 msgid "Unable to init video library : %s"
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:51
+#: ../deejayd/mediadb/__init__.py:50
 msgid "Inotify support disabled"
 msgstr ""
 
@@ -255,23 +252,15 @@ msgstr ""
 msgid "Arg %s is mising"
 msgstr ""
 
-#: ../deejayd/player/__init__.py:28
-msgid "No audio sink found for Gstreamer"
-msgstr ""
-
-#: ../deejayd/player/__init__.py:34
-msgid "Xine initialisation failed"
-msgstr ""
-
-#: ../deejayd/player/__init__.py:36
-msgid "Invalid audio backend"
+#: ../deejayd/player/__init__.py:41
+msgid "Invalid media backend"
 msgstr ""
 
 #: ../deejayd/player/xine.py:45
 msgid "Unable to init a xine instance"
 msgstr ""
 
-#: ../deejayd/player/xine.py:54
+#: ../deejayd/player/xine.py:53
 msgid "Unable to open audio driver"
 msgstr ""
 
@@ -280,35 +269,35 @@ msgstr ""
 msgid "Unable to play file %s"
 msgstr ""
 
-#: ../deejayd/player/xine.py:297
+#: ../deejayd/player/xine.py:295
 msgid "Unable to open video driver"
 msgstr ""
 
-#: ../deejayd/player/xine.py:380
+#: ../deejayd/player/xine.py:378
 #, python-format
 msgid "Xine error %s"
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:49
+#: ../deejayd/sources/__init__.py:44
 msgid "Webradio support disabled for the choosen backend"
 msgstr ""
 
 #. Critical error, we have to quit deejayd
-#: ../deejayd/sources/__init__.py:58
+#: ../deejayd/sources/__init__.py:52
 msgid ""
 "Cannot initialise video support, either disable video support or check your "
 "player video support."
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:66
+#: ../deejayd/sources/__init__.py:62
 msgid "Unable to init dvd support"
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:67
+#: ../deejayd/sources/__init__.py:63
 msgid "DVD support is disabled"
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:73
+#: ../deejayd/sources/__init__.py:69
 #, python-format
 msgid "Unable to set recorded source %s"
 msgstr ""
@@ -551,43 +540,43 @@ msgstr ""
 msgid "Do you want to replace this playlist ?"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:275
+#: ../deejayd/webui/commands.py:272
 msgid "The audio library has been updated"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:291
+#: ../deejayd/webui/commands.py:288
 msgid "The video library has been updated"
 msgstr ""
 
-#: ../deejayd/webui/twisted_handler.py:69
+#: ../deejayd/webui/twisted_handler.py:68
 msgid "You have to enter an action."
 msgstr ""
 
-#: ../deejayd/webui/twisted_handler.py:73
+#: ../deejayd/webui/twisted_handler.py:72
 #, python-format
 msgid "Command %s not found"
 msgstr ""
 
-#: ../deejayd/webui/twisted_handler.py:77
+#: ../deejayd/webui/twisted_handler.py:76
 msgid "Command send with invalid method"
 msgstr ""
 
-#: ../deejayd/webui/twisted_handler.py:87
+#: ../deejayd/webui/twisted_handler.py:86
 #, python-format
 msgid "Bad argument : %s"
 msgstr ""
 
-#: ../deejayd/webui/twisted_handler.py:98
+#: ../deejayd/webui/twisted_handler.py:97
 #, python-format
 msgid "Unable to remove rdf directory %s"
 msgstr ""
 
-#: ../deejayd/webui/twisted_handler.py:102
+#: ../deejayd/webui/twisted_handler.py:101
 #, python-format
 msgid "Unable to create rdf directory %s"
 msgstr ""
 
-#: ../deejayd/webui/twisted_handler.py:109
+#: ../deejayd/webui/twisted_handler.py:108
 #, python-format
 msgid "Htdocs directory %s does not exists"
 msgstr ""

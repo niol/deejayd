@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-05 17:41+0100\n"
+"POT-Creation-Date: 2008-01-06 15:17+0100\n"
 "PO-Revision-Date: 2008-01-05 23:20+0100\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -49,7 +49,7 @@ msgstr "La liste de lecture %s n'existe pas."
 msgid "Song with id %d not found"
 msgstr "La chanson avec l'identifiant %d n'a pas été trouvée"
 
-#: ../deejayd/core.py:171 ../deejayd/core.py:383
+#: ../deejayd/core.py:171 ../deejayd/core.py:387
 #, python-format
 msgid "Playlist %s not found"
 msgstr "La liste de lecture %s n'a pas été trouvée"
@@ -64,54 +64,55 @@ msgstr "La chanson avec l'identifiant %s n'a pas été trouvée"
 msgid "Playlist %s does not have a song of id %d"
 msgstr "La liste de lecture %s n'a pas de chanson avec l'identifiant %d"
 
-#: ../deejayd/core.py:311
+#: ../deejayd/core.py:315
 msgid "Bad value for id parm"
 msgstr "Mauvaise valeur pour le paramètre id"
 
-#: ../deejayd/core.py:315
-#, python-format
-msgid "Unable to play this file : %s"
-msgstr "Impossible de lire le fichier %s"
-
-#: ../deejayd/core.py:325
+#: ../deejayd/core.py:329
 #, python-format
 msgid "Option %s does not exist"
 msgstr "L'option %s n'existe pas"
 
-#: ../deejayd/core.py:332
+#: ../deejayd/core.py:336
 #, python-format
 msgid "Unknown mode: %s"
 msgstr "Mode inconnu : %s"
 
-#: ../deejayd/core.py:346
+#: ../deejayd/core.py:350
 msgid "Unable to change audio channel"
 msgstr "Impossible de modifier le canal audio"
 
-#: ../deejayd/core.py:352
+#: ../deejayd/core.py:356
 msgid "Unable to change subtitle channel"
 msgstr "Impossible de modifier le canal des sous-titres"
 
-#: ../deejayd/core.py:375 ../deejayd/core.py:412 ../deejayd/core.py:427
+#: ../deejayd/core.py:379 ../deejayd/core.py:416 ../deejayd/core.py:431
 msgid "Video mode disabled"
 msgstr "Mode vidéo désactivé"
 
-#: ../deejayd/core.py:397 ../deejayd/core.py:417 ../deejayd/core.py:425
+#: ../deejayd/core.py:401 ../deejayd/core.py:421 ../deejayd/core.py:429
 #, python-format
 msgid "Directory %s not found in database"
 msgstr "Le répertoire %s n'a pas été trouvé dans la base de donnée"
 
-#: ../deejayd/core.py:405
+#: ../deejayd/core.py:409
 #, python-format
 msgid "Type %s is not supported"
 msgstr "Le type %s n'est pas supporté"
 
-#: ../deejayd/database/__init__.py:28
+#: ../deejayd/database/__init__.py:24
 msgid "You do not choose a database. Verify your config file."
-msgstr "Vous n'avez pas choisi de base de donnée. Vérifier votre fichier de configuration"
+msgstr ""
+"Vous n'avez pas choisi de base de donnée. Vérifier votre fichier de "
+"configuration"
 
-#: ../deejayd/database/__init__.py:32
-msgid "You chose a database which is not supported. Verify your config file."
-msgstr "Vous avez choisi une base de donnée non supportée. Vérifier votre fichier de configuration"
+#: ../deejayd/database/__init__.py:34
+msgid ""
+"You chose a database which is not supported.                    Verify your "
+"config file."
+msgstr ""
+"Vous avez choisi une base de donnée non supportée. Vérifier votre fichier de "
+"configuration"
 
 #: ../deejayd/database/database.py:54
 msgid "Database structure not found"
@@ -163,14 +164,16 @@ msgstr "Mode vidéo désactivé"
 
 #: ../deejayd/mediadb/__init__.py:41
 msgid "Supplied video directory not found. Video support disabled."
-msgstr "Le répertoire vidéo proposé n'existe pas. Le support de la vidéo est désactivé"
+msgstr ""
+"Le répertoire vidéo proposé n'existe pas. Le support de la vidéo est "
+"désactivé"
 
 #: ../deejayd/mediadb/__init__.py:46
 #, python-format
 msgid "Unable to init video library : %s"
 msgstr "Impossible d'initialiser la librairie vidéo : %s"
 
-#: ../deejayd/mediadb/__init__.py:51
+#: ../deejayd/mediadb/__init__.py:50
 msgid "Inotify support disabled"
 msgstr "Support d'inotify désactivé"
 
@@ -254,23 +257,15 @@ msgstr "L'argument %s (%s) ne correspond pas à l'expression régulière %s"
 msgid "Arg %s is mising"
 msgstr "L'argument %s est manquant"
 
-#: ../deejayd/player/__init__.py:28
-msgid "No audio sink found for Gstreamer"
-msgstr "Aucun driver audio trouvé pour gstreamer"
-
-#: ../deejayd/player/__init__.py:34
-msgid "Xine initialisation failed"
-msgstr "L'initialisation de xine a échoué"
-
-#: ../deejayd/player/__init__.py:36
-msgid "Invalid audio backend"
+#: ../deejayd/player/__init__.py:41
+msgid "Invalid media backend"
 msgstr "Player invalide"
 
 #: ../deejayd/player/xine.py:45
 msgid "Unable to init a xine instance"
 msgstr "Impossible d'initialiser une instance de xine"
 
-#: ../deejayd/player/xine.py:54
+#: ../deejayd/player/xine.py:53
 msgid "Unable to open audio driver"
 msgstr "Impossible d'ouvrir le driver audio"
 
@@ -279,34 +274,35 @@ msgstr "Impossible d'ouvrir le driver audio"
 msgid "Unable to play file %s"
 msgstr "Impossible de lire le fichier %s"
 
-#: ../deejayd/player/xine.py:297
+#: ../deejayd/player/xine.py:295
 msgid "Unable to open video driver"
 msgstr "Impossible d'ouvrir le driver vidéo"
 
-#: ../deejayd/player/xine.py:380
+#: ../deejayd/player/xine.py:378
 #, python-format
 msgid "Xine error %s"
 msgstr "Erreur Xine %s"
 
-#: ../deejayd/sources/__init__.py:49
+#: ../deejayd/sources/__init__.py:44
 msgid "Webradio support disabled for the choosen backend"
 msgstr "Le support des radios web est désactivé"
 
-#: ../deejayd/sources/__init__.py:58
+#. Critical error, we have to quit deejayd
+#: ../deejayd/sources/__init__.py:52
 msgid ""
 "Cannot initialise video support, either disable video support or check your "
 "player video support."
 msgstr "Impossible d'initialiser le support vidéo"
 
-#: ../deejayd/sources/__init__.py:66
+#: ../deejayd/sources/__init__.py:62
 msgid "Unable to init dvd support"
 msgstr "Impossible d'initialiser le support des DVD"
 
-#: ../deejayd/sources/__init__.py:67
+#: ../deejayd/sources/__init__.py:63
 msgid "DVD support is disabled"
 msgstr "Le support des DVD est désactivé"
 
-#: ../deejayd/sources/__init__.py:73
+#: ../deejayd/sources/__init__.py:69
 #, python-format
 msgid "Unable to set recorded source %s"
 msgstr "Impossible de choisir la source enregistrée %s"
@@ -549,43 +545,52 @@ msgstr "Il manque un paramètre"
 msgid "Do you want to replace this playlist ?"
 msgstr "Voulez vous replacer cette liste de lecture ?"
 
-#: ../deejayd/webui/commands.py:275
+#: ../deejayd/webui/commands.py:272
 msgid "The audio library has been updated"
 msgstr "La librairie audio a été mise à jour"
 
-#: ../deejayd/webui/commands.py:291
+#: ../deejayd/webui/commands.py:288
 msgid "The video library has been updated"
 msgstr "La librairie vidéo a été mise à jour"
 
-#: ../deejayd/webui/twisted_handler.py:69
+#: ../deejayd/webui/twisted_handler.py:68
 msgid "You have to enter an action."
 msgstr "Vous devez entrer une action"
 
-#: ../deejayd/webui/twisted_handler.py:73
+#: ../deejayd/webui/twisted_handler.py:72
 #, python-format
 msgid "Command %s not found"
 msgstr "La commande %s n'a pas été trouvée"
 
-#: ../deejayd/webui/twisted_handler.py:77
+#: ../deejayd/webui/twisted_handler.py:76
 msgid "Command send with invalid method"
 msgstr "La commande a été envoyée avec une méthode invalide"
 
-#: ../deejayd/webui/twisted_handler.py:87
+#: ../deejayd/webui/twisted_handler.py:86
 #, python-format
 msgid "Bad argument : %s"
 msgstr "Argument %s erroné"
 
-#: ../deejayd/webui/twisted_handler.py:98
+#: ../deejayd/webui/twisted_handler.py:97
 #, python-format
 msgid "Unable to remove rdf directory %s"
 msgstr "Impossible de supprimer le répertoire contenant les fichiers rdf %s"
 
-#: ../deejayd/webui/twisted_handler.py:102
+#: ../deejayd/webui/twisted_handler.py:101
 #, python-format
 msgid "Unable to create rdf directory %s"
 msgstr "Impossible de créer le répertoire %s"
 
-#: ../deejayd/webui/twisted_handler.py:109
+#: ../deejayd/webui/twisted_handler.py:108
 #, python-format
 msgid "Htdocs directory %s does not exists"
 msgstr "Le répertoire %s n'existe pas"
+
+#~ msgid "Unable to play this file : %s"
+#~ msgstr "Impossible de lire le fichier %s"
+
+#~ msgid "No audio sink found for Gstreamer"
+#~ msgstr "Aucun driver audio trouvé pour gstreamer"
+
+#~ msgid "Xine initialisation failed"
+#~ msgstr "L'initialisation de xine a échoué"
