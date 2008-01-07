@@ -4,8 +4,6 @@
     enableColumnDrag="true"
     ref="http://queue/all-content"
     datasources="rdf:null"
-    oncontextmenu="queue_ref.showPopupMenu(event);"
-    ondblclick = "queue_ref.play();"
     ondragover="queue_ref.dragOver(event);"
     ondragenter="queue_ref.dragEnter(event);"
     ondragexit="queue_ref.dragExit(event);"
@@ -37,6 +35,8 @@
     <rule>
 
         <treechildren
+            oncontextmenu="queue_ref.showPopupMenu(event);"
+            ondblclick = "queue_ref.play();"
             id="queue-items">
             <treeitem uri="rdf:*">
                 <treerow>

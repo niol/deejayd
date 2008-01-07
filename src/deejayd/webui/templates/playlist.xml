@@ -150,9 +150,6 @@
             enableColumnDrag="true"
             ref="http://playlist/all-content"
             datasources="rdf:null"
-	        oncontextmenu="playlist_ref.showPopupMenu(event);"
-            ondblclick = "playlist_ref.play();"
-            ondraggesture = "playlist_ref.dragStart(event);"
             ondragover="playlist_ref.dragOver(event);"
             ondragenter="playlist_ref.dragEnter(event);"
             ondragexit="playlist_ref.dragExit(event);"
@@ -188,6 +185,9 @@
             <rule>
 
                 <treechildren
+                    ondraggesture = "playlist_ref.dragStart(event);"
+                    oncontextmenu="playlist_ref.showPopupMenu(event);"
+                    ondblclick = "playlist_ref.play();"
                     id="playlist-items">
                     <treeitem uri="rdf:*">
                         <treerow>
