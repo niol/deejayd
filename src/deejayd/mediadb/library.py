@@ -400,7 +400,7 @@ class _Library:
     def _remove_empty_dir(self, path):
         path = self.strip_root(path)
         while path != "":
-            if len(self.inotify_db.get_all_files(path)) > 0:
+            if len(self.inotify_db.get_all_files(path, self.table)) > 0:
                 break
             (path, dirname) = os.path.split(path)
             self.inotify_db.remove_dir(path, dirname, self.table)
@@ -410,7 +410,7 @@ class _Library:
         path = self.strip_root(path)
         while path != "":
             (path, dirname) = os.path.split(path)
-            if self.inotify_db.is_dir_exist(path, dirname):
+            if self.inotify_db.is_dir_exist(path, dirname, self.table):
                 break
             self.inotify_db.insert_dir((path, dirname), self.table)
 
