@@ -538,6 +538,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                             expected_answer.set_rootdir(elem.\
                                                            attrib['directory'])
                     expected_answer._received(answer)
+                    expected_answer = None
                 elif elem.tag == "listparm":
                     parms[elem.attrib["name"]] = list_parms
                 elif elem.tag == "listvalue":
