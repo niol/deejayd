@@ -63,7 +63,7 @@ if inotify_support:
         @log_event
         def process_IN_MOVED_TO(self, event):
             if not event.is_dir:
-                self.__created_files.append((event.path, event.name))
+                self.__library.add_file(event.path, event.name)
             else:
                 self.__library.add_directory(event.path, event.name)
 
