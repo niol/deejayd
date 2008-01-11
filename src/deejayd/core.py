@@ -205,24 +205,22 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
             raise DeejaydError(_('song with ids %s not found') % (str(ids),))
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def shuffle(self, name=None):
+    def shuffle(self):
         try:
-            self.source.shuffle(name)
+            self.source.shuffle(playlist = self.name)
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError(_('Playlist %s does not exist.') % name)
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def clear(self, name=None):
+    def clear(self):
         try:
-            self.source.clear(name)
+            self.source.clear(self.name)
         except sources.playlist.PlaylistNotFoundException:
             raise DeejaydError(_('Playlist %s does not exist.') % name)
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def del_songs(self, ids, name=None):
-        if not name:
-            name = self.name
-
+    def del_songs(self, ids):
+        name = self.name
         for nb in ids:
             try:
                 self.source.delete(int(nb), "id", name)
