@@ -76,14 +76,12 @@ class DeejaydVideoFile(_DeejaydFile):
 
     def __init__(self, db_con, dir, file, root_path, info):
         _DeejaydFile.__init__(self, db_con, dir, file, root_path, info)
-        self.__id = self.db_con.get_last_video_id() or 0
 
     def insert(self):
         try: file_info = self.info.parse(self.file)
         except:
             log.err(_("Unable to get video metadata from %s") % self.file)
             return False
-        file_info["id"] = self.__get_next_id()
         self.db_con.insert_video_file(self.dir,self.filename,file_info)
         return True
 
@@ -99,10 +97,6 @@ class DeejaydVideoFile(_DeejaydFile):
         # Update external subtitle
         file_info = self.info.parse_sub(self.file)
         self.db_con.update_video_subtitle(self.dir,self.filename,file_info)
-
-    def __get_next_id(self):
-        self.__id += 1
-        return self.__id
 
 ##########################################################################
 ##########################################################################
@@ -467,12 +461,12 @@ class VideoLibrary(_Library):
         # format correctly database result
         files = []
         dirs = []
-        for (dir,fn,t,id,ti,len,videow,videoh,sub) in rs:
+        for (dir,fn,t,ti,len,videow,videoh,sub) in rs:
             if t == 'directory': dirs.append(fn)
             else:
                 file_info = {"path":os.path.join(dir,fn),"length":len,
                              "filename":fn,"dir":dir,
-                             "title":ti,"id":id,
+                             "title":ti,
                              "videowidth":videow,"videoheight":videoh,
                              "external_subtitle":sub,"type":"video"}
                 files.append(file_info)

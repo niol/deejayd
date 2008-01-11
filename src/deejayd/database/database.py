@@ -202,15 +202,10 @@ class Database(UnknownDatabase):
     #
     # Video MediaDB specific requests
     #
-    def get_last_video_id(self):
-        self.execute("SELECT id FROM {video_library} ORDER BY id DESC")
-        (lastId,) = self.cursor.fetchone() or (None,)
-        return lastId
-
     def insert_video_file(self,dir,filename,fileInfo):
-        query = "INSERT INTO {video_library}(type,dir,filename,id,title,length,\
+        query = "INSERT INTO {video_library}(type,dir,filename,title,length,\
             videowidth,videoheight,subtitle) VALUES ('file',?,?,?,?,?,?,?,?)"
-        self.execute(query, (dir,filename,fileInfo["id"],\
+        self.execute(query, (dir,filename,\
             fileInfo["title"],fileInfo["length"],fileInfo["videowidth"],\
             fileInfo["videoheight"],fileInfo["subtitle"]))
 
