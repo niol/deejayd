@@ -216,6 +216,9 @@ class XinePlayer(UnknownPlayer):
             XINE_STREAM_INFO_VIDEO_HEIGHT)
         pos_s, pos_t, length = xine_get_pos_length(self.__mine_stream)
         rs["length"] = length / 1000
+        # close stream
+        xine_stop(self.__mine_stream)
+        xine_close(self.__mine_stream)
 
         return rs
 
