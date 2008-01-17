@@ -150,7 +150,7 @@ class InterfaceTests:
         how_many_songs = 10
         for song_path in self.test_audiodata.getRandomSongPaths(how_many_songs):
             myq.append(song_path)
-            ans = q.add_song(song_path)
+            ans = q.add_media(song_path, "audio")
             self.failUnless(ans.get_contents())
 
         ddq = q.get()
@@ -275,13 +275,13 @@ class InterfaceTests:
 
         # choose a wrong directory
         rand_dir = self.testdata.getRandomString()
-        ans = self.deejayd.set_video_dir(rand_dir)
+        ans = self.deejayd.set_video(rand_dir, "directory")
         self.assertRaises(DeejaydError, ans.get_contents)
 
         # choose a correct directory
         ans = self.deejayd.get_video_dir()
         dir = self.testdata.getRandomElement(ans.get_directories())
-        self.deejayd.set_video_dir(dir).get_contents()
+        self.deejayd.set_video(dir, "directory").get_contents()
 
         # play video file
         self.deejayd.play_toggle().get_contents()
