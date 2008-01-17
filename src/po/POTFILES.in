@@ -13,3 +13,4 @@ deejayd/sources/__init__.py
 deejayd/webui/xmlanswer.py
 deejayd/webui/commands.py
 deejayd/webui/twisted_handler.py
+deejayd/webui/utils.py

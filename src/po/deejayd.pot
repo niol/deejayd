@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-06 15:17+0100\n"
+"POT-Creation-Date: 2008-01-17 21:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,95 +17,96 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../deejayd/core.py:92
+#: ../deejayd/core.py:90
 msgid "Webradio support not available."
 msgstr ""
 
-#: ../deejayd/core.py:103
+#: ../deejayd/core.py:101
 msgid "Webradio URI not supported"
 msgstr ""
 
-#: ../deejayd/core.py:105
+#: ../deejayd/core.py:103
 msgid "Webradio info could not be retrieved"
 msgstr ""
 
-#: ../deejayd/core.py:113
+#: ../deejayd/core.py:111
 #, python-format
 msgid "Webradio with id %d not found"
 msgstr ""
 
-#: ../deejayd/core.py:136 ../deejayd/core.py:189
+#: ../deejayd/core.py:134 ../deejayd/core.py:184
 #, python-format
 msgid "%s not found"
 msgstr ""
 
-#: ../deejayd/core.py:144 ../deejayd/core.py:181 ../deejayd/core.py:197
-#: ../deejayd/core.py:212 ../deejayd/core.py:219 ../deejayd/core.py:233
+#: ../deejayd/core.py:142 ../deejayd/core.py:196 ../deejayd/core.py:213
+#: ../deejayd/core.py:220 ../deejayd/core.py:232
 #, python-format
 msgid "Playlist %s does not exist."
 msgstr ""
 
-#: ../deejayd/core.py:156
+#: ../deejayd/core.py:154
 #, python-format
 msgid "Song with id %d not found"
 msgstr ""
 
-#: ../deejayd/core.py:171 ../deejayd/core.py:387
+#: ../deejayd/core.py:169 ../deejayd/core.py:186
 #, python-format
 msgid "Playlist %s not found"
 msgstr ""
 
-#: ../deejayd/core.py:205
+#: ../deejayd/core.py:191 ../deejayd/core.py:201
+msgid "Unable to load pls in a saved pls."
+msgstr ""
+
+#: ../deejayd/core.py:206
 #, python-format
 msgid "song with ids %s not found"
 msgstr ""
 
-#: ../deejayd/core.py:231
+#: ../deejayd/core.py:230
 #, python-format
 msgid "Playlist %s does not have a song of id %d"
 msgstr ""
 
-#: ../deejayd/core.py:315
+#: ../deejayd/core.py:314
 msgid "Bad value for id parm"
 msgstr ""
 
-#: ../deejayd/core.py:329
+#: ../deejayd/core.py:328
 #, python-format
 msgid "Option %s does not exist"
 msgstr ""
 
-#: ../deejayd/core.py:336
+#: ../deejayd/core.py:335
 #, python-format
 msgid "Unknown mode: %s"
 msgstr ""
 
-#: ../deejayd/core.py:350
+#: ../deejayd/core.py:349
 msgid "Unable to change audio channel"
 msgstr ""
 
-#: ../deejayd/core.py:356
+#: ../deejayd/core.py:355
 msgid "Unable to change subtitle channel"
 msgstr ""
 
-#: ../deejayd/core.py:379 ../deejayd/core.py:416 ../deejayd/core.py:431
+#: ../deejayd/core.py:378 ../deejayd/core.py:413 ../deejayd/core.py:426
+#: ../deejayd/core.py:435
 msgid "Video mode disabled"
 msgstr ""
 
-#: ../deejayd/core.py:401 ../deejayd/core.py:421 ../deejayd/core.py:429
+#: ../deejayd/core.py:398 ../deejayd/core.py:418 ../deejayd/core.py:433
 #, python-format
 msgid "Directory %s not found in database"
 msgstr ""
 
-#: ../deejayd/core.py:409
+#: ../deejayd/core.py:406
 #, python-format
 msgid "Type %s is not supported"
 msgstr ""
 
-#: ../deejayd/database/__init__.py:24
-msgid "You do not choose a database. Verify your config file."
-msgstr ""
-
-#: ../deejayd/database/__init__.py:34
+#: ../deejayd/database/__init__.py:33
 msgid ""
 "You chose a database which is not supported.                    Verify your "
 "config file."
@@ -146,29 +147,29 @@ msgstr ""
 msgid "Unable to execute database request : %s"
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:28
+#: ../deejayd/mediadb/__init__.py:30
 msgid "You have to choose a music directory"
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:32
+#: ../deejayd/mediadb/__init__.py:34
 #, python-format
 msgid "Unable to init audio library : %s"
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:35
+#: ../deejayd/mediadb/__init__.py:37
 msgid "Video support disabled."
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:41
+#: ../deejayd/mediadb/__init__.py:43
 msgid "Supplied video directory not found. Video support disabled."
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:46
+#: ../deejayd/mediadb/__init__.py:48
 #, python-format
 msgid "Unable to init video library : %s"
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:50
+#: ../deejayd/mediadb/__init__.py:52
 msgid "Inotify support disabled"
 msgstr ""
 
@@ -177,27 +178,27 @@ msgstr ""
 msgid "Unable to get audio metadata from %s"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:84 ../deejayd/mediadb/library.py:93
+#: ../deejayd/mediadb/library.py:83 ../deejayd/mediadb/library.py:91
 #, python-format
 msgid "Unable to get video metadata from %s"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:138
+#: ../deejayd/mediadb/library.py:132
 #, python-format
 msgid "Unable to find directory %s"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:320
+#: ../deejayd/mediadb/library.py:314
 #, python-format
 msgid "File %s not supported"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:340
+#: ../deejayd/mediadb/library.py:334
 #, python-format
 msgid "The %s library has been updated"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:342
+#: ../deejayd/mediadb/library.py:336
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr ""
@@ -470,81 +471,92 @@ msgstr ""
 
 #. video
 #: ../deejayd/webui/xmlanswer.py:95
-msgid "Fullscreen"
-msgstr ""
-
-#: ../deejayd/webui/xmlanswer.py:96
 msgid "Video Informations"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:97
+#: ../deejayd/webui/xmlanswer.py:96
 msgid "Length"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:98
+#: ../deejayd/webui/xmlanswer.py:97
 msgid "Width"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:99
+#: ../deejayd/webui/xmlanswer.py:98
 msgid "Height"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:100
+#: ../deejayd/webui/xmlanswer.py:99
 msgid "Subtitle"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:235
+#: ../deejayd/webui/xmlanswer.py:165
+msgid "No"
+msgstr ""
+
+#: ../deejayd/webui/xmlanswer.py:165
+msgid "Yes"
+msgstr ""
+
+#: ../deejayd/webui/xmlanswer.py:281
 #, python-format
 msgid "DVD Title : %s"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:237
+#: ../deejayd/webui/xmlanswer.py:283
 #, python-format
 msgid "Longest Track : %s"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:252
+#: ../deejayd/webui/xmlanswer.py:298
 #, python-format
 msgid "Title %s"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:260
+#: ../deejayd/webui/xmlanswer.py:306
 #, python-format
 msgid "Chapter %s"
 msgstr ""
 
-#: ../deejayd/webui/xmlanswer.py:308 ../deejayd/webui/xmlanswer.py:316
+#: ../deejayd/webui/xmlanswer.py:354 ../deejayd/webui/xmlanswer.py:362
 #, python-format
 msgid "%s Song"
 msgid_plural "%s Songs"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../deejayd/webui/xmlanswer.py:324
+#: ../deejayd/webui/xmlanswer.py:370
 #, python-format
 msgid "%s Webradio"
 msgid_plural "%s Webradios"
 msgstr[0] ""
 msgstr[1] ""
 
+#: ../deejayd/webui/xmlanswer.py:383
+#, python-format
+msgid "%s Video"
+msgid_plural "%s Videos"
+msgstr[0] ""
+msgstr[1] ""
+
 #. locale string
-#: ../deejayd/webui/commands.py:123
+#: ../deejayd/webui/commands.py:129
 msgid "Are you sure ?"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:124
+#: ../deejayd/webui/commands.py:130
 msgid "It misses a parameter !"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:125
+#: ../deejayd/webui/commands.py:131
 msgid "Do you want to replace this playlist ?"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:272
+#: ../deejayd/webui/commands.py:271
 msgid "The audio library has been updated"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:288
+#: ../deejayd/webui/commands.py:287
 msgid "The video library has been updated"
 msgstr ""
 
@@ -579,4 +591,8 @@ msgstr ""
 #: ../deejayd/webui/twisted_handler.py:108
 #, python-format
 msgid "Htdocs directory %s does not exists"
+msgstr ""
+
+#: ../deejayd/webui/utils.py:30
+msgid "No time information"
 msgstr ""
