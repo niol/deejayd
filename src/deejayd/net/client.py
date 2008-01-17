@@ -175,14 +175,15 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
-    def add_songs(self, paths, position = None):
+    def add_medias(self, paths, type = "audio", pos = None):
         cmd = DeejaydXMLCommand('queueAdd')
         cmd.add_multiple_arg('path', paths)
-        if position != None:
-            cmd.add_simple_arg('pos', position)
+        cmd.add_simple_arg('type', type)
+        if pos!= None:
+            cmd.add_simple_arg('pos', pos)
         return self.server._send_command(cmd)
 
-    def loads(self, names, pos = None):
+    def load_playlists(self, names, pos = None):
         cmd = DeejaydXMLCommand('queueLoadPlaylist')
         cmd.add_multiple_arg('name', names)
         if pos != None:
@@ -484,10 +485,16 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         ans = DeejaydFileList(self)
         return self._send_command(cmd, ans)
 
-    def set_video_dir(self, dir):
-        cmd = DeejaydXMLCommand('setvideodir')
-        cmd.add_simple_arg('directory', dir)
+    def set_video(self, value, type = "audio"):
+        cmd = DeejaydXMLCommand('setvideo')
+        cmd.add_simple_arg('value', value)
+        cmd.add_simple_arg('type', type)
         return self._send_command(cmd)
+
+    def get_videolist(self):
+        cmd = DeejaydXMLCommand('videoInfo')
+        ans = DeejaydMediaList(self)
+        return self._send_command(cmd, ans)
 
     def dvd_reload(self):
         cmd = DeejaydXMLCommand('dvdLoad')

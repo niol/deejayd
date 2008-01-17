@@ -16,238 +16,288 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from os import path
+import os
 import random, urllib
 
+class MediaNotFoundError(Exception):pass
+class PlaylistNotFoundError(Exception):pass
 
-class ItemNotFoundException:pass
+class SimpleMediaList:
 
-class UnknownSource:
+    def __init__(self, id = 0):
+        self._list_id = id
+        self._media_id = 0
+        self._content = []
 
-    def __init__(self,db,library, id = 0):
-        self.db = db
-        self.library = library
-        self.source_content = []
-        self.source_id = id
-        self.__item_id = 0
+    def get(self):
+        return self._content
 
-    def get_content(self):
-        return self.source_content
+    def get_ids(self):
+        return [m["id"] for m in self._content]
 
-    def get_content_length(self):
-        return len(self.source_content)
+    def set(self, medias):
+        self._content = []
+        self.add_media(medias)
 
-    def get_item(self,position, type = "pos"):
-        item = None
-        for it in self.source_content:
-            if it[type] == position:
-                item = it
-                break
+    def length(self):
+        return len(self._content)
 
-        if item == None:
-            raise ItemNotFoundException
-        return item
-
-    def get_item_ids(self):
-        return [item["id"] for item in self.source_content]
-
-    def add_files(self,items,first_pos = None):
-        if first_pos == None: first_pos = len(self.source_content)
-        old_content = self.source_content[first_pos:len(self.source_content)]
-        self.source_content = self.source_content[0:first_pos]
+    def add_media(self, medias, first_pos = None):
+        if first_pos == None:
+            first_pos = len(self._content)
+        old_content = self._content[first_pos:]
+        self._content = self._content[:first_pos]
 
         i = 0
-        for s in items:
-            pos = first_pos+i
-            s["pos"] = pos
-            if "id" not in s.keys() or s["type"] == "song":
-                s["id"] = self.set_item_id()
-            if "uri" not in s.keys():
-                s["uri"] = "file://"+\
-                  urllib.quote(path.join(self.library.get_root_path(),\
-                                s["path"]))
-            self.source_content.append(s)
+        for m in medias:
+            pos = first_pos + i
+            m["pos"] = pos
+            if "id" not in m.keys() or m["type"] == "song":
+                m["id"] = self.set_media_id()
+            self._content.append(m)
             i += 1
 
-        for song in old_content:
-            song["pos"] = first_pos+i
+        for media in old_content:
+            media["pos"] = first_pos + i
             i+=1
 
-        self.source_content.extend(old_content)
-        # Increment sourceId
-        self.source_id += len(items)
+        self._content.extend(old_content)
+        self._list_id += 1
 
     def clear(self):
-        del self.source_content
-        self.source_content = []
-        # Increment sourceId
-        self.source_id += 1
+        self._content = []
+        self._list_id += 1
 
-    def delete(self,nb,type = "id"):
+    def delete(self, id, type = "id"):
         i = 0
-        for item in self.source_content:
-            if item[type] == nb:
+        for media in self._content:
+            if media[type] == id:
                 break
             i += 1
-        if i == len(self.source_content):
-            raise ItemNotFoundException
-        pos = self.source_content[i]["pos"]
-        del self.source_content[i]
+        if i == len(self._content):
+            raise MediaNotFoundError
 
-        # Now we must reorder the item list
-        for item in self.source_content:
-            if item["pos"] > pos:
-                item["pos"] -= 1
+        pos = self._content[i]["pos"]
+        del self._content[i]
+        # Now we must reorder the media list
+        for media in self._content:
+            if media["pos"] > pos:
+                media["pos"] -= 1
+        self._list_id += 1
 
-        # Increment sourceId
-        self.source_id += 1
+    def get_media(self, id, type = "id"):
+        media = None
+        for m in self._content:
+            if m[type] == id:
+                media = m
+                break
 
-    def save(self):
-        raise NotImplementedError
+        if media == None:
+            raise MediaNotFoundError
+        return media
 
-    def format_playlist_files(self,s):
-        return {"dir":s[0],"filename":s[1],"pos":s[3],"id":self.set_item_id(),
+    def get_list_id(self):
+        return self._list_id
+
+    def set_media_id(self):
+        self._media_id += 1
+        return self._media_id
+
+
+class MediaList(SimpleMediaList):
+
+    def __init__(self, db, id = 0):
+        SimpleMediaList.__init__(self, id)
+        self.db = db
+
+    def __format_playlist_file(self, s, root_path):
+        return {"dir":s[0],"filename":s[1],"pos":s[3],"id":self.set_media_id(),
             "title":s[6],"artist":s[7],"album":s[8],"genre":s[9],"track":s[10],
             "date":s[11],"length":s[12],"bitrate":s[13],
-            "path":path.join(s[0],s[1]),
-            "uri":"file://"+\
-                urllib.quote(path.join(self.library.get_root_path(),\
-                path.join(s[0],s[1]))),\
+            "path":os.path.join(s[0],s[1]),
+            "uri":"file://"+urllib.quote(os.path.join(root_path,s[0],s[1])),
             "type":"song"}
 
-    def set_item_id(self):
-        self.__item_id += 1
-        return self.__item_id
+    def load_playlist(self, name, root_path, pos = None):
+        content = self.db.get_audiolist(name)
+        if len(content) == 0 and (not name.startswith("__") or \
+                                  not name.endswith("__")):
+            raise PlaylistNotFoundError
+
+        medias = [self.__format_playlist_file(s, root_path) for s in content]
+        self.add_media(medias, pos)
+
+    def move(self, ids, new_pos, type):
+        medias = []
+        for id in ids:
+            medias.append(self.get_media(id, type))
+
+        old_content = self._content
+        self._content = []
+        for index, media in enumerate(old_content):
+            if index == new_pos:
+                self._content.extend(medias)
+            if media not in medias:
+                self._content.append(media)
+
+        # Reorder the list
+        ids = range(0,len(self._content))
+        for id in ids:
+            self._content[id]["pos"] = id
+        # Increment sourceId
+        self._list_id += 1
+
+    def shuffle(self, current = None):
+        new_content = []
+        old_content = self._content
+        pos = 0
+        # First we have to put the current song at the first place
+        if current != None:
+            old_pos = current["pos"]
+            del old_content[old_pos]
+            new_content.append(current)
+            new_content[pos]["pos"] = pos
+            pos += 1
+
+        while len(old_content) > 0:
+            song = random.choice(old_content)
+            del old_content[old_content.index(song)]
+            new_content.append(song)
+            new_content[pos]["pos"] = pos
+            pos += 1
+
+        self._content = new_content
+        self._list_id += 1
 
 
-class UnknownSourceManagement:
+class _BaseSource:
     name = "unknown"
 
-    def __init__(self,db,library = None):
+    def __init__(self, db):
         self.db = db
-        if library != None:
-            self.library = library
-        self.current_item = None
-        self.played_items = []
+        self._current = None
+        self._played = []
 
     def get_recorded_id(self):
-        id = int(self.db.get_state(self.__class__.name+"id"))
+        id = int(self.db.get_state(self.name+"id"))
         return id
 
     def get_content(self):
-        return self.current_source.get_content()
+        return self._media_list.get()
 
     def get_current(self):
-        if self.current_item == None:
+        if self._current == None:
             self.go_to(0,"pos")
 
-        return self.current_item
+        return self._current
 
-    def go_to(self,nb,type = "id"):
-        try: self.current_item = self.current_source.get_item(nb,type)
-        except ItemNotFoundException: self.current_item = None
+    def go_to(self, id, type = "id"):
+        try: self._current = self._media_list.get_media(id, type)
+        except MediaNotFoundError:
+            self._current = None
+        else:
+            if self._current["id"] not in self._played:
+                self._played.append(self._current["id"])
 
-        self.played_items = []
-        return self.current_item
+        return self._current
 
-    def delete(self,id):
-        self.current_source.delete(id)
+    def delete(self, id):
+        self._media_list.delete(id)
+        try: self._played.remove(id)
+        except ValueError:
+            pass
 
     def clear(self):
-        self.current_source.clear()
+        self._media_list.clear()
+        self._played = []
 
-    def next(self,rd,rpt):
-        if self.current_item == None:
+    def next(self, rd, rpt):
+        if self._current == None:
             self.go_to(0,"pos")
-            return self.current_item
+            return self._current
+
+        # add current media in played list
+        if self._current["id"] not in self._played:
+            self._played.append(self._current["id"])
 
         # Return a pseudo-random song
-        l = self.current_source.get_content_length()
+        l = self._media_list.length()
         if rd and l > 0:
             # first determine if the current song is in playedItems
-            try:
-                id = self.played_items.index(self.current_item["id"])
-                self.current_item = self.current_source.get_item(\
-                    self.played_items[id+1],"id")
-                return self.current_item
-            except: pass
-
-            # So we add the current song in playedItems
-            self.played_items.append(self.current_item["id"])
+            #id = self._played.index(self._current["id"])
+            #try: new_id = self._played[id+1]
+            #except IndexError: pass
+            #else:
+            #    self._current = self._media_list.get_media(new_id ,"id")
+            #    return self._current
 
             # Determine the id of the next song
-            values = [v for v in self.current_source.get_item_ids() \
-                if v not in self.played_items]
-            try: song_id = random.choice(values)
-            except: # All songs are played
+            values = [id for id in self._media_list.get_ids() \
+                        if id not in self._played]
+            try: new_id = random.choice(values)
+            except IndexError: # All songs are played
                 if rpt:
-                    self.played_items = []
-                    song_id = random.choice(self.current_source.get_item_ids())
-                else: return None
+                    self._played = []
+                    new_id = random.choice(self.current_source.get_item_ids())
+                else:
+                    self._current = None
+                    return None
 
             # Obtain the choosed song
-            try: self.current_item = self.current_source.get_item(song_id,"id")
-            except ItemNotFoundException: return None
-            return self.current_item
+            try: self._current = self._media_list.get_media(new_id, "id")
+            except MediaNotFoundError:
+                self._current = None
+            return self._current
 
-        # Reset random
-        self.played_items = []
-
-        current_position = self.current_item["pos"]
-        if current_position < self.current_source.get_content_length()-1:
-            try: self.current_item = self.current_source.get_item(\
-                self.current_item["pos"] + 1)
-            except ItemNotFoundException: self.current_item = None
+        cur_pos = self._current["pos"]
+        if cur_pos < self._media_list.length()-1:
+            try: self._current = self._media_list.get_media(cur_pos + 1, "pos")
+            except MediaNotFoundError:
+                self._current = None
         elif rpt:
-            self.current_item = self.current_source.get_item(0)
+            self._current = self._media_list.get_media(0, "pos")
         else:
-            self.current_item = None
+            self._current = None
 
-        return self.current_item
+        return self._current
 
     def previous(self,rd,rpt):
-        if self.current_item == None:
+        if self._current == None:
             return None
 
-        # Return the last pseudo-random song
-        l = len(self.played_items)
-        if rd and l > 0:
-            # first determine if the current song is in playedItems
-            try:
-                id = self.played_items.index(self.current_item["id"])
-                if id == 0: return None
-                self.current_item = self.current_source.get_item(\
-                    self.played_items[id-1],"id")
-                return self.current_item
-            except ItemNotFoundException: return None
-            except ValueError: pass
+        # add current media in played list
+        if self._current["id"] not in self._played:
+            self._played.append(self._current["id"])
 
-            # So we add the current song in playedItems
-            self.played_items.append(self.current_item["id"])
+        # Return the last pseudo-random media
+        if rd:
+            id = self._played.index(self._current["id"])
+            if id == 0:
+                self._current = None
+                return self._current
+            try: self._current = self._media_list.get_media(self._played[id-1])
+            except MediaNotFoundError:
+                self._current = None
+            return self._current
 
-            self.current_item = self.current_source.\
-                get_item(self.played_items[l-1],"id")
-            return self.current_item
-
-        # Reset random
-        self.played_items = []
-
-        current_position = self.current_item["pos"]
-        if current_position > 0:
-            self.current_item = self.current_source.\
-                get_item(self.current_item["pos"] - 1)
+        cur_pos= self._current["pos"]
+        if cur_pos > 0:
+            self._current = self._media_list.get_media(cur_pos - 1, "pos")
         else:
-            self.current_item = None
+            self._current = None
 
-        return self.current_item
+        return self._current
 
     def get_status(self):
-        return [(self.__class__.name,self.current_source.source_id),\
-        (self.__class__.name+"length",self.current_source.get_content_length())]
+        return [
+            (self.name, self._media_list.get_list_id()),
+            (self.name+"length", self._media_list.length())
+            ]
 
     def close(self):
-        states = [(str(self.current_source.source_id),self.__class__.name+"id")]
+        states = [
+            (str(self._media_list.get_list_id()),self.__class__.name+"id")
+            ]
         self.db.set_state(states)
-        self.current_source.save()
 
 # vim: ts=4 sw=4 expandtab

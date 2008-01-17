@@ -16,8 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
-                            UnknownSourceManagement
+from deejayd.sources._base import _BaseSource, SimpleMediaList
 import urllib
 
 class UnsupportedFormatException: pass
@@ -51,39 +50,18 @@ def get_uris_from_m3u(URL):
     return uris
 
 
-class Webradio(UnknownSource):
-
-    def __init__(self,db,id):
-        UnknownSource.__init__(self,db,None,id)
-
-        webradios = self.db.get_webradios()
-        self.source_content = [{"pos":webradio[0],"id":self.set_item_id(), \
-            "title":webradio[1], "uri":webradio[2], "type":"webradio",\
-            "url":webradio[2]} for webradio in webradios]
-
-    def add(self,uri,name):
-        pos = len(self.source_content)
-        self.source_content.append({"pos":pos,"id":self.set_item_id(),\
-            "title":name,"uri":uri,"url":uri,"type":"webradio"})
-
-        # Increment webradioId
-        self.source_id += 1
-
-    def save(self):
-        self.db.clear_webradios()
-        values = [(webradio["pos"],webradio["title"],webradio["uri"]) \
-            for webradio in self.source_content]
-        self.db.add_webradios(values)
-
-
-class WebradioSource(UnknownSourceManagement):
+class WebradioSource(_BaseSource):
     name = "webradio"
 
     def __init__(self, db):
-        UnknownSourceManagement.__init__(self,db)
+        _BaseSource.__init__(self, db)
+        self._media_list = SimpleMediaList(self.get_recorded_id())
 
-        # Init parms
-        self.current_source = Webradio(self.db,self.get_recorded_id())
+        # load recorded webradio
+        wbs = self.db.get_webradios()
+        medias = [{"title":w[1], "uri":w[2], "type":"webradio",\
+                   "url":w[2]} for w in wbs]
+        self._media_list.add_media(medias)
 
     def add(self,url,name):
         if url.lower().startswith("http://"):
@@ -95,9 +73,20 @@ class WebradioSource(UnknownSourceManagement):
         else: raise UnsupportedFormatException
 
         i = 1
+        medias = []
         for uri in uris:
-            self.current_source.add(uri,name + "-%d" % (i,))
+            medias.append({"title":name + "-%d" % i, "uri": uri, "url": uri,\
+                          "type":"webradio"})
             i += 1
+        self._media_list.add_media(medias)
         return True
+
+    def close(self):
+        _BaseSource.close(self)
+        # save webradio
+        self.db.clear_webradios()
+        values = [(w["pos"],w["title"],w["uri"])\
+                    for w in self._media_list.get()]
+        self.db.add_webradios(values)
 
 # vim: ts=4 sw=4 expandtab

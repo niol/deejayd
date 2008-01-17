@@ -178,6 +178,7 @@ class Mode(UnknownCommand):
     """Change the player mode. Possible values are :
   * playlist : to manage and listen songs
   * video : to manage and wath video file
+  * dvd : to wath dvd
   * webradio : to manage and listen webradios"""
     command_name = 'setMode'
     command_args = [{"name":"mode", "type":"string", "req":True}]
@@ -194,6 +195,8 @@ class Status(UnknownCommand):
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
+  * video : _int_ id of the current video list
+  * videolength : _int_ length of the current video list
   * dvd : _int_ id of the current dvd
   * random : 0 (not activated) or 1 (activated)
   * repeat : 0 (not activated) or 1 (activated)
@@ -220,6 +223,7 @@ class Stats(UnknownCommand):
     """Return statistical informations :
   * audio_library_update : UNIX time of the last audio library update
   * video_library_update : UNIX time of the last video library update
+  * videos : number of videos known by the database
   * songs : number of songs known by the database
   * artists : number of artists in the database
   * albums : number of albums in the database"""
@@ -341,13 +345,30 @@ class GetVideoDir(GetDir):
 #  Video Commands                              #
 ###################################################
 
-class SetVideoDir(UnknownCommand):
+class SetVideo(UnknownCommand):
     """Set the current video directory to "directory"."""
-    command_name = 'setvideodir'
-    command_args = [{"name":"directory", "type":"string", "req":True}]
+    command_name = 'setvideo'
+    command_args = [{"name":"type", "type":"enum_str",\
+      "values": ("directory", "search"), "req":False, "default": "directory"},\
+      {"name":"value", "type":"str", "req": False, "default": ""}]
 
     def _execute(self):
-        self.deejayd_core.set_video_dir(self.args['directory'], objanswer=False)
+        self.deejayd_core.set_video(self.args['value'], self.args['type'], \
+            objanswer=False)
+
+
+class VideoInfo(UnknownCommand):
+    """Set the current video directory to "directory"."""
+    command_name = 'videoInfo'
+    command_rvalue = 'MediaList'
+
+    def _execute(self):
+        videos = self.deejayd_core.get_videolist(objanswer=False)
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype('video')
+        rsp.set_medias(videos)
+
+        return rsp
 
 
 ###################################################
@@ -532,11 +553,14 @@ class QueueAdd(UnknownCommand):
     "pos" in the queue."""
     command_name = 'queueAdd'
     command_args = [{"mult":True, "name":"path", "type":"string", "req":True},
-                    {"name":"pos", "type":"int", "req":False, "default":None}]
+              {"name":"type", "type":"enum_str", "values":("audio", "video"),\
+               "req":False, "default":"audio"},
+              {"name":"pos", "type":"int", "req":False, "default":None}]
 
     def _execute(self):
         queue = self.deejayd_core.get_queue()
-        queue.add_songs(self.args["path"], self.args["pos"], objanswer=False)
+        queue.add_medias(self.args["path"], self.args["type"],\
+            self.args["pos"], objanswer=False)
 
 
 class QueueLoadPlaylist(UnknownCommand):
@@ -548,7 +572,8 @@ class QueueLoadPlaylist(UnknownCommand):
 
     def _execute(self):
         queue = self.deejayd_core.get_queue()
-        queue.loads(self.args["name"], self.args["pos"], objanswer=False)
+        queue.load_playlists(self.args["name"],\
+            self.args["pos"], objanswer=False)
 
 
 class QueueInfo(PlaylistInfo):

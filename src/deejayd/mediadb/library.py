@@ -154,12 +154,12 @@ class _Library:
         return self._format_db_rsp(rs)
 
     def get_dir_files(self,dir):
-        rs = self.db_con.get_files(dir,self.table)
+        rs = self.db_con.get_files(dir, self.table)
         if len(rs) == 0 and dir != "": raise NotFoundException
         return self._format_db_rsp(rs)["files"]
 
     def get_all_files(self,dir):
-        rs = self.db_con.get_all_files(dir)
+        rs = self.db_con.get_all_files(dir, self.table)
         if len(rs) == 0 and dir != "": raise NotFoundException
         return self._format_db_rsp(rs)["files"]
 
@@ -444,6 +444,7 @@ class AudioLibrary(_Library):
                              "filename":fn,"dir":dir,
                              "title":ti,"artist":ar,"album":al,"genre":gn,
                              "track":tn,"date":dt,"bitrate":bt,
+                             "uri":"file://"+os.path.join(self._path,dir,fn),
                              "type":"song"}
                 files.append(file_info)
         return {'files':files, 'dirs': dirs}
@@ -453,6 +454,10 @@ class VideoLibrary(_Library):
     table = "video_library"
     type = "video"
     file_class = DeejaydVideoFile
+
+    def search(self, content):
+        rs = self.db_con.search_video_library(content)
+        return self._format_db_rsp(rs)["files"]
 
     def _build_supported_extension(self, player):
         self.ext_dict = formats.get_video_extensions(player)
@@ -468,6 +473,7 @@ class VideoLibrary(_Library):
                              "filename":fn,"dir":dir,
                              "title":ti,
                              "videowidth":videow,"videoheight":videoh,
+                             "uri":"file://"+os.path.join(self._path,dir,fn),
                              "external_subtitle":sub,"type":"video"}
                 files.append(file_info)
         return {'files':files, 'dirs': dirs}

@@ -32,9 +32,10 @@ class SourceFactory:
         video_support = config.getboolean('general', 'video_support')
 
         # Playlist and Queue
-        from deejayd.sources import playlist,queue
+        from deejayd.sources import playlist, queue
         self.sources_obj["playlist"] = playlist.PlaylistSource(db,audio_library)
-        self.sources_obj["queue"] = queue.QueueSource(db,audio_library)
+        self.sources_obj["queue"] = queue.QueueSource(db,\
+            audio_library,video_library)
 
         # Webradio
         if player.is_supported_uri("http"):

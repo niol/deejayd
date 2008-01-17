@@ -16,44 +16,49 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from os import path
+import os
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
-                            UnknownSourceManagement
-class Video(UnknownSource):
+from deejayd.sources._base import _BaseSource, SimpleMediaList, \
+                                  MediaNotFoundError
 
-    def save(self):pass
-
-
-class VideoSource(UnknownSourceManagement):
+class VideoSource(_BaseSource):
     name = "video"
+    list_name = "__videocurrent__"
 
     def __init__(self, db, library):
-        UnknownSourceManagement.__init__(self,db,library)
+        _BaseSource.__init__(self, db)
+        self.library = library
+        self._media_list = SimpleMediaList(self.get_recorded_id())
 
-        # Init parms
-        self.current_source = Video(db,library)
-        self.__current_dir = ""
-        try: self.set_directory(self.db.get_state("videodir"))
-        except NotFoundException: pass
+        # load saved
+        content = self.db.get_videolist(self.list_name)
+        medias = []
+        for (dir, fn, pos, title, len, w, h, sub) in content:
+            medias.append({
+                "filename": fn, "dir": dir, "length": len, "videowidth": w,
+                "videoheight": h, "external_subtitle": sub,
+                "type": "video", "title": title,
+                "uri": "file://" + os.path.join(self.library.get_root_path(), \
+                                                dir, fn),
+                })
+        self._media_list.set(medias)
 
-    def set_directory(self,dir):
-        try: video_list = self.library.get_dir_files(dir)
-        except NotFoundException:
-            dirs = self.library.get_dir_content(dir)
-            video_list = []
+    def set(self, type, value):
+        if type == "directory":
+            try: video_list = self.library.get_all_files(value)
+            except NotFoundException:
+                raise MediaNotFoundError
+        elif type == "search":
+            video_list = self.library.search(value)
+        else:
+            raise ValueError
 
-        self.current_source.clear()
-        self.current_source.add_files(video_list)
-        self.__current_dir = dir
-
-    def get_current_dir(self):
-        return self.__current_dir
-
-    def get_status(self):
-        return [('video_dir',self.__current_dir)]
+        self._media_list.set(video_list)
 
     def close(self):
-        self.db.set_state([(self.__current_dir,"videodir")])
+        _BaseSource.close(self)
+        # record video list in the db
+        self.db.delete_medialist(self.list_name)
+        self.db.save_medialist(self._media_list.get(), self.list_name)
 
 # vim: ts=4 sw=4 expandtab

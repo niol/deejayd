@@ -45,7 +45,7 @@ class UnknownDatabase:
 
 
 class Database(UnknownDatabase):
-    database_version = "3"
+    database_version = "4"
 
     def create_database(self):
         p = path.join(path.dirname(__file__),"sql/database_v%s.sql" %
@@ -204,7 +204,7 @@ class Database(UnknownDatabase):
     #
     def insert_video_file(self,dir,filename,fileInfo):
         query = "INSERT INTO {video_library}(type,dir,filename,title,length,\
-            videowidth,videoheight,subtitle) VALUES ('file',?,?,?,?,?,?,?,?)"
+            videowidth,videoheight,subtitle) VALUES ('file',?,?,?,?,?,?,?)"
         self.execute(query, (dir,filename,\
             fileInfo["title"],fileInfo["length"],fileInfo["videowidth"],\
             fileInfo["videoheight"],fileInfo["subtitle"]))
@@ -221,32 +221,53 @@ class Database(UnknownDatabase):
             WHERE dir=? AND filename=?"
         self.execute(query,(file_info["subtitle"],dir,filename))
 
+    def search_video_library(self,value):
+        query = "SELECT * FROM {video_library} WHERE type = 'file' AND title\
+                LIKE ?"
+        self.execute(query,('%%'+value+'%%',))
+
+        return self.cursor.fetchall()
     #
-    # Playlist requests
+    # videolist requests
     #
-    def get_playlist(self,playlistName):
-        query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, \
-        l.filename, l.title, l.artist, l.album, l.genre, l.tracknumber, \
-        l.date, l.length, l.bitrate FROM {playlist} p LEFT OUTER JOIN \
-        {audio_library} l ON p.dir = l.dir AND p.filename = l.filename WHERE \
+    def get_videolist(self,name):
+        query = "SELECT p.dir, p.filename, p.position, \
+        l.title, l.length, l.videowidth, l.videoheight, l.subtitle \
+        FROM {medialist} p LEFT OUTER JOIN {video_library} l \
+        ON p.dir = l.dir AND p.filename = l.filename WHERE \
         p.name = ? ORDER BY p.position"
-        self.execute(query,(playlistName,))
+        self.execute(query,(name,))
         return self.cursor.fetchall()
 
-    def delete_playlist(self,playlistName):
-        self.execute("DELETE FROM {playlist} WHERE name = ?",(playlistName,))
+    #
+    # audiolist requests
+    #
+    def get_audiolist(self,name):
+        query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, \
+        l.filename, l.title, l.artist, l.album, l.genre, l.tracknumber, \
+        l.date, l.length, l.bitrate FROM {medialist} p LEFT OUTER JOIN \
+        {audio_library} l ON p.dir = l.dir AND p.filename = l.filename WHERE \
+        p.name = ? ORDER BY p.position"
+        self.execute(query,(name,))
+        return self.cursor.fetchall()
+
+    #
+    # medialist requests
+    #
+    def delete_medialist(self,name):
+        self.execute("DELETE FROM {medialist} WHERE name = ?",(name,))
         self.connection.commit()
 
-    def save_playlist(self,content,playlistName):
-        values = [(playlistName,s["pos"],s["dir"],s["filename"]) \
+    def save_medialist(self,content,name):
+        values = [(name,s["pos"],s["dir"],s["filename"]) \
             for s in content]
-        query = "INSERT INTO {playlist}(name,position,dir,filename)\
+        query = "INSERT INTO {medialist}(name,position,dir,filename)\
             VALUES(?,?,?,?)"
         self.executemany(query,values)
         self.connection.commit()
 
-    def get_playlist_list(self):
-        self.execute("SELECT DISTINCT name FROM {playlist}")
+    def get_medialist_list(self):
+        self.execute("SELECT DISTINCT name FROM {medialist}")
         return self.cursor.fetchall()
 
     #

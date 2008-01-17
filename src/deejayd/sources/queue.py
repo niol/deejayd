@@ -17,72 +17,48 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources._base import ItemNotFoundException,UnknownSource,\
-                            UnknownSourceManagement
+from deejayd.sources._base import _BaseSource, MediaList, MediaNotFoundError
 
-class Queue(UnknownSource):
-    queue_name = "__djqueue__"
-
-    def __init__(self,db,library,id):
-        UnknownSource.__init__(self,db,library,id)
-
-        self.source_content = self.db.get_playlist(self.__class__.queue_name)
-        # Format correctly queue content
-        self.source_content = [self.format_playlist_files(s)
-            for s in self.source_content]
-
-    def save(self):
-        # First we delete all previous record
-        self.db.delete_playlist(self.__class__.queue_name)
-        # After we record the new playlist
-        self.db.save_playlist(self.source_content,self.__class__.queue_name)
-
-
-class QueueSource(UnknownSourceManagement):
+class QueueSource(_BaseSource):
     name = "queue"
 
-    def __init__(self,db,library):
-        UnknownSourceManagement.__init__(self,db,library)
-        self.current_source = Queue(db,library,self.get_recorded_id())
+    def __init__(self, db, audio_library, video_library):
+        _BaseSource.__init__(self,db)
+        self._media_list = MediaList(db, self.get_recorded_id())
+        self.audio_lib = audio_library
+        self.video_lib = video_library
 
-    def add_path(self,paths,pos = None):
-        songs = []
-        if isinstance(paths,str):
-            paths = [paths]
+    def add_path(self, paths, type = "audio", pos = None):
+        library = type == "audio" and self.audio_lib or self.video_lib
+        medias = []
         for path in paths:
-            try: songs.extend(self.library.get_all_files(path))
+            try: medias.extend(library.get_all_files(path))
             except NotFoundException:
-                try: songs.extend(self.library.get_file(path))
-                except NotFoundException: raise ItemNotFoundException
+                try: medias.extend(library.get_file(path))
+                except NotFoundException: raise MediaNotFoundError
 
-        self.current_source.add_files(songs,pos)
+        self._media_list.add_media(medias, pos)
 
-    def load_playlist(self,playlists,pos = None):
-        from deejayd.sources.playlist import Playlist
-        songs = []
-        if isinstance(playlists,str):
-            playlists = [playlists]
-        for playlist in playlists:
-            source_content = Playlist(self.db,self.library,playlist)
-            songs.extend(source_content.get_content())
-
-        self.current_source.add_files(songs,pos)
+    def load_playlist(self, playlists, pos = None):
+        for pls in playlists:
+            self._media_list.load_playlist(pls,\
+                self.audio_lib.get_root_path(), pos)
 
     def go_to(self,nb,type = "id"):
-        UnknownSourceManagement.go_to(self,nb,type)
-        if self.current_item != None:
-            self.current_source.delete(nb,type)
-        return self.current_item
+        _BaseSource.go_to(self,nb,type)
+        if self._current != None:
+            self._media_list.delete(nb, type)
+        return self._current
 
     def next(self,rd,rpt):
         self.go_to(0,'pos')
-        return self.current_item
+        return self._current
 
     def previous(self,rd,rpt):
         # Have to be never called
         raise NotImplementedError
 
     def reset(self):
-        self.current_item = None
+        self._current = None
 
 # vim: ts=4 sw=4 expandtab

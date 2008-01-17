@@ -15,7 +15,6 @@ CREATE TABLE {video_library}(
     dir TEXT,
     filename TEXT,
     type TEXT,
-    id INT,
     title TEXT,
     length INT,
     videowidth TEXT,
@@ -27,7 +26,7 @@ CREATE TABLE {webradio}(
     name TEXT,
     url TEXT,
     PRIMARY KEY (wid));
-CREATE TABLE {playlist}(
+CREATE TABLE {medialist}(
     name TEXT,
     position INT,
     dir TEXT,
@@ -40,6 +39,7 @@ CREATE TABLE {stats}(
 INSERT INTO "{stats}" VALUES('video_library_update',0);
 INSERT INTO "{stats}" VALUES('audio_library_update',0);
 INSERT INTO "{stats}" VALUES('songs',0);
+INSERT INTO "{stats}" VALUES('videos',0);
 INSERT INTO "{stats}" VALUES('artists',0);
 INSERT INTO "{stats}" VALUES('albums',0);
 CREATE TABLE {variables}(
@@ -51,11 +51,9 @@ INSERT INTO "{variables}" VALUES('currentPos','0');
 INSERT INTO "{variables}" VALUES('source','playlist');
 INSERT INTO "{variables}" VALUES('random','0');
 INSERT INTO "{variables}" VALUES('repeat','0');
-INSERT INTO "{variables}" VALUES('fullscreen','0');
-INSERT INTO "{variables}" VALUES('loadsubtitle','0');
 INSERT INTO "{variables}" VALUES('queueid','1');
 INSERT INTO "{variables}" VALUES('playlistid','1');
 INSERT INTO "{variables}" VALUES('webradioid','1');
 INSERT INTO "{variables}" VALUES('dvdid','1');
-INSERT INTO "{variables}" VALUES('videodir','');
-INSERT INTO "{variables}" VALUES('database_version','3');
+INSERT INTO "{variables}" VALUES('videoid','1');
+INSERT INTO "{variables}" VALUES('database_version','4');

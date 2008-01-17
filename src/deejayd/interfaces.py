@@ -144,16 +144,16 @@ class DeejaydQueue:
     def get(self, first = 0, length = None):
         raise NotImplementedError
 
-    def add_song(self, path, position=None):
-        return self.add_songs([path], position)
+    def add_media(self, path, position=None):
+        return self.add_medias([path], position)
 
-    def add_songs(self, paths, position = None):
+    def add_medias(self, paths, type = "audio", pos = None):
         raise NotImplementedError
 
-    def load(self, name, pos = None):
-        return self.loads([name], pos)
+    def load_playlist(self, name, pos = None):
+        return self.load_playlists([name], pos)
 
-    def loads(self, names, pos = None):
+    def load_playlists(self, names, pos = None):
         raise NotImplementedError
 
     def clear(self):
@@ -287,7 +287,10 @@ class DeejaydCore:
     def get_video_dir(self, dir=None):
         raise NotImplementedError
 
-    def set_video_dir(self, dir):
+    def get_videolist(self):
+        raise NotImplementedError
+
+    def set_video(self, value, type):
         raise NotImplementedError
 
     def dvd_reload(self):

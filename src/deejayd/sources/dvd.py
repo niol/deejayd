@@ -32,8 +32,8 @@ class DvdSource:
         self.selected_track = None
 
         # load dvd content
-        try: self.load()
-        except DvdError: pass
+        #try: self.load()
+        #except DvdError: pass
 
     def get_content(self):
         if not self.dvd_info:
