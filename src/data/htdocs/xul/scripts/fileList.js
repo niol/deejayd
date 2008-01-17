@@ -54,22 +54,6 @@ var FileList = function()
         ajaxdj_ref.send_post_command("getdir",args);
     };
 
-    this.setDirectory = function()
-    {
-        $('navigation-content').selectedIndex = 0;
-        $('playlist-button').checked = false;
-        $('directory-button').checked = true;
-        $('playlistList-content').clearSelection();
-    };
-
-    this.setPlaylistList = function()
-    {
-        $('navigation-content').selectedIndex = 1;
-        $('directory-button').checked = false;
-        $('playlist-button').checked = true;
-        $('file-content').clearSelection();
-    };
-
     this.updateFileList = function(fileList,dir)
     {
         this.curDir = dir;

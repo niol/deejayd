@@ -238,7 +238,7 @@
         </description>
         <progressmeter
             id="loading-progressbar"
-            mode="undetermined"/>
+            mode="determined"/>
     </deck>
     <spacer flex="1"/>
     <button

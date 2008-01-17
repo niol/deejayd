@@ -1,141 +1,80 @@
 // fileList.js
 
-var video_ref;
+var videolist_ref;
+var videolib_ref;
 
-var Video = function()
+var VideoLibrary = function()
 {
-    video_ref = this;
-    this.menuId = "video-path";
-    this.contextMenuId = false;
+    videolib_ref = this;
+    this.tree = $("videodir-tree");
     this.updateBox = "video-update";
-    this.listType = "video";
+    this.treeId = -1
+
+    this.updateDir = function(obj)
+    {
+        var id = parseInt(obj.getAttribute("id"));
+        if (id > this.treeId) {
+            this.treeId = id;
+            // clear selection
+            if (this.tree.view)
+                this.tree.view.selection.clearSelection();
+            // Update datasources
+            this.tree.setAttribute("datasources",window.location.href+"rdf/"+
+                "videodir-"+id+".rdf");
+            }
+    };
+
+    this.setDirectory = function(evt)
+    {
+        var dir_item = this.tree.contentView.getItemAtIndex(
+                            this.tree.currentIndex);
+        var dir = dir_item.id.replace("http://videodir/root/", "");
+        ajaxdj_ref.send_post_command("videoset",{type:"directory", value:dir});
+    };
+
+    this.search = function()
+    {
+        var text = $('videosearch-text').value;
+        if (text != "")
+            ajaxdj_ref.send_post_command("videoset",{type:"search",value:text});
+    };
+
+    this.updateDatabase = function(upObj)
+    {
+        var progress = upObj.getAttribute("p");
+        var upId = upObj.firstChild.data;
+        if (progress == "1") {
+            $(this.updateBox).selectedIndex = 1
+            $('video-update-progressbar').mode = "undetermined";
+            setTimeout(
+                "ajaxdj_ref.send_command('video_update_check',{id:"+upId+
+                "},false)",1000);
+            }
+        else {
+            $(this.updateBox).selectedIndex = 0
+            $('video-update-progressbar').mode = "determined";
+            }
+    };
+}
+
+
+var VideoList = function()
+{
+    videolist_ref = this;
+    this.mediaDragged = true;
+    this.module = "video";
+    this.tree = $("videolist-tree");
     // Activate this mode
     $("video-source").disabled = false;
 
-    this.init = function()
+    this.treeController = false;
+    this.customUpdate = function(video)
     {
-        this.videoInfos=Array("id","title","length","videoheight","videowidth",
-            "external_subtitle");
-    };
-
-    this.getDir = function(e)
-    {
-        var args = {};
-        if (this.id !='root_link')
-            args['video_dir'] = this.id;
-        ajaxdj_ref.send_post_command("setvideodir",args);
-    };
-
-    this.updateVideoList = function(videoList,dir)
-    {
-        this.curDir = dir ? dir : "";
-        this.constructMenu(dir);
-        this.constructItemList(videoList,"video-content");
-    };
-
-    this.play = function(item)
-    {
-        var videoId = item.getAttribute("id");
-        ajaxdj_ref.send_command('goto',{ id:videoId },true);
-    };
-
-    this.updateInfo = function(selectedItem)
-    {
-        if (selectedItem) {
-            var type = selectedItem.getAttribute("type");
-            if (type == "file")
-                this.setInfo(selectedItem);
-            else
-                this.resetInfo();
-            }
-        else
-            this.resetInfo();
-    };
-
-    this.setInfo = function(item)
-    {
-        var infos = Array("videowidth","title","videoheight");
-        for (var i in infos) {
-            var info = item.getAttribute(infos[i]);
-            if (info)
-                $("video-"+infos[i]).value = info;
-            }
-
-        // Time
-        var info = item.getAttribute("length");
-        if (info)
-            $("video-length").value = formatTime(info);
-
-        // Subtitle
-        var format = function(path) {
-            var rs = path.split("/");
-            return rs[rs.length - 1];
-            };
-        var info = item.getAttribute("external_subtitle");
-        if (info)
-            $("video-external_subtitle").value = format(info);
-        else
-            $("video-external_subtitle").value = "N/A";
-    };
-
-    this.resetInfo = function(item)
-    {
-        for (var i in this.videoInfos) {
-            var item = $("video-"+this.videoInfos[i]);
-            if (item)
-                item.value = "";
-            }
-    };
-
-    /*************************************/
-    /******** Search Part ****************/
-    /*************************************/
-    this.searchFile = function()
-    {
-        var text = $('search-text').value;
-        var typ = $('search-type').selectedItem.value;
-        ajaxdj_ref.send_post_command("search",{type:typ,txt:text});
-    };
-
-    this.searchClear = function()
-    {
-        $('search-text').value = "";
-        ajaxdj_ref.send_post_command('getdir',{dir:this.curDir});
-    };
-
-
-/*********************************************************/
-/*************  INTERNAL FUNCTIONS ***********************/
-/*********************************************************/
-    this.customConstructDirRow = function(dirItem)
-    {
-        dirItem.ondblclick = function(e) {
-            ajaxdj_ref.send_post_command("setvideodir",
-                { video_dir:e.target.value }); };
-    };
-
-    this.constructVideoRow = function(file)
-    {
-        var fileName = file.firstChild.data;
-        var fileItem = document.createElement("listitem");
-        fileItem.setAttribute("label",fileName);
-        fileItem.setAttribute("type","file");
-        fileItem.className = "video-item listitem-iconic";
-
-        for (var i in this.videoInfos) {
-            var info = file.getAttribute(this.videoInfos[i]);
-            if (info)
-                fileItem.setAttribute(this.videoInfos[i],info);
-            }
-
-        fileItem.ondblclick = function(e) {
-            video_ref.play(e.target) };
-
-        return fileItem;
+        $("videolist-description").value  =video.getAttribute("description");
+        return true;
     };
 };
-
 // heritage by prototype
-Video.prototype = new CommonList;
+VideoList.prototype = new CommonTreeManagement;
 
 // vim: ts=4 sw=4 expandtab

@@ -59,37 +59,16 @@
 <vbox
     id="navigation-box"
     flex="1">
-    <hbox>
-        <toolbar flex="2" id="navigation-menu">
-            <toolbarbutton
-                class="home-menu"
-                id="directory-button"
-                checked="true"
-                oncommand="fileList_ref.setDirectory();"
-                label="&directory;"/>
-            <toolbarbutton
-                class="playlist-menu"
-                id="playlist-button"
-                oncommand="fileList_ref.setPlaylistList();"
-                label="&playlist;"/>
-        </toolbar>
-        <deck id="audio-update">
-            <button
-                id="audio-update-button"
-                class="update-button"
-                oncommand="ajaxdj_ref.send_command('audioUpdate',null,false);"
-                label="&updateDB;"/>
-            <progressmeter
-                id="audio-update-progressbar"
-                mode="undetermined"/>
-        </deck>
-    </hbox>
 
-    <deck
-        flex="1"
-        selectedIndex="0"
-        id="navigation-content">
-        <vbox flex="1">
+    <tabbox id="navigation-panel" flex="1">
+        <tabs>
+            <tab class="home-menu" label="&directory;"/>
+            <tab class="playlist-menu" label="&playlist;"/>
+        </tabs>
+
+        <tabpanels flex="1">
+
+            <tabpanel orient="vertical" flex="1">
             <toolbar
     	        crop="end"
 	            style="display:none"
@@ -126,14 +105,32 @@
                 </menulist>
             </hbox>
             </groupbox>
-        </vbox>
+            </tabpanel>
 
-        <listbox
-            id="playlistList-content"
-            seltype="multiple"
-            flex="1"/>
-    </deck>
+            <tabpanel orient="vertical" flex="1">
+            <listbox
+                id="playlistList-content"
+                seltype="multiple"
+                flex="1"/>
+            </tabpanel>
 
+        </tabpanels>
+    </tabbox>
+
+    <hbox>
+        <deck id="audio-update">
+            <button
+                id="audio-update-button"
+                class="update-button"
+                oncommand="ajaxdj_ref.send_command('audioUpdate',null,false);"
+                label="&updateDB;"/>
+            <progressmeter
+                id="audio-update-progressbar"
+                mode="determined"/>
+        </deck>
+        <spacer flex="1"/>
+        <description id="audiolib_desc"/>
+    </hbox>
 </vbox>
 
 <splitter collapse="before" resizeafter="farthest">

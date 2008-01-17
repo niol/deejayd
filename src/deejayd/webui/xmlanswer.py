@@ -21,7 +21,7 @@ from string import Template
 try: from xml.etree import cElementTree as ET # python 2.5
 except ImportError: # python 2.4
     import cElementTree as ET
-
+from deejayd.webui.utils import *
 
 class _DeejaydXML:
 
@@ -92,7 +92,6 @@ def build_language_dtd():
         # dvd
         "reload": _("Reload"),
         # video
-        "fullscreen": _("Fullscreen"),
         "videoInfo": _("Video Informations"),
         "length": _("Length"),
         "width": _("Width"),
@@ -160,8 +159,14 @@ class _DeejaydSourceRdf(_DeejaydXML):
         if url:
             desc.attrib["RDF:about"] = url
         for p in parms.keys():
+            if p in ("time","length"):
+                value = format_time(int(parms[p]))
+            elif p == "external_subtitle":
+                value = parms[p] == "" and _("No") or _("Yes")
+            else:
+                value = self._to_xml_string(parms[p])
             node = ET.SubElement(desc,"FILE:%s" % self._to_xml_string(p))
-            node.text = self._to_xml_string(parms[p])
+            node.text = value
 
     def _save_rdf(self, root_element, new_id):
         filename = "%s-%d.rdf" % (self.__class__.name, new_id);
@@ -215,6 +220,47 @@ class DeejaydWebradioRdf(_DeejaydSourceRdf):
     def _get_media_list(self):
         wb_obj = self._deejayd.get_webradios()
         return wb_obj.get().get_medias()
+
+class DeejaydVideoRdf(_DeejaydSourceRdf):
+    name = "video"
+
+    def _get_media_list(self):
+        return self._deejayd.get_videolist().get_medias()
+
+class DeejaydVideoDirRdf(_DeejaydSourceRdf):
+    name = "videodir"
+
+    def _build_rdf_file(self,new_id):
+        # build xml
+        self.root = ET.Element("RDF:RDF")
+        self.root.attrib["xmlns:RDF"] =\
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        self.root.attrib["xmlns:FILE"] = "http://videodir/rdf#"
+
+        seq = ET.SubElement(self.root,"RDF:Seq")
+        seq.attrib["RDF:about"] = "http://videodir/all-content"
+        self._build_dir_list(seq, "")
+
+        self._save_rdf(self.root,new_id)
+
+    def _build_dir_list(self, seq_elt, dir, id = "1"):
+        dir_elt = ET.SubElement(seq_elt, "RDF:li")
+        dir_url = "http://videodir/%s" % os.path.join("root", dir)
+        #dir_url = "http://videodir/%s" % id
+        title = dir == "" and "Root" or os.path.basename(dir)
+        self._rdf_description(self.root, {"title": title}, dir_url)
+
+        subdirs = self._deejayd.get_video_dir(dir).get_directories()
+        if subdirs == []:
+            dir_elt.attrib["RDF:resource"] = dir_url
+        else:
+            subdir_list =  ET.SubElement(dir_elt,"RDF:Seq")
+            subdir_list.attrib["RDF:about"] = dir_url
+            j = 1
+            for d in subdirs:
+                new_id = id + "/%d" % j
+                self._build_dir_list(subdir_list, os.path.join(dir, d), new_id)
+                j += 1
 
 class DeejaydDvdRdf(_DeejaydSourceRdf):
     name = "dvd"
@@ -331,8 +377,18 @@ class DeejaydWebAnswer(_DeejaydXML):
             id = self._to_xml_string(status["dvd"]))
         DeejaydDvdRdf(deejayd,self.__rdf_dir).update(status["dvd"])
 
-    def set_video(self,status):
-        video = ET.SubElement(self.xmlroot,"video", id = status["video_dir"])
+    def set_video(self, status, deejayd):
+        video = ET.SubElement(self.xmlroot,"video",\
+            id = self._to_xml_string(status["video"]),\
+            description = ngettext("%s Video", "%s Videos",\
+              int(status["videolength"])) % str(status["videolength"]),\
+            length = self._to_xml_string(status["videolength"]));
+        DeejaydVideoRdf(deejayd,self.__rdf_dir).update(status["video"])
+
+    def set_videodir(self, new_id, deejayd):
+        video = ET.SubElement(self.xmlroot,"videodir",\
+            id = self._to_xml_string(new_id))
+        DeejaydVideoDirRdf(deejayd,self.__rdf_dir).update(new_id)
 
     def __build_file_list(self, parent, list):
         for dir in list.get_directories():
@@ -347,11 +403,6 @@ class DeejaydWebAnswer(_DeejaydXML):
 
     def set_audiofile_list(self, files_list, dir = ""):
         list_elm = ET.SubElement(self.xmlroot, "file-list",\
-                                 directory = self._to_xml_string(dir))
-        self.__build_file_list(list_elm,files_list)
-
-    def set_videofile_list(self, files_list, dir = ""):
-        list_elm = ET.SubElement(self.xmlroot, "video-list",\
                                  directory = self._to_xml_string(dir))
         self.__build_file_list(list_elm,files_list)
 

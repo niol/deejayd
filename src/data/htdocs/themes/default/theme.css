@@ -49,6 +49,7 @@ caption{font-weight: bold;}
 #playlist-goCurSong{list-style-image: url("./images/go.png");}
 
 .home-menu{list-style-image: url("./images/home.png");}
+.search-menu{list-style-image: url("./images/search.png");}
 .playlist-menu{list-style-image: url("./images/playlist.png");}
 
 /*
@@ -61,6 +62,14 @@ toolbarbutton[checked="true"] { font-weight: bold; }
  * Playlist
  */
 treechildren::-moz-tree-row(dragged) { border-top: 2px solid #333; }
+
+/*
+ * video directoey
+ */
+treechildren::-moz-tree-image(folder) {
+list-style-image: url("./images/tree-folder.png");
+padding-right: 6px;
+}
 
 /*
  * Command

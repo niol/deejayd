@@ -14,7 +14,8 @@ var CommonTreeManagement = function()
             }
         catch(ex){return}
 
-        this.tree.controllers.appendController(this.treeController);
+        if (typeof this.treeController == 'object')
+            this.tree.controllers.appendController(this.treeController);
     };
 
     this.update = function(obj)
@@ -22,10 +23,12 @@ var CommonTreeManagement = function()
         var id = parseInt(obj.getAttribute("id"));
         if (id > this.treeId) {
             this.treeId = id;
+            // clear selection
+            if (this.tree.view)
+                this.tree.view.selection.clearSelection();
             // Update datasources
             this.tree.setAttribute("datasources",window.location.href+"rdf/"+
                 this.module+"-"+id+".rdf");
-
             // do custom update
             this.customUpdate(obj);
             }

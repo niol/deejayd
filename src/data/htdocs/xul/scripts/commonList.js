@@ -144,13 +144,16 @@ var CommonList = function()
         var upId = upObj.firstChild.data;
         if (progress == "1") {
             $(this.updateBox).selectedIndex = 1
+            $('audio-update-progressbar').mode = "undetermined";
             setTimeout(
                 "ajaxdj_ref.send_command('"+this.listType+
                 "_update_check',{id:"+upId+
                 "},false)",1000);
             }
-        else
+        else {
             $(this.updateBox).selectedIndex = 0
+            $('audio-update-progressbar').mode = "determined";
+            }
     };
 
 };

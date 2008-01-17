@@ -101,8 +101,14 @@ class _UnknownCommand:
             self._answer.set_webradio(status, self._deejayd)
         if "dvd" in status.keys():
             self._answer.set_dvd(status, self._deejayd)
-        if "video_dir" in status.keys():
-            self._answer.set_video(status)
+        if "video" in status.keys():
+            self._answer.set_video(status, self._deejayd)
+
+        # video library update
+        stats = self._deejayd.get_stats()
+        if "video_library_update" in stats.keys():
+            self._answer.set_videodir(stats["video_library_update"],\
+                self._deejayd)
 
     def execute(self):
         raise NotImplementedError
@@ -133,13 +139,6 @@ class Init(_UnknownCommand):
         # audio files list
         files_list = self._deejayd.get_audio_dir("")
         self._answer.set_audiofile_list(files_list, "")
-
-        # video files list
-        try: dir = status["video_dir"]
-        except KeyError: pass # video mode not available
-        else:
-            files_list = self._deejayd.get_video_dir(dir)
-            self._answer.set_videofile_list(files_list, dir)
 
         # playlist list
         pls_list = self._deejayd.get_playlist_list()
@@ -287,8 +286,9 @@ class VideoUpdateCheck(_Library):
             self._answer.set_update_library(self._args["id"], "video", "0")
             self._answer.set_msg(_("The video library has been updated"))
 
-            files_list = self._deejayd.get_video_dir()
-            self._answer.set_videofile_list(files_list, "")
+            stats = self._deejayd.get_stats()
+            self._answer.set_videodir(stats["video_library_update"],\
+                self._deejayd)
 
 class GetAudioDir(_Library):
     name = "getdir"
@@ -409,14 +409,17 @@ class QueueAdd(_UnknownCommand):
     name = "queueAdd"
     method = "post"
     command_args = [{"name":"path","type":"string","req":True,"mult":True},\
-                    {"name":"pos","type":"int","req":True}]
+              {"name":"type", "type":"enum_str", "values":("audio", "video"),\
+               "req":False, "default":"audio"},
+              {"name":"pos","type":"int","req":True}]
 
     def execute(self):
         pos = int(self._args["pos"])
         if pos == -1: pos = None
 
         queue = self._deejayd.get_queue()
-        queue.add_songs(self._args["path"],pos).get_contents()
+        queue.add_medias(self._args["path"],\
+            self._args["type"],pos).get_contents()
 
 class QueueLoad(_UnknownCommand):
     name = "queueLoad"
@@ -429,7 +432,7 @@ class QueueLoad(_UnknownCommand):
         if pos == -1: pos = None
 
         queue = self._deejayd.get_queue()
-        queue.loads(self._args["pls_name"],pos).get_contents()
+        queue.load_playlists(self._args["pls_name"],pos).get_contents()
 
 class QueueRemove(_UnknownCommand):
     name = "queueRemove"
@@ -479,19 +482,16 @@ class WebradioClear(_UnknownCommand):
 #
 # Video commands
 #
-class SetVideoDir(_UnknownCommand):
-    name = "setvideodir"
+class SetVideo(_UnknownCommand):
+    name = "videoset"
     method = "post"
-    command_args = [\
-            {"name":"video_dir","type":"string","req":False,"default":""},]
-
-    def default_result(self):
-        status = self._deejayd.get_status()
-        files_list = self._deejayd.get_video_dir(status["video_dir"])
-        self._answer.set_videofile_list(files_list,status["video_dir"])
+    command_args = [{"name":"value", "type":"str", "req":False, "default":""},
+            {"name":"type","type":"enum_str","values":("directory","search"),\
+            "req":False,"default":"directory"},]
 
     def execute(self):
-        self._deejayd.set_video_dir(self._args["video_dir"]).get_contents()
+        self._deejayd.set_video(self._args["value"],\
+            self._args["type"]).get_contents()
 
 #
 # Dvd commands

@@ -12,7 +12,7 @@ var ajaxdj_ref;
 function ajaxdj()
 {
     // Activate Debug
-    this.debug = true;
+    this.debug = false;
 
     // Internal parms
     this.message_time = 4000;
@@ -40,10 +40,14 @@ function ajaxdj()
 
     this.set_busy = function(a)
     {
-        if (a)
+        if (a) {
             $('msg-loading-box').selectedIndex = DISPLAY_LOADING;
-        else if (!a && this.busy)
+            $('loading-progressbar').mode = "undetermined";
+            }
+        else if (!a && this.busy) {
             $('msg-loading-box').selectedIndex = DISPLAY_NO;
+            $('loading-progressbar').mode = "determined";
+            }
 
         this.busy = a;
     };
@@ -168,8 +172,8 @@ function ajaxdj()
                             break;
 
                             case "video":
-                            this.videoObj = new Video();
-	                        this.videoObj.init();
+                            this.videoList = new VideoList();
+                            this.videoLib = new VideoLibrary();
                             break;
 
                             case "dvd":
@@ -206,7 +210,7 @@ function ajaxdj()
                 this.fileListObj.updateDatabase(rs);
             rs = xmldoc.getElementsByTagName("video_update").item(0);
             if (rs)
-                this.videoObj.updateDatabase(rs);
+                this.videoLib.updateDatabase(rs);
 
             rs = xmldoc.getElementsByTagName("player").item(0);
             if (rs)
@@ -237,10 +241,13 @@ function ajaxdj()
             if (rs)
                 this.dvdObj.update(rs);
 
-            rs = xmldoc.getElementsByTagName("video-list").item(0);
+            rs = xmldoc.getElementsByTagName("video").item(0);
             if (rs)
-                this.videoObj.updateVideoList(rs,
-                    rs.getAttribute("directory"));
+                this.videoList.update(rs);
+
+            rs = xmldoc.getElementsByTagName("videodir").item(0);
+            if (rs)
+                this.videoLib.updateDir(rs);
         }
         else
             alert(request_obj.responseText);
