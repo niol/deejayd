@@ -217,7 +217,17 @@ class AvailableCommands:
         except IndexError:
             raise DjcError('You have to enter dirs/files')
         else: items = item.split(",")
-        DeejaydQueue(self.server).add_songs(items).get_contents()
+        DeejaydQueue(self.server).add_medias(items, type).get_contents()
+
+    def queue_loadpls(self, args):
+        """ load playlist in the queue
+            ex: djc queue_loadpls playlist1,playlist2"""
+        try: playlist = args[0]
+        except IndexError:
+            raise DjcError('You have to enter playlist names')
+        else: playlists = playlist.split(",")
+        queue_obj = DeejaydQueue(self.server)
+        queue_obj.load_playlists(playlists).get_contents()
 
     def queue_remove(self, args):
         """ remove songs from queue
@@ -291,6 +301,16 @@ class AvailableCommands:
             raise DjcError('You have to enter dirs/files')
         else: items = item.split(",")
         self.__get_pl_obj(args, 1).add_songs(items).get_contents()
+
+    def playlist_load(self, args):
+        """ load playlist in the main playlist
+            ex: djc playlist_load playlist1,playlist2"""
+        try: playlist = args[0]
+        except IndexError:
+            raise DjcError('You have to enter playlist names')
+        else: playlists = playlist.split(",")
+        pls_obj = DeejaydPlaylist(self.server)
+        pls_obj.loads(playlists).get_contents()
 
     def playlist_remove(self, args):
         """ remove songs from playlist
