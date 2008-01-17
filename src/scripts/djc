@@ -166,31 +166,53 @@ class AvailableCommands:
         for dir in rsp.get_directories(): print "directory:", dir
         for file in rsp.get_files(): print "file:", file["filename"]
 
-    def set_video_dir(self, args):
-        """Go to a video directory.
-           ex: djc set_video_dir "dirname"
-           if no dirname has been entered, got to root directory"""
-        try: dirname = args[0]
-        except IndexError: dirname = ""
+    def video_info(self, args):
+        """ Get video list's content """
+        contents = self.server.get_videolist()
+        for media in contents.get_medias():
+            print media["pos"], '|', media["title"], '|',\
+                  media["videowidth"], '|',\
+                  media["videoheight"], '|', media["id"]
 
-        self.server.set_video_dir(dirname).get_contents()
+    def set_video(self, args):
+        """Update the video list
+           ex: djc set_video "type" "value"
+           type must be :
+             * directory to set content of dir "value" as video list
+             * search to set result of search "value" as video list"""
+        try: type = args[0]
+        except IndexError:
+            raise DjcError('You have to choose a type')
+        try: value = args[1]
+        except IndexError:
+            raise DjcError('You have to enter a value')
+        self.server.set_video(value, type).get_contents()
 
 # Queue commands
     def queue_info(self, args):
         """ Get queue's content """
         contents = DeejaydQueue(self.server).get()
         for media in contents.get_medias():
-            print media["pos"], '|', media["title"], '|', media["artist"], '|',\
+            if media["type"] == "song":
+                print media["pos"], '|', media["title"], '|',\
+                  media["artist"], '|',\
                   media["album"], '|', media["id"]
+            elif media["type"] == "video":
+                print media["pos"], '|', media["title"], '|',\
+                  media["videowidth"], '|',\
+                  media["videoheight"], '|', media["id"]
 
     def queue_clear(self, args):
         """ clear queue """
         DeejaydQueue(self.server).clear().get_contents()
 
     def queue_add(self, args):
-        """ add dirs/files to queue
-            ex: djc queue_add dir1,dir2 """
-        try: item = args[0]
+        """ add audio/video dirs/files to queue
+            ex: djc queue_add audio/video dir1,dir2 """
+        try: type = args[0]
+        except IndexError:
+            raise DjcError('You have to choose a type')
+        try: item = args[1]
         except IndexError:
             raise DjcError('You have to enter dirs/files')
         else: items = item.split(",")
