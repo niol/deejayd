@@ -106,7 +106,7 @@ def inotify_action(func):
 
         rs = func(self, path, name, **__kw)
         if rs: # commit change
-            self.inotify_db.record_mediadb_stats()
+            self.inotify_db.record_mediadb_stats(self.type)
             self.inotify_db.set_update_time(self.type)
             self.inotify_db.connection.commit()
 
@@ -272,7 +272,7 @@ class _Library:
             # Remove empty dir
             conn.erase_empty_dir(self.table)
             # update stat values
-            conn.record_mediadb_stats()
+            conn.record_mediadb_stats(self.type)
             conn.set_update_time(self.type)
             # commit changes
             conn.connection.commit()

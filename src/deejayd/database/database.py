@@ -289,21 +289,27 @@ class Database(UnknownDatabase):
     #
     # Stat requests
     #
-    def record_mediadb_stats(self):
-        # Get the number of songs
-        self.execute("SELECT filename FROM {audio_library} WHERE type = 'file'")
-        songs = len(self.cursor.fetchall())
-        # Get the number of artist
-        self.execute("SELECT DISTINCT artist FROM {audio_library} WHERE type = \
-            'file'")
-        artists = len(self.cursor.fetchall())
-        # Get the number of album
-        self.execute("SELECT DISTINCT album FROM {audio_library} WHERE type = \
-            'file'")
-        albums = len(self.cursor.fetchall())
+    def record_mediadb_stats(self, type):
+        if type == "audio":
+            # Get the number of songs
+            self.execute("SELECT filename FROM {audio_library}\
+                WHERE type = 'file'")
+            songs = len(self.cursor.fetchall())
+            # Get the number of artist
+            self.execute("SELECT DISTINCT artist FROM {audio_library}\
+                WHERE type = 'file'")
+            artists = len(self.cursor.fetchall())
+            # Get the number of album
+            self.execute("SELECT DISTINCT album FROM {audio_library}\
+                WHERE type = 'file'")
+            albums = len(self.cursor.fetchall())
+            values = [(songs,"songs"),(artists,"artists"),(albums,"albums")]
+        elif type == "video":
+            # Get the number of video
+            self.execute("SELECT DISTINCT filename FROM {video_library}\
+                WHERE type = 'file'")
+            values = [(len(self.cursor.fetchall()), "videos")]
 
-        # record in the database
-        values = [(songs,"songs"),(artists,"artists"),(albums,"albums")]
         self.executemany("UPDATE {stats} SET value = ? WHERE name = ?",values)
 
     def set_update_time(self,type):
