@@ -120,6 +120,11 @@ class AvailableCommands:
         for (key, value) in self.server.get_status().items():
             print key, ':', value
 
+    def stats(self, args):
+        """Get audio/video library stats"""
+        for (key, value) in self.server.get_stats().items():
+            print key, ':', value
+
     def audio_update(self, args):
         """Update audio library"""
         for (key, value) in self.server.update_audio_library().items():
