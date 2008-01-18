@@ -50,12 +50,18 @@ def get_uris_from_m3u(URL):
     return uris
 
 
+class WebradioList(SimpleMediaList):
+
+    def _update_list_id(self):
+        self._list_id += 1
+
+
 class WebradioSource(_BaseSource):
     name = "webradio"
 
     def __init__(self, db):
         _BaseSource.__init__(self, db)
-        self._media_list = SimpleMediaList(self.get_recorded_id())
+        self._media_list = WebradioList(self.get_recorded_id())
 
         # load recorded webradio
         wbs = self.db.get_webradios()
@@ -80,6 +86,12 @@ class WebradioSource(_BaseSource):
             i += 1
         self._media_list.add_media(medias)
         return True
+
+    def get_status(self):
+        return [
+            (self.name, self._media_list.get_list_id()),
+            (self.name+"length", self._media_list.length())
+            ]
 
     def close(self):
         _BaseSource.close(self)

@@ -191,12 +191,15 @@ class Status(UnknownCommand):
     """Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
+  * playlisttimelength : _int_ time length of the current playlist
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
+  * queuetimelength : _int_ time length of the current queue
   * video : _int_ id of the current video list
   * videolength : _int_ length of the current video list
+  * videotimelength : _int_ time length of the current video list
   * dvd : _int_ id of the current dvd
   * random : 0 (not activated) or 1 (activated)
   * repeat : 0 (not activated) or 1 (activated)

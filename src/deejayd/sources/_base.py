@@ -27,7 +27,18 @@ class SimpleMediaList:
     def __init__(self, id = 0):
         self._list_id = id
         self._media_id = 0
+        self._time_length = 0
         self._content = []
+
+    def _update_list_id(self):
+        self._list_id += 1
+        # update time length
+        self._time_length = 0
+        for m in self._content:
+            try: length = m["length"]
+            except (IndexError, ValueError):
+                continue
+            self._time_length += length
 
     def get(self):
         return self._content
@@ -41,6 +52,9 @@ class SimpleMediaList:
 
     def length(self):
         return len(self._content)
+
+    def time_length(self):
+        return self._time_length
 
     def add_media(self, medias, first_pos = None):
         if first_pos == None:
@@ -62,11 +76,11 @@ class SimpleMediaList:
             i+=1
 
         self._content.extend(old_content)
-        self._list_id += 1
+        self._update_list_id()
 
     def clear(self):
         self._content = []
-        self._list_id += 1
+        self._update_list_id()
 
     def delete(self, id, type = "id"):
         i = 0
@@ -83,7 +97,7 @@ class SimpleMediaList:
         for media in self._content:
             if media["pos"] > pos:
                 media["pos"] -= 1
-        self._list_id += 1
+        self._update_list_id()
 
     def get_media(self, id, type = "id"):
         media = None
@@ -144,8 +158,7 @@ class MediaList(SimpleMediaList):
         ids = range(0,len(self._content))
         for id in ids:
             self._content[id]["pos"] = id
-        # Increment sourceId
-        self._list_id += 1
+        self._update_list_id()
 
     def shuffle(self, current = None):
         new_content = []
@@ -167,7 +180,7 @@ class MediaList(SimpleMediaList):
             pos += 1
 
         self._content = new_content
-        self._list_id += 1
+        self._update_list_id()
 
 
 class _BaseSource:
@@ -291,7 +304,8 @@ class _BaseSource:
     def get_status(self):
         return [
             (self.name, self._media_list.get_list_id()),
-            (self.name+"length", self._media_list.length())
+            (self.name+"length", self._media_list.length()),
+            (self.name+"timelength", self._media_list.time_length())
             ]
 
     def close(self):
