@@ -74,7 +74,7 @@ commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
                    "playlistLoad", "playlistSave", "webradioList",
                    "webradioAdd", "webradioRemove", "webradioClear",
                    "queueInfo", "queueAdd","queueLoadPlaylist",
-                   "queueRemove", "queueClear", "setvideodir",
+                   "queueRemove", "queueClear", "setvideo","videoInfo",
                    "dvdLoad","dvdInfo")
 
 # Check for missing commands in commandsOrder

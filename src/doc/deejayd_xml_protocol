@@ -187,10 +187,15 @@ Expected return value : ''`Ack`''
 Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
+  * playlisttimelength : _int_ time length of the current playlist
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
+  * queuetimelength : _int_ time length of the current queue
+  * video : _int_ id of the current video list
+  * videolength : _int_ length of the current video list
+  * videotimelength : _int_ time length of the current video list
   * dvd : _int_ id of the current dvd
   * random : 0 (not activated) or 1 (activated)
   * repeat : 0 (not activated) or 1 (activated)
@@ -216,6 +221,7 @@ Expected return value : ''`KeyValue`''
 Return statistical informations :
   * audio_library_update : UNIX time of the last audio library update
   * video_library_update : UNIX time of the last video library update
+  * videos : number of videos known by the database
   * songs : number of songs known by the database
   * artists : number of artists in the database
   * albums : number of albums in the database
@@ -230,6 +236,7 @@ Expected return value : ''`KeyValue`''
 Change the player mode. Possible values are :
   * playlist : to manage and listen songs
   * video : to manage and wath video file
+  * dvd : to wath dvd
   * webradio : to manage and listen webradios
 
 Arguments :
@@ -570,6 +577,7 @@ Load files or directories passed as arguments ("path") at the position
 
 Arguments :
   * {{{path}}} (Multiple and Mandatory) : string
+  * {{{type}}} (Simple and Optional) : enum_str
   * {{{pos}}} (Simple and Optional) : int
 
 Expected return value : ''`Ack`''
@@ -603,14 +611,24 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== `setvideodir` ===
+=== `setvideo` ===
 
 Set the current video directory to "directory".
 
 Arguments :
-  * {{{directory}}} (Simple and Mandatory) : string
+  * {{{type}}} (Simple and Optional) : enum_str
+  * {{{value}}} (Simple and Optional) : str
 
 Expected return value : ''`Ack`''
+
+=== `videoInfo` ===
+
+Set the current video directory to "directory".
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`MediaList`''
 
 === `dvdLoad` ===
 
