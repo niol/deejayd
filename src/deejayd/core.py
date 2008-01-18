@@ -429,7 +429,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     @returns_deejaydanswer(DeejaydAnswer)
     def set_video(self, value, type):
         try: self.sources.get_source("video").set(type, value)
-        except deejayd.mediadb.library.NotFoundException:
+        except deejayd.sources._base.MediaNotFoundError:
             raise DeejaydError(_('Directory %s not found in database') % dir)
         except deejayd.sources.UnknownSourceException:
             raise DeejaydError(_("Video mode disabled"))
@@ -439,10 +439,14 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         try: self.sources.get_source("dvd").load()
         except sources.dvd.DvdError, msg:
             raise DeejaydError('%s' % msg)
+        except deejayd.sources.UnknownSourceException:
+            raise DeejaydError(_("Dvd mode disabled"))
 
     @returns_deejaydanswer(DeejaydDvdInfo)
     def get_dvd_content(self):
-        return self.sources.get_source("dvd").get_content()
+        try: return self.sources.get_source("dvd").get_content()
+        except deejayd.sources.UnknownSourceException:
+            raise DeejaydError(_("Dvd mode disabled"))
 
 
 # vim: ts=4 sw=4 expandtab
