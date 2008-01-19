@@ -107,7 +107,7 @@ class _UnknownCommand:
         # video library update
         stats = self._deejayd.get_stats()
         if "video_library_update" in stats.keys():
-            self._answer.set_videodir(stats["video_library_update"],\
+            self._answer.set_videodir(int(stats["video_library_update"]),\
                 self._deejayd)
 
     def execute(self):

@@ -70,7 +70,7 @@ var VideoList = function()
     this.treeController = false;
     this.customUpdate = function(video)
     {
-        $("videolist-description").value  =video.getAttribute("description");
+        $("videolist-description").value = video.getAttribute("description");
         return true;
     };
 };

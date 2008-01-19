@@ -133,7 +133,8 @@ class _DeejaydSourceRdf(_DeejaydXML):
 
     def update(self,new_id):
         current_id = self._get_current_id()
-        if current_id < new_id:
+        new_id = new_id % 10000
+        if current_id != new_id:
             self._clean_rdfdir()
             self._build_rdf_file(new_id)
 
@@ -164,7 +165,9 @@ class _DeejaydSourceRdf(_DeejaydXML):
             elif p == "external_subtitle":
                 value = parms[p] == "" and _("No") or _("Yes")
             else:
-                value = self._to_xml_string(parms[p])
+                try: value = self._to_xml_string(parms[p])
+                except TypeError:
+                    continue
             node = ET.SubElement(desc,"FILE:%s" % self._to_xml_string(p))
             node.text = value
 
@@ -185,20 +188,20 @@ class _DeejaydSourceRdf(_DeejaydXML):
     def _clean_rdfdir(self):
         for file in os.listdir(self._rdf_dir):
             path = os.path.join(self._rdf_dir,file)
-            if os.path.isfile(path) and file.startswith(self.name):
+            if os.path.isfile(path) and file.startswith(self.name+"-"):
                 os.unlink(path)
 
     def _get_current_id(self):
         ids = []
         for file in os.listdir(self._rdf_dir):
-            if re.compile("/^"+self.name+"-[0-9]+\.rdf$/").search(file):
+            if re.compile("^"+self.name+"-[0-9]+\.rdf$").search(file):
                 t = file.split("-")[1] # id.rdf
                 t = t.split(".")
                 try : ids.append(int(t[0]))
                 except ValueError: pass
 
         if ids == []: return 0
-        else: return ids.max()
+        else: return max(ids)
 
 class DeejaydPlaylistRdf(_DeejaydSourceRdf):
     name = "playlist"
@@ -349,18 +352,26 @@ class DeejaydWebAnswer(_DeejaydXML):
         mode_elt.attrib["value"] = self._to_xml_string(mode)
 
     def set_playlist(self,status,deejayd):
+        desc = ngettext("%s Song", "%s Songs", int(status["playlistlength"])) %\
+            str(status["playlistlength"])
+        time = int(status["playlisttimelength"])
+        if time > 0:
+            desc += " (%s)" % format_time_long(time)
         pls = ET.SubElement(self.xmlroot,"playlist",\
             id = self._to_xml_string(status["playlist"]),\
-            description = ngettext("%s Song", "%s Songs",\
-              int(status["playlistlength"])) % str(status["playlistlength"]),\
+            description = desc,\
             length = self._to_xml_string(status["playlistlength"]));
         DeejaydPlaylistRdf(deejayd,self.__rdf_dir).update(status["playlist"])
 
     def set_queue(self,status,deejayd):
+        desc = ngettext("%s Media", "%s Medias", int(status["queuelength"])) %\
+            str(status["queuelength"])
+        time = int(status["queuetimelength"])
+        if time > 0:
+            desc += " (%s)" % format_time_long(time)
         queue = ET.SubElement(self.xmlroot,"queue",\
             id = self._to_xml_string(status["queue"]),\
-            description = ngettext("%s Song", "%s Songs",\
-              int(status["queuelength"])) % str(status["queuelength"]),\
+            description = desc,\
             length = self._to_xml_string(status["queuelength"]));
         DeejaydQueueRdf(deejayd,self.__rdf_dir).update(status["queue"])
 
@@ -378,11 +389,15 @@ class DeejaydWebAnswer(_DeejaydXML):
         DeejaydDvdRdf(deejayd,self.__rdf_dir).update(status["dvd"])
 
     def set_video(self, status, deejayd):
+        desc = ngettext("%s Video", "%s Videos", int(status["videolength"])) %\
+            str(status["videolength"])
+        time = int(status["videotimelength"])
+        if time > 0:
+            desc += " (%s)" % format_time_long(time)
         video = ET.SubElement(self.xmlroot,"video",\
             id = self._to_xml_string(status["video"]),\
-            description = ngettext("%s Video", "%s Videos",\
-              int(status["videolength"])) % str(status["videolength"]),\
-            length = self._to_xml_string(status["videolength"]));
+            description = desc,\
+            length = self._to_xml_string(status["videolength"]))
         DeejaydVideoRdf(deejayd,self.__rdf_dir).update(status["video"])
 
     def set_videodir(self, new_id, deejayd):
