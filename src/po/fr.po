@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-17 21:37+0100\n"
+"POT-Creation-Date: 2008-01-18 22:57+0100\n"
 "PO-Revision-Date: 2008-01-05 23:20+0100\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -104,6 +104,10 @@ msgstr "Le répertoire %s n'a pas été trouvé dans la base de donnée"
 #, python-format
 msgid "Type %s is not supported"
 msgstr "Le type %s n'est pas supporté"
+
+#: ../deejayd/core.py:443 ../deejayd/core.py:449
+msgid "Dvd mode disabled"
+msgstr "Mode DVD désactivé"
 
 #: ../deejayd/database/__init__.py:33
 msgid ""
@@ -273,11 +277,11 @@ msgstr "Impossible d'ouvrir le driver audio"
 msgid "Unable to play file %s"
 msgstr "Impossible de lire le fichier %s"
 
-#: ../deejayd/player/xine.py:295
+#: ../deejayd/player/xine.py:298
 msgid "Unable to open video driver"
 msgstr "Impossible d'ouvrir le driver vidéo"
 
-#: ../deejayd/player/xine.py:378
+#: ../deejayd/player/xine.py:381
 #, python-format
 msgid "Xine error %s"
 msgstr "Erreur Xine %s"
@@ -521,21 +525,28 @@ msgstr "Titre %s"
 msgid "Chapter %s"
 msgstr "Chapitre %s"
 
-#: ../deejayd/webui/xmlanswer.py:354 ../deejayd/webui/xmlanswer.py:362
+#: ../deejayd/webui/xmlanswer.py:352
 #, python-format
 msgid "%s Song"
 msgid_plural "%s Songs"
 msgstr[0] "%s Chanson"
 msgstr[1] "%s Chansons"
 
-#: ../deejayd/webui/xmlanswer.py:370
+#: ../deejayd/webui/xmlanswer.py:364
+#, python-format
+msgid "%s Media"
+msgid_plural "%s Medias"
+msgstr[0] "%s Média"
+msgstr[1] "%s Médias"
+
+#: ../deejayd/webui/xmlanswer.py:378
 #, python-format
 msgid "%s Webradio"
 msgid_plural "%s Webradios"
 msgstr[0] "%s Radio Web"
 msgstr[1] "%s Radios Web"
 
-#: ../deejayd/webui/xmlanswer.py:383
+#: ../deejayd/webui/xmlanswer.py:389
 #, python-format
 msgid "%s Video"
 msgid_plural "%s Videos"
