@@ -54,7 +54,7 @@ class XinePlayer(UnknownPlayer):
 
         # init vars
         self.__supports_gapless = xine_check_version(1, 1, 1) == 1
-        self.__volume = 0
+        self.__volume = 100
         self.__video_port = None
         self.__stream = None
         self.__event_queue = None
@@ -68,12 +68,13 @@ class XinePlayer(UnknownPlayer):
         except x11.X11Error, err:
             log.err(str(err))
             raise PlayerError(str(err))
-        # init instance to get video informations
+        # init instance to get video and dvd informations
         self.__mine_xine = xine_new()
         self.__mine_stream = xine_stream_new(self.__xine, None, None)
 
     def start_play(self):
-        if not self._media_file: return
+        if not self._media_file:
+            return
 
         # format correctly the uri
         uri = self._media_file["uri"]
@@ -89,11 +90,11 @@ class XinePlayer(UnknownPlayer):
                                             {"lang": "auto", "ix": -1},\
                                             {"lang": "external", "ix":0}]
 
-        isvideo = self._media_file["type"] == "video"
         if not self.__stream:
-            self._create_stream(isvideo)
-        if isvideo and self.__video_port:
-            self.__display.show()
+            self._create_stream()
+        isvideo = self._media_file["type"] == "video"
+        if self.__video_port:
+            self.__display.show(isvideo)
 
         if not xine_open(self.__stream, uri) or \
            not xine_play(self.__stream, 0, 0):
@@ -110,9 +111,8 @@ class XinePlayer(UnknownPlayer):
                 self._media_file["subtitle_idx"] = \
                     self.__do_get_property(XINE_PARAM_SPU_CHANNEL)
 
-    def _change_file(self,new_file, gapless = False):
-        if self._media_file == None or new_file == None or \
-                self._media_file["type"] != new_file["type"]:
+    def _change_file(self, new_file, gapless = False):
+        if self._media_file == None or new_file == None:
             self._destroy_stream()
             gapless = False
 
@@ -152,7 +152,7 @@ class XinePlayer(UnknownPlayer):
         return self.__volume
 
     def set_volume(self,vol):
-        self.__volume = min(100, vol)
+        self.__volume = min(100, int(vol))
         self.__do_set_property(XINE_PARAM_AUDIO_VOLUME, self.__volume)
 
     def get_position(self):
@@ -268,12 +268,11 @@ class XinePlayer(UnknownPlayer):
         if not self.__stream: return -1
         return xine_get_param(self.__stream, property)
 
-    def _create_stream(self, isvideo):
+    def _create_stream(self):
         if self.__stream != None:
             raise PlayerError
         # open video driver
-        if isvideo and self._video_support and \
-                        self.__xine_options["video"] != "none":
+        if self._video_support and self.__xine_options["video"] != "none":
             try: self.__display.create()
             except x11.X11Error, err:
                 raise PlayerError(str(err))
@@ -314,6 +313,10 @@ class XinePlayer(UnknownPlayer):
         self.__event_queue = xine_event_new_queue(self.__stream)
         xine_event_create_listener_thread(self.__event_queue,
             self._event_callback, None)
+
+        # restore volume
+        self.__do_set_property(XINE_PARAM_AUDIO_VOLUME, self.__volume)
+
 
     def _destroy_stream(self):
         if self.__stream:
