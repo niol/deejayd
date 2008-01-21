@@ -72,6 +72,7 @@ def returns_deejaydanswer(answer_class):
             else:
                 return func(*__args, **__kw)
 
+        interface_clean_func.__name__ = func.__name__
         return interface_clean_func
 
     return returns_deejaydanswer_instance
