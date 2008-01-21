@@ -133,10 +133,12 @@ class _DeejaydSourceRdf(_DeejaydXML):
 
     def update(self,new_id):
         current_id = self._get_current_id()
-        new_id = new_id % 10000
+        new_id = int(new_id) % 10000
         if current_id != new_id:
             self._clean_rdfdir()
             self._build_rdf_file(new_id)
+
+        return new_id
 
     def _build_rdf_file(self,new_id):
         medias = self._get_media_list()
@@ -352,58 +354,54 @@ class DeejaydWebAnswer(_DeejaydXML):
         mode_elt.attrib["value"] = self._to_xml_string(mode)
 
     def set_playlist(self,status,deejayd):
-        desc = ngettext("%s Song", "%s Songs", int(status["playlistlength"])) %\
-            str(status["playlistlength"])
+        nid = DeejaydPlaylistRdf(deejayd,self.__rdf_dir).\
+                                    update(status["playlist"])
+        pls = ET.SubElement(self.xmlroot,"playlist",id=self._to_xml_string(nid))
+
+        desc = ngettext("%s Song", "%s Songs",\
+            int(status["playlistlength"])) % str(status["playlistlength"])
         time = int(status["playlisttimelength"])
         if time > 0:
             desc += " (%s)" % format_time_long(time)
-        pls = ET.SubElement(self.xmlroot,"playlist",\
-            id = self._to_xml_string(status["playlist"]),\
-            description = desc,\
-            length = self._to_xml_string(status["playlistlength"]));
-        DeejaydPlaylistRdf(deejayd,self.__rdf_dir).update(status["playlist"])
+        pls.attrib["description"] = desc
 
     def set_queue(self,status,deejayd):
-        desc = ngettext("%s Media", "%s Medias", int(status["queuelength"])) %\
-            str(status["queuelength"])
+        nid = DeejaydQueueRdf(deejayd, self.__rdf_dir).update(status["queue"])
+        queue = ET.SubElement(self.xmlroot,"queue", id=self._to_xml_string(nid))
+
+        desc = ngettext("%s Media", "%s Medias",\
+            int(status["queuelength"])) % str(status["queuelength"])
         time = int(status["queuetimelength"])
         if time > 0:
             desc += " (%s)" % format_time_long(time)
-        queue = ET.SubElement(self.xmlroot,"queue",\
-            id = self._to_xml_string(status["queue"]),\
-            description = desc,\
-            length = self._to_xml_string(status["queuelength"]));
-        DeejaydQueueRdf(deejayd,self.__rdf_dir).update(status["queue"])
+        queue.attrib["description"] = desc
 
     def set_webradio(self,status,deejayd):
-        wb = ET.SubElement(self.xmlroot,"webradio",\
-            id = self._to_xml_string(status["webradio"]),\
-            description = ngettext("%s Webradio", "%s Webradios",\
-              int(status["webradiolength"])) % str(status["webradiolength"]),\
-            length = self._to_xml_string(status["webradiolength"]));
-        DeejaydWebradioRdf(deejayd,self.__rdf_dir).update(status["webradio"])
+        nid = DeejaydWebradioRdf(deejayd,self.__rdf_dir).\
+                    update(status["webradio"])
+        wb = ET.SubElement(self.xmlroot,"webradio", id=self._to_xml_string(nid))
+
+        wb.attrib["description"] = ngettext("%s Webradio", "%s Webradios",\
+            int(status["webradiolength"])) % str(status["webradiolength"])
 
     def set_dvd(self,status,deejayd):
-        dvd = ET.SubElement(self.xmlroot,"dvd",\
-            id = self._to_xml_string(status["dvd"]))
-        DeejaydDvdRdf(deejayd,self.__rdf_dir).update(status["dvd"])
+        nid = DeejaydDvdRdf(deejayd,self.__rdf_dir).update(status["dvd"])
+        dvd = ET.SubElement(self.xmlroot,"dvd", id=self._to_xml_string(nid))
 
     def set_video(self, status, deejayd):
-        desc = ngettext("%s Video", "%s Videos", int(status["videolength"])) %\
-            str(status["videolength"])
+        nid = DeejaydVideoRdf(deejayd,self.__rdf_dir).update(status["video"])
+        video = ET.SubElement(self.xmlroot,"video", id=self._to_xml_string(nid))
+
+        desc = ngettext("%s Video", "%s Videos",\
+            int(status["videolength"])) % str(status["videolength"])
         time = int(status["videotimelength"])
         if time > 0:
             desc += " (%s)" % format_time_long(time)
-        video = ET.SubElement(self.xmlroot,"video",\
-            id = self._to_xml_string(status["video"]),\
-            description = desc,\
-            length = self._to_xml_string(status["videolength"]))
-        DeejaydVideoRdf(deejayd,self.__rdf_dir).update(status["video"])
+        video.attrib["description"] = desc
 
     def set_videodir(self, new_id, deejayd):
-        video = ET.SubElement(self.xmlroot,"videodir",\
-            id = self._to_xml_string(new_id))
-        DeejaydVideoDirRdf(deejayd,self.__rdf_dir).update(new_id)
+        nid = DeejaydVideoDirRdf(deejayd,self.__rdf_dir).update(new_id)
+        ET.SubElement(self.xmlroot,"videodir", id = self._to_xml_string(nid))
 
     def __build_file_list(self, parent, list):
         for dir in list.get_directories():

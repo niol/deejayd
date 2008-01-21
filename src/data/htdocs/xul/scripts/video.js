@@ -13,7 +13,7 @@ var VideoLibrary = function()
     this.updateDir = function(obj)
     {
         var id = parseInt(obj.getAttribute("id"));
-        if (id > this.treeId) {
+        if (id != this.treeId) {
             this.treeId = id;
             // clear selection
             if (this.tree.view)
