@@ -93,7 +93,9 @@ class SourceFactory:
         return status
 
     def get_available_sources(self):
-        return self.sources_obj.keys()
+        modes = self.sources_obj.keys()
+        modes.remove("queue")
+        return modes
 
     def close(self):
         self.db.set_state([(self.current,"source")])
