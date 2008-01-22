@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-18 22:57+0100\n"
+"POT-Creation-Date: 2008-01-22 22:58+0100\n"
 "PO-Revision-Date: 2008-01-05 23:20+0100\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -272,16 +272,16 @@ msgstr "Impossible d'initialiser une instance de xine"
 msgid "Unable to open audio driver"
 msgstr "Impossible d'ouvrir le driver audio"
 
-#: ../deejayd/player/xine.py:100
+#: ../deejayd/player/xine.py:101
 #, python-format
 msgid "Unable to play file %s"
 msgstr "Impossible de lire le fichier %s"
 
-#: ../deejayd/player/xine.py:298
+#: ../deejayd/player/xine.py:297
 msgid "Unable to open video driver"
 msgstr "Impossible d'ouvrir le driver vidéo"
 
-#: ../deejayd/player/xine.py:381
+#: ../deejayd/player/xine.py:384
 #, python-format
 msgid "Xine error %s"
 msgstr "Erreur Xine %s"
@@ -309,6 +309,21 @@ msgstr "Le support des DVD est désactivé"
 #, python-format
 msgid "Unable to set recorded source %s"
 msgstr "Impossible de choisir la source enregistrée %s"
+
+#: ../deejayd/ui/log.py:31
+#, python-format
+msgid "ERROR - %s"
+msgstr "ERREUR - %s"
+
+#: ../deejayd/ui/log.py:38
+#, python-format
+msgid "INFO - %s"
+msgstr "INFO - %s"
+
+#: ../deejayd/ui/log.py:42
+#, python-format
+msgid "DEBUG - %s"
+msgstr "DEBUG - %s"
 
 #. common
 #: ../deejayd/webui/xmlanswer.py:49
@@ -497,56 +512,60 @@ msgstr "Hauteur"
 msgid "Subtitle"
 msgstr "Sous-titre"
 
-#: ../deejayd/webui/xmlanswer.py:165
+#: ../deejayd/webui/xmlanswer.py:168
 msgid "No"
 msgstr "Non"
 
-#: ../deejayd/webui/xmlanswer.py:165
+#: ../deejayd/webui/xmlanswer.py:168
 msgid "Yes"
 msgstr "Oui"
 
-#: ../deejayd/webui/xmlanswer.py:281
+#: ../deejayd/webui/xmlanswer.py:254
+msgid "Root Directory"
+msgstr "Répertoire Racine"
+
+#: ../deejayd/webui/xmlanswer.py:285
 #, python-format
 msgid "DVD Title : %s"
 msgstr "Titre du DVD : %s"
 
-#: ../deejayd/webui/xmlanswer.py:283
+#: ../deejayd/webui/xmlanswer.py:287
 #, python-format
 msgid "Longest Track : %s"
 msgstr "Piste la plus longue : %s"
 
-#: ../deejayd/webui/xmlanswer.py:298
+#: ../deejayd/webui/xmlanswer.py:302
 #, python-format
 msgid "Title %s"
 msgstr "Titre %s"
 
-#: ../deejayd/webui/xmlanswer.py:306
+#: ../deejayd/webui/xmlanswer.py:310
 #, python-format
 msgid "Chapter %s"
 msgstr "Chapitre %s"
 
-#: ../deejayd/webui/xmlanswer.py:352
+#: ../deejayd/webui/xmlanswer.py:360
 #, python-format
 msgid "%s Song"
 msgid_plural "%s Songs"
 msgstr[0] "%s Chanson"
 msgstr[1] "%s Chansons"
 
-#: ../deejayd/webui/xmlanswer.py:364
+#: ../deejayd/webui/xmlanswer.py:371
 #, python-format
 msgid "%s Media"
 msgid_plural "%s Medias"
 msgstr[0] "%s Média"
 msgstr[1] "%s Médias"
 
-#: ../deejayd/webui/xmlanswer.py:378
+#: ../deejayd/webui/xmlanswer.py:383
 #, python-format
 msgid "%s Webradio"
 msgid_plural "%s Webradios"
 msgstr[0] "%s Radio Web"
 msgstr[1] "%s Radios Web"
 
-#: ../deejayd/webui/xmlanswer.py:389
+#: ../deejayd/webui/xmlanswer.py:394
 #, python-format
 msgid "%s Video"
 msgid_plural "%s Videos"

@@ -251,8 +251,7 @@ class DeejaydVideoDirRdf(_DeejaydSourceRdf):
     def _build_dir_list(self, seq_elt, dir, id = "1"):
         dir_elt = ET.SubElement(seq_elt, "RDF:li")
         dir_url = "http://videodir/%s" % os.path.join("root", dir)
-        #dir_url = "http://videodir/%s" % id
-        title = dir == "" and "Root" or os.path.basename(dir)
+        title = dir == "" and _("Root Directory") or os.path.basename(dir)
         self._rdf_description(self.root, {"title": title}, dir_url)
 
         subdirs = self._deejayd.get_video_dir(dir).get_directories()

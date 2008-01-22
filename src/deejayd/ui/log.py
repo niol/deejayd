@@ -28,17 +28,17 @@ log_level = {"error": ERROR, "info": INFO, \
              "debug": DEBUG}[level]
 
 def err(err):
-    log.err("ERROR - " + err)
+    log.err(_("ERROR - %s") % err)
 
 def msg(msg):
     log.msg(msg)
 
 def info(msg):
     if log_level >= INFO:
-        log.msg("INFO - " + msg)
+        log.msg(_("INFO - %s") % msg)
 
 def debug(msg):
     if log_level >= DEBUG:
-        log.msg("DEBUG - "+ msg)
+        log.msg(_("DEBUG - %s") % msg)
 
 # vim: ts=4 sw=4 expandtab

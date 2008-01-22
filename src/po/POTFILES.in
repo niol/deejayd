@@ -10,6 +10,7 @@ deejayd/net/commandsXML.py
 deejayd/player/__init__.py
 deejayd/player/xine.py
 deejayd/sources/__init__.py
+deejayd/ui/log.py
 deejayd/webui/xmlanswer.py
 deejayd/webui/commands.py
 deejayd/webui/twisted_handler.py
