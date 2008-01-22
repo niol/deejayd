@@ -282,7 +282,7 @@ class UpdateVideoLibrary(UnknownCommand):
 
 
     def _execute(self):
-        rsp = self.deejayd_core.update_audio_library(objanswer=False)
+        rsp = self.deejayd_core.update_video_library(objanswer=False)
         return self.get_keyvalue_answer(rsp)
 
 
