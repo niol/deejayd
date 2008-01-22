@@ -693,7 +693,6 @@ class _DeejaydSocket(asyncore.dispatcher):
     def answer_received(self,rawmsg):
         try: self.deejayd._build_answer(StringIO(rawmsg))
         except SyntaxError:
-            print "error in parse answer %s" % rawmsg
             self.__error_callbacks("Unable to parse server answer : %s" %rawmsg)
             self.close()
 
