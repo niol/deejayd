@@ -38,7 +38,7 @@ class testSqliteDatabase(TestCaseWithData):
     def testGetUnexistentPlaylist(self):
         """Unexistent playlist is zero rows"""
         randomName = self.testdata.getRandomString()
-        self.assertEqual(self.db.get_playlist(randomName), [])
+        self.assertEqual(self.db.get_audiolist(randomName), [])
 
 
     def testSaveAndRetrievePlaylist(self):
@@ -55,9 +55,9 @@ class testSqliteDatabase(TestCaseWithData):
             playlistEntry['filename'] = os.path.basename(song['filename'])
             playlistContents.append(playlistEntry)
             i = i + 1
-        self.db.save_playlist(playlistContents, randomName)
+        self.db.save_medialist(playlistContents, randomName)
 
-        retrievedPlaylist = self.db.get_playlist(randomName)
+        retrievedPlaylist = self.db.get_audiolist(randomName)
 
         self.assertEqual(len(retrievedPlaylist), len(playlistContents))
         i = 0
@@ -76,22 +76,22 @@ class testSqliteDatabase(TestCaseWithData):
         """Add, delete playlists and retrieve playlist list"""
         randomName = self.testdata.getRandomString()
 
-        self.assertEqual(self.db.get_playlist(randomName), [])
+        self.assertEqual(self.db.get_audiolist(randomName), [])
 
         playlistContents = [{ 'pos':0,
                                 'dir': self.testdata.getRandomString(),
                                 'filename': self.testdata.getRandomString()}]
-        self.db.save_playlist(playlistContents, randomName)
-        self.assertNotEqual(self.db.get_playlist(randomName), [])
-        self.assert_((randomName,) in self.db.get_playlist_list())
+        self.db.save_medialist(playlistContents, randomName)
+        self.assertNotEqual(self.db.get_audiolist(randomName), [])
+        self.assert_((randomName,) in self.db.get_medialist_list())
 
         anotherRandomName = self.testdata.getRandomString()
-        self.db.save_playlist(playlistContents, anotherRandomName)
+        self.db.save_medialist(playlistContents, anotherRandomName)
 
-        self.db.delete_playlist(randomName)
-        self.assertEqual(self.db.get_playlist(randomName), [])
-        self.assert_((randomName,) not in self.db.get_playlist_list())
-        self.assert_((anotherRandomName,) in self.db.get_playlist_list())
+        self.db.delete_medialist(randomName)
+        self.assertEqual(self.db.get_audiolist(randomName), [])
+        self.assert_((randomName,) not in self.db.get_medialist_list())
+        self.assert_((anotherRandomName,) in self.db.get_medialist_list())
 
 
     def testAddWebradio(self):
