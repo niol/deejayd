@@ -73,11 +73,11 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
         self.testserver.start()
 
         # Instanciate the server object of the client library
-        self.deejaydaemon = DeejayDaemonAsync()
-        self.deejaydaemon.connect('localhost', self.testServerPort)
+        self.deejayd = DeejayDaemonAsync()
+        self.deejayd.connect('localhost', self.testServerPort)
 
         # Prepare in case we need other clients
-        self.clients = [self.deejaydaemon]
+        self.clients = [self.deejayd]
 
     def tearDown(self):
         for client in self.clients:
@@ -93,7 +93,7 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
 
     def test_ping(self):
         """Ping server asynchroneously"""
-        ans = self.deejaydaemon.ping()
+        ans = self.deejayd.ping()
         self.failUnless(ans.get_contents(),
                         'Server did not respond well to ping.')
 
@@ -103,7 +103,7 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
         def tcb(answer):
             cb_called.set()
 
-        ans = self.deejaydaemon.ping()
+        ans = self.deejayd.ping()
         ans.add_callback(tcb)
         # some seconds should be enough for the callback to be called
         cb_called.wait(4)
@@ -119,7 +119,7 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
             cb_called.set()
             self.pl = answer.get_medias()
 
-        djpl = DeejaydPlaylist(self.deejaydaemon)
+        djpl = DeejaydPlaylist(self.deejayd)
         djpl.get().add_callback(tcb)
 
         cb_called.wait(4)
@@ -137,7 +137,7 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
             self.should_stop = True
 
         def cb_update_status(answer):
-            self.deejaydaemon.get_status().add_callback(tcb_status)
+            self.deejayd.get_status().add_callback(tcb_status)
 
         djpl.add_song(self.test_audiodata.getRandomSongPaths(1)[0]).\
                 add_callback(cb_update_status)
@@ -162,9 +162,9 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
         def third_cb(answer):
             thirdcb_called.set()
 
-        self.deejaydaemon.get_audio_dir("").add_callback(first_cb)
-        self.deejaydaemon.get_playlist_list().add_callback(second_cb)
-        self.deejaydaemon.ping().add_callback(third_cb)
+        self.deejayd.get_audio_dir("").add_callback(first_cb)
+        self.deejayd.get_playlist_list().add_callback(second_cb)
+        self.deejayd.ping().add_callback(third_cb)
 
         firstcb_called.wait(2)
         self.failUnless(firstcb_called.isSet(), \
@@ -181,7 +181,7 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
         client2 = self.get_another_client()
         client2.connect('localhost', self.testServerPort)
 
-        self.failUnless(self.deejaydaemon.ping().get_contents())
+        self.failUnless(self.deejayd.ping().get_contents())
         self.failUnless(client2.ping().get_contents())
 
 
