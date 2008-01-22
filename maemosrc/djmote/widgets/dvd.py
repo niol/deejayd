@@ -30,7 +30,7 @@ class DvdBox(SourceBox):
         self.__dvd_title = None
 
     def update_status(self, status):
-        if self.__dvd_id == None or status["dvd"] > self.__dvd_id:
+        if self.__dvd_id == None or status["dvd"] != self.__dvd_id:
             self.__dvd_id = status["dvd"]
             server = self._player.get_server()
             server.get_dvd_content().add_callback(self.cb_build_content)

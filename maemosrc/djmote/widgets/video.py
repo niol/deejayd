@@ -26,33 +26,30 @@ class VideoBox(SourceBox):
 
     def __init__(self, player):
         SourceBox.__init__(self, player)
-        self.__video_dir = None
+        self.__video_id = None
         self.__video_label = None
 
     def update_status(self, status):
-        if self.__video_dir == None or status["video_dir"] != self.__video_dir:
-            self.__video_dir = status["video_dir"]
+        if self.__video_id == None or status["video"] != self.__video_id:
+            self.__video_id = status["video"]
             server = self._player.get_server()
-            server.get_video_dir(self.__video_dir).add_callback(self.cb_build)
+            self.__reset_tree()
+            server.get_videolist().add_callback(self.cb_build_list)
+            self._build_label(status)
 
     #
     # widget creation functions
     #
     def _build_tree(self):
         # ListStore
-        # id, title, path, type, icon stock id
-        video_content = gtk.ListStore(int, str, str, str, str)
+        # id, title
+        video_content = gtk.ListStore(int, str)
         self.video_view = self._create_treeview(video_content)
         self.video_view.set_fixed_height_mode(True)
 
-        col = gtk.TreeViewColumn("Filename")
+        col = gtk.TreeViewColumn("Title")
         col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        # construct icon
-        icon = gtk.CellRendererPixbuf()
-        icon.set_property("xpad",6)
-        col.pack_start(icon,expand = False)
-        col.set_attributes(icon, stock_id = 4)
-        # construct filename
+        # construct title
         title = gtk.CellRendererText()
         title.set_property("font-desc",pango.FontDescription("Sans Normal 13"))
         col.pack_start(title)
@@ -75,16 +72,12 @@ class VideoBox(SourceBox):
 
         return toolbar
 
-    def _build_label(self, video_dir):
+    def _build_label(self, status):
         self._destroy_label()
-        if video_dir != "":
-            self.__video_label = gtk.Label("current directory : %s" %\
-                 video_dir)
-            self.__video_label.modify_font(pango.\
-                FontDescription("Sans Normal 14"))
-            self.__video_label.show_all()
-            self.toolbar_box.pack_start(self.__video_label, expand = False,\
-                fill = False)
+        self.__video_label = gtk.Label("%s Videos" % status["videolength"])
+        self.__video_label.show()
+        self.toolbar_box.pack_start(self.__video_label, expand = False, \
+            fill = False)
 
     def _destroy_label(self):
         if self.__video_label:
@@ -95,7 +88,7 @@ class VideoBox(SourceBox):
     # callbacks
     #
     @gui_callback
-    def cb_build(self, answer):
+    def cb_build_list(self, answer):
         model = self.video_view.get_model()
         model.clear()
 
@@ -104,20 +97,8 @@ class VideoBox(SourceBox):
             self._player.set_error(err)
             return
 
-        if answer.root_dir != "":
-            parent_dir = os.path.dirname(answer.root_dir)
-            model.append([0,"..",parent_dir,"directory",gtk.STOCK_GOTO_TOP])
-
-        for dir in answer.get_directories():
-            path = os.path.join(self.__video_dir, dir)
-            model.append([0, dir, path, "directory", gtk.STOCK_DIRECTORY])
-
-        for file in answer.get_files():
-            path = os.path.join(self.__video_dir, file["filename"])
-            model.append([file["id"], \
-                file["filename"], path, file["type"], gtk.STOCK_FILE])
-        # update label
-        self._build_label(answer.root_dir)
+        for media in answer.get_medias():
+            model.append([media["id"], media["title"]])
 
     @gui_callback
     def cb_update_trigger(self, ans):
@@ -144,8 +125,6 @@ class VideoBox(SourceBox):
                     del self.__update_id
                     self.progress_bar.destroy()
                     del self.progress_bar
-                    self.__reset_tree()
-                    self._player.set_video_dir("")
                     self._player.set_banner("Video library has been updated")
                 else:
                     gobject.timeout_add(1000,update_verif)
@@ -159,12 +138,7 @@ class VideoBox(SourceBox):
     def cb_row_activate(self, treeview, path, view_column):
         model = treeview.get_model()
         iter = model.get_iter(path)
-        type =  model.get_value(iter,3)
-        if type == "directory":
-            self._player.set_video_dir(model.get_value(iter,2))
-            self.__reset_tree()
-        else:
-            self._player.go_to(model.get_value(iter,0))
+        self._player.go_to(model.get_value(iter,0))
 
     def cb_update_library(self,widget, data = None):
         server = self._player.get_server()
@@ -173,7 +147,6 @@ class VideoBox(SourceBox):
     def __reset_tree(self):
         model = self.video_view.get_model()
         model.clear()
-        model.append([0, "Update video dir/file list..","","message",\
-                gtk.STOCK_REFRESH])
+        model.append([0, "Update video list.."])
 
 # vim: ts=4 sw=4 expandtab

@@ -31,7 +31,7 @@ class WebradioBox(SourceBox, DeejaydWebradioList):
         self.__webradio_label = None
 
     def update_status(self, status):
-        if self.__wb_id == None or status["webradio"] > self.__wb_id:
+        if self.__wb_id == None or status["webradio"] != self.__wb_id:
             self.__wb_id = status["webradio"]
             self._build_label(status)
             self.get().add_callback(self.cb_build_list)

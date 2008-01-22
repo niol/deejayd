@@ -33,7 +33,7 @@ class PlaylistBox(SourceBox, DeejaydPlaylist):
         self.__pl_length = 0
 
     def update_status(self, status):
-        if self.__pl_id == None or status["playlist"] > self.__pl_id:
+        if self.__pl_id == None or status["playlist"] != self.__pl_id:
             self.__pl_id = status["playlist"]
             self.__pl_length = status["playlistlength"]
             self._build_pager()
