@@ -19,6 +19,9 @@
 import os
 import random, urllib
 
+from deejayd.component import SignalingComponent
+
+
 class MediaNotFoundError(Exception):pass
 class PlaylistNotFoundError(Exception):pass
 
@@ -183,10 +186,11 @@ class MediaList(SimpleMediaList):
         self._update_list_id()
 
 
-class _BaseSource:
+class _BaseSource(SignalingComponent):
     name = "unknown"
 
     def __init__(self, db):
+        SignalingComponent.__init__(self)
         self.db = db
         self._current = None
         self._played = []

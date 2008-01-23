@@ -16,7 +16,10 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+
 import time, random
+import threading
+
 from deejayd.interfaces import DeejaydError
 
 
@@ -299,5 +302,156 @@ class InterfaceTests:
         self.deejayd.dvd_reload().get_contents()
         status = self.deejayd.get_status().get_contents()
         self.assertEqual(status["dvd"], dvd_id + 1)
+
+
+class InterfaceSubscribeTests:
+    """Test the subscription interface. This is for the core and the async client only."""
+
+    def test_subscription(self):
+        """Checks that signals subscriptions get in and out."""
+        server_notification = threading.Event()
+
+        self.assertEqual(self.deejayd.get_subscriptions(), {})
+
+        sub_id = self.deejayd.subscribe('player.status',
+                                        lambda x: server_notification.set())
+        self.failUnless((sub_id, 'player.status')\
+                        in self.deejayd.get_subscriptions().items())
+
+        self.deejayd.unsubscribe(sub_id)
+        self.assertEqual(self.deejayd.get_subscriptions(), {})
+
+    def generic_sub_bcast_test(self, signal_name, trigger, trigger_args=()):
+        """Checks that signal_name signal is broadcast when one of the trigger is involved."""
+        server_notification = threading.Event()
+
+        sub_id = self.deejayd.subscribe(signal_name,
+                                        lambda x: server_notification.set())
+
+        ans = trigger(*trigger_args)
+        if ans:
+            ans.get_contents()
+        server_notification.wait(4)
+        self.failUnless(server_notification.isSet(),
+                        '%s signal was not broadcasted by %s.'\
+                        % (signal_name, trigger.__name__))
+        server_notification.clear()
+
+        self.deejayd.unsubscribe(sub_id)
+
+    def test_sub_broadcast_player_status(self):
+        """Checks that player.status signals are broadcasted."""
+
+        trigger_list = ((self.deejayd.play_toggle, ()),
+                        (self.deejayd.stop, ()),
+                        (self.deejayd.set_option, ('random', 1)),
+                        (self.deejayd.set_option, ('repeat', 1)),
+                        (self.deejayd.set_volume, (51, )),
+                        (self.deejayd.seek, (5, )),
+                       )
+
+        for trig in trigger_list:
+            self.generic_sub_bcast_test('player.status', trig[0], trig[1])
+
+    def test_sub_broadcast_player_current(self):
+        """Checks that player.current signals are broadcasted."""
+
+        trigger_list = ((self.deejayd.next, ()),
+                        (self.deejayd.previous, ())
+                       )
+
+        for trig in trigger_list:
+            self.generic_sub_bcast_test('player.current', trig[0], trig[1])
+
+    def test_sub_broadcast_player_plupdate(self):
+        """Checks that player.plupdate signals are broadcasted."""
+
+        djpl = self.deejayd.get_playlist()
+        ans = self.deejayd.get_audio_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+
+        trigger_list = ((djpl.add_songs, ([dir], )),
+                        (djpl.shuffle, ()),
+                        (djpl.clear, ()),
+                       )
+
+        for trig in trigger_list:
+            self.generic_sub_bcast_test('player.plupdate', trig[0], trig[1])
+
+    def test_sub_broadcast_playlist_update(self):
+        """Checks that playlist.update signals are broadcasted."""
+
+        djpl = self.deejayd.get_playlist()
+        ans = self.deejayd.get_audio_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+        djpl.add_songs([dir]).get_contents()
+
+        test_pl_name = self.testdata.getRandomString()
+
+        self.generic_sub_bcast_test('playlist.update',
+                                    djpl.save, (test_pl_name, ))
+
+        saved_djpl = self.deejayd.get_playlist(test_pl_name)
+
+        trigger_list = ((saved_djpl.shuffle, ()),
+                        (saved_djpl.clear, ()),
+                        (self.deejayd.erase_playlist, ([test_pl_name], )),
+                       )
+
+        for trig in trigger_list:
+            self.generic_sub_bcast_test('playlist.update', trig[0], trig[1])
+
+    def test_sub_broadcast_webradio_listupdate(self):
+        """Checks that webradio.listupdate signals are broadcasted."""
+
+        wr_list = self.deejayd.get_webradios()
+        test_wr_name = self.testdata.getRandomString()
+        test_wr_urls = 'http://' + self.testdata.getRandomString(50)
+
+        self.generic_sub_bcast_test('webradio.listupdate',
+                                    wr_list.add_webradio,
+                                    (test_wr_name, test_wr_urls))
+
+        retrieved_wr = [wr for wr in wr_list.get().get_medias()\
+                           if wr['title'] == test_wr_name + '-1'][0]
+        self.generic_sub_bcast_test('webradio.listupdate',
+                                    wr_list.delete_webradio,
+                                    (retrieved_wr['id'], ))
+
+    def test_sub_broadcast_queue_update(self):
+        """Checks that queue.update signals are broadcasted."""
+
+        q = self.deejayd.get_queue()
+
+        ans = self.deejayd.get_audio_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+
+        self.generic_sub_bcast_test('queue.update', q.add_medias, ([dir], ))
+
+        retrieved_song_id = [song['id'] for song in q.get().get_medias()]
+        self.generic_sub_bcast_test('queue.update',
+                                    q.del_songs, (retrieved_song_id, ))
+
+    def test_sub_broadcast_dvd_update(self):
+        """Checks that dvd.update signals are broadcasted."""
+        self.generic_sub_bcast_test('dvd.update', self.deejayd.dvd_reload, ())
+
+    def test_sub_broadcast_mode(self):
+        """Checks that mode signals are broadcasted."""
+        self.generic_sub_bcast_test('mode', self.deejayd.set_mode, ('video', ))
+
+    def test_sub_broadcast_mediadb_aupdate(self):
+        """Checks that mediadb.aupdate signals are broadcasted."""
+
+        # This is tested only using inotify support
+        self.generic_sub_bcast_test('mediadb.aupdate',
+                                    self.test_audiodata.addMedia)
+
+    def test_sub_broadcast_mediadb_vupdate(self):
+        """Checks that mediadb.vupdate signals are broadcasted."""
+        # This is tested only using inotify support
+        self.generic_sub_bcast_test('mediadb.vupdate',
+                                    self.test_videodata.addMedia)
+
 
 # vim: ts=4 sw=4 expandtab

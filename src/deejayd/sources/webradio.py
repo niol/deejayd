@@ -85,7 +85,12 @@ class WebradioSource(_BaseSource):
                           "type":"webradio"})
             i += 1
         self._media_list.add_media(medias)
+        self.dispatch_signame('webradio.listupdate')
         return True
+
+    def delete(self, id):
+        _BaseSource.delete(self, id)
+        self.dispatch_signame('webradio.listupdate')
 
     def get_status(self):
         return [

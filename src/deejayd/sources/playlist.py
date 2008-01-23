@@ -60,6 +60,7 @@ class PlaylistSource(_BaseSource):
         for pls in playlists:
             self._media_list.load_playlist(pls,\
                 self.library.get_root_path(), pos)
+        self.dispatch_signame('player.current')
 
     @playlist_action
     def get_content(self,playlist = None):
@@ -81,16 +82,28 @@ class PlaylistSource(_BaseSource):
                 except NotFoundException: raise MediaNotFoundError
 
         media_list.add_media(songs,pos)
+        if playlist:
+            self.dispatch_signame('playlist.update')
+        else:
+            self.dispatch_signame('player.plupdate')
 
     @playlist_action
     def shuffle(self, playlist = None):
         media_list = playlist or self._media_list
         media_list.shuffle()
+        if playlist:
+            self.dispatch_signame('playlist.update')
+        else:
+            self.dispatch_signame('player.plupdate')
 
     @playlist_action
     def move(self, id, new_pos, type = "id", playlist = None):
         media_list = playlist or self._media_list
         media_list.move(id, new_pos, type)
+        if playlist:
+            self.dispatch_signame('playlist.update')
+        else:
+            self.dispatch_signame('player.plupdate')
 
     @playlist_action
     def clear(self, playlist = None):
@@ -98,18 +111,31 @@ class PlaylistSource(_BaseSource):
         if playlist == None:
             self._current = None
         media_list.clear()
+        if playlist:
+            self.dispatch_signame('playlist.update')
+        else:
+            self.dispatch_signame('player.plupdate')
 
     @playlist_action
     def delete(self, id, type = "id", playlist = None):
         media_list = playlist or self._media_list
         media_list.delete(id, type)
+        if playlist:
+            self.dispatch_signame('playlist.update')
+        else:
+            self.dispatch_signame('player.plupdate')
 
     def save(self, playlist_name):
         self.db.delete_medialist(playlist_name)
         self.db.save_medialist(self._media_list.get(), playlist_name)
+        if playlist_name == self.pls_name:
+            self.dispatch_signame('player.plupdate')
+        else:
+            self.dispatch_signame('playlist.update')
 
     def rm(self, playlist_name):
         self.db.delete_medialist(playlist_name)
+        self.dispatch_signame('playlist.update')
 
     def close(self):
         _BaseSource.close(self)

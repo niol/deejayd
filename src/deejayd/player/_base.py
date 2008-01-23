@@ -17,15 +17,18 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os,subprocess
+
+from deejayd.component import SignalingComponent
 from deejayd.player import PlayerError
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-class UnknownPlayer:
+class UnknownPlayer(SignalingComponent):
 
-    def __init__(self,db,config):
+    def __init__(self, db, config):
+        SignalingComponent.__init__(self)
         self.config = config
         self.db = db
 
@@ -61,6 +64,7 @@ class UnknownPlayer:
             self._change_file(file)
         elif self.get_state() in (PLAYER_PAUSE, PLAYER_PLAY):
             self.pause()
+        self.dispatch_signame('player.status')
 
     def pause(self):
         raise NotImplementedError
@@ -72,6 +76,7 @@ class UnknownPlayer:
         self.stop()
         self._media_file = new_file
         self.start_play()
+        self.dispatch_signame('player.current')
 
     def next(self):
         self._change_file(self._source.next(self.options["random"],\
@@ -144,6 +149,7 @@ class UnknownPlayer:
         if name not in self.options.keys():
             raise PlayerError
         self.options[name] = value
+        self.dispatch_signame('player.status')
 
     def is_playing(self):
         return self.get_state() != PLAYER_STOP

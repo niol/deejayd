@@ -38,6 +38,11 @@ class QueueSource(_BaseSource):
                 except NotFoundException: raise MediaNotFoundError
 
         self._media_list.add_media(medias, pos)
+        self.dispatch_signame('queue.update')
+
+    def delete(self, id):
+        _BaseSource.delete(self, id)
+        self.dispatch_signame('queue.update')
 
     def load_playlist(self, playlists, pos = None):
         for pls in playlists:

@@ -16,14 +16,17 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+
+from deejayd.component import SignalingComponent
 from deejayd.player._base import PlayerError
 
 class DvdError(Exception): pass
 
-class DvdSource:
+class DvdSource(SignalingComponent):
     name = "dvd"
 
     def __init__(self, player, db, config):
+        SignalingComponent.__init__(self)
         self.player = player
         self.db = db
         self.current_id = int(self.db.get_state("dvdid"))
@@ -52,6 +55,7 @@ class DvdSource:
             raise DvdError("Unable to load the dvd : %s " % err)
         # select the default track of the dvd
         self.select_track()
+        self.dispatch_signame('dvd.update')
 
     def select_track(self,nb = None,alang_idx = None, slang_idx = None):
         if not self.dvd_info: return

@@ -236,6 +236,8 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
 class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     def __init__(self, config=None):
+        deejayd.interfaces.DeejaydCore.__init__(self)
+
         if not config:
             config = DeejaydConfig()
 
@@ -243,12 +245,19 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         self.db.connect()
 
         self.player = player.init(self.db, config)
+        self.player.register_dispatcher(self)
 
         self.audio_library,self.video_library, self.watcher = \
             mediadb.init(self.db, self.player,config)
+        self.audio_library.register_dispatcher(self)
+        if self.video_library:
+            self.video_library.register_dispatcher(self)
 
         self.sources = sources.init(self.player, self.db, self.audio_library,
                                              self.video_library, config)
+        self.sources.register_dispatcher(self)
+        for source in self.sources.sources_obj.values():
+            source.register_dispatcher(self)
 
         # start inotify thread when we are sure that all init stuff are ok
         if self.watcher:

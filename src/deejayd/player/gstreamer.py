@@ -176,12 +176,15 @@ class GstreamerPlayer(UnknownPlayer):
             self.deejayd_window.destroy()
             self.deejayd_window = None
 
+        self.dispatch_signame('player.status')
+
     def get_volume(self):
         return int(self.bin.get_property('volume')*100)
 
     def set_volume(self,vol):
         v = float(vol)/100
         self.bin.set_property('volume', v)
+        self.dispatch_signame('player.status')
 
     def get_position(self):
         if gst.STATE_NULL != self.__get_gst_state() and \
@@ -203,6 +206,7 @@ class GstreamerPlayer(UnknownPlayer):
                 gst.SEEK_FLAG_ACCURATE, gst.SEEK_TYPE_SET, gst_time, \
                 gst.SEEK_TYPE_NONE, 0)
             self.bin.send_event(event)
+            self.dispatch_signame('player.status')
 
     def _player_get_alang(self):
         return self.bin.get_property("current-audio")

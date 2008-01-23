@@ -19,13 +19,14 @@
 import os
 
 from testdeejayd import TestCaseWithAudioAndVideoData
-from testdeejayd.coreinterface import InterfaceTests
+from testdeejayd.coreinterface import InterfaceTests, InterfaceSubscribeTests
 
 from deejayd.core import DeejayDaemonCore
 from deejayd.ui.config import DeejaydConfig
 
 
-class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests):
+class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests,
+                                              InterfaceSubscribeTests):
     """Test the deejayd daemon core."""
 
     def setUp(self):

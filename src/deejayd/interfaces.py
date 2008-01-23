@@ -206,8 +206,38 @@ class DeejaydPlaylist:
         raise NotImplementedError
 
 
+class DeejaydSignal:
+
+    SIGNALS = ('player.status',       # Player status change (play/pause/stop/
+                                      # random/repeat/volume/manseek)
+               'player.current',      # Currently played song
+               'player.plupdate',     # The current playlist has changed
+               'playlist.update',     # The stored playlist list has changed
+                                      # (either a saved playlist has been saved
+                                      # or deleted).
+               'webradio.listupdate',
+               'queue.update',
+               'dvd.update',
+               'mode',                # Mode change
+               'mediadb.aupdate',     # Media library audio update
+               'mediadb.vupdate',     # Media library video update
+              )
+
+    def __init__(self, name=None):
+        self.name = name
+
+    def set_name(self, name):
+        self.name = name
+
+    def get_name(self):
+        return self.name
+
+
 class DeejaydCore:
     """Abstract class for a deejayd core."""
+
+    def __init__(self):
+        self._clear_subscriptions()
 
     def ping(self):
         raise NotImplementedError
@@ -298,6 +328,44 @@ class DeejaydCore:
 
     def get_dvd_content(self):
         raise NotImplementedError
+
+    def __get_next_sub_id(self):
+        sub_id = self.__sub_id_counter
+        self.__sub_id_counter = self.__sub_id_counter + 1
+        return sub_id
+
+    def subscribe(self, signal_name, callback):
+        """Subscribe to a signal with a callback. Returns an id."""
+        if signal_name not in DeejaydSignal.SIGNALS:
+            return DeejaydError('Unknown signal provided for subscription.')
+
+        sub_id = self.__get_next_sub_id()
+        self.__sig_subscriptions[sub_id] = (signal_name, callback)
+        return sub_id
+
+    def unsubscribe(self, sub_id):
+        """Unsubscribe using the provied id."""
+        try:
+            del self.__sig_subscriptions[sub_id]
+        except IndexError:
+            raise DeejaydError('Unknown subscription id')
+
+    def get_subscriptions(self):
+        """Get the list of currently subcribed signals for this instance."""
+        return dict([(sub_id, sub[0]) for (sub_id, sub)\
+                                      in self.__sig_subscriptions.items()])
+
+    def _clear_subscriptions(self):
+        self.__sig_subscriptions = {}
+        self.__sub_id_counter = 0
+
+    def _dispatch_signal(self, signal):
+        for cb in [sub[1] for sub in self.__sig_subscriptions.values()\
+                                  if sub[0] == signal.get_name()]:
+            cb(signal)
+
+    def _dispatch_signame(self, signal_name):
+        self._dispatch_signal(DeejaydSignal(signal_name))
 
 
 # vim: ts=4 sw=4 expandtab

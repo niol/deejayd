@@ -18,10 +18,12 @@
 # -*- coding: utf-8 -*-
 
 import os, sys, threading
+from twisted.internet import threads
+
+from deejayd.component import SignalingComponent
 from deejayd.mediadb import formats
 from deejayd import database
 from deejayd.ui import log
-from twisted.internet import threads
 
 class NotFoundException(Exception):pass
 class NotSupportedFormat(Exception):pass
@@ -109,18 +111,21 @@ def inotify_action(func):
             self.inotify_db.record_mediadb_stats(self.type)
             self.inotify_db.set_update_time(self.type)
             self.inotify_db.connection.commit()
+            self.dispatch_signame(self.update_signal_name)
 
         self.mutex.release()
 
     return inotify_action_func
 
-class _Library:
+class _Library(SignalingComponent):
     ext_dict = {}
     table = None
     type = None
     file_class = None
 
     def __init__(self, db_connection, player, path):
+        SignalingComponent.__init__(self)
+
         # init Parms
         self._update_id = 0
         self._update_end = True
@@ -212,6 +217,7 @@ class _Library:
                 self.defered.addErrback(error_handler,self)
 
                 self.defered.unpause()
+            self.dispatch_signame(self.update_signal_name)
             return self._update_id
 
         return 0
@@ -413,6 +419,7 @@ class AudioLibrary(_Library):
     table = "audio_library"
     type = "audio"
     file_class = DeejaydAudioFile
+    update_signal_name = 'mediadb.aupdate'
 
     def _build_supported_extension(self, player):
         self.ext_dict = formats.get_audio_extensions(player)
@@ -454,6 +461,7 @@ class VideoLibrary(_Library):
     table = "video_library"
     type = "video"
     file_class = DeejaydVideoFile
+    update_signal_name = 'mediadb.vupdate'
 
     def search(self, content):
         rs = self.db_con.search_video_library(content)

@@ -17,15 +17,18 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import sys
+
+from deejayd.component import SignalingComponent
 from deejayd.ui import log
 from deejayd.player import PlayerError
 
 class UnknownSourceException: pass
 
-class SourceFactory:
+class SourceFactory(SignalingComponent):
     sources_list = ("playlist","queue","webradio","video","dvd")
 
     def __init__(self,player,db,audio_library,video_library,config):
+        SignalingComponent.__init__(self)
         self.sources_obj = {}
         self.current = ""
         self.db = db
@@ -83,6 +86,7 @@ class SourceFactory:
             raise UnknownSourceException
 
         self.current = s
+        self.dispatch_signame('mode')
         return True
 
     def get_status(self):
