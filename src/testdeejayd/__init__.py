@@ -21,35 +21,35 @@ import unittest
 from testdeejayd.databuilder import TestData, TestMediaCollection
 
 
-class TestCaseWithData(unittest.TestCase):
+class DeejaydTest(unittest.TestCase):
 
     def setUp(self):
         from deejayd.ui.i18n import DeejaydTranslations
         t = DeejaydTranslations()
         t.install()
 
+
+class TestCaseWithData(DeejaydTest):
+
+    def setUp(self):
+        DeejaydTest.setUp(self)
         self.testdata = TestData()
 
 
-class TestCaseWithMediaData(unittest.TestCase):
+class TestCaseWithMediaData(DeejaydTest):
 
     def setUp(self):
-        from deejayd.ui.i18n import DeejaydTranslations
-        t = DeejaydTranslations()
-        t.install()
-
+        DeejaydTest.setUp(self)
         self.testdata = TestMediaCollection()
 
     def tearDown(self):
         self.testdata.cleanLibraryDirectoryTree()
 
 
-class TestCaseWithAudioAndVideoData(unittest.TestCase):
+class TestCaseWithAudioAndVideoData(DeejaydTest):
 
     def setUp(self):
-        from deejayd.ui.i18n import DeejaydTranslations
-        t = DeejaydTranslations()
-        t.install()
+        DeejaydTest.setUp(self)
 
         self.testdata = TestData()
         # audio library
