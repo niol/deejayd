@@ -14,7 +14,7 @@
             <tree
                 id="videodir-tree"
                 ref="http://videodir/all-content"
-                onselect = "videolib_ref.setDirectory(event);"
+                onclick = "videolib_ref.setDirectory(event);"
                 datasources="rdf:null"
                 hidecolumnpicker="true"
                 seltype="single"
@@ -22,6 +22,9 @@
                 <treecols>
                     <treecol hideheader="true" id="videodir-title"
                         flex="1" primary="true"/>
+                    <treecol hideheader="true"
+                        width="30px"
+                        id="videodir-select"/>
                 </treecols>
 
                 <template>
@@ -33,6 +36,7 @@
                                 <treecell
                                     properties="folder"
                                     label="rdf:http://videodir/rdf#title"/>
+                                <treecell properties="videodir-select"/>
                             </treerow>
                         </treeitem>
                     </treechildren>

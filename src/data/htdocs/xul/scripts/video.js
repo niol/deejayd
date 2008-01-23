@@ -26,10 +26,20 @@ var VideoLibrary = function()
 
     this.setDirectory = function(evt)
     {
-        var dir_item = this.tree.contentView.getItemAtIndex(
-                            this.tree.currentIndex);
-        var dir = dir_item.id.replace("http://videodir/root/", "");
-        ajaxdj_ref.send_post_command("videoset",{type:"directory", value:dir});
+        var childElement = {}, rowObject = {}, columnObject = {};
+        this.tree.treeBoxObject.getCellAt(evt.clientX, evt.clientY, rowObject,
+            columnObject, childElement);
+
+        if (columnObject.value && rowObject.value != -1) {
+            if (columnObject.value.index != 1)
+                return true;
+            var dir_item = this.tree.contentView.getItemAtIndex(
+                                rowObject.value);
+            var dir = dir_item.id.replace("http://videodir/root/", "");
+            ajaxdj_ref.send_post_command("videoset",
+                {type:"directory", value:dir});
+            }
+        return true;
     };
 
     this.search = function()
