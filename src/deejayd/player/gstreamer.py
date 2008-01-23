@@ -30,10 +30,10 @@ from deejayd.player._base import *
 from deejayd.ui import log
 
 class GstreamerPlayer(UnknownPlayer):
+    name = 'gstreamer'
 
-    def __init__(self,db,config):
-        self.name = "gstreamer"
-        UnknownPlayer.__init__(self,db,config)
+    def __init__(self, db, config):
+        UnknownPlayer.__init__(self, db, config)
 
         # Open a Audio pipeline
         pipeline_dict = {"alsa":"alsasink", "oss":"osssink",\
