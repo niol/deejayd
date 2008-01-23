@@ -49,7 +49,7 @@ class DvdSource:
 
         try: self.dvd_info = self.player.get_dvd_info()
         except PlayerError, err:
-            raise DvdError("Unable to load the dvd %s " % err)
+            raise DvdError("Unable to load the dvd : %s " % err)
         # select the default track of the dvd
         self.select_track()
 
