@@ -485,7 +485,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         ans = DeejaydFileList(self)
         return self._send_command(cmd, ans)
 
-    def set_video(self, value, type = "audio"):
+    def set_video(self, value, type = "directory"):
         cmd = DeejaydXMLCommand('setvideo')
         cmd.add_simple_arg('value', value)
         cmd.add_simple_arg('type', type)

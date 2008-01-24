@@ -45,4 +45,11 @@ def format_time_long(time):
     if len(time_str) > 2: time_str.pop()
     return ", ".join(time_str)
 
+
+ngettext("%d second", "%d seconds", 1)
+ngettext("%d minute", "%d minutes", 1)
+ngettext("%d hour", "%d hours", 1)
+ngettext("%d day", "%d days", 1)
+ngettext("%d year", "%d years", 1)
+
 # vim: ts=4 sw=4 expandtab

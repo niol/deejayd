@@ -24,7 +24,7 @@ class QueueSource(_BaseSource):
 
     def __init__(self, db, audio_library, video_library):
         _BaseSource.__init__(self,db)
-        self._media_list = MediaList(db, self.get_recorded_id())
+        self._media_list = MediaList(db, self.get_recorded_id() + 1)
         self.audio_lib = audio_library
         self.video_lib = video_library
 

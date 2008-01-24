@@ -437,7 +437,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         return contents
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def set_video(self, value, type):
+    def set_video(self, value, type = "directory"):
         try: self.sources.get_source("video").set(type, value)
         except deejayd.sources._base.MediaNotFoundError:
             raise DeejaydError(_('Directory %s not found in database') % dir)

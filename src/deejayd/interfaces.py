@@ -320,7 +320,7 @@ class DeejaydCore:
     def get_videolist(self):
         raise NotImplementedError
 
-    def set_video(self, value, type):
+    def set_video(self, value, type = "directory"):
         raise NotImplementedError
 
     def dvd_reload(self):

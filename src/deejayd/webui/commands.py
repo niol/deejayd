@@ -437,11 +437,11 @@ class QueueLoad(_UnknownCommand):
 class QueueRemove(_UnknownCommand):
     name = "queueRemove"
     method = "post"
-    command_args = [{"name":"id","type":"int","req":True},]
+    command_args = [{"name":"ids","type":"int","req":True},]
 
     def execute(self):
         queue = self._deejayd.get_queue()
-        queue.del_songs(self._args["id"]).get_contents()
+        queue.del_songs(self._args["ids"]).get_contents()
 
 class QueueClear(_UnknownCommand):
     name = "queueClear"

@@ -45,7 +45,7 @@ class InterfaceTests:
 
     def testGetMode(self):
         """Test getMode command"""
-        known_keys = ("queue","playlist","dvd","webradio","video")
+        known_keys = ("playlist","dvd","webradio","video")
         ans = self.deejayd.get_mode()
         for k in known_keys:
             self.failUnless(k in ans.get_contents().keys())
@@ -287,6 +287,8 @@ class InterfaceTests:
         self.deejayd.previous().get_contents()
         status = self.deejayd.get_status().get_contents()
         self.assertEqual(status["state"], "play")
+        # seek command
+        self.deejayd.seek(1).get_contents()
 
         # test get_current command
         cur = self.deejayd.get_current().get_medias()
