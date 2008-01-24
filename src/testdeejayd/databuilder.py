@@ -56,9 +56,8 @@ class TestSong(TestData):
         self.tags = {}
 
     def build(self,path):
-        shutil.copy(self.testFile,path)
         filename = os.path.join(path, self.name)
-        os.rename(os.path.join(path, os.path.basename(self.testFile)), filename)
+        shutil.copy(self.testFile, filename)
         self.tags["filename"] = filename
 
         self.setRandomTag()
