@@ -78,58 +78,58 @@ class DeejaydAnswer(deejayd.interfaces.DeejaydAnswer):
         return self.originating_command
 
 
-class DeejaydKeyValue(deejayd.interfaces.DeejaydKeyValue, DeejaydAnswer):
+class DeejaydKeyValue(DeejaydAnswer, deejayd.interfaces.DeejaydKeyValue):
 
     def __init__(self, server=None):
         DeejaydAnswer.__init__(self, server)
 
     def __getitem__(self, name):
-        self.get_contents()
+        self.wait()
         return deejayd.interfaces.DeejaydKeyValue.__getitem__(self, name)
 
     def keys(self):
-        self.get_contents()
+        self.wait()
         return deejayd.interfaces.DeejaydKeyValue.keys(self)
 
     def items(self):
-        self.get_contents()
+        self.wait()
         return deejayd.interfaces.DeejaydKeyValue.items(self)
 
 
-class DeejaydFileList(deejayd.interfaces.DeejaydFileList, DeejaydAnswer):
+class DeejaydFileList(DeejaydAnswer, deejayd.interfaces.DeejaydFileList):
 
     def __init__(self, server = None):
         deejayd.interfaces.DeejaydFileList.__init__(self)
         DeejaydAnswer.__init__(self, server)
 
     def get_files(self):
-        self.get_contents()
+        self.wait()
         return deejayd.interfaces.DeejaydFileList.get_files(self)
 
     def get_directories(self):
-        self.get_contents()
+        self.wait()
         return deejayd.interfaces.DeejaydFileList.get_directories(self)
 
 
-class DeejaydMediaList(deejayd.interfaces.DeejaydMediaList, DeejaydAnswer):
+class DeejaydMediaList(DeejaydAnswer, deejayd.interfaces.DeejaydMediaList):
 
     def __init__(self, server = None):
         deejayd.interfaces.DeejaydMediaList.__init__(self)
         DeejaydAnswer.__init__(self, server)
 
     def get_medias(self):
-        self.get_contents()
+        self.wait()
         return deejayd.interfaces.DeejaydMediaList.get_medias(self)
 
 
-class DeejaydDvdInfo(deejayd.interfaces.DeejaydDvdInfo, DeejaydAnswer):
+class DeejaydDvdInfo(DeejaydAnswer, deejayd.interfaces.DeejaydDvdInfo):
 
     def __init__(self, server = None):
         deejayd.interfaces.DeejaydDvdInfo.__init__(self)
         DeejaydAnswer.__init__(self, server)
 
     def get_dvd_contents(self):
-        self.get_contents()
+        self.wait()
         return  deejayd.interfaces.DeejaydDvdInfo.get_dvd_contents(self)
 
 
