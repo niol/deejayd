@@ -268,10 +268,13 @@ class AudioUpdateCheck(_Library):
             self._answer.set_update_library(self._args["id"], "audio")
         else:
             self._answer.set_update_library(self._args["id"], "audio", "0")
-            self._answer.set_msg(_("The audio library has been updated"))
+            if "audio_updating_error" in status.keys():
+                self._answer.set_error(status["audio_updating_error"])
+            else:
+                self._answer.set_msg(_("The audio library has been updated"))
 
-            files_list = self._deejayd.get_audio_dir()
-            self._answer.set_audiofile_list(files_list, "")
+                files_list = self._deejayd.get_audio_dir()
+                self._answer.set_audiofile_list(files_list, "")
 
 class VideoUpdateCheck(_Library):
     name = "video_update_check"
@@ -284,11 +287,14 @@ class VideoUpdateCheck(_Library):
             self._answer.set_update_library(self._args["id"], "video")
         else:
             self._answer.set_update_library(self._args["id"], "video", "0")
-            self._answer.set_msg(_("The video library has been updated"))
+            if "video_updating_error" in status.keys():
+                self._answer.set_error(status["video_updating_error"])
+            else:
+                self._answer.set_msg(_("The video library has been updated"))
 
-            stats = self._deejayd.get_stats()
-            self._answer.set_videodir(stats["video_library_update"],\
-                self._deejayd)
+                stats = self._deejayd.get_stats()
+                self._answer.set_videodir(stats["video_library_update"],\
+                    self._deejayd)
 
 class GetAudioDir(_Library):
     name = "getdir"
