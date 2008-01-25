@@ -4,26 +4,6 @@ deejayd
 Actual version : 0.5.0
 ----------------------
 
-changes since 0.4.1
---------------------
-  * xine backend : close stream when no media has been played
-  * integrate webui in deejayd. Ajaxdj is useless now
-  * support all commands in library client and djc
-  * A lot of cleanups and bugfixes
-
-changes since 0.4.0
---------------------
-  * Fix bugs in mediadb and video source
-  * Fix documentation generation and update it
-
-changes since 0.2.0
---------------------
-  * Add dvd support
-  * Add a python library client
-  * Add a command line client : djc
-  * Improve performance and memory usage with the use of celementtree module
-  * A lot of cleanups and bugfixes
-
 Description:
 ------------
 deejayd is an media player written in python and based on twisted.

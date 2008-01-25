@@ -1,0 +1,40 @@
+
+New features and significant updates in version...
+
+0.6.0 (Not released)
+--------------------
+  * rewrite xine backend to use ctypes
+  * improve video mode
+  * add signaling support
+
+0.5.0 (2007-12-26)
+------------------
+  * xine backend : close stream when no media has been played
+  * integrate webui in deejayd. Ajaxdj is useless now
+  * support all commands in library client and djc
+  * A lot of cleanups and bugfixes
+
+0.4.1 (2007-11-11)
+------------------
+  * Fix bugs in mediadb and video source
+  * Fix documentation generation and update it
+
+0.4.0 (2007-11-04)
+------------------
+  * Add dvd support
+  * Add a python library client
+  * Add a command line client : djc
+  * Improve performance and memory usage with the use of celementtree module
+  * A lot of cleanups and bugfixes
+
+0.2.0 (2007-06-24)
+------------------
+  * Add a song queue
+  * Add video support
+  * Add xine backend
+  * Rewrite library
+  * A lot of cleanups and bugfixes
+
+0.1.0 (2007-02-28)
+------------------
+  * First release !!
