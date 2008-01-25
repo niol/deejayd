@@ -28,7 +28,7 @@ except ImportError: # python 2.4
 from Queue import Queue, Empty
 
 import deejayd.interfaces
-from deejayd.interfaces import DeejaydError, DeejaydKeyValue
+from deejayd.interfaces import DeejaydError, DeejaydKeyValue, DeejaydSignal
 from deejayd.net.xmlbuilders import DeejaydXMLCommand
 
 
@@ -271,6 +271,8 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     """Abstract class for a deejay daemon client."""
 
     def __init__(self):
+        deejayd.interfaces.DeejaydCore.__init__(self)
+
         self.__timeout = 2
         self.expected_answers_queue = Queue()
         self.next_msg = ""
@@ -510,12 +512,15 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         originating_command = ''
         parms = {}
         answer = True
+        signal = None
         for event, elem in ET.iterparse(string_io,events=("start","end")):
             if event == "start":
                 xmlpath.append(elem.tag)
-
-                if elem.tag in ('error', 'response') and len(xmlpath) == 2:
-                    expected_answer = self.expected_answers_queue.get()
+                if len(xmlpath) == 2:
+                    if elem.tag in ('error', 'response'):
+                        expected_answer = self.expected_answers_queue.get()
+                    elif elem.tag == 'signal':
+                        signal = DeejaydSignal()
                 elif elem.tag in ("directory","file","media"):
                      assert xmlpath == ['deejayd', 'response',elem.tag]
                 elif elem.tag == "track":
@@ -533,6 +538,10 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
 
                 if elem.tag in ('error','response'):
                     expected_answer.set_originating_command(elem.attrib['name'])
+                elif elem.tag == 'signal':
+                    signal.set_name(elem.attrib['name'])
+                    self._dispatch_signal(signal)
+                    signal = None
 
                 if elem.tag == "error":
                     expected_answer.set_error(elem.text)
@@ -604,6 +613,10 @@ class DeejayDaemonSync(_DeejayDaemon):
         except SyntaxError:
             raise DeejaydError("Unable to parse server answer : %s" % rawmsg)
         return expected_answer
+
+    # No subscription for the sync client
+    def subscribe(self, signal_name, callback): raise NotImplementedError
+    def unsubscribe(self, sub_id): raise NotImplementedError
 
 
 class _DeejaydSocket(asyncore.dispatcher):
@@ -817,6 +830,33 @@ class DeejayDaemonAsync(_DeejayDaemon):
         self.expected_answers_queue.put(expected_answer)
         self.command_queue.put(cmd)
         return expected_answer
+
+    def subscribe(self, signal_name, callback):
+        if signal_name not in self.get_subscriptions().values():
+            cmd = DeejaydXMLCommand('setSubscription')
+            cmd.add_simple_arg('signal', signal_name)
+            cmd.add_simple_arg('value', 1)
+            ans = self._send_command(cmd)
+            # Subscription are sync because there should be a way to tell the
+            # client that subscription failed.
+            ans.wait()
+        return _DeejayDaemon.subscribe(self, signal_name, callback)
+
+    def unsubscribe(self, sub_id):
+        try:
+            signal_name = self.get_subscriptions()[sub_id]
+        except KeyError:
+            # DeejaydError will be raised at local unsubscription
+            pass
+        _DeejayDaemon.unsubscribe(self, sub_id)
+        # Remote unsubscribe if last local subscription laid off
+        if signal_name not in self.get_subscriptions().values():
+            cmd = DeejaydXMLCommand('setSubscription')
+            cmd.add_simple_arg('signal', signal_name)
+            cmd.add_simple_arg('value', 0)
+            ans = self._send_command(cmd)
+            # As subscription, unsubscription is sync.
+            ans.wait()
 
 
 #############################################################################

@@ -130,6 +130,19 @@ class DeejaydXMLCommand(_DeejaydXML):
                 xmlarg.text = self._to_xml_string(arg_param)
 
 
+class DeejaydXMLSignal(_DeejaydXML):
+
+    def __init__(self, name=None, mother_xml_object=None):
+        _DeejaydXML.__init__(self, mother_xml_object)
+        self.name = name
+
+    def set_name(self, name):
+        self.name = name
+
+    def build_xml(self):
+        self.xmlcontent = ET.Element('signal', name=self.name)
+
+
 class _DeejaydXMLAnswer(_DeejaydXML):
 
     def __init__(self, originating_cmd, mother_xml_object = None):

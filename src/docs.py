@@ -75,7 +75,8 @@ commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
                    "webradioAdd", "webradioRemove", "webradioClear",
                    "queueInfo", "queueAdd","queueLoadPlaylist",
                    "queueRemove", "queueClear", "setvideo","videoInfo",
-                   "dvdLoad","dvdInfo")
+                   "dvdLoad","dvdInfo",
+                   "setSubscription", )
 
 # Check for missing commands in commandsOrder
 missingCmdsInOrderredList = []

@@ -648,3 +648,13 @@ Arguments :
 
 Expected return value : ''`DvdInfo`''
 
+=== `setSubscription` ===
+
+Set subscribtion to "signal" signal notifications to "value" which should be 0 or 1.
+
+Arguments :
+  * {{{signal}}} (Simple and Mandatory) : enum_str
+  * {{{value}}} (Simple and Mandatory) : enum_int
+
+Expected return value : ''`Ack`''
+

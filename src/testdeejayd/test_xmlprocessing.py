@@ -18,23 +18,25 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """Deejayd XML protocol parsing and generation testing"""
-import re, unittest
+import re, unittest, random
 from StringIO import StringIO
 
 from testdeejayd import TestCaseWithData
 import testdeejayd.data
-from deejayd.net.client import DeejaydXMLCommand, _DeejayDaemon,\
+from deejayd.net.client import _DeejayDaemon, DeejaydSignal,\
                                DeejaydAnswer, DeejaydKeyValue,\
                                DeejaydFileList, DeejaydMediaList,\
                                DeejaydPlaylist, DeejaydError
-from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
+from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory,\
+                                    DeejaydXMLCommand, DeejaydXMLSignal
+
+
+def trim_xml(xml):
+    return re.sub('(\s{2,})|(\\n)','', xml)
 
 
 class TestCommandBuildParse(unittest.TestCase):
     """Test the Deejayd client library command building"""
-
-    def trimXML(self, xml):
-        return re.sub('(\s{2,})|(\\n)','', xml)
 
     def testCommandBuilder(self):
         """Client library builds commands according to protocol scheme"""
@@ -64,8 +66,8 @@ class TestCommandBuildParse(unittest.TestCase):
     </command>
 </deejayd>"""
 
-        self.assertEqual(self.trimXML(cmd.to_xml()),\
-            self.trimXML(expectedAnswer))
+        self.assertEqual(trim_xml(cmd.to_xml()),\
+            trim_xml(expectedAnswer))
 
 
 class TestAnswerParser(TestCaseWithData):
@@ -250,6 +252,25 @@ class TestAnswerParser(TestCaseWithData):
         for webradio in origWebradios:
             self.failUnless(webradio in ans.get_medias())
 
+    def test_answer_parser_signal(self):
+        """Parse a signal message"""
+        sig_name = random.sample(DeejaydSignal.SIGNALS, 1).pop()
+        raw_sig = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <signal name="%s" />
+</deejayd>""" % sig_name
+
+        # We use a list here as a workaround of python nested scopes
+        # limitation : 'sig = None' and then in sig_received() 'sig = signal'
+        # would not work.
+        sig = []
+        def sig_received(signal):
+            sig.append(signal)
+        self.deejayd.subscribe(sig_name, sig_received)
+
+        self.parseAnswer(raw_sig)
+        self.assertEqual(sig.pop().get_name(), sig_name)
+
 
 class TestAnswerBuilder(TestCaseWithData):
     """Test answer building"""
@@ -265,6 +286,20 @@ class TestAnswerBuilder(TestCaseWithData):
         ml.set_mediatype(self.testdata.getRandomString())
         ml.set_medias(self.testdata.sampleLibrary)
         self.failUnless(ml.to_xml())
+
+    def test_signal_build(self):
+        """Test that signals are built and correctly"""
+        sig_name = self.testdata.getRandomString()
+        sig = DeejaydXMLSignal()
+        sig.set_name(sig_name)
+
+        expected_xml = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <signal name="%s" />
+</deejayd>""" % sig_name
+
+        self.assertEqual(trim_xml(sig.to_xml()),
+                         trim_xml(expected_xml))
 
 
 # vim: ts=4 sw=4 expandtab

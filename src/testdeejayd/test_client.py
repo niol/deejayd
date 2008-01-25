@@ -22,7 +22,7 @@ import threading
 from testdeejayd import TestCaseWithAudioAndVideoData
 
 from testdeejayd.server import TestServer
-from testdeejayd.coreinterface import InterfaceTests
+from testdeejayd.coreinterface import InterfaceTests, InterfaceSubscribeTests
 from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, \
                                DeejaydError, DeejaydPlaylist,\
                                DeejaydWebradioList
@@ -57,7 +57,7 @@ class TestSyncClient(TestCaseWithAudioAndVideoData, InterfaceTests):
         self.failUnless(self.deejayd.ping().get_contents())
 
 
-class TestAsyncClient(TestCaseWithAudioAndVideoData):
+class TestAsyncClient(TestCaseWithAudioAndVideoData, InterfaceSubscribeTests):
     """Test the DeejaydClient library in asynchroenous mode."""
 
     def setUp(self):
@@ -183,6 +183,15 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData):
 
         self.failUnless(self.deejayd.ping().get_contents())
         self.failUnless(client2.ping().get_contents())
+
+    def test_subscription_another_client(self):
+        """Checks that a subscription is broadcasted to another client who did not orignate the event trigger."""
+
+        # Instanciate a second client that connects to the same server
+        client2 = self.get_another_client()
+        client2.connect('localhost', self.testServerPort)
+
+        self.generic_sub_bcast_test('mode', client2.set_mode, ('video', ))
 
 
 # vim: ts=4 sw=4 expandtab

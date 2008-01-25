@@ -18,27 +18,29 @@
 
 import sys
 from twisted.application import service, internet
-from twisted.internet import protocol
+from twisted.internet import protocol, reactor
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
 try: from xml.etree import cElementTree as ET # python 2.5
 except ImportError: # python 2.4
     import cElementTree as ET
 
+from deejayd.interfaces import DeejaydSignal
 from deejayd.ui import log
-from deejayd.net import commandsXML
+from deejayd.net import commandsXML, xmlbuilders
 
 class DeejaydProtocol(LineReceiver):
 
-    def __init__(self, deejayd_core):
+    def __init__(self, deejayd_core, protocol_manager):
         self.delimiter = "ENDXML\n"
         self.MAX_LENGTH = 40960
         self.deejayd_core = deejayd_core
+        self.manager = protocol_manager
 
     def connectionMade(self):
         from deejayd import __version__
         self.cmdFactory = CommandFactory(self.deejayd_core)
-        self.transport.write("OK DEEJAYD %s\n" % (__version__,))
+        self.send_buffer("OK DEEJAYD %s\n" % (__version__,), xml=False)
 
     def connectionLost(self, reason=ConnectionDone):
         pass
@@ -49,19 +51,30 @@ class DeejaydProtocol(LineReceiver):
         log.debug(line)
 
         remoteCmd = self.cmdFactory.createCmdFromXML(line)
+        remoteCmd.register_connector(self)
         rsp = remoteCmd.execute()
-        if isinstance(rsp, unicode):
-            rsp = rsp.encode("utf-8")
-        # DEBUG Informations
-        log.debug(rsp)
+        self.send_buffer(rsp)
 
-        self.transport.write(rsp + self.delimiter)
         if 'close' in remoteCmd.commands:
             self.transport.loseConnection()
+
+    def send_buffer(self, buf, xml=True):
+        if isinstance(buf, unicode):
+            buf = buf.encode("utf-8")
+        self.transport.write(buf)
+        if xml:
+            self.transport.write(self.delimiter)
+        log.debug(buf)
 
     def lineLengthExceeded(self, line):
         log.err(_("Request too long, close the connection"))
         self.transport.loseConnection()
+
+    def set_signaled(self, signal_name):
+        self.manager.set_signaled(self, signal_name)
+
+    def set_not_signaled(self, signal_name):
+        self.manager.set_not_signaled(self, signal_name)
 
 
 class DeejaydFactory(protocol.ServerFactory):
@@ -70,14 +83,52 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def __init__(self, deejayd_core):
         self.deejayd_core = deejayd_core
+        self.signaled_clients = dict([(signame, []) for signame\
+                                                    in DeejaydSignal.SIGNALS])
+        self.core_sub_ids = {}
 
     def startFactory(self):
         log.info(_("Net Protocol activated"))
 
     def buildProtocol(self, addr):
-        p = self.protocol(self.deejayd_core)
+        p = self.protocol(self.deejayd_core, self)
         p.factory = self
         return p
+
+    def clientConnectionLost(self, connector, reason):
+        for signal_name in DeejaydSignal.SIGNALS:
+            self.set_not_signaled(connector, signal_name)
+
+    def set_signaled(self, connector, signal_name):
+        client_list =  self.signaled_clients[signal_name]
+        if len(client_list) < 1:
+            # First subscription for this signal, so subscribe
+            sub_id = self.deejayd_core.subscribe(signal_name,
+                                                 self.sig_bcast_to_clients)
+            self.core_sub_ids[signal_name] = sub_id
+
+        self.signaled_clients[signal_name].append(connector)
+
+    def set_not_signaled(self, connector, signal_name):
+        client_list =  self.signaled_clients[signal_name]
+        if connector in client_list:
+            client_list.remove(connector)
+        if len(client_list) < 1:
+            # No more clients for this signal, we can unsubscribe
+            self.deejayd_core.unsubscribe(self.core_sub_ids[signal_name])
+
+    def sig_bcast_to_clients(self, signal):
+        interested_clients = self.signaled_clients[signal.get_name()]
+        if len(interested_clients) > 0:
+            xml_sig = xmlbuilders.DeejaydXMLSignal(signal.get_name())
+            for client in interested_clients:
+                # http://twistedmatrix.com/pipermail/twisted-python/2007-August/015905.html
+                # says : "Don't call reactor methods from any thread except the
+                # one which is running the reactor.  This will have
+                # unpredictable results and generally be broken."
+                # This is the "why" of this weird call instead of a simple
+                # client.send_buffer(xml_sig.to_xml()).
+                reactor.callFromThread(client.send_buffer, xml_sig.to_xml())
 
 
 class CommandFactory:

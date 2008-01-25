@@ -20,24 +20,29 @@ from os import path
 
 from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory
 from deejayd import sources
-from deejayd.interfaces import DeejaydError
+from deejayd.interfaces import DeejaydError, DeejaydSignal
 
 
 class queueCommands:
 
-    def __init__(self,deejayd_core):
+    def __init__(self, deejayd_core):
         self.commands = []
         self.deejayd_core = deejayd_core
         self.__rspFactory = DeejaydXMLAnswerFactory()
+        self.__connector = None
 
     def addCommand(self,name,cmd,args):
         self.commands.append((name,cmd,args))
+
+    def register_connector(self, connector):
+        self.__connector = connector
 
     def execute(self):
         motherRsp = None
 
         for (cmdName, cmdType, args) in self.commands:
-            cmd = cmdType(cmdName, args, self.__rspFactory, self.deejayd_core)
+            cmd = cmdType(cmdName, args, self.__rspFactory, self.deejayd_core,
+                          self.__connector)
 
             error = cmd.args_validation()
             if error != None:
@@ -58,10 +63,11 @@ class UnknownCommand:
     command_args = []
     command_rvalue = 'Ack'
 
-    def __init__(self, cmdName, args,
-                 rspFactory = None, deejayd_core = None):
+    def __init__(self, cmdName, args, rspFactory=None,
+                 deejayd_core=None, connector=None):
         self.name = cmdName
         self.args = args
+        self.connector = connector
         self.deejayd_core = deejayd_core
         self.__rspFactory = rspFactory or DeejaydXMLAnswerFactory()
 
@@ -749,6 +755,22 @@ class CurrentSong(UnknownCommand):
         rsp.set_medias(item)
 
         return rsp
+
+
+class SetSubscription(UnknownCommand):
+    """Set subscribtion to "signal" signal notifications to "value" which should be 0 or 1."""
+    command_name = 'setSubscription'
+    command_args = ({"name":"signal", "type":"enum_str", "req":True,
+                     "values":DeejaydSignal.SIGNALS},
+                    {"name":"value", "type":"enum_int", "req":True,
+                     "values":(0,1)} )
+
+    def _execute(self):
+        if self.args['value'] == '0':
+            self.connector.set_not_signaled(self.args['signal'])
+        elif self.args['value'] == '1':
+            self.connector.set_signaled(self.args['signal'])
+        return self.get_ok_answer()
 
 
 # Build the list of available commands
