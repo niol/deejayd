@@ -1,6 +1,7 @@
 include doc/*
-include LICENCE
+include COPYING
 include README
+include NEWS
 include docs.py
 include deejayd/ui/defaults.conf
 include deejayd/database/sql/*
