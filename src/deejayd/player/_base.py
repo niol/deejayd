@@ -44,7 +44,7 @@ class UnknownPlayer(SignalingComponent):
 
         # Restore Random and Repeat
         self.options["random"] = int(self.db.get_state("random"))
-        self.options["repeat"] = int(self.db.get_state("random"))
+        self.options["repeat"] = int(self.db.get_state("repeat"))
 
         # Restore the last media_file
         cur_id = self.db.get_state("currentPos")
