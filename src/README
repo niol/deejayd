@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.5.0
+Actual version : 0.6.0
 ----------------------
 
 Description:
@@ -51,16 +51,18 @@ Requirements:
               * dvd to ply dvd with deejayd
     * if you want to use xine backend
         * xine-lib >= 1.1.0
-        * pyrex >= 0.9.4.0 to build the extension
+        * libX11
+        * ctypes >= 1.0.0 (It is include in python 2.5)
     * lsdvd (http://untrepid.com/acidrip/lsdvd.html) for dvd support
+    * pyinotify >= 0.6.0 for inotify support (http://pyinotify.sourceforge.net/)
 
 Installation:
 -------------
 Download deejayd and extract it:
-  $tar xzvf deejayd-0.5.0.tar.gz
+  $tar xzvf deejayd-0.6.0.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.5.0
+  $cd deejayd-0.6.0
   $python setup.py build
   $python setup.py install
 

@@ -1,11 +1,16 @@
 
 New features and significant updates in version...
 
-0.6.0 (Not released)
+0.6.0 (2008-01-26)
 --------------------
   * rewrite xine backend to use ctypes
+  * xine : add gapless support
   * improve video mode
   * add signaling support
+  * add inotify support to update audio/video library
+  * improve webui performance
+  * add i18n support (only french translation is available for now)
+  * A lot of cleanups and bugfixes
 
 0.5.0 (2007-12-26)
 ------------------
