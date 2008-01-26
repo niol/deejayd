@@ -209,6 +209,7 @@ class _BaseSource(SignalingComponent):
         return self._current
 
     def go_to(self, id, type = "id"):
+        self._played = []
         try: self._current = self._media_list.get_media(id, type)
         except MediaNotFoundError:
             self._current = None
@@ -241,12 +242,12 @@ class _BaseSource(SignalingComponent):
         l = self._media_list.length()
         if rd and l > 0:
             # first determine if the current song is in playedItems
-            #id = self._played.index(self._current["id"])
-            #try: new_id = self._played[id+1]
-            #except IndexError: pass
-            #else:
-            #    self._current = self._media_list.get_media(new_id ,"id")
-            #    return self._current
+            id = self._played.index(self._current["id"])
+            try: new_id = self._played[id+1]
+            except IndexError: pass
+            else:
+                self._current = self._media_list.get_media(new_id ,"id")
+                return self._current
 
             # Determine the id of the next song
             values = [id for id in self._media_list.get_ids() \
