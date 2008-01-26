@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-22 22:58+0100\n"
+"POT-Creation-Date: 2008-01-26 16:39+0100\n"
 "PO-Revision-Date: 2008-01-05 23:20+0100\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -16,96 +16,96 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n>1;\n"
 
-#: ../deejayd/core.py:90
+#: ../deejayd/core.py:91
 msgid "Webradio support not available."
 msgstr "Le support des radios web n'est pas disponible."
 
-#: ../deejayd/core.py:101
+#: ../deejayd/core.py:102
 msgid "Webradio URI not supported"
 msgstr "L'URI proposée pour cette radio web n'est pas supportée"
 
-#: ../deejayd/core.py:103
+#: ../deejayd/core.py:104
 msgid "Webradio info could not be retrieved"
 msgstr "Les infos sur la radio web n'ont pas pu être récupérées"
 
-#: ../deejayd/core.py:111
+#: ../deejayd/core.py:112
 #, python-format
 msgid "Webradio with id %d not found"
 msgstr "La radio web avec l'identifiant %d n'a pas été trouvée"
 
-#: ../deejayd/core.py:134 ../deejayd/core.py:184
+#: ../deejayd/core.py:135 ../deejayd/core.py:185
 #, python-format
 msgid "%s not found"
 msgstr "%s non trouvé"
 
-#: ../deejayd/core.py:142 ../deejayd/core.py:196 ../deejayd/core.py:213
-#: ../deejayd/core.py:220 ../deejayd/core.py:232
+#: ../deejayd/core.py:143 ../deejayd/core.py:197 ../deejayd/core.py:214
+#: ../deejayd/core.py:221 ../deejayd/core.py:233
 #, python-format
 msgid "Playlist %s does not exist."
 msgstr "La liste de lecture %s n'existe pas."
 
-#: ../deejayd/core.py:154
+#: ../deejayd/core.py:155
 #, python-format
 msgid "Song with id %d not found"
 msgstr "La chanson avec l'identifiant %d n'a pas été trouvée"
 
-#: ../deejayd/core.py:169 ../deejayd/core.py:186
+#: ../deejayd/core.py:170 ../deejayd/core.py:187
 #, python-format
 msgid "Playlist %s not found"
 msgstr "La liste de lecture %s n'a pas été trouvée"
 
-#: ../deejayd/core.py:191 ../deejayd/core.py:201
+#: ../deejayd/core.py:192 ../deejayd/core.py:202
 msgid "Unable to load pls in a saved pls."
 msgstr "Impossible de charger une playlist dans une playlist sauvegardée."
 
-#: ../deejayd/core.py:206
+#: ../deejayd/core.py:207
 #, python-format
 msgid "song with ids %s not found"
 msgstr "La chanson avec l'identifiant %s n'a pas été trouvée"
 
-#: ../deejayd/core.py:230
+#: ../deejayd/core.py:231
 #, python-format
 msgid "Playlist %s does not have a song of id %d"
 msgstr "La liste de lecture %s n'a pas de chanson avec l'identifiant %d"
 
-#: ../deejayd/core.py:314
+#: ../deejayd/core.py:324
 msgid "Bad value for id parm"
 msgstr "Mauvaise valeur pour le paramètre id"
 
-#: ../deejayd/core.py:328
+#: ../deejayd/core.py:338
 #, python-format
 msgid "Option %s does not exist"
 msgstr "L'option %s n'existe pas"
 
-#: ../deejayd/core.py:335
+#: ../deejayd/core.py:345
 #, python-format
 msgid "Unknown mode: %s"
 msgstr "Mode inconnu : %s"
 
-#: ../deejayd/core.py:349
+#: ../deejayd/core.py:359
 msgid "Unable to change audio channel"
 msgstr "Impossible de modifier le canal audio"
 
-#: ../deejayd/core.py:355
+#: ../deejayd/core.py:365
 msgid "Unable to change subtitle channel"
 msgstr "Impossible de modifier le canal des sous-titres"
 
-#: ../deejayd/core.py:378 ../deejayd/core.py:413 ../deejayd/core.py:426
-#: ../deejayd/core.py:435
+#: ../deejayd/core.py:388 ../deejayd/core.py:423 ../deejayd/core.py:436
+#: ../deejayd/core.py:445
 msgid "Video mode disabled"
 msgstr "Mode vidéo désactivé"
 
-#: ../deejayd/core.py:398 ../deejayd/core.py:418 ../deejayd/core.py:433
+#: ../deejayd/core.py:408 ../deejayd/core.py:428 ../deejayd/core.py:443
 #, python-format
 msgid "Directory %s not found in database"
 msgstr "Le répertoire %s n'a pas été trouvé dans la base de donnée"
 
-#: ../deejayd/core.py:406
+#: ../deejayd/core.py:416
 #, python-format
 msgid "Type %s is not supported"
 msgstr "Le type %s n'est pas supporté"
 
-#: ../deejayd/core.py:443 ../deejayd/core.py:449
+#: ../deejayd/core.py:453 ../deejayd/core.py:459
 msgid "Dvd mode disabled"
 msgstr "Mode DVD désactivé"
 
@@ -180,32 +180,32 @@ msgstr "Impossible d'initialiser la librairie vidéo : %s"
 msgid "Inotify support disabled"
 msgstr "Support d'inotify désactivé"
 
-#: ../deejayd/mediadb/library.py:58 ../deejayd/mediadb/library.py:66
+#: ../deejayd/mediadb/library.py:60 ../deejayd/mediadb/library.py:68
 #, python-format
 msgid "Unable to get audio metadata from %s"
 msgstr "Impossible d'obtenir les données audio du fichier %s"
 
-#: ../deejayd/mediadb/library.py:83 ../deejayd/mediadb/library.py:91
+#: ../deejayd/mediadb/library.py:85 ../deejayd/mediadb/library.py:93
 #, python-format
 msgid "Unable to get video metadata from %s"
 msgstr "Impossible d'obtenir les données video du fichier %s"
 
-#: ../deejayd/mediadb/library.py:132
+#: ../deejayd/mediadb/library.py:137
 #, python-format
 msgid "Unable to find directory %s"
 msgstr "Impossible de trouver le répertoire %s"
 
-#: ../deejayd/mediadb/library.py:314
+#: ../deejayd/mediadb/library.py:320
 #, python-format
 msgid "File %s not supported"
 msgstr "Le fichier %s n'est pas supporté"
 
-#: ../deejayd/mediadb/library.py:334
+#: ../deejayd/mediadb/library.py:340
 #, python-format
 msgid "The %s library has been updated"
 msgstr "La librairie %s a été mise à jour"
 
-#: ../deejayd/mediadb/library.py:336
+#: ../deejayd/mediadb/library.py:342
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr "Impossible de mettre à jour la library %s. Voir les logs"
@@ -215,47 +215,47 @@ msgstr "Impossible de mettre à jour la library %s. Voir les logs"
 msgid "Inotify event %s: %s"
 msgstr "Evennement inotify %s : %s"
 
-#: ../deejayd/net/deejaydProtocol.py:63
+#: ../deejayd/net/deejaydProtocol.py:70
 msgid "Request too long, close the connection"
 msgstr "Requête trop longue, cloture de la connection"
 
-#: ../deejayd/net/deejaydProtocol.py:75
+#: ../deejayd/net/deejaydProtocol.py:91
 msgid "Net Protocol activated"
 msgstr "Protocol réseau activé"
 
-#: ../deejayd/net/commandsXML.py:78
+#: ../deejayd/net/commandsXML.py:84
 #, python-format
 msgid "Unknown command : %s"
 msgstr "Commande inconnue : %s"
 
-#: ../deejayd/net/commandsXML.py:106
+#: ../deejayd/net/commandsXML.py:112
 #, python-format
 msgid "Arg %s can not be a list"
 msgstr "L'argument %s n'est pas dans la liste des valeurs possibles"
 
-#: ../deejayd/net/commandsXML.py:117 ../deejayd/webui/commands.py:49
+#: ../deejayd/net/commandsXML.py:123 ../deejayd/webui/commands.py:49
 #, python-format
 msgid "Arg %s (%s) is not a string"
 msgstr "L'argument %s (%s) n'est pas une chaîne de caractère"
 
-#: ../deejayd/net/commandsXML.py:124 ../deejayd/net/commandsXML.py:137
+#: ../deejayd/net/commandsXML.py:130 ../deejayd/net/commandsXML.py:143
 #: ../deejayd/webui/commands.py:55 ../deejayd/webui/commands.py:67
 #, python-format
 msgid "Arg %s (%s) is not a int"
 msgstr "L'argument %s (%s) n'est pas un chiffre entier"
 
-#: ../deejayd/net/commandsXML.py:130 ../deejayd/net/commandsXML.py:142
+#: ../deejayd/net/commandsXML.py:136 ../deejayd/net/commandsXML.py:148
 #: ../deejayd/webui/commands.py:61 ../deejayd/webui/commands.py:73
 #, python-format
 msgid "Arg %s (%s) is not in the possible list"
 msgstr "L'argument %s (%s) n'est pas dans la liste des possibilités"
 
-#: ../deejayd/net/commandsXML.py:149 ../deejayd/webui/commands.py:80
+#: ../deejayd/net/commandsXML.py:155 ../deejayd/webui/commands.py:80
 #, python-format
 msgid "Arg %s (%s) not match to the regular exp (%s)"
 msgstr "L'argument %s (%s) ne correspond pas à l'expression régulière %s"
 
-#: ../deejayd/net/commandsXML.py:153 ../deejayd/webui/commands.py:84
+#: ../deejayd/net/commandsXML.py:159 ../deejayd/webui/commands.py:84
 #, python-format
 msgid "Arg %s is mising"
 msgstr "L'argument %s est manquant"
@@ -272,40 +272,40 @@ msgstr "Impossible d'initialiser une instance de xine"
 msgid "Unable to open audio driver"
 msgstr "Impossible d'ouvrir le driver audio"
 
-#: ../deejayd/player/xine.py:101
+#: ../deejayd/player/xine.py:98
 #, python-format
 msgid "Unable to play file %s"
 msgstr "Impossible de lire le fichier %s"
 
-#: ../deejayd/player/xine.py:297
+#: ../deejayd/player/xine.py:301
 msgid "Unable to open video driver"
 msgstr "Impossible d'ouvrir le driver vidéo"
 
-#: ../deejayd/player/xine.py:384
+#: ../deejayd/player/xine.py:388
 #, python-format
 msgid "Xine error %s"
 msgstr "Erreur Xine %s"
 
-#: ../deejayd/sources/__init__.py:44
+#: ../deejayd/sources/__init__.py:47
 msgid "Webradio support disabled for the choosen backend"
 msgstr "Le support des radios web est désactivé"
 
 #. Critical error, we have to quit deejayd
-#: ../deejayd/sources/__init__.py:52
+#: ../deejayd/sources/__init__.py:55
 msgid ""
 "Cannot initialise video support, either disable video support or check your "
 "player video support."
 msgstr "Impossible d'initialiser le support vidéo"
 
-#: ../deejayd/sources/__init__.py:62
+#: ../deejayd/sources/__init__.py:65
 msgid "Unable to init dvd support"
 msgstr "Impossible d'initialiser le support des DVD"
 
-#: ../deejayd/sources/__init__.py:63
+#: ../deejayd/sources/__init__.py:66
 msgid "DVD support is disabled"
 msgstr "Le support des DVD est désactivé"
 
-#: ../deejayd/sources/__init__.py:69
+#: ../deejayd/sources/__init__.py:72
 #, python-format
 msgid "Unable to set recorded source %s"
 msgstr "Impossible de choisir la source enregistrée %s"
@@ -585,11 +585,11 @@ msgstr "Il manque un paramètre"
 msgid "Do you want to replace this playlist ?"
 msgstr "Voulez vous replacer cette liste de lecture ?"
 
-#: ../deejayd/webui/commands.py:271
+#: ../deejayd/webui/commands.py:274
 msgid "The audio library has been updated"
 msgstr "La librairie audio a été mise à jour"
 
-#: ../deejayd/webui/commands.py:287
+#: ../deejayd/webui/commands.py:293
 msgid "The video library has been updated"
 msgstr "La librairie vidéo a été mise à jour"
 
@@ -630,13 +630,45 @@ msgstr "Le répertoire %s n'existe pas"
 msgid "No time information"
 msgstr "Pas d'information sur la durée"
 
+#: ../deejayd/webui/utils.py:49
+#, python-format
+msgid "%d second"
+msgid_plural "%d seconds"
+msgstr[0] "%d seconde"
+msgstr[1] "%d secondes"
+
+#: ../deejayd/webui/utils.py:50
+#, python-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d minute"
+msgstr[1] "%d minutes"
+
+#: ../deejayd/webui/utils.py:51
+#, python-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] "%d heure"
+msgstr[1] "%d heures"
+
+#: ../deejayd/webui/utils.py:52
+#, python-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] "%d jour"
+msgstr[1] "%d jours"
+
+#: ../deejayd/webui/utils.py:53
+#, python-format
+msgid "%d year"
+msgid_plural "%d years"
+msgstr[0] "%d année"
+msgstr[1] "%d années"
+
 #~ msgid "You do not choose a database. Verify your config file."
 #~ msgstr ""
 #~ "Vous n'avez pas choisi de base de donnée. Vérifier votre fichier de "
 #~ "configuration"
-
-#~ msgid "Fullscreen"
-#~ msgstr "Plein écran"
 
 #~ msgid "Unable to play this file : %s"
 #~ msgstr "Impossible de lire le fichier %s"
