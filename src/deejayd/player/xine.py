@@ -92,15 +92,14 @@ class XinePlayer(UnknownPlayer):
 
         if not self.__stream:
             self._create_stream()
-        isvideo = self._media_file["type"] == "video"
-        if self.__video_port:
-            self.__display.show(isvideo)
-
         if not xine_open(self.__stream, uri) or \
            not xine_play(self.__stream, 0, 0):
             msg = _("Unable to play file %s") % uri
             log.err(msg)
             raise PlayerError(msg)
+        isvideo = self._media_file["type"] == "video"
+        if self.__video_port:
+            self.__display.show(isvideo)
 
         # if video get current audio/subtitle channel
         if self._media_file["type"] == "video":
