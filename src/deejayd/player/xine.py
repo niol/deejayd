@@ -94,6 +94,7 @@ class XinePlayer(UnknownPlayer):
             self._create_stream()
         if not xine_open(self.__stream, uri) or \
            not xine_play(self.__stream, 0, 0):
+            self._destroy_stream()
             msg = _("Unable to play file %s") % uri
             log.err(msg)
             raise PlayerError(msg)
