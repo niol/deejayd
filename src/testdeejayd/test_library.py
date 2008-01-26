@@ -234,6 +234,11 @@ class TestInotifySupport(TestDeejayDBLibrary):
         self.watcher.close()
         TestDeejayDBLibrary.tearDown(self)
 
+    def testAddMedia(self):
+        """Inotify support : Add a media in audio library"""
+        self.testdata.addMedia()
+        self.verifyMediaDBContent(do_update = False)
+
     def testAddSubdirectory(self):
         """Inotify support : Add a subdirectory"""
         self.testdata.addSubdir()
