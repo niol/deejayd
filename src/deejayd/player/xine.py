@@ -36,7 +36,6 @@ class XinePlayer(UnknownPlayer):
         self.__xine_options = {
             "video": self.config.get("xine", "video_output"),
             "display" : self.config.get("xine", "video_display"),
-            "subtitle": self.config.getint("xine", "subtitle_size"),
             }
 
         # init main instance

@@ -36,8 +36,6 @@ rdf_dir = /tmp/deejayd_webui
 # Number of seconds between auto-refreshes of ui.
 # set to 0 if you don't want to refresh webui.
 refresh = 0
-# language (only en is supported for the moment)
-lang = en
 
 [database]
 db_type = sqlite
@@ -75,8 +73,3 @@ video_output = Xv
 
 # Video Display
 video_display= :0.0
-
-# subtitle size
-# interger value
-# 0 : tiny, 1 : small, 2 : normal, 3 : large, 4 : very large, 5 : huge
-subtitle_size = 3
