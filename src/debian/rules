@@ -12,7 +12,6 @@ PYVERS=$(shell pyversions -vr)
 build: $(PYVERS:%=build-python%)
 
 build-python%:
-	python$* setup.py build
 	touch $@
 
 install: build $(PYVERS:%=install-python%)
@@ -20,7 +19,7 @@ install: build $(PYVERS:%=install-python%)
 install-python%:
 	dh_clean -k -i
 	dh_clean -k -s
-	python$* setup.py install --no-compile --skip-build\
+	python$* setup.py install --no-compile\
 	         --root $(CURDIR)/debian/tmp
 
 	# Fixing example conffile location
