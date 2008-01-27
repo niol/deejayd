@@ -309,7 +309,7 @@ class _Library(SignalingComponent):
                 if os.path.islink(dir_path):
                     if not self.is_in_a_root(dir_path, forbidden_roots):
                         forbidden_roots.append(dir_path)
-                        self.walk_directory(dir_path,
+                        self.walk_directory(db_con, dir_path,
                                             library_dirs, library_files,
                                             forbidden_roots)
 
