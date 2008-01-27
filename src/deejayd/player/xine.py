@@ -280,16 +280,18 @@ class XinePlayer(UnknownPlayer):
             except x11.X11Error, err:
                 raise PlayerError(str(err))
 
+            self.__x11_callbacks = [
+                xine_dest_size_cb(self._dest_size_cb),
+                xine_frame_output_cb(self._frame_output_cb)
+                ]
             x11_infos = self.__display.get_infos()
             vis = x11_visual_t()
             vis.display = x11_infos["dsp"]
             vis.screen = x11_infos["screen"]
             vis.d = x11_infos["window"]
             vis.user_data = None
-            vis.dest_size_cb =\
-                cast(xine_dest_size_cb(self._dest_size_cb),c_void_p)
-            vis.frame_output_cb =\
-                cast(xine_frame_output_cb(self._frame_output_cb),c_void_p)
+            vis.dest_size_cb = cast(self.__x11_callbacks[0], c_void_p)
+            vis.frame_output_cb = cast(self.__x11_callbacks[1],c_void_p)
             vis.lock_display = None
             vis.unlock_display = None
 
@@ -320,7 +322,6 @@ class XinePlayer(UnknownPlayer):
         # restore volume
         self.__do_set_property(XINE_PARAM_AUDIO_VOLUME, self.__volume)
 
-
     def _destroy_stream(self):
         if self.__stream:
             xine_stop(self.__stream)
@@ -334,6 +335,7 @@ class XinePlayer(UnknownPlayer):
             if self.__video_port:
                 xine_close_video_driver(self.__xine, self.__video_port)
                 self.__display.destroy()
+                self.__x11_callbacks = []
 
             # reset vars
             self.__video_port = None
@@ -347,7 +349,9 @@ class XinePlayer(UnknownPlayer):
         new_file = self._source.next(self.options["random"],\
                     self.options["repeat"])
         try: self._change_file(new_file, gapless = True)
-        except PlayerError: pass
+        except PlayerError:
+            pass
+        return False
 
     def _update_metadata(self):
         if not self._media_file or self._media_file["type"] != "webradio":
@@ -367,7 +371,7 @@ class XinePlayer(UnknownPlayer):
             if name not in self._media_file.keys() or\
                            self._media_file[name] != text:
                 self._media_file[name] = text
-            return False
+        return False
 
     def _event_callback(self, user_data, event):
         event = event.contents
@@ -386,6 +390,7 @@ class XinePlayer(UnknownPlayer):
                 else:
                     message = _("Xine error %s") % msg.type
                 reactor.callLater(0, log.err, message)
+        return True
 
     def _dest_size_cb(self, data, video_width, video_height,\
                       video_pixel_aspect, dest_width, dest_height,\
@@ -395,6 +400,7 @@ class XinePlayer(UnknownPlayer):
         dest_height[0] = infos["height"]
         dest_pixel_aspect[0] = c_double(infos["pixel_aspect"])
         self.__display.release_video_area()
+        return True
 
     def _frame_output_cb(self, data, video_width, video_height,\
                       video_pixel_aspect, dest_x, dest_y, dest_width,\
@@ -408,5 +414,6 @@ class XinePlayer(UnknownPlayer):
         dest_height[0] = infos["height"]
         dest_pixel_aspect[0] = c_double(infos["pixel_aspect"])
         self.__display.release_video_area()
+        return True
 
 # vim: ts=4 sw=4 expandtab

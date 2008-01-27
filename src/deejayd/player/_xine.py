@@ -328,9 +328,15 @@ for name in dir(_libxine):
     if name.startswith('xine_'):
         setattr(module, name, getattr(_libxine, name))
 
+_evt_callbacks = []
 def xine_event_create_listener_thread(queue, callback, user_data):
     cb = xine_event_listener_cb_t(callback)
+    _evt_callbacks.append(cb)
     _libxine.xine_event_create_listener_thread(queue, cb, user_data)
+
+def xine_event_dispose_queue(queue):
+    _libxine.xine_event_dispose_queue(queue)
+    _evt_callbacks = []
 
 def xine_get_pos_length(stream):
     _pos_stream = ctypes.c_int()
