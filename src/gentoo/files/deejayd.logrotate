@@ -1,4 +1,7 @@
 /var/log/deejayd/*log {
     missingok
     notifempty
+    postrotate
+    	/etc/init.d/deejayd restart > /dev/null 2>&1 || true
+    endscript
 }
