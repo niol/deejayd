@@ -1,3 +1,12 @@
+deejayd (0.6.1-1) unstable; urgency=low
+
+  * 0.6.1 Release.
+  * Changes since 0.6.0
+    * fix important bug in xine backend
+    * fix symlinks support in audio/video library
+
+ -- Mickael Royer <mickael.royer@gmail.com>  Mon, 28 Jan 2008 23:08:19 +0100
+
 deejayd (0.6.0-1) unstable; urgency=low
 
   * 0.6.0 Release.

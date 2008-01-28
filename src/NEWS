@@ -1,6 +1,11 @@
 
 New features and significant updates in version...
 
+0.6.1 (2008-01-28)
+--------------------
+  * fix important bug in xine backend
+  * fix symlinks support in audio/video library
+
 0.6.0 (2008-01-26)
 --------------------
   * rewrite xine backend to use ctypes
