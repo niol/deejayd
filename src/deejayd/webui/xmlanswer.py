@@ -334,7 +334,8 @@ class DeejaydWebAnswer(_DeejaydXML):
     def set_locale_strings(self, strings):
         elt =  ET.SubElement(self.xmlroot, "locale")
         for s in strings.keys():
-            s_elt = ET.SubElement(elt, "strings", name=s, value=strings[s])
+            s_elt = ET.SubElement(elt, "strings", name=s,\
+                value=self._to_xml_string(strings[s]))
 
     def set_update_library(self, id, type, first = "1"):
         el = ET.SubElement(self.xmlroot, type+"_update", \
@@ -357,8 +358,8 @@ class DeejaydWebAnswer(_DeejaydXML):
                                     update(status["playlist"])
         pls = ET.SubElement(self.xmlroot,"playlist",id=self._to_xml_string(nid))
 
-        desc = ngettext("%s Song", "%s Songs",\
-            int(status["playlistlength"])) % str(status["playlistlength"])
+        desc = self._to_xml_string(ngettext("%s Song", "%s Songs",\
+            int(status["playlistlength"])) % str(status["playlistlength"]))
         time = int(status["playlisttimelength"])
         if time > 0:
             desc += " (%s)" % format_time_long(time)
@@ -368,8 +369,8 @@ class DeejaydWebAnswer(_DeejaydXML):
         nid = DeejaydQueueRdf(deejayd, self.__rdf_dir).update(status["queue"])
         queue = ET.SubElement(self.xmlroot,"queue", id=self._to_xml_string(nid))
 
-        desc = ngettext("%s Media", "%s Medias",\
-            int(status["queuelength"])) % str(status["queuelength"])
+        desc = self._to_xml_string(ngettext("%s Media", "%s Medias",\
+            int(status["queuelength"])) % str(status["queuelength"]))
         time = int(status["queuetimelength"])
         if time > 0:
             desc += " (%s)" % format_time_long(time)
@@ -380,8 +381,9 @@ class DeejaydWebAnswer(_DeejaydXML):
                     update(status["webradio"])
         wb = ET.SubElement(self.xmlroot,"webradio", id=self._to_xml_string(nid))
 
-        wb.attrib["description"] = ngettext("%s Webradio", "%s Webradios",\
-            int(status["webradiolength"])) % str(status["webradiolength"])
+        desc = self._to_xml_string(ngettext("%s Webradio", "%s Webradios",\
+            int(status["webradiolength"])) % str(status["webradiolength"]))
+        wb.attrib["description"] = desc
 
     def set_dvd(self,status,deejayd):
         nid = DeejaydDvdRdf(deejayd,self.__rdf_dir).update(status["dvd"])
@@ -391,8 +393,8 @@ class DeejaydWebAnswer(_DeejaydXML):
         nid = DeejaydVideoRdf(deejayd,self.__rdf_dir).update(status["video"])
         video = ET.SubElement(self.xmlroot,"video", id=self._to_xml_string(nid))
 
-        desc = ngettext("%s Video", "%s Videos",\
-            int(status["videolength"])) % str(status["videolength"])
+        desc = self._to_xml_string(ngettext("%s Video", "%s Videos",\
+            int(status["videolength"])) % str(status["videolength"]))
         time = int(status["videotimelength"])
         if time > 0:
             desc += " (%s)" % format_time_long(time)
@@ -409,7 +411,7 @@ class DeejaydWebAnswer(_DeejaydXML):
 
         for file in list.get_files():
             it = ET.SubElement(parent,"item")
-            it.text = file["filename"]
+            it.text = self._to_xml_string(file["filename"])
             for key in [k for k in file.keys() if k not in ("filename","dir")]:
                 it.attrib[key] = self._to_xml_string(file[key])
 
