@@ -260,7 +260,7 @@ def XSetNullCursor(display, screen, window):
     cmap = XDefaultColormap(display, screen)
     XAllocNamedColor(display, cmap, "black", ctypes.byref(black),\
         ctypes.byref(dummy))
-    bm_no = XCreateBitmapFromData(display, window, bm_no_data, 8, 8)
+    bm_no = XCreateBitmapFromData(display, window, bm_no_data, 1, 1)
     no_ptr = XCreatePixmapCursor(display, bm_no, bm_no, ctypes.byref(black),\
         ctypes.byref(black), 0, 0)
 
