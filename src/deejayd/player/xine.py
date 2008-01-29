@@ -111,6 +111,7 @@ class XinePlayer(UnknownPlayer):
                     self.__do_get_property(XINE_PARAM_SPU_CHANNEL)
 
     def _change_file(self, new_file, gapless = False):
+        sig = self.get_state() == PLAYER_STOP and True or False
         if self._media_file == None or new_file == None:
             self._destroy_stream()
             gapless = False
@@ -121,6 +122,8 @@ class XinePlayer(UnknownPlayer):
         self.start_play()
         if gapless and self.__supports_gapless:
             xine_set_param(self.__stream, XINE_PARAM_GAPLESS_SWITCH, 0)
+        if sig:
+            self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
 
     def pause(self):
@@ -128,11 +131,14 @@ class XinePlayer(UnknownPlayer):
             self.__do_set_property(XINE_PARAM_SPEED, XINE_SPEED_NORMAL)
         elif self.get_state() == PLAYER_PLAY:
             self.__do_set_property(XINE_PARAM_SPEED, XINE_SPEED_PAUSE)
+        else: return
+        self.dispatch_signame('player.status')
 
     def stop(self):
-        self._source.queue_reset()
-        self._change_file(None)
-        self.dispatch_signame('player.status')
+        if self.get_state() != PLAYER_STOP:
+            self._source.queue_reset()
+            self._change_file(None)
+            self.dispatch_signame('player.status')
 
     def _player_set_alang(self,lang_idx):
         self.__do_set_property(XINE_PARAM_AUDIO_CHANNEL_LOGICAL, lang_idx)
