@@ -440,7 +440,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def set_video(self, value, type = "directory"):
         try: self.sources.get_source("video").set(type, value)
         except deejayd.sources._base.MediaNotFoundError:
-            raise DeejaydError(_('Directory %s not found in database') % dir)
+            raise DeejaydError(_('Directory %s not found in database') % value)
         except deejayd.sources.UnknownSourceException:
             raise DeejaydError(_("Video mode disabled"))
 
