@@ -31,11 +31,11 @@ class NotSupportedFormat(Exception):pass
 class _DeejaydFile:
     table = "unknown"
 
-    def __init__(self, db_con, dir, file, root_path, info):
-        self.file = os.path.join(root_path, dir, file)
+    def __init__(self, db_con, dir, filename, path, info):
+        self.file = path
         self.db_con = db_con
         self.dir = dir
-        self.filename = file
+        self.filename = filename
         self.info = info
 
     def remove(self):
@@ -76,9 +76,6 @@ class DeejaydAudioFile(_DeejaydFile):
 class DeejaydVideoFile(_DeejaydFile):
     table = "video_library"
 
-    def __init__(self, db_con, dir, file, root_path, info):
-        _DeejaydFile.__init__(self, db_con, dir, file, root_path, info)
-
     def insert(self):
         try: file_info = self.info.parse(self.file)
         except:
@@ -104,6 +101,12 @@ class DeejaydVideoFile(_DeejaydFile):
 ##########################################################################
 def inotify_action(func):
     def inotify_action_func(self, path, name, **__kw):
+        try:
+            name = self._encode(name)
+            path = self._encode(path)
+        except UnicodeError:
+            return
+
         self.mutex.acquire()
 
         rs = func(self, path, name, **__kw)
@@ -123,10 +126,11 @@ class _Library(SignalingComponent):
     type = None
     file_class = None
 
-    def __init__(self, db_connection, player, path):
+    def __init__(self, db_connection, player, path, fs_charset="utf-8"):
         SignalingComponent.__init__(self)
 
         # init Parms
+        self._fs_charset = fs_charset
         self._update_id = 0
         self._update_end = True
         self._update_error = None
@@ -146,6 +150,14 @@ class _Library(SignalingComponent):
 
         # build supported extension list
         self._build_supported_extension(player)
+
+    def _encode(self, data):
+        try: rs = data.decode(self._fs_charset, "strict").encode("utf-8")
+        except UnicodeError:
+            log.err(_("%s has wrong character") %\
+                 data.decode(self._fs_charset, "replace").encode("utf-8"))
+            raise UnicodeError
+        return rs
 
     def _build_supported_extension(self, player):
         raise NotImplementedError
@@ -294,8 +306,16 @@ class _Library(SignalingComponent):
             forbidden_roots = [self.get_root_path()]
 
         for root, dirs, files in os.walk(walk_root):
+            try: root = self._encode(root)
+            except UnicodeError: # skip this directory
+                continue
+
             # first update directory
             for dir in dirs:
+                try: dir = self._encode(dir)
+                except UnicodeError: # skip this directory
+                    continue
+
                 tuple = (self.strip_root(root), dir)
                 if tuple in library_dirs:
                     library_dirs.remove(tuple)
@@ -315,15 +335,20 @@ class _Library(SignalingComponent):
 
             # else update files
             for file in files:
+                try: file = self._encode(file)
+                except UnicodeError: # skip this file
+                    continue
+
                 try: obj_cls = self._get_file_info(file)
                 except NotSupportedFormat:
                     log.info(_("File %s not supported") % file)
                     continue
-                file_object = self.file_class(db_con,\
-                                self.strip_root(root),\
-                                file, self._path, obj_cls)
 
-                tuple = (self.strip_root(root), file)
+                path = os.path.join(self._path, root, file)
+                dir, fn = self.strip_root(root), file
+                file_object = self.file_class(db_con, dir, fn, path, obj_cls)
+
+                tuple = (dir, fn)
                 if tuple in library_files:
                     library_files.remove(tuple)
                     if os.stat(os.path.join(root,file)).st_mtime >= \
@@ -361,20 +386,28 @@ class _Library(SignalingComponent):
     @inotify_action
     def add_file(self, path, name):
         try: obj_cls = self._get_file_info(name)
-        except NotSupportedFormat: return False
-        file_object = self.file_class(self.inotify_db, self.strip_root(path),\
-            name, self._path, obj_cls)
-        if not file_object.insert(): return False # insert failed
+        except NotSupportedFormat:
+            return False
+
+        file_path = os.path.join(path, name)
+        dir = self.strip_root(path)
+        f_obj = self.file_class(self.inotify_db, dir, name, file_path, obj_cls)
+        if not f_obj.insert(): # insert failed
+            return False
         self._add_missing_dir(path)
         return True
 
     @inotify_action
     def update_file(self, path, name):
         try: obj_cls = self._get_file_info(name)
-        except NotSupportedFormat: return False
-        file_object = self.file_class(self.inotify_db, self.strip_root(path),\
-            name, self._path, obj_cls)
-        if not file_object.update(): return False# update failed
+        except NotSupportedFormat:
+            return False
+
+        file_path = os.path.join(path, name)
+        dir = self.strip_root(path)
+        f_obj = self.file_class(self.inotify_db, dir, name, file_path, obj_cls)
+        if not f_obj.update(): # update failed
+            return False
         return True
 
     @inotify_action

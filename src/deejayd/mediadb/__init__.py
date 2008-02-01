@@ -24,12 +24,13 @@ import sys
 
 def init(db, player, config):
     audio_library,video_library,lib_watcher = None, None, None
+    fc = config.get("mediadb","filesystem_charset")
 
     try: audio_dir = config.get("mediadb","music_directory")
     except NoOptionError:
         sys.exit(_("You have to choose a music directory"))
     else:
-        try: audio_library = library.AudioLibrary(db,player,audio_dir)
+        try: audio_library = library.AudioLibrary(db, player, audio_dir, fc)
         except library.NotFoundException,msg:
             sys.exit(_("Unable to init audio library : %s") % msg)
 
@@ -43,7 +44,7 @@ def init(db, player, config):
               _('Supplied video directory not found. Video support disabled.'))
             video_library = None
         else:
-            try: video_library = library.VideoLibrary(db,player,video_dir)
+            try: video_library = library.VideoLibrary(db,player,video_dir,fc)
             except library.NotFoundException,msg:
                 sys.exit(_("Unable to init video library : %s") % msg)
 

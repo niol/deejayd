@@ -23,12 +23,7 @@ from os import path
 import sys
 
 def str_encode(data):
-    """Convert a basestring to a valid UTF-8 str."""
-    from deejayd.ui.config import DeejaydConfig
-    filesystem_charset = DeejaydConfig().get("mediadb","filesystem_charset")
-    if isinstance(data, str):
-        return data.decode(filesystem_charset, "replace").encode("utf-8")
-    elif isinstance(data, unicode):
+    if isinstance(data, unicode):
         return data.encode("utf-8")
 
     return data

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # Deejayd, a media player daemon
 # Copyright (C) 2007-2008 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
@@ -14,8 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-# -*- coding: utf-8 -*-
 
 """
 This module generates the test data.
@@ -35,9 +35,13 @@ class TestData:
         import testdeejayd.data
         self.sampleLibrary = testdeejayd.data.songlibrary
 
-    def getRandomString(self, length = 5, charset = string.letters):
+    def getRandomString(self, length = 5, charset = string.letters,\
+                        special = False):
         random.seed(time.time())
-        return ''.join(random.sample(charset, length))
+        rs = ''.join(random.sample(charset, length-1))
+        #if special:
+        #    rs += ''.join(random.sample(['é','è',"'","`","?","-","ç","à"], 2))
+        return rs
 
     def getRandomInt(self, maxValue = 10, minValue = 1):
         random.seed(time.time())
@@ -47,12 +51,14 @@ class TestData:
         random.seed(time.time())
         return random.sample(list, 1).pop()
 
+    def getBadCaracter(self):
+        return "\xe0"
 
 class TestSong(TestData):
     supportedTag = ("tracknumber","title","genre","artist","album","date")
 
     def __init__(self):
-        self.name = self.getRandomString() + self.ext
+        self.name = self.getRandomString(special = True) + self.ext
         self.tags = {}
 
     def build(self,path):
@@ -67,7 +73,7 @@ class TestSong(TestData):
         self.tags = None
 
     def rename(self):
-        newName = self.getRandomString() + self.ext
+        newName = self.getRandomString(special = True) + self.ext
         newPath = os.path.join(os.path.dirname(self.tags['filename']),\
             newName)
         os.rename(self.tags['filename'],newPath)
@@ -79,7 +85,7 @@ class TestSong(TestData):
         for tag in self.__class__.supportedTag:
             if tag == "date": value = str(self.getRandomInt(2010,1971))
             elif tag == "tracknumber": value = str(self.getRandomInt(15))
-            else: value = self.getRandomString()
+            else: value = self.getRandomString(special = False)
 
             tagInfo[tag] = unicode(value)
             self.tags[tag] = value
@@ -105,7 +111,9 @@ class TestMP3Song(TestSong):
 
     def __init__(self):
         self.testFile,self.ext = os.path.join(DATA_DIR, "mp3_test.mp3"), ".mp3"
-        TestSong.__init__(self)
+        #self.name = self.getRandomString() + self.getBadCaracter() + self.ext
+        self.name = self.getRandomString() + self.ext
+        self.tags = {}
 
     def __getitem__(self,key):
         return key in self.tags and self.tags[key] or None
@@ -139,7 +147,7 @@ class TestMP4Song(TestSong):
         tag_info = MP4(self.tags["filename"])
         for tag, name in self.__translate.iteritems():
             if name == "date": value = str(self.getRandomInt(2010,1971))
-            else: value = self.getRandomString()
+            else: value = self.getRandomString(special = False)
 
             tag_info[tag] = unicode(value)
             self.tags[name] = value
@@ -170,7 +178,7 @@ class TestDir(TestData):
 
     def __init__(self):
         self.build = False
-        self.name = self.getRandomString()
+        self.name = self.getRandomString(special = True)
         self.root = None
         self.items = []
 
@@ -187,7 +195,7 @@ class TestDir(TestData):
         self.root = destDir
 
     def rename(self):
-        newName = self.getRandomString()
+        newName = self.getRandomString(special = True)
         os.rename(os.path.join(self.root,self.name),\
                   os.path.join(self.root,newName))
         self.name = newName

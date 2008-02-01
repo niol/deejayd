@@ -28,7 +28,7 @@ log_level = {"error": ERROR, "info": INFO, \
              "debug": DEBUG}[level]
 
 def err(err):
-    log.err(_("ERROR - %s") % err)
+    log.msg(_("ERROR - %s") % err)
 
 def msg(msg):
     log.msg(msg)

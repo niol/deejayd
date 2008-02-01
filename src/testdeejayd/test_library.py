@@ -61,6 +61,8 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
         time.sleep(0.2)
         if do_update: # First update mediadb
             self.library._update()
+        else:
+            time.sleep(0.5)
 
         self.assertRaises(NotFoundException,
                   self.library.get_dir_content, self.testdata.getRandomString())
@@ -68,8 +70,27 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
                   self.library.get_file, self.testdata.getRandomString())
 
         for root, dirs, files in os.walk(self.testdata.getRootDir()):
-            current_root = self.testdata.stripRoot(root)
+            try: root = root.decode("utf-8", "strict").encode("utf-8")
+            except UnicodeError:
+                continue
 
+            new_dirs = []
+            for d in dirs:
+                try: d = d.decode("utf-8", "strict").encode("utf-8")
+                except UnicodeError:
+                    continue
+                new_dirs.append(d)
+            dirs = new_dirs
+
+            new_files = []
+            for f in files:
+                try: f = f.decode("utf-8", "strict").encode("utf-8")
+                except UnicodeError:
+                    continue
+                new_files.append(f)
+            files = new_files
+
+            current_root = self.testdata.stripRoot(root)
             try: contents = self.library.get_dir_content(current_root)
             except NotFoundException:
                 allContents = self.library.get_dir_content('')
@@ -209,7 +230,7 @@ class TestAudioLibrary(TestDeejayDBLibrary):
     def verifyTag(self,filePath):
         (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
 
-        for tag in ("title","artist","album"):
+        for tag in ("title","artist","album","genre"):
             self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \
                 (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
@@ -242,6 +263,7 @@ class TestInotifySupport(TestDeejayDBLibrary):
     def testAddSubdirectory(self):
         """Inotify support : Add a subdirectory"""
         self.testdata.addSubdir()
+        time.sleep(3)
         self.verifyMediaDBContent(do_update = False)
 
     def testRenameDirectory(self):
@@ -262,7 +284,7 @@ class TestInotifySupport(TestDeejayDBLibrary):
     def verifyTag(self,filePath):
         (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
 
-        for tag in ("title","artist","album"):
+        for tag in ("title","artist","album","genre"):
             self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \
                 (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
