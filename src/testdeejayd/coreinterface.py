@@ -363,7 +363,6 @@ class InterfaceSubscribeTests:
         """Checks that player.status signals are broadcasted."""
 
         trigger_list = ((self.deejayd.play_toggle, ()),
-                        (self.deejayd.stop, ()),
                         (self.deejayd.set_option, ('random', 1)),
                         (self.deejayd.set_option, ('repeat', 1)),
                         (self.deejayd.set_volume, (51, )),
