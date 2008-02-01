@@ -379,14 +379,18 @@ class XinePlayer(UnknownPlayer):
                 self._media_file[name] = text
         return False
 
+    # this callback is not called in the main reactor thread
+    # so we have to use callFromThread function instead of callLater
+    # see |http://twistedmatrix.com/documents/current/api/
+    #     |twisted.internet.interfaces.IReactorThreads.callFromThread.html
     def _event_callback(self, user_data, event):
         event = event.contents
         if event.type == XINE_EVENT_UI_PLAYBACK_FINISHED:
             log.info("Xine event : playback finished")
-            reactor.callLater(0, self._eof)
+            reactor.callFromThread(self._eof)
         elif event.type == XINE_EVENT_UI_SET_TITLE:
             log.info("Xine event : set title")
-            reactor.callLater(0, self._update_metadata)
+            reactor.callFromThread(self._update_metadata)
         elif event.type == XINE_EVENT_UI_MESSAGE:
             log.info("Xine event : message")
             msg = cast(event.data, POINTER(xine_ui_message_data_t)).contents
@@ -395,7 +399,7 @@ class XinePlayer(UnknownPlayer):
                     message = string_at(addressof(msg) + msg.explanation)
                 else:
                     message = _("Xine error %s") % msg.type
-                reactor.callLater(0, log.err, message)
+                reactor.callFromThread(log.err, message)
         return True
 
     def _dest_size_cb(self, data, video_width, video_height,\
