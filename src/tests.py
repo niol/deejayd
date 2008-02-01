@@ -30,15 +30,16 @@ This is the test suite launcher :
           http://docs.python.org/lib/testloader-objects.html)
           e.g. : ./tests.py xmlprocessing/TestAnswerParser
               or ./tests.py xmlprocessing/TestAnswerParser.testAnswerParserError
+    * If the fist argument is 'list', list all the possibles tests that can be
+      combined on the command line restricted by the same arguments.
+      e.g. : ./tests.py list xmlprocessing client
+      would list all the tests that are to be run from those test modules.
 """
 
 import sys, os, glob
 import unittest
 
 import testdeejayd
-
-suitelist = []
-runner = unittest.TextTestRunner(verbosity = 2)
 
 TEST_NAMESPACE = 'testdeejayd'
 test_suites_dir = os.path.join(os.path.dirname(__file__), TEST_NAMESPACE)
@@ -55,34 +56,77 @@ def my_import(name):
 def get_testfile_from_id(id):
     return os.path.join(test_suites_dir, "test_%s.py" % id)
 
+def get_id_from_module(module):
+    return module.__name__[len(TEST_NAMESPACE+'.'+'test_'):]
+
 tests_to_run = None
+list_only = False
 if len(sys.argv) > 1:
-    tests_to_run = []
-    for test_id in sys.argv[1:]:
+    if sys.argv[1] == 'list':
+        list_only = True
+        args = sys.argv[2:]
+    else:
+        args = sys.argv[1:]
+    tests_to_consider = []
+    for test_id in args:
         try:
             test_module, test_name = test_id.split('/')
         except ValueError:
             test_module = test_id
             test_name = None
 
-        tests_to_run.append((get_testfile_from_id(test_module), test_name))
+        tests_to_consider.append((get_testfile_from_id(test_module), test_name))
 else:
-    tests_to_run = [(x, None) for x in glob.glob(get_testfile_from_id("*"))]
+    tests_to_consider = [(x, None)\
+                         for x in glob.glob(get_testfile_from_id("*"))]
 
-for test_id in tests_to_run:
-    fn, test_name = test_id
-    module_path = '.'.join([TEST_NAMESPACE, os.path.basename(fn[:-3])])
-    test_module = my_import(module_path)
-
+def get_test_suite(test_module, test_name=None):
     test_suite = None
     if test_name:
         test_suite = unittest.defaultTestLoader.loadTestsFromName(test_name,
                                                                   test_module)
     else:
         test_suite = unittest.defaultTestLoader.loadTestsFromModule(test_module)
-    suitelist.append(test_suite)
+    return test_suite
 
-runner.run(unittest.TestSuite(suitelist))
+def get_module_and_name(test_id):
+    fn, test_name = test_id
+    module_path = '.'.join([TEST_NAMESPACE, os.path.basename(fn[:-3])])
+    test_module = my_import(module_path)
+    return test_module, test_name
+
+def print_tests(class_name, test_name=None):
+    if class_name.startswith('Test'):
+        has_tests = False
+        for fun_name in dir(getattr(test_module, class_name)):
+            if fun_name.startswith('test')\
+            and (not test_name or fun_name == test_name):
+                has_tests = True
+                print "%s/%s.%s" % (get_id_from_module(test_module),
+                                    class_name, fun_name)
+        if has_tests:
+            print "%s/%s" % (get_id_from_module(test_module), class_name)
+
+if list_only:
+    for test_id in tests_to_consider:
+        test_module, test_name = get_module_and_name(test_id)
+        if test_name:
+            splitted_test_name = test_name.split('.')
+            if len(splitted_test_name) > 1:
+                class_name, test_name = splitted_test_name
+            else:
+                class_name, test_name = splitted_test_name[0], None
+            print_tests(class_name, test_name)
+        else:
+            for class_name in dir(test_module):
+                print_tests(class_name)
+else:
+    suitelist = []
+    runner = unittest.TextTestRunner(verbosity = 2)
+    for test_id in tests_to_consider:
+        test_module, test_name = get_module_and_name(test_id)
+        suitelist.append(get_test_suite(test_module, test_name))
+    runner.run(unittest.TestSuite(suitelist))
 
 
 # vim: ts=4 sw=4 expandtab
