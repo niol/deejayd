@@ -57,7 +57,7 @@ class XinePlayer(UnknownPlayer):
         self.__video_port = None
         self.__stream = None
         self.__event_queue = None
-        self.__mine_xine = None
+        self.__mine_stream = None
 
     def init_video_support(self):
         UnknownPlayer.init_video_support(self)
@@ -68,7 +68,6 @@ class XinePlayer(UnknownPlayer):
             log.err(str(err))
             raise PlayerError(str(err))
         # init instance to get video and dvd informations
-        self.__mine_xine = xine_new()
         self.__mine_stream = xine_stream_new(self.__xine, None, None)
 
     def start_play(self):
@@ -259,10 +258,9 @@ class XinePlayer(UnknownPlayer):
 
     def close(self):
         UnknownPlayer.close(self)
-        if self.__mine_xine:
+        if self.__mine_stream:
             xine_close(self.__mine_stream)
             xine_dispose(self.__mine_stream)
-            xine_exit(self.__mine_xine)
         xine_close_audio_driver(self.__xine, self.__audio_port)
         xine_exit(self.__xine)
 
