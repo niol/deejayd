@@ -206,10 +206,13 @@ class UnknownPlayer(SignalingComponent):
 
         # read error
         error = lsdvd_process.stderr.read()
-        if error: raise PlayerError(error)
-
         output = lsdvd_process.stdout.read()
-        exec(output)
+        if error and output == '':
+            raise PlayerError(error)
+
+        try: exec(output)
+        except:
+            raise PlayerError(_("error in lsdvd command"))
         return lsdvd
 
 # vim: ts=4 sw=4 expandtab
