@@ -41,7 +41,8 @@ class SimpleMediaList:
             try: length = m["length"]
             except (IndexError, ValueError):
                 continue
-            self._time_length += length
+            if length:
+                self._time_length += length
 
     def get(self):
         return self._content

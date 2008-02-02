@@ -163,7 +163,10 @@ class _DeejaydSourceRdf(_DeejaydXML):
             desc.attrib["RDF:about"] = self._to_xml_string(url)
         for p in parms.keys():
             if p in ("time","length"):
-                value = format_time(int(parms[p]))
+                if parms[p]:
+                    value = format_time(int(parms[p]))
+                else:
+                    value = 0
             elif p == "external_subtitle":
                 value = parms[p] == "" and _("No") or _("Yes")
             else:
