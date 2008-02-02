@@ -89,9 +89,9 @@ class _UnknownCommand:
         status = self._deejayd.get_status()
         # player update
         cur = None
-        if status["state"] != "stop":
-            cur = self._deejayd.get_current().get_medias()
-            cur = cur[0]
+        cur_list = self._deejayd.get_current().get_medias()
+        if len(cur_list) == 1:
+            cur = cur_list[0]
         self._answer.set_player(status, cur)
 
         # source update
