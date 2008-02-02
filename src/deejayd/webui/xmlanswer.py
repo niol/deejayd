@@ -160,7 +160,7 @@ class _DeejaydSourceRdf(_DeejaydXML):
     def _rdf_description(self, parent, parms,url = None):
         desc = ET.SubElement(parent,"RDF:Description")
         if url:
-            desc.attrib["RDF:about"] = url
+            desc.attrib["RDF:about"] = self._to_xml_string(url)
         for p in parms.keys():
             if p in ("time","length"):
                 value = format_time(int(parms[p]))
@@ -256,10 +256,10 @@ class DeejaydVideoDirRdf(_DeejaydSourceRdf):
 
         subdirs = self._deejayd.get_video_dir(dir).get_directories()
         if subdirs == []:
-            dir_elt.attrib["RDF:resource"] = dir_url
+            dir_elt.attrib["RDF:resource"] = self._to_xml_string(dir_url)
         else:
             subdir_list =  ET.SubElement(dir_elt,"RDF:Seq")
-            subdir_list.attrib["RDF:about"] = dir_url
+            subdir_list.attrib["RDF:about"] = self._to_xml_string(dir_url)
             j = 1
             for d in subdirs:
                 new_id = id + "/%d" % j
