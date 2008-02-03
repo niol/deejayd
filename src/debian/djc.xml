@@ -17,7 +17,7 @@ XP=xsltproc -''-nonet
 
 manpage.1: manpage.dbk
         $(XP) $(DB2MAN) $<
-    
+
 The xsltproc binary is found in the xsltproc package.  The
 XSL files are in docbook-xsl.  Please remember that if you
 create the nroff version in one of the debian/rules file
@@ -27,17 +27,17 @@ and docbook-xsl in your Build-Depends control field.
 -->
 
   <!-- Fill in your name for FIRSTNAME and SURNAME. -->
-  <!ENTITY dhfirstname "<firstname>FIRSTNAME</firstname>">
-  <!ENTITY dhsurname   "<surname>SURNAME</surname>">
+  <!ENTITY dhfirstname "<firstname>Alexandre</firstname>">
+  <!ENTITY dhsurname   "<surname>Rossi</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>juillet  8, 2007</date>">
+  <!ENTITY dhdate      "<date>February, 3rd 2008</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
-  <!ENTITY dhsection   "<manvolnum>SECTION</manvolnum>">
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
   <!ENTITY dhemail     "<email>alexandre.rossi@gmail.com</email>">
   <!ENTITY dhusername  "Alexandre Rossi">
   <!ENTITY dhucpackage "<refentrytitle>DEEJAYD</refentrytitle>">
-  <!ENTITY dhpackage   "deejayd">
+  <!ENTITY dhpackage   "djc">
 
   <!ENTITY debian      "<productname>Debian</productname>">
   <!ENTITY gnu         "<acronym>GNU</acronym>">
@@ -50,7 +50,7 @@ and docbook-xsl in your Build-Depends control field.
       &dhemail;
     </address>
     <copyright>
-      <year>2007</year>
+      <year>2008</year>
       <holder>&dhusername;</holder>
     </copyright>
     &dhdate;
@@ -63,30 +63,22 @@ and docbook-xsl in your Build-Depends control field.
   <refnamediv>
     <refname>&dhpackage;</refname>
 
-    <refpurpose>program to do something</refpurpose>
+    <refpurpose>A command line client to the the Deejayd media player daemon.</refpurpose>
   </refnamediv>
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>&dhpackage;</command>
-
-      <arg><option>-e <replaceable>this</replaceable></option></arg>
-
-      <arg><option>--example <replaceable>that</replaceable></option></arg>
+      <arg><option>-h | <replaceable>options</replaceable></option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1>
     <title>DESCRIPTION</title>
 
     <para>This manual page documents briefly the
-      <command>&dhpackage;</command> and <command>bar</command>
-      commands.</para>
+      <command>&dhpackage;</command>.</para>
 
     <para>This manual page was written for the &debian; distribution
-      because the original program does not have a manual page.
-      Instead, it has documentation in the &gnu;
-      <application>Info</application> format; see below.</para>
-
-    <para><command>&dhpackage;</command> is a program that...</para>
+      because the original program does not have a manual page.</para>
 
   </refsect1>
   <refsect1>
@@ -95,7 +87,7 @@ and docbook-xsl in your Build-Depends control field.
     <para>These programs follow the usual &gnu; command line syntax,
       with long options starting with two dashes (`-').  A summary of
       options is included below.  For a complete description, see the
-      <application>Info</application> files.</para>
+      <option>-h</option> switch.</para>
 
     <variablelist>
       <varlistentry>
@@ -106,24 +98,12 @@ and docbook-xsl in your Build-Depends control field.
           <para>Show summary of options.</para>
         </listitem>
       </varlistentry>
-      <varlistentry>
-        <term><option>-v</option>
-          <option>--version</option>
-        </term>
-        <listitem>
-          <para>Show version of program.</para>
-        </listitem>
-      </varlistentry>
     </variablelist>
   </refsect1>
   <refsect1>
     <title>SEE ALSO</title>
 
-    <para>bar (1), baz (1).</para>
-
-    <para>The programs are documented fully by <citetitle>The Rise and
-      Fall of a Fooish Bar</citetitle> available via the
-      <application>Info</application> system.</para>
+    <para>deejayd (1).</para>
   </refsect1>
   <refsect1>
     <title>AUTHOR</title>
@@ -131,7 +111,7 @@ and docbook-xsl in your Build-Depends control field.
     <para>This manual page was written by &dhusername; &dhemail; for
       the &debian; system (but may be used by others).  Permission is
       granted to copy, distribute and/or modify this document under
-      the terms of the &gnu; General Public License, Version 2 any 
+      the terms of the &gnu; General Public License, Version 2 any
 	  later version published by the Free Software Foundation.
     </para>
 	<para>
@@ -141,4 +121,3 @@ and docbook-xsl in your Build-Depends control field.
 
   </refsect1>
 </refentry>
-

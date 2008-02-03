@@ -7,9 +7,19 @@
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
+# manpages targets from docbook
+DB2MAN=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/manpages/docbook.xsl
+XP=xsltproc -''-nonet -o $(CURDIR)/debian/
+# FIXME : Use a Pattern rule here, but cannot make it work at the moment
+djc.1: $(CURDIR)/debian/djc.xml
+	$(XP) $(DB2MAN) $<
+deejayd.1: $(CURDIR)/debian/deejayd.xml
+	$(XP) $(DB2MAN) $<
+MANPAGES=deejayd.1 djc.1
+
 PYVERS=$(shell pyversions -vr)
 
-build: $(PYVERS:%=build-python%)
+build: $(PYVERS:%=build-python%) $(MANPAGES)
 
 build-python%:
 	touch $@
@@ -34,6 +44,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-python*
+	rm -f $(CURDIR)/debian/djc.1 $(CURDIR)/debian/deejayd.1
 
 	# Add here commands to clean up after the build process.
 	python setup.py clean --all
