@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-26 16:39+0100\n"
+"POT-Creation-Date: 2008-02-03 09:54+0100\n"
 "PO-Revision-Date: 2008-01-05 23:20+0100\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -137,46 +137,46 @@ msgstr "Le fichier pour mettre à jour la base de donnée n'existe pas"
 msgid "The database structure has been updated"
 msgstr "La structure de la base de donnée a été mise à jour"
 
-#: ../deejayd/database/sqlite.py:49
+#: ../deejayd/database/sqlite.py:44
 #, python-format
 msgid "This program requires pysqlite version %s or later."
 msgstr "Ce program nécessite une version de pysqlite >= %s."
 
-#: ../deejayd/database/sqlite.py:57
+#: ../deejayd/database/sqlite.py:52
 msgid "Could not connect to sqlite database."
 msgstr "Impossible de se connecter à la base de donnée sqlite"
 
-#: ../deejayd/database/sqlite.py:80 ../deejayd/database/sqlite.py:85
-#: ../deejayd/database/sqlite.py:90
+#: ../deejayd/database/sqlite.py:75 ../deejayd/database/sqlite.py:80
+#: ../deejayd/database/sqlite.py:85
 #, python-format
 msgid "Unable to execute database request : %s"
 msgstr "Impossible d'éxécuter la requête : %s"
 
-#: ../deejayd/mediadb/__init__.py:30
+#: ../deejayd/mediadb/__init__.py:31
 msgid "You have to choose a music directory"
 msgstr "Vous devez choisir un répertoire contenant votre musique"
 
-#: ../deejayd/mediadb/__init__.py:34
+#: ../deejayd/mediadb/__init__.py:35
 #, python-format
 msgid "Unable to init audio library : %s"
 msgstr "Impossible d'initialiser la library audio : %s"
 
-#: ../deejayd/mediadb/__init__.py:37
+#: ../deejayd/mediadb/__init__.py:38
 msgid "Video support disabled."
 msgstr "Mode vidéo désactivé"
 
-#: ../deejayd/mediadb/__init__.py:43
+#: ../deejayd/mediadb/__init__.py:44
 msgid "Supplied video directory not found. Video support disabled."
 msgstr ""
 "Le répertoire vidéo proposé n'existe pas. Le support de la vidéo est "
 "désactivé"
 
-#: ../deejayd/mediadb/__init__.py:48
+#: ../deejayd/mediadb/__init__.py:49
 #, python-format
 msgid "Unable to init video library : %s"
 msgstr "Impossible d'initialiser la librairie vidéo : %s"
 
-#: ../deejayd/mediadb/__init__.py:52
+#: ../deejayd/mediadb/__init__.py:53
 msgid "Inotify support disabled"
 msgstr "Support d'inotify désactivé"
 
@@ -185,27 +185,32 @@ msgstr "Support d'inotify désactivé"
 msgid "Unable to get audio metadata from %s"
 msgstr "Impossible d'obtenir les données audio du fichier %s"
 
-#: ../deejayd/mediadb/library.py:85 ../deejayd/mediadb/library.py:93
+#: ../deejayd/mediadb/library.py:82 ../deejayd/mediadb/library.py:90
 #, python-format
 msgid "Unable to get video metadata from %s"
 msgstr "Impossible d'obtenir les données video du fichier %s"
 
-#: ../deejayd/mediadb/library.py:137
+#: ../deejayd/mediadb/library.py:141
 #, python-format
 msgid "Unable to find directory %s"
 msgstr "Impossible de trouver le répertoire %s"
 
-#: ../deejayd/mediadb/library.py:320
+#: ../deejayd/mediadb/library.py:157
+#, python-format
+msgid "%s has wrong character"
+msgstr "%s a des caractères invalides"
+
+#: ../deejayd/mediadb/library.py:344
 #, python-format
 msgid "File %s not supported"
 msgstr "Le fichier %s n'est pas supporté"
 
-#: ../deejayd/mediadb/library.py:340
+#: ../deejayd/mediadb/library.py:365
 #, python-format
 msgid "The %s library has been updated"
 msgstr "La librairie %s a été mise à jour"
 
-#: ../deejayd/mediadb/library.py:342
+#: ../deejayd/mediadb/library.py:367
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr "Impossible de mettre à jour la library %s. Voir les logs"
@@ -264,24 +269,24 @@ msgstr "L'argument %s est manquant"
 msgid "Invalid media backend"
 msgstr "Player invalide"
 
-#: ../deejayd/player/xine.py:45
+#: ../deejayd/player/xine.py:44
 msgid "Unable to init a xine instance"
 msgstr "Impossible d'initialiser une instance de xine"
 
-#: ../deejayd/player/xine.py:53
+#: ../deejayd/player/xine.py:52
 msgid "Unable to open audio driver"
 msgstr "Impossible d'ouvrir le driver audio"
 
-#: ../deejayd/player/xine.py:98
+#: ../deejayd/player/xine.py:96
 #, python-format
 msgid "Unable to play file %s"
 msgstr "Impossible de lire le fichier %s"
 
-#: ../deejayd/player/xine.py:301
+#: ../deejayd/player/xine.py:306
 msgid "Unable to open video driver"
 msgstr "Impossible d'ouvrir le driver vidéo"
 
-#: ../deejayd/player/xine.py:388
+#: ../deejayd/player/xine.py:399
 #, python-format
 msgid "Xine error %s"
 msgstr "Erreur Xine %s"
@@ -512,60 +517,60 @@ msgstr "Hauteur"
 msgid "Subtitle"
 msgstr "Sous-titre"
 
-#: ../deejayd/webui/xmlanswer.py:168
+#: ../deejayd/webui/xmlanswer.py:171
 msgid "No"
 msgstr "Non"
 
-#: ../deejayd/webui/xmlanswer.py:168
+#: ../deejayd/webui/xmlanswer.py:171
 msgid "Yes"
 msgstr "Oui"
 
-#: ../deejayd/webui/xmlanswer.py:254
+#: ../deejayd/webui/xmlanswer.py:257
 msgid "Root Directory"
 msgstr "Répertoire Racine"
 
-#: ../deejayd/webui/xmlanswer.py:285
+#: ../deejayd/webui/xmlanswer.py:288
 #, python-format
 msgid "DVD Title : %s"
 msgstr "Titre du DVD : %s"
 
-#: ../deejayd/webui/xmlanswer.py:287
+#: ../deejayd/webui/xmlanswer.py:290
 #, python-format
 msgid "Longest Track : %s"
 msgstr "Piste la plus longue : %s"
 
-#: ../deejayd/webui/xmlanswer.py:302
+#: ../deejayd/webui/xmlanswer.py:305
 #, python-format
 msgid "Title %s"
 msgstr "Titre %s"
 
-#: ../deejayd/webui/xmlanswer.py:310
+#: ../deejayd/webui/xmlanswer.py:313
 #, python-format
 msgid "Chapter %s"
 msgstr "Chapitre %s"
 
-#: ../deejayd/webui/xmlanswer.py:360
+#: ../deejayd/webui/xmlanswer.py:364
 #, python-format
 msgid "%s Song"
 msgid_plural "%s Songs"
 msgstr[0] "%s Chanson"
 msgstr[1] "%s Chansons"
 
-#: ../deejayd/webui/xmlanswer.py:371
+#: ../deejayd/webui/xmlanswer.py:375
 #, python-format
 msgid "%s Media"
 msgid_plural "%s Medias"
 msgstr[0] "%s Média"
 msgstr[1] "%s Médias"
 
-#: ../deejayd/webui/xmlanswer.py:383
+#: ../deejayd/webui/xmlanswer.py:387
 #, python-format
 msgid "%s Webradio"
 msgid_plural "%s Webradios"
 msgstr[0] "%s Radio Web"
 msgstr[1] "%s Radios Web"
 
-#: ../deejayd/webui/xmlanswer.py:394
+#: ../deejayd/webui/xmlanswer.py:399
 #, python-format
 msgid "%s Video"
 msgid_plural "%s Videos"
