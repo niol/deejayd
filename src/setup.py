@@ -70,8 +70,8 @@ class deejayd_build(distutils_build):
 #
 def build_data_files_list():
     data = [
-        ('share/doc/deejayd-'+deejayd.__version__, glob.glob("doc/*")),
-        ('share/doc/deejayd-'+deejayd.__version__, glob.glob("README*")),
+        ('share/doc/deejayd', glob.glob("doc/*")),
+        ('share/doc/deejayd', glob.glob("README*")),
         ]
 
     htdocs_root = 'data/htdocs'
