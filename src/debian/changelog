@@ -1,3 +1,14 @@
+deejayd (0.6.2-1) UNRELEASED; urgency=low
+
+  * 0.6.2 Release.
+  * Changes since 0.6.1
+    * fix in xine backend
+      * correctly hide cursor
+      * fix xine event callback
+    * fix in mediadb (skip file with bad caracter)
+
+ -- Mickael Royer <mickael.royer@gmail.com>  Sun, 03 Feb 2008 09:47:15 +0100
+
 deejayd (0.6.1-1) UNRELEASED; urgency=low
 
   * 0.6.1 Release.

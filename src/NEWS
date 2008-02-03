@@ -1,6 +1,13 @@
 
 New features and significant updates in version...
 
+0.6.2 (2008-02-03)
+--------------------
+  * fix in xine backend
+    * correctly hide cursor
+    * fix xine event callback
+  * fix in mediadb (skip file with bad caracter)
+
 0.6.1 (2008-01-28)
 --------------------
   * fix important bug in xine backend
