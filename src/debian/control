@@ -14,26 +14,29 @@ Architecture: all
 Depends: ${python:Depends}, deejayd-client, deejayd-mediabackend, adduser, python-twisted, python-pysqlite2, python-mutagen
 Recommends: python-pyinotify (>= 0.6.0)
 XB-Python-Version: ${python:Versions}
-Description: A media player daemon
+Description: Network media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
  through the network using XML messages.
  It suppports playlists, searching, many media tags. It can playback many
- music and video formats.
+ music and video formats using either its xine (recommended) or its gstreamer
+ backend.
 
 Package: deejayd-webui
 Architecture: all
 Depends: ${python:Depends}, deejayd, python-twisted-web
 XB-Python-Version: ${python:Versions}
-Description: Web interface to control deejayd server
- This package provides a web interface to control your deejayd server
+Description: Web interface for deejayd
+ This package provides a XUL web interface to control your deejayd server. The
+ required webserver is embedded in the deejayd daemon.
 
 Package: deejayd-client
 Architecture: all
 Depends: ${python:Depends}, python-celementtree
 XB-Python-Version: ${python:Versions}
-Description: Client bindings to access the deejayd server
+Description: Client library to access the deejayd server
  This package provides easy to use classes to manipulate the deejayd server,
- abstracting XML message processing and network operations.
+ abstracting XML message processing and network operations. It fully implements
+ the set of features exploitable from the server.
 
 Package: djc
 Architecture: all
@@ -41,7 +44,7 @@ Depends: ${python:Depends}, deejayd-client
 XB-Python-Version: ${python:Versions}
 Description: Command line basic client to the deejayd server
  djc provides a subset of deejayd commands for your deejayd server to be
- accessible from the command line.
+ reachable from the command line.
 
 Package: deejayd-xine
 Architecture: all
