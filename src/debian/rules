@@ -51,10 +51,7 @@ clean:
 
 	dh_clean
 
-# Must not depend on anything. This is to be called by
-# binary-arch/binary-indep
-# in another 'make' thread.
-binary-common:
+binary-indep: build install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs
@@ -69,13 +66,9 @@ binary-common:
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
-# Build architecture independant packages using the common target.
-binary-indep: build install
-	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
 
-# Build architecture dependant packages using the common target.
 binary-arch: build install
-	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
 
 binary: binary-arch binary-indep
+
 .PHONY: build clean binary-indep binary-arch binary install
