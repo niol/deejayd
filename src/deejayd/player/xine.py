@@ -259,7 +259,7 @@ class XinePlayer(UnknownPlayer):
         xine_exit(self.__xine)
 
     #
-    # Specefic xine functions
+    # Specific xine functions
     #
     def __do_set_property(self, property, v):
         if not self.__stream: return
