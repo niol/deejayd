@@ -45,15 +45,10 @@ class XinePlayer(UnknownPlayer):
         xine_config_load(self.__xine, xine_get_homedir() + "/.xine/config")
         xine_init(self.__xine)
 
-        # open audio driver
-        driver_name = self.config.get("xine", "audio_output")
-        self.__audio_port = xine_open_audio_driver(self.__xine,driver_name,None)
-        if not self.__audio_port:
-            raise PlayerError(_("Unable to open audio driver"))
-
         # init vars
         self.__supports_gapless = xine_check_version(1, 1, 1) == 1
         self.__volume = 100
+        self.__audio_port = None
         self.__video_port = None
         self.__stream = None
         self.__event_queue = None
@@ -261,7 +256,6 @@ class XinePlayer(UnknownPlayer):
         if self.__mine_stream:
             xine_close(self.__mine_stream)
             xine_dispose(self.__mine_stream)
-        xine_close_audio_driver(self.__xine, self.__audio_port)
         xine_exit(self.__xine)
 
     #
@@ -277,7 +271,14 @@ class XinePlayer(UnknownPlayer):
 
     def _create_stream(self):
         if self.__stream != None:
-            raise PlayerError
+            self._destroy_stream()
+
+        # open audio driver
+        driver_name = self.config.get("xine", "audio_output")
+        self.__audio_port = xine_open_audio_driver(self.__xine,driver_name,None)
+        if not self.__audio_port:
+            raise PlayerError(_("Unable to open audio driver"))
+
         # open video driver
         if self._video_support and self.__xine_options["video"] != "none":
             try: self.__display.create()
@@ -334,10 +335,15 @@ class XinePlayer(UnknownPlayer):
             if self.__event_queue:
                 xine_event_dispose_queue(self.__event_queue)
             xine_dispose(self.__stream)
+            self.__stream = None
+
+            xine_close_audio_driver(self.__xine, self.__audio_port)
+            self.__audio_port = None
 
             # close video driver
             if self.__video_port:
                 xine_close_video_driver(self.__xine, self.__video_port)
+                self.__video_port = None
                 self.__display.destroy()
                 self.__x11_callbacks = []
 
