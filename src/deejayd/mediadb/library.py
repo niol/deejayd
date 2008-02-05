@@ -141,6 +141,7 @@ class _Library(SignalingComponent):
             msg = _("Unable to find directory %s") % self._path
             log.err(msg)
             raise NotFoundException(msg)
+        self.__root_paths = [self._path]
 
         # Connection to the database
         self.db_con = db_connection
@@ -189,6 +190,9 @@ class _Library(SignalingComponent):
 
     def get_root_path(self):
         return self._path
+
+    def get_root_paths(self):
+        return self.__root_paths
 
     def get_status(self):
         status = []

@@ -106,16 +106,14 @@ class DeejaydInotify(threading.Thread):
                EventsCodes.IN_MOVED_FROM | EventsCodes.IN_MOVED_TO |\
                EventsCodes.IN_CLOSE_WRITE
         notifier = Notifier(wm)
-        if self.__audio_library != None:# watch audio library
-            self.__audio_library.set_inotify_connection(threaded_db)
-            wm.add_watch(self.__audio_library.get_root_path(), mask, \
-                proc_fun=LibraryWatcher(self.__audio_library), rec=True,\
-                auto_add=True)
-        if self.__video_library != None: # watch video library
-            self.__video_library.set_inotify_connection(threaded_db)
-            wm.add_watch(self.__video_library.get_root_path(), mask, \
-                proc_fun=LibraryWatcher(self.__video_library), rec=True,\
-                auto_add=True)
+
+        for library in (self.__audio_library, self.__video_library):
+            if library:
+                library.set_inotify_connection(threaded_db)
+                for dir_path in library.get_root_paths():
+                    wm.add_watch(dir_path, mask,
+                                 proc_fun=LibraryWatcher(library), rec=True,
+                                 auto_add=True)
 
         while not self.should_stop.isSet():
             # process the queue of events as explained above
