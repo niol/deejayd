@@ -272,4 +272,32 @@ def XSetNullCursor(display, screen, window):
     pixel = ctypes.c_ulong(black.pixel)
     XFreeColors(display, cmap, ctypes.byref(pixel), 1, 0)
 
+
+# DPMS manipulation
+try:
+    _libXext = ctypes.cdll.LoadLibrary('libXext.so.6')
+except (ImportError, OSError), e:
+    raise ImportError, e
+
+
+# Bool DPMSQueryExtension (Display *display, int *event_base, int *error_base)
+_libXext.DPMSQueryExtension.restype = ctypes.c_int
+_libXext.DPMSQueryExtension.argtypes = [ctypes.c_void_p,
+                                        ctypes.c_void_p,
+                                        ctypes.c_void_p]
+# Status DPMSEnable (Display *display )
+_libXext.DPMSEnable.restype = ctypes.c_int
+_libXext.DPMSEnable.argtypes = [ctypes.c_void_p]
+# Status DPMSDisable (Display *display )
+_libXext.DPMSDisable.restype = ctypes.c_int
+_libXext.DPMSDisable.argtypes = [ctypes.c_void_p]
+
+
+# copy functions from the library
+module = sys.modules[__name__]
+for name in dir(_libXext):
+    if name.startswith('DPMS'):
+        setattr(module, name, getattr(_libXext, name))
+
+
 # vim: ts=4 sw=4 expandtab

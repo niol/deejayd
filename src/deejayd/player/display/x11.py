@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import threading
-from ctypes import byref, cast, c_char_p
+from ctypes import byref, cast, c_char_p, pointer, c_int
 from deejayd.player.display._X11 import *
 
 class X11Error(Exception): pass
@@ -87,6 +87,8 @@ class X11Display:
         # update video area
         self.__update_video_area()
 
+        self.set_dpms(False)
+
     def destroy(self):
         if not self.infos:
             return
@@ -96,6 +98,8 @@ class X11Display:
         XDestroyWindow(self.infos['dsp'], self.infos["window"])
         XSync(self.infos['dsp'], False)
         XUnlockDisplay(self.infos['dsp'])
+
+        self.set_dpms(True)
 
         # close display
         XCloseDisplay(self.infos['dsp'])
@@ -135,5 +139,14 @@ class X11Display:
         self.video_area["width"] = width
         self.video_area["height"] = height
         self.__lock.release()
+
+    def set_dpms(self, activated):
+        dummy = pointer(c_int(51))
+        if DPMSQueryExtension(self.infos['dsp'], dummy, dummy):
+            if activated:
+                DPMSEnable(self.infos['dsp'])
+            else:
+                DPMSDisable(self.infos['dsp'])
+
 
 # vim: ts=4 sw=4 expandtab
