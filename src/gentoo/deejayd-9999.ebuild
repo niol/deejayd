@@ -43,6 +43,7 @@ RDEPEND="${DEPEND}
 		webradio? ( >=media-plugins/gst-plugins-gnomevfs-0.10.2 ))
 	xine? ( >=dev-python/ctypes-1.0.0
 			>=x11-libs/libX11-1.0.0
+			>=x11-libs/libXext-1.0.0
 			>=media-libs/xine-lib-1.1.0)
 	dvd? ( >=media-video/lsdvd-0.16 )"
 S="${WORKDIR}/${P}/src"
