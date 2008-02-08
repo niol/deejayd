@@ -283,8 +283,8 @@ except (ImportError, OSError), e:
 # Bool DPMSQueryExtension (Display *display, int *event_base, int *error_base)
 _libXext.DPMSQueryExtension.restype = ctypes.c_int
 _libXext.DPMSQueryExtension.argtypes = [ctypes.c_void_p,
-                                        ctypes.c_void_p,
-                                        ctypes.c_void_p]
+                                        ctypes.POINTER(ctypes.c_int),
+                                        ctypes.POINTER(ctypes.c_int)]
 # Status DPMSEnable (Display *display )
 _libXext.DPMSEnable.restype = ctypes.c_int
 _libXext.DPMSEnable.argtypes = [ctypes.c_void_p]
