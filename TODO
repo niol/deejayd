@@ -1,16 +1,21 @@
-xmlbuilders
-  * improve way to build dict list
+* ReplayGain support, even on videos if possible.
 
-Test
-  * Finish to write tests
+* Improve webradios as commented in the tests.
 
-Xine
-  * Should take video_pixel_aspect into account
+* Random with weight on notation.
 
-Coding style
-  I red somewhere that the recommended usage is underscore-separated for
-  variable and function names, camel-case for class names, and run-together
-  lower-case for module names. It should perhaps be good to respect this, one
-  day...
-  This is done for the commandsXML, database, mediadb, source, 
-  client and xmlbuilders modules.
+* Count playback start and playback stop in db. The difference between those is
+  the number of times skipped.
+
+* Work on webui from use cases (albumplayback, etc).
+
+* Signals to the webui exploiting the fact that XmlHttpRequest does not have a
+  timeout.
+
+* Save full state : mode, status and playtime
+
+* Have inotify work with symlinked dirs.
+
+* Have intelligent playlists (all library, etc)
+
+* debian package should make it easier to connect to Xorg
