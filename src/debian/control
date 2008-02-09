@@ -13,6 +13,7 @@ Package: deejayd
 Architecture: all
 Depends: ${python:Depends}, deejayd-client, deejayd-mediabackend, adduser, python-twisted, python-pysqlite2, python-mutagen
 Recommends: python-pyinotify (>= 0.6.0)
+Suggests: deejayd-webui, djc
 XB-Python-Version: ${python:Versions}
 Description: Network media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
