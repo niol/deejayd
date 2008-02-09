@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import threading
-from ctypes import byref, cast, c_char_p, pointer, c_int
+from ctypes import byref, cast, c_char_p, c_int
 from deejayd.player.display._X11 import *
 
 class X11Error(Exception): pass
@@ -141,8 +141,8 @@ class X11Display:
         self.__lock.release()
 
     def set_dpms(self, activated):
-        dummy = pointer(c_int(51))
-        if DPMSQueryExtension(self.infos['dsp'], dummy, dummy):
+        dummy = c_int()
+        if DPMSQueryExtension(self.infos['dsp'], byref(dummy), byref(dummy)):
             if activated:
                 DPMSEnable(self.infos['dsp'])
             else:
