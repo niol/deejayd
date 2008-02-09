@@ -349,7 +349,7 @@ class XinePlayer(UnknownPlayer):
                 xine_close_video_driver(self.__xine, self.__video_port)
                 self.__video_port = None
                 self.__display.destroy()
-                self.__x11_callbacks = []
+                self.__x11_callbacks = None
 
     #
     # callbacks
