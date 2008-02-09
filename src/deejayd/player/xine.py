@@ -285,10 +285,13 @@ class XinePlayer(UnknownPlayer):
             except x11.X11Error, err:
                 raise PlayerError(str(err))
 
+            # Those callbacks are required to be kept in this list in order to
+            # be safe from the garbage collector.
             self.__x11_callbacks = [
                 xine_dest_size_cb(self._dest_size_cb),
                 xine_frame_output_cb(self._frame_output_cb)
                 ]
+
             x11_infos = self.__display.get_infos()
             vis = x11_visual_t()
             vis.display = x11_infos["dsp"]
