@@ -337,6 +337,7 @@ class XinePlayer(UnknownPlayer):
             xine_set_param(self.__stream, XINE_PARAM_AUDIO_CLOSE_DEVICE, 1)
             if self.__event_queue:
                 xine_event_dispose_queue(self.__event_queue)
+                self.__event_queue = None
             xine_dispose(self.__stream)
             self.__stream = None
 
@@ -349,11 +350,6 @@ class XinePlayer(UnknownPlayer):
                 self.__video_port = None
                 self.__display.destroy()
                 self.__x11_callbacks = []
-
-            # reset vars
-            self.__video_port = None
-            self.__stream = None
-            self.__event_queue = None
 
     #
     # callbacks
