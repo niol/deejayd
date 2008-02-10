@@ -48,6 +48,8 @@ clean:
 
 	# Add here commands to clean up after the build process.
 	python setup.py clean --all
+	rm -f $(CURDIR)/deejayd/__init__.pyc
+	rm -f $(CURDIR)/build/mo/fr/LC_MESSAGES/deejayd.mo
 
 	dh_clean
 
