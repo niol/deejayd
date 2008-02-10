@@ -62,5 +62,5 @@ Depends: ${python:Depends}, gstreamer0.10-plugins-base, python-gst0.10
 Provides: deejayd-mediabackend
 Recommends: gstreamer0.10-gnomevfs, lsdvd
 XB-Python-Version: ${python:Versions}
-Description: Deejayd Gstreamer backend
- The deejayd media backend using the gstreamer library.
+Description: Deejayd GStreamer backend
+ The deejayd media backend using the GStreamer library.
