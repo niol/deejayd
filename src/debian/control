@@ -49,7 +49,7 @@ Description: Command line basic client to the deejayd server
 
 Package: deejayd-xine
 Architecture: all
-Depends: ${python:Depends}, python-ctypes (>= 1.0.0), libxine1 (>= 1.1.9), libx11-6, libxext6
+Depends: ${python:Depends}, python-ctypes (>= 1.0.0), libxine1, libx11-6, libxext6
 Recommends: lsdvd
 Provides: ${python:Provides}, deejayd-mediabackend
 XB-Python-Version: ${python:Versions}
