@@ -11,3 +11,5 @@ include gentoo/files/*
 recursive-include data/htdocs *
 include po/*po
 include po/deejayd.pot
+recursive-include testdeejayd *
+include data/logo/*
