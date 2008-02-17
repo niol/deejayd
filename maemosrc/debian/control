@@ -7,7 +7,7 @@ Standards-Version: 3.6.0
 
 Package: djmote
 Architecture: all
-Depends: python2.5, python2.5-hildon, python2.5-gtk2, python2.5-gobject, python2.5-dbus
+Depends: python2.5, python2.5-hildon, python2.5-gtk2, python2.5-gobject, python2.5-dbus, python2.5-osso
 Description: A deejayd client for the Maemo platform
  A graphical deejayd client optimized for use on Maemo devices such as the
  Nokia N770 or Nokia N800.
