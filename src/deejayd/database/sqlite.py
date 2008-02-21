@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd.ui import log
-from deejayd.database.database import Database
+from deejayd.database._base import Database, OperationalError
 from pysqlite2 import dbapi2 as sqlite
 from os import path
 import sys
@@ -25,15 +25,13 @@ import sys
 def str_encode(data):
     if isinstance(data, unicode):
         return data.encode("utf-8")
-
     return data
 
 
 class SqliteDatabase(Database):
 
-    def __init__(self,db_file,db_prefix = ""):
+    def __init__(self, db_file):
         self.db_file = path.expanduser(db_file)
-        self.db_prefix = db_prefix
 
     def connect(self):
         # Check pysqlite version
@@ -46,7 +44,6 @@ class SqliteDatabase(Database):
             log.err(sqlite_error)
             sys.exit(sqlite_error)
 
-        init = path.isfile(self.db_file) and (0,) or (1,)
         try: self.connection = sqlite.connect(self.db_file)
         except:
             error = _("Could not connect to sqlite database.")
@@ -60,35 +57,54 @@ class SqliteDatabase(Database):
         self.connection.row_factory = sqlite.Row
         sqlite.register_adapter(str,str_encode)
 
-        if init[0]: self.create_database()
-        else: self.verify_database_version()
+        self.verify_database_version()
 
     def get_new_connection(self):
-        return SqliteDatabase(self.db_file,self.db_prefix)
+        return SqliteDatabase(self.db_file)
 
-    def execute(self,query,parm = None):
-        query = self.__format_query(query)
+    def execute(self, query, parm = None, raise_exception = False):
+        if parm:
+            query = query % (('?',) * len(parm))
         try:
-            if parm == None: self.cursor.execute(query)
-            else: self.cursor.execute(query,parm)
+            args = parm or ()
+            self.cursor.execute(query,args)
         except sqlite.OperationalError, err:
-            log.err(_("Unable to execute database request : %s") % err)
+            log.err(_("Unable to execute database request '%s': %s") \
+                        % (query, err))
+            if raise_exception:
+                raise OperationalError
 
-    def executemany(self,query,parm):
-        try: self.cursor.executemany(self.__format_query(query),parm)
+    def executemany(self, query, parm = []):
+        if parm == []: # no request to execute
+            return
+        query = query % (('?',) * len(parm[0]))
+        try: self.cursor.executemany(query,parm)
         except sqlite.OperationalError, err:
-            log.err(_("Unable to execute database request : %s") % err)
+            log.err(_("Unable to execute database request '%s': %s") \
+                        % (query, err))
 
-    def executescript(self,query):
-        try: self.cursor.executescript(self.__format_query(query))
-        except sqlite.OperationalError, err:
-            log.err(_("Unable to execute database request : %s") % err)
+    def to_sql(self, table):
+        sql = ["CREATE TABLE %s (" % table.name]
+        coldefs = []
+        for column in table.columns:
+            ctype = column.type.lower()
+            if column.auto_increment:
+                ctype = "integer PRIMARY KEY"
+            elif len(table.key) == 1 and column.name in table.key:
+                ctype += " PRIMARY KEY"
+            elif ctype == "int":
+                ctype = "integer"
+            coldefs.append("    %s %s" % (column.name, ctype))
+        if len(table.key) > 1:
+            coldefs.append("    UNIQUE (%s)" % ','.join(table.key))
+        sql.append(',\n'.join(coldefs) + '\n);')
+        yield '\n'.join(sql)
+        for index in table.indices:
+            yield "CREATE INDEX %s_%s_idx ON %s (%s);" % (table.name,
+                  '_'.join(index.columns), table.name, ','.join(index.columns))
 
-    def close(self):
-        self.cursor.close()
-        self.connection.close()
-
-    def __format_query(self,query):
-        return query.replace("{",self.db_prefix).replace("}","")
+    def init_db(self):
+        Database.init_db(self)
+        self.connection.commit()
 
 # vim: ts=4 sw=4 expandtab

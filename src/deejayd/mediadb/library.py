@@ -277,9 +277,9 @@ class _Library(SignalingComponent):
 
         try:
             self.last_update_time = conn.get_update_time(self.type)
-            library_files = [(item[0],item[1]) for item \
+            library_files = [(item[1],item[2]) for item \
                                 in conn.get_all_files('',self.table)]
-            library_dirs = [(item[0],item[1]) for item \
+            library_dirs = [(item[1],item[2]) for item \
                                 in conn.get_all_dirs('',self.table)]
 
             self.walk_directory(conn, self.get_root_path(), library_dirs,\
@@ -481,11 +481,11 @@ class AudioLibrary(_Library):
         # format correctly database result
         files = []
         dirs = []
-        for (dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in rs:
+        for (id,dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in rs:
             if t == 'directory': dirs.append(fn)
             else:
                 file_info = {"path":os.path.join(dir,fn),"length":lg,
-                             "filename":fn,"dir":dir,
+                             "media_id":id,"filename":fn,"dir":dir,
                              "title":ti,"artist":ar,"album":al,"genre":gn,
                              "track":tn,"date":dt,"bitrate":bt,
                              "uri":"file://"+os.path.join(self._path,dir,fn),
@@ -511,11 +511,11 @@ class VideoLibrary(_Library):
         # format correctly database result
         files = []
         dirs = []
-        for (dir,fn,t,ti,len,videow,videoh,sub) in rs:
+        for (id,dir,fn,t,ti,videow,videoh,sub,len) in rs:
             if t == 'directory': dirs.append(fn)
             else:
                 file_info = {"path":os.path.join(dir,fn),"length":len,
-                             "filename":fn,"dir":dir,
+                             "media_id":id,"filename":fn,"dir":dir,
                              "title":ti,
                              "videowidth":videow,"videoheight":videoh,
                              "uri":"file://"+os.path.join(self._path,dir,fn),

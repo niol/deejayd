@@ -23,12 +23,23 @@ def init(config):
     db_type =  config.get("database","db_type")
 
     if db_type == "sqlite":
-        db_file = config.get("database","db_file")
-        try: prefix = config.get("database","db_prefix") + "_"
-        except NoOptionError: prefix = ""
+        db_file = config.get("database","db_name")
 
         from deejayd.database.sqlite import SqliteDatabase
-        return SqliteDatabase(db_file,prefix)
+        return SqliteDatabase(db_file)
+    elif db_type == "mysql":
+        db_name = config.get("database","db_name")
+        db_user = config.get("database","db_user")
+        db_password = config.get("database","db_password")
+        try: db_host = config.get("database","db_host")
+        except NoOptionError:
+            db_host = ""
+        try: db_port = config.getint("database","db_port")
+        except (NoOptionError, ValueError):
+            db_port = 3306
+
+        from deejayd.database.mysql import MysqlDatabase
+        return MysqlDatabase(db_name, db_user, db_password, db_host, db_port)
     else:
         sys.exit(_("You chose a database which is not supported.\
                     Verify your config file."))

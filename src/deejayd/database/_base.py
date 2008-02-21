@@ -21,12 +21,15 @@
 """
 
 from deejayd.ui import log
+from deejayd.database import schema
 from os import path
 import sys
 
-class databaseExeption: pass
+class OperationalError(Exception): pass
 
 class UnknownDatabase:
+    connection = None
+    cursor = None
 
     def connect(self):
         raise NotImplementedError
@@ -37,123 +40,119 @@ class UnknownDatabase:
     def executemany(self,cur,query,parm):
         raise NotImplementedError
 
-    def close(self):
-        raise NotImplementedError
-
     def get_new_connection(self):
         raise NotImplementedError
 
+    def close(self):
+        if self.cursor:
+            self.cursor.close()
+        if self.connection:
+            self.connection.close()
+
 
 class Database(UnknownDatabase):
-    database_version = "4"
 
-    def create_database(self):
-        p = path.join(path.dirname(__file__),"sql/database_v%s.sql" %
-                    self.__class__.database_version)
-        try: f = open(p)
-        except IOError: sys.exit(_("Database structure not found"))
-
-        sql_script = f.read()
-        self.executescript(sql_script)
-
-        self.connection.commit()
+    def init_db(self):
+        for table in schema.db_schema:
+            for stmt in self.to_sql(table):
+                self.execute(stmt)
         log.info(_("Database structure successfully created."))
+        for query in schema.db_init_cmds:
+            self.execute(query)
+        log.info(_("Initial entries correctly inserted."))
 
     def verify_database_version(self):
-        # Get current database version
-        current_version = int(self.get_state("database_version"))
+        try:
+            self.execute("SELECT value FROM variables\
+                WHERE name = 'database_version'", raise_exception = True)
+            (db_version,) = self.cursor.fetchone()
+            db_version = int(db_version)
+        except OperationalError:
+            self.init_db()
+        else:
+            if schema.db_schema_version > db_version:
+                log.info(_("The database structure needs to be updated..."))
 
-        new_version = int(self.__class__.database_version)
-        if new_version > current_version:
-            log.info(_("The database structure needs to be updated..."))
+                i = db_version+1
+                while i < schema.db_schema_version+1:
+                    # TODO
+                    i += 1
 
-            i = current_version+1
-            while i < new_version+1:
-                p = path.join(path.dirname(__file__),"sql/update_v%d-v%d.sql" \
-                        % (i-1,i))
-                try: f = open(p)
-                except IOError:
-                    sys.exit(_("Update database file not found"))
-                sql_script = f.read()
-                self.executescript(sql_script)
-
-                i += 1
-
-            self.connection.commit()
-            log.msg(_("The database structure has been updated"))
-
-        return True
+                self.connection.commit()
+                log.msg(_("The database structure has been updated"))
 
     #
     # Common MediaDB requests
     #
     def remove_file(self,dir,f,table = "audio_library"):
-        query = "DELETE FROM {%s} WHERE filename = ? AND dir = ?" % table
+        query = "DELETE FROM "+table+" WHERE filename = %s AND dir = %s"
         self.execute(query, (f,dir))
 
     def erase_empty_dir(self, table = "audio_library"):
-        # FIXME : find a better way to do this
         # get list of dir
-        query = "SELECT dir,filename FROM {%s} WHERE type='directory'" % table
+        query = "SELECT dir,filename FROM "+table+" WHERE type='directory'"
         self.execute(query)
 
         for (dir,filename) in self.cursor.fetchall():
-            query = "SELECT COUNT(*) FROM {%s} WHERE type='file' AND dir LIKE ?\
-                " % table
+            query = "SELECT COUNT(*) FROM "+table+" WHERE type='file' AND dir\
+                LIKE %s"
             self.execute(query,(path.join(dir,filename)+'%%',))
             rs = self.cursor.fetchone()
             if rs == (0,): # remove directory
-                query = "DELETE FROM {%s} WHERE dir = ? AND filename = ?"%table
+                query = "DELETE FROM "+table+" WHERE dir = %s AND filename = %s"
                 self.execute(query, (dir,filename))
 
         return True
 
     def insert_dir(self,new_dir,table = "audio_library"):
-        query = "INSERT INTO {%s}(dir,filename,type)VALUES(?,?,\
-            'directory')" % table
+        query = "INSERT INTO "+table+" (dir,filename,type)\
+                                 VALUES(%s,%s,'directory')"
         self.execute(query, new_dir)
 
     def remove_dir(self,root,dir,table = "audio_library"):
-        query = "DELETE FROM {%s} WHERE filename = ? AND dir = ?" % table
+        query = "DELETE FROM "+table+" WHERE filename = %s AND dir = %s"
         self.execute(query, (dir,root))
         # We also need to erase the content of this directory
-        query = "DELETE FROM {%s} WHERE dir LIKE ?" % table
+        query = "DELETE FROM "+table+" WHERE dir LIKE %s"
         self.execute(query, (path.join(root,dir)+"%%",))
 
     def is_dir_exist(self, root, dir, table = "audio_library"):
-        query = "SELECT * FROM {%s} WHERE filename = ? AND dir = ? AND\
-            type = 'directory'" % table
+        query = "SELECT * FROM "+table+" WHERE filename = %s AND dir = %s AND\
+            type = 'directory'"
         self.execute(query, (dir,root))
 
         return len(self.cursor.fetchall())
 
     def get_dir_info(self,dir,table = "audio_library"):
-        query = "SELECT * FROM {%s} WHERE dir = ? ORDER BY type" % (table,)
+        query = "SELECT * FROM "+table+" WHERE dir = %s\
+                 ORDER BY type,dir,filename"
         self.execute(query,(dir,))
 
         return self.cursor.fetchall()
 
     def get_file_info(self,file,table = "audio_library"):
-        query = "SELECT * FROM {%s} WHERE dir = ? AND filename = ?" % table
+        query = "SELECT * FROM "+table+" WHERE dir = %s AND filename = %s"
         self.execute(query,path.split(file))
 
         return self.cursor.fetchall()
 
     def get_files(self,dir,table = "audio_library"):
-        query = "SELECT * FROM {%s} WHERE dir = ? AND type = 'file'" % table
+        query = "SELECT * FROM "+table+" WHERE dir = %s AND type = 'file'\
+                 ORDER BY dir,filename"
         self.execute(query,(dir,))
 
         return self.cursor.fetchall()
 
     def get_all_files(self,dir,table = "audio_library"):
-        query = "SELECT * FROM {%s} WHERE dir LIKE ? AND type = 'file' ORDER BY dir,filename" % table
+        query = "SELECT * FROM "+table+" WHERE dir LIKE %s AND type = 'file'\
+            ORDER BY dir,filename"
         self.execute(query,(dir+"%%",))
 
         return self.cursor.fetchall()
 
     def get_all_dirs(self,dir,table = "audio_library"):
-        query = "SELECT * FROM {%s} WHERE dir LIKE ? AND type = 'directory'" \
-                                                                        % table
+        query = "SELECT * FROM "+table+\
+            " WHERE dir LIKE %s AND type='directory' ORDER BY dir,filename"
         self.execute(query,(dir+"%%",))
 
         return self.cursor.fetchall()
@@ -163,37 +162,38 @@ class Database(UnknownDatabase):
     #
     def search_audio_library(self,type,content):
         if type != "all":
-            query = "SELECT * FROM {audio_library} WHERE type = 'file' AND %s \
-                LIKE ?" % (type,)
+            query = "SELECT * FROM audio_library WHERE type = 'file' AND "+\
+                type+" LIKE %s"
             self.execute(query,('%%'+content+'%%',))
         else:
-            query = "SELECT * FROM {audio_library} WHERE type = 'file' AND \
-                (genre LIKE ? OR title LIKE ? OR album LIKE ? OR \
-                artist LIKE ?)"
+            query = "SELECT * FROM audio_library WHERE type = 'file' AND \
+                (genre LIKE %s OR title LIKE %s OR album LIKE %s OR \
+                artist LIKE %s)"
             self.execute(query,('%%'+content+'%%','%%'+content+'%%',
                 '%%'+content+'%%','%%'+content+'%%'))
 
         return self.cursor.fetchall()
 
     def find_audio_library(self,type,content):
-        query = "SELECT * FROM {audio_library} WHERE type = 'file' AND %s = ?" \
-                % (type,)
+        query = "SELECT * FROM audio_library WHERE type = 'file' AND "+\
+            type+"= %s"
         self.execute(query,(content,))
 
         return self.cursor.fetchall()
 
     def insert_audio_file(self,dir,filename,fileInfo):
-        query = "INSERT INTO {audio_library}(type,dir,filename,title,artist,\
+        query = "INSERT INTO audio_library(type,dir,filename,title,artist,\
             album,genre,date,tracknumber,length,bitrate)VALUES \
-            ('file',?,?,?,?,?,?,?,?,?,?)"
+            ('file',%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.execute(query, (dir,filename,fileInfo["title"],\
             fileInfo["artist"],fileInfo["album"],fileInfo["genre"],\
             fileInfo["date"], fileInfo["tracknumber"],fileInfo["length"],\
             fileInfo["bitrate"]))
 
     def update_audio_file(self,dir,filename,fileInfo):
-        query = "UPDATE {audio_library} SET title=?,artist=?,album=?,genre=?,\
-            date=?,tracknumber=?,length=?,bitrate=? WHERE dir=? AND filename=?"
+        query = "UPDATE audio_library SET title=%s,artist=%s,album=%s,genre=%s,\
+            date=%s,tracknumber=%s,length=%s,bitrate=%s\
+            WHERE dir=%s AND filename=%s"
         self.execute(query,(fileInfo["title"],fileInfo["artist"],\
             fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
             fileInfo["tracknumber"],fileInfo["length"],fileInfo["bitrate"],\
@@ -203,27 +203,27 @@ class Database(UnknownDatabase):
     # Video MediaDB specific requests
     #
     def insert_video_file(self,dir,filename,fileInfo):
-        query = "INSERT INTO {video_library}(type,dir,filename,title,length,\
-            videowidth,videoheight,subtitle) VALUES ('file',?,?,?,?,?,?,?)"
+        query = "INSERT INTO video_library(type,dir,filename,title,length,\
+          videowidth,videoheight,subtitle) VALUES ('file',%s,%s,%s,%s,%s,%s,%s)"
         self.execute(query, (dir,filename,\
             fileInfo["title"],fileInfo["length"],fileInfo["videowidth"],\
             fileInfo["videoheight"],fileInfo["subtitle"]))
 
     def update_video_file(self,dir,filename,fileInfo):
-        query = "UPDATE {video_library} SET title=?,length=?,videowidth=?,\
-            videoheight=?,subtitle=? WHERE dir=? AND filename=?"
+        query = "UPDATE video_library SET title=%s,length=%s,videowidth=%s,\
+            videoheight=%s,subtitle=%s WHERE dir=%s AND filename=%s"
         self.execute(query,(fileInfo["title"],fileInfo["length"],\
             fileInfo["videowidth"],fileInfo["videoheight"],\
             fileInfo["subtitle"],dir,filename))
 
     def update_video_subtitle(self,dir,filename,file_info):
-        query = "UPDATE {video_library} SET subtitle=? \
-            WHERE dir=? AND filename=?"
+        query = "UPDATE video_library SET subtitle=%s \
+            WHERE dir=%s AND filename=%s"
         self.execute(query,(file_info["subtitle"],dir,filename))
 
     def search_video_library(self,value):
-        query = "SELECT * FROM {video_library} WHERE type = 'file' AND title\
-                LIKE ?"
+        query = "SELECT * FROM video_library WHERE type = 'file' AND title\
+                LIKE %s"
         self.execute(query,('%%'+value+'%%',))
 
         return self.cursor.fetchall()
@@ -231,11 +231,10 @@ class Database(UnknownDatabase):
     # videolist requests
     #
     def get_videolist(self,name):
-        query = "SELECT p.dir, p.filename, p.position, \
-        l.title, l.length, l.videowidth, l.videoheight, l.subtitle \
-        FROM {medialist} p LEFT OUTER JOIN {video_library} l \
-        ON p.dir = l.dir AND p.filename = l.filename WHERE \
-        p.name = ? ORDER BY p.position"
+        query = "SELECT p.position, l.dir, l.filename,\
+        l.title, l.length, l.videowidth, l.videoheight, l.subtitle, l.id \
+        FROM medialist p LEFT OUTER JOIN video_library l \
+        ON p.media_id = l.id WHERE p.name = %s ORDER BY p.position"
         self.execute(query,(name,))
         return self.cursor.fetchall()
 
@@ -243,11 +242,11 @@ class Database(UnknownDatabase):
     # audiolist requests
     #
     def get_audiolist(self,name):
-        query = "SELECT p.dir, p.filename, p.name, p.position, l.dir, \
+        query = "SELECT p.position, l.dir, \
         l.filename, l.title, l.artist, l.album, l.genre, l.tracknumber, \
-        l.date, l.length, l.bitrate FROM {medialist} p LEFT OUTER JOIN \
-        {audio_library} l ON p.dir = l.dir AND p.filename = l.filename WHERE \
-        p.name = ? ORDER BY p.position"
+        l.date, l.length, l.bitrate, l.id FROM medialist p LEFT OUTER JOIN \
+        audio_library l ON p.media_id = l.id WHERE \
+        p.name = %s ORDER BY p.position"
         self.execute(query,(name,))
         return self.cursor.fetchall()
 
@@ -255,35 +254,34 @@ class Database(UnknownDatabase):
     # medialist requests
     #
     def delete_medialist(self,name):
-        self.execute("DELETE FROM {medialist} WHERE name = ?",(name,))
+        self.execute("DELETE FROM medialist WHERE name = %s",(name,))
         self.connection.commit()
 
     def save_medialist(self,content,name):
-        values = [(name,s["pos"],s["dir"],s["filename"]) \
-            for s in content]
-        query = "INSERT INTO {medialist}(name,position,dir,filename)\
-            VALUES(?,?,?,?)"
+        values = [(name,s["pos"],s["media_id"]) for s in content]
+        query = "INSERT INTO medialist(name,position,media_id)\
+            VALUES(%s,%s,%s)"
         self.executemany(query,values)
         self.connection.commit()
 
     def get_medialist_list(self):
-        self.execute("SELECT DISTINCT name FROM {medialist}")
+        self.execute("SELECT DISTINCT name FROM medialist ORDER BY name")
         return self.cursor.fetchall()
 
     #
     # Webradio requests
     #
     def get_webradios(self):
-        self.execute("SELECT wid, name, url FROM {webradio} ORDER BY wid")
+        self.execute("SELECT wid, name, url FROM webradio ORDER BY wid")
         return self.cursor.fetchall()
 
     def add_webradios(self,values):
-        query = "INSERT INTO {webradio}(wid,name,url)VALUES(?,?,?)"
+        query = "INSERT INTO webradio(wid,name,url)VALUES(%s,%s,%s)"
         self.executemany(query,values)
         self.connection.commit()
 
     def clear_webradios(self):
-        self.execute("DELETE FROM {webradio}")
+        self.execute("DELETE FROM webradio")
         self.connection.commit()
 
     #
@@ -292,15 +290,15 @@ class Database(UnknownDatabase):
     def record_mediadb_stats(self, type):
         if type == "audio":
             # Get the number of songs
-            self.execute("SELECT filename FROM {audio_library}\
+            self.execute("SELECT filename FROM audio_library\
                 WHERE type = 'file'")
             songs = len(self.cursor.fetchall())
             # Get the number of artist
-            self.execute("SELECT DISTINCT artist FROM {audio_library}\
+            self.execute("SELECT DISTINCT artist FROM audio_library\
                 WHERE type = 'file'")
             artists = len(self.cursor.fetchall())
             # Get the number of album
-            self.execute("SELECT DISTINCT album FROM {audio_library}\
+            self.execute("SELECT DISTINCT album FROM audio_library\
                 WHERE type = 'file'")
             albums = len(self.cursor.fetchall())
             # Get the number of genre
@@ -311,37 +309,37 @@ class Database(UnknownDatabase):
                       (genres,"genres")]
         elif type == "video":
             # Get the number of video
-            self.execute("SELECT DISTINCT filename FROM {video_library}\
+            self.execute("SELECT DISTINCT filename FROM video_library\
                 WHERE type = 'file'")
             values = [(len(self.cursor.fetchall()), "videos")]
 
-        self.executemany("UPDATE {stats} SET value = ? WHERE name = ?",values)
+        self.executemany("UPDATE stats SET value = %s WHERE name = %s",values)
 
     def set_update_time(self,type):
         import time
-        self.execute("UPDATE {stats} SET value = ? WHERE name = ?",\
+        self.execute("UPDATE stats SET value = %s WHERE name = %s",\
                                         (time.time(),type+"_library_update"))
 
     def get_update_time(self,type):
-        self.execute("SELECT value FROM {stats} WHERE name = ?",\
+        self.execute("SELECT value FROM stats WHERE name = %s",\
                                                     (type+"_library_update",))
         (rs,) =  self.cursor.fetchone()
         return rs
 
     def get_stats(self):
-        self.execute("SELECT * FROM {stats}")
+        self.execute("SELECT * FROM stats")
         return self.cursor.fetchall()
 
     #
     # State requests
     #
     def set_state(self,values):
-        self.executemany("UPDATE {variables} SET value = ? WHERE name = ?" \
+        self.executemany("UPDATE variables SET value = %s WHERE name = %s" \
             ,values)
         self.connection.commit()
 
     def get_state(self,type):
-        self.execute("SELECT value FROM {variables} WHERE name = ?",(type,))
+        self.execute("SELECT value FROM variables WHERE name = %s",(type,))
         (rs,) =  self.cursor.fetchone()
 
         return rs

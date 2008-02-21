@@ -1,6 +1,10 @@
 
 New features and significant updates in version...
 
+0.7.0 (Not Released)
+--------------------
+  * database : add mysql backend support
+
 0.6.3 (2008-02-10)
 --------------------
   * xine : disable DPMS while playing videos

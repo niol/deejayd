@@ -33,11 +33,11 @@ class VideoSource(_BaseSource):
         # load saved
         content = self.db.get_videolist(self.list_name)
         medias = []
-        for (dir, fn, pos, title, len, w, h, sub) in content:
+        for (pos, dir, fn, title, len, w, h, sub, id) in content:
             medias.append({
                 "filename": fn, "dir": dir, "length": len, "videowidth": w,
                 "videoheight": h, "external_subtitle": sub,
-                "type": "video", "title": title,
+                "type": "video", "title": title, "media_id":id,
                 "uri": "file://" + os.path.join(self.library.get_root_path(), \
                                                 dir, fn),
                 })

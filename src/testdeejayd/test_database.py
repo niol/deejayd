@@ -51,8 +51,7 @@ class testSqliteDatabase(TestCaseWithData):
         for song in self.testdata.sampleLibrary[0:3]:
             playlistEntry = {}
             playlistEntry['pos'] = i
-            playlistEntry['dir'] = os.path.dirname(song['filename'])
-            playlistEntry['filename'] = os.path.basename(song['filename'])
+            playlistEntry['media_id'] = song['media_id']
             playlistContents.append(playlistEntry)
             i = i + 1
         self.db.save_medialist(playlistContents, randomName)

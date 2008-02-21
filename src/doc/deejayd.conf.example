@@ -8,7 +8,7 @@ log = error
 
 # video_support : yes or no
 video_support = no
-# video fullscreen mode
+# fullscreen mode
 fullscreen = yes
 
 # media_backend : choose the media backend for deejayd
@@ -19,15 +19,11 @@ media_backend = xine
 [net]
 enabled = yes
 port = 6800
-# Addresses to bind to, a list of ip addresses separated by ',' or 'all'.
-# bind_addresses = 127.0.0.1, 192.168.0.1
 bind_addresses = all
 
 [webui]
-enabled = yes
+enabled = no
 port = 6880
-# Addresses to bind to, a list of ip addresses separated by ',' or 'all'.
-# bind_addresses = 127.0.0.1, 192.168.0.1
 bind_addresses = all
 # directory which contains static files for webui
 htdocs_dir = /usr/share/deejayd/htdocs
@@ -38,9 +34,18 @@ rdf_dir = /tmp/deejayd_webui
 refresh = 0
 
 [database]
-db_type = sqlite
-db_file = /var/lib/deejayd/mediadb/deejayd.db
-db_prefix = rj
+# _db_type_ possible values are : 'mysql', 'sqlite'
+db_type = 'sqlite'
+# _db_name_ or path to database file if using sqlite
+db_name = '/var/lib/deejayd/mediadb/deejayd.db'
+# _db_user_ : not used with sqlite
+#db_user = 'zboub'
+# _db_password_ : not used with sqlite
+#db_password = 'unbreakable_password'
+# _db_host_ : set to empty string for localhost. Not used with sqlite
+#db_host = ''
+# _db_port_ : set to empty string for default. Not used with sqlite
+#db_port = ''
 
 [mediadb]
 music_directory =  /var/lib/deejayd/music

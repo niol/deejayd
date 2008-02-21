@@ -35,7 +35,7 @@ class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests,
         config = DeejaydConfig()
         self.dbfilename = '/tmp/testdeejayddb-' +\
                           self.testdata.getRandomString() + '.db'
-        config.set('database', 'db_file', self.dbfilename)
+        config.set('database', 'db_name', self.dbfilename)
 
         config.set('mediadb','music_directory',self.test_audiodata.getRootDir())
         config.set('mediadb','video_directory',self.test_videodata.getRootDir())
