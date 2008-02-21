@@ -303,7 +303,12 @@ class Database(UnknownDatabase):
             self.execute("SELECT DISTINCT album FROM {audio_library}\
                 WHERE type = 'file'")
             albums = len(self.cursor.fetchall())
-            values = [(songs,"songs"),(artists,"artists"),(albums,"albums")]
+            # Get the number of genre
+            self.execute("SELECT DISTINCT genre FROM audio_library\
+                WHERE type = 'file'")
+            genres = len(self.cursor.fetchall())
+            values = [(songs,"songs"),(artists,"artists"),(albums,"albums"),\
+                      (genres,"genres")]
         elif type == "video":
             # Get the number of video
             self.execute("SELECT DISTINCT filename FROM {video_library}\
