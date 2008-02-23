@@ -83,32 +83,12 @@ class DeejaydKeyValue(DeejaydAnswer, deejayd.interfaces.DeejaydKeyValue):
     def __init__(self, server=None):
         DeejaydAnswer.__init__(self, server)
 
-    def __getitem__(self, name):
-        self.wait()
-        return deejayd.interfaces.DeejaydKeyValue.__getitem__(self, name)
-
-    def keys(self):
-        self.wait()
-        return deejayd.interfaces.DeejaydKeyValue.keys(self)
-
-    def items(self):
-        self.wait()
-        return deejayd.interfaces.DeejaydKeyValue.items(self)
-
 
 class DeejaydFileList(DeejaydAnswer, deejayd.interfaces.DeejaydFileList):
 
     def __init__(self, server = None):
         deejayd.interfaces.DeejaydFileList.__init__(self)
         DeejaydAnswer.__init__(self, server)
-
-    def get_files(self):
-        self.wait()
-        return deejayd.interfaces.DeejaydFileList.get_files(self)
-
-    def get_directories(self):
-        self.wait()
-        return deejayd.interfaces.DeejaydFileList.get_directories(self)
 
 
 class DeejaydMediaList(DeejaydAnswer, deejayd.interfaces.DeejaydMediaList):
@@ -117,20 +97,12 @@ class DeejaydMediaList(DeejaydAnswer, deejayd.interfaces.DeejaydMediaList):
         deejayd.interfaces.DeejaydMediaList.__init__(self)
         DeejaydAnswer.__init__(self, server)
 
-    def get_medias(self):
-        self.wait()
-        return deejayd.interfaces.DeejaydMediaList.get_medias(self)
-
 
 class DeejaydDvdInfo(DeejaydAnswer, deejayd.interfaces.DeejaydDvdInfo):
 
     def __init__(self, server = None):
         deejayd.interfaces.DeejaydDvdInfo.__init__(self)
         DeejaydAnswer.__init__(self, server)
-
-    def get_dvd_contents(self):
-        self.wait()
-        return  deejayd.interfaces.DeejaydDvdInfo.get_dvd_contents(self)
 
 
 class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):

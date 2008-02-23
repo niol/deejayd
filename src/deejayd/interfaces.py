@@ -42,12 +42,15 @@ class DeejaydKeyValue(DeejaydAnswer):
     """Dictionnary answer."""
 
     def __getitem__(self, name):
+        self.get_contents()
         return self.contents[name]
 
     def keys(self):
+        self.get_contents()
         return self.contents.keys()
 
     def items(self):
+        self.get_contents()
         return self.contents.items()
 
 
@@ -76,9 +79,11 @@ class DeejaydFileList(DeejaydAnswer):
         self.directories = dirs
 
     def get_files(self):
+        self.get_contents()
         return self.files
 
     def get_directories(self):
+        self.get_contents()
         return self.directories
 
 
@@ -93,6 +98,7 @@ class DeejaydMediaList(DeejaydAnswer):
         self.medias.append(media)
 
     def get_medias(self):
+        self.get_contents()
         return self.medias
 
     def set_medias(self, medias):
@@ -114,6 +120,7 @@ class DeejaydDvdInfo(DeejaydAnswer):
         self.dvd_content['track'].append(track)
 
     def get_dvd_contents(self):
+        self.get_contents()
         if "track" not in self.dvd_content.keys():
             self.dvd_content['track'] = []
         return self.dvd_content
