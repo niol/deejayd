@@ -166,7 +166,7 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
             try:
                 self.source.delete(int(id))
             except sources._base.MediaNotFoundError:
-                raise DeejaydError(_('Song with id %d not found') % id)
+                raise DeejaydError(_('Song with id %d not found') % int(id))
 
 
 class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
