@@ -28,6 +28,20 @@ import deejayd.sources.webradio
 import deejayd.mediadb.library
 
 
+def require_mode(mode_name):
+    def require_mode_instance(func):
+
+        def require_mode_func(self, *__args, **__kw):
+            if self.sources.is_available(mode_name):
+                return func(self, *__args, **__kw)
+            else:
+                raise DeejaydError(_("mode %s is not activated.") % mode_name)
+
+        require_mode_func.__name__ = func.__name__
+        return require_mode_func
+
+    return require_mode_instance
+
 # This decorator is used for the core interface to provide :
 # - A simple way of converting python types to deejayd answers as required by
 #   the defined network interface. This is to ensure that the core API stays
@@ -305,11 +319,13 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             medias.append(current)
         return medias
 
+    @require_mode("playlist")
     def get_playlist(self, name=None):
         pls = DeejaydPlaylist(self, name)
         pls.get()
         return pls
 
+    @require_mode("webradio")
     def get_webradios(self):
         return DeejaydWebradioList(self)
 
@@ -382,17 +398,20 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def update_audio_library(self, sync = False):
         return {'audio_updating_db': self.audio_library.update(sync)}
 
+    @require_mode("video")
     @returns_deejaydanswer(DeejaydKeyValue)
     def update_video_library(self, sync = False):
         if not self.video_library:
             raise DeejaydError(_("Video mode disabled"))
         return {'video_updating_db': self.video_library.update(sync)}
 
+    @require_mode("playlist")
     @returns_deejaydanswer(DeejaydAnswer)
     def erase_playlist(self, names):
         for name in names:
             self.sources.get_source("playlist").rm(name)
 
+    @require_mode("playlist")
     @returns_deejaydanswer(DeejaydMediaList)
     def get_playlist_list(self):
         plname_list = []
@@ -417,6 +436,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         return None, [], list
 
+    @require_mode("video")
     @returns_deejaydanswer(DeejaydFileList)
     def get_video_dir(self,dir = None):
         if not self.video_library:
@@ -429,34 +449,29 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         return dir, contents['dirs'], contents['files']
 
+    @require_mode("video")
     @returns_deejaydanswer(DeejaydMediaList)
     def get_videolist(self):
-        try: contents = self.sources.get_source("video").get_content()
-        except deejayd.sources.UnknownSourceException:
-            raise DeejaydError(_("Video mode disabled"))
-        return contents
+        return self.sources.get_source("video").get_content()
 
+    @require_mode("video")
     @returns_deejaydanswer(DeejaydAnswer)
     def set_video(self, value, type = "directory"):
         try: self.sources.get_source("video").set(type, value)
         except deejayd.sources._base.MediaNotFoundError:
             raise DeejaydError(_('Directory %s not found in database') % value)
-        except deejayd.sources.UnknownSourceException:
-            raise DeejaydError(_("Video mode disabled"))
 
+    @require_mode("dvd")
     @returns_deejaydanswer(DeejaydAnswer)
     def dvd_reload(self):
         try: self.sources.get_source("dvd").load()
         except sources.dvd.DvdError, msg:
             raise DeejaydError('%s' % msg)
-        except deejayd.sources.UnknownSourceException:
-            raise DeejaydError(_("Dvd mode disabled"))
 
+    @require_mode("dvd")
     @returns_deejaydanswer(DeejaydDvdInfo)
     def get_dvd_content(self):
-        try: return self.sources.get_source("dvd").get_content()
-        except deejayd.sources.UnknownSourceException:
-            raise DeejaydError(_("Dvd mode disabled"))
+        return self.sources.get_source("dvd").get_content()
 
 
 # vim: ts=4 sw=4 expandtab

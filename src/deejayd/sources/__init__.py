@@ -32,45 +32,57 @@ class SourceFactory(SignalingComponent):
         self.sources_obj = {}
         self.current = ""
         self.db = db
-        video_support = config.getboolean('general', 'video_support')
+        activated_sources = config.get('general', "activated_modes").split(",")
 
-        # Playlist and Queue
-        from deejayd.sources import playlist, queue
-        self.sources_obj["playlist"] = playlist.PlaylistSource(db,audio_library)
+        from deejayd.sources import queue
         self.sources_obj["queue"] = queue.QueueSource(db,\
             audio_library,video_library)
+        # playlist
+        if "playlist" in activated_sources:
+            from deejayd.sources import playlist
+            self.sources_obj["playlist"] = playlist.PlaylistSource(db,\
+                                                                 audio_library)
+        else:
+            log.info(_("Playlist support disabled"))
 
         # Webradio
-        if player.is_supported_uri("http"):
+        if "webradio" in activated_sources and player.is_supported_uri("http"):
             from deejayd.sources import webradio
             self.sources_obj["webradio"] = webradio.WebradioSource(db)
-        else: log.info(_("Webradio support disabled for the choosen backend"))
+        else:
+            log.info(_("Webradio support disabled"))
 
-        # Video
-        if video_library:
-            from deejayd.sources import video
+        # init video support in player
+        if "video" in activated_sources or "dvd" in activated_sources:
             try: player.init_video_support()
             except PlayerError:
                 # Critical error, we have to quit deejayd
-                msg = _('Cannot initialise video support, either disable video support or check your player video support.')
+                msg = _('Cannot initialise video support, either disable video and dvd mode or check your player video support.')
                 log.err(msg)
                 sys.exit(msg)
+
+        # Video
+        if "video" in activated_sources:
+            from deejayd.sources import video
             self.sources_obj["video"] = video.VideoSource(db, video_library)
+        else:
+            log.info(_("Video support disabled"))
 
         # dvd
-        if video_support and player.is_supported_uri("dvd"):
+        if "dvd" in activated_sources and player.is_supported_uri("dvd"):
             from deejayd.sources import dvd
             try: self.sources_obj["dvd"] = dvd.DvdSource(player,db,config)
             except dvd.DvdError:
                 log.err(_("Unable to init dvd support"))
-        else: log.info(_("DVD support is disabled"))
+        else:
+            log.info(_("DVD support disabled"))
 
         # restore recorded source
         source = db.get_state("source")
         try: self.set_source(source)
         except UnknownSourceException:
             log.err(_("Unable to set recorded source %s") % str(source))
-            self.set_source("playlist")
+            self.set_source(self.get_available_sources()[0])
 
         player.set_source(self)
         player.load_state()
@@ -100,6 +112,9 @@ class SourceFactory(SignalingComponent):
         modes = self.sources_obj.keys()
         modes.remove("queue")
         return modes
+
+    def is_available(self, mode):
+        return mode in self.sources_obj.keys()
 
     def close(self):
         self.db.set_state([(self.current,"source")])

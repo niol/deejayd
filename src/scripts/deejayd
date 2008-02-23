@@ -164,8 +164,9 @@ if __name__ == "__main__":
     # install reactor
     ##################
     config = DeejaydConfig()
-    media_backend = config.get("general","media_backend")
-    video_support = config.getboolean("general","video_support")
+    media_backend = config.get("general", "media_backend")
+    modes = config.get("general", "activated_modes").split(",")
+    video_support = "video" in modes or "dvd" in modes
     if media_backend == "gstreamer":
         if video_support:
             # Install gtk2 reactor

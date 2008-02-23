@@ -95,8 +95,9 @@ class _UnknownCommand:
         self._answer.set_player(status, cur)
 
         # source update
-        self._answer.set_playlist(status, self._deejayd)
         self._answer.set_queue(status, self._deejayd)
+        if "playlist" in status.keys():
+            self._answer.set_playlist(status, self._deejayd)
         if "webradio" in status.keys():
             self._answer.set_webradio(status, self._deejayd)
         if "dvd" in status.keys():
@@ -106,7 +107,7 @@ class _UnknownCommand:
 
         # video library update
         stats = self._deejayd.get_stats()
-        if "video_library_update" in stats.keys():
+        if "video" in status.keys() and "video_library_update" in stats.keys():
             self._answer.set_videodir(int(stats["video_library_update"]),\
                 self._deejayd)
 
@@ -136,13 +137,14 @@ class Init(_UnknownCommand):
         refresh = config.get('webui','refresh')
         self._answer.set_config({"refresh": refresh})
 
-        # audio files list
-        files_list = self._deejayd.get_audio_dir("")
-        self._answer.set_audiofile_list(files_list, "")
+        if "playlist" in status.keys():
+            # audio files list
+            files_list = self._deejayd.get_audio_dir("")
+            self._answer.set_audiofile_list(files_list, "")
 
-        # playlist list
-        pls_list = self._deejayd.get_playlist_list()
-        self._answer.set_playlist_list(pls_list.get_medias())
+            # playlist list
+            pls_list = self._deejayd.get_playlist_list()
+            self._answer.set_playlist_list(pls_list.get_medias())
 
 class Refresh(_UnknownCommand):
     name = "refresh"

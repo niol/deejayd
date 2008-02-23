@@ -154,6 +154,10 @@ function ajaxdj()
 
             rs = xmldoc.getElementsByTagName("availableModes").item(0);
             if (rs) {
+                // queue always need to be loaded
+                this.quObj = new Queue();
+                this.quObj.init();
+
                 var modes = rs.getElementsByTagName("mode");
                 for(var i=0; mode = modes.item(i); i++) {
                     if (mode.getAttribute("activate") == "1") {
@@ -161,9 +165,6 @@ function ajaxdj()
                             case "playlist":
                             this.plObj = new Playlist();
 	                        this.plObj.init();
-                            // queue load
-                            this.quObj = new Queue();
-	                        this.quObj.init();
                             break;
 
                             case "webradio":

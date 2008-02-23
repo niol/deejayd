@@ -26,27 +26,17 @@ def init(db, player, config):
     audio_library,video_library,lib_watcher = None, None, None
     fc = config.get("mediadb","filesystem_charset")
 
-    try: audio_dir = config.get("mediadb","music_directory")
-    except NoOptionError:
-        sys.exit(_("You have to choose a music directory"))
-    else:
-        try: audio_library = library.AudioLibrary(db, player, audio_dir, fc)
-        except library.NotFoundException,msg:
-            sys.exit(_("Unable to init audio library : %s") % msg)
+    audio_dir = config.get("mediadb","music_directory")
+    try: audio_library = library.AudioLibrary(db, player, audio_dir, fc)
+    except library.NotFoundException,msg:
+        sys.exit(_("Unable to init audio library : %s") % msg)
 
-    if not config.getboolean('general', 'video_support'):
-        log.info(_("Video support disabled."))
-        video_library = None
-    else:
-        try: video_dir = config.get('mediadb', 'video_directory')
-        except NoOptionError:
-            log.err(\
-              _('Supplied video directory not found. Video support disabled.'))
-            video_library = None
-        else:
-            try: video_library = library.VideoLibrary(db,player,video_dir,fc)
-            except library.NotFoundException,msg:
-                sys.exit(_("Unable to init video library : %s") % msg)
+    activated_sources = config.get('general', "activated_modes").split(",")
+    if "video" in activated_sources:
+        video_dir = config.get('mediadb', 'video_directory')
+        try: video_library = library.VideoLibrary(db,player,video_dir,fc)
+        except library.NotFoundException,msg:
+            sys.exit(_("Unable to init video library : %s") % msg)
 
     if inotify.inotify_support:
         lib_watcher = inotify.DeejaydInotify(db, audio_library, video_library)

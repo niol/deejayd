@@ -29,7 +29,7 @@ default_path = os.path.abspath(os.path.dirname(__file__))
 
 class DeejaydMainHandler(Resource):
 
-    def __init__(self, config):
+    def __init__(self):
         Resource.__init__(self)
 
     def getChild(self, name, request):
@@ -100,7 +100,7 @@ def init(deejayd_core, config, webui_logfile):
     except IOError:
         raise DeejaydWebError(_("Unable to create rdf directory %s") % rdf_dir)
 
-    root = DeejaydMainHandler(config)
+    root = DeejaydMainHandler()
     root.putChild("commands",DeejaydCommandHandler(deejayd_core, rdf_dir))
 
     htdocs_dir = config.get("webui","htdocs_dir")
