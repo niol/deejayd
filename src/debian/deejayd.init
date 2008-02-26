@@ -109,6 +109,22 @@ do_reload() {
 	return 0
 }
 
+#
+# Function used to determine if the program is alive
+#
+is_alive () {
+    ret=1
+    if [ -r $PIDFILE ] ; then
+        pid=`cat $PIDFILE`
+        if [ -e /proc/$pid ] ; then
+            procname=`/bin/ps h -p $pid -C $NAME`
+            [ -n "$procname" ] && ret=0
+        fi
+    fi
+    return $ret
+}
+
+
 case "$1" in
   start)
 	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
@@ -157,9 +173,18 @@ case "$1" in
 		;;
 	esac
 	;;
+  status)
+    echo -n "Status of $DESC: "
+    if is_alive ; then
+        echo "alive."
+    else
+        echo "dead."
+        exit 1
+    fi
+    ;;
   *)
 	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}" >&2
 	exit 3
 	;;
 esac
