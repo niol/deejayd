@@ -3,6 +3,8 @@
 # Provides:          deejayd
 # Required-Start:    $local_fs $remote_fs
 # Required-Stop:     $local_fs $remote_fs
+# Should-Start:      alsa-utils
+# Should-Stop:       alsa-utils
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Launch deejayd media player daemon.
