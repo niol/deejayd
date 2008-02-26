@@ -19,7 +19,7 @@ Description: Network media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
  through the network using XML messages.
  It suppports playlists, searching, many media tags. It can playback many
- music and video formats using either its xine (recommended) or its gstreamer
+ music and video formats using either its xine (recommended) or its GStreamer
  backend.
 
 Package: deejayd-webui
