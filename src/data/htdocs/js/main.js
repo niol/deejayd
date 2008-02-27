@@ -247,7 +247,7 @@ function ajaxdj()
                 this.videoList.update(rs);
 
             rs = xmldoc.getElementsByTagName("videodir").item(0);
-            if (rs)
+            if (rs.firstChild)
                 this.videoLib.updateDir(rs);
         }
         else
