@@ -42,11 +42,11 @@ var Player = function()
                 this.__build_title(cur_song);
                 // Artist
                 var artist = cur_song.getElementsByTagName("artist").item(0);
-                if (artist)
+                if (artist.firstChild)
                     this.__build_label_item("artist",artist.firstChild.data);
                 // Album
                 var album = cur_song.getElementsByTagName("album").item(0);
-                if (album)
+                if (album.firstChild)
                     this.__build_label_item("album",album.firstChild.data);
                 break;
 
@@ -164,7 +164,7 @@ var Player = function()
     this.__build_title = function(current_song)
     {
         var title = current_song.getElementsByTagName("title").item(0);
-        if (!title)
+        if (!title.firstChild)
             title = current_song.getElementsByTagName("filename").item(0);
         title = title.firstChild.data;
 
