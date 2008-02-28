@@ -1,0 +1,244 @@
+#!/usr/bin/env python
+
+# Deejayd, a media player daemon
+# Copyright (C) 2007-2008 Mickael Royer <mickael.royer@gmail.com>
+#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+"""
+This is the script used to scan audio file and process replaygain
+"""
+
+import os,subprocess,time
+import logging as log
+from mutagen import id3
+
+############ Parse Option ############################
+######################################################
+from optparse import OptionParser
+usage = "usage: %prog [options] directory"
+parser = OptionParser(usage=usage)
+
+# List options
+parser.set_defaults(\
+        verbose=False,\
+        timestamp_file="deejayd_rgscan_time",\
+        force=False)
+parser.add_option("-t","--timestamp-file",type="string",dest="timestamp_file",\
+    metavar="FILE", help="Specify the log file")
+parser.add_option("-f","--force",action="store_true",dest="force",\
+    help="force to scan all files")
+parser.add_option("-v","--verbose",action="store_true",dest="verbose",\
+    help="no output")
+
+(options, args) = parser.parse_args()
+######################################################
+
+# init log
+log_level = options.verbose and log.DEBUG or log.WARNING
+log.basicConfig(level=log_level, format='%(levelname)s - %(message)s')
+
+class CmdError(Exception): pass
+
+class _SongProcess:
+    command = None
+    options = "\"%s\""
+
+    def __init__(self, filename = None):
+        self._filename = filename
+
+    def is_cmd_exists(self):
+        path = os.getenv('PATH')
+        if not path: return False
+        for p in path.split(':'):
+            if os.path.isfile(os.path.join(p,self.command)):
+                return True
+        return False
+
+    def process(self):
+        log.debug("Process file %s" % os.path.basename(self._filename))
+        cmd = " ".join([self.command, self.options % self._filename])
+        null = open("/dev/null")
+        process = subprocess.Popen(cmd, shell=True,\
+            stdin=None, stdout=subprocess.PIPE, stderr=null)
+        process.wait()
+
+        return process.stdout.read()
+
+
+class MP3Process(_SongProcess):
+    extensions = [".mp3"]
+    command = "aacgain"
+    options = "-o -s s \"%s\""
+
+    def process(self):
+        rs = _SongProcess.process(self)
+        try:
+            infos = rs.split("\n")[1]
+            infos = infos.split("\t")
+
+            # File MP3gain dBgain MaxAmplitude Maxglobal_gain Minglobal_gain
+            t_gain = float(infos[2])
+            # peak = MaxAmplitud / 32768.0
+            t_peak = float(infos[3]) / 32768.0
+        except (ValueError, TypeError, IndexError):
+            log.error("Unable to extract information from %s" % self._filename)
+            log.error("Infos for this file are : %s" % str(infos))
+            return
+
+        # record infos in the song
+        try: tag = id3.ID3(self._filename)
+        except id3.error:
+            log.info("File %s has not id3 header. Create one"\
+                        % os.path.basename(self._filename))
+            tag = id3.ID3()
+        else: # erase replaygain tag
+            for k in ["normalize", "track"]:
+                try: del(tag["RVA2:"+k])
+                except KeyError: pass
+
+            #for k in ["track_peak", "track_gain", "album_peak", "album_gain"]:
+                # Delete Foobar droppings.
+                #try: del(tag["TXXX:replaygain_" + k])
+                #except KeyError: pass
+
+        rg_tag = id3.RVA2(desc="track", channel=1, gain=t_gain, peak=t_peak)
+        tag.add(rg_tag)
+        tag.save(self._filename)
+
+class MP4Process(_SongProcess):
+    extensions = [".mp4", ".m4a"]
+    command = "aacgain"
+    options = "-s r \"%s\""
+
+
+class OggProcess(_SongProcess):
+    extensions = [".ogg"]
+    command = "vorbisgain"
+
+
+class TimeStamp:
+
+    def __init__(self, filename):
+        self.__fn = filename
+
+    def read(self):
+        ts = 0
+        if os.path.isfile(self.__fn):
+            try: ts = int(open(self.__fn).read())
+            except ValueError:
+                log.warning('ts file %s contains non-numeric value' % self.__fn)
+            except OSError:
+                log.warning("Unable to read ts file %s" % self.__fn)
+
+        return ts
+
+    def write(self):
+        if os.path.isfile(self.__fn):
+            try: os.unlink(self.__fn)
+            except OSError, e:
+                if e.errno == errno.EACCES or e.errno == errno.EPERM:
+                    log.warning("Unable to remove ts file : %s" % (e,))
+                    return
+        try: open(self.__fn,'wb').write(str(int(time.time()+1)))
+        except OSError, e:
+            if e.errno == errno.EACCES or e.errno == errno.EPERM:
+                    log.warning("Unable to write ts file : %s" % (e,))
+
+
+class Library:
+    extensions = {}
+
+    def __init__(self, directory, options):
+        self.__root = directory
+        self.__options = options
+        self.__ts = TimeStamp(os.path.abspath(options.timestamp_file))
+
+        for cls in (MP3Process, MP4Process, OggProcess):
+            if cls().is_cmd_exists():
+                for ext in cls.extensions: self.extensions[ext] = cls
+            else:
+                log.info("%s support disable, missing apps %s" %\
+                            (",".join(cls.extensions, cls.command)))
+
+    def is_in_root(self, path, root=None):
+        """Checks if a directory is physically in the supplied root
+           (the library root by default)."""
+        if not root:
+            root = self.__root
+        real_root = os.path.realpath(root)
+        real_path = os.path.realpath(path)
+
+        head = real_path
+        old_head = None
+        while head != old_head:
+            if head == real_root:
+                return True
+            old_head = head
+            head, tail = os.path.split(head)
+        return False
+
+    def is_in_a_root(self, path, roots):
+        """Checks if a directory is physically in one of the supplied roots."""
+        for root in roots:
+            if self.is_in_root(path, root):
+                return True
+        return False
+
+    def scan(self):
+        self.walk_directory(self.__root, self.__ts.read())
+        self.__ts.write()
+
+    def walk_directory(self, walk_root, ts, forbidden_roots=None):
+        if not forbidden_roots:
+            forbidden_roots = [self.__root]
+
+        for (root, dirs, files) in os.walk(walk_root):
+            for dir in dirs:
+                dir_path = os.path.join(root, dir)
+                if os.path.islink(dir_path):
+                    if not self.is_in_a_root(dir_path, forbidden_roots):
+                        forbidden_roots.append(dir_path)
+                        self.walk_directory(dir_path, ts, forbidden_roots)
+
+            for file in files:
+                file_path = os.path.join(root,file)
+                (dummy, ext) = os.path.splitext(file)
+                ext = ext.lower()
+                try: file_object = self.extensions[ext](file_path)
+                except KeyError: # format not supported
+                    continue
+
+                if os.stat(file_path).st_mtime >= ts or self.__options.force:
+                    try: file_object.process()
+                    except CmdError, e:
+                        log.error("Unable to analyse file %s : %s"\
+                            % (file_path, e))
+
+
+# Start
+if __name__ == "__main__":
+    try: directory = args[0]
+    except IndexError:
+        sys.exit("You have to enter a directory name")
+    directory = os.path.abspath(directory)
+    if not os.path.isdir(directory):
+        sys.exit("Directory %s not found" % directory)
+
+    library = Library(directory, options)
+    library.scan()
+
+# vim: ts=4 sw=4 expandtab

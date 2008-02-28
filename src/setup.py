@@ -90,7 +90,7 @@ if __name__ == "__main__":
            author="Mikael Royer, Alexandre Rossi",
            author_email="mickael.royer@gmail.com",
            license="GNU GPL v2",
-           scripts=["scripts/deejayd","scripts/djc"],
+           scripts=["scripts/deejayd","scripts/djc","scripts/deejayd_rgscan"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
                      "deejayd.mediadb.formats", "deejayd.player",\
                      "deejayd.player.display","deejayd.sources","deejayd.ui",\
