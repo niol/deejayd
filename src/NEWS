@@ -4,6 +4,7 @@ New features and significant updates in version...
 0.7.0 (Not Released)
 --------------------
   * database : add mysql backend support
+  * add replaygain support (track profile only)
 
 0.6.3 (2008-02-10)
 --------------------

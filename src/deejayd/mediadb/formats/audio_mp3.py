@@ -17,27 +17,68 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 extensions = [".mp3",".mp2"]
-try:
-    from mutagen.mp3 import MP3
-    from mutagen.easyid3 import EasyID3
+try: from mutagen.mp3 import MP3
 except ImportError:
     extensions = []
 
 
 class Mp3File:
-    supported_tag = ("tracknumber","title","genre","artist","album","date")
+    IDS = { "TIT2": "title",
+            "TPE1": "artist",
+            "TALB": "album",
+            "TRCK": "tracknumber",
+            }
+    replaygain_process = False
 
     def parse(self, file):
-        infos = {}
-        mp3_info = MP3(file, ID3=EasyID3)
+        mp3_info = MP3(file)
+
+        infos = {
+            "title": "",
+            "artist": "",
+            "album": "",
+            "tracknumber": "",
+            "date": "",
+            "genre": "",
+            "replaygain_track_gain": "",
+            "replaygain_track_peak": "",
+            }
         infos["bitrate"] = int(mp3_info.info.bitrate)
         infos["length"] = int(mp3_info.info.length)
 
-        for t in self.supported_tag:
-            try: infos[t] = mp3_info[t][0]
-            except: infos[t] = '';
+        tag = mp3_info.tags
+        for frame in tag.values():
+            if frame.FrameID == "TXXX":
+                if frame.desc in ("replaygain_track_peak",\
+                                  "replaygain_track_gain"):
+                    # Some versions of Foobar2000 write broken Replay Gain
+                    # tags in this format.
+                    infos[frame.desc] = frame.text[0]
+                    self.replaygain_process = True
+                else: continue
+            elif frame.FrameID == "RVA2":
+                self.__process_rg(frame, infos)
+                continue
+            elif frame.FrameID == "TCON": # genre
+                infos["genre"] = frame.genres[0]
+                continue
+            elif frame.FrameID == "TDRC": # date
+                list = [stamp.text for stamp in frame.text]
+                infos["date"] = list[0]
+                continue
+            elif frame.FrameID in self.IDS.keys():
+                infos[self.IDS[frame.FrameID]] = frame.text[0]
+            else: continue
 
         return infos
+
+    def __process_rg(self, frame, infos):
+        if frame.channel == 1:
+            if frame.desc == "album": return # not supported
+            elif frame.desc == "track" or not self.replaygain_process:
+                infos["replaygain_track_gain"] = "%+f dB" % frame.gain
+                infos["replaygain_track_peak"] = str(frame.peak)
+                self.replaygain_process = True
 
 object = Mp3File
 

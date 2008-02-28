@@ -22,7 +22,8 @@ except ImportError:
     extensions = []
 
 class OggFile:
-    supported_tag = ("tracknumber","title","genre","artist","album","date")
+    supported_tag = ("tracknumber","title","genre","artist","album","date",\
+                     "replaygain_track_gain", "replaygain_track_peak")
 
     def parse(self, file):
         infos = {}

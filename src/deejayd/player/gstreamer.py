@@ -34,6 +34,7 @@ class GstreamerPlayer(UnknownPlayer):
 
     def __init__(self, db, config):
         UnknownPlayer.__init__(self, db, config)
+        self.__volume = 100
 
         # Open a Audio pipeline
         pipeline_dict = {"alsa":"alsasink", "oss":"osssink",\
@@ -178,11 +179,32 @@ class GstreamerPlayer(UnknownPlayer):
 
         self.dispatch_signame('player.status')
 
+    def _change_file(self,new_file):
+        sig = self.get_state() == PLAYER_STOP and True or False
+        self.stop()
+        self._media_file = new_file
+        self.start_play()
+
+        # replaygain reset
+        self.set_volume(self.__volume)
+
+        if sig:
+            self.dispatch_signame('player.status')
+        self.dispatch_signame('player.current')
+
     def get_volume(self):
-        return int(self.bin.get_property('volume')*100)
+        return self.__volume
 
     def set_volume(self,vol):
-        v = float(vol)/100
+        self.__volume = min(100, int(vol))
+        v = float(self.__volume)/100
+        # replaygain support
+        if self._replaygain and self._media_file is not None:
+            try: scale = self._media_file.replay_gain()
+            except AttributeError: pass # replaygain not supported
+            else:
+                v = max(0.0, min(4.0, v * scale))
+                v = min(100, int(v * 100))
         self.bin.set_property('volume', v)
         self.dispatch_signame('player.status')
 

@@ -37,6 +37,7 @@ class UnknownPlayer(SignalingComponent):
         self._source = None
         self._media_file = None
         self.options = {"random":0, "repeat":0}
+        self._replaygain = config.getboolean("general","replaygain")
 
     def load_state(self):
         # Restore volume
@@ -71,12 +72,6 @@ class UnknownPlayer(SignalingComponent):
 
     def stop(self):
         raise NotImplementedError
-
-    def _change_file(self,new_file):
-        self.stop()
-        self._media_file = new_file
-        self.start_play()
-        self.dispatch_signame('player.current')
 
     def next(self):
         self._change_file(self._source.next(self.options["random"],\

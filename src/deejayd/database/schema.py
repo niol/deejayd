@@ -64,7 +64,9 @@ db_schema = [
         Column('tracknumber'),
         Column('date'),
         Column('length', type='int'),
-        Column('bitrate', type='int')],
+        Column('bitrate', type='int'),
+        Column('replaygain_track_gain'),
+        Column('replaygain_track_peak')],
     Table('video_library', key='id')[
         Column('id', auto_increment=True),
         Column('dir'),

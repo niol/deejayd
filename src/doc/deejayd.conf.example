@@ -9,9 +9,11 @@ log = error
 # list modes which have to be activated
 # possible value are : playlist,webradio,video,dvd
 activated_modes = playlist,webradio,video,dvd
-
 # fullscreen mode
 fullscreen = yes
+
+# replaygain support
+replaygain = yes
 
 # media_backend : choose the media backend for deejayd
 # possible values are : xine or gstreamer
@@ -22,7 +24,6 @@ media_backend = xine
 enabled = yes
 port = 6800
 bind_addresses = all
-
 
 [webui]
 enabled = no
@@ -35,7 +36,6 @@ rdf_dir = /tmp/deejayd_webui
 # Number of seconds between auto-refreshes of ui.
 # set to 0 if you don't want to refresh webui.
 refresh = 0
-
 
 [database]
 # _db_type_ possible values are : 'mysql', 'sqlite'
@@ -50,7 +50,6 @@ db_name = '/var/lib/deejayd/mediadb/deejayd.db'
 #db_host = ''
 # _db_port_ : set to empty string for default. Not used with sqlite
 #db_port = ''
-
 
 [mediadb]
 music_directory =  /var/lib/deejayd/music

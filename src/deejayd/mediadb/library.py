@@ -17,11 +17,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -*- coding: utf-8 -*-
 
-import os, sys, threading
+import os, sys, urllib, threading
 from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
-from deejayd.mediadb import formats
+from deejayd.mediadb import formats, _media
 from deejayd import database
 from deejayd.ui import log
 
@@ -55,6 +55,7 @@ class DeejaydAudioFile(_DeejaydFile):
     table = "audio_library"
 
     def insert(self):
+        file_info = self.info.parse(self.file)
         try: file_info = self.info.parse(self.file)
         except:
             log.err(_("Unable to get audio metadata from %s") % self.file)
@@ -481,15 +482,12 @@ class AudioLibrary(_Library):
         # format correctly database result
         files = []
         dirs = []
-        for (id,dir,fn,t,ti,ar,al,gn,tn,dt,lg,bt) in rs:
-            if t == 'directory': dirs.append(fn)
+        for song in rs:
+            if song[3] == 'directory': dirs.append(song[2])
             else:
-                file_info = {"path":os.path.join(dir,fn),"length":lg,
-                             "media_id":id,"filename":fn,"dir":dir,
-                             "title":ti,"artist":ar,"album":al,"genre":gn,
-                             "track":tn,"date":dt,"bitrate":bt,
-                             "uri":"file://"+os.path.join(self._path,dir,fn),
-                             "type":"song"}
+                file_info = _media.SongMedia(self.db_con, song)
+                file_info["uri"] = "file://"+urllib.quote(\
+                    os.path.join(self._path,song[1],song[2]))
                 files.append(file_info)
         return {'files':files, 'dirs': dirs}
 

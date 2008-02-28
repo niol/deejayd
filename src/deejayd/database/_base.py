@@ -183,21 +183,25 @@ class Database(UnknownDatabase):
 
     def insert_audio_file(self,dir,filename,fileInfo):
         query = "INSERT INTO audio_library(type,dir,filename,title,artist,\
-            album,genre,date,tracknumber,length,bitrate)VALUES \
-            ('file',%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            album,genre,date,tracknumber,length,bitrate,replaygain_track_gain,\
+            replaygain_track_peak)VALUES \
+            ('file',%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.execute(query, (dir,filename,fileInfo["title"],\
             fileInfo["artist"],fileInfo["album"],fileInfo["genre"],\
             fileInfo["date"], fileInfo["tracknumber"],fileInfo["length"],\
-            fileInfo["bitrate"]))
+            fileInfo["bitrate"],fileInfo["replaygain_track_gain"],\
+            fileInfo["replaygain_track_peak"]))
 
     def update_audio_file(self,dir,filename,fileInfo):
         query = "UPDATE audio_library SET title=%s,artist=%s,album=%s,genre=%s,\
-            date=%s,tracknumber=%s,length=%s,bitrate=%s\
+            date=%s,tracknumber=%s,length=%s,bitrate=%s,\
+            replaygain_track_gain=%s,replaygain_track_peak=%s\
             WHERE dir=%s AND filename=%s"
         self.execute(query,(fileInfo["title"],fileInfo["artist"],\
             fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
             fileInfo["tracknumber"],fileInfo["length"],fileInfo["bitrate"],\
-            dir,filename))
+            fileInfo["replaygain_track_gain"],\
+            fileInfo["replaygain_track_peak"],dir,filename))
 
     #
     # Video MediaDB specific requests
@@ -232,9 +236,9 @@ class Database(UnknownDatabase):
     #
     def get_videolist(self,name):
         query = "SELECT p.position, l.dir, l.filename,\
-        l.title, l.length, l.videowidth, l.videoheight, l.subtitle, l.id \
-        FROM medialist p LEFT OUTER JOIN video_library l \
-        ON p.media_id = l.id WHERE p.name = %s ORDER BY p.position"
+            l.title, l.length, l.videowidth, l.videoheight, l.subtitle, l.id \
+            FROM medialist p LEFT OUTER JOIN video_library l \
+            ON p.media_id = l.id WHERE p.name = %s ORDER BY p.position"
         self.execute(query,(name,))
         return self.cursor.fetchall()
 
@@ -242,11 +246,11 @@ class Database(UnknownDatabase):
     # audiolist requests
     #
     def get_audiolist(self,name):
-        query = "SELECT p.position, l.dir, \
-        l.filename, l.title, l.artist, l.album, l.genre, l.tracknumber, \
-        l.date, l.length, l.bitrate, l.id FROM medialist p LEFT OUTER JOIN \
-        audio_library l ON p.media_id = l.id WHERE \
-        p.name = %s ORDER BY p.position"
+        query = "SELECT l.id, l.dir, l.filename, l.type, l.title, l.artist,\
+            l.album, l.genre, l.tracknumber, l.date, l.length, l.bitrate,\
+            l.replaygain_track_gain, replaygain_track_peak, p.position\
+            FROM medialist p LEFT OUTER JOIN audio_library l\
+            ON p.media_id = l.id WHERE p.name = %s ORDER BY p.position"
         self.execute(query,(name,))
         return self.cursor.fetchall()
 

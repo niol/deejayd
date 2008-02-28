@@ -116,6 +116,10 @@ class XinePlayer(UnknownPlayer):
         self.start_play()
         if gapless and self.__supports_gapless:
             xine_set_param(self.__stream, XINE_PARAM_GAPLESS_SWITCH, 0)
+
+        # replaygain reset
+        self.set_volume(self.__volume)
+
         if sig:
             self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
@@ -147,14 +151,19 @@ class XinePlayer(UnknownPlayer):
         return self.__do_get_property(XINE_PARAM_SPU_CHANNEL)
 
     def get_volume(self):
-        rs = self.__do_get_property(XINE_PARAM_AUDIO_VOLUME)
-        if rs != -1:
-            return rs
         return self.__volume
 
     def set_volume(self,vol):
         self.__volume = min(100, int(vol))
-        self.__do_set_property(XINE_PARAM_AUDIO_VOLUME, self.__volume)
+        # replaygain support
+        vol = self.__volume
+        if self._replaygain and self._media_file is not None:
+            try: scale = self._media_file.replay_gain()
+            except AttributeError: pass # replaygain not supported
+            else:
+                vol = max(0.0, min(4.0, float(vol)/100.0 * scale))
+                vol = min(100, int(vol * 100))
+        self.__do_set_property(XINE_PARAM_AUDIO_VOLUME, vol)
         self.dispatch_signame('player.status')
 
     def get_position(self):

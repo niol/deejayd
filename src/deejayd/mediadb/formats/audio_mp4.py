@@ -29,6 +29,8 @@ class Mp4File:
         "\xa9ART": "artist",
         "\xa9day": "date",
         "\xa9gen": "genre",
+        "----:com.apple.iTunes:replaygain_track_gain": "replaygain_track_gain",
+        "----:com.apple.iTunes:replaygain_track_peak": "replaygain_track_peak",
         }
     __tupletranslate = {
         "trkn": "tracknumber",

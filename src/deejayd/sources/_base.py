@@ -20,6 +20,7 @@ import os
 import random, urllib
 
 from deejayd.component import SignalingComponent
+from deejayd.mediadb._media import SongMedia
 
 
 class MediaNotFoundError(Exception):pass
@@ -129,12 +130,11 @@ class MediaList(SimpleMediaList):
         self.db = db
 
     def __format_playlist_file(self, s, root_path):
-        return {"dir":s[1],"filename":s[2],"pos":s[0],"id":self.set_media_id(),
-            "title":s[3],"artist":s[4],"album":s[5],"genre":s[6],"track":s[7],
-            "date":s[8],"length":s[9],"bitrate":s[10],"media_id":s[11],
-            "path":os.path.join(s[1],s[2]),
-            "uri":"file://"+urllib.quote(os.path.join(root_path,s[1],s[2])),
-            "type":"song"}
+        song = SongMedia(self.db, s)
+        song["uri"] = "file://"+urllib.quote(os.path.join(root_path,s[1],s[2]))
+        song["pos"] = s[14]
+
+        return song
 
     def load_playlist(self, name, root_path, pos = None):
         content = self.db.get_audiolist(name)
