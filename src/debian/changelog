@@ -1,7 +1,13 @@
+deejayd (0.6.3-2) unstable; urgency=low
+
+  * Initial upload to Debian (Closes: #463973).
+  * Fixes thanks to comments from nijel@d.o (LSB, Build-Depends-Indep).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 28 Feb 2008 19:01:14 +0100
+
 deejayd (0.6.3-1) unstable; urgency=low
 
   * New upstream release.
-  * Initial upload to Debian (Closes: #463973).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 10 Feb 2008 22:12:45 +0100
 
