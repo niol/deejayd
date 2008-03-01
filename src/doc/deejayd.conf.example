@@ -6,8 +6,6 @@
 #  * debug : log all messages
 log = error
 
-# list modes which have to be activated
-# possible value are : playlist,webradio,video,dvd
 activated_modes = playlist,webradio,video,dvd
 # fullscreen mode
 fullscreen = yes
@@ -39,17 +37,17 @@ refresh = 0
 
 [database]
 # _db_type_ possible values are : 'mysql', 'sqlite'
-db_type = 'sqlite'
+db_type = sqlite
 # _db_name_ or path to database file if using sqlite
-db_name = '/var/lib/deejayd/mediadb/deejayd.db'
+db_name = /var/lib/deejayd/mediadb/deejayd.db
 # _db_user_ : not used with sqlite
-#db_user = 'zboub'
+#db_user = zboub
 # _db_password_ : not used with sqlite
 #db_password = 'unbreakable_password'
 # _db_host_ : set to empty string for localhost. Not used with sqlite
-#db_host = ''
+#db_host = localhost
 # _db_port_ : set to empty string for default. Not used with sqlite
-#db_port = ''
+#db_port = 3300
 
 [mediadb]
 music_directory =  /var/lib/deejayd/music
