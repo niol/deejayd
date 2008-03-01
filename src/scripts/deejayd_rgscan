@@ -24,7 +24,7 @@ This is the script used to scan audio file and process replaygain
 
 import os,subprocess,time
 import logging as log
-from mutagen import id3
+from mutagen import id3, oggvorbis, mp4
 
 ############ Parse Option ############################
 ######################################################
@@ -35,9 +35,12 @@ parser = OptionParser(usage=usage)
 # List options
 parser.set_defaults(\
         verbose=False,\
-        timestamp_file="deejayd_rgscan_time",\
+        timestamp_file=None,\
+        log_file=None,\
         force=False)
 parser.add_option("-t","--timestamp-file",type="string",dest="timestamp_file",\
+    metavar="FILE", help="Specify the timestamp file")
+parser.add_option("-l","--log-file",type="string",dest="log_file",\
     metavar="FILE", help="Specify the log file")
 parser.add_option("-f","--force",action="store_true",dest="force",\
     help="force to scan all files")
@@ -49,7 +52,11 @@ parser.add_option("-v","--verbose",action="store_true",dest="verbose",\
 
 # init log
 log_level = options.verbose and log.DEBUG or log.WARNING
-log.basicConfig(level=log_level, format='%(levelname)s - %(message)s')
+log_format = '%(levelname)s - %(message)s'
+if options.log_file:
+    log.basicConfig(level=log_level,format=log_format,filename=options.log_file)
+else:
+    log.basicConfig(level=log_level,format=log_format)
 
 class CmdError(Exception): pass
 
@@ -68,8 +75,11 @@ class _SongProcess:
                 return True
         return False
 
+    def has_rg_tag(self):
+        raise NotImplementedError
+
     def process(self):
-        log.debug("Process file %s" % os.path.basename(self._filename))
+        log.debug("Process file : %s" % os.path.basename(self._filename))
         cmd = " ".join([self.command, self.options % self._filename])
         null = open("/dev/null")
         process = subprocess.Popen(cmd, shell=True,\
@@ -83,6 +93,17 @@ class MP3Process(_SongProcess):
     extensions = [".mp3"]
     command = "aacgain"
     options = "-o -s s \"%s\""
+
+    def has_rg_tag(self):
+        try: tag = id3.ID3(self._filename)
+        except id3.error:
+            return False
+
+        for frame in tag.values():
+            if frame.FrameID == "RVA2" and frame.desc == "track":
+                return True
+        return False
+
 
     def process(self):
         rs = _SongProcess.process(self)
@@ -115,29 +136,51 @@ class MP3Process(_SongProcess):
                 #try: del(tag["TXXX:replaygain_" + k])
                 #except KeyError: pass
 
-        rg_tag = id3.RVA2(desc="track", channel=1, gain=t_gain, peak=t_peak)
-        tag.add(rg_tag)
-        tag.save(self._filename)
+        try:
+            rg_tag = id3.RVA2(desc="track", channel=1, gain=t_gain, peak=t_peak)
+            tag.add(rg_tag)
+            tag.save(self._filename)
+        except:
+            log.error("Unable to record id3 tag for file %s" % self._filename)
+
 
 class MP4Process(_SongProcess):
     extensions = [".mp4", ".m4a"]
     command = "aacgain"
     options = "-s r \"%s\""
 
+    def has_rg_tag(self):
+        try: info = mp4.MP4(self._filename)
+        except mp4.error:
+            return False
+
+        return "----:com.apple.iTunes:replaygain_track_gain" in info.keys() and\
+               "----:com.apple.iTunes:replaygain_track_peak" in info.keys()
+
 
 class OggProcess(_SongProcess):
     extensions = [".ogg"]
     command = "vorbisgain"
 
+    def has_rg_tag(self):
+        try: info = oggvorbis.OggVorbis(self._filename)
+        except oggvorbis.error:
+            return False
+
+        return "replaygain_track_gain" in info.keys() and\
+               "replaygain_track_peak" in info.keys()
+
 
 class TimeStamp:
+    __fn = None
 
     def __init__(self, filename):
-        self.__fn = filename
+        if filename:
+            self.__fn = os.path.abspath(filename)
 
     def read(self):
         ts = 0
-        if os.path.isfile(self.__fn):
+        if self.__fn and os.path.isfile(self.__fn):
             try: ts = int(open(self.__fn).read())
             except ValueError:
                 log.warning('ts file %s contains non-numeric value' % self.__fn)
@@ -147,6 +190,7 @@ class TimeStamp:
         return ts
 
     def write(self):
+        if self.__fn is None: return
         if os.path.isfile(self.__fn):
             try: os.unlink(self.__fn)
             except OSError, e:
@@ -165,7 +209,7 @@ class Library:
     def __init__(self, directory, options):
         self.__root = directory
         self.__options = options
-        self.__ts = TimeStamp(os.path.abspath(options.timestamp_file))
+        self.__ts = TimeStamp(options.timestamp_file)
 
         for cls in (MP3Process, MP4Process, OggProcess):
             if cls().is_cmd_exists():
@@ -222,7 +266,12 @@ class Library:
                 except KeyError: # format not supported
                     continue
 
-                if os.stat(file_path).st_mtime >= ts or self.__options.force:
+                if not self.__options.force and \
+                       os.stat(file_path).st_mtime >= ts:
+                    if file_object.has_rg_tag():
+                        log.info("file %s has already rg tag. skipped" % file)
+                        continue
+
                     try: file_object.process()
                     except CmdError, e:
                         log.error("Unable to analyse file %s : %s"\
