@@ -364,8 +364,7 @@ class XinePlayer(UnknownPlayer):
     # callbacks
     #
     def _eof(self):
-        new_file = self._source.next(self.options["random"],\
-                    self.options["repeat"])
+        new_file = self._source.next()
         try: self._change_file(new_file, gapless = True)
         except PlayerError:
             pass

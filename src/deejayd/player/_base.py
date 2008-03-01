@@ -36,16 +36,11 @@ class UnknownPlayer(SignalingComponent):
         self._video_support = False
         self._source = None
         self._media_file = None
-        self.options = {"random":0, "repeat":0}
         self._replaygain = config.getboolean("general","replaygain")
 
     def load_state(self):
         # Restore volume
         self.set_volume(float(self.db.get_state("volume")))
-
-        # Restore Random and Repeat
-        self.options["random"] = int(self.db.get_state("random"))
-        self.options["repeat"] = int(self.db.get_state("repeat"))
 
         # Restore the last media_file
         cur_id = self.db.get_state("currentPos")
@@ -74,12 +69,10 @@ class UnknownPlayer(SignalingComponent):
         raise NotImplementedError
 
     def next(self):
-        self._change_file(self._source.next(self.options["random"],\
-            self.options["repeat"]))
+        self._change_file(self._source.next())
 
     def previous(self):
-        self._change_file(self._source.previous(self.options["random"],\
-            self.options["repeat"]))
+        self._change_file(self._source.previous())
 
     def go_to(self,nb,type,source = None):
         self._change_file(self._source.get(nb,type,source))
@@ -140,21 +133,11 @@ class UnknownPlayer(SignalingComponent):
     def get_playing(self):
         return self.get_state() != PLAYER_STOP and self._media_file or None
 
-    def set_option(self,name,value):
-        if name not in self.options.keys():
-            raise PlayerError
-        self.options[name] = value
-        self.dispatch_signame('player.status')
-
     def is_playing(self):
         return self.get_state() != PLAYER_STOP
 
     def get_status(self):
-        status = []
-        for key in self.options.keys():
-            status.append((key,self.options[key]))
-
-        status.extend([("state",self.get_state()),("volume",self.get_volume())])
+        status = [("state",self.get_state()),("volume",self.get_volume())]
 
         if self._media_file:
             status.append(("mediaid",self._media_file["id"]))
@@ -173,12 +156,7 @@ class UnknownPlayer(SignalingComponent):
     def close(self):
         cur_id = self._media_file and self._media_file["id"] or 0
 
-        states = []
-        for key in self.options:
-            states.append((str(self.options[key]),key))
-
-        states.append((str(self.get_volume()),"volume"))
-        states.append((str(cur_id),"currentPos"))
+        states = [(str(self.get_volume()),"volume"), (str(cur_id),"currentPos")]
         self.db.set_state(states)
 
         # stop player if necessary

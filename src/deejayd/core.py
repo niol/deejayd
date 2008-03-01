@@ -349,8 +349,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_option(self, option_name, option_value):
-        try: self.player.set_option(option_name, int(option_value))
-        except player.PlayerError:
+        try: self.sources.set_option(option_name, int(option_value))
+        except KeyError:
             raise DeejaydError(_('Option %s does not exist') % option_name)
 
     @returns_deejaydanswer(DeejaydAnswer)
