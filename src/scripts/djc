@@ -63,7 +63,8 @@ class AvailableCommands:
             print "No current media"
         else:
             media = cur[0]
-            print media["title"], '|', media["id"]
+            for (k, v) in media.items():
+                print "%s: %s" % (k, v)
 
     def volume(self, args):
         """Set volume to argument value.
