@@ -35,26 +35,26 @@ class AvailableCommands:
 
     def playtoggle(self, args):
         """Toggle play/pause"""
-        self.server.play_toggle()
+        self.server.play_toggle().get_contents()
 
     def stop(self, args):
         """Stop player"""
-        self.server.stop()
+        self.server.stop().get_contents()
 
     def previous(self, args):
         """Previous element in player"""
-        self.server.previous()
+        self.server.previous().get_contents()
 
     def next(self, args):
         """Next element in player"""
-        self.server.next()
+        self.server.next().get_contents()
 
     def seek(self, args):
         """Set the position in the stream to argument value"""
         try: pos = int(args[0])
         except (ValueError, IndexError):
             raise DjcError('Bad command line')
-        self.server.seek(pos)
+        self.server.seek(pos).get_contents()
 
     def current(self, args):
         """Return the current playing media (if ti exists)"""
@@ -78,7 +78,7 @@ class AvailableCommands:
                     volume -= possible_delta
             else:
                 volume = int(args[0])
-            self.server.set_volume(volume)
+            self.server.set_volume(volume).get_contents()
         except (ValueError, IndexError):
             raise DjcError('Bad command line')
 
@@ -89,7 +89,7 @@ class AvailableCommands:
             option_value = int(args[1])
         except (ValueError, IndexError):
             raise DjcError('Bad command line')
-        self.server.set_option(option_name,option_value)
+        self.server.set_option(option_name,option_value).get_contents()
 
     def set_mode(self, args):
         """Set active mode to argument value. ex: djc set_mode webradio"""
@@ -97,7 +97,7 @@ class AvailableCommands:
         except IndexError:
             raise DjcError('You need to choose a mode')
         else:
-            self.server.set_mode(mode)
+            self.server.set_mode(mode).get_contents()
 
     def set_slang(self, args):
         """select a subtitle channel"""
@@ -260,7 +260,7 @@ class AvailableCommands:
         try: pl_name = args[0]
         except IndexError:
             raise DjcError('You have to enter a playlist name')
-        DeejaydPlaylist(self.server, None).save(pl_name)
+        DeejaydPlaylist(self.server, None).save(pl_name).get_contents()
 
     def playlist_erase(self, args):
         """ Erase a recorded playlist
@@ -268,7 +268,7 @@ class AvailableCommands:
         try: pl_name = args[0]
         except IndexError:
             raise DjcError('You have to enter a playlist name')
-        self.server.erase_playlist([pl_name])
+        self.server.erase_playlist([pl_name]).get_contents()
 
     def playlist_list(self, args):
         """ Return list of recorded playlist """
@@ -346,7 +346,7 @@ class AvailableCommands:
         except IndexError:
             raise DjcError('Bad command line')
         wr = DeejaydWebradioList(self.server)
-        wr.add_webradio(wr_name,wr_url)
+        wr.add_webradio(wr_name,wr_url).get_contents()
 
     def webradio_clear(self, args):
         """Erase all webradios"""
