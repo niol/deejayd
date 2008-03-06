@@ -1,6 +1,14 @@
-deejayd (0.6.3-2) unstable; urgency=low
+deejayd (0.6.3-3) unstable; urgency=low
 
   * Initial upload to Debian (Closes: #463973).
+  * Fixes thanks to comments from Steve Greenland :
+    - Remove duplicate debian/debian content.
+    - Use a GNU Make pattern rule to build manpages in debian/rules.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 06 Mar 2008 07:35:18 +0100
+
+deejayd (0.6.3-2) unstable; urgency=low
+
   * Fixes thanks to comments from nijel@d.o (LSB, Build-Depends-Indep).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 28 Feb 2008 19:01:14 +0100
