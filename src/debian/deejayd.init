@@ -8,7 +8,7 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Launch deejayd media player daemon.
-# Description:       Prepare envronement and launch the deejayd music player
+# Description:       Prepare environement and launch the deejayd music player
 #                    daemon.
 ### END INIT INFO
 
