@@ -31,38 +31,50 @@ class MysqlDatabase(Database):
         self.db_host = db_host
         self.db_port = db_port
 
-    def connect(self):
-        try:
-            self.connection = mysql.connect(db=self.db_name,\
+    def __connect(self):
+        try: self.connection = mysql.connect(db=self.db_name,\
                 user=self.db_user, passwd=self.db_password,\
                 host=self.db_host, port=self.db_port, use_unicode=False)
-        except ValueError:
-            error = _("Could not connect to MySQL server.")
+        except mysql.DatabaseError, err:
+            error = _("Could not connect to MySQL server %s." % err)
             log.err(error)
             sys.exit(error)
-
         self.cursor = self.connection.cursor()
+
+    def connect(self):
+        self.__connect()
         self.verify_database_version()
 
     def get_new_connection(self):
         return MysqlDatabase(self.db_name, self.db_user, self.db_password, \
             self.db_host, self.db_port)
 
-    def execute(self, query, parm = None, raise_exception = False):
-        try: self.cursor.execute(query,parm)
-        except (mysql.OperationalError, mysql.ProgrammingError), err:
-            log.err(_("Unable to execute database request '%s': %s") \
+    def __test_connection(self):
+        try: self.connection.ping()
+        except mysql.DatabaseError:
+            self.cursor.close()
+            self.connection.close()
+
+            log.info(_("Try Mysql reconnection"))
+            self.__connect()
+            return False
+        return True
+
+    def __execute(self, func, query, parm, raise_exception = False):
+        try: func(query,parm)
+        except mysql.DatabaseError, err:
+            if self.__test_connection():
+                log.err(_("Unable to execute database request '%s': %s") \
                         % (query, err))
-            if raise_exception:
-                raise OperationalError
+                if raise_exception: raise OperationalError
+            self.__execute(func, query, parm)
+
+    def execute(self, query, parm = None, raise_exception = False):
+        self.__execute(self.cursor.execute, query, parm, raise_exception)
 
     def executemany(self, query, parm = []):
-        if parm == []: # no request to execute
-            return
-        try: self.cursor.executemany(query,parm)
-        except mysql.OperationalError, err:
-            log.err(_("Unable to execute database request '%s': %s") \
-                        % (query, err))
+        if parm == []: return # no request to execute
+        self.__execute(self.cursor.executemany, query, parm)
 
     def __collist(self, table, columns):
         cols = []
