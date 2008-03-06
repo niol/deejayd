@@ -1,3 +1,4 @@
+include MANIFEST.in
 include doc/*
 include COPYING
 include README
@@ -10,6 +11,7 @@ include gentoo/*
 include gentoo/files/*
 recursive-include data/htdocs *
 include po/*po
+include po/POTFILES.in
 include po/deejayd.pot
 include scripts/testserver
 recursive-include testdeejayd *
