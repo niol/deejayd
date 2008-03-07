@@ -87,8 +87,6 @@ src_install() {
 	keepdir /var/lib/deejayd/music
 	dodir /var/lib/deejayd/video
 	keepdir /var/lib/deejayd/video
-	dodir /var/lib/deejayd/mediadb
-	keepdir /var/lib/deejayd/mediadb
 
 	# Log
 	dodir /var/log/deejayd
