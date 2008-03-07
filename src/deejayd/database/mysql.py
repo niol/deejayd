@@ -31,15 +31,20 @@ class MysqlDatabase(Database):
         self.db_host = db_host
         self.db_port = db_port
 
+        self.connection = None
+        self.cursor = None
+
     def __connect(self):
-        try: self.connection = mysql.connect(db=self.db_name,\
-                user=self.db_user, passwd=self.db_password,\
-                host=self.db_host, port=self.db_port, use_unicode=False)
-        except mysql.DatabaseError, err:
-            error = _("Could not connect to MySQL server %s." % err)
-            log.err(error)
-            sys.exit(error)
-        self.cursor = self.connection.cursor()
+        if self.connection is None:
+            try:
+                self.connection = mysql.connect(db=self.db_name,\
+                      user=self.db_user, passwd=self.db_password,\
+                      host=self.db_host, port=self.db_port, use_unicode=False)
+                self.cursor = self.connection.cursor()
+            except mysql.DatabaseError, err:
+                error = _("Could not connect to MySQL server %s." % err)
+                log.err(error)
+                sys.exit(error)
 
     def connect(self):
         self.__connect()
@@ -49,32 +54,31 @@ class MysqlDatabase(Database):
         return MysqlDatabase(self.db_name, self.db_user, self.db_password, \
             self.db_host, self.db_port)
 
-    def __test_connection(self):
+    def __valid_connection(self):
         try: self.connection.ping()
         except mysql.DatabaseError:
-            self.cursor.close()
-            self.connection.close()
-
+            self.close()
             log.info(_("Try Mysql reconnection"))
             self.__connect()
             return False
         return True
 
-    def __execute(self, func, query, parm, raise_exception = False):
+    def __execute(self, func_name, query, parm, raise_exception = False):
+        func = getattr(self.cursor, func_name)
         try: func(query,parm)
         except mysql.DatabaseError, err:
-            if self.__test_connection():
+            if self.__valid_connection():
                 log.err(_("Unable to execute database request '%s': %s") \
                         % (query, err))
                 if raise_exception: raise OperationalError
-            self.__execute(func, query, parm)
+            self.__execute(func_name, query, parm, raise_exception)
 
     def execute(self, query, parm = None, raise_exception = False):
-        self.__execute(self.cursor.execute, query, parm, raise_exception)
+        self.__execute("execute", query, parm, raise_exception)
 
     def executemany(self, query, parm = []):
         if parm == []: return # no request to execute
-        self.__execute(self.cursor.executemany, query, parm)
+        self.__execute("executemany", query, parm)
 
     def __collist(self, table, columns):
         cols = []
@@ -112,5 +116,13 @@ class MysqlDatabase(Database):
             yield 'CREATE INDEX %s_%s_idx ON %s (%s);' % (table.name,
                   '_'.join(index.columns), table.name,
                   self.__collist(table, index.columns))
+
+    def close(self):
+        if self.cursor is not None:
+            self.cursor.close()
+            self.cursor = None
+        if self.connection is not None:
+            self.connection.close()
+            self.connection = None
 
 # vim: ts=4 sw=4 expandtab
