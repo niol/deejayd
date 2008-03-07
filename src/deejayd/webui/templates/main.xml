@@ -7,7 +7,7 @@
 
 <window
     id="main-window"
-    title="ajaxDJ"
+    title="Deejayd webui"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script src="./static/js/common.js"/>
