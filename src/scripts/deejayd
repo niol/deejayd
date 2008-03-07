@@ -214,19 +214,24 @@ if __name__ == "__main__":
 
     # webui service
     if config.getboolean("webui","enabled"):
-        service = True
-        from deejayd.webui import twisted_handler as handler
-        try: site = handler.init(deejayd_core,config,options.webui_logfile)
-        except handler.DeejaydWebError, err:
-            log.err(err)
-            sys.exit(1)
-
-        port = config.getint("webui","port")
-        for bind_address in config.get_bind_addresses('webui'):
-            try: reactor.listenTCP(port, site, interface=bind_address)
-            except CannotListenError, err:
-                log.err(str(err))
+        try:
+            from deejayd.webui import twisted_handler as handler
+        except ImportError:
+            log.err("webui does not seem to be installed, disabling.")
+            config.set("webui", "enabled", False)
+        else:
+            service = True
+            try: site = handler.init(deejayd_core,config,options.webui_logfile)
+            except handler.DeejaydWebError, err:
+                log.err(err)
                 sys.exit(1)
+
+            port = config.getint("webui","port")
+            for bind_address in config.get_bind_addresses('webui'):
+                try: reactor.listenTCP(port, site, interface=bind_address)
+                except CannotListenError, err:
+                    log.err(str(err))
+                    sys.exit(1)
 
     # launch reactor
     if not service:
