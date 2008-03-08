@@ -146,12 +146,12 @@ class AvailableCommands:
         """Search in audio library
            ex: djc audio_search type search_txt
            type has to be in ('all','artist','album','genre','title')"""
-        try: search_txt = args[0]
-        except IndexError:
-            raise DjcError('You need to enter a search text')
-        try: type = args[1]
+        try: type = args[0]
         except IndexError:
             raise DjcError('You need to enter a search type')
+        try: search_txt = args[1]
+        except IndexError:
+            raise DjcError('You need to enter a search text')
         rsp = self.server.audio_search(search_txt, type)
         for file in rsp.get_files():
             print "file:", file["filename"]
