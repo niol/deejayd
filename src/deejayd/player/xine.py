@@ -95,12 +95,14 @@ class XinePlayer(UnknownPlayer):
         if self.__video_port:
             self.__display.show(isvideo)
 
-        # if video get current audio/subtitle channel
+        # init video information
         if self._media_file["type"] == "video":
+            self._media_file["av_offset"] = 0
             if "audio" in self._media_file:
                 self._media_file["audio_idx"] = \
                     self.__do_get_property(XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
             if "subtitle" in self._media_file:
+                self._media_file["sub_offset"] = 0
                 self._media_file["subtitle_idx"] = \
                     self.__do_get_property(XINE_PARAM_SPU_CHANNEL)
 
@@ -137,6 +139,15 @@ class XinePlayer(UnknownPlayer):
             self._source.queue_reset()
             self._change_file(None)
             self.dispatch_signame('player.status')
+
+    def set_avoffset(self, offset):
+        self.__do_set_property(XINE_PARAM_AV_OFFSET, offset * 90)
+        self._media_file["av_offset"] = offset
+
+    def set_suboffset(self, offset):
+        if "subtitle" in self._media_file.keys():
+            self.__do_set_property(XINE_PARAM_SPU_OFFSET, offset * 90)
+            self._media_file["sub_offset"] = offset
 
     def _player_set_alang(self,lang_idx):
         self.__do_set_property(XINE_PARAM_AUDIO_CHANNEL_LOGICAL, lang_idx)

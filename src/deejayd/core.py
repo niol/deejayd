@@ -369,16 +369,15 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         return modes
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def set_alang(self, lang_idx):
-        try: self.player.set_alang(int(lang_idx))
-        except player.PlayerError:
-            raise DeejaydError(_("Unable to change audio channel"))
-
-    @returns_deejaydanswer(DeejaydAnswer)
-    def set_slang(self, lang_idx):
-        try: self.player.set_slang(int(lang_idx))
-        except player.PlayerError:
-            raise DeejaydError(_("Unable to change subtitle channel"))
+    def set_player_option(self, name, value):
+        try: self.player.set_option(name, int(value))
+        except KeyError:
+            raise DeejaydError(_("Option %s does not exist") % name)
+        except NotImplementedError:
+            raise DeejaydError(_("Option %s is not supported for this backend")\
+                                % name)
+        except player.PlayerError, err:
+            raise DeejaydError(err)
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_status(self):

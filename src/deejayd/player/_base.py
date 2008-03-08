@@ -92,11 +92,31 @@ class UnknownPlayer(SignalingComponent):
     def get_state(self):
         raise NotImplementedError
 
-    def set_alang(self,lang_idx):
-        if not self._media_file or self.get_state() == PLAYER_STOP: return
+    def set_option(self, name, value):
+        if not self._media_file or self._media_file["type"] != "video" or\
+                                   self.get_state() == PLAYER_STOP:
+            return
 
+        if name == "audio_lang":
+            self.set_alang(value)
+        elif name == "sub_lang":
+            self.set_slang(value)
+        elif name == "av_offset":
+            self.set_avoffset(value)
+        elif name == "sub_offset":
+            self.set_suboffset(value)
+        else: raise KeyError
+
+    def set_avoffset(self, offset):
+        raise NotImplementedError
+
+    def set_suboffset(self, offset):
+        raise NotImplementedError
+
+    def set_alang(self,lang_idx):
         try: audio_tracks = self._media_file["audio"]
-        except KeyError: raise PlayerError
+        except KeyError:
+            raise PlayerError(_("Current media hasn't multiple audio channel"))
         else:
             if lang_idx in (-2,-1): # disable/auto audio channel
                 self._player_set_alang(lang_idx)
@@ -108,14 +128,14 @@ class UnknownPlayer(SignalingComponent):
                     self._player_set_alang(lang_idx)
                     found = True
                     break
-            if not found: raise PlayerError
+            if not found:
+                raise PlayerError(_("Audio channel %d not found") % lang_idx)
             self._media_file["audio_idx"] = self._player_get_alang()
 
     def set_slang(self,lang_idx):
-        if not self._media_file or self.get_state() == PLAYER_STOP: return
-
         try: sub_tracks = self._media_file["subtitle"]
-        except KeyError: raise PlayerError
+        except KeyError:
+            raise PlayerError(_("Current media hasn't multiple sub channel"))
         else:
             if lang_idx in (-2,-1): # disable/auto subtitle channel
                 self._player_set_slang(lang_idx)
@@ -127,7 +147,8 @@ class UnknownPlayer(SignalingComponent):
                     self._player_set_slang(lang_idx)
                     found = True
                     break
-            if not found: raise PlayerError
+            if not found:
+                raise PlayerError(_("Sub channel %d not found") % lang_idx)
             self._media_file["subtitle_idx"] = self._player_get_slang()
 
     def get_playing(self):

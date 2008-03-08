@@ -282,10 +282,7 @@ class DeejaydCore:
     def get_mode(self):
         raise NotImplementedError
 
-    def set_alang(self, lang_idx):
-        raise NotImplementedError
-
-    def set_slang(self, lang_idx):
+    def set_player_option(self, option_name, option_value):
         raise NotImplementedError
 
     def get_status(self):
