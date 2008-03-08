@@ -108,7 +108,7 @@ list-style-image: url("./images/go.png");
 .previous-button {list-style-image: url("./images/previous.png");}
 .next-button {list-style-image: url("./images/next.png");}
 
-#current-song{margin: 10px 5px 0px 5px;}
+#current-media{margin: 10px 5px 0px 5px;}
 #media-info .cursong {margin: 0px;}
 #current-artist,#current-url,#current-album{
     font-size: 11px;

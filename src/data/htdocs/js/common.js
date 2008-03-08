@@ -36,6 +36,15 @@ function eregReplace(search, replace, subject) {
 	return subject.replace(new RegExp(search,'g'), replace);
 }
 
+function toogleNodeVisibility(node)
+{
+    if (typeof node == 'string')
+        node = $(node);
+
+    var newState = node.style.visibility == "visible" ? "collapse" : "visible";
+    node.style.visibility = newState;
+}
+
 function removeNode(node)
 {
 	if (typeof node == 'string')

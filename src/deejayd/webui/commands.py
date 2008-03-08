@@ -225,19 +225,14 @@ class Seek(_UnknownCommand):
         if status["state"] != "stop":
             self._deejayd.seek(self._args["time"])
 
-class AudioLang(_UnknownCommand):
-    name = "setAlang"
-    command_args = [{"name": "lang_idx", "type": "int", "req": True}]
+class PlayerOption(_UnknownCommand):
+    name = "setPlayerOption"
+    command_args = [{"name": "option_name", "type": "str", "req": True},
+        {"name": "option_value", "type": "int", "req": True}]
 
     def execute(self):
-        self._deejayd.set_alang(self._args["lang_idx"]).get_contents()
-
-class SubtitleLang(_UnknownCommand):
-    name = "setSlang"
-    command_args = [{"name": "lang_idx", "type": "int", "req": True}]
-
-    def execute(self):
-        self._deejayd.set_slang(self._args["lang_idx"]).get_contents()
+        self._deejayd.set_player_option(self._args["option_name"],\
+            self._args["option_value"]).get_contents()
 
 #
 # Library commands

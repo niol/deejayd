@@ -68,8 +68,11 @@ def build_language_dtd():
         "showDebug": _("Show debug zone"),
         "random": _("Random"),
         "repeat": _("Repeat"),
+        "advancedOption": _("Advanced Option"),
         "audio_channel": _("Audio Channel:"),
         "subtitle_channel": _("Subtitle Channel:"),
+        "av_offset": _("Audio/Video Offset:"),
+        "sub_offset": _("Subtitle Offset:"),
         # playlist
         "load": _("Load"),
         "loadQueue": _("Load in the queue"),

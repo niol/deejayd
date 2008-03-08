@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+
 <?xml-stylesheet href="./static/themes/default/theme.css" type="text/css"?>
 <?xml-stylesheet href="./static/xul/bindings/bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
@@ -85,37 +85,15 @@
 
     <vbox
         style="visibility: collapse"
-        id="current-song" >
+        id="current-media">
         <vbox id="media-info" flex="1"/>
-        <hbox>
-            <hbox
-                align="center"
-                id="audio-menubox"
-                style="visibility: collapse">
-                <label value="&audio_channel;"/>
-                <menulist
-                    oncommand="player_ref.set_alang(event.target.value);">
-                    <menupopup id="audio-menu"/>
-                </menulist>
-            </hbox>
-            <hbox
-                align="center"
-                id="subtitle-menubox"
-                style="visibility: collapse">
-                <label value="&subtitle_channel;"/>
-                <menulist
-                    oncommand="player_ref.set_slang(event.target.value);">
-                    <menupopup id="subtitle-menu"/>
-                </menulist>
-            </hbox>
-        </hbox>
         <hbox
             id="seekbar"
             align="center">
             <button
                 id="seekbar-button"
                 label="0:00 -->"
-                oncommand="player_ref.showSeekbar();"/>
+                oncommand="toogleNodeVisibility('player-seekbar');"/>
             <player_seekbar
                 style="visibility: collapse"
                 class="progressbar"
@@ -125,7 +103,72 @@
                 sliderid="seek-slider"
                 thumbid="seek-thumb"/>
         </hbox>
+        <hbox>
+            <button
+                style="visibility: collapse"
+                id="playeroption-button"
+                label="&advancedOption; ->"
+                oncommand="toogleNodeVisibility('playeroption-box');"/>
+            <spacer flex="1"/>
+        </hbox>
     </vbox>
+
+    <groupbox
+        style="visibility: collapse"
+        id="playeroption-box"><grid>
+        <columns>
+            <column flex="2"/>
+            <column flex="1"/>
+            <column flex="1"/>
+        </columns>
+
+        <rows>
+            <row align="center"
+                style="visibility: collapse"
+                id="audio-row">
+                <label value="&audio_channel;"/>
+                <menulist
+                    oncommand="player_ref.set_alang(event.target.value);">
+                    <menupopup id="audio-menu"/>
+                </menulist>
+            </row>
+            <row align="center"
+                style="visibility: collapse"
+                id="subtitle-row">
+                <label value="&subtitle_channel;"/>
+                <menulist
+                    oncommand="player_ref.set_slang(event.target.value);">
+                    <menupopup id="subtitle-menu"/>
+                </menulist>
+            </row>
+            <row align="center"
+                style="visibility: collapse"
+                id="av_offset-row">
+                <label value="&av_offset;"/>
+                <textbox
+                    size="6"
+                    maxlength="6"
+                    oncommand="player_ref.set_avoffset();"
+                    timeout="500"
+                    type="timed"
+                    id="av_offset-value"/>
+                <label value="ms"/>
+            </row>
+            <row align="center"
+                style="visibility: collapse"
+                id="sub_offset-row">
+                <label value="&sub_offset;"/>
+                <textbox
+                    size="6"
+                    maxlength="6"
+                    oncommand="player_ref.set_suboffset();"
+                    timeout="500"
+                    type="timed"
+                    id="sub_offset-value"/>
+                <label value="ms"/>
+            </row>
+        </rows>
+    </grid></groupbox>
 
     <spacer flex="1"/>
 
