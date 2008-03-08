@@ -687,22 +687,20 @@ class GoTo(UnknownCommand):
             self.args['source'], objanswer=False)
 
 
-class SetAlang(UnknownCommand):
-    """Select audio language"""
-    command_name = 'setAlang'
-    command_args = [{"name":"lang_idx", "type":"int", "req":True}]
+class SetPlayerOption(UnknownCommand):
+    """Set player option for the current media
+       Possible options are :
+         * audio_lang : select audio channel (video only)
+         * sub_lang : select subtitle channel (video only)
+         * av_offset : set audio/video offset (video only)
+         * sub_offset : set subtitle/video offset (video only)"""
+    command_name = 'setPlayerOption'
+    command_args = [{"name":"option_name", "type":"string", "req":True},\
+        {"name":"option_value", "type":"int", "req":True}]
 
     def _execute(self):
-        self.deejayd_core.set_alang(self.args['lang_idx'], objanswer=False)
-
-
-class SetSlang(UnknownCommand):
-    """Select subtitle language"""
-    command_name = 'setSlang'
-    command_args = [{"name":"lang_idx", "type":"int", "req":True}]
-
-    def _execute(self):
-        self.deejayd_core.set_slang(self.args['lang_idx'], objanswer=False)
+        self.deejayd_core.set_player_option(self.args['option_name'],\
+            self.args['option_value'], objanswer=False)
 
 
 class Volume(UnknownCommand):

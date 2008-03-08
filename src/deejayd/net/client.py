@@ -403,14 +403,10 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         cmd = DeejaydXMLCommand('getMode')
         return self._send_command(cmd, DeejaydKeyValue())
 
-    def set_alang(self, lang_idx):
-        cmd = DeejaydXMLCommand('setAlang')
-        cmd.add_simple_arg('lang_idx', lang_idx)
-        return self._send_command(cmd)
-
-    def set_slang(self, lang_idx):
-        cmd = DeejaydXMLCommand('setSlang')
-        cmd.add_simple_arg('lang_idx', lang_idx)
+    def set_player_option(self, name, value):
+        cmd = DeejaydXMLCommand('setPlayerOption')
+        cmd.add_simple_arg('option_name', name)
+        cmd.add_simple_arg('option_value', value)
         return self._send_command(cmd)
 
     def get_status(self):
