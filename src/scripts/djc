@@ -100,21 +100,17 @@ class AvailableCommands:
         else:
             self.server.set_mode(mode).get_contents()
 
-    def set_slang(self, args):
-        """select a subtitle channel"""
-        try: slang = args[0]
+    def player_option(self, args):
+        """set player option
+           ex: djc player_option option_name option_value
+           option_name can be : sub_offset, av_offset, audio_lang, sub_lang"""
+        try:
+            opt_name = args[0]
+            opt_value = args[1]
         except IndexError:
-            raise DjcError('You need to choose a language index')
+            raise DjcError('Usage: djc player_option option_name option_value')
         else:
-            self.server.set_slang(slang)
-
-    def set_alang(self, args):
-        """select a audio channel"""
-        try: alang = args[0]
-        except IndexError:
-            raise DjcError('You need to choose a language index')
-        else:
-            self.server.set_alang(alang)
+            self.server.set_player_option(opt_name, opt_value).get_contents()
 
     def status(self, args):
         """Get full deejayd status"""
