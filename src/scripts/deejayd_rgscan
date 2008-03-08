@@ -24,7 +24,7 @@ This is the script used to scan audio file and process replaygain
 
 import os,subprocess,time
 import logging as log
-from mutagen import id3, oggvorbis, mp4
+from mutagen import id3, oggvorbis, mp4, flac
 
 ############ Parse Option ############################
 ######################################################
@@ -171,6 +171,20 @@ class OggProcess(_SongProcess):
                "replaygain_track_peak" in info.keys()
 
 
+class FlacProcess(_SongProcess):
+    extensions = [".flac"]
+    command = "metaflac"
+    options = "--add-replay-gain \"%s\""
+
+    def has_rg_tag(self):
+        try: info = flac.FLAC(self._filename)
+        except flac.error:
+            return False
+
+        return "replaygain_track_gain" in info.keys() and\
+               "replaygain_track_peak" in info.keys()
+
+
 class TimeStamp:
     __fn = None
 
@@ -211,12 +225,12 @@ class Library:
         self.__options = options
         self.__ts = TimeStamp(options.timestamp_file)
 
-        for cls in (MP3Process, MP4Process, OggProcess):
+        for cls in (MP3Process, MP4Process, OggProcess, FlacProcess):
             if cls().is_cmd_exists():
                 for ext in cls.extensions: self.extensions[ext] = cls
             else:
                 log.info("%s support disable, missing apps %s" %\
-                            (",".join(cls.extensions, cls.command)))
+                            (",".join(cls.extensions), cls.command))
 
     def is_in_root(self, path, root=None):
         """Checks if a directory is physically in the supplied root
@@ -272,6 +286,12 @@ class Library:
                         log.info("file %s has already rg tag. skipped" % file)
                         continue
 
+                    try: file_object.process()
+                    except CmdError, e:
+                        log.error("Unable to analyse file %s : %s"\
+                            % (file_path, e))
+
+                elif self.__options.force:
                     try: file_object.process()
                     except CmdError, e:
                         log.error("Unable to analyse file %s : %s"\
