@@ -401,21 +401,18 @@ Arguments :
 
 Expected return value : ''`MediaList`''
 
-=== `setAlang` ===
+=== `setPlayerOption` ===
 
-Select audio language
-
-Arguments :
-  * {{{lang_idx}}} (Simple and Mandatory) : int
-
-Expected return value : ''`Ack`''
-
-=== `setSlang` ===
-
-Select subtitle language
+Set player option for the current media
+       Possible options are :
+         * audio_lang : select audio channel (video only)
+         * sub_lang : select subtitle channel (video only)
+         * av_offset : set audio/video offset (video only)
+         * sub_offset : set subtitle/video offset (video only)
 
 Arguments :
-  * {{{lang_idx}}} (Simple and Mandatory) : int
+  * {{{option_name}}} (Simple and Mandatory) : string
+  * {{{option_value}}} (Simple and Mandatory) : int
 
 Expected return value : ''`Ack`''
 
