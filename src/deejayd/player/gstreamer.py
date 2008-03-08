@@ -284,6 +284,7 @@ class GstreamerPlayer(UnknownPlayer):
             ".mp2": ("mad",),
             ".ogg": ("ogg", "vorbis"),
             ".mp4": ("faad",),
+            ".flac": ("flac",),
             ".avi": ("ffmpeg",),
             ".mpeg": ("ffmpeg",),
             ".mpg": ("ffmpeg",),

@@ -174,6 +174,20 @@ class TestOggSong(TestSong):
         return OggVorbis(self.tags["filename"])
 
 
+class TestFlacSong(TestSong):
+
+    def __init__(self):
+        self.testFile,self.ext = os.path.join(DATA_DIR,"flac_test.flac"),".flac"
+        TestSong.__init__(self)
+
+    def __getitem__(self,key):
+        return key in self.tags and self.tags[key] or None
+
+    def _getTagObject(self):
+        from mutagen.flac import FLAC
+        return FLAC(self.tags["filename"])
+
+
 class TestDir(TestData):
 
     def __init__(self):
@@ -214,7 +228,7 @@ class TestProvidedMusicCollection(TestData):
         for root, dir, files in os.walk(self.datadir):
             for file in files:
                 (name,ext) = os.path.splitext(file)
-                if ext.lower() in ('.mp3','.ogg','.mp4'):
+                if ext.lower() in ('.mp3','.ogg','.mp4','.flac'):
                     self.songPaths.append(self.stripRoot(os.path.join(root,
                                                                         file)))
 
@@ -280,7 +294,8 @@ class TestMediaCollection(TestProvidedMusicCollection):
         self.dir_struct_written = True
 
     def build_audio_library_directory_tree(self, destDir = "/tmp"):
-        self.supported_files_class = (TestOggSong,TestMP3Song,TestMP4Song)
+        self.supported_files_class = (TestOggSong, TestMP3Song, TestMP4Song,\
+                TestFlacSong)
         self.buildLibraryDirectoryTree(destDir)
 
     def build_video_library_directory_tree(self, destDir = "/tmp"):
