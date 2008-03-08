@@ -4,6 +4,8 @@ New features and significant updates in version...
 0.7.0 (Not Released)
 --------------------
   * database : add mysql backend support
+  * add new player options : Audio/Video offset and Subtitle offset
+  * add flac support
   * add replaygain support (track profile only)
   * add script to process an audio library and
     record replaygain track gain/peak in songs
