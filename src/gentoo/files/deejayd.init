@@ -2,18 +2,25 @@
 # Copyright 1999-2004 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
+pidfile=/var/run/deejayd/deejayd.pid
+daemon_path=/usr/bin/deejayd
+conf_file=/etc/deejayd.conf
+logdir=/var/log/deejayd
+log_file=${logdir}/deejayd.log
+webuilog_file=${logdir}/deejayd-webui.log
+
 depend() {
 	need localmount
 	use netmount
 }
 
 check() {
-    if ! [ -x /usr/bin/deejayd ]; then
+    if ! [ -x ${daemon_path} ]; then
 		eerror "Deejayd application not found."
 		return 1
 	fi
 
-	if ! [ -f /etc/deejayd.conf ]; then
+	if ! [ -f ${conf_file} ]; then
 		eerror "Configuration file /etc/deejayd.conf does not exist."
 		return 1
 	fi
@@ -25,18 +32,17 @@ start() {
 	check || return 1
 
 	ebegin "Starting deejayd"
-    start-stop-daemon --start --exec /usr/bin/deejayd \
-        --pidfile /var/run/deejayd/deejayd.pid \
-        -- -l /var/log/deejayd/deejayd.log \
-           -w /var/log/deejayd/deejayd-webui.log \
-           -u deejayd -g audio,cdrom \
-           -p /var/run/deejayd/deejayd.pid ${DEEJAYD_OPTS}
-	eend $?
+    start-stop-daemon --start --exec ${daemon_path} \
+        --pidfile ${pidfile} \
+        -- -l ${log_file} \
+           -w ${webuilog_file} \
+           -p ${pidfile} ${DEEJAYD_OPTS}
+	eend $? "Failed to start deejayd"
 }
 
 stop() {
 	ebegin "Stopping deejayd"
-    start-stop-daemon --stop --exec /usr/bin/deejayd \
-        --pidfile /var/run/deejayd/deejayd.pid
-	eend $?
+    start-stop-daemon --stop --exec ${daemon_path} \
+        --pidfile ${pidfile}
+	eend $? "Failed to stop deejayd"
 }

@@ -2,4 +2,4 @@
 
 # see deejayd --help
 # for valid cmdline options
-#DEEJAYD_OPTS="-u deejayd -g audio,cdrom"
+DEEJAYD_OPTS="-u deejayd -g audio,cdrom"
