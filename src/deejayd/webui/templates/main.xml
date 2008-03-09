@@ -215,6 +215,7 @@
 <vbox flex="1">
 <deck
     flex="8"
+    persist="height"
     id="main-and-debug"
     selectedIndex="0">
     <deck
@@ -252,10 +253,12 @@
 <splitter
     style="visibility: collapse;"
     id="queue-splitter"
+    persist="position"
     collapse="after"
     state="collapsed"/>
 <vbox
     flex="10"
+    persist="height"
     id="queue-box">
     $queue_box
 </vbox>
@@ -279,9 +282,12 @@
         <description align="center"/>
         <description align="center" id="message-box">
         </description>
-        <progressmeter
-            id="loading-progressbar"
-            mode="determined"/>
+        <hbox>
+            <progressmeter
+                id="loading-progressbar"
+                mode="determined"/>
+            <spacer flex="1"/>
+        </hbox>
     </deck>
     <spacer flex="1"/>
     <button

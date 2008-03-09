@@ -58,6 +58,7 @@
 
 <vbox
     id="navigation-box"
+    persist="width"
     flex="1">
 
     <tabbox id="navigation-panel" flex="1">
@@ -133,12 +134,13 @@
     </hbox>
 </vbox>
 
-<splitter collapse="before" resizeafter="farthest">
+<splitter persist="position" collapse="before" resizeafter="farthest">
     <grippy/>
 </splitter>
 
 <vbox
     flex="6"
+    persist="width"
     id="playlist-box">
 
     <vbox flex="5">
