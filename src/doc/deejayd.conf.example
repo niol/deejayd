@@ -58,7 +58,7 @@ filesystem_charset = utf-8
 [gstreamer]
 # Audio Ouput
 # Possible values are : auto, alsa, oss
-audio_output = alsa
+audio_output = auto
 
 # Alsa Options
 # valid only for alsa output
@@ -66,17 +66,17 @@ audio_output = alsa
 
 # Video Ouput
 # Possible values are : auto, xv, x...
-video_output = xv
+video_output = auto
 
 
 [xine]
 # Audio Ouput
 # Possible values are : auto,alsa, oss...
-audio_output = alsa
+audio_output = auto
 
 # Video Ouput
 # Possible values are : auto,Xv, ..
-video_output = Xv
+video_output = auto
 
 # Video Display
 video_display= :0.0
