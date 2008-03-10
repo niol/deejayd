@@ -1,0 +1,7 @@
+/var/log/deejayd-webui.log /var/log/deejayd-webui.*.log {
+    rotate 4
+    weekly
+    compress
+    copytruncate
+    missingok
+}

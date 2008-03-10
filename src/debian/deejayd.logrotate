@@ -1,0 +1,7 @@
+/var/log/deejayd.log /var/log/deejayd.*.log {
+    rotate 4
+    weekly
+    compress
+    copytruncate
+    missingok
+}
