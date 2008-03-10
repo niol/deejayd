@@ -21,12 +21,12 @@ media_backend = xine
 [net]
 enabled = yes
 port = 6800
-bind_addresses = all
+bind_addresses = localhost
 
 [webui]
 enabled = no
 port = 6880
-bind_addresses = all
+bind_addresses = localhost
 # directory which contains static files for webui
 htdocs_dir = /usr/share/deejayd/htdocs
 # temp directory where deejayd save rdf files for webui
