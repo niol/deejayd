@@ -1,6 +1,15 @@
-deejayd (0.6.3-4) unstable; urgency=low
+deejayd (0.6.3-5) unstable; urgency=low
 
   * Initial upload to Debian (Closes: #463973).
+  * Remove useless mediadb dir in default config.
+  * Make audio/video drivers default to auto.
+  * Logrotate support.
+  * Listen on localhost by default.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 10 Mar 2008 23:13:40 +0100
+
+deejayd (0.6.3-4) unstable; urgency=low
+
   * Backported upstream patches :
     - [webui] do not make tagless media files crash the javascript
     - [mediadb] asf support
