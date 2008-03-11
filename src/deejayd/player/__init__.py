@@ -56,7 +56,7 @@ def init(db,config):
             sys.exit(str(err))
 
     elif media_backend == "xine":
-        from deejayd.player import xine,_base
+        from deejayd.player import xine
         try: player = xine.XinePlayer(db,config)
         except PlayerError, err:
             log.err(str(err))
