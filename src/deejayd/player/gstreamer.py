@@ -37,16 +37,17 @@ class GstreamerPlayer(UnknownPlayer):
         self.__volume = 100
 
         # Open a Audio pipeline
-        pipeline_dict = {"alsa":"alsasink", "oss":"osssink",\
-            "auto":"autoaudiosink","esd":"esdsink"}
         pipeline =  self.config.get("gstreamer", "audio_output")
-        try: audio_sink = gst.parse_launch(pipeline_dict[pipeline])
-        except gobject.GError, err: audio_sink = None
-        if audio_sink==None:
-            raise PlayerError(_("No audio sink found for Gstreamer"))
+        if pipeline in ("gconf", "auto"):
+            pipeline += "audiosink"
+        else:
+            pipeline += "sink"
+        try: audio_sink = gst.parse_launch(pipeline)
+        except gobject.GError, err:
+            raise PlayerError(_("No audio sink found for Gstreamer : %s"%err))
 
         # More audio-sink option
-        if pipeline == "alsa":
+        if pipeline == "alsasink":
             try: alsa_card = self.config.get("gstreamer", "alsa_card")
             except NoOptionError: pass
             else: audio_sink.set_property('device',alsa_card)
