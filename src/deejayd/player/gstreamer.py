@@ -205,7 +205,7 @@ class GstreamerPlayer(UnknownPlayer):
             except AttributeError: pass # replaygain not supported
             else:
                 v = max(0.0, min(4.0, v * scale))
-                v = min(100, int(v * 100))
+                v = float(min(100, int(v * 100)))/100
         self.bin.set_property('volume', v)
         self.dispatch_signame('player.status')
 
