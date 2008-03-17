@@ -412,8 +412,6 @@ class QueueAdd(_UnknownCommand):
     name = "queueAdd"
     method = "post"
     command_args = [{"name":"path","type":"string","req":True,"mult":True},\
-              {"name":"type", "type":"enum_str", "values":("audio", "video"),\
-               "req":False, "default":"audio"},
               {"name":"pos","type":"int","req":True}]
 
     def execute(self):
@@ -421,8 +419,7 @@ class QueueAdd(_UnknownCommand):
         if pos == -1: pos = None
 
         queue = self._deejayd.get_queue()
-        queue.add_medias(self._args["path"],\
-            self._args["type"],pos).get_contents()
+        queue.add_medias(self._args["path"], pos).get_contents()
 
 class QueueLoad(_UnknownCommand):
     name = "queueLoad"

@@ -22,19 +22,17 @@ from deejayd.sources._base import _BaseSource, MediaList, MediaNotFoundError
 class QueueSource(_BaseSource):
     name = "queue"
 
-    def __init__(self, db, audio_library, video_library):
+    def __init__(self, db, audio_library):
         _BaseSource.__init__(self,db)
         self._media_list = MediaList(db, self.get_recorded_id() + 1)
         self.audio_lib = audio_library
-        self.video_lib = video_library
 
-    def add_path(self, paths, type = "audio", pos = None):
-        library = type == "audio" and self.audio_lib or self.video_lib
+    def add_path(self, paths, pos = None):
         medias = []
         for path in paths:
-            try: medias.extend(library.get_all_files(path))
+            try: medias.extend(self.audio_lib.get_all_files(path))
             except NotFoundException:
-                try: medias.extend(library.get_file(path))
+                try: medias.extend(self.audio_lib.get_file(path))
                 except NotFoundException: raise MediaNotFoundError
 
         self._media_list.add_media(medias, pos)

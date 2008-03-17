@@ -154,7 +154,7 @@ class DeejaydQueue:
     def add_media(self, path, position=None):
         return self.add_medias([path], position)
 
-    def add_medias(self, paths, type = "audio", pos = None):
+    def add_medias(self, paths, pos = None):
         raise NotImplementedError
 
     def load_playlist(self, name, pos = None):

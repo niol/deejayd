@@ -35,8 +35,7 @@ class SourceFactory(SignalingComponent):
         activated_sources = config.get('general', "activated_modes").split(",")
 
         from deejayd.sources import queue
-        self.sources_obj["queue"] = queue.QueueSource(db,\
-            audio_library,video_library)
+        self.sources_obj["queue"] = queue.QueueSource(db, audio_library)
         # playlist
         if "playlist" in activated_sources:
             from deejayd.sources import playlist

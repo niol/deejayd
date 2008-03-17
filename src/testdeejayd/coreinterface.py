@@ -153,7 +153,7 @@ class InterfaceTests:
         how_many_songs = 10
         for song_path in self.test_audiodata.getRandomSongPaths(how_many_songs):
             myq.append(song_path)
-            ans = q.add_media(song_path, "audio")
+            ans = q.add_media(song_path)
             self.failUnless(ans.get_contents())
 
         ddq = q.get()

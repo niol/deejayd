@@ -562,14 +562,11 @@ class QueueAdd(UnknownCommand):
     "pos" in the queue."""
     command_name = 'queueAdd'
     command_args = [{"mult":True, "name":"path", "type":"string", "req":True},
-              {"name":"type", "type":"enum_str", "values":("audio", "video"),\
-               "req":False, "default":"audio"},
               {"name":"pos", "type":"int", "req":False, "default":None}]
 
     def _execute(self):
         queue = self.deejayd_core.get_queue()
-        queue.add_medias(self.args["path"], self.args["type"],\
-            self.args["pos"], objanswer=False)
+        queue.add_medias(self.args["path"], self.args["pos"], objanswer=False)
 
 
 class QueueLoadPlaylist(UnknownCommand):

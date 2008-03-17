@@ -141,10 +141,10 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         return self.source.get_content()
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def add_medias(self, paths, type = "audio", pos = None):
+    def add_medias(self, paths, pos = None):
         position = pos and int(pos) or None
         try:
-            self.source.add_path(paths, type, position)
+            self.source.add_path(paths, position)
         except sources._base.MediaNotFoundError:
             raise DeejaydError(_('%s not found') % (paths,))
 

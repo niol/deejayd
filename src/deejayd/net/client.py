@@ -147,10 +147,9 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
-    def add_medias(self, paths, type = "audio", pos = None):
+    def add_medias(self, paths, pos = None):
         cmd = DeejaydXMLCommand('queueAdd')
         cmd.add_multiple_arg('path', paths)
-        cmd.add_simple_arg('type', type)
         if pos!= None:
             cmd.add_simple_arg('pos', pos)
         return self.server._send_command(cmd)

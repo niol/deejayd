@@ -196,30 +196,22 @@ class AvailableCommands:
         """ Get queue's content """
         contents = DeejaydQueue(self.server).get()
         for media in contents.get_medias():
-            if media["type"] == "song":
-                print media["pos"], '|', media["title"], '|',\
-                  media["artist"], '|',\
-                  media["album"], '|', media["id"]
-            elif media["type"] == "video":
-                print media["pos"], '|', media["title"], '|',\
-                  media["videowidth"], '|',\
-                  media["videoheight"], '|', media["id"]
+            print media["pos"], '|', media["title"], '|',\
+              media["artist"], '|',\
+              media["album"], '|', media["id"]
 
     def queue_clear(self, args):
         """ clear queue """
         DeejaydQueue(self.server).clear().get_contents()
 
     def queue_add(self, args):
-        """ add audio/video dirs/files to queue
-            ex: djc queue_add audio/video dir1,dir2 """
-        try: type = args[0]
-        except IndexError:
-            raise DjcError('You have to choose a type')
-        try: item = args[1]
+        """ add audio dirs/files to queue
+            ex: djc queue_add dir1,dir2 """
+        try: item = args[0]
         except IndexError:
             raise DjcError('You have to enter dirs/files')
         else: items = item.split(",")
-        DeejaydQueue(self.server).add_medias(items, type).get_contents()
+        DeejaydQueue(self.server).add_medias(items).get_contents()
 
     def queue_loadpls(self, args):
         """ load playlist in the queue
