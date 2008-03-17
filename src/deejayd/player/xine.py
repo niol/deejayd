@@ -84,7 +84,8 @@ class XinePlayer(UnknownPlayer):
                                             {"lang": "external", "ix":0}]
 
         if not self.__stream:
-            self._create_stream()
+            has_video = self._media_file["type"] == "video"
+            self._create_stream(has_video)
         if not xine_open(self.__stream, uri) or \
            not xine_play(self.__stream, 0, 0):
             self._destroy_stream()
@@ -108,7 +109,9 @@ class XinePlayer(UnknownPlayer):
 
     def _change_file(self, new_file, gapless = False):
         sig = self.get_state() == PLAYER_STOP and True or False
-        if self._media_file == None or new_file == None:
+        if self._media_file == None\
+                or new_file == None\
+                or self._media_file["type"] != new_file["type"]:
             self._destroy_stream()
             gapless = False
 
@@ -289,7 +292,7 @@ class XinePlayer(UnknownPlayer):
         if not self.__stream: return -1
         return xine_get_param(self.__stream, property)
 
-    def _create_stream(self):
+    def _create_stream(self, has_video = True):
         if self.__stream != None:
             self._destroy_stream()
 
@@ -300,7 +303,8 @@ class XinePlayer(UnknownPlayer):
             raise PlayerError(_("Unable to open audio driver"))
 
         # open video driver
-        if self._video_support and self.__xine_options["video"] != "none":
+        if has_video and self._video_support\
+                 and self.__xine_options["video"] != "none":
             try: self.__display.create()
             except x11.X11Error, err:
                 raise PlayerError(str(err))
