@@ -16,5 +16,6 @@ include po/update.py
 include po/deejayd.pot
 include tests.py
 include scripts/testserver
+include scripts/deejayd_rgscan
 recursive-include testdeejayd *
 include data/logo/*

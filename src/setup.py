@@ -72,6 +72,7 @@ def build_data_files_list():
     data = [
         ('share/doc/deejayd', glob.glob("doc/*")),
         ('share/doc/deejayd', glob.glob("README*")),
+        ('share/doc/deejayd', ["scripts/deejayd_rgscan"]),
         ]
 
     htdocs_root = 'data/htdocs'
@@ -90,7 +91,7 @@ if __name__ == "__main__":
            author="Mikael Royer, Alexandre Rossi",
            author_email="mickael.royer@gmail.com",
            license="GNU GPL v2",
-           scripts=["scripts/deejayd","scripts/djc","scripts/deejayd_rgscan"],
+           scripts=["scripts/deejayd","scripts/djc"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
                      "deejayd.mediadb.formats", "deejayd.player",\
                      "deejayd.player.display","deejayd.sources","deejayd.ui",\
