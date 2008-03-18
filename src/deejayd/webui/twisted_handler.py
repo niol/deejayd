@@ -21,6 +21,7 @@ from twisted.web import static,server
 from twisted.web.resource import Resource
 
 from deejayd.interfaces import DeejaydError
+from deejayd.ui.log import LogFile
 from deejayd.webui.xmlanswer import DeejaydWebAnswer,build_web_interface
 from deejayd.webui import commands
 
@@ -88,6 +89,19 @@ class DeejaydCommandHandler(Resource):
         return ans.to_xml()
 
 
+class SiteWithCustomLogging(server.Site):
+
+    def _openLogFile(self, path):
+        self.log_file = LogFile(path, False)
+        self.log_file.set_reopen_signal(callback=self.__reopen_cb)
+        return self.log_file.fd
+
+    def __reopen_cb(self, signal, frame):
+        self.log_file.reopen()
+        # Change the logfile fd from HTTPFactory internals.
+        self.logFile = self.log_file.fd
+
+
 def init(deejayd_core, config, webui_logfile):
     # create tmp directory
     rdf_dir = config.get("webui","rdf_dir")
@@ -110,6 +124,6 @@ def init(deejayd_core, config, webui_logfile):
     root.putChild("static",static.File(htdocs_dir))
     root.putChild("rdf",static.File(rdf_dir))
 
-    return server.Site(root, logPath=webui_logfile)
+    return SiteWithCustomLogging(root, logPath=webui_logfile)
 
 # vim: ts=4 sw=4 expandtab

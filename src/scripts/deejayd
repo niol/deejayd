@@ -143,16 +143,20 @@ def setEnv(options):
 
 def startLog(options):
     from twisted.python import log
+    import deejayd.ui.log
+
+    log_file_name = None
     if options.logfile:
-        try: logFile = open(options.logfile, 'a')
-        except IOError:
-            sys.exit("Unable to open the log file %s" % (options.logfile,))
+        log_file_name = options.logfile
     elif options.daemon:
-        try: logFile = open("./deejayd.log", 'w')
-        except IOError:
-            sys.exit("Unable to open default log file %s" % (options.logfile,))
-    else: logFile = sys.stdout
-    log.startLogging(logFile)
+        log_file_name = 'deejayd.log'
+
+    if log_file_name:
+        flo = deejayd.ui.log.SignaledFileLogObserver(log_file_name)
+        log.startLoggingWithObserver(flo.emit)
+    else:
+        log.startLogging(sys.stdout)
+
 
 # Start
 if __name__ == "__main__":

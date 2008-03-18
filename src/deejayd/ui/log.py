@@ -16,6 +16,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+
+import signal
+
 from twisted.python import log
 from deejayd.ui.config import DeejaydConfig
 
@@ -26,6 +29,52 @@ DEBUG = 2
 level = DeejaydConfig().get("general","log")
 log_level = {"error": ERROR, "info": INFO, \
              "debug": DEBUG}[level]
+
+
+class LogFile:
+
+    def __init__(self, path, autosignal=True):
+        self.path = path
+        self.open()
+        if autosignal:
+            self.set_reopen_signal()
+
+    def open(self):
+        try:
+            self.fd = open(self.path, 'a')
+        except IOError:
+            sys.exit("Unable to open the log file %s" % self.path)
+
+    def reopen(self):
+        self.fd.close()
+        self.open()
+
+    def __reopen_cb(self, signal, frame):
+        self.reopen()
+
+    def set_reopen_signal(self, sig=signal.SIGHUP, callback=None):
+        if not callback:
+            callback = self.__reopen_cb
+        signal.signal(sig, callback)
+
+
+class SignaledFileLogObserver(log.FileLogObserver):
+
+    def __init__(self, path):
+        self.log_file = LogFile(path, False)
+        self.log_file.open()
+        self.__observe_log_file()
+        self.log_file.set_reopen_signal(callback=self.__reopen_cb)
+
+    def __observe_log_file(self):
+        log.FileLogObserver.__init__(self, self.log_file.fd)
+
+    def __reopen_cb(self, signal, frame):
+        self.stop()
+        self.log_file.reopen()
+        self.__observe_log_file()
+        self.start()
+
 
 def err(err):
     log.msg(_("ERROR - %s") % err)
@@ -40,5 +89,6 @@ def info(msg):
 def debug(msg):
     if log_level >= DEBUG:
         log.msg(_("DEBUG - %s") % msg)
+
 
 # vim: ts=4 sw=4 expandtab
