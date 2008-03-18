@@ -37,4 +37,4 @@ see above.
 The Gentoo packaging, which is part of the upstream tarball, is licensed under
 the GPL v2. This consists of the files located under the gentoo/ directory.
 On Debian systems, the complete text of the GNU General Public
-License can be found in `/usr/share/common-licences/GPL-2'.
+License can be found in `/usr/share/common-licenses/GPL-2'.
