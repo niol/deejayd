@@ -1,6 +1,14 @@
-deejayd (0.6.3-5) unstable; urgency=low
+deejayd (0.6.3-6) unstable; urgency=low
 
   * Initial upload to Debian (Closes: #463973).
+  * Fix debian/copyright to state that some uptream files are GPL v2 only.
+  * pycentral Bug 452227 is fixed so removed related workaround in
+    debian/rules.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 18 Mar 2008 07:55:11 +0100
+
+deejayd (0.6.3-5) unstable; urgency=low
+
   * Remove useless mediadb dir in default config.
   * Make audio/video drivers default to auto.
   * Logrotate support.
