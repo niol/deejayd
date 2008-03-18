@@ -12,7 +12,7 @@ Vcs-Browser: http://mroy31.dyndns.org/~roy/darcsweb/darcsweb.cgi?r=deejayd;a=tre
 
 Package: deejayd
 Architecture: all
-Depends: ${python:Depends}, lsb-base (>= 3.0-6), deejayd-client, deejayd-mediabackend, adduser, python-twisted, python-pysqlite2, python-mutagen
+Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, deejayd-client, deejayd-mediabackend, adduser, python-twisted, python-pysqlite2, python-mutagen
 Recommends: python-pyinotify (>= 0.6.0)
 Suggests: deejayd-webui, djc
 XB-Python-Version: ${python:Versions}
@@ -25,7 +25,7 @@ Description: Network media player daemon
 
 Package: deejayd-webui
 Architecture: all
-Depends: ${python:Depends}, deejayd, python-twisted-web
+Depends: ${python:Depends}, deejayd, logrotate, python-twisted-web
 XB-Python-Version: ${python:Versions}
 Description: Web interface for deejayd
  This package provides a XUL web interface to control your deejayd server. The
