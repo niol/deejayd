@@ -59,12 +59,6 @@ binary-indep: build install
 	dh_installchangelogs
 	dh_installdocs
 	dh_pycentral
-	# Workaround for bug #452227
-	rmdir $(CURDIR)/debian/deejayd-xine/usr/lib
-	rmdir $(CURDIR)/debian/deejayd-gstreamer/usr/lib
-	rmdir $(CURDIR)/debian/deejayd-client/usr/lib
-	rmdir $(CURDIR)/debian/deejayd-webui/usr/lib
-	rmdir $(CURDIR)/debian/deejayd/usr/lib
 	dh_installlogrotate
 	# Inspired by mpd packaging, so that ALSA scripts can run first
 	dh_installinit -u"defaults 30 15"
