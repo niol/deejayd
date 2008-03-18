@@ -4,4 +4,11 @@
     compress
     copytruncate
     missingok
+    notifempty
+    sharedscripts
+    postrotate
+        if invoke-rc.d --quiet deejayd status > /dev/null; then
+            invoke-rc.d --quiet deejayd reload > /dev/null
+        fi
+    endscript
 }
