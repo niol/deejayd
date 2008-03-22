@@ -574,7 +574,6 @@ Load files or directories passed as arguments ("path") at the position
 
 Arguments :
   * {{{path}}} (Multiple and Mandatory) : string
-  * {{{type}}} (Simple and Optional) : enum_str
   * {{{pos}}} (Simple and Optional) : int
 
 Expected return value : ''`Ack`''
