@@ -378,6 +378,7 @@ class PlaylistSave(_UnknownCommand):
     def execute(self):
         pls = self._deejayd.get_playlist()
         pls.save(self._args["name"]).get_contents()
+        self._answer.set_msg(_("Current playlist has been saved"))
 
 class PlaylistErase(_UnknownCommand):
     name = "playlistErase"
