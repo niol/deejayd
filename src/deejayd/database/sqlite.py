@@ -20,7 +20,6 @@ from deejayd.ui import log
 from deejayd.database._base import Database, OperationalError
 from pysqlite2 import dbapi2 as sqlite
 from os import path
-import sys
 
 def str_encode(data):
     if isinstance(data, unicode):
@@ -41,14 +40,12 @@ class SqliteDatabase(Database):
             sqlite_error=_(\
                 'This program requires pysqlite version %s or later.')\
                 % '.'.join(map(str, pysqlite_min_version))
-            log.err(sqlite_error)
-            sys.exit(sqlite_error)
+            log.err(sqlite_error, fatal = True)
 
         try: self.connection = sqlite.connect(self.db_file)
         except sqlite.Error:
             error = _("Could not connect to sqlite database %s." % self.db_file)
-            log.err(error)
-            sys.exit(error)
+            log.err(error, fatal = True)
         else:
             self.cursor = self.connection.cursor()
 

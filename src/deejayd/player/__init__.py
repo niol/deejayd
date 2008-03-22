@@ -16,7 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys
 from deejayd.ui import log
 
 
@@ -44,25 +43,21 @@ def init(db,config):
                     config.set('general', 'mediabackend', backend)
                     log.msg(_("Autodetected %s backend." % backend))
         except StopIteration:
-            err = _("Could not find suitable media backend.")
-            log.err(err)
-            sys.exit(err)
+            log.err(_("Could not find suitable media backend."), fatal=True)
 
     if media_backend == "gstreamer":
         from deejayd.player import gstreamer
         try: player = gstreamer.GstreamerPlayer(db,config)
         except PlayerError, err:
-            log.err(str(err))
-            sys.exit(str(err))
+            log.err(str(err), fatal=True)
 
     elif media_backend == "xine":
         from deejayd.player import xine
         try: player = xine.XinePlayer(db,config)
         except PlayerError, err:
-            log.err(str(err))
-            sys.exit(str(err))
+            log.err(str(err), fatal=True)
 
-    else: sys.exit(_("Invalid media backend"))
+    else: log.err(_("Invalid media backend"), fatal=True)
 
     return player
 

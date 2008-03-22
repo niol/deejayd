@@ -16,8 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys
 from ConfigParser import NoOptionError
+from deejayd.ui import log
 
 def init(config):
     db_type =  config.get("database","db_type")
@@ -41,8 +41,8 @@ def init(config):
         from deejayd.database.mysql import MysqlDatabase
         return MysqlDatabase(db_name, db_user, db_password, db_host, db_port)
     else:
-        sys.exit(_("You chose a database which is not supported.\
-                    Verify your config file."))
+        log.err(_("You chose a database which is not supported.\
+                    Verify your config file."), fatal = True)
 
     return database
 

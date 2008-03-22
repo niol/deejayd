@@ -19,7 +19,6 @@
 from deejayd.ui import log
 from deejayd.database._base import Database, OperationalError
 import MySQLdb as mysql
-import sys
 
 
 class MysqlDatabase(Database):
@@ -43,8 +42,7 @@ class MysqlDatabase(Database):
                 self.cursor = self.connection.cursor()
             except mysql.DatabaseError, err:
                 error = _("Could not connect to MySQL server %s." % err)
-                log.err(error)
-                sys.exit(error)
+                log.err(error, fatal = True)
 
     def connect(self):
         self.__connect()

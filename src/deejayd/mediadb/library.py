@@ -140,7 +140,6 @@ class _Library(SignalingComponent):
         # test library path
         if not os.path.isdir(self._path):
             msg = _("Unable to find directory %s") % self._path
-            log.err(msg)
             raise NotFoundException(msg)
         self.__root_paths = [self._path]
 

@@ -81,8 +81,7 @@ class Database(UnknownDatabase):
                     try: up = __import__(base_import+"."+db_file, {}, {}, base)
                     except ImportError:
                         err = _("Unable to upgrade database, have to quit")
-                        log.err(err)
-                        sys.exit(err)
+                        log.err(err, True)
                     up.upgrade(self.cursor)
                     i += 1
 

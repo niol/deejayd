@@ -18,6 +18,7 @@
 
 
 import signal
+import sys
 
 from twisted.python import log
 from deejayd.ui.config import DeejaydConfig
@@ -76,8 +77,9 @@ class SignaledFileLogObserver(log.FileLogObserver):
         self.start()
 
 
-def err(err):
+def err(err, fatal = False):
     log.msg(_("ERROR - %s") % err)
+    if fatal: sys.exit(err)
 
 def msg(msg):
     log.msg(msg)

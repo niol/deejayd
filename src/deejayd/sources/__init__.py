@@ -16,8 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys
-
 from deejayd.component import SignalingComponent
 from deejayd.ui import log
 from deejayd.player import PlayerError
@@ -67,8 +65,7 @@ class SourceFactory(SignalingComponent):
             except PlayerError:
                 # Critical error, we have to quit deejayd
                 msg = _('Cannot initialise video support, either disable video and dvd mode or check your player video support.')
-                log.err(msg)
-                sys.exit(msg)
+                log.err(msg, fatal = True)
 
         # Video
         if "video" in activated_sources:

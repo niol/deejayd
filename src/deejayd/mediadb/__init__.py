@@ -20,7 +20,6 @@
 from ConfigParser import NoOptionError
 from deejayd.ui import log
 from deejayd.mediadb import library,inotify
-import sys
 
 def init(db, player, config):
     audio_library,video_library,lib_watcher = None, None, None
@@ -29,14 +28,14 @@ def init(db, player, config):
     audio_dir = config.get("mediadb","music_directory")
     try: audio_library = library.AudioLibrary(db, player, audio_dir, fc)
     except library.NotFoundException,msg:
-        sys.exit(_("Unable to init audio library : %s") % msg)
+        log.err(_("Unable to init audio library : %s") % msg, fatal = True)
 
     activated_sources = config.get('general', "activated_modes").split(",")
     if "video" in activated_sources:
         video_dir = config.get('mediadb', 'video_directory')
         try: video_library = library.VideoLibrary(db,player,video_dir,fc)
         except library.NotFoundException,msg:
-            sys.exit(_("Unable to init video library : %s") % msg)
+            log.err(_("Unable to init video library : %s") % msg, fatal=True)
 
     if inotify.inotify_support:
         lib_watcher = inotify.DeejaydInotify(db, audio_library, video_library)
