@@ -45,8 +45,8 @@ class SqliteDatabase(Database):
             sys.exit(sqlite_error)
 
         try: self.connection = sqlite.connect(self.db_file)
-        except:
-            error = _("Could not connect to sqlite database.")
+        except sqlite.Error:
+            error = _("Could not connect to sqlite database %s." % self.db_file)
             log.err(error)
             sys.exit(error)
         else:
@@ -62,24 +62,29 @@ class SqliteDatabase(Database):
     def get_new_connection(self):
         return SqliteDatabase(self.db_file)
 
+    def reset_connection(self):
+        self.cursor.close()
+        self.connection.close()
+        self.connection = sqlite.connect(self.db_file)
+        self.cursor = self.connection.cursor()
+
     def execute(self, query, parm = None, raise_exception = False):
-        if parm:
-            query = query % (('?',) * len(parm))
-        try:
-            args = parm or ()
-            self.cursor.execute(query,args)
-        except sqlite.OperationalError, err:
+        if parm: query = query % (('?',) * len(parm))
+        args = parm or ()
+        try: self.cursor.execute(query,args)
+        except sqlite.DatabaseError, err:
+            self.reset_connection()
             log.err(_("Unable to execute database request '%s': %s") \
                         % (query, err))
             if raise_exception:
                 raise OperationalError
 
     def executemany(self, query, parm = []):
-        if parm == []: # no request to execute
-            return
+        if parm == []: return # no request to execute
         query = query % (('?',) * len(parm[0]))
-        try: self.cursor.executemany(query,parm)
-        except sqlite.OperationalError, err:
+        try: self.cursor.executemany(query, parm)
+        except sqlite.DatabaseError, err:
+            self.reset_connection()
             log.err(_("Unable to execute database request '%s': %s") \
                         % (query, err))
 
