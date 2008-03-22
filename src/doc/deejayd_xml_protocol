@@ -201,8 +201,8 @@ Return status of deejayd. Given informations are :
   * repeat : 0 (not activated) or 1 (activated)
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
-  * mediapos : _int_ the position of the current media file (if exists)
-  * mediaid : _int_ the id of the current media file
+  * current : _int_:_str_ current media file id : playing source name
+  * time : _int_:_int_ position:length of the current media file
   * mode : [playlist-webradio-video] the current mode
   * audio_updating_db : _int_ show when a audio library update is in progress
   * audio_updating_error : _string_ error message that apppears when the

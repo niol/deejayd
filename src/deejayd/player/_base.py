@@ -161,9 +161,8 @@ class UnknownPlayer(SignalingComponent):
         status = [("state",self.get_state()),("volume",self.get_volume())]
 
         if self._media_file:
-            status.append(("mediaid",self._media_file["id"]))
-            if "pos" in self._media_file:
-                status.append(("mediapos",self._media_file["pos"]))
+            status.append(("current",\
+              "%d:%s" % (self._media_file["id"], self._media_file["source"])))
 
         if self.get_state() != PLAYER_STOP:
             if "length" not in self._media_file.keys() or \

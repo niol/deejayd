@@ -24,6 +24,16 @@ from deejayd.player import PlayerError
 
 class UnknownSourceException: pass
 
+def format_rsp(func):
+    def format_rsp_func(*__args, **__kw):
+        (media, source) = func(*__args, **__kw)
+        if media is not None:
+            media["source"] = source
+        return media
+
+    return format_rsp_func
+
+
 class SourceFactory(SignalingComponent):
     sources_list = ("playlist","queue","webradio","video","dvd")
 
@@ -140,22 +150,30 @@ class SourceFactory(SignalingComponent):
     #
     # Functions called from the player
     #
+    @format_rsp
     def get(self, nb = None, type = "id", source_name = None):
         src = source_name or self.current
-        return self.sources_obj[src].go_to(nb,type)
+        return (self.sources_obj[src].go_to(nb,type), src)
 
+    @format_rsp
     def get_current(self):
-        return self.sources_obj["queue"].get_current() or \
-               self.sources_obj[self.current].get_current()
+        queue_media = self.sources_obj["queue"].get_current()
+        if queue_media: return (queue_media, "queue")
+        return (self.sources_obj[self.current].get_current(), self.current)
 
+    @format_rsp
     def next(self):
-        return self.sources_obj["queue"].next(0,0) or \
-               self.sources_obj[self.current].next(\
-                 self.source_options["random"],self.source_options["repeat"])
+        queue_media = self.sources_obj["queue"].next(0,0)
+        if queue_media: return (queue_media, "queue")
+        return (self.sources_obj[self.current].next(\
+            self.source_options["random"],self.source_options["repeat"]),\
+            self.current)
 
+    @format_rsp
     def previous(self):
-        return self.sources_obj[self.current].previous(\
-            self.source_options["random"],self.source_options["repeat"])
+        return (self.sources_obj[self.current].previous(\
+          self.source_options["random"],self.source_options["repeat"]),
+          self.current)
 
     def queue_reset(self):
         self.sources_obj["queue"].reset()
