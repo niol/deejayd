@@ -73,9 +73,17 @@ class Database(UnknownDatabase):
             if schema.db_schema_version > db_version:
                 log.info(_("The database structure needs to be updated..."))
 
+                base = path.dirname(__file__)
+                base_import = "deejayd.database.upgrade"
                 i = db_version+1
                 while i < schema.db_schema_version+1:
-                    # TODO
+                    db_file = "db_%d" % i
+                    try: up = __import__(base_import+"."+db_file, {}, {}, base)
+                    except ImportError:
+                        err = _("Unable to upgrade database, have to quit")
+                        log.err(err)
+                        sys.exit(err)
+                    up.upgrade(self.cursor)
                     i += 1
 
                 self.connection.commit()
