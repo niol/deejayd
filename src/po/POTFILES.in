@@ -1,7 +1,8 @@
 deejayd/core.py
 deejayd/database/__init__.py
-deejayd/database/database.py
+deejayd/database/_base.py
 deejayd/database/sqlite.py
+deejayd/database/mysql.py
 deejayd/mediadb/__init__.py
 deejayd/mediadb/library.py
 deejayd/mediadb/inotify.py
@@ -9,6 +10,7 @@ deejayd/net/deejaydProtocol.py
 deejayd/net/commandsXML.py
 deejayd/player/__init__.py
 deejayd/player/xine.py
+deejayd/player/gstreamer.py
 deejayd/sources/__init__.py
 deejayd/ui/log.py
 deejayd/webui/xmlanswer.py
