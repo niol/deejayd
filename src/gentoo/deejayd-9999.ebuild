@@ -13,12 +13,13 @@ EDARCS_LOCALREPO="deejayd"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
-IUSE="dvd webradio xine gstreamer webui inotify logrotate"
+IUSE="sqlite mysql dvd webradio xine gstreamer webui inotify logrotate"
 
 DEPEND=""
 RDEPEND="${DEPEND}
 	>=dev-python/twisted-2.0.0
-	>=dev-python/pysqlite-2.2
+	sqlite? ( >=dev-python/pysqlite-2.2 )
+	mysql? ( >=dev-python/mysql-python-1.2.1 )
 	|| ( >=dev-lang/python-2.5.0
 		 >=dev-python/celementtree-1.0.2 )
 	>=media-libs/mutagen-1.9
