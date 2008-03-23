@@ -66,8 +66,7 @@ class XinePlayer(UnknownPlayer):
         self.__mine_stream = xine_stream_new(self.__xine, None, None)
 
     def start_play(self):
-        if not self._media_file:
-            return
+        if not self._media_file: return
 
         # format correctly the uri
         uri = self._media_file["uri"]
@@ -125,8 +124,7 @@ class XinePlayer(UnknownPlayer):
         # replaygain reset
         self.set_volume(self.__volume)
 
-        if sig:
-            self.dispatch_signame('player.status')
+        if sig: self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
 
     def pause(self):

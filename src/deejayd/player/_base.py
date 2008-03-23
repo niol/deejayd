@@ -41,11 +41,19 @@ class UnknownPlayer(SignalingComponent):
     def load_state(self):
         # Restore volume
         self.set_volume(float(self.db.get_state("volume")))
-
-        # Restore the last media_file
-        cur_id = self.db.get_state("currentPos")
-        if cur_id != 0:
-            self._media_file = self._source.get(cur_id,"id")
+        # Restore current media
+        media_pos = int(self.db.get_state("current"))
+        source = self.db.get_state("current_source")
+        if media_pos != -1 and source not in ("queue", "none"):
+            self._media_file = self._source.get(media_pos, "pos", source)
+        # Update state
+        state = self.db.get_state("state")
+        if state != PLAYER_STOP:
+            self.play()
+            if self._media_file and self._media_file["source"] != "queue":
+                self.set_position(int(self.db.get_state("current_pos")))
+        if state == PLAYER_PAUSE:
+            self.pause()
 
     def init_video_support(self):
         self._video_support = True
@@ -175,9 +183,14 @@ class UnknownPlayer(SignalingComponent):
         return status
 
     def close(self):
-        cur_id = self._media_file and self._media_file["id"] or 0
-
-        states = [(str(self.get_volume()),"volume"), (str(cur_id),"currentPos")]
+        current = self._media_file or {"pos": "-1", "source": "none"}
+        states = [
+            (str(self.get_volume()), "volume"),
+            (current["pos"], "current"),
+            (current["source"], "current_source"),
+            (str(self.get_position()), "current_pos"),
+            (self.get_state(), "state"),
+            ]
         self.db.set_state(states)
 
         # stop player if necessary
