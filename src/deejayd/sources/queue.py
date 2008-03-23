@@ -20,11 +20,14 @@ from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._base import _BaseSource, MediaList, MediaNotFoundError
 
 class QueueSource(_BaseSource):
+    queue_name = "__djqueue__"
     name = "queue"
 
     def __init__(self, db, audio_library):
         _BaseSource.__init__(self,db)
         self._media_list = MediaList(db, self.get_recorded_id() + 1)
+        self._media_list.load_playlist(self.queue_name,\
+                                       audio_library.get_root_path())
         self.audio_lib = audio_library
 
     def add_path(self, paths, pos = None):
@@ -63,5 +66,10 @@ class QueueSource(_BaseSource):
 
     def reset(self):
         self._current = None
+
+    def close(self):
+        _BaseSource.close(self)
+        self.db.delete_medialist(self.queue_name)
+        self.db.save_medialist(self._media_list.get(), self.queue_name)
 
 # vim: ts=4 sw=4 expandtab
