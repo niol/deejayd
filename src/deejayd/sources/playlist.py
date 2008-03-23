@@ -128,10 +128,7 @@ class PlaylistSource(_BaseSource):
     def save(self, playlist_name):
         self.db.delete_medialist(playlist_name)
         self.db.save_medialist(self._media_list.get(), playlist_name)
-        if playlist_name == self.pls_name:
-            self.dispatch_signame('player.plupdate')
-        else:
-            self.dispatch_signame('playlist.update')
+        self.dispatch_signame('playlist.update')
 
     def rm(self, playlist_name):
         self.db.delete_medialist(playlist_name)
