@@ -163,12 +163,12 @@ class Database(UnknownDatabase):
     def search_audio_library(self,type,content):
         if type != "all":
             query = "SELECT * FROM audio_library WHERE type = 'file' AND "+\
-                type+" LIKE %s"
+                type+" LIKE %s ORDER BY dir, filename"
             self.execute(query,('%%'+content+'%%',))
         else:
             query = "SELECT * FROM audio_library WHERE type = 'file' AND \
                 (genre LIKE %s OR title LIKE %s OR album LIKE %s OR \
-                artist LIKE %s)"
+                artist LIKE %s) ORDER BY dir, filename"
             self.execute(query,('%%'+content+'%%','%%'+content+'%%',
                 '%%'+content+'%%','%%'+content+'%%'))
 
@@ -227,7 +227,7 @@ class Database(UnknownDatabase):
 
     def search_video_library(self,value):
         query = "SELECT * FROM video_library WHERE type = 'file' AND title\
-                LIKE %s"
+                LIKE %s ORDER BY dir,filename"
         self.execute(query,('%%'+value+'%%',))
 
         return self.cursor.fetchall()
