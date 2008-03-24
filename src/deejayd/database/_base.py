@@ -123,6 +123,16 @@ class Database(UnknownDatabase):
         query = "DELETE FROM "+table+" WHERE dir LIKE %s"
         self.execute(query, (path.join(root,dir)+"%%",))
 
+    def insert_dirlink(self, new_dirlink, table="audio_library"):
+        query = "INSERT INTO "+table+" (dir,filename,type)\
+                                 VALUES(%s,%s,'dirlink')"
+        self.execute(query, new_dirlink)
+
+    def remove_dirlink(self, root, dirlink, table="audio_library"):
+        query = "DELETE FROM "+table+" WHERE filename = %s AND dir = %s\
+                                                           AND type = %s"
+        self.execute(query, (dirlink, root, 'dirlink', ))
+
     def is_dir_exist(self, root, dir, table = "audio_library"):
         query = "SELECT * FROM "+table+" WHERE filename = %s AND dir = %s AND\
             type = 'directory'"
@@ -162,6 +172,12 @@ class Database(UnknownDatabase):
             " WHERE dir LIKE %s AND type='directory' ORDER BY dir,filename"
         self.execute(query,(dir+"%%",))
 
+        return self.cursor.fetchall()
+
+    def get_all_dirlinks(self, dir, table='audio_library'):
+        query = "SELECT * FROM "+table+\
+            " WHERE dir LIKE %s AND type='dirlink' ORDER BY dir,filename"
+        self.execute(query,(dir+"%%",))
         return self.cursor.fetchall()
 
     #

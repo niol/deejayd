@@ -141,7 +141,6 @@ class _Library(SignalingComponent):
         if not os.path.isdir(self._path):
             msg = _("Unable to find directory %s") % self._path
             raise NotFoundException(msg)
-        self.__root_paths = [self._path]
 
         # Connection to the database
         self.db_con = db_connection
@@ -191,8 +190,14 @@ class _Library(SignalingComponent):
     def get_root_path(self):
         return self._path
 
-    def get_root_paths(self):
-        return self.__root_paths
+    def get_root_paths(self, db_con=None):
+        if not db_con:
+            db_con = self.db_con
+        root_paths = [self.get_root_path()]
+        for dirlink_record in db_con.get_all_dirlinks('', self.table):
+            dirlink = os.path.join(self.get_root_path(), dirlink_record[2])
+            root_paths.append(dirlink)
+        return root_paths
 
     def get_status(self):
         status = []
@@ -281,9 +286,11 @@ class _Library(SignalingComponent):
                                 in conn.get_all_files('',self.table)]
             library_dirs = [(item[1],item[2]) for item \
                                 in conn.get_all_dirs('',self.table)]
+            library_dirlinks = [(item[1],item[2]) for item\
+                                in conn.get_all_dirlinks('', self.table)]
 
-            self.walk_directory(conn, self.get_root_path(), library_dirs,\
-                                library_files)
+            self.walk_directory(conn, self.get_root_path(),
+                                library_dirs, library_files, library_dirlinks)
 
             self.mutex.acquire()
             # Remove unexistent files and directories from library
@@ -291,6 +298,8 @@ class _Library(SignalingComponent):
                 conn.remove_file(dir, filename, self.table)
             for (root,dirname) in library_dirs:
                 conn.remove_dir(root, dirname, self.table)
+            for (root, dirlinkname) in library_dirlinks:
+                conn.remove_dirlink(root, dirlinkname, self.table)
             # Remove empty dir
             conn.erase_empty_dir(self.table)
             # update stat values
@@ -304,7 +313,8 @@ class _Library(SignalingComponent):
             conn.close()
 
     def walk_directory(self, db_con, walk_root,
-                       library_dirs, library_files, forbidden_roots=None):
+                       library_dirs, library_files, library_dirlinks,
+                       forbidden_roots=None):
         """Walk a directory for files to update. Called recursively to carefully handle symlinks."""
         if not forbidden_roots:
             forbidden_roots = [self.get_root_path()]
@@ -327,15 +337,20 @@ class _Library(SignalingComponent):
                     db_con.insert_dir(tuple,self.table)
 
                 # Walk only symlinks that aren't in library root or in one of
-                # the forbidden roots which consist in already crawled
-                # and out-of-main-root directories (i.e. other symlinks).
+                # the additional known root paths which consist in already
+                # crawled and out-of-main-root directories
+                # (i.e. other symlinks).
                 dir_path = os.path.join(root, dir)
                 if os.path.islink(dir_path):
                     if not self.is_in_a_root(dir_path, forbidden_roots):
                         forbidden_roots.append(dir_path)
+                        if tuple in library_dirlinks:
+                            library_dirlinks.remove(tuple)
+                        else:
+                            db_con.insert_dirlink(tuple, self.table)
                         self.walk_directory(db_con, dir_path,
-                                            library_dirs, library_files,
-                                            forbidden_roots)
+                                 library_dirs, library_files, library_dirlinks,
+                                 forbidden_roots)
 
             # else update files
             for file in files:

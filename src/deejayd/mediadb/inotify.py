@@ -110,7 +110,7 @@ class DeejaydInotify(threading.Thread):
         for library in (self.__audio_library, self.__video_library):
             if library:
                 library.set_inotify_connection(threaded_db)
-                for dir_path in library.get_root_paths():
+                for dir_path in library.get_root_paths(threaded_db):
                     wm.add_watch(dir_path, mask,
                                  proc_fun=LibraryWatcher(library), rec=True,
                                  auto_add=True)
