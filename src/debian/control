@@ -12,7 +12,12 @@ Vcs-Browser: http://mroy31.dyndns.org/~roy/darcsweb/darcsweb.cgi?r=deejayd;a=tre
 
 Package: deejayd
 Architecture: all
-Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, deejayd-client, deejayd-xine | deejayd-gstreamer, adduser, python-twisted, python-pysqlite2, python-mutagen
+Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, adduser,
+         deejayd-client,
+         deejayd-xine | deejayd-gstreamer,
+         python-twisted,
+         python-pysqlite2
+         python-mutagen
 Recommends: python-pyinotify (>= 0.6.0)
 Suggests: deejayd-webui, djc
 XB-Python-Version: ${python:Versions}
