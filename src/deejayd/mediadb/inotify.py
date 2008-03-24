@@ -87,6 +87,11 @@ if inotify_support:
 
 class DeejaydInotify(threading.Thread):
 
+    # watched events
+    EVENT_MASK = EventsCodes.IN_DELETE | EventsCodes.IN_CREATE |\
+                 EventsCodes.IN_MOVED_FROM | EventsCodes.IN_MOVED_TO |\
+                 EventsCodes.IN_CLOSE_WRITE
+
     def __init__(self, db, audio_library, video_library):
         threading.Thread.__init__(self)
         self.should_stop = threading.Event()
@@ -95,25 +100,38 @@ class DeejaydInotify(threading.Thread):
         self.__video_library = video_library
         self.__db = db
 
+        self.__wm = WatchManager()
+        self.__watched_dirs = {}
+
+    def is_watched (self, dir_path):
+        return dir_path in self.__watched_dirs.keys()
+
+    def watch_dir(self, dir_path, library):
+        if self.is_watched(dir_path):
+            raise ValueError('dir %s is already watched' % dir_path)
+        wdd = self.__wm.add_watch(dir_path, DeejaydInotify.EVENT_MASK,
+                                  proc_fun=LibraryWatcher(library), rec=True,
+                                  auto_add=True)
+        self.__watched_dirs[dir_path] = wdd
+
+    def stop_watching_dir(self, dir_path):
+        if self.is_watched(dir_path):
+            wdd = self.__watched_dirs[dir_path]
+            del self.__watched_dirs[dir_path]
+            self.__wm.rm_watch(wdd[dir_path], rec=True)
+
     def run(self):
         # open a new database connection for this thread
         threaded_db = self.__db.get_new_connection()
         threaded_db.connect()
 
-        wm = WatchManager()
-        # watched events
-        mask = EventsCodes.IN_DELETE | EventsCodes.IN_CREATE |\
-               EventsCodes.IN_MOVED_FROM | EventsCodes.IN_MOVED_TO |\
-               EventsCodes.IN_CLOSE_WRITE
-        notifier = Notifier(wm)
+        notifier = Notifier(self.__wm)
 
         for library in (self.__audio_library, self.__video_library):
             if library:
                 library.set_inotify_connection(threaded_db)
                 for dir_path in library.get_root_paths(threaded_db):
-                    wm.add_watch(dir_path, mask,
-                                 proc_fun=LibraryWatcher(library), rec=True,
-                                 auto_add=True)
+                    self.watch_dir(dir_path, library)
 
         while not self.should_stop.isSet():
             # process the queue of events as explained above
