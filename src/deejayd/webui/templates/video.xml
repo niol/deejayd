@@ -81,7 +81,7 @@
 
 <vbox flex="5">
     <tree
-        id="videolist-tree"
+        id="video-tree"
         enableColumnDrag="true"
         ref="http://video/all-content"
         datasources="rdf:null"

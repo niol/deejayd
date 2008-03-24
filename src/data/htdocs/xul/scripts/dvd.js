@@ -5,6 +5,8 @@ var dvd_ref;
 var Dvd = function()
 {
     dvd_ref = this;
+    this.ref = "dvd_ref";
+
     this.module = "dvd";
     this.tree = $("dvd-tree");
     // Activate this mode

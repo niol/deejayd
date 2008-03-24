@@ -71,9 +71,11 @@ var VideoLibrary = function()
 var VideoList = function()
 {
     videolist_ref = this;
+    this.ref = "videolist_ref";
+
     this.mediaDragged = true;
     this.module = "video";
-    this.tree = $("videolist-tree");
+    this.tree = $("video-tree");
     // Activate this mode
     $("video-source").disabled = false;
 

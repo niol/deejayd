@@ -184,6 +184,7 @@ function ajaxdj()
                             }
                         }
                     }
+                playerStatus.init_mode();
                 }
 
             rs = xmldoc.getElementsByTagName("setsource").item(0);
@@ -212,10 +213,6 @@ function ajaxdj()
             rs = xmldoc.getElementsByTagName("video_update").item(0);
             if (rs)
                 this.videoLib.updateDatabase(rs);
-
-            rs = xmldoc.getElementsByTagName("player").item(0);
-            if (rs)
-                this.playerObj.updatePlayerInfo(rs);
 
             rs = xmldoc.getElementsByTagName("playlist").item(0);
             if (rs)
@@ -249,6 +246,10 @@ function ajaxdj()
             rs = xmldoc.getElementsByTagName("videodir").item(0);
             if (rs)
                 this.videoLib.updateDir(rs);
+
+            rs = xmldoc.getElementsByTagName("player").item(0);
+            if (rs)
+                this.playerObj.updatePlayerInfo(rs);
         }
         else
             alert(request_obj.responseText);

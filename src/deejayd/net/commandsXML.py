@@ -211,7 +211,8 @@ class Status(UnknownCommand):
   * repeat : 0 (not activated) or 1 (activated)
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
-  * current : _int_:_str_ current media file id : playing source name
+  * current : _int_:_int_:_str_ current media pos : current media file id :
+                                playing source name
   * time : _int_:_int_ position:length of the current media file
   * mode : [playlist-webradio-video] the current mode
   * audio_updating_db : _int_ show when a audio library update is in progress

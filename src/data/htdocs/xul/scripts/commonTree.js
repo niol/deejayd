@@ -5,6 +5,7 @@ var CommonTreeManagement = function()
     this.treeId = -1;
     this.canDrop = false;
     this.mediaDragged = false;
+    this.playing = null;
 
     this.init = function()
     {
@@ -24,13 +25,16 @@ var CommonTreeManagement = function()
         if (id != this.treeId) {
             this.treeId = id;
             // clear selection
-            if (this.tree.view)
-                this.tree.view.selection.clearSelection();
+            if (this.tree.view) { this.tree.view.selection.clearSelection(); }
             // Update datasources
             this.tree.setAttribute("datasources",window.location.href+"rdf/"+
                 this.module+"-"+id+".rdf");
             // do custom update
             this.customUpdate(obj);
+            // update playing
+            if (this.playing != null)
+                this.setPlaying(this.playing["pos"], this.playing["id"],
+                    this.playing["state"]);
             }
     };
 
@@ -89,6 +93,47 @@ var CommonTreeManagement = function()
         var context_y = evt.clientY;
         menu.showPopup(this.tree,context_x,context_y,"context",
             null,null,null);
+    };
+
+    this.setPlaying = function(pos, id, state)
+    {
+        if (!this.tree.contentView) { // tree not ready
+            var cmd = this.ref+'.setPlaying('+pos+','+id+',"'+state+'")';
+            setTimeout(cmd,500);
+            return;
+            }
+        var item = this.tree.contentView.getItemAtIndex(parseInt(pos))
+        if (item) {
+            // get id of item
+            var item_id = item.id;
+            item_id = item_id.split("/")[3];
+            if (item_id != id) // not the right row
+                return;
+
+            this.playing = {"pos": pos, "id": id, "state": state};
+            this.playing["row"] = item.firstChild;
+            this.playing["row"].setAttribute("properties", state);
+            this.playing["cell"] = this.playing["row"].firstChild;
+            this.playing["cell"].setAttribute("properties", state);
+            }
+    };
+
+    this.updatePlaying = function(state)
+    {
+        if (this.playing) {
+            this.playing['cell'].setAttribute("properties", state);
+            this.playing['row'].setAttribute("properties", state);
+            this.playing["state"] = state;
+            }
+    };
+
+    this.resetPlaying = function()
+    {
+        if (this.playing) {
+            this.playing["cell"].setAttribute("properties", "");
+            this.playing["row"].setAttribute("properties", "");
+            this.playing = null;
+            }
     };
 
     /**************************************************************/

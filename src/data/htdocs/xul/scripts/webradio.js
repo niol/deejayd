@@ -5,6 +5,8 @@ var webradio_ref;
 var Webradio = function()
 {
     webradio_ref = this;
+    this.ref = "webradio_ref";
+
     this.module = "webradio";
     this.tree = $("webradio-tree");
     // Activate this mode

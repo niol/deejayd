@@ -5,6 +5,8 @@ var playlist_ref;
 var Playlist = function()
 {
     playlist_ref = this;
+    this.ref = "playlist_ref";
+
     this.module = "playlist";
     this.tree = $("playlist-tree");
     this.canDrop = true;

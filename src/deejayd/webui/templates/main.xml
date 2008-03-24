@@ -238,7 +238,12 @@
             id="queue-button"
             class="collapsed"
             oncommand="queue_ref.toogleQueue();"
-            label="&queue; :"/>
+            label="&queue;"/>
+        <toolbarbutton
+            id="queue-status-button"
+            class="stop-button"
+            oncommand="queue_ref.toogleQueue();"
+            />
     </toolbar>
     <hbox align="center">
         <description id="queue-description" value=""/>

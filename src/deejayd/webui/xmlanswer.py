@@ -435,12 +435,16 @@ class DeejaydWebAnswer(_DeejaydXML):
     def set_player(self, status, cur_media):
         # Update player informations
         player  = ET.SubElement(self.xmlroot,"player")
-        for info in ("volume","random","repeat","time","state"):
+
+        # update status
+        status_elt = ET.SubElement(player, "status")
+        for info in ("volume","random","repeat","time","state","current"):
             try: val = self._to_xml_string(status[info])
             except KeyError: pass
             else:
-                node = ET.SubElement(player,info)
-                node.text = val
+                node = ET.SubElement(status_elt, "parm")
+                node.attrib["key"] = info
+                node.attrib["value"] = val
 
         if cur_media != None:
             cur_elt = ET.SubElement(player,"cursong")

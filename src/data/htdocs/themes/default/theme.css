@@ -119,6 +119,15 @@ list-style-image: url("./images/go.png");
 
 #seekbar{margin-top: 5px;}
 
+treechildren::-moz-tree-row(play) {background-color: #ccc;}
+treechildren::-moz-tree-image(play) {
+list-style-image: url("./images/tree-play.png");
+}
+treechildren::-moz-tree-row(pause) {background-color: #ccc;}
+treechildren::-moz-tree-image(pause) {
+list-style-image: url("./images/tree-pause.png");
+}
+
 /*
  * Search
  */
