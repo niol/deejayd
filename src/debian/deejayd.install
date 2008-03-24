@@ -10,6 +10,6 @@ usr/lib/python*/site-packages/deejayd/player/_base.py
 usr/lib/python*/site-packages/deejayd/sources/*.py
 usr/lib/python*/site-packages/deejayd/ui/*
 usr/lib/python*/site-packages/deejayd/database/*
-usr/lib/python*/site-packages/deejayd/database/sql/*
+usr/lib/python*/site-packages/deejayd/database/upgrade/*
 usr/share/locale/*/LC_MESSAGES/deejayd.mo
 etc/deejayd.conf
