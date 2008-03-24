@@ -1,3 +1,9 @@
+deejayd (0.6.3-7) UNRELEASED; urgency=low
+
+  * Do not declare a virtual package deejayd-mediabackend (Closes: #472451).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 24 Mar 2008 13:23:29 +0100
+
 deejayd (0.6.3-6) unstable; urgency=low
 
   * Initial upload to Debian (Closes: #463973).

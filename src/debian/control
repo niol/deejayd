@@ -12,7 +12,7 @@ Vcs-Browser: http://mroy31.dyndns.org/~roy/darcsweb/darcsweb.cgi?r=deejayd;a=tre
 
 Package: deejayd
 Architecture: all
-Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, deejayd-client, deejayd-mediabackend, adduser, python-twisted, python-pysqlite2, python-mutagen
+Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, deejayd-client, deejayd-xine | deejayd-gstreamer, adduser, python-twisted, python-pysqlite2, python-mutagen
 Recommends: python-pyinotify (>= 0.6.0)
 Suggests: deejayd-webui, djc
 XB-Python-Version: ${python:Versions}
@@ -52,7 +52,6 @@ Package: deejayd-xine
 Architecture: all
 Depends: ${python:Depends}, python-ctypes (>= 1.0.0), libxine1, libx11-6, libxext6
 Recommends: lsdvd
-Provides: ${python:Provides}, deejayd-mediabackend
 XB-Python-Version: ${python:Versions}
 Description: Deejayd XINE backend
  The deejayd media backend using the XINE library.
@@ -60,7 +59,6 @@ Description: Deejayd XINE backend
 Package: deejayd-gstreamer
 Architecture: all
 Depends: ${python:Depends}, gstreamer0.10-plugins-base, python-gst0.10
-Provides: deejayd-mediabackend
 Recommends: gstreamer0.10-gnomevfs, lsdvd
 XB-Python-Version: ${python:Versions}
 Description: Deejayd GStreamer backend
