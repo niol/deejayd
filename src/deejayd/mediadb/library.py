@@ -196,7 +196,8 @@ class _Library(SignalingComponent):
             db_con = self.db_con
         root_paths = [self.get_root_path()]
         for dirlink_record in db_con.get_all_dirlinks('', self.table):
-            dirlink = os.path.join(self.get_root_path(), dirlink_record[2])
+            dirlink = os.path.join(self.get_root_path(),
+                                   dirlink_record[1], dirlink_record[2])
             root_paths.append(dirlink)
         return root_paths
 
