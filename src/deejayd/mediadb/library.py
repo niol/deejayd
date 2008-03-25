@@ -101,16 +101,17 @@ class DeejaydVideoFile(_DeejaydFile):
 ##########################################################################
 ##########################################################################
 def inotify_action(func):
-    def inotify_action_func(self, path, name, **__kw):
+    def inotify_action_func(*__args, **__kw):
+        self = __args[0]
         try:
-            name = self._encode(name)
-            path = self._encode(path)
+            name = self._encode(__args[1])
+            path = self._encode(__args[2])
         except UnicodeError:
             return
 
         self.mutex.acquire()
 
-        rs = func(self, path, name, **__kw)
+        rs = func(*__args, **__kw)
         if rs: # commit change
             self.inotify_db.record_mediadb_stats(self.type)
             self.inotify_db.set_update_time(self.type)
