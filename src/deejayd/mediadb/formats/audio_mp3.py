@@ -47,6 +47,9 @@ class Mp3File:
         infos["length"] = int(mp3_info.info.length)
 
         tag = mp3_info.tags
+        if not tag:
+            return infos
+
         for frame in tag.values():
             if frame.FrameID == "TXXX":
                 if frame.desc in ("replaygain_track_peak",\
