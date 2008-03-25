@@ -14,8 +14,6 @@
 
 * Save full state : mode, status and playtime
 
-* Have inotify work with symlinked dirs.
-
 * Have intelligent playlists (all library, etc)
 
 * debian package should make it easier to connect to Xorg

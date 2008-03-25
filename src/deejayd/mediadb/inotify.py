@@ -43,14 +43,30 @@ if inotify_support:
             self.__library = library
             self.__created_files = []
 
+        def __occured_on_dirlink(self, event):
+            if not event.name:
+                return False
+            file_path = os.path.join(event.path, event.name)
+            if os.path.exists(file_path):
+                return os.path.islink(file_path) and os.path.isdir(file_path)
+            else:
+                # File seems to have been deleted, so we lookup for a dirlink
+                # in the library.
+                db = self.__library.inotify_db
+                return file_path in self.__library.get_root_paths(db)
+
         @log_event
         def process_IN_CREATE(self, event):
-            if not event.is_dir:
+            if self.__occured_on_dirlink(event):
+                self.__library.add_directory(event.path, event.name, True)
+            elif not event.is_dir:
                 self.__created_files.append((event.path, event.name))
 
         @log_event
         def process_IN_DELETE(self, event):
-            if not event.is_dir:
+            if self.__occured_on_dirlink(event):
+                self.__library.remove_directory(event.path, event.name, True)
+            elif not event.is_dir:
                 self.__library.remove_file(event.path, event.name)
 
         @log_event
@@ -130,6 +146,7 @@ class DeejaydInotify(threading.Thread):
         for library in (self.__audio_library, self.__video_library):
             if library:
                 library.set_inotify_connection(threaded_db)
+                library.watcher = self
                 for dir_path in library.get_root_paths(threaded_db):
                     self.watch_dir(dir_path, library)
 

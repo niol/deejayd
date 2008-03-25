@@ -152,6 +152,8 @@ class _Library(SignalingComponent):
         # build supported extension list
         self._build_supported_extension(player)
 
+        self.watcher = None
+
     def _encode(self, data):
         try: rs = data.decode(self._fs_charset, "strict").encode("utf-8")
         except UnicodeError:
@@ -302,6 +304,9 @@ class _Library(SignalingComponent):
                 conn.remove_dir(root, dirname, self.table)
             for (root, dirlinkname) in library_dirlinks:
                 conn.remove_dirlink(root, dirlinkname, self.table)
+                if self.watcher:
+                    self.watcher.stop_watching_dir(os.path.join(root,
+                                                                dirlinkname))
             # Remove empty dir
             conn.erase_empty_dir(self.table)
             # update stat values
@@ -350,6 +355,8 @@ class _Library(SignalingComponent):
                             library_dirlinks.remove(tuple)
                         else:
                             db_con.insert_dirlink(tuple, self.table)
+                            if self.watcher:
+                                self.watcher.watch_dir(dir_path, self)
                         self.walk_directory(db_con, dir_path,
                                  library_dirs, library_files, library_dirlinks,
                                  forbidden_roots)
@@ -438,16 +445,29 @@ class _Library(SignalingComponent):
         return True
 
     @inotify_action
-    def add_directory(self, path, name):
+    def add_directory(self, path, name, dirlink=False):
         dir_path = os.path.join(path, name)
-        self.walk_directory(self.inotify_db, dir_path, [], [])
+
+        if dirlink:
+            tuple = (self.strip_root(path), name)
+            self.inotify_db.insert_dirlink(tuple, self.table)
+            self.watcher.watch_dir(dir_path, self)
+
+        self.walk_directory(self.inotify_db, dir_path,
+                            [], [], self.get_root_paths(self.inotify_db))
         self._add_missing_dir(dir_path)
         self._remove_empty_dir(path)
         return True
 
     @inotify_action
-    def remove_directory(self, path, name):
-        self.inotify_db.remove_dir(self.strip_root(path), name, self.table)
+    def remove_directory(self, path, name, dirlink=False):
+        rel_path = self.strip_root(path)
+
+        if dirlink:
+            self.inotify_db.remove_dirlink(rel_path, name, self.table)
+            self.watcher.stop_watching_dir(os.path.join(path, name))
+
+        self.inotify_db.remove_dir(rel_path, name, self.table)
         self._remove_empty_dir(path)
         return True
 
