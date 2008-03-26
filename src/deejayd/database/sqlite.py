@@ -21,6 +21,10 @@ from deejayd.database._base import Database, OperationalError
 from pysqlite2 import dbapi2 as sqlite
 from os import path
 
+
+LOCK_TIMEOUT = 600
+
+
 def str_encode(data):
     if isinstance(data, unicode):
         return data.encode("utf-8")
@@ -42,7 +46,8 @@ class SqliteDatabase(Database):
                 % '.'.join(map(str, pysqlite_min_version))
             log.err(sqlite_error, fatal = True)
 
-        try: self.connection = sqlite.connect(self.db_file)
+        try:
+            self.connection = sqlite.connect(self.db_file, timeout=LOCK_TIMEOUT)
         except sqlite.Error:
             error = _("Could not connect to sqlite database %s." % self.db_file)
             log.err(error, fatal = True)
@@ -62,7 +67,7 @@ class SqliteDatabase(Database):
     def reset_connection(self):
         self.cursor.close()
         self.connection.close()
-        self.connection = sqlite.connect(self.db_file)
+        self.connection = sqlite.connect(self.db_file, timeout=LOCK_TIMEOUT)
         self.cursor = self.connection.cursor()
 
     def execute(self, query, parm = None, raise_exception = False):
