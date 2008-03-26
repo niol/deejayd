@@ -18,85 +18,80 @@
 
 import os, threading
 from deejayd.ui import log
-# pynotify support
-inotify_support = True
-try: from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
-except ImportError:
-    inotify_support = False
+from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
 
 #############################################################################
 ##### Events Watcher
 #############################################################################
-if inotify_support:
 
-    def log_event(func):
-        def log_event_func(self, event):
-            log.info(_("Inotify event %s: %s") % \
-                (event.event_name,os.path.join(event.path, event.name)))
-            func(self,event)
+def log_event(func):
+    def log_event_func(self, event):
+        log.info(_("Inotify event %s: %s") % \
+                 (event.event_name,os.path.join(event.path, event.name)))
+        func(self,event)
 
-        return log_event_func
+    return log_event_func
 
-    class LibraryWatcher(ProcessEvent):
+class LibraryWatcher(ProcessEvent):
 
-        def __init__(self,library):
-            self.__library = library
-            self.__created_files = []
+    def __init__(self,library):
+        self.__library = library
+        self.__created_files = []
 
-        def __occured_on_dirlink(self, event):
-            if not event.name:
-                return False
-            file_path = os.path.join(event.path, event.name)
-            if os.path.exists(file_path):
-                return os.path.islink(file_path) and os.path.isdir(file_path)
-            else:
-                # File seems to have been deleted, so we lookup for a dirlink
-                # in the library.
-                db = self.__library.inotify_db
-                return file_path in self.__library.get_root_paths(db)
+    def __occured_on_dirlink(self, event):
+        if not event.name:
+            return False
+        file_path = os.path.join(event.path, event.name)
+        if os.path.exists(file_path):
+            return os.path.islink(file_path) and os.path.isdir(file_path)
+        else:
+            # File seems to have been deleted, so we lookup for a dirlink
+            # in the library.
+            db = self.__library.inotify_db
+            return file_path in self.__library.get_root_paths(db)
 
-        @log_event
-        def process_IN_CREATE(self, event):
-            if self.__occured_on_dirlink(event):
-                self.__library.add_directory(event.path, event.name, True)
-            elif not event.is_dir:
-                self.__created_files.append((event.path, event.name))
+    @log_event
+    def process_IN_CREATE(self, event):
+        if self.__occured_on_dirlink(event):
+            self.__library.add_directory(event.path, event.name, True)
+        elif not event.is_dir:
+            self.__created_files.append((event.path, event.name))
 
-        @log_event
-        def process_IN_DELETE(self, event):
-            if self.__occured_on_dirlink(event):
-                self.__library.remove_directory(event.path, event.name, True)
-            elif not event.is_dir:
-                self.__library.remove_file(event.path, event.name)
+    @log_event
+    def process_IN_DELETE(self, event):
+        if self.__occured_on_dirlink(event):
+            self.__library.remove_directory(event.path, event.name, True)
+        elif not event.is_dir:
+            self.__library.remove_file(event.path, event.name)
 
-        @log_event
-        def process_IN_MOVED_FROM(self, event):
-            if not event.is_dir:
-                self.__library.remove_file(event.path, event.name)
-            else:
-                self.__library.remove_directory(event.path, event.name)
+    @log_event
+    def process_IN_MOVED_FROM(self, event):
+        if not event.is_dir:
+            self.__library.remove_file(event.path, event.name)
+        else:
+            self.__library.remove_directory(event.path, event.name)
 
-        @log_event
-        def process_IN_MOVED_TO(self, event):
-            if not event.is_dir:
-                self.__library.add_file(event.path, event.name)
-            else:
-                self.__library.add_directory(event.path, event.name)
+    @log_event
+    def process_IN_MOVED_TO(self, event):
+        if not event.is_dir:
+            self.__library.add_file(event.path, event.name)
+        else:
+            self.__library.add_directory(event.path, event.name)
 
-        @log_event
-        def process_IN_CLOSE_WRITE(self, event):
-            if (event.path, event.name) in self.__created_files:
-                self.__library.add_file(event.path, event.name)
-                del self.__created_files[\
+    @log_event
+    def process_IN_CLOSE_WRITE(self, event):
+        if (event.path, event.name) in self.__created_files:
+            self.__library.add_file(event.path, event.name)
+            del self.__created_files[\
                         self.__created_files.index((event.path, event.name))]
-            else:
-                self.__library.update_file(event.path, event.name)
+        else:
+            self.__library.update_file(event.path, event.name)
 
-        def process_IN_IGNORED(self, event):
-            # This is said to be useless in the documentation, and is
-            # effectively useless for us except for adding extreme verbosity
-            # to the tests. Farewell, IN_IGNORED!
-            pass
+    def process_IN_IGNORED(self, event):
+        # This is said to be useless in the documentation, and is
+        # effectively useless for us except for adding extreme verbosity
+        # to the tests. Farewell, IN_IGNORED!
+        pass
 
 
 #############################################################################
