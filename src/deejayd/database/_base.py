@@ -52,6 +52,9 @@ class UnknownDatabase:
 
 class Database(UnknownDatabase):
 
+    def __init__(self):
+        self.structure_created = False
+
     def init_db(self):
         for table in schema.db_schema:
             for stmt in self.to_sql(table):
@@ -60,6 +63,7 @@ class Database(UnknownDatabase):
         for query in schema.db_init_cmds:
             self.execute(query)
         log.info(_("Initial entries correctly inserted."))
+        self.structure_created = True
 
     def verify_database_version(self):
         try:

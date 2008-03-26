@@ -24,6 +24,7 @@ import MySQLdb as mysql
 class MysqlDatabase(Database):
 
     def __init__(self, db_name, db_user, db_password, db_host, db_port):
+        Database.__init__(self)
         self.db_name = db_name
         self.db_user = db_user
         self.db_password = db_password

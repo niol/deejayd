@@ -34,6 +34,7 @@ def str_encode(data):
 class SqliteDatabase(Database):
 
     def __init__(self, db_file):
+        Database.__init__(self)
         self.db_file = path.expanduser(db_file)
 
     def connect(self):

@@ -273,9 +273,10 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         for source in self.sources.sources_obj.values():
             source.register_dispatcher(self)
 
-        self.update_audio_library(objanswer=False)
-        if self.video_library:
-            self.update_video_library(objanswer=False)
+        if not self.db.structure_created:
+            self.update_audio_library(objanswer=False)
+            if self.video_library:
+                self.update_video_library(objanswer=False)
 
         # start inotify thread when we are sure that all init stuff are ok
         if self.watcher:
