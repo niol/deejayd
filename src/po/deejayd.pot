@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-22 12:52+0100\n"
+"POT-Creation-Date: 2008-03-28 14:16+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,35 +74,35 @@ msgstr ""
 msgid "Playlist %s does not have a song of id %d"
 msgstr ""
 
-#: ../deejayd/core.py:340
+#: ../deejayd/core.py:345
 msgid "Bad value for id parm"
 msgstr ""
 
-#: ../deejayd/core.py:354 ../deejayd/core.py:375
+#: ../deejayd/core.py:359 ../deejayd/core.py:380
 #, python-format
 msgid "Option %s does not exist"
 msgstr ""
 
-#: ../deejayd/core.py:361
+#: ../deejayd/core.py:366
 #, python-format
 msgid "Unknown mode: %s"
 msgstr ""
 
-#: ../deejayd/core.py:377
+#: ../deejayd/core.py:382
 #, python-format
 msgid "Option %s is not supported for this backend"
 msgstr ""
 
-#: ../deejayd/core.py:404 ../deejayd/core.py:442
+#: ../deejayd/core.py:409 ../deejayd/core.py:447
 msgid "Video mode disabled"
 msgstr ""
 
-#: ../deejayd/core.py:426 ../deejayd/core.py:447 ../deejayd/core.py:461
+#: ../deejayd/core.py:431 ../deejayd/core.py:452 ../deejayd/core.py:466
 #, python-format
 msgid "Directory %s not found in database"
 msgstr ""
 
-#: ../deejayd/core.py:434
+#: ../deejayd/core.py:439
 #, python-format
 msgid "Type %s is not supported"
 msgstr ""
@@ -113,34 +113,38 @@ msgid ""
 "config file."
 msgstr ""
 
-#: ../deejayd/database/_base.py:59
+#: ../deejayd/database/_base.py:62
 msgid "Database structure successfully created."
 msgstr ""
 
-#: ../deejayd/database/_base.py:62
+#: ../deejayd/database/_base.py:65
 msgid "Initial entries correctly inserted."
 msgstr ""
 
-#: ../deejayd/database/_base.py:74
+#: ../deejayd/database/_base.py:78
 msgid "The database structure needs to be updated..."
 msgstr ""
 
-#: ../deejayd/database/_base.py:82
+#: ../deejayd/database/_base.py:87
+msgid "Unable to upgrade database, have to quit"
+msgstr ""
+
+#: ../deejayd/database/_base.py:93
 msgid "The database structure has been updated"
 msgstr ""
 
-#: ../deejayd/database/sqlite.py:42
+#: ../deejayd/database/sqlite.py:46
 #, python-format
 msgid "This program requires pysqlite version %s or later."
 msgstr ""
 
-#: ../deejayd/database/sqlite.py:49
+#: ../deejayd/database/sqlite.py:53
 #, python-format
 msgid "Could not connect to sqlite database %s."
 msgstr ""
 
-#: ../deejayd/database/sqlite.py:77 ../deejayd/database/sqlite.py:88
-#: ../deejayd/database/mysql.py:71
+#: ../deejayd/database/sqlite.py:80 ../deejayd/database/sqlite.py:91
+#: ../deejayd/database/mysql.py:70
 #, python-format
 msgid "Unable to execute database request '%s': %s"
 msgstr ""
@@ -150,21 +154,21 @@ msgstr ""
 msgid "Could not connect to MySQL server %s."
 msgstr ""
 
-#: ../deejayd/database/mysql.py:61
+#: ../deejayd/database/mysql.py:60
 msgid "Try Mysql reconnection"
-msgstr ""
-
-#: ../deejayd/mediadb/__init__.py:32
-#, python-format
-msgid "Unable to init audio library : %s"
 msgstr ""
 
 #: ../deejayd/mediadb/__init__.py:39
 #, python-format
+msgid "Unable to init audio library : %s"
+msgstr ""
+
+#: ../deejayd/mediadb/__init__.py:46
+#, python-format
 msgid "Unable to init video library : %s"
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:43
+#: ../deejayd/mediadb/__init__.py:50
 msgid "Inotify support disabled"
 msgstr ""
 
@@ -178,32 +182,32 @@ msgstr ""
 msgid "Unable to get video metadata from %s"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:142
+#: ../deejayd/mediadb/library.py:143
 #, python-format
 msgid "Unable to find directory %s"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:159
+#: ../deejayd/mediadb/library.py:160
 #, python-format
 msgid "%s has wrong character"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:349
+#: ../deejayd/mediadb/library.py:372
 #, python-format
 msgid "File %s not supported"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:370
+#: ../deejayd/mediadb/library.py:393
 #, python-format
 msgid "The %s library has been updated"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:372
+#: ../deejayd/mediadb/library.py:395
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr ""
 
-#: ../deejayd/mediadb/inotify.py:34
+#: ../deejayd/mediadb/inotify.py:29
 #, python-format
 msgid "Inotify event %s: %s"
 msgstr ""
@@ -253,16 +257,16 @@ msgstr ""
 msgid "Arg %s is mising"
 msgstr ""
 
-#: ../deejayd/player/__init__.py:45
+#: ../deejayd/player/__init__.py:44
 #, python-format
 msgid "Autodetected %s backend."
 msgstr ""
 
-#: ../deejayd/player/__init__.py:47
+#: ../deejayd/player/__init__.py:46
 msgid "Could not find suitable media backend."
 msgstr ""
 
-#: ../deejayd/player/__init__.py:65
+#: ../deejayd/player/__init__.py:60
 msgid "Invalid media backend"
 msgstr ""
 
@@ -270,20 +274,20 @@ msgstr ""
 msgid "Unable to init a xine instance"
 msgstr ""
 
-#: ../deejayd/player/xine.py:92 ../deejayd/player/gstreamer.py:154
+#: ../deejayd/player/xine.py:91 ../deejayd/player/gstreamer.py:154
 #, python-format
 msgid "Unable to play file %s"
 msgstr ""
 
-#: ../deejayd/player/xine.py:303
+#: ../deejayd/player/xine.py:301
 msgid "Unable to open audio driver"
 msgstr ""
 
-#: ../deejayd/player/xine.py:334
+#: ../deejayd/player/xine.py:332
 msgid "Unable to open video driver"
 msgstr ""
 
-#: ../deejayd/player/xine.py:427
+#: ../deejayd/player/xine.py:425
 #, python-format
 msgid "Xine error %s"
 msgstr ""
@@ -297,49 +301,49 @@ msgstr ""
 msgid "No video sink found for Gstreamer"
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:45
+#: ../deejayd/sources/__init__.py:53
 msgid "Playlist support disabled"
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:52
+#: ../deejayd/sources/__init__.py:60
 msgid "Webradio support disabled"
 msgstr ""
 
 #. Critical error, we have to quit deejayd
-#: ../deejayd/sources/__init__.py:59
+#: ../deejayd/sources/__init__.py:67
 msgid ""
 "Cannot initialise video support, either disable video and dvd mode or check "
 "your player video support."
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:68
+#: ../deejayd/sources/__init__.py:75
 msgid "Video support disabled"
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:75
+#: ../deejayd/sources/__init__.py:82
 msgid "Unable to init dvd support"
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:77
+#: ../deejayd/sources/__init__.py:84
 msgid "DVD support disabled"
 msgstr ""
 
-#: ../deejayd/sources/__init__.py:83
+#: ../deejayd/sources/__init__.py:90
 #, python-format
 msgid "Unable to set recorded source %s"
 msgstr ""
 
-#: ../deejayd/ui/log.py:80
+#: ../deejayd/ui/log.py:81
 #, python-format
 msgid "ERROR - %s"
 msgstr ""
 
-#: ../deejayd/ui/log.py:87
+#: ../deejayd/ui/log.py:89
 #, python-format
 msgid "INFO - %s"
 msgstr ""
 
-#: ../deejayd/ui/log.py:91
+#: ../deejayd/ui/log.py:93
 #, python-format
 msgid "DEBUG - %s"
 msgstr ""
