@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.6.3
+Actual version : 0.7.0
 ----------------------
 
 Description:
@@ -31,6 +31,9 @@ Requirements:
     * python >= 2.4
     * twisted >= 2.0 (http://twistedmatrix.com/trac)
     * pysqlite >= 2.2 (http://www.initd.org/tracker/pysqlite/wiki/pysqlite)
+       for sqlite database support
+    * mysql-python >= 1.2.1 (http://sourceforge.net/projects/mysql-python)
+       for mysql database support
     * mutagen >= 1.6
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
     * cElementTree (http://effbot.org/zone/celementtree.htm) module.
@@ -51,7 +54,7 @@ Requirements:
               * dvd to ply dvd with deejayd
     * if you want to use xine backend
         * xine-lib >= 1.1.0
-        * libX11
+        * libX11, libXext
         * ctypes >= 1.0.0 (It is include in python 2.5)
     * lsdvd (http://untrepid.com/acidrip/lsdvd.html) for dvd support
     * pyinotify >= 0.6.0 for inotify support (http://pyinotify.sourceforge.net/)
@@ -59,10 +62,10 @@ Requirements:
 Installation:
 -------------
 Download deejayd and extract it:
-  $tar xzvf deejayd-0.6.0.tar.gz
+  $tar xzvf deejayd-0.7.0.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.6.0
+  $cd deejayd-0.7.0
   $python setup.py build
   $python setup.py install
 

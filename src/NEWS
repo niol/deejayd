@@ -1,7 +1,7 @@
 
 New features and significant updates in version...
 
-0.7.0 (Not Released)
+0.7.0 (2008-03-28)
 --------------------
   * database : add mysql backend support
   * add new player options : Audio/Video offset and Subtitle offset
@@ -9,6 +9,9 @@ New features and significant updates in version...
   * add replaygain support (track profile only)
   * add script to process an audio library and
     record replaygain track gain/peak in songs
+  * log reopen on SIGHUP
+  * inotify watches out of root directory symlink
+  * save full status on exit and restore it on startup
 
 0.6.3 (2008-02-10)
 --------------------
