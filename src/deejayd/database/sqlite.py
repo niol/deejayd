@@ -114,4 +114,68 @@ class SqliteDatabase(Database):
         Database.init_db(self)
         self.connection.commit()
 
+        ####################################################################
+        # workaround to migrate old database schema
+        # remove it when it becomes useless
+        ####################################################################
+        try:
+            self.execute("SELECT value FROM rj_variables\
+                WHERE name = 'database_version'", raise_exception = True)
+        except OperationalError:
+            pass
+        else: # old schema exists
+            log.msg("Migrate from old database schema")
+            # migrate audio library
+            self.execute("SELECT * FROM rj_audio_library")
+            library = self.cursor.fetchall()
+            query = "INSERT INTO audio_library(dir,filename,type,title,\
+                artist,album,genre,tracknumber,date,length,bitrate)VALUES \
+                (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            self.executemany(query, library)
+
+            # migrate video library
+            self.execute("SELECT * FROM rj_video_library")
+            library = self.cursor.fetchall()
+            query = "INSERT INTO video_library(dir,filename,type,title,\
+                length,videowidth,videoheight,subtitle) \
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            self.executemany(query, library)
+
+            # migrate medialist
+            self.execute("SELECT * FROM rj_medialist")
+            medialist = self.cursor.fetchall()
+            for (n, pos, dir, fn) in medialist:
+                self.execute("SELECT id FROM audio_library WHERE \
+                    dir = %s AND filename = %s", (dir, fn))
+                song = self.cursor.fetchone()
+                try: id = song[0]
+                except IndexError:
+                    continue
+                self.execute("INSERT INTO medialist(name,position,media_id)\
+                    VALUES(%s,%s,%s)", (n, pos, id))
+
+            # migrate webradio
+            self.execute("SELECT * FROM rj_webradio")
+            webradios = self.cursor.fetchall()
+            self.executemany("INSERT INTO webradio(wid,name,url)\
+                VALUES(%s,%s,%s)", webradios)
+
+            # migrate stats
+            self.execute("SELECT * FROM rj_stats")
+            stats = self.cursor.fetchall()
+            for (k, v) in stats:
+                self.execute("UPDATE stats SET value = %s WHERE name = %s",\
+                    (v,k))
+
+            # remove old table
+            self.execute("DROP TABLE rj_audio_library")
+            self.execute("DROP TABLE rj_video_library")
+            self.execute("DROP TABLE rj_webradio")
+            self.execute("DROP TABLE rj_medialist")
+            self.execute("DROP TABLE rj_variables")
+            self.execute("DROP TABLE rj_stats")
+
+            self.connection.commit()
+        ####################################################################
+
 # vim: ts=4 sw=4 expandtab
