@@ -1,8 +1,13 @@
-deejayd (0.6.3-7) UNRELEASED; urgency=low
+deejayd (0.7.0-1) unstable; urgency=low
 
-  * Do not declare a virtual package deejayd-mediabackend (Closes: #472451).
+  * New upstream release.
+  * Do not declare a useless virtual package deejayd-mediabackend
+    (Closes: #472451).
+  * Fix log rotation using new log reopen on SIGHUP feature.
+  * Add upstream NEWS to docs.
+  * Fix watch file.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 24 Mar 2008 13:23:29 +0100
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sat, 29 Mar 2008 19:22:16 +0100
 
 deejayd (0.6.3-6) unstable; urgency=low
 
