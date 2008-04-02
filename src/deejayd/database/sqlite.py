@@ -150,7 +150,7 @@ class SqliteDatabase(Database):
                     dir = %s AND filename = %s", (dir, fn))
                 song = self.cursor.fetchone()
                 try: id = song[0]
-                except IndexError:
+                except (IndexError, TypeError):
                     continue
                 self.execute("INSERT INTO medialist(name,position,media_id)\
                     VALUES(%s,%s,%s)", (n, pos, id))
