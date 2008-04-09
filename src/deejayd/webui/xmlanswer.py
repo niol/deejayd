@@ -114,7 +114,7 @@ def build_web_interface():
 
     templates = {"dtd": build_language_dtd()}
     #get source template
-    for temp in ("dvd","playlist","webradio","video","queue"):
+    for temp in ("dvd","playlist","webradio","video"):
         fd = open(os.path.join(template_dir,temp+".xml"))
         templates[temp+"_box"] = fd.read()
         fd.close()
