@@ -247,12 +247,21 @@
     </toolbar>
     <hbox align="center">
         <description id="queue-description" value=""/>
-        <button
-            id="queue-clear"
-            class="clear-button"
-            style="visibility: hidden;"
-            oncommand="ajaxdj_ref.send_command('queueClear',{},true);"
-            label="&clear;"/>
+        <hbox id="queue-actions" style="visibility: hidden;">
+            <button
+                id="queue-clear"
+                class="clear-button"
+                oncommand="ajaxdj_ref.send_command('queueClear',{},true);"
+                label="&clear;"/>
+            <command
+                oncommand="ajaxdj_ref.send_command('qrandom',null,true);"
+                id="qrandom-command"/>
+            <checkbox
+                label="&random;"
+                id="qrandom-button"
+                command="qrandom-command"
+                checked="false"/>
+        </hbox>
     </hbox>
 </hbox>
 <splitter

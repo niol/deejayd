@@ -204,9 +204,6 @@ class _BaseSource(SignalingComponent):
         return self._media_list.get()
 
     def get_current(self):
-        if self._current == None:
-            self.go_to(0,"pos")
-
         return self._current
 
     def go_to(self, id, type = "id"):
@@ -231,8 +228,13 @@ class _BaseSource(SignalingComponent):
         self._played = []
 
     def next(self, rd, rpt):
+        l = self._media_list.length()
         if self._current == None:
-            self.go_to(0,"pos")
+            pos = 0
+            if rd and l > 0:
+                m = random.choice(self._media_list.get())
+                pos = m["pos"]
+            self.go_to(pos, "pos")
             return self._current
 
         # add current media in played list
@@ -240,7 +242,6 @@ class _BaseSource(SignalingComponent):
             self._played.append(self._current["id"])
 
         # Return a pseudo-random song
-        l = self._media_list.length()
         if rd and l > 0:
             # first determine if the current song is in playedItems
             id = self._played.index(self._current["id"])

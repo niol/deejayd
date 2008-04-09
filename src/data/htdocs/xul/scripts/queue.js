@@ -38,12 +38,12 @@ var Queue = function()
             $('queue-splitter').setAttribute("state","open");
             $('queue-splitter').style.visibility = "visible";
             $('queue-button').className = "expanded";
-            $('queue-clear').style.visibility = "visible";
+            $('queue-actions').style.visibility = "visible";
             }
         else {
             $('queue-splitter').setAttribute("state","collapsed");
             $('queue-button').className = "collapsed";
-            $('queue-clear').style.visibility = "hidden";
+            $('queue-actions').style.visibility = "hidden";
             $('queue-splitter').style.visibility = "collapse";
             }
     };

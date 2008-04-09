@@ -205,6 +205,9 @@ class _Options(_UnknownCommand):
 class Random(_Options):
     name = "random"
 
+class QueueRandom(_Options):
+    name = "qrandom"
+
 class Repeat(_Options):
     name = "repeat"
 

@@ -94,6 +94,7 @@ class SourceFactory(SignalingComponent):
         self.source_options = {}
         self.source_options["random"] = int(self.db.get_state("random"))
         self.source_options["repeat"] = int(self.db.get_state("repeat"))
+        self.source_options["qrandom"] = int(self.db.get_state("qrandom"))
 
         player.set_source(self)
         player.load_state()
@@ -154,13 +155,19 @@ class SourceFactory(SignalingComponent):
 
     @format_rsp
     def get_current(self):
-        queue_media = self.sources_obj["queue"].get_current()
-        if queue_media: return (queue_media, "queue")
-        return (self.sources_obj[self.current].get_current(), self.current)
+        queue_media = self.sources_obj["queue"].get_current() or \
+            self.sources_obj["queue"].next(self.source_options["qrandom"])
+        if queue_media:
+            return (queue_media, "queue")
+        current = self.sources_obj[self.current].get_current() or \
+            self.sources_obj[self.current].next(\
+                self.source_options["random"],self.source_options["repeat"])
+        return (current, self.current)
 
     @format_rsp
     def next(self):
-        queue_media = self.sources_obj["queue"].next(0,0)
+        queue_media = self.sources_obj["queue"].next(\
+            self.source_options["qrandom"])
         if queue_media: return (queue_media, "queue")
         return (self.sources_obj[self.current].next(\
             self.source_options["random"],self.source_options["repeat"]),\

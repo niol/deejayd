@@ -438,7 +438,8 @@ class DeejaydWebAnswer(_DeejaydXML):
 
         # update status
         status_elt = ET.SubElement(player, "status")
-        for info in ("volume","random","repeat","time","state","current"):
+        for info in ("volume","random","qrandom","repeat","time","state",\
+                     "current"):
             try: val = self._to_xml_string(status[info])
             except KeyError: pass
             else:

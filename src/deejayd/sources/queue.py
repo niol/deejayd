@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import random
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._base import _BaseSource, MediaList, MediaNotFoundError
 
@@ -56,8 +57,13 @@ class QueueSource(_BaseSource):
             self._media_list.delete(nb, type)
         return self._current
 
-    def next(self,rd,rpt):
-        self.go_to(0,'pos')
+    def next(self,rd):
+        l = self._media_list.length()
+        pos = 0
+        if rd and l > 0:
+            m = random.choice(self._media_list.get())
+            pos = m["pos"]
+        self.go_to(pos,'pos')
         return self._current
 
     def previous(self,rd,rpt):

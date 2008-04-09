@@ -50,7 +50,7 @@ class Index(object):
         self.columns = columns
 
 
-db_schema_version=6
+db_schema_version=7
 db_schema = [
     Table('audio_library', key='id')[
         Column('id', auto_increment=True),
@@ -109,6 +109,7 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('state','stop');",
     "INSERT INTO variables VALUES('source','playlist');",
     "INSERT INTO variables VALUES('random','0');",
+    "INSERT INTO variables VALUES('qrandom','0');",
     "INSERT INTO variables VALUES('repeat','0');",
     "INSERT INTO variables VALUES('queueid','1');",
     "INSERT INTO variables VALUES('playlistid','1');",
@@ -116,7 +117,7 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('webradioid','1');",
     "INSERT INTO variables VALUES('dvdid','1');",
     "INSERT INTO variables VALUES('videoid','1');",
-    "INSERT INTO variables VALUES('database_version','6');",
+    "INSERT INTO variables VALUES('database_version','7');",
     ]
 
 # vim: ts=4 sw=4 expandtab

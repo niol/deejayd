@@ -12,6 +12,11 @@ var playerStatus = {
         $("random-button").checked = this.random == "1" ? true : false;
         },
 
+    qrandom: "",
+    update_qrandom: function() {
+        $("qrandom-button").checked = this.qrandom == "1" ? true : false;
+        },
+
     repeat: "",
     update_repeat: function() {
         $("repeat-button").checked = this.repeat == "1" ? true : false;
@@ -209,7 +214,7 @@ var Player = function()
         for(var i=0; obj = parm_objs.item(i); i++)
             st_obj[obj.getAttribute("key")] = obj.getAttribute("value");
 
-        var list = Array("state","volume","random","repeat");
+        var list = Array("state","volume","random","qrandom","repeat");
         for (var i in list) {
             var key = list[i];
             if (st_obj[key] != playerStatus[key]) {

@@ -725,11 +725,12 @@ class SetOption(UnknownCommand):
     """Set player options "name" to "value", "value" should be 0 or 1.
        Available options are :
        * random
+       * qrandom (queue random)
        * repeat
        You can pass several options in the same command"""
     command_name = 'setOption'
     command_args = [{"name":"option_name", "type":"enum_str","req":True,
-                     "values":("random","repeat")},
+                     "values":("random","qrandom","repeat")},
                     {"name":"option_value","type":"enum_int","req":True,
                      "values":(0,1)} ]
 
