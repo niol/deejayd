@@ -242,10 +242,11 @@ var Player = function()
 
     this.goToCurSong = function()
     {
-        if (this.currSong) {
+        if (playerStatus.current != "") {
+            var cur = playerStatus.current.split(":");
             var tree = $("playlist-tree");
             var boxobject = tree.treeBoxObject;
-            boxobject.ensureRowIsVisible(this.currSong.pos);
+            boxobject.ensureRowIsVisible(cur[0]);
             }
     };
 
