@@ -173,6 +173,7 @@
     <spacer flex="1"/>
 
     <vbox
+        flex="1"
         id="right-header" >
         <toolbox
             align="end">
@@ -339,25 +340,17 @@
 <!-- FOOTER -->
 <hbox
     id="ajaxdj-footer" >
+    <image
+        align="end"
+        id="msg-loading"
+        style="display: none;"
+        src="./static/themes/default/images/loading.gif"/>
     <button
         id = "debug-button"
         style = "display: none;"
         oncommand="ajaxdj_ref.toggleDebugZone();"
         label="&showDebug;"/>
-    <deck
-        id="msg-loading-box"
-        selectedIndex="0"
-        align="center">
-        <description align="center"/>
-        <description align="center" id="message-box">
-        </description>
-        <hbox>
-            <progressmeter
-                id="loading-progressbar"
-                mode="determined"/>
-            <spacer flex="1"/>
-        </hbox>
-    </deck>
+    <notificationbox dir="reverse" flex="1" id="notification-box"/>
     <spacer flex="1"/>
     <button
         id="random-button"

@@ -2,11 +2,6 @@
  * main.js
  */
 
-// Constants
-var DISPLAY_NO = 0;
-var DISPLAY_MSG = 1;
-var DISPLAY_LOADING = 2;
-
 var ajaxdj_ref;
 
 function ajaxdj()
@@ -16,6 +11,7 @@ function ajaxdj()
 
     // Internal parms
     this.message_time = 4000;
+    this.current_msg = null;
     this.localeStrings = Array();
     this.config = Array();
     this.config["refresh"] = "0";
@@ -40,32 +36,33 @@ function ajaxdj()
 
     this.set_busy = function(a)
     {
-        if (a) {
-            $('msg-loading-box').selectedIndex = DISPLAY_LOADING;
-            $('loading-progressbar').mode = "undetermined";
-            }
-        else if (!a && this.busy) {
-            $('msg-loading-box').selectedIndex = DISPLAY_NO;
-            $('loading-progressbar').mode = "determined";
-            }
-
+        if (a)
+            $('msg-loading').style.display = "block";
+        else if (!a && this.busy)
+            $('msg-loading').style.display = "none";
         this.busy = a;
     };
 
     this.display_message = function(msg,type)
     {
-        $("message-box").className = type;
-        replaceNodeText('message-box',msg);
-        $('msg-loading-box').selectedIndex = DISPLAY_MSG;
-        if (type != 'error')
-            this.message_timer = setTimeout(this.ref+'.hide_message()',
-                    this.message_time);
+        var p = type == "error" ? 8 : 4;
+        var image = "./static/themes/default/images/";
+        image += type == "error" ? "error.png" : "info.png";
+
+        var msg = $("notification-box").appendNotification(msg, 0, image, p);
+        if (type != 'error') {
+            this.hide_message();
+            this.current_msg = msg;
+            setTimeout(this.ref+'.hide_message()', this.message_time);
+            }
     };
 
     this.hide_message = function()
     {
-        $("message-box").className = '';
-        $('msg-loading-box').selectedIndex = DISPLAY_NO;
+        if (this.current_msg != null) {
+            $("notification-box").removeNotification(this.current_msg);
+            this.current_msg = null;
+            }
     };
 
     this.http_sockets = new Array();
