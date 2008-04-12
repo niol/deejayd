@@ -807,7 +807,7 @@ class DeejayDaemonAsync(_DeejayDaemon):
             ans = self._send_command(cmd)
             # Subscription are sync because there should be a way to tell the
             # client that subscription failed.
-            ans.wait()
+            ans.get_contents()
         return _DeejayDaemon.subscribe(self, signal_name, callback)
 
     def unsubscribe(self, sub_id):
@@ -824,7 +824,7 @@ class DeejayDaemonAsync(_DeejayDaemon):
             cmd.add_simple_arg('value', 0)
             ans = self._send_command(cmd)
             # As subscription, unsubscription is sync.
-            ans.wait()
+            ans.get_contents()
 
 
 # vim: ts=4 sw=4 expandtab
