@@ -780,6 +780,8 @@ class DeejayDaemonAsync(_DeejayDaemon):
         if self.socket_to_server != None:
             self.__stop_thread()
         self.connected = False
+        # clear subscriptions
+        self._clear_subscriptions()
 
     def __stop_thread(self):
         # terminate socket thread
