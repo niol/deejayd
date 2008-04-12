@@ -55,6 +55,7 @@ class DeejaydAnswer(deejayd.interfaces.DeejaydAnswer):
     def set_error(self, msg):
         deejayd.interfaces.DeejaydAnswer.set_error(self, msg)
         self.answer_received.set()
+        self._run_callbacks()
 
     def get_contents(self):
         self.wait()
