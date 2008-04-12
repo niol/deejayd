@@ -43,7 +43,7 @@ class DeejaydProtocol(LineReceiver):
         self.send_buffer("OK DEEJAYD %s\n" % (__version__,), xml=False)
 
     def connectionLost(self, reason=ConnectionDone):
-        pass
+        self.manager.close_signals(self)
 
     def lineReceived(self, line):
         line = line.strip("\r")
@@ -116,6 +116,11 @@ class DeejaydFactory(protocol.ServerFactory):
         if len(client_list) < 1:
             # No more clients for this signal, we can unsubscribe
             self.deejayd_core.unsubscribe(self.core_sub_ids[signal_name])
+
+    def close_signals(self, connector):
+        for signal_name in self.signaled_clients.keys():
+            if len(self.signaled_clients[signal_name]) > 0:
+                self.set_not_signaled(connector, signal_name)
 
     def sig_bcast_to_clients(self, signal):
         interested_clients = self.signaled_clients[signal.get_name()]
