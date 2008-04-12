@@ -60,7 +60,7 @@ class PlaylistSource(_BaseSource):
         for pls in playlists:
             self._media_list.load_playlist(pls,\
                 self.library.get_root_path(), pos)
-        self.dispatch_signame('player.current')
+        self.dispatch_signame('player.plupdate')
 
     @playlist_action
     def get_content(self,playlist = None):
