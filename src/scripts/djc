@@ -171,7 +171,7 @@ class AvailableCommands:
 
     def video_info(self, args):
         """ Get video list's content """
-        contents = self.server.get_videolist()
+        contents = self.server.get_video().get()
         for media in contents.get_medias():
             print media["pos"], '|', media["title"], '|',\
                   media["videowidth"], '|',\
@@ -189,7 +189,7 @@ class AvailableCommands:
         try: value = args[1]
         except IndexError:
             raise DjcError('You have to enter a value')
-        self.server.set_video(value, type).get_contents()
+        self.server.get_video().set(value, type).get_contents()
 
 # Queue commands
     def queue_info(self, args):

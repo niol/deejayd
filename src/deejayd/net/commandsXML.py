@@ -363,17 +363,21 @@ class SetVideo(UnknownCommand):
       {"name":"value", "type":"str", "req": False, "default": ""}]
 
     def _execute(self):
-        self.deejayd_core.set_video(self.args['value'], self.args['type'], \
-            objanswer=False)
+        self.deejayd_core.get_video().set(self.args['value'],\
+            self.args['type'], objanswer=False)
 
 
 class VideoInfo(UnknownCommand):
     """Set the current video directory to "directory"."""
     command_name = 'videoInfo'
     command_rvalue = 'MediaList'
+    command_args = [{"name":"first","type":"int","req":False,"default":0},\
+                    {"name":"length","type":"int","req":False,"default":-1}]
 
     def _execute(self):
-        videos = self.deejayd_core.get_videolist(objanswer=False)
+        videos = self.deejayd_core.get_video().get(self.args["first"],\
+            self.args["length"], objanswer=False)
+
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype('video')
         rsp.set_medias(videos)

@@ -247,6 +247,26 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
                 raise DeejaydError(_('Playlist %s does not exist.') % name)
 
 
+class DeejaydVideo:
+    """Video management."""
+
+    def __init__(self, deejaydcore):
+        self.deejaydcore = deejaydcore
+        self.source = self.deejaydcore.sources.get_source('video')
+
+    @returns_deejaydanswer(DeejaydMediaList)
+    def get(self, first = 0, length = -1):
+        videos = self.source.get_content()
+        last = length == -1 and len(videos) or int(first) + int(length) - 1
+        return videos[int(first):last]
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set(self, value, type = "directory"):
+        try: self.source.set(type, value)
+        except deejayd.sources._base.MediaNotFoundError:
+            raise DeejaydError(_('Directory %s not found in database') % value)
+
+
 class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     def __init__(self, config=None):
@@ -333,6 +353,10 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     @require_mode("webradio")
     def get_webradios(self):
         return DeejaydWebradioList(self)
+
+    @require_mode("video")
+    def get_video(self):
+        return DeejaydVideo(self)
 
     def get_queue(self):
         return DeejaydQueue(self)
@@ -452,18 +476,6 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             raise DeejaydError(_('Directory %s not found in database') % dir)
 
         return dir, contents['dirs'], contents['files']
-
-    @require_mode("video")
-    @returns_deejaydanswer(DeejaydMediaList)
-    def get_videolist(self):
-        return self.sources.get_source("video").get_content()
-
-    @require_mode("video")
-    @returns_deejaydanswer(DeejaydAnswer)
-    def set_video(self, value, type = "directory"):
-        try: self.sources.get_source("video").set(type, value)
-        except deejayd.sources._base.MediaNotFoundError:
-            raise DeejaydError(_('Directory %s not found in database') % value)
 
     @require_mode("dvd")
     @returns_deejaydanswer(DeejaydAnswer)

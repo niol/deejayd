@@ -183,24 +183,25 @@ class InterfaceTests:
 
     def testVideo(self):
         """ Test video source actions """
+        video_obj = self.deejayd.get_video()
         # choose a wrong directory
         rand_dir = self.testdata.getRandomString()
-        ans = self.deejayd.set_video(rand_dir, "directory")
+        ans = video_obj.set(rand_dir, "directory")
         self.assertRaises(DeejaydError, ans.get_contents)
 
         # get contents of root dir and try to set video directory
         ans = self.deejayd.get_video_dir()
         dir = self.testdata.getRandomElement(ans.get_directories())
-        self.deejayd.set_video(dir, "directory").get_contents()
+        video_obj.set(dir, "directory").get_contents()
 
         # test videolist content
-        video_list = self.deejayd.get_videolist().get_medias()
+        video_list = video_obj.get().get_medias()
         self.assertEqual(len(video_list), len(ans.get_files()))
 
         # search a wrong title
         rand = self.testdata.getRandomString()
-        self.deejayd.set_video(rand, "search").get_contents()
-        video_list = self.deejayd.get_videolist().get_medias()
+        video_obj.set(rand, "search").get_contents()
+        video_list = video_obj.get().get_medias()
         self.assertEqual(len(video_list), 0)
 
 
@@ -298,13 +299,14 @@ class InterfaceTests:
 
     def testVideoPlayer(self):
         """ Test player commands (play, pause,...) for video """
+        video_obj = self.deejayd.get_video()
         # set video mode
         self.deejayd.set_mode("video").get_contents()
 
         # choose directory
         ans = self.deejayd.get_video_dir()
         dir = self.testdata.getRandomElement(ans.get_directories())
-        self.deejayd.set_video(dir, "directory").get_contents()
+        video_obj.set(dir, "directory").get_contents()
 
         # play video file
         self.deejayd.play_toggle().get_contents()

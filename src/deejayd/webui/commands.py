@@ -494,8 +494,8 @@ class SetVideo(_UnknownCommand):
             "req":False,"default":"directory"},]
 
     def execute(self):
-        self._deejayd.set_video(self._args["value"],\
-            self._args["type"]).get_contents()
+        video = self._deejayd.get_video()
+        video.set(self._args["value"], self._args["type"]).get_contents()
 
 #
 # Dvd commands

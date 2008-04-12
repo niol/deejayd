@@ -235,6 +235,26 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         return self.server._send_command(cmd)
 
 
+class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
+
+    def __init__(self, server):
+        self.server = server
+
+    def get(self, first = 0, length = None):
+        cmd = DeejaydXMLCommand('videoInfo')
+        cmd.add_simple_arg('first', first)
+        if length != None:
+            cmd.add_simple_arg('length', length)
+        ans = DeejaydMediaList(self)
+        return self.server._send_command(cmd, ans)
+
+    def set(self, value, type = "directory"):
+        cmd = DeejaydXMLCommand('setvideo')
+        cmd.add_simple_arg('value', value)
+        cmd.add_simple_arg('type', type)
+        return self.server._send_command(cmd)
+
+
 class ConnectError(Exception):
     pass
 
@@ -347,6 +367,9 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     def get_webradios(self):
         return DeejaydWebradioList(self)
 
+    def get_video(self):
+        return DeejaydVideo(self)
+
     def get_queue(self):
         return DeejaydQueue(self)
 
@@ -453,17 +476,6 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         if dir != None:
             cmd.add_simple_arg('directory', dir)
         ans = DeejaydFileList(self)
-        return self._send_command(cmd, ans)
-
-    def set_video(self, value, type = "directory"):
-        cmd = DeejaydXMLCommand('setvideo')
-        cmd.add_simple_arg('value', value)
-        cmd.add_simple_arg('type', type)
-        return self._send_command(cmd)
-
-    def get_videolist(self):
-        cmd = DeejaydXMLCommand('videoInfo')
-        ans = DeejaydMediaList(self)
         return self._send_command(cmd, ans)
 
     def dvd_reload(self):

@@ -236,7 +236,8 @@ class DeejaydVideoRdf(_DeejaydSourceRdf):
     name = "video"
 
     def _get_media_list(self):
-        return self._deejayd.get_videolist().get_medias()
+        video_obj = self._deejayd.get_video()
+        return video_obj.get().get_medias()
 
 class DeejaydVideoDirRdf(_DeejaydSourceRdf):
     name = "videodir"

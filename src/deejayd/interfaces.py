@@ -214,6 +214,16 @@ class DeejaydPlaylist:
         raise NotImplementedError
 
 
+class DeejaydVideo:
+    """Video management."""
+
+    def get(self, first = 0, length = None):
+        raise NotImplementedError
+
+    def set(self, value, type = "directory"):
+        raise NotImplementedError
+
+
 class DeejaydSignal:
 
     SIGNALS = ('player.status',       # Player status change (play/pause/stop/
@@ -313,6 +323,9 @@ class DeejaydCore:
     def get_queue(self):
         raise NotImplementedError
 
+    def get_video(self):
+        raise NotImplementedError
+
     def get_audio_dir(self, dir=None):
         raise NotImplementedError
 
@@ -320,12 +333,6 @@ class DeejaydCore:
         raise NotImplementedError
 
     def get_video_dir(self, dir=None):
-        raise NotImplementedError
-
-    def get_videolist(self):
-        raise NotImplementedError
-
-    def set_video(self, value, type = "directory"):
         raise NotImplementedError
 
     def dvd_reload(self):
