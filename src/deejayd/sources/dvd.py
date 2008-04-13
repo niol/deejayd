@@ -62,7 +62,7 @@ class DvdSource(SignalingComponent):
 
         if not nb: nb = self.dvd_info['longest_track']
         for track in self.dvd_info['track']:
-            if track['ix'] == nb:
+            if int(track['ix']) == int(nb):
                 self.selected_track = track
                 self.selected_track["selected_chapter"] = -1
                 break
@@ -77,17 +77,20 @@ class DvdSource(SignalingComponent):
 
         # Construct item info for player
         id = str(self.selected_track["ix"])
+        pos = int(self.selected_track["ix"])
         if self.selected_track["selected_chapter"] != -1:
             id += ".%d" % self.selected_track["selected_chapter"]
+            pos = self.selected_track["selected_chapter"]
         uri = "dvd://%d" % self.selected_track["ix"]
         return {"title": self.dvd_info["title"], "type": "video", \
                 "uri": uri, "chapter":self.selected_track["selected_chapter"],\
                 "length": self.selected_track["length"],\
-                "id": id, "audio": self.selected_track["audio"],\
+                "id": id, "pos": pos,\
+                "audio": self.selected_track["audio"],\
                 "subtitle": self.selected_track["subp"]}
 
     def go_to(self,id,type = "track"):
-        if type == "track": self.select_track(id)
+        if type in ("track", "id"): self.select_track(id)
         elif type == "chapter": self.select_chapter(None,id)
         elif type == "dvd_id":
             ids = id.split('.')
@@ -100,14 +103,13 @@ class DvdSource(SignalingComponent):
     def next(self,random,repeat):
         if not self.dvd_info or not self.selected_track: return None
 
-        if self.selected_track["selected_chapter"]:
+        if self.selected_track["selected_chapter"] != -1:
             # go to next chapter
             self.selected_track["selected_chapter"] += 1
         else:
             # go to next title
             current_title = self.selected_track["ix"]
-            self.select_track(current_title+1,self.selected_track["alang_idx"],\
-                              self.selected_track["slang_idx"])
+            self.select_track(current_title+1)
 
         return self.get_current()
 
@@ -115,14 +117,13 @@ class DvdSource(SignalingComponent):
     def previous(self,random,repeat):
         if not self.dvd_info or not self.selected_track: return None
 
-        if self.selected_track["selected_chapter"]:
+        if self.selected_track["selected_chapter"] != -1:
             # go to previous chapter
             self.selected_track["selected_chapter"] -= 1
         else:
-            # go to next title
+            # go to previous title
             current_title = self.selected_track["ix"]
-            self.select_track(current_title+1,self.selected_track["alang_idx"],\
-                              self.selected_track["slang_idx"])
+            self.select_track(current_title - 1)
 
         return self.get_current()
 
