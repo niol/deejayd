@@ -55,7 +55,6 @@ class DeejaydAudioFile(_DeejaydFile):
     table = "audio_library"
 
     def insert(self):
-        file_info = self.info.parse(self.file)
         try: file_info = self.info.parse(self.file)
         except:
             log.err(_("Unable to get audio metadata from %s") % self.file)
