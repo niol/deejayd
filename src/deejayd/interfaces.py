@@ -112,7 +112,8 @@ class DeejaydDvdInfo(DeejaydAnswer):
         self.dvd_content = {}
 
     def set_dvd_content(self, infos):
-        self.dvd_content = infos
+        for (k, v) in infos.items():
+            self.dvd_content[k] = v
 
     def add_track(self, track):
         if "track" not in self.dvd_content.keys():
