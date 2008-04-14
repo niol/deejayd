@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -*- coding: utf-8 -*-
 
-import os, sys, urllib, threading
+import os, sys, urllib, threading, traceback
 from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
@@ -27,6 +27,20 @@ from deejayd.ui import log
 
 class NotFoundException(Exception):pass
 class NotSupportedFormat(Exception):pass
+
+def log_traceback(func):
+    def log_traceback_func(self, *__args,**__kw):
+        try: func(self, *__args,**__kw)
+        except Exception, ex:
+            log.err(_("Unable to get video metadata from %s, see traceback\
+for more information.") % self.file)
+            print "---------------------Traceback lines-----------------------"
+            print traceback.format_exc()
+            print "-----------------------------------------------------------"
+            return False
+        return True
+
+    return log_traceback_func
 
 class _DeejaydFile:
     table = "unknown"
@@ -54,21 +68,15 @@ class _DeejaydFile:
 class DeejaydAudioFile(_DeejaydFile):
     table = "audio_library"
 
+    @log_traceback
     def insert(self):
-        try: file_info = self.info.parse(self.file)
-        except:
-            log.err(_("Unable to get audio metadata from %s") % self.file)
-            return False
+        file_info = self.info.parse(self.file)
         self.db_con.insert_audio_file(self.dir,self.filename,file_info)
-        return True
 
+    @log_traceback
     def update(self):
-        try: file_info = self.info.parse(self.file)
-        except:
-            log.err(_("Unable to get audio metadata from %s") % self.file)
-            return False
+        file_info = self.info.parse(self.file)
         self.db_con.update_audio_file(self.dir,self.filename,file_info)
-        return True
 
     def force_update(self):pass
 
@@ -76,21 +84,15 @@ class DeejaydAudioFile(_DeejaydFile):
 class DeejaydVideoFile(_DeejaydFile):
     table = "video_library"
 
+    @log_traceback
     def insert(self):
-        try: file_info = self.info.parse(self.file)
-        except:
-            log.err(_("Unable to get video metadata from %s") % self.file)
-            return False
+        file_info = self.info.parse(self.file)
         self.db_con.insert_video_file(self.dir,self.filename,file_info)
-        return True
 
+    @log_traceback
     def update(self):
-        try: file_info = self.info.parse(self.file)
-        except:
-            log.err(_("Unable to get video metadata from %s") % self.file)
-            return False
+        file_info = self.info.parse(self.file)
         self.db_con.update_video_file(self.dir,self.filename,file_info)
-        return True
 
     def force_update(self):
         # Update external subtitle
