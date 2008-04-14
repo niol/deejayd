@@ -1,8 +1,9 @@
 deejayd (0.7.0-1+darcsoftoday+1) UNREALEASED; urgency=low
 
   * Add missing build indep dep on gettext.
+  * Ensure binary packages versions consistency.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 14 Apr 2008 20:56:03 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 14 Apr 2008 21:01:54 +0200
 
 deejayd (0.7.0-1) unstable; urgency=low
 

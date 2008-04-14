@@ -13,8 +13,8 @@ Vcs-Browser: http://mroy31.dyndns.org/~roy/darcsweb/darcsweb.cgi?r=deejayd;a=tre
 Package: deejayd
 Architecture: all
 Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, adduser,
-         deejayd-client,
-         deejayd-xine | deejayd-gstreamer,
+         deejayd-client (= ${binary:Version}),
+         deejayd-xine (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
          python-twisted,
          python-pysqlite2 | python-mysqldb,
          python-mutagen
@@ -30,7 +30,7 @@ Description: Network media player daemon
 
 Package: deejayd-webui
 Architecture: all
-Depends: ${python:Depends}, deejayd, logrotate, python-twisted-web
+Depends: ${python:Depends}, deejayd (= ${binary:Version}), logrotate, python-twisted-web
 XB-Python-Version: ${python:Versions}
 Description: Web interface for deejayd
  This package provides a XUL web interface to control your deejayd server. The
@@ -47,7 +47,7 @@ Description: Client library to access the deejayd server
 
 Package: djc
 Architecture: all
-Depends: ${python:Depends}, deejayd-client
+Depends: ${python:Depends}, deejayd-client (= ${binary:Version})
 XB-Python-Version: ${python:Versions}
 Description: Command line basic client to the deejayd server
  djc provides a subset of deejayd commands for your deejayd server to be
