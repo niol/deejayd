@@ -38,7 +38,7 @@ Description: Web interface for deejayd
 
 Package: deejayd-client
 Architecture: all
-Depends: ${python:Depends}, python-celementtree
+Depends: ${python:Depends}, python-celementtree | python (>= 2.5)
 XB-Python-Version: ${python:Versions}
 Description: Client library to access the deejayd server
  This package provides easy to use classes to manipulate the deejayd server,
@@ -55,7 +55,9 @@ Description: Command line basic client to the deejayd server
 
 Package: deejayd-xine
 Architecture: all
-Depends: ${python:Depends}, python-ctypes (>= 1.0.0), libxine1, libx11-6, libxext6
+Depends: ${python:Depends},
+         python-ctypes (>= 1.0.0) | python (>= 2.5),
+         libxine1, libx11-6, libxext6
 Recommends: lsdvd
 XB-Python-Version: ${python:Versions}
 Description: Deejayd XINE backend
