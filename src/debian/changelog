@@ -1,12 +1,13 @@
-deejayd (0.7.0-1+darcsoftoday+1) UNREALEASED; urgency=low
+deejayd (0.7.1-1) unstable; urgency=low
 
+  * New upstream release.
   * Add missing build indep dep on gettext.
   * Ensure binary packages versions consistency.
   * Minor fix to short description.
   * Make deps compatible with python (>= 2.5) with celementtree and ctypes in
     the standard library.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 14 Apr 2008 21:07:21 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 16 Apr 2008 21:59:42 +0200
 
 deejayd (0.7.0-1) unstable; urgency=low
 
