@@ -2,6 +2,6 @@
     missingok
     notifempty
     postrotate
-    	/etc/init.d/deejayd restart > /dev/null 2>&1 || true
+    	/etc/init.d/deejayd reload > /dev/null 2>&1 || true
     endscript
 }

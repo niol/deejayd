@@ -2,12 +2,15 @@
 # Copyright 1999-2004 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-pidfile=/var/run/deejayd/deejayd.pid
-daemon_path=/usr/bin/deejayd
-conf_file=/etc/deejayd.conf
-logdir=/var/log/deejayd
-log_file=${logdir}/deejayd.log
-webuilog_file=${logdir}/deejayd-webui.log
+name=deejayd
+pidfile=/var/run/${name}/${name}.pid
+daemon_path=/usr/bin/${name}
+conf_file=/etc/${name}.conf
+logdir=/var/log/${name}
+log_file=${logdir}/${name}.log
+webuilog_file=${logdir}/${name}-webui.log
+
+opts="reload"
 
 depend() {
 	need localmount
@@ -45,4 +48,14 @@ stop() {
     start-stop-daemon --stop --exec ${daemon_path} \
         --pidfile ${pidfile}
 	eend $? "Failed to stop deejayd"
+}
+
+reload() {
+	check || return 1
+    service_started "deejayd" || return
+
+	ebegin "Reload deejayd"
+	start-stop-daemon --user ${name} --stop --oknodo --signal 1 --quiet \
+        --pidfile ${pidfile} --name ${name}
+	eend $? "Failed to reload deejayd"
 }
