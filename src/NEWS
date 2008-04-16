@@ -1,6 +1,13 @@
 
 New features and significant updates in version...
 
+0.7.1 (2008-04-16)
+--------------------
+  * add queue random option
+  * use XUL notification to display messages
+  * fix dvd playback
+  * minor fix in client library
+
 0.7.0 (2008-03-28)
 --------------------
   * database : add mysql backend support

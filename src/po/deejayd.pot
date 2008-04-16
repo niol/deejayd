@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-28 14:16+0100\n"
+"POT-Creation-Date: 2008-04-16 19:35+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -172,37 +172,33 @@ msgstr ""
 msgid "Inotify support disabled"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:61 ../deejayd/mediadb/library.py:69
+#: ../deejayd/mediadb/library.py:35
 #, python-format
-msgid "Unable to get audio metadata from %s"
+msgid ""
+"Unable to get video metadata from %s, see tracebackfor more information."
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:83 ../deejayd/mediadb/library.py:91
-#, python-format
-msgid "Unable to get video metadata from %s"
-msgstr ""
-
-#: ../deejayd/mediadb/library.py:143
+#: ../deejayd/mediadb/library.py:144
 #, python-format
 msgid "Unable to find directory %s"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:160
+#: ../deejayd/mediadb/library.py:161
 #, python-format
 msgid "%s has wrong character"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:372
+#: ../deejayd/mediadb/library.py:373
 #, python-format
 msgid "File %s not supported"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:393
+#: ../deejayd/mediadb/library.py:394
 #, python-format
 msgid "The %s library has been updated"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:395
+#: ../deejayd/mediadb/library.py:396
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr ""
@@ -620,15 +616,15 @@ msgstr ""
 msgid "Do you want to replace this playlist ?"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:271
+#: ../deejayd/webui/commands.py:274
 msgid "The audio library has been updated"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:290
+#: ../deejayd/webui/commands.py:293
 msgid "The video library has been updated"
 msgstr ""
 
-#: ../deejayd/webui/commands.py:381
+#: ../deejayd/webui/commands.py:384
 msgid "Current playlist has been saved"
 msgstr ""
 

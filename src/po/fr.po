@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-28 14:16+0100\n"
+"POT-Creation-Date: 2008-04-16 19:35+0200\n"
 "PO-Revision-Date: 2008-03-22 13:20+0100\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -173,37 +173,33 @@ msgstr "Impossible d'initialiser la librairie vidéo : %s"
 msgid "Inotify support disabled"
 msgstr "Support d'inotify désactivé"
 
-#: ../deejayd/mediadb/library.py:61 ../deejayd/mediadb/library.py:69
+#: ../deejayd/mediadb/library.py:35
 #, python-format
-msgid "Unable to get audio metadata from %s"
-msgstr "Impossible d'obtenir les données audio du fichier %s"
+msgid ""
+"Unable to get video metadata from %s, see tracebackfor more information."
+msgstr "Impossible d'obtenir les données video du fichier %s, voir l'exception pour plus de détail"
 
-#: ../deejayd/mediadb/library.py:83 ../deejayd/mediadb/library.py:91
-#, python-format
-msgid "Unable to get video metadata from %s"
-msgstr "Impossible d'obtenir les données video du fichier %s"
-
-#: ../deejayd/mediadb/library.py:143
+#: ../deejayd/mediadb/library.py:144
 #, python-format
 msgid "Unable to find directory %s"
 msgstr "Impossible de trouver le répertoire %s"
 
-#: ../deejayd/mediadb/library.py:160
+#: ../deejayd/mediadb/library.py:161
 #, python-format
 msgid "%s has wrong character"
 msgstr "%s a des caractères invalides"
 
-#: ../deejayd/mediadb/library.py:372
+#: ../deejayd/mediadb/library.py:373
 #, python-format
 msgid "File %s not supported"
 msgstr "Le fichier %s n'est pas supporté"
 
-#: ../deejayd/mediadb/library.py:393
+#: ../deejayd/mediadb/library.py:394
 #, python-format
 msgid "The %s library has been updated"
 msgstr "La librairie %s a été mise à jour"
 
-#: ../deejayd/mediadb/library.py:395
+#: ../deejayd/mediadb/library.py:396
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr "Impossible de mettre à jour la library %s. Voir les logs"
@@ -621,15 +617,15 @@ msgstr "Il manque un paramètre"
 msgid "Do you want to replace this playlist ?"
 msgstr "Voulez vous replacer cette liste de lecture ?"
 
-#: ../deejayd/webui/commands.py:271
+#: ../deejayd/webui/commands.py:274
 msgid "The audio library has been updated"
 msgstr "La librairie audio a été mise à jour"
 
-#: ../deejayd/webui/commands.py:290
+#: ../deejayd/webui/commands.py:293
 msgid "The video library has been updated"
 msgstr "La librairie vidéo a été mise à jour"
 
-#: ../deejayd/webui/commands.py:381
+#: ../deejayd/webui/commands.py:384
 msgid "Current playlist has been saved"
 msgstr "La playlist a été sauvegardée"
 
@@ -704,6 +700,9 @@ msgid "%d year"
 msgid_plural "%d years"
 msgstr[0] "%d année"
 msgstr[1] "%d années"
+
+#~ msgid "Unable to get audio metadata from %s"
+#~ msgstr "Impossible d'obtenir les données audio du fichier %s"
 
 #~ msgid "Unable to change audio channel"
 #~ msgstr "Impossible de modifier le canal audio"
