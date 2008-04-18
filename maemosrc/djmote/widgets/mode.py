@@ -16,43 +16,57 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import gtk
-from djmote.widgets.playlist import PlaylistBox
-from djmote.widgets.webradio import WebradioBox
-from djmote.widgets.video import VideoBox
-from djmote.widgets.dvd import DvdBox
+import gobject, gtk
+from djmote.widgets import playlist, webradio, video, dvd
+from djmote.widgets._base import _BaseWidget
+from djmote.utils.decorators import gui_callback
 
-class ModeBox(gtk.VBox):
-    _supported_mode_ = {"playlist": PlaylistBox, "video": VideoBox,\
-        "webradio": WebradioBox, "dvd": DvdBox}
+class ModeBox(gtk.VBox, _BaseWidget):
+    _supported_mode_ = {
+        "playlist": playlist.PlaylistBox,
+        "video": video.VideoBox,
+        "webradio": webradio.WebradioBox,
+        "dvd": dvd.DvdBox
+        }
 
-    def __init__(self,player):
+    def __init__(self, ui):
         gtk.VBox.__init__(self)
-        self.__player = player
+
+        self._signals = [ ("mode", "update_mode") ]
+        self._signal_ids = []
+        self.server = ui.get_server()
         self.__content = None
 
         # Signals
-        player.connect("update-status",self.update_status)
-        player.connect("connected",self.update_status)
-        player.connect("disconnected",self.__destroy)
+        ui.connect("connected",self.init_mode)
+        ui.connect("disconnected",self.disconnect)
 
-    def update_status(self, ui, status):
-        if self.__content and self.__content["name"] != status["mode"]:
-            self.__destroy()
-        if not self.__content:
-            self.__build(status["mode"])
-        self.__content["widget"].update_status(status)
+    def init_mode(self, ui, status):
+        # subscribe to signal
+        self.subscribe()
+        self.__build(status["mode"])
 
-    def __build(self,mode):
-        box = self.__class__._supported_mode_[mode](self.__player)
+    def update_mode(self, signal):
+        self.server.get_status().add_callback(self.cb_update_mode)
 
-        self.__content = {"name": mode,"widget": box}
-        self.pack_start(self.__content["widget"])
+    def disconnect(self, ui):
+        self._signal_ids = []
+        if self.__content:
+            self.__content.main_box.destroy()
+            self.__content = None
+
+    def __build(self, mode):
+        self.__content = self._supported_mode_[mode](self.server)
+        self.pack_start(self.__content.main_box)
         self.show_all()
 
-    def __destroy(self, ui = None):
-        if self.__content:
-            self.__content["widget"].destroy()
-            self.__content = None
+    @gui_callback
+    def cb_update_mode(self, answer):
+        try: status = answer.get_contents()
+        except DeejaydError, err:
+            self.error(err)
+        else:
+            if self.__content: self.__content.destroy()
+            self.__build(status["mode"])
 
 # vim: ts=4 sw=4 expandtab

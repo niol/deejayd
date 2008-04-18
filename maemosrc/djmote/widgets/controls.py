@@ -16,67 +16,119 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import gtk,hildon
-from djmote import stock
-from djmote.widgets._base import DjmoteButton
+import gtk,gobject,hildon
+from djmote import stock, const
+from djmote.widgets._base import DjmoteButton, _BaseWidget
 
-class ControlBox(gtk.VBox):
+class ControlBox(_BaseWidget):
 
-    def __init__(self,player):
-        gtk.VBox.__init__(self)
+    def __init__(self, ui):
+        self.widget = gtk.VBox()
+        self.server = ui.get_server()
+        self.__timeout = None
 
         vol_button = VolumeButton(True)
-        vol_button.connect("clicked",self.volume_toggle)
-        self.pack_end(vol_button, expand = False, fill = False)
+        vol_button.connect("clicked",self.show_volumebar)
+        self.widget.pack_end(vol_button, expand = False, fill = False)
 
-        self.__current = "pl_controls"
-        self.__controls_panels = {}
+        self.__controls = ControlsPanel(ui)
+        self.widget.pack_end(self.__controls)
 
-        self.__controls_panels["pl_controls"] = ControlsPanel(player)
-        self.pack_end(self.__controls_panels["pl_controls"])
-
-        self.__controls_panels["volume"] = VolumeBar(player)
-        self.pack_end(self.__controls_panels["volume"])
+        self.__vsig, self.__timeout = None, None
+        self.__volume = hildon.VVolumebar()
+        self.__volume.set_level(0)
+        self.widget.pack_end(self.__volume)
 
         # Signals
-        self.connect("show",self.post_show_action)
+        self.widget.connect("show",self.post_show_action)
+        ui.main_window.connect("key-press-event", self.key_press, ui)
+        ui.connect("update-status",self.update_status)
+        ui.connect("connected",self.ui_connected)
+        ui.connect("disconnected",self.ui_disconnected)
 
-    def volume_toggle(self, widget, data = None):
-        if self.__current == "pl_controls":
-            self.__controls_panels["volume"].show()
-            self.__controls_panels["pl_controls"].hide()
-            self.__current = "volume"
-        else:
-            self.__controls_panels["volume"].hide()
-            self.__controls_panels["pl_controls"].show()
-            self.__current = "pl_controls"
+    def key_press(self, main_window, event, ui):
+        if not self.server.is_connected(): return False
+        if event.keyval == const.KEY_ENTER:
+            self.execute(self.server.play_toggle)
+        elif event.keyval == const.KEY_LEFT:
+            self.execute(self.server.previous)
+        elif event.keyval == const.KEY_RIGHT:
+            self.execute(self.server.next)
+        elif event.keyval == const.KEY_VOLUME_UP:
+            val = min(100, int(self.__volume.get_level()) + const.VOLUME_STEP)
+            ui.set_banner("Volume set to %d" % val)
+            self.execute(self.server.set_volume, val)
+        elif event.keyval == const.KEY_VOLUME_DOWN:
+            val = max(0, int(self.__volume.get_level()) - const.VOLUME_STEP)
+            self.execute(self.server.set_volume, val)
+            ui.set_banner("Volume set to %d" % val)
+        else: return False
+
+    def ui_disconnected(self, ui = None):
+        self.__volume.set_sensitive(False)
+        self.__volume.disconnect(self.__vsig)
+        self.__volume.set_level(0)
+        self.__vsig, self.__timeout = None, None
+
+    def ui_connected(self, ui, status):
+        if self.__vsig: self.ui_disconnected()
+        self.__volume.set_sensitive(True)
+        self.__volume.set_level(int(status["volume"]))
+        self.__vsig = self.__volume.connect("level_changed",self.set_volume)
+
+    def update_status(self, ui, status):
+        if int(self.__volume.get_level()) != status["volume"]:
+            # we need to update volume bar without send a signal
+            self.__volume.handler_block(self.__vsig)
+            self.__volume.set_level(status["volume"])
+            self.__volume.handler_unblock(self.__vsig)
+
+    def show_volumebar(self, widget):
+        if self.__timeout:
+            gobject.source_remove(self.__timeout)
+        self.__volume.show()
+        self.__controls.hide()
+        self.__timeout = gobject.timeout_add(const.SHOW_TIMEOUT,\
+            self.hide_volumebar)
+
+    def hide_volumebar(self):
+        self.__volume.hide()
+        self.__controls.show()
+        self.__timeout = None
+        return False
+
+    def set_volume(self, widget):
+        if self.__timeout:
+            gobject.source_remove(self.__timeout)
+            self.__timeout = gobject.timeout_add(const.SHOW_TIMEOUT,\
+                self.hide_volumebar)
+        self.execute(self.server.set_volume, int(self.__volume.get_level()))
+
+    def volume_mute_toggle(self, widget):
+        pass
 
     def post_show_action(self, ui = None):
-        self.__controls_panels["volume"].hide()
+        self.__volume.hide()
 
 
 class ControlsPanel(gtk.VBox):
 
-    def __init__(self,player):
+    def __init__(self, ui):
         gtk.VBox.__init__(self)
 
         # we need it to update play/pause status
         self.__play_pause = PlayPauseButton()
-        buttons = [\
-                   (PreviousButton(),player.previous), \
-                   (self.__play_pause,player.play_toggle),\
-                   (StopButton(),player.stop), \
-                   (NextButton(),player.next), \
-                  ]
+        buttons = [PreviousButton(), self.__play_pause, StopButton(),\
+                   NextButton()]
 
-        for (button,action) in buttons:
-            button.connect("clicked", action)
+        for button in buttons:
+            button.connect("clicked", button.action, ui.get_server())
             self.pack_start(button)
 
         # Signals
-        player.connect("update-status",self.update_status)
-        player.connect("connected",self.ui_connected)
-        player.connect("disconnected",self.ui_disconnected)
+        ui.connect("update-status",self.update_status)
+        ui.connect("connected",self.ui_connected)
+        ui.connect("disconnected",self.ui_disconnected)
 
     def ui_disconnected(self, ui):
         for button in self.get_children():
@@ -92,52 +144,13 @@ class ControlsPanel(gtk.VBox):
         self.__play_pause.set_play(status["state"])
 
 
-class VolumeBar(hildon.VVolumebar):
-
-    def __init__(self,player):
-        hildon.VVolumebar.__init__(self)
-        self.__player = player
-        self.__level_signal = None
-
-        self.set_level(0)
-        # Signals
-        player.connect("update-status",self.update_status)
-        player.connect("connected",self.ui_connected)
-        player.connect("disconnected",self.ui_disconnected)
-
-    def ui_disconnected(self, ui = None):
-        self.set_sensitive(False)
-        if self.__level_signal: self.handler_block(self.__level_signal)
-        self.set_level(0)
-        if self.__level_signal: self.handler_unblock(self.__level_signal)
-
-    def ui_connected(self, ui, status):
-        self.set_sensitive(True)
-        self.set_level(status["volume"])
-        # More Signals
-        self.__level_signal = self.connect("level_changed",self.set_volume)
-        self.connect("mute_toggled",self.volume_mute_toggle)
-
-    def update_status(self, ui, status):
-        if int(self.get_level()) != status["volume"]:
-            # we need to update volume bar without send a signal
-            self.handler_block(self.__level_signal)
-            self.set_level(status["volume"])
-            self.handler_unblock(self.__level_signal)
-
-    def set_volume(self,widget):
-        self.__player.set_volume(int(self.get_level()))
-
-    def volume_mute_toggle(self,widget):
-        pass
-
 #
 # Controls Buttons
 #
 
 SIZE = gtk.icon_size_register("djmote-control", 72, 72)
 
-class ControlButton(DjmoteButton):
+class ControlButton(DjmoteButton, _BaseWidget):
 
     def __init__(self, sensitive = False):
         DjmoteButton.__init__(self)
@@ -148,6 +161,8 @@ class ControlButton(DjmoteButton):
         self.img = gtk.image_new_from_stock(self.__class__.stock_img,SIZE)
         self.set_image(self.img)
 
+    def action(self, widget, server):
+        pass
 
 class PlayPauseButton(ControlButton):
     stock_img = stock.DJMOTE_PLAY
@@ -161,17 +176,26 @@ class PlayPauseButton(ControlButton):
         self.img.set_from_stock(stock_img,SIZE)
         self.set_image(self.img)
 
+    def action(self, widget, server):
+        self.execute(server.play_toggle)
 
 class NextButton(ControlButton):
     stock_img = stock.DJMOTE_NEXT
 
+    def action(self, widget, server):
+        self.execute(server.next)
 
 class PreviousButton(ControlButton):
     stock_img = stock.DJMOTE_PREVIOUS
 
+    def action(self, widget, server):
+        self.execute(server.previous)
 
 class StopButton(ControlButton):
     stock_img = stock.DJMOTE_STOP
+
+    def action(self, widget, server):
+        self.execute(server.stop)
 
 
 class VolumeButton(ControlButton):

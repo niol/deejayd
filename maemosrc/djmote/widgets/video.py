@@ -20,133 +20,128 @@ import os
 import gtk, gobject, pango
 from deejayd.net.client import DeejaydError
 from djmote.utils.decorators import gui_callback
-from djmote.widgets._base import SourceBox
+from djmote.widgets._base import _BaseSourceBox, _BaseLibraryDialog,\
+                                DjmoteTreeView, format_time, DjmoteTreeBox
 
-class VideoBox(SourceBox):
+class VideoBox(_BaseSourceBox):
+    use_toggled = False
+    _toolbar_items = [
+        (gtk.STOCK_ADD, "select_directory"),
+        ]
 
-    def __init__(self, player):
-        SourceBox.__init__(self, player)
-        self.__video_id = None
-        self.__video_label = None
+    def __init__(self, server):
+        self._signals = [ ("video.update", "update") ]
+        self._signal_ids = []
+        self.source = server.get_video()
+        _BaseSourceBox.__init__(self, server)
 
-    def update_status(self, status):
-        if self.__video_id == None or status["video"] != self.__video_id:
-            self.__video_id = status["video"]
-            server = self._player.get_server()
-            self.__reset_tree()
-            server.get_videolist().add_callback(self.cb_build_list)
-            self._build_label(status)
+    def _format_text(self, m):
+        return " %s - %s\n\tlength : <i>%s</i>"\
+            % (str(m["pos"]+1), m["title"], format_time(m["length"]))
 
-    #
-    # widget creation functions
-    #
-    def _build_tree(self):
-        # ListStore
-        # id, title
-        video_content = gtk.ListStore(int, str)
-        self.video_view = self._create_treeview(video_content)
-        self.video_view.set_fixed_height_mode(True)
+    def select_directory(self, widget):
+        LibraryDialog(self.source, self.server)
 
-        col = gtk.TreeViewColumn("Title")
+
+class LibraryDialog(_BaseLibraryDialog):
+    type = "Video"
+    _nblist_ = [("Select a directory", "build_library"),\
+                ("Search", "search_box")]
+    _dialog_actions = (gtk.STOCK_APPLY, gtk.RESPONSE_OK,\
+                       gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
+
+    def __init__(self, source, server):
+        self._signals = [ ("mediadb.vupdate", "update_library") ]
+        self._signal_ids = []
+        _BaseLibraryDialog.__init__(self, server, source)
+
+    def cb_response(self, dialog, response_id):
+        @gui_callback
+        def cb_video_set(answer):
+            try: answer.get_contents()
+            except DeejaydError, err:
+                label = gtk.Label("Error : " + err)
+                self.vbox.pack_end(label)
+            else:
+                self.destroy()
+
+        if response_id == gtk.RESPONSE_CLOSE:
+            self.destroy()
+        elif response_id == gtk.RESPONSE_OK:
+            if self.notebook.get_current_page() == 0: # select directory
+                selection = self.library_view.get_selection()
+                model, iter = selection.get_selected()
+                if not iter: return
+                value, type = model.get_value(iter, 1), "directory"
+            else:  # search box
+                if self.search_entry.get_text() == "": return
+                value, type = self.search_entry.get_text(), "search"
+            self.source.set(value, type).add_callback(cb_video_set)
+
+    def build_library(self):
+        # filename, path, type, icon stock id
+        library_content = gtk.ListStore(str, str, str, str)
+        self.library_view = DjmoteTreeView(library_content)
+        self.library_view.set_grid_lines()
+        self.library_view.set_fixed_height_mode(True)
+
+        col = gtk.TreeViewColumn("Filename")
         col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        # construct title
+        col.set_fixed_width(300)
+        # construct icon
+        icon = gtk.CellRendererPixbuf()
+        icon.set_property("xpad",4)
+        col.pack_start(icon,expand = False)
+        col.set_attributes(icon, stock_id = 3)
+        # construct filename
         title = gtk.CellRendererText()
+        title.set_property("ellipsize",pango.ELLIPSIZE_END)
         title.set_property("font-desc",pango.FontDescription("Sans Normal 13"))
         col.pack_start(title)
-        col.set_attributes(title, text = 1)
+        col.set_attributes(title, text = 0)
 
-        self.video_view.append_column(col)
+        self.library_view.append_column(col)
+        self.library_view.connect("row-activated",self.update_library)
+        self.update_library()
 
-        # Signals
-        self.video_view.connect("row-activated",self.cb_row_activate)
+        # Set tree inside a ScrolledWindow
+        return DjmoteTreeBox(self.library_view)
 
-        return self.video_view
+    def update_library(self,treeview = None, path = None, view_column = None):
+        model = self.library_view.get_model()
+        if treeview == None: root_dir = ""
+        else:
+            iter = model.get_iter(path)
+            type =  model.get_value(iter,2)
+            if type != "directory":
+                return
+            root_dir = model.get_value(iter,1)
 
-    def _build_toolbar(self):
-        toolbar = gtk.Toolbar()
-        toolbar.set_style(gtk.TOOLBAR_BOTH_HORIZ)
+        @gui_callback
+        def cb_build(answer):
+            model = self.library_view.get_model()
+            model.clear()
 
-        refresh = gtk.ToolButton(gtk.STOCK_REFRESH)
-        refresh.connect("clicked",self.cb_update_library)
-        toolbar.insert(refresh,0)
+            if answer.root_dir != "":
+                parent_dir = os.path.dirname(answer.root_dir)
+                model.append(["..",parent_dir,"directory", gtk.STOCK_GOTO_TOP])
+            for dir in answer.get_directories():
+                model.append([dir, \
+                    os.path.join(answer.root_dir,dir), "directory",\
+                    gtk.STOCK_DIRECTORY])
 
-        return toolbar
-
-    def _build_label(self, status):
-        self._destroy_label()
-        self.__video_label = gtk.Label("%s Videos" % status["videolength"])
-        self.__video_label.show()
-        self.toolbar_box.pack_start(self.__video_label, expand = False, \
-            fill = False)
-
-    def _destroy_label(self):
-        if self.__video_label:
-            self.__video_label.destroy()
-            self.__video_label = None
-
-    #
-    # callbacks
-    #
-    @gui_callback
-    def cb_build_list(self, answer):
-        model = self.video_view.get_model()
         model.clear()
+        model.append(["Update video dir/file list..","","message",\
+                gtk.STOCK_REFRESH])
+        self.server.get_video_dir(root_dir).add_callback(cb_build)
 
-        try: answer.get_contents()
-        except DeejaydError, err:
-            self._player.set_error(err)
-            return
+    def search_box(self):
+        vbox = gtk.VBox()
+        label = gtk.Label("Enter search words")
+        vbox.pack_start(label, expand = False, fill = False)
+        self.search_entry = gtk.Entry(64)
+        vbox.pack_start(self.search_entry)
 
-        for media in answer.get_medias():
-            model.append([media["id"], media["title"]])
-
-    @gui_callback
-    def cb_update_trigger(self, ans):
-        try: self.__update_id = ans["video_updating_db"]
-        except DeejaydError, err:
-            self._player.set_error(err)
-            return
-
-        # create a progress bar but first destroy label
-        self._destroy_label()
-        self.progress_bar = gtk.ProgressBar()
-        self.progress_bar.set_pulse_step(0.1)
-        self.progress_bar.show()
-        self.toolbar_box.pack_start(self.progress_bar, expand = False, \
-            fill = False)
-
-        # update status every second
-        def update_verif():
-            def cb_verif(ans):
-                status = ans.get_contents()
-                try : id = status["video_updating_db"]
-                except KeyError:
-                    self.progress_bar.set_fraction(1.0)
-                    del self.__update_id
-                    self.progress_bar.destroy()
-                    del self.progress_bar
-                    self._player.set_banner("Video library has been updated")
-                else:
-                    gobject.timeout_add(1000,update_verif)
-
-            self.progress_bar.pulse()
-            server = self._player.get_server()
-            server.get_status().add_callback(cb_verif)
-
-        gobject.timeout_add(1000,update_verif)
-
-    def cb_row_activate(self, treeview, path, view_column):
-        model = treeview.get_model()
-        iter = model.get_iter(path)
-        self._player.go_to(model.get_value(iter,0))
-
-    def cb_update_library(self,widget, data = None):
-        server = self._player.get_server()
-        server.update_video_library().add_callback(self.cb_update_trigger)
-
-    def __reset_tree(self):
-        model = self.video_view.get_model()
-        model.clear()
-        model.append([0, "Update video list.."])
+        return vbox
 
 # vim: ts=4 sw=4 expandtab

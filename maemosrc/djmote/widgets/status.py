@@ -18,181 +18,179 @@
 
 import gobject,gtk,hildon,pango
 from djmote import stock
+from djmote.const import SHOW_TIMEOUT
+from deejayd.net.client import DeejaydError
+from djmote.utils.decorators import gui_callback
+from djmote.widgets._base import _BaseWidget, DjmoteTextButton, format_time
 
-class StatusBox(gtk.HBox):
+class StatusBox(_BaseWidget):
+    # toolbar
+    __sigs = {}
+    __btns = {}
 
-    def __init__(self,player):
-        gtk.HBox.__init__(self)
+    def __init__(self, ui):
+        self._signals = [ ("player.current", "update_media") ]
+        self._signal_ids = []
+        self.widget = gtk.HBox()
+
+        self.server = ui.get_server()
+        self.__timeout = None
 
         # toolbar
-        toolbar = Toolbar(player)
-        self.pack_start(toolbar)
+        toolbar = gtk.Toolbar()
+        quit = gtk.ToggleToolButton(gtk.STOCK_QUIT)
+        quit.connect("clicked",ui.destroy)
+        toolbar.insert(quit, 0)
+        # separator
+        sep = gtk.SeparatorToolItem()
+        sep.set_draw(True)
+        toolbar.insert(sep, 1)
+        options = {"random":stock.DJMOTE_SHUFFLE,"repeat": stock.DJMOTE_REPEAT}
+        i = 2
+        for opt in options.keys():
+            self.__btns[opt] = gtk.ToggleToolButton(options[opt])
+            self.__btns[opt].set_sensitive(False)
+            self.__sigs[opt] = self.__btns[opt].connect("clicked",\
+                self.set_option,opt)
+            toolbar.insert(self.__btns[opt],i)
+            i += 1
+        self.widget.pack_start(toolbar)
+
         # current media
-        self.pack_start(Current(player))
-
-class Current(gtk.HBox):
-
-    def __init__(self,player):
-        gtk.HBox.__init__(self)
-        self.__player = player
-        player.connect("connected", self.update_status)
-        player.connect("update-status", self.update_status)
-        player.connect("disconnected", self.cb_disable)
-
+        current = gtk.HBox()
         # name of current song
-        self.__label = gtk.Label("")
-        self.__label.set_line_wrap(True)
-        self.__label.modify_font(pango.FontDescription("Sans Italic 13"))
-        self.__label.set_justify(gtk.JUSTIFY_CENTER)
-        self.__label.set_size_request(250,50)
-        self.pack_start(self.__label, fill = False)
+        self.__curlabel = gtk.Label("")
+        self.__curlabel.set_line_wrap(True)
+        self.__curlabel.modify_font(pango.FontDescription("Sans Italic 13"))
+        self.__curlabel.set_justify(gtk.JUSTIFY_CENTER)
+        self.__curlabel.set_size_request(250,50)
+        current.pack_start(self.__curlabel, fill = False)
         # seekbar
-        self.__seekbar = Seekbar(player)
-        self.pack_start(self.__seekbar)
-        # time button
-        self.__time_button = gtk.Button(label = "0/0")
-        self.__time_button.connect("clicked",self.__toggle_display)
-        self.pack_start(self.__time_button, expand = False, fill = False)
+        self.__action = None
+        self.__seekbar = hildon.Seekbar()
+        self.__seekbar.set_size_request(250,50)
+        self.__seekbar.set_sensitive(False)
+        self.__sigs["seekbar"] = self.__seekbar.connect_after("change-value",\
+            self.set_position)
+        current.pack_start(self.__seekbar)
+        self.widget.pack_start(current)
 
-        self.connect("show",self.post_show_action)
+        # time button
+        self.__time_button = DjmoteTextButton("0:00/0:00")
+        self.__time_button.connect("clicked",self.show_seekbar)
+        self.widget.pack_start(self.__time_button, expand=False, fill=False)
+
+        self.widget.connect("show",self.post_show_action)
+        ui.connect("update-status",self.update_status)
+        ui.connect("connected",self.ui_connected)
+        ui.connect("disconnected",self.ui_disconnected)
+
+    def ui_connected(self, ui, status):
+        gobject.idle_add(self.subscribe)
+        for btn in self.__btns.values():
+            btn.set_sensitive(True)
+        self.update_media(False)
+        self.update_status(ui, status)
+
+    def ui_disconnected(self, ui):
+        self._signal_ids = []
+        self.__reset_current()
+        for btn in self.__btns.values():
+            btn.set_sensitive(False)
+
+    def update_status(self, ui, status):
+        if status["state"] != "stop": self.__update_current_status(status)
+        else: self.__reset_current()
+
+        for (opt, btn) in self.__btns.items():
+            value = btn.get_active() and 1 or 0
+            if status[opt] != value:
+                # Block signal
+                btn.handler_block(self.__sigs[opt])
+                new_v = not btn.get_active()
+                btn.set_active(new_v)
+                # Unblock signal
+                btn.handler_unblock(self.__sigs[opt])
 
     def post_show_action(self, ui = None):
         self.__seekbar.hide()
 
-    def update_status(self, ui, status):
-        if status["state"] != "stop":
-            server = ui.get_server()
-            server.get_current().add_callback(self.cb_update_current)
-            # update time
-            times = status["time"].split(":")
-            self.__time_button.set_label("%s/%s" % (times[0],times[1]))
-            self.__time_button.set_sensitive(True)
-            # update seekbar
-            self.__seekbar.update_time(int(times[0]),int(times[1]))
-        else:
-            self.cb_disable()
+    def set_option(self, widget, opt):
+        value = self.__btns[opt].get_active() and 1 or 0
+        self.execute(self.server.set_option, opt, value)
 
-    def cb_update_current(self, current):
-        # update media title
-        media = current.get_medias()[0]
-        if media["type"] == "song":
-            title = "%s (%s)" % (media["title"], media["artist"])
-        else:
-            title = media["title"]
-        self.__label.set_text(title)
+    def hide_seekbar(self):
+        self.__curlabel.show_all()
+        self.__seekbar.hide()
 
-    def cb_disable(self):
-        self.__label.set_text("No playing media")
-        self.__time_button.set_label("0/0")
-        self.__seekbar.disable_seekbar()
+    def show_seekbar(self, widget):
+        if self.__timeout:
+            gobject.source_remove(self.__timeout)
+        self.__curlabel.hide()
+        self.__seekbar.show_all()
+        self.__timeout = gobject.timeout_add(SHOW_TIMEOUT, self.hide_seekbar)
 
-    def __toggle_display(self, widget):
-        if self.__label.get_property("visible") == True:
-            self.__label.hide()
-            self.__seekbar.show_all()
-        else:
-            self.__label.show_all()
-            self.__seekbar.hide()
+    def set_position(self, widget, scroll, value):
+        def cb_timeout_seek(pos):
+            self.execute(self.server.seek, pos)
+            self.__action = None
+            return False
 
-class Seekbar(hildon.Seekbar):
-
-    def __init__(self, player):
-        hildon.Seekbar.__init__(self)
-        self.set_size_request(250,50)
-        self.__action = None
-
-        self.set_sensitive(False)
-        self.__signal = self.connect_after("change-value", self.cb_seek_to,\
-                player)
-        self.show()
-
-    def update_time(self, current_time, total_time):
-        self.set_sensitive(True)
-        self.handler_block(self.__signal)
-        self.set_total_time(total_time)
-        self.set_fraction(total_time)
-        self.set_position(current_time)
-        self.handler_unblock(self.__signal)
-
-    def disable_seekbar(self):
-        self.set_sensitive(False)
-        self.handler_block(self.__signal)
-        self.set_position(0);
-        self.set_fraction(0)
-        self.handler_unblock(self.__signal)
-
-    def cb_seek_to(self, widget, scroll, value, player):
-        pos = self.get_position()
+        if self.__timeout:
+            gobject.source_remove(self.__timeout)
+            self.__timeout = gobject.timeout_add(SHOW_TIMEOUT,self.hide_seekbar)
+        pos = self.__seekbar.get_position()
         if scroll in (gtk.SCROLL_PAGE_FORWARD,gtk.SCROLL_PAGE_BACKWARD):
-            player.seek(pos)
+            self.execute(self.server.seek, pos)
         elif scroll == gtk.SCROLL_JUMP:
             if self.__action != None: gobject.source_remove(self.__action)
-            self.__action = gobject.timeout_add(250,self.cb_timeout_seek,\
-                                player,pos)
+            self.__action = gobject.timeout_add(250,cb_timeout_seek,pos)
 
-    def cb_timeout_seek(self,player,pos):
-        player.seek(pos)
-        self.__action = None
+    def update_media(self, reset_time = True):
+        @gui_callback
+        def cb_update_media(current):
+            # update media title
+            try: media = current.get_medias()[0]
+            except (DeejaydError, IndexError, TypeError):
+                self.__reset_current()
+                return
+            title = media["title"]
+            if media["type"] == "song":
+                title += " (%s)" % media["artist"]
+            self.__curlabel.set_text(title)
+            if reset_time:
+                try: length = int(media["length"])
+                except (KeyError, TypeError):
+                    length = 0
+                self.__update_seekbar(0, length)
+        self.server.get_current().add_callback(cb_update_media)
 
+    #
+    # internal function
+    #
+    def __update_current_status(self, status):
+        # update time
+        times = status["time"].split(":")
+        self.__time_button.set_label("%s/%s" %\
+             (format_time(int(times[0])),format_time(int(times[1]))))
+        self.__time_button.set_sensitive(True)
+        # update seekbar
+        self.__update_seekbar(int(times[0]), int(times[1]))
 
-class Toolbar(gtk.Toolbar):
+    def __reset_current(self):
+        self.__curlabel.set_text("No playing media")
+        self.__time_button.set_label("0:00/0:00")
+        self.__update_seekbar(0, 0)
 
-    def __init__(self,player):
-        gtk.Toolbar.__init__(self)
-        self.__player = player
-        self.__contents = {}
-        self.__signals = {}
-
-        # build toolbar
-        options = {"random":stock.DJMOTE_SHUFFLE,"repeat": stock.DJMOTE_REPEAT}
-        i = 0
-        for opt in options.keys():
-            self.__contents[opt] = gtk.ToggleToolButton(options[opt])
-            self.__contents[opt].set_sensitive(False)
-            self.__signals[opt] = self.__contents[opt].connect("clicked",\
-                                    self.set_option,opt)
-            self.insert(self.__contents[opt],i)
-            i += 1
-
-        # separator
-        sep = gtk.SeparatorToolItem()
-        sep.set_draw(True)
-        self.insert(sep,2)
-
-        refresh = gtk.ToolButton(gtk.STOCK_REFRESH)
-        refresh.set_sensitive(False)
-        refresh.connect("clicked",self.__player.update_ui)
-        self.insert(refresh,3)
-
-        # signals
-        player.connect("update-status", self.update_status)
-        player.connect("connected", self.ui_connected)
-        player.connect("disconnected", self.ui_disconnected)
-
-    def ui_connected(self, ui, status):
-        for i in range(self.get_n_items()):
-            button = self.get_nth_item(i)
-            button.set_sensitive(True)
-        self.update_status(ui, status)
-
-    def ui_disconnected(self, ui):
-        for i in range(self.get_n_items()):
-            button = self.get_nth_item(i)
-            button.set_sensitive(False)
-
-    def update_status(self, ui, status):
-        for option in self.__contents.keys():
-            value = self.__contents[option].get_active() and 1 or 0
-            if status[option] != value:
-                # Block signal
-                self.__contents[option].handler_block(self.__signals[option])
-                new_v = not self.__contents[option].get_active()
-                self.__contents[option].set_active(new_v)
-                # Unblock signal
-                self.__contents[option].handler_unblock(self.__signals[option])
-
-    def set_option(self,widget,data):
-        value = self.__contents[data].get_active() and 1 or 0
-        self.__player.set_option(data,value)
+    def __update_seekbar(self, current, total):
+        sens = True
+        if total == 0:
+            sens = False
+        self.__seekbar.set_sensitive(sens)
+        self.__seekbar.handler_block(self.__sigs["seekbar"])
+        self.__seekbar.set_total_time(total)
+        self.__seekbar.set_fraction(total)
+        self.__seekbar.set_position(current);
+        self.__seekbar.handler_unblock(self.__sigs["seekbar"])
 
 # vim: ts=4 sw=4 expandtab

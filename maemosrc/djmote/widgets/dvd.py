@@ -20,77 +20,47 @@ import os
 import gtk
 from deejayd.net.client import DeejaydError
 from djmote.utils.decorators import gui_callback
-from djmote.widgets._base import SourceBox,fraction_seconds
+from djmote.widgets._base import _BaseSourceBox, format_time
 
-class DvdBox(SourceBox):
+class DvdBox(_BaseSourceBox):
+    use_toggled = False
+    _toolbar_items = [
+        (gtk.STOCK_REFRESH, "reload"),
+        ]
 
     def __init__(self, player):
-        SourceBox.__init__(self, player)
-        self.__dvd_id = None
-        self.__dvd_title = None
+        self._signals = [ ("dvd.update", "update") ]
+        self._signal_ids = []
+        _BaseSourceBox.__init__(self, player)
 
-    def update_status(self, status):
-        if self.__dvd_id == None or status["dvd"] != self.__dvd_id:
-            self.__dvd_id = status["dvd"]
-            server = self._player.get_server()
-            server.get_dvd_content().add_callback(self.cb_build_content)
+    def update(self, signal = None):
+        self.server.get_dvd_content().add_callback(self.cb_update)
 
-    #
-    # widget creation functions
-    #
-    def _build_tree(self):
-        # ListStore
-        # id, title, length
-        dvd_content = gtk.ListStore(str, str, str)
-        self.dvd_view = self._create_treeview(dvd_content)
-        self.dvd_view.set_fixed_height_mode(True)
-
-        # create columns
-        self._build_text_columns(self.dvd_view, \
-            [("Title",1,300),("Length",2,100)])
-
-        # signals
-        self.dvd_view.connect("row-activated", self.cb_play)
-        return self.dvd_view
-
-    def _build_toolbar(self):
-        dvd_toolbar = gtk.Toolbar()
-
-        refresh_bt = gtk.ToolButton(gtk.STOCK_REFRESH)
-        refresh_bt.connect("clicked",self._player.dvd_reload)
-        dvd_toolbar.insert(refresh_bt,0)
-
-        return dvd_toolbar
-
-    #
-    # callbacks
-    #
-    def cb_play(self,treeview, path, view_column):
-        model = self.dvd_view.get_model()
-        iter = model.get_iter(path)
-        id =  model.get_value(iter,0)
-        self._player.go_to(id)
+    def reload(self, widget):
+        self.set_loading()
+        self.server.dvd_reload().add_callback(self.cb_dvd_reload)
 
     @gui_callback
-    def cb_build_content(self, answer):
-        if self.__dvd_title:
-            self.__dvd_title.destroy()
-        model = self.dvd_view.get_model()
-        model.clear()
+    def cb_dvd_reload(self, answer):
+        try: answer.get_contents()
+        except DeejaydError, err:
+            model = self.tree_view.get_model()
+            model.clear()
+            model.append([False, 0, err])
 
+    @gui_callback
+    def cb_update(self, answer):
         try: content = answer.get_dvd_contents()
-        except DeejaydError, err: self._player.set_error(err)
-        else:
-            # update title
-            self.__dvd_title = gtk.Label(content['title'])
-            self.toolbar_box.pack_start(self.__dvd_title, expand = False,\
-                fill = False)
-            self.__dvd_title.show()
+        except DeejaydError, err:
+            self.error(err)
+            return
 
-            # update track
-            for track in content["track"]:
-                model.append([track['ix'], "Title "+ track['ix'],\
-                              fraction_seconds(track['length'],True)])
+        model = self.tree_view.get_model()
+        model.clear()
+        for track in content['track']:
+            text = "  Title %s\n\tlength : <i>%s</i>"\
+                % (track['ix'], format_time(int(track['length'])))
+            model.append([False, int(track["ix"]), text])
 
 
 # vim: ts=4 sw=4 expandtab

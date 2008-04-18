@@ -19,122 +19,44 @@
 import os
 import gtk
 from djmote.utils.decorators import gui_callback
-from deejayd.net.client import DeejaydWebradioList, DeejaydError
-from djmote.widgets._base import SourceBox
+from deejayd.net.client import DeejaydError
+from djmote.widgets._base import _BaseSourceBox, _BaseWidget
 
-class WebradioBox(SourceBox, DeejaydWebradioList):
+
+class WebradioBox(_BaseSourceBox):
+    _toolbar_items = [
+        (gtk.STOCK_ADD, "add_dialog"),
+        (gtk.STOCK_REMOVE, "remove_webradio"),
+        (gtk.STOCK_CLEAR, "clear"),
+        ]
 
     def __init__(self, player):
-        SourceBox.__init__(self, player)
-        DeejaydWebradioList.__init__(self, player.get_server())
-        self.__wb_id = None
-        self.__webradio_label = None
+        self._signals = [ ("webradio.listupdate", "update") ]
+        self._signal_ids = []
+        self.source = player.get_webradios()
+        _BaseSourceBox.__init__(self, player)
 
-    def update_status(self, status):
-        if self.__wb_id == None or status["webradio"] != self.__wb_id:
-            self.__wb_id = status["webradio"]
-            self._build_label(status)
-            self.get().add_callback(self.cb_build_list)
+    def _format_text(self, m):
+        return "%s\n\t<i>%s</i>" % (m["title"], m["url"])
 
-    def _build_tree(self):
-        # ListStore
-        # id, title, url, toggled
-        wb_content = gtk.ListStore(int, str, str, 'gboolean')
+    def remove_webradio(self, widget):
+        ids = self.get_selection()
+        if ids != []:
+            self.set_loading()
+            self.execute(self.source.delete_webradios, ids)
 
-        # View
-        # title, url
-        self.__wb_view = self._create_treeview(wb_content)
-        self.__wb_view.set_fixed_height_mode(True)
+    def clear(self, widget):
+        self.set_loading()
+        self.execute(self.source.clear)
 
-        # create columns
-        tog_col = self._build_select_column(self.cb_col_toggled, 3)
-        self.__wb_view.append_column(tog_col)
-
-        self._build_text_columns(self.__wb_view,[("Title",1,150),("URL",2,300)])
-
-        # signals
-        self.__wb_view.connect("row-activated",self.cb_play)
-
-        return self.__wb_view
-
-    def _build_toolbar(self):
-        wb_toolbar = gtk.Toolbar()
-
-        add_bt = gtk.ToolButton(gtk.STOCK_ADD)
-        add_bt.connect("clicked",self.cb_add_dialog)
-        wb_toolbar.insert(add_bt,0)
-
-        del_bt = gtk.ToolButton(gtk.STOCK_REMOVE)
-        del_bt.connect("clicked",self.cb_remove_webradio)
-        wb_toolbar.insert(del_bt,1)
-
-        clear_bt = gtk.ToolButton(gtk.STOCK_CLEAR)
-        clear_bt.connect("clicked",self.cb_clear)
-        wb_toolbar.insert(clear_bt,2)
-
-        return wb_toolbar
-
-    def _build_label(self, status):
-        if self.__webradio_label:
-            self.__webradio_label.destroy()
-            self.__webradio_label = None
-
-        self.__webradio_label = gtk.Label("%s Webradios" % \
-                status["webradiolength"])
-        self.__webradio_label.show()
-        self.toolbar_box.pack_start(self.__webradio_label, expand = False, \
-            fill = False)
-
-    #
-    # callbacks
-    #
-    @gui_callback
-    def cb_build_list(self, answer):
-        model = self.__wb_view.get_model()
-        model.clear()
-        try: media_list = answer.get_medias()
-        except DeejaydError, err: self._player.set_error(err)
-        else:
-            for w in media_list:
-                model.append([w["id"], w["title"], w["url"], False])
-
-    def cb_play(self,treeview, path, view_column):
-        model = self.__wb_view.get_model()
-        iter = model.get_iter(path)
-        id =  model.get_value(iter,0)
-        self._player.go_to(id)
-
-    def cb_col_toggled(self, cell, path):
-        model = self.__wb_view.get_model()
-        model[path][3] = not model[path][3]
-
-    def cb_remove_webradio(self, widget):
-        self.ids = []
-        wb_model = self.__wb_view.get_model()
-        def create_selection(model, path, iter):
-            toggled =  model.get_value(iter,3)
-            if toggled:
-                self.ids.append(model.get_value(iter,0))
-        wb_model.foreach(create_selection)
-
-        self.delete_webradios(self.ids).add_callback(\
-            self._player.cb_update_status)
-        del self.ids
-
-    def cb_clear(self, widget):
-        self.clear().add_callback(self._player.cb_update_status)
-
-    def cb_add_webradio(self,name,url):
-        self.add_webradio(name,url).add_callback(self._player.cb_update_status)
-
-    def cb_add_dialog(self, widget):
-        dialog = AddDialog(self)
+    def add_dialog(self, widget):
+        AddDialog(self.source)
 
 
-class AddDialog(gtk.Dialog):
+class AddDialog(gtk.Dialog,_BaseWidget):
 
     def __init__(self, webradio):
-        self.__webradio = webradio
+        self.source = webradio
         gtk.Dialog.__init__(self,"Add Webradio",None,\
             gtk.DIALOG_DESTROY_WITH_PARENT,
              (gtk.STOCK_ADD, gtk.RESPONSE_OK,\
@@ -153,17 +75,25 @@ class AddDialog(gtk.Dialog):
         layout.attach(self.url_entry, 1, 2, 1, 2)
 
         self.vbox.pack_start(layout)
-        self.connect("response", self.cb_response)
+        self.connect("response", self.cb_response, webradio)
         self.show_all()
 
-    def cb_response(self, dialog, response_id):
+    def cb_response(self, dialog, response_id, webradio):
         if response_id == gtk.RESPONSE_CANCEL:
             self.destroy()
         elif response_id == gtk.RESPONSE_OK:
             name = self.name_entry.get_text()
             url = self.url_entry.get_text()
             if name != "" and url != "":
-                self.__webradio.cb_add_webradio(name,url)
-                self.destroy()
+                self.source.add_webradio(name, url).\
+                    add_callback(self.cb_add_webradio)
+
+    @gui_callback
+    def cb_add_webradio(self, answer):
+        try: answer.get_contents()
+        except DeejaydError, err:
+            self.error(err)
+        else:
+            self.destroy()
 
 # vim: ts=4 sw=4 expandtab

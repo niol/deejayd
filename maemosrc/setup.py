@@ -42,7 +42,8 @@ if __name__ == "__main__":
            scripts=["scripts/djmote"],
            packages=["deejayd","deejayd.net","djmote",\
                      "djmote.widgets","djmote.utils"],
-           package_data={'djmote': ['pixmaps/24x24/*','pixmaps/72x72/*']},
+           package_data={'djmote': ['pixmaps/24x24/*','pixmaps/72x72/*',\
+                                    'data/gtkrc',"data/images/*"]},
            data_files=data_files
         )
 # vim: ts=4 sw=4 expandtab

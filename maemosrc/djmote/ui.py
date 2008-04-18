@@ -32,26 +32,27 @@ from djmote import stock, const
 from djmote.widgets.controls import ControlBox
 from djmote.widgets.status import StatusBox
 from djmote.widgets.mode import ModeBox
-from djmote.widgets.dialogs import *
+from djmote.widgets._base import _BaseWidget
 from djmote.utils.decorators import gui_callback
 
 osso_c = osso.Context("djmote", "0.1.0", False)
 
-class DjmoteUI(hildon.Program):
+class DjmoteUI(hildon.Program, _BaseWidget):
 
     global osso_c
     __gsignals__ = {
         'update-status':(gobject.SIGNAL_RUN_LAST,gobject.TYPE_NONE,(object,)),
         'connected':(gobject.SIGNAL_RUN_LAST,gobject.TYPE_NONE,(object,)),
-        'disconnected':(gobject.SIGNAL_RUN_LAST,gobject.TYPE_NONE,()),
+        'disconnected':(gobject.SIGNAL_RUN_FIRST,gobject.TYPE_NONE,()),
         }
 
     def __init__(self):
         hildon.Program.__init__(self)
+        # parse custom rc file
+        gtk.rc_parse(const.GTKRC_FILE)
         self.__deejayd = DeejayDaemonAsync()
         self.__deejayd.add_connect_callback(self.connect_callback)
         self.__deejayd.add_error_callback(self.error_callback)
-        self.volume = 0
 
         # Conf
         conffile = os.path.expanduser('~/.djmoterc')
@@ -60,20 +61,12 @@ class DjmoteUI(hildon.Program):
         # Custom Icons
         stock.init()
 
-    def get_server(self):
-        return self.__deejayd
-
     def build(self):
         self.main_window = hildon.Window()
         self.main_window.connect("destroy", self.destroy)
         self.main_window.connect("key-press-event", self.key_press)
         self.add_window(self.main_window)
         self.__fullscreen = False
-
-        # Connect window
-        self.connect_window = ConnectDialog(self.main_window,
-                                            self.__conf,
-                                            self.connect_to_server)
 
         # Menu
         menu = DjmoteMenu(self)
@@ -84,26 +77,20 @@ class DjmoteUI(hildon.Program):
         self.main_window.add(main_box)
 
         # status
-        main_box.pack_start(StatusBox(self), expand = False, fill = False)
+        main_box.pack_start(StatusBox(self).widget, expand=False, fill=False)
 
         bottom_box = gtk.HBox(spacing = 5)
         main_box.pack_end(bottom_box)
         # controls
-        bottom_box.pack_end(ControlBox(self), expand=False, fill=False)
+        bottom_box.pack_end(ControlBox(self).widget, expand=False, fill=False)
         # mode
         bottom_box.pack_start(ModeBox(self))
 
-        # message status
-        self.status_box = gtk.HBox()
-        bottom_box.pack_start(self.status_box)
+    def get_server(self):
+        return self.__deejayd
 
-    def set_msg_status(self, msg):
-        # remove previous msg
-        for child in self.status_box.get_children():
-            child.destroy()
-        label = gtk.Label(msg)
-        self.status_box.pack_start(label)
-        self.status_box.show_all()
+    def get_window(self):
+        return self.main_window
 
     def run(self):
         self.main_window.show_all()
@@ -125,175 +112,109 @@ class DjmoteUI(hildon.Program):
 
     def key_press(self, widget, event):
         if not self.__deejayd.is_connected(): return False
-
-        if event.keyval == const.KEY_ENTER:
-            self.play_toggle()
-        elif event.keyval == const.KEY_LEFT:
-            self.previous()
-        elif event.keyval == const.KEY_RIGHT:
-            self.next()
-        elif event.keyval == const.KEY_FULLSCREEN:
+        if event.keyval == const.KEY_FULLSCREEN:
             if self.__fullscreen:
                 self.main_window.unfullscreen()
                 self.__fullscreen = False
             else:
                 self.main_window.fullscreen()
                 self.__fullscreen = True
-        elif event.keyval == const.KEY_VOLUME_UP:
-            val = self.volume + const.VOLUME_STEP
-            self.set_banner("increase volume to %d" % val)
-            self.__deejayd.set_volume(val).add_callback(self.cb_update_status)
-        elif event.keyval == const.KEY_VOLUME_DOWN:
-            val = self.volume - const.VOLUME_STEP
-            self.set_banner("decrease volume to %d" % val)
-            self.__deejayd.set_volume(val).add_callback(self.cb_update_status)
         else: return False
-        return True
-
-    def is_connected(self):
-        return self.__deejayd.is_connected()
 
     def connect_to_server(self, widget, data):
         self.disconnect_to_server()
-        self.set_msg_status("Try to connect to server...")
         self.__deejayd.connect(data['host'], data['port'])
 
     def disconnect_to_server(self, widget = None, data = None):
-        self.status_box.hide()
-        if self.is_connected(): self.emit('disconnected')
+        if self.__deejayd.is_connected(): self.emit('disconnected')
         self.__deejayd.disconnect()
 
     def show_connect_window(self, widget=None):
-        self.connect_window.show()
+        ConnectDialog(self.main_window, self.__conf, self.connect_to_server)
 
     def set_banner(self, msg):
         note = osso.SystemNote(osso_c)
         note.system_note_infoprint(msg)
 
-    # Player Commands
-    def update_ui(self, widget = None, data = None):
-        self.__deejayd.get_status().add_callback(self.cb_get_status)
-
-    def play_toggle(self, widget = None, data = None):
-        self.__deejayd.play_toggle().add_callback(self.cb_update_status)
-
-    def go_to(self, id):
-        self.__deejayd.go_to(id).add_callback(self.cb_update_status)
-
-    def stop(self, widget = None, data = None):
-        self.__deejayd.stop().add_callback(self.cb_update_status)
-
-    def next(self, widget = None, data = None):
-        self.__deejayd.next().add_callback(self.cb_update_status)
-
-    def previous(self, widget = None, data = None):
-        self.__deejayd.previous().add_callback(self.cb_update_status)
-
-    def seek(self, pos):
-        self.__deejayd.seek(pos).add_callback(self.cb_update_status)
-
-    def set_volume(self, volume):
-        self.__deejayd.set_volume(volume).add_callback(self.cb_update_status)
-
-    def set_video_dir(self,dir):
-        self.__deejayd.set_video_dir(dir).add_callback(self.cb_update_status)
-
-    def set_option(self,option_name,option_value):
-        self.__deejayd.set_option(option_name,option_value).add_callback(\
-                                                        self.cb_update_status)
-
-    def set_mode(self, mode):
-        self.__deejayd.set_mode(mode).add_callback(self.cb_update_status)
-
-    def dvd_reload(self, widget, data = None):
-        self.__deejayd.dvd_reload().add_callback(self.cb_update_status)
-
-    def set_error(self, error):
-        ErrorDialog(self.main_window, error)
+    def update_ui(self, data = None):
+        self.__deejayd.get_status().add_callback(self.cb_update_ui)
 
     @gui_callback
     def error_callback(self,msg):
-        self.set_error(msg)
+        self.error(msg)
         self.emit('disconnected')
 
     @gui_callback
-    def connect_callback(self,rs,msg):
-        self.status_box.hide()
-        if rs == False:
-            self.set_error(msg)
+    def connect_callback(self, rs, msg):
+        if rs == False: self.error(msg)
         else:
+            gobject.idle_add(self.set_subscription)
             # get player status
             self.__deejayd.get_status().add_callback(self.cb_connect_status)
 
     @gui_callback
     def cb_connect_status(self,answer):
-        try: answer.get_contents()
-        except DeejaydError, err: self.set_error(err)
+        try: status = answer.get_contents()
+        except DeejaydError, err: self.error(err)
         else:
-            # record volume
-            self.volume = answer["volume"]
-            self.emit('connected', answer)
+            self.emit('connected', status)
 
     @gui_callback
-    def cb_update_status(self, answer):
-        try: contents = answer.get_contents()
-        except DeejaydError, err: self.set_error(err)
+    def cb_update_ui(self, answer):
+        try: status = answer.get_contents()
+        except DeejaydError, err: self.error(err)
         else:
-            if contents:
-                self.update_ui()
-            else: self.set_error("Unknown Error")
+            self.emit("update-status",answer)
 
-    @gui_callback
-    def cb_get_status(self, answer):
-        try: answer.get_contents()
-        except DeejaydError, err: self.set_error(err)
-        else:
-            # record volume
-            try: self.volume = answer["volume"]
-            except TypeError:
-                #self.set_error("Strange, unable to get status")
-                print "Strange, unable to get status"
-            else:
-                self.emit("update-status",answer)
+    def set_subscription(self):
+        self.__sig_id = self.__deejayd.subscribe('player.status',self.update_ui)
 
 
-class DjmoteMenu(gtk.Menu):
+class DjmoteMenu(gtk.Menu, _BaseWidget):
 
-    def __init__(self, player):
+    def __init__(self, ui):
         gtk.Menu.__init__(self)
-        self.__player = player
+        self.server = ui.get_server()
         self.__mode_menu = None
         self.mode_menu = None
+        self.refresh_menu = None
 
         # build menu
         menu_connect = gtk.MenuItem("Connect...")
-        menu_connect.connect("activate", self.__player.show_connect_window)
+        menu_connect.connect("activate", ui.show_connect_window)
         self.append(menu_connect)
 
         menu_disconnect = gtk.MenuItem("Disconnect...")
-        menu_disconnect.connect("activate", self.__player.disconnect_to_server)
+        menu_disconnect.connect("activate", ui.disconnect_to_server)
         self.append(menu_disconnect)
 
         menu_quit = gtk.MenuItem("Quit")
-        menu_quit.connect("activate", self.__player.destroy)
+        menu_quit.connect("activate", ui.destroy)
         self.append(menu_quit)
 
         # Signals
-        self.__player.connect("connected", self.build_mode_menu)
-        self.__player.connect("disconnected", self.erase_mode_menu)
-        self.__player.connect("update-status", self.update_mode_menu)
+        ui.connect("connected", self.connected)
+        ui.connect("disconnected", self.disconnected)
+        ui.connect("update-status", self.update_mode_menu)
         self.show_all()
 
-    def build_mode_menu(self, ui, status):
+    def connected(self, ui, status):
+        if self.refresh_menu: self.refresh_menu.destroy()
+        self.refresh_menu = gtk.MenuItem("Refresh")
+        self.refresh_menu.connect("activate", ui.update_ui)
+        self.insert(self.refresh_menu, 1)
+        self.show_all()
+        # list modes
         mode = status["mode"]
-        self.__mode_menu = {"current": mode, "items":{}, \
-            "signals": {}}
-        server = self.__player.get_server()
-        server.get_mode().add_callback(self.cb_build_mode_menu)
+        self.__mode_menu = {"current": mode, "items":{}, "signals": {}}
+        self.server.get_mode().add_callback(self.cb_build_mode_menu)
 
-    def erase_mode_menu(self, ui):
-        self.__mode_menu = None
+    def disconnected(self, ui):
+        if self.refresh_menu:
+            self.refresh_menu.destroy()
+            self.refresh_menu = None
         # remove mode submenu
+        self.__mode_menu = None
         if self.mode_menu:
             self.mode_menu.destroy()
             self.mode_menu = None
@@ -309,8 +230,9 @@ class DjmoteMenu(gtk.Menu):
                 self.__mode_menu["signals"][mode])
 
     def set_mode(self, menuitem, mode):
-        self.__mode_menu["current"] = mode
-        self.__player.set_mode(mode)
+        if menuitem.get_active():
+            self.__mode_menu["current"] = mode
+            self.execute(self.server.set_mode, mode)
 
     @gui_callback
     def cb_build_mode_menu(self, answer):
@@ -333,5 +255,52 @@ class DjmoteMenu(gtk.Menu):
 
         self.insert(self.mode_menu, 1)
         self.mode_menu.show_all()
+
+
+class ConnectDialog(gtk.Dialog):
+
+    def __init__(self, parent, conf, connect_cb):
+        gtk.Dialog.__init__(self, "Connect...", parent,
+                            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                            (gtk.STOCK_CONNECT,  gtk.RESPONSE_OK,\
+                             gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
+
+        self.conf = conf
+        self.connect_cb = connect_cb
+
+        layout = gtk.Table(rows=3, columns=2)
+
+        host_label = gtk.Label('Host')
+        layout.attach(host_label, 0, 1, 0, 1)
+        self.host_entry = gtk.Entry(max=30)
+        self.host_entry.set_text(self.conf['host'])
+        layout.attach(self.host_entry, 1, 2, 0, 1)
+
+        port_label = gtk.Label('Port')
+        layout.attach(port_label, 0, 1, 1, 2)
+        self.port_entry = gtk.Entry(max=5)
+        self.port_entry.set_text(str(self.conf['port']))
+        layout.attach(self.port_entry, 1, 2, 1, 2)
+
+        startup_connect = gtk.CheckButton("Remember and connect on startup")
+        startup_connect.connect("toggled", self.startup_connect_toggle)
+        startup_connect.set_active(self.conf['connect_on_startup'])
+        layout.attach(startup_connect, 0, 2, 2, 3)
+
+        self.vbox.pack_start(layout)
+        self.connect("response", self.cb_response)
+        self.show_all()
+
+    def startup_connect_toggle(self, checkbutton, data=None):
+        self.conf['connect_on_startup'] = checkbutton.get_active()
+
+    def cb_response(self, dialog, response_id):
+        if response_id == gtk.RESPONSE_OK:
+            self.conf['host'] = self.host_entry.get_text()
+            self.conf['port'] = int(self.port_entry.get_text())
+            if self.conf['connect_on_startup']:
+                self.conf.save()
+            self.connect_cb(None, self.conf)
+        self.destroy()
 
 # vim: ts=4 sw=4 expandtab

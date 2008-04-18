@@ -1,38 +1,8 @@
-djmote (0.0-1+darcs20071230) unstable; urgency=low
+djmote (0.0-1+darcs20080418) unstable; urgency=low
 
-  * Sync with darcs20071230.
+  * Sync with darcs20080418.
 
- -- Mickael Royer <mickael.royer@gmail.com>  Fri, 30 Dec 2007 16:20:27 +0100
-
-djmote (0.0-1+darcs20071118) unstable; urgency=low
-
-  * Sync with darcs20071118.
-
- -- Mickael Royer <mickael.royer@gmail.com>  Fri, 18 Nov 2007 23:20:27 +0100
-
-djmote (0.0-1+darcs20071112) unstable; urgency=low
-
-  * Sync with darcs20071112.
-
- -- Mickael Royer <mickael.royer@gmail.com>  Fri, 12 Nov 2007 20:40:37 +0100
-
-djmote (0.0-1+darcs20071102) unstable; urgency=low
-
-  * Sync with darcs20071102.
-
- -- Mickael Royer <mickael.royer@gmail.com>  Fri, 2 Nov 2007 18:43:37 +0100
-
-djmote (0.0-1+darcs20071024) unstable; urgency=low
-
-  * Sync with darcs20071024.
-
- -- Mickael Royer <mickael.royer@gmail.com>  Wed, 24 Oct 2007 19:56:37 +0200
-
-djmote (0.0-1+darcs20071014) unstable; urgency=low
-
-  * Sync with darcs20071014.
-
- -- Mickael Royer <mickael.royer@gmail.com>  Sun, 14 Oct 2007 23:44:40 +0200
+ -- Mickael Royer <mickael.royer@gmail.com>  Fri, 18 Apr 2008 16:08:35 +0200
 
 djmote (0.0-1+darcs20071013) unstable; urgency=low
 

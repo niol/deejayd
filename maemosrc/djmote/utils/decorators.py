@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import traceback
 import gtk
 
 # This is a decorator for our GUI callbacks : every GUI callback will be GTK
@@ -23,10 +24,12 @@ import gtk
 def gui_callback(func):
     def gtk_thread_safe_func(*__args,**__kw):
         gtk.gdk.threads_enter()
-        try:
-            func(*__args, **__kw)
-        finally:
-            gtk.gdk.threads_leave()
+        try: func(*__args, **__kw)
+        except Exception, ex:
+            print "---------------------Traceback lines-----------------------"
+            print traceback.format_exc()
+            print "-----------------------------------------------------------"
+        gtk.gdk.threads_leave()
     return gtk_thread_safe_func
 
 # vim: ts=4 sw=4 expandtab

@@ -16,6 +16,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import os
+dir = os.path.abspath(os.path.dirname(__file__))
+
 # KEY Values
 KEY_ENTER = 65293
 KEY_LEFT = 65361
@@ -28,6 +31,13 @@ KEY_VOLUME_DOWN = 65477
 VOLUME_STEP = 5
 
 # Playlist Constants
-PL_PAGER_LENGTH = 50
+PL_PAGER_LENGTH = 30
 
+# show Timeout
+SHOW_TIMEOUT = 5000 # 5s
+
+# default font for djmote
+FONT_DESC = "Sans Normal 13"
+
+GTKRC_FILE = os.path.join(dir, 'data', 'gtkrc')
 # vim: ts=4 sw=4 expandtab
