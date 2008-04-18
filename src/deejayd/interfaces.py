@@ -93,6 +93,13 @@ class DeejaydMediaList(DeejaydAnswer):
     def __init__(self):
         DeejaydAnswer.__init__(self)
         self.medias = []
+        self.total_length = None
+
+    def set_total_length(self, length):
+        self.total_length = length
+
+    def get_total_length(self):
+        return self.total_length
 
     def add_media(self, media):
         self.medias.append(media)

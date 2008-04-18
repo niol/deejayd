@@ -381,6 +381,9 @@ class VideoInfo(UnknownCommand):
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype('video')
         rsp.set_medias(videos)
+        if self.args["length"] != -1:
+            status = self.deejayd_core.get_status(objanswer=False)
+            rsp.set_total_length(status["videolength"])
 
         return rsp
 
@@ -472,6 +475,9 @@ class PlaylistInfo(UnknownCommand):
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype("song")
         rsp.set_medias(songs)
+        if self.args["length"] != -1:
+            status = self.deejayd_core.get_status(objanswer=False)
+            rsp.set_total_length(status["playlistlength"])
         return rsp
 
 
@@ -528,6 +534,9 @@ class WebradioList(UnknownCommand):
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype('webradio')
         rsp.set_medias(wrs)
+        if self.args["length"] != -1:
+            status = self.deejayd_core.get_status(objanswer=False)
+            rsp.set_total_length(status["webradiolength"])
         return rsp
 
 
@@ -604,6 +613,9 @@ class QueueInfo(PlaylistInfo):
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype("song")
         rsp.set_medias(medias)
+        if self.args["length"] != -1:
+            status = self.deejayd_core.get_status(objanswer=False)
+            rsp.set_total_length(status["queuelength"])
         return rsp
 
 

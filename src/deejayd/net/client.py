@@ -536,6 +536,10 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                         if 'directory' in elem.attrib.keys():
                             expected_answer.set_rootdir(elem.\
                                                            attrib['directory'])
+                    elif rsp_type == "MediaList":
+                        if 'total_length' in elem.attrib.keys():
+                            expected_answer.set_total_length(elem.\
+                                attrib['total_length'])
                     expected_answer._received(answer)
                     expected_answer = None
                 elif elem.tag == "listparm":

@@ -292,6 +292,10 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
     def __init__(self, originating_cmd, mother_xml_object = None):
         DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
         self.media_items = []
+        self.total_length = None
+
+    def set_total_length(self, length):
+        self.total_length = length
 
     def set_mediatype(self,type):
         self.media_type = type
@@ -304,6 +308,9 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
 
     def build_xml(self):
         DeejaydXMLAck.build_xml(self)
+        if self.total_length:
+            self.xmlcontent.attrib["total_length"] = \
+                self._to_xml_string(self.total_length)
         for item in self.media_items:
             xmlitem = ET.SubElement(self.xmlcontent,'media',\
                 type=self.media_type)
