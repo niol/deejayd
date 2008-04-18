@@ -177,7 +177,7 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         except sources._base.PlaylistNotFoundError:
             raise DeejaydError(_('Playlist %s not found') % self.name)
         else:
-            last = length == -1 and len(songs) or int(first) + int(length) - 1
+            last = length == -1 and len(songs) or int(first) + int(length)
             return songs[int(first):last]
 
     @returns_deejaydanswer(DeejaydAnswer)
@@ -251,7 +251,7 @@ class DeejaydVideo:
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first = 0, length = -1):
         videos = self.source.get_content()
-        last = length == -1 and len(videos) or int(first) + int(length) - 1
+        last = length == -1 and len(videos) or int(first) + int(length)
         return videos[int(first):last]
 
     @returns_deejaydanswer(DeejaydAnswer)
