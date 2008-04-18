@@ -111,8 +111,11 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
     def __init__(self, server):
         self.server = server
 
-    def get(self):
+    def get(self, first = 0, length = None):
         cmd = DeejaydXMLCommand('webradioList')
+        cmd.add_simple_arg('first', first)
+        if length != None:
+            cmd.add_simple_arg('length', length)
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 

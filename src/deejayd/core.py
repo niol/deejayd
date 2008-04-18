@@ -99,8 +99,10 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
         self.source = self.deejaydcore.sources.get_source('webradio')
 
     @returns_deejaydanswer(DeejaydMediaList)
-    def get(self):
-        return self.source.get_content()
+    def get(self, first = 0, length = -1):
+        wrs = self.source.get_content()
+        last = length == -1 and len(wrs) or int(first) + int(length)
+        return wrs[int(first):last]
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_webradio(self, name, urls):
@@ -131,8 +133,10 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         self.source = self.deejaydcore.sources.get_source('queue')
 
     @returns_deejaydanswer(DeejaydMediaList)
-    def get(self, first = 0, length = None):
-        return self.source.get_content()
+    def get(self, first = 0, length = -1):
+        songs = self.source.get_content()
+        last = length == -1 and len(songs) or int(first) + int(length)
+        return songs[int(first):last]
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_medias(self, paths, pos = None):

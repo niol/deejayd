@@ -518,9 +518,12 @@ class WebradioList(UnknownCommand):
     """Return the list of recorded webradios."""
     command_name = 'webradioList'
     command_rvalue = 'MediaList'
+    command_args = [{"name":"first","type":"int","req":False,"default":0},\
+                    {"name":"length","type":"int","req":False,"default":-1}]
 
     def _execute(self):
-        wrs = self.deejayd_core.get_webradios().get(objanswer=False)
+        wrs = self.deejayd_core.get_webradios().get(self.args["first"],\
+            self.args["length"], objanswer=False)
 
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype('webradio')
@@ -591,9 +594,12 @@ class QueueInfo(PlaylistInfo):
     """Return the content of the queue."""
     command_name = 'queueInfo'
     command_rvalue = 'MediaList'
+    command_args = [{"name":"first","type":"int","req":False,"default":0},\
+                    {"name":"length","type":"int","req":False,"default":-1}]
 
     def _execute(self):
-        medias = self.deejayd_core.get_queue().get(objanswer=False)
+        medias = self.deejayd_core.get_queue().get(self.args["first"],\
+            self.args["length"], objanswer=False)
 
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype("song")

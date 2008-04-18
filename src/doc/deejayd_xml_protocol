@@ -524,7 +524,8 @@ Expected return value : ''`Ack`''
 Return the list of recorded webradios.
 
 Arguments :
-  * ''This command does not accept any argument.''
+  * {{{first}}} (Simple and Optional) : int
+  * {{{length}}} (Simple and Optional) : int
 
 Expected return value : ''`MediaList`''
 
@@ -563,7 +564,6 @@ Expected return value : ''`Ack`''
 Return the content of the queue.
 
 Arguments :
-  * {{{name}}} (Simple and Optional) : string
   * {{{first}}} (Simple and Optional) : int
   * {{{length}}} (Simple and Optional) : int
 
@@ -624,7 +624,8 @@ Expected return value : ''`Ack`''
 Set the current video directory to "directory".
 
 Arguments :
-  * ''This command does not accept any argument.''
+  * {{{first}}} (Simple and Optional) : int
+  * {{{length}}} (Simple and Optional) : int
 
 Expected return value : ''`MediaList`''
 

@@ -130,7 +130,7 @@ class DeejaydDvdInfo(DeejaydAnswer):
 class DeejaydWebradioList:
     """Webradio list management."""
 
-    def get(self):
+    def get(self, first = 0, length = None):
         raise NotImplementedError
 
     def add_webradio(self, name, urls):
