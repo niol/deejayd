@@ -96,13 +96,7 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
 
     def __init__(self, deejaydcore):
         self.deejaydcore = deejaydcore
-        self.source = self.__get_wr_source()
-
-    def __get_wr_source(self):
-        try:
-            return self.deejaydcore.sources.get_source('webradio')
-        except sources.sources.UnknownSourceException:
-            raise DeejaydError(_('Webradio support not available.'))
+        self.source = self.deejaydcore.sources.get_source('webradio')
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self):
