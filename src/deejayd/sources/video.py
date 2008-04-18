@@ -54,6 +54,7 @@ class VideoSource(_BaseSource):
             raise ValueError
 
         self._media_list.set(video_list)
+        self.dispatch_signame('video.update')
 
     def close(self):
         _BaseSource.close(self)

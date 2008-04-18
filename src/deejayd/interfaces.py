@@ -235,6 +235,7 @@ class DeejaydSignal:
                                       # or deleted).
                'webradio.listupdate',
                'queue.update',
+               'video.update',
                'dvd.update',
                'mode',                # Mode change
                'mediadb.aupdate',     # Media library audio update
