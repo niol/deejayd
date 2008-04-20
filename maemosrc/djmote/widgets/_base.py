@@ -311,21 +311,4 @@ class DjmoteButton(gtk.Button):
         # The empty string label is there for the image to show on gtk 2.6.10
         gtk.Button.__init__(self, label='')
 
-
-class DjmoteTextButton(gtk.Button):
-
-    def __init__(self, label_text):
-        gtk.Button.__init__(self)
-        self.__label = gtk.Label()
-        self.__label.set_markup('<span font_desc="'+FONT_DESC+'">'+label_text+\
-                                '</span>')
-        self.add(self.__label)
-
-    def set_label(self, label_text):
-        self.__label.set_markup('<span font_desc="'+FONT_DESC+'">'+label_text+\
-                                '</span>')
-
-    def get_label(self):
-        return self.__label
-
 # vim: ts=4 sw=4 expandtab

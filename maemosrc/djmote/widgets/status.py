@@ -21,7 +21,7 @@ from djmote import stock
 from djmote.const import SHOW_TIMEOUT
 from deejayd.net.client import DeejaydError
 from djmote.utils.decorators import gui_callback
-from djmote.widgets._base import _BaseWidget, DjmoteTextButton, format_time
+from djmote.widgets._base import _BaseWidget, format_time
 
 class StatusBox(_BaseWidget):
     # toolbar
@@ -76,7 +76,7 @@ class StatusBox(_BaseWidget):
         self.widget.pack_start(current)
 
         # time button
-        self.__time_button = DjmoteTextButton("0:00/0:00")
+        self.__time_button = gtk.Button("0:00/0:00")
         self.__time_button.connect("clicked",self.show_seekbar)
         self.widget.pack_start(self.__time_button, expand=False, fill=False)
 

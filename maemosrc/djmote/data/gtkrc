@@ -4,6 +4,16 @@ gtk-button-images = 1
 gtk-toolbar-icon-size = GTK_ICON_SIZE_LARGE_TOOLBAR
 gtk-icon-sizes = "gtk-menu=26,26:gtk-button=26,26:gtk-small-toolbar=26,26:gtk-large-toolbar=34,34:gtk-dnd=26,26:gtk-dialog=50,50:"
 
+# font
+style "djmote-ButtonFont" {
+        font_name = "Nokia Sans 12.75"
+}
+widget_class "*.GtkButton.GtkLabel" style "djmote-ButtonFont"
+widget_class "*.GtkToggleButton.GtkLabel" style "djmote-ButtonFont"
+widget_class "*.GtkNotebook.GtkLabel" style "djmote-ButtonFont"
+
+
+# large scrollbar
 style "hildon-thumb-scrollbar"
 {
   GtkRange::stepper_size = 52
