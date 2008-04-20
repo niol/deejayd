@@ -19,7 +19,7 @@
 import gobject, gtk, pango
 from djmote.utils.decorators import gui_callback
 from deejayd.net.client import DeejaydError
-from djmote.const import FONT_DESC, PL_PAGER_LENGTH
+from djmote.const import CELL_FONT, CELL_BACKGROUND, PL_PAGER_LENGTH
 
 def format_time(time):
     """Turn a time value in seconds into hh:mm:ss or mm:ss."""
@@ -123,8 +123,8 @@ class _BaseSourceBox(_BaseBoxWithTree):
         self.build()
 
     def build(self):
-        # toggled, id, markup
-        model = gtk.ListStore('gboolean', int, str)
+        # toggled, id, markup, background_set
+        model = gtk.ListStore('gboolean', int, str, 'gboolean')
         self.tree_view = DjmoteTreeView(model)
 
         # create columns
@@ -133,7 +133,8 @@ class _BaseSourceBox(_BaseBoxWithTree):
             self.tree_view.append_column(tog_col)
 
         cell= DjmoteCellRendererText()
-        col = gtk.TreeViewColumn("markup", cell, markup=2)
+        cell.set_property("background", CELL_BACKGROUND)
+        col = gtk.TreeViewColumn("markup", cell, markup=2, background_set=3)
         self.tree_view.append_column(col)
 
         self.tree_view.connect("row-activated",self.goto)
@@ -187,7 +188,7 @@ class _BaseSourceBox(_BaseBoxWithTree):
     def set_loading(self):
         model = self.tree_view.get_model()
         model.clear()
-        model.append([False, 0, "Loading"])
+        model.append([False, 0, "Loading", False])
 
     def goto(self, treeview, path, view_column):
         model = treeview.get_model()
@@ -208,8 +209,11 @@ class _BaseSourceBox(_BaseBoxWithTree):
 
         model = self.tree_view.get_model()
         model.clear()
+        i = 0
         for media in medias:
-            model.append([False, media["id"], self._format_text(media)])
+            bg_set = i%2 == 0
+            model.append([False, media["id"], self._format_text(media), bg_set])
+            i += 1
         length = answer.get_total_length()
         if length > 0: # update pager
             self.pager["total"] = int(length)/PL_PAGER_LENGTH + 1
@@ -302,7 +306,7 @@ class DjmoteCellRendererText(gtk.CellRendererText):
     def __init__(self):
         gtk.CellRendererText.__init__(self)
         self.set_property("ellipsize",pango.ELLIPSIZE_END)
-        self.set_property("font-desc",pango.FontDescription(FONT_DESC))
+        self.set_property("font-desc",pango.FontDescription(CELL_FONT))
 
 
 class DjmoteButton(gtk.Button):

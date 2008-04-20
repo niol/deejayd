@@ -36,8 +36,9 @@ PL_PAGER_LENGTH = 30
 # show Timeout
 SHOW_TIMEOUT = 5000 # 5s
 
-# default font for djmote
-FONT_DESC = "Sans Normal 13"
+# constants for tree cell in djmote
+CELL_FONT = "Sans Normal 14.5"
+CELL_BACKGROUND="#eee"
 
 GTKRC_FILE = os.path.join(dir, 'data', 'gtkrc')
 # vim: ts=4 sw=4 expandtab

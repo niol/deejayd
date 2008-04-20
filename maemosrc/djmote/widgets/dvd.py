@@ -46,7 +46,7 @@ class DvdBox(_BaseSourceBox):
         except DeejaydError, err:
             model = self.tree_view.get_model()
             model.clear()
-            model.append([False, 0, err])
+            model.append([False, 0, err, False])
 
     @gui_callback
     def cb_update(self, answer):
@@ -57,10 +57,12 @@ class DvdBox(_BaseSourceBox):
 
         model = self.tree_view.get_model()
         model.clear()
+        i = 0
         for track in content['track']:
             text = "  Title %s\n\tlength : <i>%s</i>"\
                 % (track['ix'], format_time(int(track['length'])))
-            model.append([False, int(track["ix"]), text])
+            model.append([False, int(track["ix"]), text, i%2])
+            i+=1
 
 
 # vim: ts=4 sw=4 expandtab
