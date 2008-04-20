@@ -8,9 +8,13 @@ gtk-icon-sizes = "gtk-menu=26,26:gtk-button=26,26:gtk-small-toolbar=26,26:gtk-la
 style "djmote-ButtonFont" {
         font_name = "Nokia Sans 12.75"
 }
+style "djmote-TitleFont" {
+        font_name = "Nokia Sans Italic 12.75"
+}
 widget_class "*.GtkButton.GtkLabel" style "djmote-ButtonFont"
 widget_class "*.GtkToggleButton.GtkLabel" style "djmote-ButtonFont"
 widget_class "*.GtkNotebook.GtkLabel" style "djmote-ButtonFont"
+widget "*.djmote-title" style "djmote-TitleFont"
 
 
 # large scrollbar

@@ -60,8 +60,8 @@ class StatusBox(_BaseWidget):
         current = gtk.HBox()
         # name of current song
         self.__curlabel = gtk.Label("")
+        self.__curlabel.set_name("djmote-title")
         self.__curlabel.set_line_wrap(True)
-        self.__curlabel.modify_font(pango.FontDescription("Sans Italic 13"))
         self.__curlabel.set_justify(gtk.JUSTIFY_CENTER)
         self.__curlabel.set_size_request(250,50)
         current.pack_start(self.__curlabel, fill = False)
