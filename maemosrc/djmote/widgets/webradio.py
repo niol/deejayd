@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
-import gtk
+import gtk, gobject
 from djmote.utils.decorators import gui_callback
 from deejayd.net.client import DeejaydError
 from djmote.widgets._base import _BaseSourceBox, _BaseWidget
@@ -37,7 +37,9 @@ class WebradioBox(_BaseSourceBox):
         _BaseSourceBox.__init__(self, player)
 
     def _format_text(self, m):
-        return "%s\n\t<i>%s</i>" % (m["title"], m["url"])
+        return "%s\n\t<i>%s</i>" %\
+            (gobject.markup_escape_text(m["title"]),\
+             gobject.markup_escape_text(m["url"]))
 
     def remove_webradio(self, widget):
         ids = self.get_selection()

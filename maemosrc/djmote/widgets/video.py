@@ -37,7 +37,8 @@ class VideoBox(_BaseSourceBox):
 
     def _format_text(self, m):
         return " %s - %s\n\tlength : <i>%s</i>"\
-            % (str(m["pos"]+1), m["title"], format_time(m["length"]))
+            % (str(m["pos"]+1),\
+             gobject.markup_escape_text(m["title"]), format_time(m["length"]))
 
     def select_directory(self, widget):
         LibraryDialog(self.source, self.server)

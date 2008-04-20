@@ -43,8 +43,10 @@ class PlaylistBox(_BaseSourceBox):
 
     def _format_text(self, m):
         return "%d - %s (%s)\n\t<b>%s</b> - <i>%s</i>" %\
-            (m["pos"]+1, m["title"], format_time(m["length"]),\
-             m["artist"], m["album"])
+            (m["pos"]+1, gobject.markup_escape_text(m["title"]),\
+             format_time(m["length"]),\
+             gobject.markup_escape_text(m["artist"]),\
+             gobject.markup_escape_text(m["album"]))
 
     def remove_songs(self, widget):
         ids = self.get_selection()
