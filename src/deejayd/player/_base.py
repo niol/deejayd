@@ -68,7 +68,6 @@ class UnknownPlayer(SignalingComponent):
             self._change_file(file)
         elif self.get_state() in (PLAYER_PAUSE, PLAYER_PLAY):
             self.pause()
-        self.dispatch_signame('player.status')
 
     def pause(self):
         raise NotImplementedError

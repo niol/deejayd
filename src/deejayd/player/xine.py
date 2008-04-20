@@ -122,7 +122,7 @@ class XinePlayer(UnknownPlayer):
             xine_set_param(self.__stream, XINE_PARAM_GAPLESS_SWITCH, 0)
 
         # replaygain reset
-        self.set_volume(self.__volume)
+        self.set_volume(self.__volume, sig=False)
 
         if sig: self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
@@ -165,7 +165,7 @@ class XinePlayer(UnknownPlayer):
     def get_volume(self):
         return self.__volume
 
-    def set_volume(self,vol):
+    def set_volume(self, vol, sig = True):
         self.__volume = min(100, int(vol))
         # replaygain support
         vol = self.__volume
@@ -176,7 +176,7 @@ class XinePlayer(UnknownPlayer):
                 vol = max(0.0, min(4.0, float(vol)/100.0 * scale))
                 vol = min(100, int(vol * 100))
         self.__do_set_property(XINE_PARAM_AUDIO_VOLUME, vol)
-        self.dispatch_signame('player.status')
+        if sig: self.dispatch_signame('player.status')
 
     def get_position(self):
         if not self.__stream: return 0
@@ -401,6 +401,7 @@ class XinePlayer(UnknownPlayer):
             if name not in self._media_file.keys() or\
                            self._media_file[name] != text:
                 self._media_file[name] = text
+        self.dispatch_signame('player.current')
         return False
 
     # this callback is not called in the main reactor thread

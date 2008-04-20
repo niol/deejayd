@@ -166,6 +166,8 @@ class GstreamerPlayer(UnknownPlayer):
             self.bin.set_state(gst.STATE_PAUSED)
         elif self.get_state() == PLAYER_PAUSE:
             self.bin.set_state(gst.STATE_PLAYING)
+        else: return
+        self.dispatch_signame('player.status')
 
     def stop(self,widget = None, event = None):
         self._media_file = None
@@ -187,16 +189,15 @@ class GstreamerPlayer(UnknownPlayer):
         self.start_play()
 
         # replaygain reset
-        self.set_volume(self.__volume)
+        self.set_volume(self.__volume, sig=False)
 
-        if sig:
-            self.dispatch_signame('player.status')
+        if sig: self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
 
     def get_volume(self):
         return self.__volume
 
-    def set_volume(self,vol):
+    def set_volume(self, vol, sig=True):
         self.__volume = min(100, int(vol))
         v = float(self.__volume)/100
         # replaygain support
@@ -207,7 +208,7 @@ class GstreamerPlayer(UnknownPlayer):
                 v = max(0.0, min(4.0, v * scale))
                 v = float(min(100, int(v * 100)))/100
         self.bin.set_property('volume', v)
-        self.dispatch_signame('player.status')
+        if sig: self.dispatch_signame('player.status')
 
     def get_position(self):
         if gst.STATE_NULL != self.__get_gst_state() and \
@@ -258,6 +259,7 @@ class GstreamerPlayer(UnknownPlayer):
                     if name not in self._media_file.keys() or\
                                    self._media_file[name] != value:
                         self._media_file[name] = value
+        self.dispatch_signame('player.current')
 
     def get_state(self):
         gst_state = self.__get_gst_state()
