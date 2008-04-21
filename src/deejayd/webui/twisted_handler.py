@@ -107,7 +107,7 @@ def init(deejayd_core, config, webui_logfile):
     rdf_dir = config.get("webui","rdf_dir")
     if os.path.isdir(rdf_dir):
         try: shutil.rmtree(rdf_dir)
-        except IOError:
+        except (IOError, OSError):
             raise DeejaydWebError(_("Unable to remove rdf directory %s") % \
                     rdf_dir)
     try: os.mkdir(rdf_dir)
