@@ -115,19 +115,15 @@
                 increment="5"
                 id="player-seekbar"/>
         </hbox>
-        <hbox>
+        <hbox id="playeroption-button" style="visibility: collapse">
             <button
-                style="visibility: collapse"
-                id="playeroption-button"
                 label="&advancedOption; ->"
-                oncommand="toogleNodeVisibility('playeroption-box');"/>
+                popup="options-panel"/>
             <spacer flex="1"/>
         </hbox>
     </vbox>
 
-    <groupbox
-        style="visibility: collapse"
-        id="playeroption-box"><grid>
+    <panel position="end_before" id="options-panel"><grid>
         <columns>
             <column flex="2"/>
             <column flex="1"/>
@@ -180,7 +176,7 @@
                 <label value="ms"/>
             </row>
         </rows>
-    </grid></groupbox>
+    </grid></panel>
 
     <spacer flex="1"/>
 
