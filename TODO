@@ -12,8 +12,14 @@
 * Signals to the webui exploiting the fact that XmlHttpRequest does not have a
   timeout.
 
-* Save full state : mode, status and playtime
-
 * Have intelligent playlists (all library, etc)
 
 * debian package should make it easier to connect to Xorg
+
+* comonalize manpages
+
+* commonalize logrotate files
+
+* devscripts dir
+
+* fix ratio using avi header
