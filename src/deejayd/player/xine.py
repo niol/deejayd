@@ -36,6 +36,8 @@ class XinePlayer(UnknownPlayer):
         self.__xine_options = {
             "video": self.config.get("xine", "video_output"),
             "display" : self.config.get("xine", "video_display"),
+            "osd_support" : self.config.getboolean("xine", "osd_support"),
+            "osd_font_size" : self.config.getint("xine", "osd_font_size"),
             }
 
         # init main instance
@@ -53,6 +55,7 @@ class XinePlayer(UnknownPlayer):
         self.__stream = None
         self.__event_queue = None
         self.__mine_stream = None
+        self.__osd = None
 
     def init_video_support(self):
         UnknownPlayer.init_video_support(self)
@@ -142,13 +145,16 @@ class XinePlayer(UnknownPlayer):
             self.dispatch_signame('player.status')
 
     def set_avoffset(self, offset):
-        self.__do_set_property(XINE_PARAM_AV_OFFSET, offset * 90)
-        self._media_file["av_offset"] = offset
+        if self._media_file["type"] == "video":
+            self.__do_set_property(XINE_PARAM_AV_OFFSET, offset * 90)
+            self._media_file["av_offset"] = offset
+            self._osd_set("Audio/Video offset: %d ms" % offset)
 
     def set_suboffset(self, offset):
         if "subtitle" in self._media_file.keys():
             self.__do_set_property(XINE_PARAM_SPU_OFFSET, offset * 90)
             self._media_file["sub_offset"] = offset
+            self._osd_set("Subtitle offset: %d ms" % offset)
 
     def _player_set_alang(self,lang_idx):
         self.__do_set_property(XINE_PARAM_AUDIO_CHANNEL_LOGICAL, lang_idx)
@@ -176,7 +182,9 @@ class XinePlayer(UnknownPlayer):
                 vol = max(0.0, min(4.0, float(vol)/100.0 * scale))
                 vol = min(100, int(vol * 100))
         self.__do_set_property(XINE_PARAM_AUDIO_VOLUME, vol)
-        if sig: self.dispatch_signame('player.status')
+        if sig:
+            self._osd_set("Volume: %s" % int(vol))
+            self.dispatch_signame('player.status')
 
     def get_position(self):
         if not self.__stream: return 0
@@ -339,6 +347,19 @@ class XinePlayer(UnknownPlayer):
         if not self.__video_port:
             xine_set_param(self.__stream, XINE_PARAM_IGNORE_VIDEO, 1)
             xine_set_param(self.__stream, XINE_PARAM_IGNORE_SPU, 1)
+        elif self.__xine_options["osd_support"]: # osd qupport
+            video_area = self.__display.get_and_lock_video_area()
+            self.__osd = xine_osd_new(self.__stream, 0, 0,\
+                video_area["width"], video_area["height"])
+            xine_osd_set_font(self.__osd, "sans",\
+                self.__xine_options["osd_font_size"])
+            xine_osd_set_text_palette(self.__osd,\
+                XINE_TEXTPALETTE_WHITE_BLACK_TRANSPARENT, XINE_OSD_TEXT1)
+            self.__display.release_video_area()
+            self.__osd_unscaled = xine_osd_get_capabilities(self.__osd) \
+                & XINE_OSD_CAP_UNSCALED
+
+        # gapless support
         if self.__supports_gapless:
             xine_set_param(self.__stream, XINE_PARAM_EARLY_FINISHED_EVENT, 1)
 
@@ -360,6 +381,11 @@ class XinePlayer(UnknownPlayer):
             if self.__event_queue:
                 xine_event_dispose_queue(self.__event_queue)
                 self.__event_queue = None
+            # close osd
+            if self.__osd:
+                xine_osd_clear(self.__osd)
+                xine_osd_free(self.__osd)
+                self.__osd = None
             xine_dispose(self.__stream)
             self.__stream = None
 
@@ -372,6 +398,21 @@ class XinePlayer(UnknownPlayer):
                 self.__video_port = None
                 self.__display.destroy()
                 self.__x11_callbacks = None
+
+    def _osd_set(self, text):
+        if not self.__osd: return
+        xine_osd_clear(self.__osd)
+        xine_osd_draw_text(self.__osd, 0, 0, text, XINE_OSD_TEXT1)
+        xine_osd_set_position(self.__osd, 60, 20)
+        if self.__osd_unscaled: xine_osd_show_unscaled(self.__osd, 0)
+        else: xine_osd_show(self.__osd, 0)
+        # hide osd 2 seconds later
+        self.__osd_text = text
+        reactor.callLater(2, self._osd_hide, text)
+
+    def _osd_hide(self, text):
+        if self.__osd and self.__osd_text == text:
+            xine_osd_hide(self.__osd, 0)
 
     #
     # callbacks

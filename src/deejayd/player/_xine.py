@@ -188,6 +188,32 @@ XINE_GUI_SEND_DRAWABLE_CHANGED = 2
 XINE_GUI_SEND_EXPOSE_EVENT     = 3
 XINE_GUI_SEND_VIDEOWIN_VISIBLE = 5
 
+# osd constants
+XINE_TEXT_PALETTE_SIZE         = 11
+
+XINE_OSD_TEXT1                 = (0 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT2                 = (1 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT3                 = (2 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT4                 = (3 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT5                 = (4 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT6                 = (5 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT7                 = (6 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT8                 = (7 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT9                 = (8 * XINE_TEXT_PALETTE_SIZE)
+XINE_OSD_TEXT10                = (9 * XINE_TEXT_PALETTE_SIZE)
+
+# white text, black border, transparent background  */
+XINE_TEXTPALETTE_WHITE_BLACK_TRANSPARENT    = 0
+# white text, noborder, transparent background      */
+XINE_TEXTPALETTE_WHITE_NONE_TRANSPARENT     = 1
+# white text, no border, translucid background      */
+XINE_TEXTPALETTE_WHITE_NONE_TRANSLUCID      = 2
+# yellow text, black border, transparent background */
+XINE_TEXTPALETTE_YELLOW_BLACK_TRANSPARENT   = 3
+
+XINE_OSD_CAP_FREETYPE2 = 0x0001
+XINE_OSD_CAP_UNSCALED  = 0x0002
+
 # xine_t *xine_new(void)
 _libxine.xine_new.restype = ctypes.c_void_p
 
@@ -321,6 +347,51 @@ _libxine.xine_list_input_plugins.restype = ctypes.POINTER(ctypes.c_char_p)
 _libxine.xine_check_version.argtypes = [ctypes.c_int, ctypes.c_int,\
     ctypes.c_int]
 _libxine.xine_check_version.restype = ctypes.c_int;
+
+# xine_osd_t *xine_osd_new(xine_stream_t *self, int x, int y,
+#                          int width, int height)
+_libxine.xine_osd_new.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,\
+                                  ctypes.c_int, ctypes.c_int]
+_libxine.xine_osd_new.restype = ctypes.c_void_p
+
+# void xine_osd_free(xine_osd_t *self)
+_libxine.xine_osd_free.argtypes = [ctypes.c_void_p]
+
+# uint32_t xine_osd_get_capabilities(xine_osd_t *self)
+_libxine.xine_osd_get_capabilities.restype = ctypes.c_int
+_libxine.xine_osd_get_capabilities.argtypes = [ctypes.c_void_p]
+
+# void xine_osd_set_text_palette(xine_osd_t *self,int palette_number,
+#                                int color_base )
+_libxine.xine_osd_set_text_palette.argtypes = [ctypes.c_void_p, ctypes.c_int,\
+                                        ctypes.c_int]
+
+# int xine_osd_set_font(xine_osd_t *self, const char *fontname, int size)
+_libxine.xine_osd_set_font.restype = ctypes.c_int
+_libxine.xine_osd_set_font.argtypes = [ctypes.c_void_p, ctypes.c_char_p,\
+                                       ctypes.c_int]
+
+# void xine_osd_set_position(xine_osd_t *self, int x, int y)
+_libxine.xine_osd_set_position.argtypes = [ctypes.c_void_p, ctypes.c_int,\
+                                        ctypes.c_int]
+
+# void xine_osd_draw_text(xine_osd_t *self, int x1, int y1, char *text,
+#                         int color_base)
+_libxine.xine_osd_draw_text.argtypes = [ctypes.c_void_p, ctypes.c_int,\
+                                        ctypes.c_int, ctypes.c_char_p,\
+                                        ctypes.c_int]
+
+# void xine_osd_show(xine_osd_t *self, int64_t vpts)
+_libxine.xine_osd_show.argtypes = [ctypes.c_void_p, ctypes.c_int]
+
+# void  xine_osd_show_unscaled (xine_osd_t *self, int64_t vpts)
+_libxine.xine_osd_show_unscaled.argtypes = [ctypes.c_void_p, ctypes.c_int]
+
+# void  xine_osd_hide(xine_osd_t *self, int64_t vpts)
+_libxine.xine_osd_hide.argtypes = [ctypes.c_void_p, ctypes.c_int]
+
+# void  xine_osd_clear(xine_osd_t *self)
+_libxine.xine_osd_clear.argtypes = [ctypes.c_void_p]
 
 # copy functions from the library
 module = sys.modules[__name__]
