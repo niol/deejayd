@@ -48,7 +48,8 @@ class SqliteDatabase(Database):
             log.err(sqlite_error, fatal = True)
 
         try:
-            self.connection = sqlite.connect(self.db_file, timeout=LOCK_TIMEOUT)
+            self.connection = sqlite.connect(self.db_file, timeout=LOCK_TIMEOUT,
+                                         detect_types=sqlite.PARSE_DECLTYPES)
         except sqlite.Error:
             error = _("Could not connect to sqlite database %s." % self.db_file)
             log.err(error, fatal = True)
@@ -59,6 +60,7 @@ class SqliteDatabase(Database):
         self.connection.text_factory = str
         self.connection.row_factory = sqlite.Row
         sqlite.register_adapter(str,str_encode)
+        sqlite.register_converter('text', str_encode)
 
         self.verify_database_version()
 
@@ -68,7 +70,9 @@ class SqliteDatabase(Database):
     def reset_connection(self):
         self.cursor.close()
         self.connection.close()
-        self.connection = sqlite.connect(self.db_file, timeout=LOCK_TIMEOUT)
+        self.connection = sqlite.connect(self.db_file,
+                                         timeout=LOCK_TIMEOUT,
+                                         detect_types=sqlite.PARSE_DECLTYPES)
         self.cursor = self.connection.cursor()
 
     def execute(self, query, parm = None, raise_exception = False):
