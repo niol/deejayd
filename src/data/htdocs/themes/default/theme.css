@@ -13,8 +13,6 @@ treechildren::-moz-tree-row(focus,odd,selected) { background-color: #aaa; }
  * General parms
  */
 #main{margin: 10px;}
-
-.progressbar{height: 5px !important;}
 caption{font-weight: bold;}
 
 

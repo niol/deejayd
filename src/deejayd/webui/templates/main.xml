@@ -1,7 +1,6 @@
 
-<?xml-stylesheet href="./static/themes/default/theme.css" type="text/css"?>
-<?xml-stylesheet href="./static/xul/bindings/bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="./static/themes/default/theme.css" type="text/css"?>
 
 <!DOCTYPE window [ $dtd ]>
 
@@ -11,15 +10,15 @@
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script src="./static/js/common.js"/>
-<script src="./static/xul/scripts/commonTree.js"/>
-<script src="./static/xul/scripts/commonList.js"/>
-<script src="./static/xul/scripts/fileList.js"/>
-<script src="./static/xul/scripts/player.js"/>
-<script src="./static/xul/scripts/playlist.js"/>
-<script src="./static/xul/scripts/webradio.js"/>
-<script src="./static/xul/scripts/queue.js"/>
-<script src="./static/xul/scripts/video.js"/>
-<script src="./static/xul/scripts/dvd.js"/>
+<script src="./static/js/xul/commonTree.js"/>
+<script src="./static/js/xul/commonList.js"/>
+<script src="./static/js/xul/fileList.js"/>
+<script src="./static/js/xul/player.js"/>
+<script src="./static/js/xul/playlist.js"/>
+<script src="./static/js/xul/webradio.js"/>
+<script src="./static/js/xul/queue.js"/>
+<script src="./static/js/xul/video.js"/>
+<script src="./static/js/xul/dvd.js"/>
 <script src="./static/js/ajax.js"/>
 <script src="./static/js/main.js"/>
 
@@ -88,13 +87,12 @@
                     src='static/themes/default/images/volume-zero.png'
                     height="25px"
                     width="25px"/>
-                <player_volume
-                    class="progressbar"
-                    maxpos="100"
-                    id="player-volume"
-                    progressid="volume-progress"
-                    sliderid="volume-slider"
-                    thumbid="volume-thumb"/>
+                <scale
+                    onchange="PlayerObserver.volumeUpdate(this); return true;"
+                    min="0"
+                    max="100"
+                    increment="5"
+                    id="player-volume"/>
             </toolbar>
         </toolbox>
     </groupbox>
@@ -110,14 +108,12 @@
                 id="seekbar-button"
                 label="0:00 -->"
                 oncommand="toogleNodeVisibility('player-seekbar');"/>
-            <player_seekbar
+            <scale
                 style="visibility: collapse"
-                class="progressbar"
-                maxpos="100"
-                id="player-seekbar"
-                progressid="seek-progress"
-                sliderid="seek-slider"
-                thumbid="seek-thumb"/>
+                onchange="PlayerObserver.seekUpdate(this); return true;"
+                min="0"
+                increment="5"
+                id="player-seekbar"/>
         </hbox>
         <hbox>
             <button

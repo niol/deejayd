@@ -3,7 +3,7 @@
 var playerStatus = {
     volume: "",
     update_volume: function() {
-        $('player-volume').updateVolume(this.volume);
+        $('player-volume').value = this.volume;
         $('volume-image').src = "./static/themes/default/images/volume-max.png";
         },
 
@@ -52,7 +52,8 @@ var playerStatus = {
         value = formatTime(time[0]);
         seekbarValue = (time[0] / time[1]) * 100;
         $('seekbar-button').label = value + " -->";
-        $('player-seekbar').updateSeekbar(seekbarValue);
+        $('player-seekbar').max = time[1];
+        $('player-seekbar').value = time[0];
         },
 
     init_mode: function() {
@@ -293,42 +294,34 @@ var Player = function()
 var PlayerObserver =
 {
     volume_timeout: null,
+    seek_timeout: null,
 
-    onTrackVolume: function(obj)
+    volumeUpdate: function(obj)
     {
-        if (this.volume_timeout)
+        if (this.volume_timeout) {
             clearTimeout(this.volume_timeout);
+            this.volume_timeout = null;
+            }
 
-        obj.trackingVolume = true;
-        this.volume_timeout = setTimeout(
-            "ajaxdj_ref.send_command('setVol',{volume:"+obj.value+
-                "},true)", 200);
+        if (parseInt(obj.value) != parseInt(playerStatus.volume))
+            this.volume_timeout = setTimeout(
+                "ajaxdj_ref.send_command('setVol',{volume:"+obj.value+
+                    "},true)", 300);
     },
 
-    onReleaseVolume: function(obj)
+    seekUpdate: function(obj)
     {
-        if (this.volume_timeout)
-            clearTimeout(this.volume_timeout);
+        if (this.seek_timeout) {
+            clearTimeout(this.seek_timeout);
+            this.seek_timeout = null;
+            }
 
-        obj.trackingVolume = false;
-        ajaxdj_ref.send_command('setVol',{volume: obj.value},true);
+        var time = playerStatus.time.split(":");
+        if (parseInt(obj.value) != parseInt(time[0])) {
+            $('seekbar-button').label = formatTime(obj.value) + " -->";
+            this.seek_timeout = setTimeout(
+                "ajaxdj_ref.send_command('setTime',{time: "+obj.value+
+                "},true);", 300);
+            }
     },
-
-    onTrackSeekbar: function(obj)
-    {
-        obj.trackingPosition = true;
-
-        var timeVal = parseInt( (Number(obj.value)*
-            Number(playerStatus.media_length)) / 100 );
-        $('seekbar-button').label = formatTime(timeVal) + " -->";
-    },
-
-    onReleaseSeekbar: function(obj)
-    {
-        obj.trackingPosition = false;
-        var timeVal = parseInt( (Number(obj.value)*
-            Number(playerStatus.media_length)) / 100 );
-        ajaxdj_ref.send_command('setTime',{time: timeVal},true);
-    }
-
 };
