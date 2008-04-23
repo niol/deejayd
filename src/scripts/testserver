@@ -47,6 +47,7 @@ dbfilename = sys.argv[4]
 log.startLogging(open('/tmp/testdeejayd.log', 'a'))
 
 config = DeejaydConfig()
+config.set('general', 'activated_modes', 'playlist,webradio,video,dvd')
 config.set('net', 'port', port)
 config.set('mediadb', 'music_directory', music_dir)
 config.set('mediadb', 'video_directory', video_dir)

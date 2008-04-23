@@ -35,6 +35,8 @@ class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests,
         config = DeejaydConfig()
         self.dbfilename = '/tmp/testdeejayddb-' +\
                           self.testdata.getRandomString() + '.db'
+
+        config.set('general', 'activated_modes', 'playlist,webradio,video,dvd')
         config.set('database', 'db_type', 'sqlite')
         config.set('database', 'db_name', self.dbfilename)
 
