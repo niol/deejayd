@@ -313,8 +313,11 @@ class InterfaceTests:
         # verify status
         status = self.deejayd.get_status().get_contents()
         self.assertEqual(status["state"], "play")
+
         # test set_player_option cmd
-        self.deejayd.set_player_option("av_offset", 100)
+        self.deejayd.set_player_option("av_offset", 100).get_contents()
+        ans = self.deejayd.set_player_option(self.testdata.getRandomString(),0)
+        self.assertRaises(DeejaydError, ans.get_contents)
 
         self.deejayd.stop().get_contents()
 
