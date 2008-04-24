@@ -40,59 +40,6 @@ class testSqliteDatabase(TestCaseWithData):
         randomName = self.testdata.getRandomString()
         self.assertEqual(self.db.get_audiolist(randomName), [])
 
-
-    def testSaveAndRetrievePlaylist(self):
-        """Save and retrieve playlist"""
-        randomName = self.testdata.getRandomString()
-
-        playlistContents = []
-
-        i = 1
-        for song in self.testdata.sampleLibrary[0:3]:
-            playlistEntry = {}
-            playlistEntry['pos'] = i
-            playlistEntry['media_id'] = song['media_id']
-            playlistContents.append(playlistEntry)
-            i = i + 1
-        self.db.save_medialist(playlistContents, randomName)
-
-        retrievedPlaylist = self.db.get_audiolist(randomName)
-
-        self.assertEqual(len(retrievedPlaylist), len(playlistContents))
-        i = 0
-        for retrievedPlaylistEntry in retrievedPlaylist:
-            self.assertEqual(retrievedPlaylistEntry[0],
-                            os.path.dirname(self.testdata.sampleLibrary[i]\
-                            ['filename']))
-            self.assertEqual(retrievedPlaylistEntry[1],
-                            os.path.basename(self.testdata.sampleLibrary[i]\
-                            ['filename']))
-            self.assertEqual(retrievedPlaylistEntry[2], randomName)
-            self.assertEqual(retrievedPlaylistEntry[3], i + 1)
-            i = i + 1
-
-    def testPlaylistManipulation(self):
-        """Add, delete playlists and retrieve playlist list"""
-        randomName = self.testdata.getRandomString()
-
-        self.assertEqual(self.db.get_audiolist(randomName), [])
-
-        playlistContents = [{ 'pos':0,
-                                'dir': self.testdata.getRandomString(),
-                                'filename': self.testdata.getRandomString()}]
-        self.db.save_medialist(playlistContents, randomName)
-        self.assertNotEqual(self.db.get_audiolist(randomName), [])
-        self.assert_((randomName,) in self.db.get_medialist_list())
-
-        anotherRandomName = self.testdata.getRandomString()
-        self.db.save_medialist(playlistContents, anotherRandomName)
-
-        self.db.delete_medialist(randomName)
-        self.assertEqual(self.db.get_audiolist(randomName), [])
-        self.assert_((randomName,) not in self.db.get_medialist_list())
-        self.assert_((anotherRandomName,) in self.db.get_medialist_list())
-
-
     def testAddWebradio(self):
         """Add a webradio and retrieve it"""
         randomData = [(self.testdata.getRandomString(),
@@ -103,6 +50,5 @@ class testSqliteDatabase(TestCaseWithData):
 
         for garbageWebradio in randomData:
             self.assert_(garbageWebradio in self.db.get_webradios())
-
 
 # vim: ts=4 sw=4 expandtab
