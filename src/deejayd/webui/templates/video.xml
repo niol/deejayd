@@ -1,6 +1,7 @@
 <hbox flex="1">
 
 <vbox
+    persist="width"
     id="selectvideo-box"
     flex="1">
     <tabbox id="selectvideo-panel" flex="1">
@@ -59,27 +60,28 @@
     </tabbox>
 
     <hbox>
-        <deck id="video-update">
+        <deck id="video-update" flex="1">
             <button
                 id="video-update-button"
                 class="update-button"
                 oncommand="ajaxdj_ref.send_command('videoUpdate',null,false);"
-                label="&updateDB;"/>
+                label="&updateVideoDB;"/>
             <progressmeter
                 id="video-update-progressbar"
                 mode="determined"/>
         </deck>
-        <spacer flex="1"/>
-        <description id="videolib_desc"/>
     </hbox>
 
 </vbox>
 
-<splitter collapse="before" resizeafter="farthest">
+<splitter persist="position" collapse="before" resizeafter="farthest">
     <grippy/>
 </splitter>
 
-<vbox flex="5">
+<vbox
+    id="videotree-box"
+    persist="width"
+    flex="5">
     <tree
         id="video-tree"
         enableColumnDrag="true"

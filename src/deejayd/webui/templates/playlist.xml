@@ -119,18 +119,16 @@
     </tabbox>
 
     <hbox>
-        <deck id="audio-update">
+        <deck id="audio-update" flex="1">
             <button
                 id="audio-update-button"
                 class="update-button"
                 oncommand="ajaxdj_ref.send_command('audioUpdate',null,false);"
-                label="&updateDB;"/>
+                label="&updateAudioDB;"/>
             <progressmeter
                 id="audio-update-progressbar"
                 mode="determined"/>
         </deck>
-        <spacer flex="1"/>
-        <description id="audiolib_desc"/>
     </hbox>
 </vbox>
 
