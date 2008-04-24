@@ -104,15 +104,17 @@ class UnknownPlayer(SignalingComponent):
                                    self.get_state() == PLAYER_STOP:
             return
 
-        if name == "audio_lang":
-            self.set_alang(value)
-        elif name == "sub_lang":
-            self.set_slang(value)
-        elif name == "av_offset":
-            self.set_avoffset(value)
-        elif name == "sub_offset":
-            self.set_suboffset(value)
-        else: raise KeyError
+        options = {
+            "audio_lang": self.set_alang,
+            "sub_lang": self.set_slang,
+            "av_offset": self.set_avoffset,
+            "sub_offset": self.set_suboffset,
+            "zoom": self.set_zoom,
+            }
+        options[name](value)
+
+    def set_zoom(self, zoom):
+        raise NotImplementedError
 
     def set_avoffset(self, offset):
         raise NotImplementedError

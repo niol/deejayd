@@ -121,6 +121,13 @@ XINE_PARAM_EARLY_FINISHED_EVENT  = 31 # send event when demux finish
 XINE_PARAM_GAPLESS_SWITCH        = 32 # next stream only gapless swi
 XINE_PARAM_DELAY_FINISHED_EVENT  = 33 # 1/10sec,0=>disable,-1=>forev
 
+# video parameters
+XINE_PARAM_VO_ZOOM_X             = 0x01000008 # percent
+XINE_PARAM_VO_ZOOM_Y             = 0x0100000d # percent
+
+XINE_VO_ZOOM_MAX                 = 400
+XINE_VO_ZOOM_MIN                 = -85
+
 # speeds
 XINE_SPEED_PAUSE                 = 0
 XINE_SPEED_SLOW_4                = 1

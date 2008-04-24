@@ -101,6 +101,7 @@ class XinePlayer(UnknownPlayer):
         # init video information
         if self._media_file["type"] == "video":
             self._media_file["av_offset"] = 0
+            self._media_file["zoom"] = 100
             if "audio" in self._media_file:
                 self._media_file["audio_idx"] = \
                     self.__do_get_property(XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
@@ -144,17 +145,24 @@ class XinePlayer(UnknownPlayer):
             self._change_file(None)
             self.dispatch_signame('player.status')
 
+    def set_zoom(self, zoom):
+        if zoom > XINE_VO_ZOOM_MAX or zoom < XINE_VO_ZOOM_MIN:
+            raise PlayerError(_("Zoom value not accepted"))
+        self.__do_set_property(XINE_PARAM_VO_ZOOM_X, zoom)
+        self.__do_set_property(XINE_PARAM_VO_ZOOM_Y, zoom)
+        self._media_file["zoom"] = zoom
+        self._osd_set(_("Zoom: %d percent") % zoom)
+
     def set_avoffset(self, offset):
-        if self._media_file["type"] == "video":
-            self.__do_set_property(XINE_PARAM_AV_OFFSET, offset * 90)
-            self._media_file["av_offset"] = offset
-            self._osd_set("Audio/Video offset: %d ms" % offset)
+        self.__do_set_property(XINE_PARAM_AV_OFFSET, offset * 90)
+        self._media_file["av_offset"] = offset
+        self._osd_set(_("Audio/Video offset: %d ms") % offset)
 
     def set_suboffset(self, offset):
         if "subtitle" in self._media_file.keys():
             self.__do_set_property(XINE_PARAM_SPU_OFFSET, offset * 90)
             self._media_file["sub_offset"] = offset
-            self._osd_set("Subtitle offset: %d ms" % offset)
+            self._osd_set(_("Subtitle offset: %d ms") % offset)
 
     def _player_set_alang(self,lang_idx):
         self.__do_set_property(XINE_PARAM_AUDIO_CHANNEL_LOGICAL, lang_idx)
