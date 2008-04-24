@@ -24,9 +24,7 @@
 <script src="./static/js/main.js"/>
 
 <keyset>
-    <key id="play-key" key="x"
-    	oncommand="ajaxdj_ref.send_command('playtoggle','',true);"/>
-    <key id="pause-key" key="c"
+    <key id="playpause-key" key="x"
     	oncommand="ajaxdj_ref.send_command('playtoggle','',true);"/>
     <key id="stop-key" key="v"
     	oncommand="ajaxdj_ref.send_command('stop','',true);"/>
@@ -34,6 +32,24 @@
     	oncommand="ajaxdj_ref.send_command('previous','',true);"/>
     <key id="next-key" key="b"
     	oncommand="ajaxdj_ref.send_command('next','',true);"/>
+    <key id="suboffset_up-key" key="c"
+    	oncommand="ajaxdj_ref.send_command('setPlayerOption',
+         {option_name:'sub_offset',option_value:'100',set_type:'up'},true);"/>
+    <key id="suboffset_down-key" key="z"
+    	oncommand="ajaxdj_ref.send_command('setPlayerOption',
+         {option_name:'sub_offset',option_value:'100',set_type:'down'},true);"/>
+    <key id="avoffset_up-key" key="p"
+    	oncommand="ajaxdj_ref.send_command('setPlayerOption',
+         {option_name:'av_offset',option_value:'100',set_type:'up'},true);"/>
+    <key id="avoffset_down-key" key="o"
+    	oncommand="ajaxdj_ref.send_command('setPlayerOption',
+         {option_name:'av_offset',option_value:'100',set_type:'down'},true);"/>
+    <key id="zoom_up-key" key="l"
+    	oncommand="ajaxdj_ref.send_command('setPlayerOption',
+         {option_name:'zoom',option_value:'5',set_type:'up'},true);"/>
+    <key id="zoom_down-key" key="m"
+    	oncommand="ajaxdj_ref.send_command('setPlayerOption',
+         {option_name:'zoom',option_value:'5',set_type:'down'},true);"/>
 </keyset>
 
 

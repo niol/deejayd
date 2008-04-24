@@ -231,11 +231,26 @@ class Seek(_UnknownCommand):
 class PlayerOption(_UnknownCommand):
     name = "setPlayerOption"
     command_args = [{"name": "option_name", "type": "str", "req": True},
+        {"name": "set_type", "type": "enum_str",\
+         "values": ("up", "down", "value"), "req": False, "default": "value"},
         {"name": "option_value", "type": "int", "req": True}]
 
     def execute(self):
-        self._deejayd.set_player_option(self._args["option_name"],\
-            self._args["option_value"]).get_contents()
+        if self._args["set_type"] == "value":
+            val = int(self._args["option_value"])
+        else:
+            current = self._deejayd.get_current().get_medias()
+            try: current = current[0]
+            except (IndexError, TypeError): return
+            if self._args["option_name"] not in current.keys():
+                return
+            val = current[self._args["option_name"]]
+            if self._args["set_type"] == "up":
+                val += int(self._args["option_value"])
+            else: val -= int(self._args["option_value"])
+
+        self._deejayd.set_player_option(self._args["option_name"], val).\
+            get_contents()
 
 #
 # Library commands
