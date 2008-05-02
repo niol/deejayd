@@ -264,7 +264,7 @@ class Database(UnknownDatabase):
     def get_videolist(self,name):
         query = "SELECT p.position, l.dir, l.filename,\
             l.title, l.length, l.videowidth, l.videoheight, l.subtitle, l.id \
-            FROM medialist p LEFT OUTER JOIN video_library l \
+            FROM medialist p INNER JOIN video_library l \
             ON p.media_id = l.id WHERE p.name = %s ORDER BY p.position"
         self.execute(query,(name,))
         return self.cursor.fetchall()
@@ -276,7 +276,7 @@ class Database(UnknownDatabase):
         query = "SELECT l.id, l.dir, l.filename, l.type, l.title, l.artist,\
             l.album, l.genre, l.tracknumber, l.date, l.length, l.bitrate,\
             l.replaygain_track_gain, replaygain_track_peak, p.position\
-            FROM medialist p LEFT OUTER JOIN audio_library l\
+            FROM medialist p INNER JOIN audio_library l\
             ON p.media_id = l.id WHERE p.name = %s ORDER BY p.position"
         self.execute(query,(name,))
         return self.cursor.fetchall()
