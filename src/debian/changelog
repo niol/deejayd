@@ -1,3 +1,12 @@
+deejayd (0.7.1-2) unstable; urgency=low
+
+  * Handle permission denied on rdf dir for webui.
+  * Put back bind_adresses comment in config file.
+  * Ensure that what is out of the sqlite db is utf-8, which prevents crashing
+    of at least the add-to-playlist command when used with non-ascii characters.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sat, 03 May 2008 11:35:17 +0200
+
 deejayd (0.7.1-1) unstable; urgency=low
 
   * New upstream release.
