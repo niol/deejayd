@@ -23,6 +23,7 @@ This is the script used to scan audio file and process replaygain.
 It depends on python-mutagen >= 1.9 (for new module mutagen.mp4).
 It also depends on the following executables :
 - aacgain for both mp4/m4a and mp3 support
+- mp3gain for mp3 support
 - vorbisgain for ogg support
 - metaflac for flac support.
 """
@@ -66,19 +67,36 @@ else:
 class CmdError(Exception): pass
 
 class _SongProcess:
+    commands = None
     command = None
     options = "\"%s\""
 
     def __init__(self, filename = None):
         self._filename = filename
+        self.command = self.get_best_command()
 
-    def is_cmd_exists(self):
+    def cmd_exists(self, command=None):
+        if not command:
+            if self.command:
+                command = self.command
+            else:
+                return False
+
         path = os.getenv('PATH')
         if not path: return False
         for p in path.split(':'):
-            if os.path.isfile(os.path.join(p,self.command)):
+            if os.path.isfile(os.path.join(p, command)):
                 return True
         return False
+
+    def get_best_command(self):
+        if not self.commands:
+            return self.command
+        else:
+            for command in self.commands:
+                if self.cmd_exists(command):
+                    return command
+            return None
 
     def has_rg_tag(self):
         raise NotImplementedError
@@ -96,7 +114,7 @@ class _SongProcess:
 
 class MP3Process(_SongProcess):
     extensions = [".mp3"]
-    command = "aacgain"
+    commands = ("aacgain", "mp3gain")
     options = "-o -s s \"%s\""
 
     def has_rg_tag(self):
@@ -108,7 +126,6 @@ class MP3Process(_SongProcess):
             if frame.FrameID == "RVA2" and frame.desc == "track":
                 return True
         return False
-
 
     def process(self):
         rs = _SongProcess.process(self)
@@ -231,11 +248,15 @@ class Library:
         self.__ts = TimeStamp(options.timestamp_file)
 
         for cls in (MP3Process, MP4Process, OggProcess, FlacProcess):
-            if cls().is_cmd_exists():
+            if cls().cmd_exists():
                 for ext in cls.extensions: self.extensions[ext] = cls
             else:
-                log.info("%s support disable, missing apps %s" %\
-                            (",".join(cls.extensions), cls.command))
+                if cls.commands:
+                    apps = " or ".join(cls.commands)
+                else:
+                    apps = cls.command
+                log.info("%s support disabled, missing apps %s" %\
+                            (",".join(cls.extensions), apps))
 
     def is_in_root(self, path, root=None):
         """Checks if a directory is physically in the supplied root
