@@ -21,6 +21,10 @@
 """
 This is the script used to scan audio file and process replaygain.
 It depends on python-mutagen >= 1.9 (for new module mutagen.mp4).
+It also depends on the following executables :
+- aacgain for both mp4/m4a and mp3 support
+- vorbisgain for ogg support
+- metaflac for flac support.
 """
 
 import os,subprocess,time
