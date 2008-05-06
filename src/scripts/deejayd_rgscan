@@ -145,7 +145,7 @@ class MP3Process(_SongProcess):
         # record infos in the song
         try: tag = id3.ID3(self._filename)
         except id3.error:
-            log.info("File %s has not id3 header. Create one"\
+            log.info("File %s has no id3 header. Creating one."\
                         % os.path.basename(self._filename))
             tag = id3.ID3()
         else: # erase replaygain tag
