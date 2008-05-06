@@ -19,7 +19,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """
-This is the script used to scan audio file and process replaygain
+This is the script used to scan audio file and process replaygain.
+It depends on python-mutagen >= 1.9 (for new module mutagen.mp4).
 """
 
 import os,subprocess,time
