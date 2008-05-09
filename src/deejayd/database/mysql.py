@@ -108,7 +108,7 @@ class MysqlDatabase(Database):
         if len(table.key) > 0:
             coldefs.append('    PRIMARY KEY (%s)' %
                            self.__collist(table, table.key))
-        sql.append(',\n'.join(coldefs) + '\n)')
+        sql.append(',\n'.join(coldefs) + '\n) ENGINE=InnoDB')
         yield '\n'.join(sql)
 
         for index in table.indices:
