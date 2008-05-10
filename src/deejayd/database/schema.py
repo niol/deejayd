@@ -46,7 +46,8 @@ class Column(object):
 class Index(object):
     """Declare an index for a database schema."""
 
-    def __init__(self, columns):
+    def __init__(self, columns, unique = True):
+        self.unique = unique
         self.columns = columns
 
 
