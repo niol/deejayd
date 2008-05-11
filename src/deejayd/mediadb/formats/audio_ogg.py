@@ -16,26 +16,15 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from deejayd.mediadb.formats._base import _AudioFile
+
 extensions = [".ogg"]
 try: from mutagen.oggvorbis import OggVorbis
 except ImportError:
     extensions = []
 
-class OggFile:
-    supported_tag = ("tracknumber","title","genre","artist","album","date",\
-                     "replaygain_track_gain", "replaygain_track_peak")
-
-    def parse(self, file):
-        infos = {}
-        ogg_info = OggVorbis(file)
-        infos["bitrate"] = int(ogg_info.info.bitrate)
-        infos["length"] = int(ogg_info.info.length)
-
-        for t in self.supported_tag:
-            try: infos[t] = ogg_info[t][0]
-            except: infos[t] = '';
-
-        return infos
+class OggFile(_AudioFile):
+    _tagclass_ = OggVorbis
 
 object = OggFile
 

@@ -16,13 +16,15 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from deejayd.mediadb.formats._base import _AudioFile
+
 extensions = [".mp3",".mp2"]
 try: from mutagen.mp3 import MP3
 except ImportError:
     extensions = []
 
 
-class Mp3File:
+class Mp3File(_AudioFile):
     IDS = { "TIT2": "title",
             "TPE1": "artist",
             "TALB": "album",
@@ -31,24 +33,25 @@ class Mp3File:
     replaygain_process = False
 
     def parse(self, file):
+        infos = _AudioFile.parse(self, file)
         mp3_info = MP3(file)
 
-        infos = {
-            "title": "",
-            "artist": "",
-            "album": "",
-            "tracknumber": "",
-            "date": "",
-            "genre": "",
-            "replaygain_track_gain": "",
-            "replaygain_track_peak": "",
-            }
-        infos["bitrate"] = int(mp3_info.info.bitrate)
-        infos["length"] = int(mp3_info.info.length)
+        infos.update([
+            ("title", ""),
+            ("artist", ""),
+            ("album", ""),
+            ("tracknumber", ""),
+            ("date", ""),
+            ("genre", ""),
+            ("replaygain_track_gain", ""),
+            ("replaygain_track_peak", ""),
+            ("bitrate", int(mp3_info.info.bitrate)),
+            ("length", int(mp3_info.info.length)),
+            ])
 
         tag = mp3_info.tags
         if not tag:
-            return infos
+            return
 
         for frame in tag.values():
             if frame.FrameID == "TXXX":

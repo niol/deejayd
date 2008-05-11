@@ -16,13 +16,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-extensions = ['.mp4', '.m4a']
+from deejayd.mediadb.formats._base import _AudioFile
 
+extensions = ['.mp4', '.m4a']
 try: from mutagen.mp4 import MP4
 except ImportError:
     extensions = []
 
-class Mp4File:
+class Mp4File(_AudioFile):
     __translate = {
         "\xa9nam": "title",
         "\xa9alb": "album",
@@ -37,7 +38,7 @@ class Mp4File:
         }
 
     def parse(self, file):
-        infos = {}
+        infos = _AudioFile.parse(self, file)
         mp4_info = MP4(file)
         infos["bitrate"] = int(mp4_info.info.bitrate)
         infos["length"] = int(mp4_info.info.length)
@@ -49,7 +50,7 @@ class Mp4File:
         for tag, name in self.__tupletranslate.iteritems():
             try:
                 cur, total = mp4_info[tag][0]
-                if total: infos[name] = "%d/%d" % (cur, total)
+                if total: self[name] = "%d/%d" % (cur, total)
                 else: infos[name] = "%d" % cur
             except: infos[name] = '';
 

@@ -21,83 +21,56 @@ import os, sys, urllib, threading, traceback
 from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
-from deejayd.mediadb import formats, _media
+from deejayd.mediadb import formats
 from deejayd import database
 from deejayd.ui import log
 
 class NotFoundException(Exception):pass
 class NotSupportedFormat(Exception):pass
 
-def log_traceback(func):
-    def log_traceback_func(self, *__args,**__kw):
-        try: func(self, *__args,**__kw)
-        except Exception, ex:
-            log.err(_("Unable to get video metadata from %s, see traceback\
-for more information.") % self.file)
-            print "---------------------Traceback lines-----------------------"
-            print traceback.format_exc()
-            print "-----------------------------------------------------------"
-            return False
-        return True
 
-    return log_traceback_func
+class MediaFile(dict):
 
-class _DeejaydFile:
-    table = "unknown"
+    def __init__(self, db, dir_id, dirname, filename, file_id = None):
+        self.db = db
+        self.replaygain_support = False
+        self["media_id"] = file_id or db.insert_file(dir_id, filename)
+        # record infos
+        self["path"] = os.path.join(dirname, filename)
+        self["filename"] = filename
+        self["dir_id"] = dir_id
 
-    def __init__(self, db_con, dir, filename, path, info):
-        self.file = path
-        self.db_con = db_con
-        self.dir = dir
-        self.filename = filename
-        self.info = info
+    def destroy(self):
+        if not self["media_id"]: raise TypeError
+        self.remove_file(self["media_id"])
 
-    def remove(self):
-        self.db_con.remove_file(self.dir, self.file, self.table)
+    def set_uris(self, root_path):
+        self["uri"] = os.path.join(root_path, self["path"])
+        for k in ("external_subtitle",):
+            if k in self.keys() and self[k] != "":
+                self[k] = os.path.join(root_path, self[k])
 
-    def insert(self):
-        raise NotImplementedError
+    def set_info(self, key, value, commit = True):
+        self.set_infos({key: value}, commit)
 
-    def update(self):
-        raise NotImplementedError
+    def set_infos(self, infos, commit = True):
+        if not self["media_id"]: raise TypeError
+        self.db.set_media_infos(self["media_id"], infos)
+        if commit: self.db.connection.commit()
 
-    def force_update(self):
-        raise NotImplementedError
-
-
-class DeejaydAudioFile(_DeejaydFile):
-    table = "audio_library"
-
-    @log_traceback
-    def insert(self):
-        file_info = self.info.parse(self.file)
-        self.db_con.insert_audio_file(self.dir,self.filename,file_info)
-
-    @log_traceback
-    def update(self):
-        file_info = self.info.parse(self.file)
-        self.db_con.update_audio_file(self.dir,self.filename,file_info)
-
-    def force_update(self):pass
-
-
-class DeejaydVideoFile(_DeejaydFile):
-    table = "video_library"
-
-    @log_traceback
-    def insert(self):
-        file_info = self.info.parse(self.file)
-        self.db_con.insert_video_file(self.dir,self.filename,file_info)
-
-    @log_traceback
-    def update(self):
-        file_info = self.info.parse(self.file)
-        self.db_con.update_video_file(self.dir,self.filename,file_info)
-
-    def force_update(self):
-        # Update external subtitle
-        file_info = self.info.parse_sub(self.file)
-        self.db_con.update_video_subtitle(self.dir,self.filename,file_info)
+    def replay_gain(self):
+        """Return the recommended Replay Gain scale factor."""
+        try:
+            db = float(self.__replaygain["track_gain"].split()[0])
+            peak = self.__replaygain["track_peak"] and\
+                     float(self.__replaygain["track_peak"]) or 1.0
+        except (KeyError, ValueError, IndexError):
+            return 1.0
+        else:
+            scale = 10.**(db / 20)
+            if scale * peak > 1:
+                scale = 1.0 / peak # don't clip
+            return min(15, scale)
 
 ##########################################################################
 ##########################################################################
@@ -124,15 +97,16 @@ def inotify_action(func):
     return inotify_action_func
 
 class _Library(SignalingComponent):
-    ext_dict = {}
-    table = None
+    common_attr = ("type","title","length")
     type = None
-    file_class = None
 
     def __init__(self, db_connection, player, path, fs_charset="utf-8"):
         SignalingComponent.__init__(self)
 
         # init Parms
+        self.media_attr = []
+        for i in self.__class__.common_attr: self.media_attr.append(i)
+        for j in self.__class__.custom_attr: self.media_attr.append(j)
         self._fs_charset = fs_charset
         self._update_id = 0
         self._update_end = True
@@ -151,7 +125,7 @@ class _Library(SignalingComponent):
         self.mutex = threading.Lock()
 
         # build supported extension list
-        self._build_supported_extension(player)
+        self.ext_dict = formats.get_extensions(player, self.type)
 
         self.watcher = None
 
@@ -166,30 +140,50 @@ class _Library(SignalingComponent):
     def _build_supported_extension(self, player):
         raise NotImplementedError
 
-    def get_dir_content(self,dir):
-        rs = self.db_con.get_dir_info(dir,self.table)
-        if len(rs) == 0 and dir != "":
+    def _format_db_answer(self, answer):
+        files = []
+        for m in answer:
+            current = MediaFile(self.db_con, m[0], m[1], m[3], m[2])
+            for index, attr in enumerate(self.media_attr):
+                current[attr] = m[index+4]
+            current.set_uris(self._path)
+            files.append(current)
+
+        return files
+
+    def get_dir_content(self, dir):
+        files_rsp = self.db_con.get_dir_content(dir, self.media_attr, self.type)
+        dirs_rsp = self.db_con.get_dir_list(dir, self.type)
+        if len(files_rsp) == 0 and len(dirs_rsp) == 0 and dir != "":
             # nothing found for this directory
             raise NotFoundException
 
-        return self._format_db_rsp(rs)
+        files = self._format_db_answer(files_rsp)
+        dirs = []
+        for dir_id, dirname in dirs_rsp:
+            root, d = os.path.split(dirname.strip("/"))
+            if d != "" and root == self._encode(dir):
+                dirs.append(d)
+        return {'files': files, 'dirs': dirs}
 
     def get_dir_files(self,dir):
-        rs = self.db_con.get_files(dir, self.table)
-        if len(rs) == 0 and dir != "": raise NotFoundException
-        return self._format_db_rsp(rs)["files"]
+        files_rsp = self.db_con.get_dir_content(dir, self.media_attr, self.type)
+        if len(files_rsp) == 0 and dir != "": raise NotFoundException
+        return self._format_db_answer(files_rsp)
 
     def get_all_files(self,dir):
-        rs = self.db_con.get_all_files(dir, self.table)
-        if len(rs) == 0 and dir != "": raise NotFoundException
-        return self._format_db_rsp(rs)["files"]
+        files_rsp = self.db_con.get_alldir_files(dir, self.media_attr,\
+            self.type)
+        if len(files_rsp) == 0 and dir != "": raise NotFoundException
+        return self._format_db_answer(files_rsp)
 
     def get_file(self,file):
-        rs = self.db_con.get_file_info(file,self.table)
-        if len(rs) == 0:
+        d, f = os.path.split(file)
+        files_rsp = self.db_con.get_file(d, f, self.media_attr, self.type)
+        if len(files_rsp) == 0:
             # this file is not found
             raise NotFoundException
-        return self._format_db_rsp(rs)["files"]
+        return self._format_db_answer(files_rsp)
 
     def get_root_path(self):
         return self._path
@@ -198,7 +192,7 @@ class _Library(SignalingComponent):
         if not db_con:
             db_con = self.db_con
         root_paths = [self.get_root_path()]
-        for dirlink_record in db_con.get_all_dirlinks('', self.table):
+        for id, dirlink_record in db_con.get_all_dirlinks('', self.type):
             dirlink = os.path.join(self.get_root_path(),
                                    dirlink_record[1], dirlink_record[2])
             root_paths.append(dirlink)
@@ -287,29 +281,30 @@ class _Library(SignalingComponent):
 
         try:
             self.last_update_time = conn.get_update_time(self.type)
-            library_files = [(item[1],item[2]) for item \
-                                in conn.get_all_files('',self.table)]
-            library_dirs = [(item[1],item[2]) for item \
-                                in conn.get_all_dirs('',self.table)]
-            library_dirlinks = [(item[1],item[2]) for item\
-                                in conn.get_all_dirlinks('', self.table)]
+            # dirname/filename : id
+            library_files = dict([(os.path.join(item[1],item[3]), item[2])\
+                for item in conn.get_all_files('',self.type)])
+            # name : id
+            library_dirs = dict([(item[1],item[0]) for item \
+                                in conn.get_all_dirs('',self.type)])
+            # name
+            library_dirlinks = [item[1] for item\
+                                in conn.get_all_dirlinks('', self.type)]
 
             self.walk_directory(conn, self.get_root_path(),
                                 library_dirs, library_files, library_dirlinks)
 
             self.mutex.acquire()
             # Remove unexistent files and directories from library
-            for (dir,filename) in library_files:
-                conn.remove_file(dir, filename, self.table)
-            for (root,dirname) in library_dirs:
-                conn.remove_dir(root, dirname, self.table)
-            for (root, dirlinkname) in library_dirlinks:
-                conn.remove_dirlink(root, dirlinkname, self.table)
+            for id in library_files.values(): conn.remove_file(id)
+            for id in library_dirs.values(): conn.remove_dir(id)
+            for dirlinkname in library_dirlinks:
+                conn.remove_dirlink(dirlinkname, self.type)
                 if self.watcher:
                     self.watcher.stop_watching_dir(os.path.join(root,
                                                                 dirlinkname))
             # Remove empty dir
-            conn.erase_empty_dir(self.table)
+            conn.erase_empty_dir(self.type)
             # update stat values
             conn.record_mediadb_stats(self.type)
             conn.set_update_time(self.type)
@@ -332,30 +327,31 @@ class _Library(SignalingComponent):
             except UnicodeError: # skip this directory
                 continue
 
-            # first update directory
+            strip_root = self.strip_root(root)
+            try: dir_id = library_dirs[strip_root]
+            except KeyError:
+                dir_id = db_con.insert_dir(strip_root, self.type)
+            else:
+                del library_dirs[strip_root]
+
+            # search symlinks
             for dir in dirs:
                 try: dir = self._encode(dir)
                 except UnicodeError: # skip this directory
                     continue
-
-                tuple = (self.strip_root(root), dir)
-                if tuple in library_dirs:
-                    library_dirs.remove(tuple)
-                else:
-                    db_con.insert_dir(tuple,self.table)
-
                 # Walk only symlinks that aren't in library root or in one of
                 # the additional known root paths which consist in already
                 # crawled and out-of-main-root directories
                 # (i.e. other symlinks).
                 dir_path = os.path.join(root, dir)
+                dirname = os.path.join(strip_root, dir)
                 if os.path.islink(dir_path):
                     if not self.is_in_a_root(dir_path, forbidden_roots):
                         forbidden_roots.append(dir_path)
-                        if tuple in library_dirlinks:
-                            library_dirlinks.remove(tuple)
+                        if dirname in library_dirlinks:
+                            library_dirlinks.remove(dirname)
                         else:
-                            db_con.insert_dirlink(tuple, self.table)
+                            db_con.insert_dirlink(dirname, self.type)
                             if self.watcher:
                                 self.watcher.watch_dir(dir_path, self)
                         self.walk_directory(db_con, dir_path,
@@ -368,26 +364,18 @@ class _Library(SignalingComponent):
                 except UnicodeError: # skip this file
                     continue
 
-                try: obj_cls = self._get_file_info(file)
-                except NotSupportedFormat:
-                    log.info(_("File %s not supported") % file)
-                    continue
-
-                path = os.path.join(self._path, root, file)
-                dir, fn = self.strip_root(root), file
-                file_object = self.file_class(db_con, dir, fn, path, obj_cls)
-
-                tuple = (dir, fn)
-                if tuple in library_files:
-                    library_files.remove(tuple)
-                    if os.stat(os.path.join(root,file)).st_mtime >= \
-                                                     int(self.last_update_time):
-                        file_object.update()
-                    # Even if the media has not been modified, we may need
-                    # to update some information (like external subtitle)
-                    # it is the aim of this function
-                    else: file_object.force_update()
-                else: file_object.insert()
+                filename = os.path.join(strip_root, file)
+                try:
+                    fid = library_files[filename]
+                    need_update = os.stat(os.path.join(root,file)).st_mtime >= \
+                        int(self.last_update_time)
+                except KeyError:
+                    need_update = True
+                    fid = None
+                else: del library_files[filename]
+                if need_update:
+                    fid = self.set_media(db_con,dir_id,strip_root,file,fid)
+                if fid: self.set_extra_infos(db_con, strip_root, file, fid)
 
     def end_update(self, result = True):
         self._update_end = True
@@ -397,6 +385,28 @@ class _Library(SignalingComponent):
             log.err(msg)
             self._update_error = msg
         return True
+
+    def set_media(self, db_con, dir_id, dirname, filename, file_id):
+        file_path = os.path.join(self._path, dirname, filename)
+        try: mediainfo_obj = self._get_file_info(filename)
+        except NotSupportedFormat:
+            log.info(_("File %s not supported") % file_path)
+            return
+        # try to get infos from this file
+        try: file_info = mediainfo_obj.parse(file_path)
+        except Exception, ex:
+            log.err(_("Unable to get metadata from %s, see traceback\
+for more information.") % file_path)
+            log.err("------------------Traceback lines--------------------")
+            log.err(traceback.format_exc())
+            log.err("-----------------------------------------------------")
+            return
+        media_file = MediaFile(db_con, dir_id, dirname, filename, file_id)
+        media_file.set_infos(file_info, commit = False)
+        return media_file["media_id"]
+
+    def set_extra_infos(self, db_con, dir, file, file_id):
+        raise NotImplementedError
 
     def _get_file_info(self, filename):
         (base, ext) = os.path.splitext(filename)
@@ -413,149 +423,126 @@ class _Library(SignalingComponent):
         self.inotify_db = db
 
     @inotify_action
-    def add_file(self, path, name):
-        try: obj_cls = self._get_file_info(name)
-        except NotSupportedFormat:
-            return False
+    def add_file(self, path, file):
+        try: self._get_file_info(file)
+        except NotSupportedFormat: return False # file not supported
 
-        file_path = os.path.join(path, name)
-        dir = self.strip_root(path)
-        f_obj = self.file_class(self.inotify_db, dir, name, file_path, obj_cls)
-        if not f_obj.insert(): # insert failed
-            return False
-        self._add_missing_dir(path)
+        strip_path = self.strip_root(path)
+        dir_id = self.inotify_db.is_dir_exist(strip_path, self.type) or\
+                 self.inotify_db.insert_dir(strip_path, self.type)
+        fid = self.set_media(self.inotify_db, dir_id, strip_path, file, None)
+        if fid: self.set_extra_infos(self.inotify_db, strip_path, file, fid)
+        self._add_missing_dir(os.path.dirname(strip_path))
         return True
 
     @inotify_action
     def update_file(self, path, name):
-        try: obj_cls = self._get_file_info(name)
-        except NotSupportedFormat:
-            return False
-
-        file_path = os.path.join(path, name)
         dir = self.strip_root(path)
-        f_obj = self.file_class(self.inotify_db, dir, name, file_path, obj_cls)
-        if not f_obj.update(): # update failed
-            return False
-        return True
+        file = self.inotify_db.is_file_exist(dir, name, self.type)
+        if file:
+            dir_id, file_id = file
+            self.set_media(self.inotify_db, dir_id, dir, name, file_id)
+            return True
+        return False
 
     @inotify_action
     def remove_file(self, path, name):
-        self.inotify_db.remove_file(self.strip_root(path), name, self.table)
-        self._remove_empty_dir(path)
-        return True
+        dir = self.strip_root(path)
+        file = self.inotify_db.is_file_exist(dir, name, self.type)
+        if file:
+            dir_id, file_id = file
+            self.inotify_db.remove_file(file_id)
+            self._remove_empty_dir(path)
+            return True
+        return False
 
     @inotify_action
     def add_directory(self, path, name, dirlink=False):
         dir_path = os.path.join(path, name)
 
         if dirlink:
-            tuple = (self.strip_root(path), name)
-            self.inotify_db.insert_dirlink(tuple, self.table)
+            dirlinkname = os.path.join(self.strip_root(path), name)
+            self.inotify_db.insert_dirlink(dirlinkname, self.type)
             self.watcher.watch_dir(dir_path, self)
 
         self.walk_directory(self.inotify_db, dir_path,
-                            [], [], self.get_root_paths(self.inotify_db))
-        self._add_missing_dir(dir_path)
+                            {}, {}, self.get_root_paths(self.inotify_db))
+        self._add_missing_dir(os.path.dirname(self.strip_root(dir_path)))
         self._remove_empty_dir(path)
         return True
 
     @inotify_action
     def remove_directory(self, path, name, dirlink=False):
-        rel_path = self.strip_root(path)
+        rel_path = self.strip_root(os.path.join(path,name))
+        dir_id = self.inotify_db.is_dir_exist(rel_path, self.type)
+        if not dir_id: return False
 
         if dirlink:
-            self.inotify_db.remove_dirlink(rel_path, name, self.table)
-            self.watcher.stop_watching_dir(os.path.join(path, name))
+            self.inotify_db.remove_dirlink(rel_path, self.type)
+            self.watcher.stop_watching_dir(rel_path)
 
-        self.inotify_db.remove_dir(rel_path, name, self.table)
+        self.inotify_db.remove_recursive_dir(rel_path)
         self._remove_empty_dir(path)
         return True
 
     def _remove_empty_dir(self, path):
         path = self.strip_root(path)
         while path != "":
-            if len(self.inotify_db.get_all_files(path, self.table)) > 0:
+            if len(self.inotify_db.get_all_files(path, self.type)) > 0:
                 break
-            (path, dirname) = os.path.split(path)
-            self.inotify_db.remove_dir(path, dirname, self.table)
+            dir_id = self.inotify_db.is_dir_exist(path, self.type)
+            if dir_id: self.inotify_db.remove_dir(dir_id)
+            path = os.path.dirname(path)
 
     def _add_missing_dir(self, path):
         """ add missing dir in the mediadb """
-        path = self.strip_root(path)
         while path != "":
-            (path, dirname) = os.path.split(path)
-            if self.inotify_db.is_dir_exist(path, dirname, self.table):
-                break
-            self.inotify_db.insert_dir((path, dirname), self.table)
+            dir_id = self.inotify_db.is_dir_exist(path, self.type)
+            if dir_id: break
+            self.inotify_db.insert_dir(path, self.type)
+            path = os.path.dirname(path)
 
 
 class AudioLibrary(_Library):
-    table = "audio_library"
     type = "audio"
-    file_class = DeejaydAudioFile
     update_signal_name = 'mediadb.aupdate'
+    custom_attr = ("artist","album","genre","tracknumber","date","bitrate",\
+                   "replaygain_track_gain","replaygain_track_peak")
 
-    def _build_supported_extension(self, player):
-        self.ext_dict = formats.get_audio_extensions(player)
+    def set_extra_infos(self, db_con, dir, file, file_id):
+        pass # find cover
 
     def search(self,type,content):
         accepted_type = ('all','title','genre','filename','artist','album')
         if type not in accepted_type:
             raise NotFoundException
 
-        rs = self.db_con.search_audio_library(type,content)
-        return self._format_db_rsp(rs)["files"]
-
-    def find(self,type,content):
-        accepted_type = ('title','genre','filename','artist','album')
-        if type not in accepted_type:
-            raise NotFoundException
-
-        rs = self.db_con.find_audio_library(type,content)
-        return self._format_db_rsp(rs)["files"]
-
-    def _format_db_rsp(self,rs):
-        # format correctly database result
-        files = []
-        dirs = []
-        for song in rs:
-            if song[3] == 'directory': dirs.append(song[2])
-            else:
-                file_info = _media.SongMedia(self.db_con, song)
-                file_info["uri"] = "file://"+urllib.quote(\
-                    os.path.join(self._path,song[1],song[2]))
-                files.append(file_info)
-        return {'files':files, 'dirs': dirs}
+        rs = self.db_con.search(type, content, self.media_attr)
+        return self._format_db_answer(rs)
 
 
 class VideoLibrary(_Library):
-    table = "video_library"
     type = "video"
-    file_class = DeejaydVideoFile
     update_signal_name = 'mediadb.vupdate'
+    custom_attr = ("videoheight", "videowidth","external_subtitle")
+    subtitle_ext = (".srt",)
+
+    def set_extra_infos(self, db, dir, file, file_id):
+        file_path = os.path.join(dir, file)
+        (base_path,ext) = os.path.splitext(file_path)
+        sub = ""
+        for ext_type in self.subtitle_ext:
+            if os.path.isfile(os.path.join(self._path, base_path + ext_type)):
+                sub = base_path + ext_type
+                break
+        try: (recorded_sub,) = db.get_file_info(file_id, "external_subtitle")
+        except TypeError:
+            recorded_sub = None
+        if recorded_sub != sub:
+            db.set_media_infos(file_id,{"external_subtitle": sub})
 
     def search(self, content):
-        rs = self.db_con.search_video_library(content)
-        return self._format_db_rsp(rs)["files"]
-
-    def _build_supported_extension(self, player):
-        self.ext_dict = formats.get_video_extensions(player)
-
-    def _format_db_rsp(self,rs):
-        # format correctly database result
-        files = []
-        dirs = []
-        for (id,dir,fn,t,ti,videow,videoh,sub,len) in rs:
-            if t == 'directory': dirs.append(fn)
-            else:
-                file_info = {"path":os.path.join(dir,fn),"length":len,
-                             "media_id":id,"filename":fn,"dir":dir,
-                             "title":ti,
-                             "videowidth":videow,"videoheight":videoh,
-                             "uri":"file://"+os.path.join(self._path,dir,fn),
-                             "external_subtitle":sub,"type":"video"}
-                files.append(file_info)
-        return {'files':files, 'dirs': dirs}
+        rsp = self.db_con.search("title", content, self.media_attr)
+        return self._format_db_answer(rsp)
 
 # vim: ts=4 sw=4 expandtab

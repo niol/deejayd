@@ -17,15 +17,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
+from deejayd.mediadb.formats._base import _VideoFile
 extensions = (".avi", ".mpeg", ".mpg", ".mkv", ".asf", )
 
-class VideoFile:
+class VideoFile(_VideoFile):
     supported_tag = ("videowidth","length","videoheight")
 
-    def __init__(self, player):
-        self.player = player
-
     def parse(self, file):
+        infos = _VideoFile.parse(self, file)
         (path,filename) = os.path.split(file)
         def format_title(f):
             (filename,ext) = os.path.splitext(f)
@@ -34,24 +33,11 @@ class VideoFile:
 
             return title.title()
 
-        infos = self.parse_sub(file)
         infos["title"] = format_title(filename)
         video_info = self.player.get_video_file_info(file)
         for t in self.supported_tag:
             infos[t] = video_info[t]
 
-        return infos
-
-    def parse_sub(self, file):
-        infos = {}
-        # Try to find a subtitle (same name with a srt/sub extension)
-        (base_path,ext) = os.path.splitext(file)
-        sub = ""
-        for ext_type in (".srt",".sub"):
-            if os.path.isfile(base_path + ext_type):
-                sub = "file://" + base_path + ext_type
-                break
-        infos["subtitle"] = sub
         return infos
 
 object = VideoFile
