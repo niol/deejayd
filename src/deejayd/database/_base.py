@@ -64,6 +64,7 @@ class Database(UnknownDatabase):
             self.execute(query)
         log.info(_("Initial entries correctly inserted."))
         self.structure_created = True
+        self.connection.commit()
 
     def verify_database_version(self):
         try:
@@ -95,208 +96,208 @@ class Database(UnknownDatabase):
     #
     # Common MediaDB requests
     #
-    def remove_file(self,dir,f,table = "audio_library"):
-        query = "DELETE FROM "+table+" WHERE filename = %s AND dir = %s"
-        self.execute(query, (f,dir))
+    def insert_file(self, dir, filename):
+        query = "INSERT INTO library (directory,name)VALUES(%s, %s)"
+        self.execute(query, (dir, filename))
+        self.execute("SELECT id FROM library WHERE directory=%s AND name=%s",\
+                        (dir, filename))
+        (id,) = self.cursor.fetchone()
+        return id
 
-    def erase_empty_dir(self, table = "audio_library"):
-        # get list of dir
-        query = "SELECT dir,filename FROM "+table+" WHERE type='directory'"
-        self.execute(query)
+    def set_media_infos(self, file_id, infos):
+        query = "REPLACE INTO media_info (id,ikey,value)VALUES(%s,%s,%s)"
+        entries = [(file_id, k, v) for k, v in infos.items()]
+        self.executemany(query, entries)
 
-        for (dir,filename) in self.cursor.fetchall():
-            query = "SELECT COUNT(*) FROM "+table+" WHERE type='file' AND dir\
-                LIKE %s"
-            self.execute(query,(path.join(dir,filename)+'%%',))
-            rs = self.cursor.fetchone()
-            if rs == (0,): # remove directory
-                query = "DELETE FROM "+table+" WHERE dir = %s AND filename = %s"
-                self.execute(query, (dir,filename))
+    def remove_file(self, id):
+        queries = [
+            "DELETE FROM library WHERE id = %s",
+            "DELETE FROM media_info WHERE id = %s",
+            "DELETE FROM medialist_libraryitem WHERE libraryitem_id = %s",
+            ]
+        for q in queries: self.execute(q, (id,))
 
-        return True
+    def is_file_exist(self, dirname, filename, type = "audio"):
+        query = "SELECT d.id, l.id \
+            FROM library l JOIN library_dir d ON d.id=l.directory\
+            WHERE l.name = %s AND d.name = %s AND d.lib_type = %s"
+        self.execute(query,(filename, dirname, type))
+        rs = self.cursor.fetchone()
+        return rs
 
-    def insert_dir(self,new_dir,table = "audio_library"):
-        query = "INSERT INTO "+table+" (dir,filename,type)\
-                                 VALUES(%s,%s,'directory')"
-        self.execute(query, new_dir)
+    def erase_empty_dir(self, type = "audio"):
+        self.execute("SELECT DISTINCT name FROM library_dir WHERE lib_type=%s",\
+            (type,))
+        for (dirname,) in self.cursor.fetchall():
+            rs = self.get_all_files(dirname, type)
+            if len(rs) == 0: # remove directory
+                self.execute("DELETE FROM library_dir WHERE name = %s",\
+                    (dirname,))
 
-    def remove_dir(self,root,dir,table = "audio_library"):
-        query = "DELETE FROM "+table+" WHERE filename = %s AND dir = %s"
-        self.execute(query, (dir,root))
-        # We also need to erase the content of this directory
-        query = "DELETE FROM "+table+" WHERE dir LIKE %s"
-        self.execute(query, (path.join(root,dir)+"%%",))
+    def insert_dir(self, new_dir, type="audio"):
+        query = "INSERT INTO library_dir (name,type,lib_type)VALUES(%s,%s,%s)"
+        self.execute(query, (new_dir, 'directory', type))
+        return self.is_dir_exist(new_dir, type)
 
-    def insert_dirlink(self, new_dirlink, table="audio_library"):
-        query = "INSERT INTO "+table+" (dir,filename,type)\
-                                 VALUES(%s,%s,'dirlink')"
-        self.execute(query, new_dirlink)
+    def remove_dir(self, id):
+        self.execute("SELECT id FROM library WHERE directory = %s", (id,))
+        for (id,) in self.cursor.fetchall():
+            self.remove_file(id)
+        self.execute("DELETE FROM library_dir WHERE id = %s", (id,))
 
-    def remove_dirlink(self, root, dirlink, table="audio_library"):
-        query = "DELETE FROM "+table+" WHERE filename = %s AND dir = %s\
-                                                           AND type = %s"
-        self.execute(query, (dirlink, root, 'dirlink', ))
+    def remove_recursive_dir(self, dir, type="audio"):
+        for file in self.get_all_files(dir, type):
+            self.remove_file(file[2])
+        self.execute("DELETE FROM library_dir\
+                      WHERE name LIKE %s AND lib_type = %s", (dir+"%%", type))
 
-    def is_dir_exist(self, root, dir, table = "audio_library"):
-        query = "SELECT * FROM "+table+" WHERE filename = %s AND dir = %s AND\
-            type = 'directory'"
-        self.execute(query, (dir,root))
+    def is_dir_exist(self, dirname, type):
+        self.execute("SELECT id FROM library_dir WHERE name=%s AND lib_type=%s"\
+            ,(dirname, type))
+        rs = self.cursor.fetchone()
+        return rs and rs[0]
 
-        return len(self.cursor.fetchall())
+    def insert_dirlink(self, new_dirlink, type="audio"):
+        query = "INSERT INTO library_dir (name,type,lib_type)VALUES(%s,%s,%s)"
+        self.execute(query, (new_dirlink, "dirlink", type))
 
-    def get_dir_info(self,dir,table = "audio_library"):
-        query = "SELECT * FROM "+table+" WHERE dir = %s\
-                 ORDER BY type,dir,filename"
-        self.execute(query,(dir,))
+    def remove_dirlink(self, dirlink, type="audio"):
+        query = "DELETE FROM library_dir WHERE name = %s AND lib_type = %s"
+        self.execute(query, (dirlink, type))
 
+    def get_dir_list(self, dir, type = "audio"):
+        query = "SELECT DISTINCT id, name FROM library_dir\
+            WHERE name LIKE %s AND lib_type = %s ORDER BY name"
+        term = dir == "" and "%%" or dir+"/%%"
+        self.execute(query, (term, type))
         return self.cursor.fetchall()
 
-    def get_file_info(self,file,table = "audio_library"):
-        query = "SELECT * FROM "+table+" WHERE dir = %s AND filename = %s"
-        self.execute(query,path.split(file))
+    def get_file_info(self, file_id, info_type):
+        query = "SELECT value FROM media_info WHERE id = %s AND ikey = %s"
+        self.execute(query, (file_id, info_type))
+        return self.cursor.fetchone()
 
+    def get_all_files(self, dir, type = "audio"):
+        query = "SELECT DISTINCT d.id, d.name, l.id, l.name\
+            FROM library l JOIN library_dir d ON d.id=l.directory\
+            WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
+        self.execute(query,(dir+"%%", type))
         return self.cursor.fetchall()
 
-    def get_files(self,dir,table = "audio_library"):
-        query = "SELECT * FROM "+table+" WHERE dir = %s AND type = 'file'\
-                 ORDER BY dir,filename"
-        self.execute(query,(dir,))
-
+    def get_all_dirs(self, dir, type = "audio"):
+        query = "SELECT DISTINCT id,name FROM library_dir\
+            WHERE name LIKE %s AND type='directory' AND lib_type = %s\
+            ORDER BY name"
+        self.execute(query,(dir+"%%", type))
         return self.cursor.fetchall()
 
-    def get_all_files(self,dir,table = "audio_library"):
-        query = "SELECT * FROM "+table+" WHERE dir LIKE %s AND type = 'file'\
-            ORDER BY dir,filename"
-        self.execute(query,(dir+"%%",))
-
+    def get_all_dirlinks(self, dirlink, type = 'audio'):
+        query = "SELECT DISTINCT id,name FROM library_dir\
+            WHERE name LIKE %s AND type='dirlink' AND lib_type = %s\
+            ORDER BY name"
+        self.execute(query,(dirlink+"%%", type))
         return self.cursor.fetchall()
 
-    def get_all_dirs(self,dir,table = "audio_library"):
-        query = "SELECT * FROM "+table+\
-            " WHERE dir LIKE %s AND type='directory' ORDER BY dir,filename"
-        self.execute(query,(dir+"%%",))
+    def _build_media_query(self, infos_list):
+        selectquery = ""
+        joinquery = ""
+        for index, key in enumerate(infos_list):
+            selectquery += ",i%d.value" % index
+            joinquery += " JOIN media_info i%d ON i%d.id=i.id AND\
+                i%d.ikey='%s'" % (index, index, index, key)
+        return selectquery, joinquery
 
+    def get_dir_content(self, dir, infos_list, type = "audio"):
+        selectquery, joinquery = self._build_media_query(infos_list)
+        query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
+            " FROM library l JOIN library_dir d ON d.id=l.directory\
+                           JOIN media_info i ON i.id=l.id"\
+                           + joinquery+\
+            " WHERE d.name = %s AND d.lib_type = %s ORDER BY d.name,l.name"
+        self.execute(query,(dir, type))
         return self.cursor.fetchall()
 
-    def get_all_dirlinks(self, dir, table='audio_library'):
-        query = "SELECT * FROM "+table+\
-            " WHERE dir LIKE %s AND type='dirlink' ORDER BY dir,filename"
-        self.execute(query,(dir+"%%",))
+    def get_file(self, dir, file, infos_list, type = "audio"):
+        selectquery, joinquery = self._build_media_query(infos_list)
+        query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
+            " FROM library l JOIN library_dir d ON d.id=l.directory\
+                           JOIN media_info i ON i.id=l.id"\
+                           + joinquery+\
+            " WHERE d.name = %s AND l.name = %s AND d.lib_type = %s"
+        self.execute(query, (dir, file, type))
+        return self.cursor.fetchall()
+
+    def get_alldir_files(self, dir, infos_list, type = "audio"):
+        selectquery, joinquery = self._build_media_query(infos_list)
+        query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
+            " FROM library l JOIN library_dir d ON d.id=l.directory\
+                           JOIN media_info i ON i.id=l.id"\
+                           + joinquery+\
+            " WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
+        self.execute(query,(dir+"%%", type))
+        return self.cursor.fetchall()
+
+    def search(self, type, content, infos_list):
+        selectquery, joinquery = self._build_media_query(infos_list)
+        query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
+            " FROM library l JOIN library_dir d ON d.id=l.directory\
+                           JOIN media_info i ON i.id=l.id"\
+                           + joinquery+\
+            " WHERE i.ikey=%s AND i.value LIKE %s ORDER BY d.name, l.name"
+        self.execute(query,(type, "%%"+content+"%%"))
         return self.cursor.fetchall()
 
     #
-    # Specific audio library
+    # static medialist requests
     #
-    def search_audio_library(self,type,content):
-        if type != "all":
-            query = "SELECT * FROM audio_library WHERE type = 'file' AND "+\
-                type+" LIKE %s ORDER BY dir, filename"
-            self.execute(query,('%%'+content+'%%',))
-        else:
-            query = "SELECT * FROM audio_library WHERE type = 'file' AND \
-                (genre LIKE %s OR title LIKE %s OR album LIKE %s OR \
-                artist LIKE %s) ORDER BY dir, filename"
-            self.execute(query,('%%'+content+'%%','%%'+content+'%%',
-                '%%'+content+'%%','%%'+content+'%%'))
-
-        return self.cursor.fetchall()
-
-    def find_audio_library(self,type,content):
-        query = "SELECT * FROM audio_library WHERE type = 'file' AND "+\
-            type+"= %s"
-        self.execute(query,(content,))
-
-        return self.cursor.fetchall()
-
-    def insert_audio_file(self,dir,filename,fileInfo):
-        query = "INSERT INTO audio_library(type,dir,filename,title,artist,\
-            album,genre,date,tracknumber,length,bitrate,replaygain_track_gain,\
-            replaygain_track_peak)VALUES \
-            ('file',%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        self.execute(query, (dir,filename,fileInfo["title"],\
-            fileInfo["artist"],fileInfo["album"],fileInfo["genre"],\
-            fileInfo["date"], fileInfo["tracknumber"],fileInfo["length"],\
-            fileInfo["bitrate"],fileInfo["replaygain_track_gain"],\
-            fileInfo["replaygain_track_peak"]))
-
-    def update_audio_file(self,dir,filename,fileInfo):
-        query = "UPDATE audio_library SET title=%s,artist=%s,album=%s,genre=%s,\
-            date=%s,tracknumber=%s,length=%s,bitrate=%s,\
-            replaygain_track_gain=%s,replaygain_track_peak=%s\
-            WHERE dir=%s AND filename=%s"
-        self.execute(query,(fileInfo["title"],fileInfo["artist"],\
-            fileInfo["album"],fileInfo["genre"],fileInfo["date"],\
-            fileInfo["tracknumber"],fileInfo["length"],fileInfo["bitrate"],\
-            fileInfo["replaygain_track_gain"],\
-            fileInfo["replaygain_track_peak"],dir,filename))
-
-    #
-    # Video MediaDB specific requests
-    #
-    def insert_video_file(self,dir,filename,fileInfo):
-        query = "INSERT INTO video_library(type,dir,filename,title,length,\
-          videowidth,videoheight,subtitle) VALUES ('file',%s,%s,%s,%s,%s,%s,%s)"
-        self.execute(query, (dir,filename,\
-            fileInfo["title"],fileInfo["length"],fileInfo["videowidth"],\
-            fileInfo["videoheight"],fileInfo["subtitle"]))
-
-    def update_video_file(self,dir,filename,fileInfo):
-        query = "UPDATE video_library SET title=%s,length=%s,videowidth=%s,\
-            videoheight=%s,subtitle=%s WHERE dir=%s AND filename=%s"
-        self.execute(query,(fileInfo["title"],fileInfo["length"],\
-            fileInfo["videowidth"],fileInfo["videoheight"],\
-            fileInfo["subtitle"],dir,filename))
-
-    def update_video_subtitle(self,dir,filename,file_info):
-        query = "UPDATE video_library SET subtitle=%s \
-            WHERE dir=%s AND filename=%s"
-        self.execute(query,(file_info["subtitle"],dir,filename))
-
-    def search_video_library(self,value):
-        query = "SELECT * FROM video_library WHERE type = 'file' AND title\
-                LIKE %s ORDER BY dir,filename"
-        self.execute(query,('%%'+value+'%%',))
-
-        return self.cursor.fetchall()
-    #
-    # videolist requests
-    #
-    def get_videolist(self,name):
-        query = "SELECT p.position, l.dir, l.filename,\
-            l.title, l.length, l.videowidth, l.videoheight, l.subtitle, l.id \
-            FROM medialist p INNER JOIN video_library l \
-            ON p.media_id = l.id WHERE p.name = %s ORDER BY p.position"
+    def get_static_medialist(self, name, infos_list):
+        selectquery, joinquery = self._build_media_query(infos_list)
+        query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
+            " FROM medialist m JOIN medialist_libraryitem mi\
+                                    ON m.id = mi.medialist_id\
+                           JOIN library l ON l.id = mi.libraryitem_id\
+                           JOIN library_dir d ON d.id=l.directory\
+                           JOIN media_info i ON i.id=l.id"\
+                           + joinquery+\
+            " WHERE m.name = %s AND m.type = 'static' ORDER BY mi.position"
         self.execute(query,(name,))
         return self.cursor.fetchall()
 
-    #
-    # audiolist requests
-    #
-    def get_audiolist(self,name):
-        query = "SELECT l.id, l.dir, l.filename, l.type, l.title, l.artist,\
-            l.album, l.genre, l.tracknumber, l.date, l.length, l.bitrate,\
-            l.replaygain_track_gain, replaygain_track_peak, p.position\
-            FROM medialist p INNER JOIN audio_library l\
-            ON p.media_id = l.id WHERE p.name = %s ORDER BY p.position"
-        self.execute(query,(name,))
-        return self.cursor.fetchall()
-
-    #
-    # medialist requests
-    #
-    def delete_medialist(self,name):
-        self.execute("DELETE FROM medialist WHERE name = %s",(name,))
+    def delete_static_medialist(self, name):
+        # get id of medialist entries
+        query = "SELECT id FROM medialist WHERE name=%s AND type = 'static'"
+        self.execute(query ,(name,))
+        try: (id,) = self.cursor.fetchone()
+        except (IndexError, TypeError): return # medialist does not exist
+        # remove medialist entries
+        self.execute("DELETE FROM medialist_libraryitem\
+            WHERE medialist_id = %s",(id,))
+        self.execute("DELETE FROM medialist WHERE id = %s",(id,))
         self.connection.commit()
 
-    def save_medialist(self,content,name):
-        values = [(name,s["pos"],s["media_id"]) for s in content]
-        query = "INSERT INTO medialist(name,position,media_id)\
-            VALUES(%s,%s,%s)"
+    def set_static_medialist(self, name, content):
+        slt_query = "SELECT id FROM medialist WHERE name=%s AND type = 'static'"
+        self.execute(slt_query, (name,))
+        rs = self.cursor.fetchone()
+        if not rs:
+            query = "INSERT INTO medialist (name,type)VALUES(%s,'static')"
+            self.execute(query, (name,))
+            self.connection.commit()
+            self.execute(slt_query,(name,))
+            (id,) = self.cursor.fetchone()
+        else: (id,) = rs
+
+        self.execute(\
+            "DELETE FROM medialist_libraryitem WHERE medialist_id = %s",(id,))
+        values = [(id, s["media_id"]) for s in content]
+        query = "INSERT INTO medialist_libraryitem(medialist_id,libraryitem_id)\
+            VALUES(%s,%s)"
         self.executemany(query,values)
         self.connection.commit()
 
-    def get_medialist_list(self):
-        self.execute("SELECT DISTINCT name FROM medialist ORDER BY name")
+    def get_medialist_list(self, type = 'static'):
+        query = "SELECT DISTINCT name FROM medialist WHERE type = %s"
+        self.execute(query, (type,))
         return self.cursor.fetchall()
 
     #
@@ -319,30 +320,20 @@ class Database(UnknownDatabase):
     # Stat requests
     #
     def record_mediadb_stats(self, type):
+        values = []
         if type == "audio":
-            # Get the number of songs
-            self.execute("SELECT filename FROM audio_library\
-                WHERE type = 'file'")
-            songs = len(self.cursor.fetchall())
-            # Get the number of artist
-            self.execute("SELECT DISTINCT artist FROM audio_library\
-                WHERE type = 'file'")
-            artists = len(self.cursor.fetchall())
-            # Get the number of album
-            self.execute("SELECT DISTINCT album FROM audio_library\
-                WHERE type = 'file'")
-            albums = len(self.cursor.fetchall())
-            # Get the number of genre
-            self.execute("SELECT DISTINCT genre FROM audio_library\
-                WHERE type = 'file'")
-            genres = len(self.cursor.fetchall())
-            values = [(songs,"songs"),(artists,"artists"),(albums,"albums"),\
-                      (genres,"genres")]
+            # number of songs
+            self.execute("SELECT COUNT(l.name) FROM library l, library_dir d\
+                WHERE d.lib_type = 'audio' AND l.directory = d.id")
+            values.append((self.cursor.fetchone()[0],"songs"))
+            for tag in ("genre", "artist", "album"):
+                self.execute("SELECT DISTINCT value FROM media_info\
+                    WHERE ikey = %s", (tag,))
+                values.append((len(self.cursor.fetchall()),tag+"s"))
         elif type == "video":
-            # Get the number of video
-            self.execute("SELECT DISTINCT filename FROM video_library\
-                WHERE type = 'file'")
-            values = [(len(self.cursor.fetchall()), "videos")]
+            self.execute("SELECT COUNT(l.name) FROM library l, library_dir d\
+                WHERE d.lib_type = 'video' AND l.directory = d.id")
+            values.append((self.cursor.fetchone()[0],"videos"))
 
         self.executemany("UPDATE stats SET value = %s WHERE name = %s",values)
 

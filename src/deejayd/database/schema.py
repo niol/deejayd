@@ -51,47 +51,72 @@ class Index(object):
         self.columns = columns
 
 
-db_schema_version=7
+db_schema_version=8
 db_schema = [
-    Table('audio_library', key='id')[
+    Table('library_dir', key='id')[
         Column('id', auto_increment=True),
-        Column('dir'),
-        Column('filename'),
-        Column('type'),
-        Column('title'),
-        Column('artist'),
-        Column('album'),
-        Column('genre'),
-        Column('tracknumber'),
-        Column('date'),
-        Column('length', type='int'),
-        Column('bitrate', type='int'),
-        Column('replaygain_track_gain'),
-        Column('replaygain_track_peak')],
-    Table('video_library', key='id')[
+        Column('name'),
+        Column('lib_type'), # audio or video
+        Column('type'), # directory or dirlink
+        Index(('name', 'lib_type'))],
+    Table('library', key='id')[
         Column('id', auto_increment=True),
-        Column('dir'),
-        Column('filename'),
-        Column('type'),
-        Column('title'),
-        Column('videowidth'),
-        Column('videoheight'),
-        Column('subtitle'),
-        Column('length', type='int')],
+        Column('directory', type='int'),
+        Column('name'),
+        Index(('name', 'directory'))],
+    Table('media_info', key=('id','ikey'))[
+        Column('id', type="int"),
+        Column('ikey'),
+        Column('value'),
+        Index(('ikey','value'), unique = False)],
+    Table('cover', key='id')[
+        Column('id', auto_increment=True),
+        Column('name'),
+        Column('image', type="blob")],
+    Table('medialist', key='id')[
+       Column('id', auto_increment=True),
+       Column('name'),
+       Column('type'), # magic or static
+       Index(('name','type'))],
+   Table('medialist_libraryitem', key=('position'))[
+       Column('position', auto_increment=True),
+       Column('medialist_id', type='int'),
+       Column('libraryitem_id', type='int')],
+   Table('medialist_filters', key=('filter_id'))[
+       Column('filter_id', type='int'),
+       Column('medialist_id', type='int'), # optional
+       Column('type')], # complex or basic
+   Table('medialist_basicfilters', key=('basicfilter_id'))[
+       Column('basicfilter_id', type='int'),
+       Column('tag'), # criterion
+       Column('operator'), # equal, not equal, regex, regexi, etc.
+       Column('pattern')], # matched value
+   Table('medialist_complexfilters', key=('complexfilter_id'))[
+       Column('complexfilter_id', type='int'),
+       Column('lfilter', type='int'), # filter_id
+       Column('combinator'), # AND, OR, XOR
+       Column('rfilter', type='int')], # filter_id
     Table('webradio', key='wid')[
         Column('wid', type='int'),
         Column('name'),
         Column('url')],
-    Table('medialist', key=('name','position'))[
-        Column('name'),
-        Column('position', type='int'),
-        Column('media_id', type='int')],
     Table('stats', key='name')[
         Column('name'),
         Column('value', type='int')],
     Table('variables', key='name')[
         Column('name'),
         Column('value')],
+
+    # for future use
+    # Table('webradio', key='id')[
+    #     Column('id', auto_increment=True),
+    #     Column('name'),
+    #     Index(('name',))],
+    # Table('webradio_entries', key='pos')[
+    #     Column('pos', auto_increment=True),
+    #     Column('url'),
+    #     Column('webradio_id', type='int'),
+    #     Index(('url', 'webradio_id'))],
     ]
 db_init_cmds = [
     # stats
@@ -118,7 +143,7 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('webradioid','1');",
     "INSERT INTO variables VALUES('dvdid','1');",
     "INSERT INTO variables VALUES('videoid','1');",
-    "INSERT INTO variables VALUES('database_version','7');",
+    "INSERT INTO variables VALUES('database_version','8');",
     ]
 
 # vim: ts=4 sw=4 expandtab
