@@ -45,10 +45,11 @@ class MediaFile(dict):
         self.remove_file(self["media_id"])
 
     def set_uris(self, root_path):
-        self["uri"] = os.path.join(root_path, self["path"])
+        self["uri"] = "file:/"+urllib.quote(\
+                               os.path.join(root_path, self["path"]))
         for k in ("external_subtitle",):
             if k in self.keys() and self[k] != "":
-                self[k] = os.path.join(root_path, self[k])
+                self[k] = "file:/"+urllib.quote(os.path.join(root_path,self[k]))
 
     def set_info(self, key, value, commit = True):
         self.set_infos({key: value}, commit)
