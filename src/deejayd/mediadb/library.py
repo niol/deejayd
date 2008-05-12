@@ -31,18 +31,14 @@ class NotSupportedFormat(Exception):pass
 
 class MediaFile(dict):
 
-    def __init__(self, db, dir_id, dirname, filename, file_id = None):
+    def __init__(self, db, dir_id, dirname, filename, file_id):
         self.db = db
         self.replaygain_support = False
-        self["media_id"] = file_id or db.insert_file(dir_id, filename)
+        self["media_id"] = file_id
         # record infos
         self["path"] = os.path.join(dirname, filename)
         self["filename"] = filename
         self["dir_id"] = dir_id
-
-    def destroy(self):
-        if not self["media_id"]: raise TypeError
-        self.remove_file(self["media_id"])
 
     def set_uris(self, root_path):
         self["uri"] = "file:/"+urllib.quote(\
@@ -51,13 +47,12 @@ class MediaFile(dict):
             if k in self.keys() and self[k] != "":
                 self[k] = "file:/"+urllib.quote(os.path.join(root_path,self[k]))
 
-    def set_info(self, key, value, commit = True):
-        self.set_infos({key: value}, commit)
+    def set_info(self, key, value):
+        self.set_infos({key: value})
 
-    def set_infos(self, infos, commit = True):
-        if not self["media_id"]: raise TypeError
+    def set_infos(self, infos):
         self.db.set_media_infos(self["media_id"], infos)
-        if commit: self.db.connection.commit()
+        self.db.connection.commit()
 
     def replay_gain(self):
         """Return the recommended Replay Gain scale factor."""
@@ -402,9 +397,9 @@ for more information.") % file_path)
             log.err(traceback.format_exc())
             log.err("-----------------------------------------------------")
             return
-        media_file = MediaFile(db_con, dir_id, dirname, filename, file_id)
-        media_file.set_infos(file_info, commit = False)
-        return media_file["media_id"]
+        fid = file_id or db_con.insert_file(dir_id, filename)
+        db_con.set_media_infos(fid, file_info)
+        return fid
 
     def set_extra_infos(self, db_con, dir, file, file_id):
         raise NotImplementedError
