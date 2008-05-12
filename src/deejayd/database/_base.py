@@ -122,8 +122,7 @@ class Database(UnknownDatabase):
             FROM library l JOIN library_dir d ON d.id=l.directory\
             WHERE l.name = %s AND d.name = %s AND d.lib_type = %s"
         self.execute(query,(filename, dirname, type))
-        rs = self.cursor.fetchone()
-        return rs
+        return self.cursor.fetchone()
 
     def erase_empty_dir(self, type = "audio"):
         self.execute("SELECT DISTINCT name FROM library_dir WHERE lib_type=%s",\
@@ -245,6 +244,11 @@ class Database(UnknownDatabase):
                            + joinquery+\
             " WHERE i.ikey=%s AND i.value LIKE %s ORDER BY d.name, l.name"
         self.execute(query,(type, "%%"+content+"%%"))
+        return self.cursor.fetchall()
+
+    def search_id(self, key, value):
+        query = "SELECT DISTINCT id FROM media_info WHERE ikey=%s AND value=%s"
+        self.execute(query,(key, value))
         return self.cursor.fetchall()
 
     #

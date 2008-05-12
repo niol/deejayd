@@ -426,14 +426,19 @@ for more information.") % file_path)
     @inotify_action
     def add_file(self, path, file):
         try: self._get_file_info(file)
-        except NotSupportedFormat: return False # file not supported
+        except NotSupportedFormat: # file not supported
+            return self._inotify_add_info(path, file)
 
         strip_path = self.strip_root(path)
         dir_id = self.inotify_db.is_dir_exist(strip_path, self.type) or\
                  self.inotify_db.insert_dir(strip_path, self.type)
         fid = self.set_media(self.inotify_db, dir_id, strip_path, file, None)
-        if fid: self.set_extra_infos(self.inotify_db, strip_path, file, fid)
-        self._add_missing_dir(os.path.dirname(strip_path))
+        if fid:
+            self.set_extra_infos(self.inotify_db, strip_path, file, fid)
+            self._add_missing_dir(os.path.dirname(strip_path))
+        else:
+            self._inotify_add_info(path, file)
+            self._remove_empty_dir(path)
         return True
 
     @inotify_action
@@ -444,7 +449,7 @@ for more information.") % file_path)
             dir_id, file_id = file
             self.set_media(self.inotify_db, dir_id, dir, name, file_id)
             return True
-        return False
+        else: return self._inotify_update_info(path, name)
 
     @inotify_action
     def remove_file(self, path, name):
@@ -455,7 +460,7 @@ for more information.") % file_path)
             self.inotify_db.remove_file(file_id)
             self._remove_empty_dir(path)
             return True
-        return False
+        else: return self._inotify_remove_info(path, name)
 
     @inotify_action
     def add_directory(self, path, name, dirlink=False):
@@ -521,6 +526,19 @@ class AudioLibrary(_Library):
         rs = self.db_con.search(type, content, self.media_attr)
         return self._format_db_answer(rs)
 
+    #
+    # custom inotify actions
+    #
+    def _inotify_add_info(self, path, file):
+        return False
+
+    def _inotify_remove_info(self, path, file):
+        return False
+
+    def _inotify_update_info(self, path, file):
+        return False
+    ###########################################################
+
 
 class VideoLibrary(_Library):
     type = "video"
@@ -545,5 +563,37 @@ class VideoLibrary(_Library):
     def search(self, content):
         rsp = self.db_con.search("title", content, self.media_attr)
         return self._format_db_answer(rsp)
+
+    #
+    # custom inotify actions
+    #
+    def _inotify_add_info(self, path, file):
+        (base_file, ext) = os.path.splitext(file)
+        if ext in self.subtitle_ext:
+            strip_path = self.strip_root(path)
+            for video_ext in self.ext_dict.keys():
+                try: (dir_id,fid,) = self.inotify_db.is_file_exist(strip_path,\
+                                                base_file+video_ext, self.type)
+                except TypeError: pass
+                else:
+                    self.inotify_db.set_media_infos(fid,\
+                        {"external_subtitle": os.path.join(strip_path, file)})
+                    return True
+        return False
+
+    def _inotify_remove_info(self, path, file):
+        (base_file, ext) = os.path.splitext(file)
+        if ext in self.subtitle_ext:
+            strip_path = self.strip_root(path)
+            ids = self.inotify_db.search_id("external_subtitle",\
+                os.path.join(strip_path, file))
+            for (id,) in ids:
+                self.inotify_db.set_media_infos(id, {"external_subtitle": ""})
+            return True
+        return False
+
+    def _inotify_update_info(self, path, file):
+        return False
+    ###########################################################
 
 # vim: ts=4 sw=4 expandtab
