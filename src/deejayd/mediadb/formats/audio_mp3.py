@@ -16,7 +16,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-extensions = [".mp3",".mp2"]
+from deejayd.mediadb.formats._base import _AudioFile
+
+extensions = [".mp3",".mp2",".aac"]
 try: from mutagen.mp3 import MP3
 except ImportError:
     extensions = []
