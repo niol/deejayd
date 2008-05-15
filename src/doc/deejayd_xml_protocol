@@ -407,6 +407,7 @@ Expected return value : ''`MediaList`''
 
 Set player option for the current media
        Possible options are :
+         * zoom : set zoom (video only), min=-85, max=400
          * audio_lang : select audio channel (video only)
          * sub_lang : select subtitle channel (video only)
          * av_offset : set audio/video offset (video only)

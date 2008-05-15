@@ -1,6 +1,13 @@
 
 New features and significant updates in version...
 
+0.7.2 (2008-05-15)
+--------------------
+  * xine: add osd support (disabled by default)
+  * xine: add zoom option
+  * many fix in signal infrastructure
+  * fix in sql requests
+
 0.7.1 (2008-04-16)
 --------------------
   * add queue random option
