@@ -17,7 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os, random
-from deejayd.sources._base import _BaseSource, MediaList, MediaNotFoundError
+from deejayd.sources._base import _BaseAudioLibSource, MediaList,\
+                                  MediaNotFoundError
 from deejayd.mediadb.library import NotFoundException
 
 def playlist_action(func):
@@ -26,30 +27,21 @@ def playlist_action(func):
             pls_name = __kw['playlist']
             del __kw['playlist']
             pls_obj = MediaList(self.db)
-            pls_obj.load_playlist(pls_name, self.library.get_root_path())
+            pls_obj.load_medialist(pls_name, self.library)
         else:
             pls_obj = None
 
         __kw['playlist'] = pls_obj
         rs = func(self, *__args, **__kw)
         if pls_obj != None:
-            self.db.delete_medialist(pls_name)
-            self.db.save_medialist(pls_obj.get(), pls_name)
+            self.db.set_static_medialist(pls_name, pls_obj.get())
         return rs
 
     return playlist_action_func
 
-class PlaylistSource(_BaseSource):
-    pls_name = "__djcurrent__"
+class PlaylistSource(_BaseAudioLibSource):
+    base_medialist = "__djcurrent__"
     name = "playlist"
-
-    def __init__(self,db,library):
-        _BaseSource.__init__(self,db)
-
-        # Load current playlist
-        self.library = library
-        self._media_list = MediaList(self.db, self.get_recorded_id())
-        self._media_list.load_playlist(self.pls_name, library.get_root_path())
 
     def get_list(self):
         list = [pl for (pl,) in self.db.get_medialist_list() if not \
@@ -57,9 +49,7 @@ class PlaylistSource(_BaseSource):
         return list
 
     def load_playlist(self, playlists, pos = None):
-        for pls in playlists:
-            self._media_list.load_playlist(pls,\
-                self.library.get_root_path(), pos)
+        _BaseAudioLibSource.load_playlist(self, playlists, pos)
         self.dispatch_signame('player.plupdate')
 
     @playlist_action
@@ -126,16 +116,11 @@ class PlaylistSource(_BaseSource):
             self.dispatch_signame('player.plupdate')
 
     def save(self, playlist_name):
-        self.db.delete_medialist(playlist_name)
-        self.db.save_medialist(self._media_list.get(), playlist_name)
+        self.db.set_static_medialist(playlist_name, self._media_list.get())
         self.dispatch_signame('playlist.update')
 
     def rm(self, playlist_name):
-        self.db.delete_medialist(playlist_name)
+        self.db.delete_static_medialist(playlist_name)
         self.dispatch_signame('playlist.update')
-
-    def close(self):
-        _BaseSource.close(self)
-        self.save(self.pls_name)
 
 # vim: ts=4 sw=4 expandtab

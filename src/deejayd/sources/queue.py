@@ -17,42 +17,26 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import random
-from deejayd.mediadb.library import NotFoundException
-from deejayd.sources._base import _BaseSource, MediaList, MediaNotFoundError
+from deejayd.sources._base import _BaseAudioLibSource
 
-class QueueSource(_BaseSource):
-    queue_name = "__djqueue__"
+class QueueSource(_BaseAudioLibSource):
+    base_medialist = "__djqueue__"
     name = "queue"
 
-    def __init__(self, db, audio_library):
-        _BaseSource.__init__(self,db)
-        self._media_list = MediaList(db, self.get_recorded_id() + 1)
-        self._media_list.load_playlist(self.queue_name,\
-                                       audio_library.get_root_path())
-        self.audio_lib = audio_library
-
     def add_path(self, paths, pos = None):
-        medias = []
-        for path in paths:
-            try: medias.extend(self.audio_lib.get_all_files(path))
-            except NotFoundException:
-                try: medias.extend(self.audio_lib.get_file(path))
-                except NotFoundException: raise MediaNotFoundError
-
-        self._media_list.add_media(medias, pos)
+        _BaseAudioLibSource.add_path(self, paths, pos)
         self.dispatch_signame('queue.update')
 
     def delete(self, id):
-        _BaseSource.delete(self, id)
+        _BaseAudioLibSource.delete(self, id)
         self.dispatch_signame('queue.update')
 
     def load_playlist(self, playlists, pos = None):
-        for pls in playlists:
-            self._media_list.load_playlist(pls,\
-                self.audio_lib.get_root_path(), pos)
+        _BaseAudioLibSource.load_playlist(self, playlists, pos)
+        self.dispatch_signame('queue.update')
 
     def go_to(self,nb,type = "id"):
-        _BaseSource.go_to(self,nb,type)
+        _BaseAudioLibSource.go_to(self,nb,type)
         if self._current != None:
             self._media_list.delete(nb, type)
         return self._current
@@ -72,10 +56,5 @@ class QueueSource(_BaseSource):
 
     def reset(self):
         self._current = None
-
-    def close(self):
-        _BaseSource.close(self)
-        self.db.delete_medialist(self.queue_name)
-        self.db.save_medialist(self._media_list.get(), self.queue_name)
 
 # vim: ts=4 sw=4 expandtab

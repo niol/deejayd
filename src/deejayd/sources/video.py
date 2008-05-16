@@ -31,17 +31,8 @@ class VideoSource(_BaseSource):
         self._media_list = SimpleMediaList(self.get_recorded_id())
 
         # load saved
-        content = self.db.get_videolist(self.list_name)
-        medias = []
-        for (pos, dir, fn, title, len, w, h, sub, id) in content:
-            medias.append({
-                "filename": fn, "dir": dir, "length": len, "videowidth": w,
-                "videoheight": h, "external_subtitle": sub,
-                "type": "video", "title": title, "media_id":id,
-                "uri": "file://" + os.path.join(self.library.get_root_path(), \
-                                                dir, fn),
-                })
-        self._media_list.set(medias)
+        ans = self.db.get_static_medialist(self.list_name, library.media_attr)
+        self._media_list.set(library._format_db_answer(ans))
 
     def set(self, type, value):
         if type == "directory":
@@ -59,7 +50,6 @@ class VideoSource(_BaseSource):
     def close(self):
         _BaseSource.close(self)
         # record video list in the db
-        self.db.delete_medialist(self.list_name)
-        self.db.save_medialist(self._media_list.get(), self.list_name)
+        self.db.set_static_medialist(self.list_name, self._media_list.get())
 
 # vim: ts=4 sw=4 expandtab

@@ -20,7 +20,7 @@ import os
 import random, urllib
 
 from deejayd.component import SignalingComponent
-from deejayd.mediadb._media import SongMedia
+from deejayd.mediadb.library import NotFoundException
 
 
 class MediaNotFoundError(Exception):pass
@@ -39,8 +39,8 @@ class SimpleMediaList:
         # update time length
         self._time_length = 0
         for m in self._content:
-            try: length = m["length"]
-            except (IndexError, ValueError):
+            try: length = int(m["length"])
+            except (IndexError, ValueError, TypeError):
                 continue
             if length:
                 self._time_length += length
@@ -71,8 +71,7 @@ class SimpleMediaList:
         for m in medias:
             pos = first_pos + i
             m["pos"] = pos
-            if "id" not in m.keys() or m["type"] == "song":
-                m["id"] = self.set_media_id()
+            m["id"] = self.set_media_id()
             self._content.append(m)
             i += 1
 
@@ -128,22 +127,6 @@ class MediaList(SimpleMediaList):
     def __init__(self, db, id = 0):
         SimpleMediaList.__init__(self, id)
         self.db = db
-
-    def __format_playlist_file(self, s, root_path):
-        song = SongMedia(self.db, s)
-        song["uri"] = "file://"+urllib.quote(os.path.join(root_path,s[1],s[2]))
-        song["pos"] = s[14]
-
-        return song
-
-    def load_playlist(self, name, root_path, pos = None):
-        content = self.db.get_audiolist(name)
-        if len(content) == 0 and (not name.startswith("__") or \
-                                  not name.endswith("__")):
-            raise PlaylistNotFoundError
-
-        medias = [self.__format_playlist_file(s, root_path) for s in content]
-        self.add_media(medias, pos)
 
     def move(self, ids, new_pos, type):
         medias = []
@@ -320,5 +303,38 @@ class _BaseSource(SignalingComponent):
             (str(self._media_list.get_list_id()),self.__class__.name+"id")
             ]
         self.db.set_state(states)
+
+
+class _BaseAudioLibSource(_BaseSource):
+    base_medialist = ''
+
+    def __init__(self, db, audio_library):
+        _BaseSource.__init__(self,db)
+        self.library = audio_library
+        self._media_list = MediaList(db, self.get_recorded_id() + 1)
+        self.load_playlist((self.base_medialist,))
+
+    def add_path(self, paths, pos = None):
+        medias = []
+        for path in paths:
+            try: medias.extend(self.library.get_all_files(path))
+            except NotFoundException:
+                try: medias.extend(self.library.get_file(path))
+                except NotFoundException: raise MediaNotFoundError
+        self._media_list.add_media(medias, pos)
+
+    def load_playlist(self, playlists, pos = None):
+        medias = []
+        for pls in playlists:
+            content = self.db.get_static_medialist(pls,self.library.media_attr)
+            if len(content) == 0 and (not pls.startswith("__") or \
+                                      not pls.endswith("__")):
+                raise PlaylistNotFoundError
+            medias.extend(self.library._format_db_answer(content))
+        self._media_list.add_media(medias, pos)
+
+    def close(self):
+        _BaseSource.close(self)
+        self.db.set_static_medialist(self.base_medialist,self._media_list.get())
 
 # vim: ts=4 sw=4 expandtab
