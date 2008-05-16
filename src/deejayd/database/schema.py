@@ -71,8 +71,10 @@ db_schema = [
         Index(('ikey','value'), unique = False)],
     Table('cover', key='id')[
         Column('id', auto_increment=True),
-        Column('name'),
-        Column('image', type="blob")],
+        Column('source'), # path to the cover file or audio file (internal)
+        Column('lmod', type="int"), # last modified
+        Column('image', type="blob"),
+        Index(('source',))],
     Table('medialist', key='id')[
        Column('id', auto_increment=True),
        Column('name'),

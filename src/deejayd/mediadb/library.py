@@ -29,7 +29,7 @@ class NotFoundException(Exception):pass
 class NotSupportedFormat(Exception):pass
 
 
-class MediaFile(dict):
+class _MediaFile(dict):
 
     def __init__(self, db, dir_id, dirname, filename, file_id):
         self.db = db
@@ -43,9 +43,6 @@ class MediaFile(dict):
     def set_uris(self, root_path):
         self["uri"] = "file:/"+urllib.quote(\
                                os.path.join(root_path, self["path"]))
-        for k in ("external_subtitle",):
-            if k in self.keys() and self[k] != "":
-                self[k] = "file:/"+urllib.quote(os.path.join(root_path,self[k]))
 
     def set_info(self, key, value):
         self.set_infos({key: value})
@@ -54,12 +51,21 @@ class MediaFile(dict):
         self.db.set_media_infos(self["media_id"], infos)
         self.db.connection.commit()
 
+
+class AudioFile(_MediaFile):
+
+    def get_cover(self):
+        try: (id, cover) = self.db.get_file_cover()
+        except TypeError:
+            return None
+        return cover
+
     def replay_gain(self):
         """Return the recommended Replay Gain scale factor."""
         try:
-            db = float(self.__replaygain["track_gain"].split()[0])
-            peak = self.__replaygain["track_peak"] and\
-                     float(self.__replaygain["track_peak"]) or 1.0
+            db = float(self["replaygain_track_gain"].split()[0])
+            peak = self["replaygain_track_peak"] and\
+                     float(self["replaygain_track_peak"]) or 1.0
         except (KeyError, ValueError, IndexError):
             return 1.0
         else:
@@ -67,6 +73,16 @@ class MediaFile(dict):
             if scale * peak > 1:
                 scale = 1.0 / peak # don't clip
             return min(15, scale)
+
+
+class VideoFile(_MediaFile):
+
+    def set_uris(self, root_path):
+        _MediaFile.set_uris(self, root_path)
+        if self["external_subtitle"] != "":
+            self["external_subtitle"] = "file:/"+urllib.quote(\
+                os.path.join(root_path,self["external_subtitle"]))
+
 
 ##########################################################################
 ##########################################################################
@@ -95,6 +111,7 @@ def inotify_action(func):
 class _Library(SignalingComponent):
     common_attr = ("type","title","length")
     type = None
+    media_class = None
 
     def __init__(self, db_connection, player, path, fs_charset="utf-8"):
         SignalingComponent.__init__(self)
@@ -139,7 +156,7 @@ class _Library(SignalingComponent):
     def _format_db_answer(self, answer):
         files = []
         for m in answer:
-            current = MediaFile(self.db_con, m[0], m[1], m[3], m[2])
+            current = self.media_class(self.db_con, m[0], m[1], m[3], m[2])
             for index, attr in enumerate(self.media_attr):
                 current[attr] = m[index+4]
             current.set_uris(self._path)
@@ -506,12 +523,11 @@ for more information.") % file_path)
 
 class AudioLibrary(_Library):
     type = "audio"
+    media_class = AudioFile
     update_signal_name = 'mediadb.aupdate'
     custom_attr = ("artist","album","genre","tracknumber","date","bitrate",\
                    "replaygain_track_gain","replaygain_track_peak")
-
-    def set_extra_infos(self, db_con, dir, file, file_id):
-        pass # find cover
+    cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg")
 
     def search(self,type,content):
         accepted_type = ('all','title','genre','filename','artist','album')
@@ -521,22 +537,82 @@ class AudioLibrary(_Library):
         rs = self.db_con.search(type, content, self.media_attr)
         return self._format_db_answer(rs)
 
+    def __extract_cover(self, image_path):
+        if os.path.getsize(image_path) > 512*1024: return None # file too large
+        try: fd = open(image_path)
+        except Exception, ex:
+            log.info(_("Unable to open cover file"))
+            return None
+        rs = fd.read()
+        fd.close()
+        return rs
+
+    def set_extra_infos(self, db_con, dir, file, file_id):
+        dir_path = os.path.join(self._path, dir)
+        cover = ""
+        for name in self.cover_name:
+            if os.path.isfile(os.path.join(dir_path, name)):
+                rs = db_con.is_cover_exist(os.path.join(dir,name))
+                try: (cover, lmod) = rs
+                except TypeError:
+                    image = self.__extract_cover(os.path.join(dir_path, name))
+                    if image:
+                        cover = db_con.add_cover(os.path.join(dir,name), image)
+                else:
+                    if int(lmod)<os.stat(os.path.join(dir_path,file)).st_mtime:
+                        image = self.__extract_cover(\
+                            os.path.join(dir_path, name))
+                        if image: db_con.update_cover(cover, image)
+                break
+        try: (recorded_cover,) = db_con.get_file_info(file_id, "cover")
+        except TypeError: recorded_cover = -1
+        if str(recorded_cover) != str(cover):
+            db_con.set_media_infos(file_id,{"cover": cover})
+
     #
     # custom inotify actions
     #
     def _inotify_add_info(self, path, file):
+        if file in self.cover_name:
+            strip_dir = self.strip_root(path)
+            files = self.inotify_db.get_dircontent_id(strip_dir, self.type)
+            if len(files) > 0:
+                image = self.__extract_cover(os.path.join(path, file))
+                if image:
+                    cover = self.inotify_db.add_cover(os.path.join(strip_dir,\
+                                file), image)
+                    for (id,) in files:
+                        self.inotify_db.set_media_infos(id, {"cover":cover})
+                    return True
         return False
 
     def _inotify_remove_info(self, path, file):
-        return False
+        strip_dir = self.strip_root(path)
+        rs = self.inotify_db.is_cover_exist(os.path.join(strip_dir,file))
+        try: (cover, lmod) = rs
+        except TypeError:
+            return False
+        ids = self.inotify_db.search_id("cover", cover)
+        for (id,) in ids:
+            self.inotify_db.set_media_infos(id, {"cover": ""})
+        self.inotify_db.remove_cover(cover)
+        return True
 
     def _inotify_update_info(self, path, file):
-        return False
+        strip_dir = self.strip_root(path)
+        rs = self.inotify_db.is_cover_exist(os.path.join(strip_dir,file))
+        try: (cover, lmod) = rs
+        except TypeError:
+            return False
+        image = self.__extract_cover(os.path.join(path, name))
+        if image: self.inotify_db.update_cover(cover, image)
+        return True
     ###########################################################
 
 
 class VideoLibrary(_Library):
     type = "video"
+    media_class = VideoFile
     update_signal_name = 'mediadb.vupdate'
     custom_attr = ("videoheight", "videowidth","external_subtitle")
     subtitle_ext = (".srt",)

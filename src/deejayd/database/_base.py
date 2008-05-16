@@ -23,7 +23,7 @@
 from deejayd.ui import log
 from deejayd.database import schema
 from os import path
-import sys
+import sys, time
 
 class OperationalError(Exception): pass
 
@@ -246,10 +246,49 @@ class Database(UnknownDatabase):
         self.execute(query,(type, "%%"+content+"%%"))
         return self.cursor.fetchall()
 
+    def get_dircontent_id(self, dir, type):
+        query = "SELECT l.id\
+            FROM library l JOIN library_dir d ON l.directory = d.id\
+            WHERE d.lib_type = %s AND d.name = %s"
+        self.execute(query,(type, dir))
+        return self.cursor.fetchall()
+
     def search_id(self, key, value):
         query = "SELECT DISTINCT id FROM media_info WHERE ikey=%s AND value=%s"
         self.execute(query,(key, value))
         return self.cursor.fetchall()
+
+    #
+    # cove requests
+    #
+    def get_file_cover(self, file_id):
+        query = "SELECT c.id, c.image \
+            FROM media_info m JOIN cover c\
+                              ON m.ikey = 'cover' AND m.value = c.id\
+            WHERE m.id = %s"
+        self.execute(query, (file_id,))
+        return self.cursor.fetchone()
+
+    def is_cover_exist(self, source):
+        query = "SELECT id,lmod FROM cover WHERE source=%s"
+        self.execute(query, (source,))
+        return self.cursor.fetchone()
+
+    def add_cover(self, source, image):
+        query = "INSERT INTO cover (source,lmod,image)VALUES(%s,%s,%s)"
+        self.execute(query, (source, time.time(), image))
+        query = "SELECT id FROM cover WHERE source = %s"
+        self.execute(query, (source,))
+        (id,) = self.cursor.fetchone()
+        return id
+
+    def update_cover(self, id, new_image):
+        query = "UPDATE cover SET lmod = %s, image = %s WHERE id=%s"
+        self.execute(query, (time.time(), new_image, id))
+
+    def remove_cover(self, id):
+        query = "DELETE FROM cover WHERE id=%s"
+        self.execute(query, (id,))
 
     #
     # static medialist requests
@@ -342,7 +381,6 @@ class Database(UnknownDatabase):
         self.executemany("UPDATE stats SET value = %s WHERE name = %s",values)
 
     def set_update_time(self,type):
-        import time
         self.execute("UPDATE stats SET value = %s WHERE name = %s",\
                                         (time.time(),type+"_library_update"))
 
