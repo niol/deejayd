@@ -189,7 +189,8 @@
                     <treeitem uri="rdf:*">
                         <treerow>
                             <treecell id="rdf:http://playlist/rdf#id" label=""/>
-                            <treecell label="rdf:http://playlist/rdf#track"/>
+                            <treecell
+                                label="rdf:http://playlist/rdf#tracknumber"/>
                             <treecell label="rdf:http://playlist/rdf#title"/>
                             <treecell label="rdf:http://playlist/rdf#artist"/>
                             <treecell label="rdf:http://playlist/rdf#album"/>

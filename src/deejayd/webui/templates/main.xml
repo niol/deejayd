@@ -333,7 +333,7 @@
                 id="queue-items">
                 <treeitem uri="rdf:*">
                     <treerow>
-                        <treecell label="rdf:http://queue/rdf#track"/>
+                        <treecell label="rdf:http://queue/rdf#tracknumber"/>
                         <treecell label="rdf:http://queue/rdf#title"/>
                         <treecell label="rdf:http://queue/rdf#artist"/>
                         <treecell label="rdf:http://queue/rdf#album"/>
