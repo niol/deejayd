@@ -179,7 +179,7 @@ class UnknownPlayer(SignalingComponent):
                                               self._media_file["length"] == 0:
                 self._media_file["length"] = self.get_position()
             status.extend([ ("time","%d:%d" % (self.get_position(),\
-                self._media_file["length"])) ])
+                int(self._media_file["length"]))) ])
 
         return status
 
