@@ -76,28 +76,28 @@ db_schema = [
         Column('image', type="blob"),
         Index(('source',))],
     Table('medialist', key='id')[
-       Column('id', auto_increment=True),
-       Column('name'),
-       Column('type'), # magic or static
-       Index(('name','type'))],
-   Table('medialist_libraryitem', key=('position'))[
-       Column('position', auto_increment=True),
-       Column('medialist_id', type='int'),
-       Column('libraryitem_id', type='int')],
-   Table('medialist_filters', key=('filter_id'))[
-       Column('filter_id', type='int'),
-       Column('medialist_id', type='int'), # optional
-       Column('type')], # complex or basic
-   Table('medialist_basicfilters', key=('basicfilter_id'))[
-       Column('basicfilter_id', type='int'),
-       Column('tag'), # criterion
-       Column('operator'), # equal, not equal, regex, regexi, etc.
-       Column('pattern')], # matched value
-   Table('medialist_complexfilters', key=('complexfilter_id'))[
-       Column('complexfilter_id', type='int'),
-       Column('lfilter', type='int'), # filter_id
-       Column('combinator'), # AND, OR, XOR
-       Column('rfilter', type='int')], # filter_id
+        Column('id', auto_increment=True),
+        Column('name'),
+        Column('type'), # magic or static
+        Index(('name','type'))],
+    Table('medialist_libraryitem', key=('position'))[
+        Column('position', auto_increment=True),
+        Column('medialist_id', type='int'),
+        Column('libraryitem_id', type='int')],
+    Table('medialist_filters', key=('filter_id'))[
+        Column('filter_id', type='int'),
+        Column('medialist_id', type='int'), # optional
+        Column('type')], # complex or basic
+    Table('medialist_basicfilters', key=('basicfilter_id'))[
+        Column('basicfilter_id', type='int'),
+        Column('tag'), # criterion
+        Column('operator'), # equal, not equal, regex, regexi, etc.
+        Column('pattern')], # matched value
+    Table('medialist_complexfilters', key=('complexfilter_id'))[
+        Column('complexfilter_id', type='int'),
+        Column('lfilter', type='int'), # filter_id
+        Column('combinator'), # AND, OR, XOR
+        Column('rfilter', type='int')], # filter_id
     Table('webradio', key='wid')[
         Column('wid', type='int'),
         Column('name'),
