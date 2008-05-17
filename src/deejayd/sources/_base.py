@@ -241,7 +241,7 @@ class _BaseSource(SignalingComponent):
             except IndexError: # All songs are played
                 if rpt:
                     self._played = []
-                    new_id = random.choice(self.current_source.get_item_ids())
+                    new_id = random.choice(self._content.get_ids())
                 else:
                     self._current = None
                     return None
