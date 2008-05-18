@@ -22,32 +22,35 @@ from deejayd.sources._base import _BaseAudioLibSource
 class QueueSource(_BaseAudioLibSource):
     base_medialist = "__djqueue__"
     name = "queue"
+    source_signal = 'queue.update'
 
     def add_path(self, paths, pos = None):
         _BaseAudioLibSource.add_path(self, paths, pos)
-        self.dispatch_signame('queue.update')
+        self.dispatch_signame(self.source_signal)
 
     def delete(self, id):
         _BaseAudioLibSource.delete(self, id)
-        self.dispatch_signame('queue.update')
+        self.dispatch_signame(self.source_signal)
 
     def load_playlist(self, playlists, pos = None):
         _BaseAudioLibSource.load_playlist(self, playlists, pos)
-        self.dispatch_signame('queue.update')
+        self.dispatch_signame(self.source_signal)
 
     def go_to(self,nb,type = "id"):
-        _BaseAudioLibSource.go_to(self,nb,type)
+        _BaseAudioLibSource.go_to(self,nb)
         if self._current != None:
-            self._media_list.delete(nb, type)
+            self._media_list.delete(self._current["id"])
         return self._current
 
     def next(self,rd):
-        l = self._media_list.length()
-        pos = 0
-        if rd and l > 0:
-            m = random.choice(self._media_list.get())
-            pos = m["pos"]
-        self.go_to(pos,'pos')
+        if not self._media_list:
+            self._current = None
+            return self._current
+
+        if rd:
+            id = random.choice(self._media_list.get_ids())
+            self.go_to(id)
+        else: self._current = self._media_list[0]
         return self._current
 
     def previous(self,rd,rpt):

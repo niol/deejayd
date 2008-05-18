@@ -37,7 +37,7 @@ def playlist_action(func):
         __kw['playlist'] = pls_obj
         rs = func(self, *__args, **__kw)
         if pls_obj != None:
-            self.db.set_static_medialist(pls_name, pls_obj.get())
+            self.db.set_static_medialist(pls_name, pls_obj)
         return rs
 
     return playlist_action_func
@@ -45,6 +45,7 @@ def playlist_action(func):
 class PlaylistSource(_BaseAudioLibSource):
     base_medialist = "__djcurrent__"
     name = "playlist"
+    source_signal = 'player.plupdate'
 
     def get_list(self):
         list = [pl for (pl,) in self.db.get_medialist_list() if not \
@@ -58,7 +59,7 @@ class PlaylistSource(_BaseAudioLibSource):
     @playlist_action
     def get_content(self,playlist = None):
         media_list = playlist or self._media_list
-        return media_list.get()
+        return media_list
 
     @playlist_action
     def add_path(self,paths,playlist = None,pos = None):
@@ -78,12 +79,14 @@ class PlaylistSource(_BaseAudioLibSource):
         if playlist:
             self.dispatch_signame('playlist.update')
         else:
+            self._reload_current()
             self.dispatch_signame('player.plupdate')
 
     @playlist_action
     def shuffle(self, playlist = None):
         media_list = playlist or self._media_list
-        media_list.shuffle()
+        media_list.shuffle(self._current)
+        if self._current: self._current["pos"] = 0
         if playlist:
             self.dispatch_signame('playlist.update')
         else:
@@ -96,6 +99,7 @@ class PlaylistSource(_BaseAudioLibSource):
         if playlist:
             self.dispatch_signame('playlist.update')
         else:
+            self._reload_current()
             self.dispatch_signame('player.plupdate')
 
     @playlist_action
@@ -116,10 +120,11 @@ class PlaylistSource(_BaseAudioLibSource):
         if playlist:
             self.dispatch_signame('playlist.update')
         else:
+            self._reload_current()
             self.dispatch_signame('player.plupdate')
 
     def save(self, playlist_name):
-        self.db.set_static_medialist(playlist_name, self._media_list.get())
+        self.db.set_static_medialist(playlist_name, self._media_list)
         self.dispatch_signame('playlist.update')
 
     def rm(self, playlist_name):

@@ -198,6 +198,13 @@ class _Library(SignalingComponent):
             raise NotFoundException
         return self._format_db_answer(files_rsp)
 
+    def get_file_withid(self,file_id):
+        files_rsp = self.db_con.get_file_withid(file_id, self.media_attr)
+        if len(files_rsp) == 0:
+            # this file is not found
+            raise NotFoundException
+        return self._format_db_answer(files_rsp)
+
     def get_root_path(self):
         return self._path
 

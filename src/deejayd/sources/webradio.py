@@ -95,15 +95,14 @@ class WebradioSource(_BaseSource):
     def get_status(self):
         return [
             (self.name, self._media_list.get_list_id()),
-            (self.name+"length", self._media_list.length())
+            (self.name+"length", len(self._media_list))
             ]
 
     def close(self):
         _BaseSource.close(self)
         # save webradio
         self.db.clear_webradios()
-        values = [(w["pos"],w["title"],w["uri"])\
-                    for w in self._media_list.get()]
+        values = [(w["pos"],w["title"],w["uri"]) for w in self._media_list]
         self.db.add_webradios(values)
 
 # vim: ts=4 sw=4 expandtab

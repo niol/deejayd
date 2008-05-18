@@ -19,12 +19,14 @@
 import os
 import random, urllib
 
+from twisted.internet import reactor
 from deejayd.component import SignalingComponent
 from deejayd.mediadb.library import NotFoundException
 
 
 class MediaNotFoundError(Exception):pass
 class PlaylistNotFoundError(Exception):pass
+
 
 class SimpleMediaList:
 
@@ -45,41 +47,35 @@ class SimpleMediaList:
             if length:
                 self._time_length += length
 
-    def get(self):
-        return self._content
+    def __len__(self):
+        return len(self._content)
 
-    def get_ids(self):
-        return [m["id"] for m in self._content]
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            ans = {"pos": key}
+            ans.update(self._content[key])
+        else:
+            ans = []
+            for i, media in enumerate(self._content[key]):
+                m = {"pos": i}
+                m.update(media)
+                ans.append(m)
+        return ans
+
+    def __iter__(self):
+        return self._content.__iter__()
 
     def set(self, medias):
         self._content = []
         self.add_media(medias)
 
-    def length(self):
-        return len(self._content)
-
-    def time_length(self):
-        return self._time_length
-
     def add_media(self, medias, first_pos = None):
         if first_pos == None:
             first_pos = len(self._content)
-        old_content = self._content[first_pos:]
-        self._content = self._content[:first_pos]
 
-        i = 0
-        for m in medias:
-            pos = first_pos + i
-            m["pos"] = pos
+        for index, m in enumerate(medias):
             m["id"] = self.set_media_id()
-            self._content.append(m)
-            i += 1
-
-        for media in old_content:
-            media["pos"] = first_pos + i
-            i+=1
-
-        self._content.extend(old_content)
+            self._content.insert(first_pos + index, m)
         self._update_list_id()
 
     def clear(self):
@@ -87,35 +83,42 @@ class SimpleMediaList:
         self._update_list_id()
 
     def delete(self, id, type = "id"):
-        i = 0
-        for media in self._content:
+        indexes = []
+        for index, media in enumerate(self._content):
             if media[type] == id:
-                break
-            i += 1
-        if i == len(self._content):
-            raise MediaNotFoundError
+                indexes.append(index)
+        if len(indexes) == 0: raise MediaNotFoundError
+        for i in indexes: del self._content[i]
 
-        pos = self._content[i]["pos"]
-        del self._content[i]
-        # Now we must reorder the media list
-        for media in self._content:
-            if media["pos"] > pos:
-                media["pos"] -= 1
         self._update_list_id()
 
-    def get_media(self, id, type = "id"):
-        media = None
-        for m in self._content:
-            if m[type] == id:
-                media = m
-                break
+    def get_ids(self):
+        return [m["id"] for m in self._content]
 
-        if media == None:
-            raise MediaNotFoundError
-        return media
+    def get_from_id(self, id):
+        media = None
+        for idx, m in enumerate(self._content):
+            if m["id"] == id:
+                return self[idx]
+        raise MediaNotFoundError
+
+    def get_time_length(self):
+        return self._time_length
 
     def get_list_id(self):
         return self._list_id
+
+    def next(self, media_id):
+        for index, media in enumerate(self._content):
+            if media["id"] == media_id:
+                return self[index+1]
+        raise IndexError
+
+    def previous(self, media_id):
+        for index, media in enumerate(self._content):
+            if media["id"] == media_id:
+                return self[index-1]
+        raise IndexError
 
     def set_media_id(self):
         self._media_id += 1
@@ -124,14 +127,18 @@ class SimpleMediaList:
 
 class MediaList(SimpleMediaList):
 
-    def __init__(self, db, id = 0):
-        SimpleMediaList.__init__(self, id)
-        self.db = db
+    def update_media(self, new_media):
+        ans = False
+        for idx, m in enumerate(self._content):
+            if m["media_id"] == new_media["media_id"]:
+                new_media["id"] = m["id"]
+                self._content[idx] = new_media
+                ans = True
+        if ans: self._update_list_id()
+        return ans
 
     def move(self, ids, new_pos, type):
-        medias = []
-        for id in ids:
-            medias.append(self.get_media(id, type))
+        medias = [m for m in self._content if m["id"] in ids]
 
         old_content = self._content
         self._content = []
@@ -141,30 +148,20 @@ class MediaList(SimpleMediaList):
             if media not in medias:
                 self._content.append(media)
 
-        # Reorder the list
-        ids = range(0,len(self._content))
-        for id in ids:
-            self._content[id]["pos"] = id
         self._update_list_id()
 
     def shuffle(self, current = None):
         new_content = []
         old_content = self._content
-        pos = 0
-        # First we have to put the current song at the first place
-        if current != None:
-            old_pos = current["pos"]
-            del old_content[old_pos]
-            new_content.append(current)
-            new_content[pos]["pos"] = pos
-            pos += 1
+        current_id = current and current["id"]
 
         while len(old_content) > 0:
-            song = random.choice(old_content)
-            del old_content[old_content.index(song)]
-            new_content.append(song)
-            new_content[pos]["pos"] = pos
-            pos += 1
+            media = random.choice(old_content)
+            if media["id"] == current_id:
+                new_content.insert(0, media)
+            else:
+                new_content.append(media)
+            del old_content[old_content.index(media)]
 
         self._content = new_content
         self._update_list_id()
@@ -184,40 +181,58 @@ class _BaseSource(SignalingComponent):
         return id
 
     def get_content(self):
-        return self._media_list.get()
+        return self._media_list
+        ans = []
+        for idx, m in enumerate(self._media_list):
+            ans.append(self._media_list[idx])
+        return ans
 
     def get_current(self):
         return self._current
 
     def go_to(self, id, type = "id"):
         self._played = []
-        try: self._current = self._media_list.get_media(id, type)
-        except MediaNotFoundError:
-            self._current = None
+        if type == "pos":
+            try: self._current = self._media_list[id]
+            except IndexError:
+                self._current = None
         else:
-            if self._current["id"] not in self._played:
-                self._played.append(self._current["id"])
+            try: self._current = self._media_list.get_from_id(id)
+            except MediaNotFoundError:
+                self._current = None
 
+        if self._current and self._current["id"] not in self._played:
+            self._played.append(self._current["id"])
         return self._current
+
+    def _reload_current(self):
+        try:
+            new_pos = self._media_list.get_from_id(self._current["id"])["pos"]
+            self._current["pos"] = new_pos
+        except (TypeError, MediaNotFoundError):
+            pass
 
     def delete(self, id):
         self._media_list.delete(id)
         try: self._played.remove(id)
         except ValueError:
             pass
+        self._reload_current()
 
     def clear(self):
         self._media_list.clear()
         self._played = []
 
     def next(self, rd, rpt):
-        l = self._media_list.length()
+        if not self._media_list:
+            self._current == None
+            return self._current
+
         if self._current == None:
-            pos = 0
-            if rd and l > 0:
-                m = random.choice(self._media_list.get())
-                pos = m["pos"]
-            self.go_to(pos, "pos")
+            if rd:
+                id = random.choice(self._media_list.get_ids())
+                self.go_to(id)
+            else: self._current = self.go_to(0, "pos")
             return self._current
 
         # add current media in played list
@@ -225,13 +240,13 @@ class _BaseSource(SignalingComponent):
             self._played.append(self._current["id"])
 
         # Return a pseudo-random song
-        if rd and l > 0:
+        if rd:
             # first determine if the current song is in playedItems
-            id = self._played.index(self._current["id"])
-            try: new_id = self._played[id+1]
+            idx = self._played.index(self._current["id"])
+            try: new_id = self._played[idx+1]
             except IndexError: pass
             else:
-                self._current = self._media_list.get_media(new_id ,"id")
+                self._current = self._media_list.get_from_id(new_id)
                 return self._current
 
             # Determine the id of the next song
@@ -247,20 +262,15 @@ class _BaseSource(SignalingComponent):
                     return None
 
             # Obtain the choosed song
-            try: self._current = self._media_list.get_media(new_id, "id")
+            try: self._current = self._media_list.get_from_id(new_id)
             except MediaNotFoundError:
                 self._current = None
             return self._current
 
-        cur_pos = self._current["pos"]
-        if cur_pos < self._media_list.length()-1:
-            try: self._current = self._media_list.get_media(cur_pos + 1, "pos")
-            except MediaNotFoundError:
-                self._current = None
-        elif rpt:
-            self._current = self._media_list.get_media(0, "pos")
-        else:
-            self._current = None
+        try: self._current = self._media_list.next(self._current["id"])
+        except IndexError:
+            if rpt: self._current = self.go_to(0, "pos")
+            else: self._current = None
 
         return self._current
 
@@ -278,15 +288,14 @@ class _BaseSource(SignalingComponent):
             if id == 0:
                 self._current = None
                 return self._current
-            try: self._current = self._media_list.get_media(self._played[id-1])
+            try:
+                self._current = self._media_list.get_from_id(self._played[id-1])
             except MediaNotFoundError:
                 self._current = None
             return self._current
 
-        cur_pos= self._current["pos"]
-        if cur_pos > 0:
-            self._current = self._media_list.get_media(cur_pos - 1, "pos")
-        else:
+        try: self._current = self._media_list.previous(self._current["id"])
+        except IndexError:
             self._current = None
 
         return self._current
@@ -294,8 +303,8 @@ class _BaseSource(SignalingComponent):
     def get_status(self):
         return [
             (self.name, self._media_list.get_list_id()),
-            (self.name+"length", self._media_list.length()),
-            (self.name+"timelength", self._media_list.time_length())
+            (self.name+"length", len(self._media_list)),
+            (self.name+"timelength", self._media_list.get_time_length())
             ]
 
     def close(self):
@@ -305,13 +314,44 @@ class _BaseSource(SignalingComponent):
         self.db.set_state(states)
 
 
-class _BaseAudioLibSource(_BaseSource):
+class _BaseLibrarySource(_BaseSource):
+    source_signal = ''
+
+    def __init__(self, db, library):
+        _BaseSource.__init__(self,db)
+        self.library = library
+        self.library.connect_to_changes(self.cb_library_changes)
+
+    def cb_library_changes(self, action, file_id):
+        if action == "remove":
+            reactor.callFromThread(self._remove_media, file_id)
+        elif action == "add":
+            reactor.callFromThread(self._add_media, file_id)
+        elif action == "update":
+            reactor.callFromThread(self._update_media, file_id)
+            pass
+
+    def _add_media(self, media_id):
+        pass
+
+    def _update_media(self, media_id):
+        media = self.library.get_file_withid(media_id)
+        if self._media_list.update_media(media[0]):
+            self.dispatch_signame(self.source_signal)
+
+    def _remove_media(self, media_id):
+        try: self._media_list.delete(media_id, "media_id")
+        except MediaNotFoundError:
+            return
+        self.dispatch_signame(self.source_signal)
+
+
+class _BaseAudioLibSource(_BaseLibrarySource):
     base_medialist = ''
 
     def __init__(self, db, audio_library):
-        _BaseSource.__init__(self,db)
-        self.library = audio_library
-        self._media_list = MediaList(db, self.get_recorded_id() + 1)
+        _BaseLibrarySource.__init__(self, db, audio_library)
+        self._media_list = MediaList(self.get_recorded_id() + 1)
         self.load_playlist((self.base_medialist,))
 
     def add_path(self, paths, pos = None):
@@ -322,6 +362,7 @@ class _BaseAudioLibSource(_BaseSource):
                 try: medias.extend(self.library.get_file(path))
                 except NotFoundException: raise MediaNotFoundError
         self._media_list.add_media(medias, pos)
+        self._reload_current()
 
     def load_playlist(self, playlists, pos = None):
         medias = []
@@ -332,9 +373,10 @@ class _BaseAudioLibSource(_BaseSource):
                 raise PlaylistNotFoundError
             medias.extend(self.library._format_db_answer(content))
         self._media_list.add_media(medias, pos)
+        self._reload_current()
 
     def close(self):
-        _BaseSource.close(self)
-        self.db.set_static_medialist(self.base_medialist,self._media_list.get())
+        _BaseLibrarySource.close(self)
+        self.db.set_static_medialist(self.base_medialist,self._media_list)
 
 # vim: ts=4 sw=4 expandtab

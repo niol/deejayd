@@ -226,6 +226,16 @@ class Database(UnknownDatabase):
         self.execute(query, (dir, file, type))
         return self.cursor.fetchall()
 
+    def get_file_withid(self, file_id, infos_list):
+        selectquery, joinquery = self._build_media_query(infos_list)
+        query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
+            " FROM library l JOIN library_dir d ON d.id=l.directory\
+                           JOIN media_info i ON i.id=l.id"\
+                           + joinquery+\
+            " WHERE l.id = %s"
+        self.execute(query, (file_id, ))
+        return self.cursor.fetchall()
+
     def get_alldir_files(self, dir, infos_list, type = "audio"):
         selectquery, joinquery = self._build_media_query(infos_list)
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\

@@ -18,16 +18,16 @@
 
 import os
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources._base import _BaseSource, SimpleMediaList, \
+from deejayd.sources._base import _BaseLibrarySource, SimpleMediaList, \
                                   MediaNotFoundError
 
-class VideoSource(_BaseSource):
+class VideoSource(_BaseLibrarySource):
     name = "video"
     list_name = "__videocurrent__"
+    source_signal = 'video.update'
 
     def __init__(self, db, library):
-        _BaseSource.__init__(self, db)
-        self.library = library
+        _BaseLibrarySource.__init__(self, db, library)
         self._media_list = SimpleMediaList(self.get_recorded_id())
 
         # load saved
@@ -45,11 +45,12 @@ class VideoSource(_BaseSource):
             raise ValueError
 
         self._media_list.set(video_list)
-        self.dispatch_signame('video.update')
+        self._reload_current()
+        self.dispatch_signame(self.source_signal)
 
     def close(self):
-        _BaseSource.close(self)
+        _BaseLibrarySource.close(self)
         # record video list in the db
-        self.db.set_static_medialist(self.list_name, self._media_list.get())
+        self.db.set_static_medialist(self.list_name, self._media_list)
 
 # vim: ts=4 sw=4 expandtab
