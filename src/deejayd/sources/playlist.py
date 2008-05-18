@@ -18,7 +18,7 @@
 
 import os, random
 from deejayd.sources._base import _BaseAudioLibSource, MediaList,\
-                                  MediaNotFoundError
+                                  MediaNotFoundError, PlaylistNotFoundError
 from deejayd.mediadb.library import NotFoundException
 
 def playlist_action(func):
@@ -26,8 +26,11 @@ def playlist_action(func):
         if __kw.has_key('playlist') and __kw['playlist']:
             pls_name = __kw['playlist']
             del __kw['playlist']
-            pls_obj = MediaList(self.db)
-            pls_obj.load_medialist(pls_name, self.library)
+            pls_obj = MediaList()
+            content = self.db.get_static_medialist(pls_name,\
+                                    self.library.media_attr)
+            if not len(content): raise PlaylistNotFoundError
+            pls_obj.add_media(self.library._format_db_answer(content))
         else:
             pls_obj = None
 
