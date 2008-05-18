@@ -125,6 +125,9 @@ class _Library(SignalingComponent):
         self._update_end = True
         self._update_error = None
 
+        self._changes_cb = {}
+        self._changes_cb_id = 0
+
         self._path = os.path.abspath(path)
         # test library path
         if not os.path.isdir(self._path):
@@ -316,7 +319,9 @@ class _Library(SignalingComponent):
 
             self.mutex.acquire()
             # Remove unexistent files and directories from library
-            for id in library_files.values(): conn.remove_file(id)
+            for id in library_files.values():
+                conn.remove_file(id)
+                self.emit_changes("remove", id)
             for id in library_dirs.values(): conn.remove_dir(id)
             for dirlinkname in library_dirlinks:
                 conn.remove_dirlink(dirlinkname, self.type)
@@ -389,13 +394,16 @@ class _Library(SignalingComponent):
                     fid = library_files[filename]
                     need_update = os.stat(os.path.join(root,file)).st_mtime >= \
                         int(self.last_update_time)
+                    changes_type = "update"
                 except KeyError:
                     need_update = True
                     fid = None
+                    changes_type = "add"
                 else: del library_files[filename]
                 if need_update:
                     fid = self.set_media(db_con,dir_id,strip_root,file,fid)
                 if fid: self.set_extra_infos(db_con, strip_root, file, fid)
+                if need_update and fid: self.emit_changes(changes_type, fid)
 
     def end_update(self, result = True):
         self._update_end = True
@@ -436,6 +444,20 @@ for more information.") % file_path)
         else:
             raise NotSupportedFormat
 
+    def disconnect_to_changes(self, id):
+        if id in self._changes_cb.keys():
+            del self._changes_cb[id]
+
+    def connect_to_changes(self, cb):
+        self._changes_cb_id += 1
+        self._changes_cb[self._changes_cb_id] = cb
+        return self._changes_cb_id
+
+    def emit_changes(self, type, file_id):
+        log.info(_("library: emit %s change for file %d") % (type, file_id))
+        for cb in self._changes_cb.itervalues():
+            cb(type, file_id)
+
     #######################################################################
     ## Inotify actions
     #######################################################################
@@ -455,6 +477,7 @@ for more information.") % file_path)
         if fid:
             self.set_extra_infos(self.inotify_db, strip_path, file, fid)
             self._add_missing_dir(os.path.dirname(strip_path))
+            self.emit_changes("add", fid)
         else:
             self._inotify_add_info(path, file)
             self._remove_empty_dir(path)
@@ -467,6 +490,7 @@ for more information.") % file_path)
         if file:
             dir_id, file_id = file
             self.set_media(self.inotify_db, dir_id, dir, name, file_id)
+            self.emit_changes("update", file_id)
             return True
         else: return self._inotify_update_info(path, name)
 
@@ -478,6 +502,7 @@ for more information.") % file_path)
             dir_id, file_id = file
             self.inotify_db.remove_file(file_id)
             self._remove_empty_dir(path)
+            self.emit_changes("remove", file_id)
             return True
         else: return self._inotify_remove_info(path, name)
 
@@ -506,7 +531,8 @@ for more information.") % file_path)
             self.inotify_db.remove_dirlink(rel_path, self.type)
             self.watcher.stop_watching_dir(rel_path)
 
-        self.inotify_db.remove_recursive_dir(rel_path)
+        ids = self.inotify_db.remove_recursive_dir(rel_path)
+        for id in ids: self.emit_changes("remove", id)
         self._remove_empty_dir(path)
         return True
 
@@ -590,6 +616,7 @@ class AudioLibrary(_Library):
                                 file), image)
                     for (id,) in files:
                         self.inotify_db.set_media_infos(id, {"cover":cover})
+                        self.emit_changes("update", id)
                     return True
         return False
 
@@ -602,6 +629,7 @@ class AudioLibrary(_Library):
         ids = self.inotify_db.search_id("cover", cover)
         for (id,) in ids:
             self.inotify_db.set_media_infos(id, {"cover": ""})
+            self.emit_changes("update", id)
         self.inotify_db.remove_cover(cover)
         return True
 
@@ -656,6 +684,7 @@ class VideoLibrary(_Library):
                 else:
                     self.inotify_db.set_media_infos(fid,\
                         {"external_subtitle": os.path.join(strip_path, file)})
+                    self.emit_changes("update", fid)
                     return True
         return False
 
@@ -667,6 +696,7 @@ class VideoLibrary(_Library):
                 os.path.join(strip_path, file))
             for (id,) in ids:
                 self.inotify_db.set_media_infos(id, {"external_subtitle": ""})
+                self.emit_changes("update", id)
             return True
         return False
 

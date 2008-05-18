@@ -145,10 +145,11 @@ class Database(UnknownDatabase):
         self.execute("DELETE FROM library_dir WHERE id = %s", (id,))
 
     def remove_recursive_dir(self, dir, type="audio"):
-        for file in self.get_all_files(dir, type):
-            self.remove_file(file[2])
+        files = self.get_all_files(dir, type)
+        for file in files: self.remove_file(file[2])
         self.execute("DELETE FROM library_dir\
                       WHERE name LIKE %s AND lib_type = %s", (dir+"%%", type))
+        return [f[2] for f in files]
 
     def is_dir_exist(self, dirname, type):
         self.execute("SELECT id FROM library_dir WHERE name=%s AND lib_type=%s"\
