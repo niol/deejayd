@@ -16,9 +16,20 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+
+import locale
+
+
 class DeejaydError(Exception):
     """General purpose error structure."""
-    pass
+
+    # Handle unicode messages, what Exceptions cannot. See Python issue at
+    # http://bugs.python.org/issue2517
+    def __str__(self):
+        if type(self.message) is unicode:
+            return self.message.encode(locale.getpreferredencoding())
+        else:
+            return self.message
 
 
 class DeejaydAnswer:
