@@ -198,7 +198,7 @@ class DeejaydXMLError(_DeejaydXMLAnswer):
     def build_xml(self):
         self.xmlcontent = ET.Element(self.response_type, \
                             name=self.originating_cmd)
-        self.xmlcontent.text = str(self.error_text)
+        self.xmlcontent.text = self._to_xml_string(self.error_text)
 
 
 class DeejaydXMLAck(_DeejaydXMLAnswer):
