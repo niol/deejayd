@@ -66,13 +66,19 @@ class AvailableCommands:
             for (k, v) in media.items():
                 print "%s: %s" % (k, v)
 
+    VOLUME_STEP = 10
+
     def volume(self, args):
         """Set volume to argument value.
-             If preceeded with 'up'|'down', (in|dea)crease volume with value."""
+             If preceeded with 'up'|'down', (in|dea)crease volume with value.
+             'up'|'down' only also works."""
         try:
             if args[0] in ['up', 'down']:
                 volume = self.server.get_status()['volume']
-                possible_delta = int(args[1])
+                try:
+                    possible_delta = int(args[1])
+                except IndexError:
+                    possible_delta = AvailableCommands.VOLUME_STEP
                 if args[0] == 'up':
                     volume += possible_delta
                 elif args[0] == 'down':
