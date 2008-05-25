@@ -414,8 +414,9 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         cmd.add_simple_arg('volume', volume_value)
         return self._send_command(cmd)
 
-    def set_option(self, option_name, option_value):
+    def set_option(self, source, option_name, option_value):
         cmd = DeejaydXMLCommand('setOption')
+        cmd.add_simple_arg('source', source)
         cmd.add_simple_arg('option_name', option_name)
         cmd.add_simple_arg('option_value', option_value)
         return self._send_command(cmd)

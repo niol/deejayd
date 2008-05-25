@@ -198,17 +198,20 @@ class Status(UnknownCommand):
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
   * playlisttimelength : _int_ time length of the current playlist
+  * playlistrepeat : 0 (not activated) or 1 (activated)
+  * playlistplayorder : inorder | random | onemedia
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
   * queuetimelength : _int_ time length of the current queue
+  * queueplayorder : inorder | random
   * video : _int_ id of the current video list
   * videolength : _int_ length of the current video list
   * videotimelength : _int_ time length of the current video list
+  * videorepeat : 0 (not activated) or 1 (activated)
+  * videoplayorder : inorder | random | onemedia
   * dvd : _int_ id of the current dvd
-  * random : 0 (not activated) or 1 (activated)
-  * repeat : 0 (not activated) or 1 (activated)
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
   * current : _int_:_int_:_str_ current media pos : current media file id :
@@ -745,21 +748,20 @@ class Seek(UnknownCommand):
 
 
 class SetOption(UnknownCommand):
-    """Set player options "name" to "value", "value" should be 0 or 1.
+    """Set player options "name" to "value" for mode "source",
        Available options are :
-       * random
-       * qrandom (queue random)
-       * repeat
-       You can pass several options in the same command"""
+       * playorder (inorder, onemedia or random)
+       * repeat (0 or 1) """
     command_name = 'setOption'
-    command_args = [{"name":"option_name", "type":"enum_str","req":True,
-                     "values":("random","qrandom","repeat")},
-                    {"name":"option_value","type":"enum_int","req":True,
-                     "values":(0,1)} ]
+    command_args = [{"name":"source", "type":"str", "req":True},
+                    {"name":"option_name", "type":"enum_str","req":True,
+                     "values":("playorder","repeat")},
+                    {"name":"option_value","type":"enum_str","req":True,
+                     "values":("0","1","inorder","random","onemedia")}]
 
     def _execute(self):
-        self.deejayd_core.set_option(self.args['option_name'],\
-            self.args['option_value'], objanswer=False)
+        self.deejayd_core.set_option(self.args['source'],\
+          self.args['option_name'], self.args['option_value'], objanswer=False)
 
 
 class CurrentSong(UnknownCommand):
