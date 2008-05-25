@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-class SignalingComponent:
+class SignalingComponent(object):
 
     def __init__(self):
         self.__dispatcher = None
