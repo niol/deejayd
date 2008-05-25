@@ -26,7 +26,7 @@ class DvdSource(SignalingComponent):
     name = "dvd"
 
     def __init__(self, player, db, config):
-        SignalingComponent.__init__(self)
+        super(DvdSource, self).__init__()
         self.player = player
         self.db = db
         self.current_id = int(self.db.get_state("dvdid"))
@@ -100,7 +100,7 @@ class DvdSource(SignalingComponent):
 
         return self.get_current()
 
-    def next(self,random,repeat):
+    def next(self, explicit = True):
         if not self.dvd_info or not self.selected_track: return None
 
         if self.selected_track["selected_chapter"] != -1:
@@ -114,7 +114,7 @@ class DvdSource(SignalingComponent):
         return self.get_current()
 
 
-    def previous(self,random,repeat):
+    def previous(self):
         if not self.dvd_info or not self.selected_track: return None
 
         if self.selected_track["selected_chapter"] != -1:

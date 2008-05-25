@@ -16,9 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import os
+
 from deejayd.component import SignalingComponent
 from deejayd.ui import log
 from deejayd.player import PlayerError
+from deejayd.sources._base import SourceError
 
 class UnknownSourceException: pass
 
@@ -37,11 +40,12 @@ class SourceFactory(SignalingComponent):
 
     def __init__(self,player,db,audio_library,video_library,config):
         SignalingComponent.__init__(self)
-        self.sources_obj = {}
         self.current = ""
         self.db = db
         activated_sources = config.get('general', "activated_modes").split(",")
+        activatad_sources = [s.strip() for s in activated_sources]
 
+        self.sources_obj = {}
         from deejayd.sources import queue
         self.sources_obj["queue"] = queue.QueueSource(db, audio_library)
         # playlist
@@ -90,18 +94,15 @@ class SourceFactory(SignalingComponent):
             log.err(_("Unable to set recorded source %s") % str(source))
             self.set_source(self.get_available_sources()[0])
 
-        # load random/repeat options state
-        self.source_options = {}
-        self.source_options["random"] = int(self.db.get_state("random"))
-        self.source_options["repeat"] = int(self.db.get_state("repeat"))
-        self.source_options["qrandom"] = int(self.db.get_state("qrandom"))
-
         player.set_source(self)
         player.load_state()
 
-    def set_option(self,name,value):
-        if name not in self.source_options.keys(): raise KeyError
-        self.source_options[name] = value
+    def set_option(self, source, name, value):
+        try: self.sources_obj[source].set_option(name, value)
+        except KeyError:
+            raise UnknownSourceException
+        except NotImplementedError:
+            raise SourceError(_("option %s not supported for this mode"))
         self.dispatch_signame('player.status')
 
     def get_source(self,s):
@@ -122,10 +123,6 @@ class SourceFactory(SignalingComponent):
         status = [("mode",self.current)]
         for k in self.sources_obj.keys():
             status.extend(self.sources_obj[k].get_status())
-
-        for key in self.source_options.keys():
-            status.append((key,self.source_options[key]))
-
         return status
 
     def get_available_sources(self):
@@ -137,11 +134,7 @@ class SourceFactory(SignalingComponent):
         return mode in self.sources_obj.keys()
 
     def close(self):
-        states = [(self.current,"source")]
-        for key in self.source_options:
-            states.append((str(self.source_options[key]),key))
-        self.db.set_state(states)
-
+        self.db.set_state([(self.current,"source")])
         for k in self.sources_obj.keys():
             self.sources_obj[k].close()
 
@@ -156,28 +149,22 @@ class SourceFactory(SignalingComponent):
     @format_rsp
     def get_current(self):
         queue_media = self.sources_obj["queue"].get_current() or \
-            self.sources_obj["queue"].next(self.source_options["qrandom"])
-        if queue_media:
-            return (queue_media, "queue")
+                      self.sources_obj["queue"].next()
+        if queue_media: return (queue_media, "queue")
+
         current = self.sources_obj[self.current].get_current() or \
-            self.sources_obj[self.current].next(\
-                self.source_options["random"],self.source_options["repeat"])
+            self.sources_obj[self.current].next(explicit = False)
         return (current, self.current)
 
     @format_rsp
-    def next(self):
-        queue_media = self.sources_obj["queue"].next(\
-            self.source_options["qrandom"])
+    def next(self, explicit = True):
+        queue_media = self.sources_obj["queue"].next(explicit)
         if queue_media: return (queue_media, "queue")
-        return (self.sources_obj[self.current].next(\
-            self.source_options["random"],self.source_options["repeat"]),\
-            self.current)
+        return (self.sources_obj[self.current].next(explicit),self.current)
 
     @format_rsp
     def previous(self):
-        return (self.sources_obj[self.current].previous(\
-          self.source_options["random"],self.source_options["repeat"]),
-          self.current)
+        return (self.sources_obj[self.current].previous(),self.current)
 
     def queue_reset(self):
         self.sources_obj["queue"].reset()

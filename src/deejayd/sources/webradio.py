@@ -50,18 +50,12 @@ def get_uris_from_m3u(URL):
     return uris
 
 
-class WebradioList(SimpleMediaList):
-
-    def _update_list_id(self):
-        self._list_id += 1
-
-
 class WebradioSource(_BaseSource):
     name = "webradio"
 
     def __init__(self, db):
         _BaseSource.__init__(self, db)
-        self._media_list = WebradioList(self.get_recorded_id())
+        self._media_list = SimpleMediaList(self.get_recorded_id())
 
         # load recorded webradio
         wbs = self.db.get_webradios()
@@ -88,13 +82,13 @@ class WebradioSource(_BaseSource):
         self.dispatch_signame('webradio.listupdate')
         return True
 
-    def delete(self, id):
-        _BaseSource.delete(self, id)
+    def delete(self, ids):
+        _BaseSource.delete(self, ids)
         self.dispatch_signame('webradio.listupdate')
 
     def get_status(self):
         return [
-            (self.name, self._media_list.get_list_id()),
+            (self.name, self._media_list.list_id),
             (self.name+"length", len(self._media_list))
             ]
 
@@ -102,7 +96,8 @@ class WebradioSource(_BaseSource):
         _BaseSource.close(self)
         # save webradio
         self.db.clear_webradios()
-        values = [(w["pos"],w["title"],w["uri"]) for w in self._media_list]
+        values = [(w["pos"],w["title"],w["uri"])\
+            for w in self._media_list.get()]
         self.db.add_webradios(values)
 
 # vim: ts=4 sw=4 expandtab

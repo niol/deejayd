@@ -18,39 +18,31 @@
 
 import os
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources._base import _BaseLibrarySource, SimpleMediaList, \
-                                  MediaNotFoundError
+from deejayd.sources._base import _BaseLibrarySource, SourceError
 
 class VideoSource(_BaseLibrarySource):
     name = "video"
-    list_name = "__videocurrent__"
+    base_medialist = "__videocurrent__"
     source_signal = 'video.update'
 
     def __init__(self, db, library):
-        _BaseLibrarySource.__init__(self, db, library)
-        self._media_list = SimpleMediaList(self.get_recorded_id())
-
+        super(VideoSource, self).__init__(db, library)
         # load saved
-        ans = self.db.get_static_medialist(self.list_name, library.media_attr)
+        ans = self.db.get_static_medialist(self.base_medialist,\
+            library.media_attr)
         self._media_list.set(library._format_db_answer(ans))
 
     def set(self, type, value):
         if type == "directory":
             try: video_list = self.library.get_all_files(value)
             except NotFoundException:
-                raise MediaNotFoundError
+                raise SourceError(_("Directory %s not found") % value)
         elif type == "search":
             video_list = self.library.search(value)
         else:
-            raise ValueError
+            raise SourceError(_("type %s not supported") % type)
 
         self._media_list.set(video_list)
-        self._reload_current()
         self.dispatch_signame(self.source_signal)
-
-    def close(self):
-        _BaseLibrarySource.close(self)
-        # record video list in the db
-        self.db.set_static_medialist(self.list_name, self._media_list)
 
 # vim: ts=4 sw=4 expandtab

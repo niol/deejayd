@@ -17,8 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os, random
-from deejayd.sources._base import _BaseAudioLibSource, MediaList,\
-                                  MediaNotFoundError, PlaylistNotFoundError
+from deejayd.sources._base import _BaseAudioLibSource, SourceError
 from deejayd.mediadb.library import NotFoundException
 
 def playlist_action(func):
@@ -29,7 +28,8 @@ def playlist_action(func):
             pls_obj = MediaList()
             content = self.db.get_static_medialist(pls_name,\
                                     self.library.media_attr)
-            if not len(content): raise PlaylistNotFoundError
+            if not len(content):
+                raise SourceError(_("Playlist %s Not found") % pls_name)
             pls_obj.add_media(self.library._format_db_answer(content))
         else:
             pls_obj = None
@@ -52,14 +52,10 @@ class PlaylistSource(_BaseAudioLibSource):
             pl.startswith("__") or not pl.endswith("__")]
         return list
 
-    def load_playlist(self, playlists, pos = None):
-        _BaseAudioLibSource.load_playlist(self, playlists, pos)
-        self.dispatch_signame('player.plupdate')
-
     @playlist_action
-    def get_content(self,playlist = None):
+    def get_content(self,start = 0, stop = None, playlist = None):
         media_list = playlist or self._media_list
-        return media_list
+        return media_list.get(start, stop)
 
     @playlist_action
     def add_path(self,paths,playlist = None,pos = None):
@@ -73,13 +69,14 @@ class PlaylistSource(_BaseAudioLibSource):
             except NotFoundException:
                 # perhaps it is file
                 try: songs.extend(self.library.get_file(path))
-                except NotFoundException: raise MediaNotFoundError
-
+                except NotFoundException:
+                    raise SourceError(_("path %s not found") % path)
         media_list.add_media(songs,pos)
+
         if playlist:
             self.dispatch_signame('playlist.update')
         else:
-            self._reload_current()
+            if pos: self._media_list.reload_item_pos(self._current)
             self.dispatch_signame('player.plupdate')
 
     @playlist_action
@@ -90,16 +87,19 @@ class PlaylistSource(_BaseAudioLibSource):
         if playlist:
             self.dispatch_signame('playlist.update')
         else:
+            self._media_list.reload_item_pos(self._current)
             self.dispatch_signame('player.plupdate')
 
     @playlist_action
-    def move(self, id, new_pos, type = "id", playlist = None):
+    def move(self, ids, new_pos, playlist = None):
         media_list = playlist or self._media_list
-        media_list.move(id, new_pos, type)
+        type = playlist and "pos" or "id"
+        if not media_list.move(ids, new_pos, type):
+            raise SourceError(_("Unable to move selected ids"))
         if playlist:
             self.dispatch_signame('playlist.update')
         else:
-            self._reload_current()
+            self._media_list.reload_item_pos(self._current)
             self.dispatch_signame('player.plupdate')
 
     @playlist_action
@@ -114,17 +114,19 @@ class PlaylistSource(_BaseAudioLibSource):
             self.dispatch_signame('player.plupdate')
 
     @playlist_action
-    def delete(self, id, type = "id", playlist = None):
+    def delete(self, ids, playlist = None):
         media_list = playlist or self._media_list
-        media_list.delete(id, type)
+        type = playlist and "pos" or "id"
+        if not media_list.delete(ids, type):
+            raise SourceError(_("Unable to delete selected ids"))
         if playlist:
             self.dispatch_signame('playlist.update')
         else:
-            self._reload_current()
+            self._media_list.reload_item_pos(self._current)
             self.dispatch_signame('player.plupdate')
 
     def save(self, playlist_name):
-        self.db.set_static_medialist(playlist_name, self._media_list)
+        self.db.set_static_medialist(playlist_name, self._media_list.get())
         self.dispatch_signame('playlist.update')
 
     def rm(self, playlist_name):

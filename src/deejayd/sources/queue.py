@@ -17,40 +17,42 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import random
-from deejayd.sources._base import _BaseAudioLibSource
+from deejayd.sources._base import _BaseAudioLibSource, SourceError
 
 class QueueSource(_BaseAudioLibSource):
     base_medialist = "__djqueue__"
     name = "queue"
     source_signal = 'queue.update'
+    available_playorder = ("inorder", "random")
+    has_repeat = False
 
     def add_path(self, paths, pos = None):
         _BaseAudioLibSource.add_path(self, paths, pos)
         self.dispatch_signame(self.source_signal)
 
-    def delete(self, id):
-        _BaseAudioLibSource.delete(self, id)
+    def delete(self, ids):
+        _BaseAudioLibSource.delete(self, ids)
         self.dispatch_signame(self.source_signal)
 
-    def load_playlist(self, playlists, pos = None):
-        _BaseAudioLibSource.load_playlist(self, playlists, pos)
+    def move(self, ids, new_pos):
+        if not self._media_list.move(ids, new_pos):
+            raise SourceError(_("Unable to move selected medias"))
+        self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)
 
-    def go_to(self,nb,type = "id"):
-        _BaseAudioLibSource.go_to(self,nb)
+    def go_to(self, nb, type = "id"):
+        self._current = super(QueueSource, self).go_to(nb, type)
         if self._current != None:
-            self._media_list.delete(self._current["id"])
+            self._media_list.delete([self._current["id"],])
+            self.dispatch_signame(self.source_signal)
         return self._current
 
-    def next(self,rd):
-        if not self._media_list:
-            self._current = None
-            return self._current
-
-        if rd:
-            id = random.choice(self._media_list.get_ids())
-            self.go_to(id)
-        else: self._current = self._media_list[0]
+    def next(self, explicit = True):
+        self._current = None
+        super(QueueSource, self).next(explicit)
+        if self._current != None:
+            self._media_list.delete([self._current["id"],])
+            self.dispatch_signame(self.source_signal)
         return self._current
 
     def previous(self,rd,rpt):
