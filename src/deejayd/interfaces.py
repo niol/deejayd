@@ -27,9 +27,9 @@ class DeejaydError(Exception):
     # http://bugs.python.org/issue2517
     def __str__(self):
         if type(self.message) is unicode:
-            return self.message.encode(locale.getpreferredencoding())
+            return str(self.message.encode(locale.getpreferredencoding()))
         else:
-            return self.message
+            return str(self.message)
 
 
 class DeejaydAnswer:
@@ -182,6 +182,9 @@ class DeejaydQueue:
     def load_playlists(self, names, pos = None):
         raise NotImplementedError
 
+    def move(self, ids, new_pos):
+        raise NotImplementedError
+
     def clear(self):
         raise NotImplementedError
 
@@ -303,7 +306,7 @@ class DeejaydCore:
     def set_volume(self, volume_value):
         raise NotImplementedError
 
-    def set_option(self, option_name, option_value):
+    def set_option(self, source, option_name, option_value):
         raise NotImplementedError
 
     def set_mode(self, mode_name):
