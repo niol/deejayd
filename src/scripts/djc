@@ -90,13 +90,15 @@ class AvailableCommands:
             raise DjcError('Bad command line')
 
     def set_option(self, args):
-        """Set option to argument value. ex: djc set_option random 1"""
+        """Set option to argument value for a given source.
+           ex: djc set_option playlist playorder random"""
         try:
-            option_name = args[0]
-            option_value = int(args[1])
+            source = args[0]
+            option_name = args[1]
+            option_value = args[2]
         except (ValueError, IndexError):
             raise DjcError('Bad command line')
-        self.server.set_option(option_name,option_value).get_contents()
+        self.server.set_option(source,option_name,option_value).get_contents()
 
     def set_mode(self, args):
         """Set active mode to argument value. ex: djc set_mode webradio"""
