@@ -57,7 +57,17 @@ var Queue = function()
             ajaxdj_ref.send_command("goto",{ source:"queue",
                                     id:str.split("/")[3] },true);
             }
-    }
+    };
+
+    this.toggle_random = function()
+    {
+        if ($('queue-playorder').checked)
+            var state = "random";
+        else
+            var state = "inorder";
+        ajaxdj_ref.send_post_command("playorder",{source:"queue",value:state});
+        return false;
+    };
 };
 
 // heritage by prototype

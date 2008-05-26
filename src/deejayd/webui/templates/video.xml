@@ -132,6 +132,26 @@
         </template>
     </tree>
     <hbox align="center">
+        <description value="&playorder;"/>
+        <menulist
+            id="video-playorder"
+            oncommand="videolist_ref.setPlayorder();"
+            label="">
+            <menupopup>
+                <menuitem value="inorder" label="&inorder;"/>
+                <menuitem value="onemedia" label="&onemedia;"/>
+                <menuitem value="random" label="&random;"/>
+            </menupopup>
+        </menulist>
+        <command
+            oncommand=
+              "ajaxdj_ref.send_command('repeat',{source:'video'},true);"
+            id="vidrepeat-command"/>
+        <checkbox
+            label="&repeat;"
+            id="video-repeat"
+            command="vidrepeat-command"
+            checked="false"/>
         <spacer flex="1"/>
         <description id="videolist-description" value=""/>
     </hbox>

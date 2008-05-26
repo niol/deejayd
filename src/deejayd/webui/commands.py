@@ -196,20 +196,28 @@ class Previous(_UnknownCommand):
     def execute(self):
         self._deejayd.previous().get_contents()
 
-class _Options(_UnknownCommand):
+class Repeat(_UnknownCommand):
+    name = "repeat"
+    command_args = [{"name":"source","type":"enum_str","req":True,\
+                     "values":("playlist","video")}]
+
     def execute(self):
         status = self._deejayd.get_status()
-        val = status[self.__class__.name] == 1 and (0,) or (1,)
-        self._deejayd.set_option(self.__class__.name,val[0]).get_contents()
+        val = status[self._args["source"]+"repeat"] == 1 and (0,) or (1,)
+        self._deejayd.set_option(self._args["source"],\
+            "repeat",val[0]).get_contents()
 
-class Random(_Options):
-    name = "random"
+class PlayOrder(_UnknownCommand):
+    name = "playorder"
+    method = "post"
+    command_args = [{"name":"source","type":"enum_str","req":True,\
+                     "values":("playlist","video","queue")},
+                    {"name":"value","type":"enum_str","req":True,\
+                     "values":("inorder","onemedia","random")}]
 
-class QueueRandom(_Options):
-    name = "qrandom"
-
-class Repeat(_Options):
-    name = "repeat"
+    def execute(self):
+        self._deejayd.set_option(self._args["source"],\
+            "playorder",self._args["value"]).get_contents()
 
 class Volume(_UnknownCommand):
     name = "setVol"

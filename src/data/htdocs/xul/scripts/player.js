@@ -7,19 +7,31 @@ var playerStatus = {
         $('volume-image').src = "./static/themes/default/images/volume-max.png";
         },
 
-    random: "",
-    update_random: function() {
-        $("random-button").checked = this.random == "1" ? true : false;
+    queueplayorder: "",
+    update_queueplayorder: function() {
+        $("queue-playorder").checked = this.queueplayorder == "random" ?
+                                      true : false;
         },
 
-    qrandom: "",
-    update_qrandom: function() {
-        $("qrandom-button").checked = this.qrandom == "1" ? true : false;
+    playlistrepeat: "",
+    update_playlistrepeat: function() {
+        $("playlist-repeat").checked = this.playlistrepeat == "1" ?
+                                       true : false;
         },
 
-    repeat: "",
-    update_repeat: function() {
-        $("repeat-button").checked = this.repeat == "1" ? true : false;
+    playlistplayorder: "",
+    update_playlistplayorder: function() {
+        $("playlist-playorder").value = this.playlistplayorder;
+        },
+
+    videorepeat: "",
+    update_videorepeat: function() {
+        $("video-repeat").checked = this.videorepeat == "1" ?  true : false;
+        },
+
+    videoplayorder: "",
+    update_videoplayorder: function() {
+        $("video-playorder").value = this.videoplayorder;
         },
 
     state: "",
@@ -214,10 +226,12 @@ var Player = function()
         for(var i=0; obj = parm_objs.item(i); i++)
             st_obj[obj.getAttribute("key")] = obj.getAttribute("value");
 
-        var list = Array("state","volume","random","qrandom","repeat");
+        var list = Array("state","volume","playlistplayorder",
+            "playlistrepeat","videoplayorder","videorepeat",
+            "queueplayorder");
         for (var i in list) {
             var key = list[i];
-            if (st_obj[key] != playerStatus[key]) {
+            if (st_obj[key] && st_obj[key] != playerStatus[key]) {
                 playerStatus[key] = st_obj[key];
                 playerStatus["update_"+key]();
                 }

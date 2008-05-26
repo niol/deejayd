@@ -141,6 +141,29 @@
     persist="width"
     id="playlist-box">
 
+    <hbox pack="center" align="center">
+        <spacer flex="1"/>
+        <description value="&playorder;"/>
+        <menulist
+            id="playlist-playorder"
+            oncommand="playlist_ref.setPlayorder();"
+            label="">
+            <menupopup>
+                <menuitem value="inorder" label="&inorder;"/>
+                <menuitem value="onemedia" label="&onemedia;"/>
+                <menuitem value="random" label="&random;"/>
+            </menupopup>
+        </menulist>
+        <command
+            oncommand=
+              "ajaxdj_ref.send_command('repeat',{source:'playlist'},true);"
+            id="plrepeat-command"/>
+        <checkbox
+            label="&repeat;"
+            id="playlist-repeat"
+            command="plrepeat-command"
+            checked="false"/>
+    </hbox>
     <vbox flex="5">
         <tree
             id="playlist-tree"

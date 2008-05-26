@@ -66,8 +66,11 @@ def build_language_dtd():
         "dvd": _("Dvd"),
         "navPanel": _("Navigation Panel"),
         "showDebug": _("Show debug zone"),
-        "random": _("Random"),
         "repeat": _("Repeat"),
+        "playorder": _("Play Order"),
+        "inorder": _("In Order"),
+        "random": _("Random"),
+        "onemedia": _("One Media"),
         "advancedOption": _("Advanced Option"),
         "audio_channel": _("Audio Channel:"),
         "subtitle_channel": _("Subtitle Channel:"),
@@ -440,8 +443,9 @@ class DeejaydWebAnswer(_DeejaydXML):
 
         # update status
         status_elt = ET.SubElement(player, "status")
-        for info in ("volume","random","qrandom","repeat","time","state",\
-                     "current"):
+        for info in ("volume","queueplayorder","playlistplayorder",\
+                     "playlistrepeat","videoplayorder","videorepeat",\
+                     "time","state","current"):
             try: val = self._to_xml_string(status[info])
             except KeyError: pass
             else:

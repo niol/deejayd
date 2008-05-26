@@ -271,14 +271,27 @@
                 oncommand="ajaxdj_ref.send_command('queueClear',{},true);"
                 label="&clear;"/>
             <command
-                oncommand="ajaxdj_ref.send_command('qrandom',null,true);"
-                id="qrandom-command"/>
+                oncommand="return queue_ref.toggle_random();"
+                id="qplayorder-command"/>
             <checkbox
                 label="&random;"
-                id="qrandom-button"
-                command="qrandom-command"
+                id="queue-playorder"
+                command="qplayorder-command"
                 checked="false"/>
         </hbox>
+    </hbox>
+    <spacer flex="1"/>
+    <hbox>
+        <image
+            align="end"
+            id="msg-loading"
+            style="display: none;"
+            src="./static/themes/default/images/loading.gif"/>
+        <button
+            id = "debug-button"
+            style = "display: none;"
+            oncommand="ajaxdj_ref.toggleDebugZone();"
+            label="&showDebug;"/>
     </hbox>
 </hbox>
 <splitter
@@ -352,31 +365,8 @@
 
 </vbox>
 <!-- END MAIN -->
-
-<!-- FOOTER -->
-<hbox
-    id="ajaxdj-footer" >
-    <image
-        align="end"
-        id="msg-loading"
-        style="display: none;"
-        src="./static/themes/default/images/loading.gif"/>
-    <button
-        id = "debug-button"
-        style = "display: none;"
-        oncommand="ajaxdj_ref.toggleDebugZone();"
-        label="&showDebug;"/>
+<vbox>
     <notificationbox dir="reverse" flex="1" id="notification-box"/>
-    <spacer flex="1"/>
-    <button
-        id="random-button"
-        oncommand="ajaxdj_ref.send_command('random',null,true);"
-        label="&random;"/>
-    <button
-        id="repeat-button"
-        oncommand="ajaxdj_ref.send_command('repeat',null,true);"
-        label="&repeat;"/>
-</hbox>
-<!-- END FOOTER -->
+</vbox>
 
 </window>
