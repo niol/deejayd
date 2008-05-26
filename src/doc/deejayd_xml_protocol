@@ -188,17 +188,20 @@ Return status of deejayd. Given informations are :
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
   * playlisttimelength : _int_ time length of the current playlist
+  * playlistrepeat : 0 (not activated) or 1 (activated)
+  * playlistplayorder : inorder | random | onemedia
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
   * queuetimelength : _int_ time length of the current queue
+  * queueplayorder : inorder | random
   * video : _int_ id of the current video list
   * videolength : _int_ length of the current video list
   * videotimelength : _int_ time length of the current video list
+  * videorepeat : 0 (not activated) or 1 (activated)
+  * videoplayorder : inorder | random | onemedia
   * dvd : _int_ id of the current dvd
-  * random : 0 (not activated) or 1 (activated)
-  * repeat : 0 (not activated) or 1 (activated)
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
   * current : _int_:_int_:_str_ current media pos : current media file id :
@@ -381,16 +384,15 @@ Expected return value : ''`Ack`''
 
 === `setOption` ===
 
-Set player options "name" to "value", "value" should be 0 or 1.
+Set player options "name" to "value" for mode "source",
        Available options are :
-       * random
-       * qrandom (queue random)
-       * repeat
-       You can pass several options in the same command
+       * playorder (inorder, onemedia or random)
+       * repeat (0 or 1) 
 
 Arguments :
+  * {{{source}}} (Simple and Mandatory) : str
   * {{{option_name}}} (Simple and Mandatory) : enum_str
-  * {{{option_value}}} (Simple and Mandatory) : enum_int
+  * {{{option_value}}} (Simple and Mandatory) : enum_str
 
 Expected return value : ''`Ack`''
 
