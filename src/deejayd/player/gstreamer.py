@@ -87,7 +87,7 @@ class GstreamerPlayer(UnknownPlayer):
 
     def on_message(self, bus, message):
         if message.type == gst.MESSAGE_EOS:
-            self.next()
+            self._change_file(self._source.next(explicit = False))
         elif message.type == gst.MESSAGE_TAG:
             self._update_metadata(message.parse_tag())
         elif message.type == gst.MESSAGE_ERROR:
