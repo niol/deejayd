@@ -368,7 +368,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def set_option(self, source, option_name, option_value):
         try: self.sources.set_option(source, option_name, option_value)
         except sources.UnknownSourceException:
-            raise DeejaydError(_('Mode %s not supported') % mode_name)
+            raise DeejaydError(_('Mode %s not supported') % source)
         except sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
