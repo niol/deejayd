@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os, random
-from deejayd.sources._base import _BaseAudioLibSource, SourceError
+from deejayd.sources._base import _BaseAudioLibSource, SourceError, MediaList
 from deejayd.mediadb.library import NotFoundException
 
 def playlist_action(func):
@@ -37,7 +37,7 @@ def playlist_action(func):
         __kw['playlist'] = pls_obj
         rs = func(self, *__args, **__kw)
         if pls_obj != None:
-            self.db.set_static_medialist(pls_name, pls_obj)
+            self.db.set_static_medialist(pls_name, pls_obj.get())
         return rs
 
     return playlist_action_func
