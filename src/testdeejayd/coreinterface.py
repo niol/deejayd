@@ -94,6 +94,48 @@ class InterfaceTests:
         for song_nb in range(len(pl)):
             self.assertEqual(pl[song_nb], retrievedPl[song_nb]['path'])
 
+    def testPlaylistActions(self):
+        """Test actions on current playlist."""
+        djpl = self.deejayd.get_playlist()
+        howManySongs = 4
+        for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
+            ans = djpl.add_song(songPath)
+            self.failUnless(ans.get_contents())
+
+        content = djpl.get().get_medias()
+        song = self.testdata.getRandomElement(content)
+        # move this song
+        ans = djpl.move([song["id"]], 1)
+        self.failUnless(ans.get_contents())
+        # delete a song
+        djpl.del_song(song["id"]).get_contents()
+        content = djpl.get().get_medias()
+        self.assertEqual(len(content), howManySongs-1)
+
+    def testSavedPlaylistActions(self):
+        """Test action on saved playlist"""
+        djplname = self.testdata.getRandomString()
+        djpl = self.deejayd.get_playlist()
+        howManySongs = 3
+        # Add songs to playlist
+        for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
+            ans = djpl.add_song(songPath)
+            self.failUnless(ans.get_contents())
+        # save playlist
+        ans = djpl.save(djplname)
+        self.failUnless(ans.get_contents())
+
+        # add songs in the saved playlist
+        savedpl = self.deejayd.get_playlist(djplname)
+        for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
+            ans = savedpl.add_song(songPath)
+            self.failUnless(ans.get_contents())
+        content = savedpl.get().get_medias()
+        self.assertEqual(len(content), howManySongs*2)
+        # shuffle
+        ans = savedpl.shuffle()
+        self.failUnless(ans.get_contents())
+
     def testWebradioAddRetrieve(self):
         """Save a webradio and check it is in the list, then delete it."""
 
@@ -226,7 +268,7 @@ class InterfaceTests:
 
         # search a known terms
         file = self.testdata.getRandomElement(song_files)
-        ans = self.deejayd.audio_search(file["title"])
+        ans = self.deejayd.audio_search(file["title"], "title")
         self.failUnless(len(ans.get_files()) > 0)
 
     def testVideoLibrary(self):
@@ -247,14 +289,24 @@ class InterfaceTests:
         """ Test set_option commands"""
         # unknown option
         opt = self.testdata.getRandomString()
-        ans = self.deejayd.set_option(opt, 1)
+        ans = self.deejayd.set_option("playlist", opt, 1)
+        self.assertRaises(DeejaydError, ans.get_contents)
+        ans = self.deejayd.set_option(opt, "repeat", 1)
         self.assertRaises(DeejaydError, ans.get_contents)
 
-        # known option
-        opt = self.testdata.getRandomElement(('random','repeat'))
-        ans = self.deejayd.set_option(opt, 1).get_contents()
+        ans = self.deejayd.set_option("webradio", "playorder", "inorder")
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        # set playlist option
+        ans = self.deejayd.set_option("playlist", "playorder", "random")
+        ans.get_contents()
         status = self.deejayd.get_status().get_contents()
-        self.assertEqual(status[opt], 1)
+        self.assertEqual(status["playlistplayorder"], "random")
+        # set video option
+        ans = self.deejayd.set_option("video", "repeat", "1")
+        ans.get_contents()
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status["videorepeat"], 1)
 
     def testAudioPlayer(self):
         """ Test player commands (play, pause,...) for audio """
@@ -370,8 +422,9 @@ class InterfaceSubscribeTests:
         """Checks that player.status signals are broadcasted."""
 
         trigger_list = ((self.deejayd.play_toggle, ()),
-                        (self.deejayd.set_option, ('random', 1)),
-                        (self.deejayd.set_option, ('repeat', 1)),
+                        (self.deejayd.set_option, ("playlist", 'repeat', 1)),
+                        (self.deejayd.set_option, ('video', "playorder",\
+                                                   "random")),
                         (self.deejayd.set_volume, (51, )),
                         (self.deejayd.seek, (5, )),
                        )

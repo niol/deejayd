@@ -16,21 +16,18 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from testdeejayd import TestCaseWithMediaData
+from testdeejayd import TestCaseWithData
 
 from deejayd.net.deejaydProtocol import CommandFactory
 from deejayd.net.xmlbuilders import DeejaydXMLCommand, DeejaydXMLAnswerFactory
 
 
-class TestDeejaydProtocol(TestCaseWithMediaData):
+class TestDeejaydProtocol(TestCaseWithData):
 
     def setUp(self):
-        TestCaseWithMediaData.setUp(self)
+        super(TestDeejaydProtocol, self).setUp()
         self.cmdFactory = CommandFactory()
         self.rspFactory = DeejaydXMLAnswerFactory()
-
-    def tearDown(self):
-        TestCaseWithMediaData.tearDown(self)
 
     def testXMLPingCommand(self):
         """Send a ping command with the XML protocol"""

@@ -20,10 +20,9 @@
 Deejayd DB testing module
 """
 import os,time
-from testdeejayd import TestCaseWithMediaData
+from testdeejayd import TestCaseWithAudioData, TestCaseWithVideoData
 from deejayd.database.sqlite import SqliteDatabase
-from deejayd.mediadb.library import AudioLibrary, VideoLibrary, \
-                                                            NotFoundException
+from deejayd.mediadb.library import AudioLibrary,VideoLibrary,NotFoundException
 from deejayd.mediadb import inotify
 
 # FIXME : Those imports should really go away one day
@@ -31,13 +30,9 @@ from deejayd.player import xine
 from deejayd.ui.config import DeejaydConfig
 
 
-class TestDeejayDBLibrary(TestCaseWithMediaData):
+class _TestDeejayDBLibrary(object):
 
-    def tearDown(self):
-        self.removeDB()
-        TestCaseWithMediaData.tearDown(self)
-
-    def setUpDB(self):
+    def setUp(self):
         self.dbfilename = '/tmp/testdeejayddb-' + \
             self.testdata.getRandomString()
         self.db = SqliteDatabase(self.dbfilename)
@@ -52,8 +47,9 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
 
         self.library = self.__class__.library_class(self.db, player, \
                                                     self.testdata.getRootDir())
+        self.library._update()
 
-    def removeDB(self):
+    def tearDown(self):
         self.db.close()
         os.remove(self.dbfilename)
 
@@ -62,7 +58,7 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
         if do_update: # First update mediadb
             self.library._update()
         else:
-            time.sleep(0.5)
+            time.sleep(1.5)
 
         self.assertRaises(NotFoundException,
                   self.library.get_dir_content, self.testdata.getRandomString())
@@ -87,7 +83,8 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
                 try: f = f.decode("utf-8", "strict").encode("utf-8")
                 except UnicodeError:
                     continue
-                new_files.append(f)
+                if f != "cover.jpg" and not f.endswith(".srt"):
+                    new_files.append(f)
             files = new_files
 
             current_root = self.testdata.stripRoot(root)
@@ -121,7 +118,7 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
         except NotFoundException:
             self.assert_(False,
                 "'%s' is a file in directory tree but was not found in DB"\
-                % media.name)
+                % filePath)
         else: inDBfile = inDBfile[0]
 
         realFile = self.testdata.medias[filePath]
@@ -129,15 +126,17 @@ class TestDeejayDBLibrary(TestCaseWithMediaData):
         return (inDBfile, realFile)
 
 
-class TestVideoLibrary(TestDeejayDBLibrary):
+class TestVideoLibrary(TestCaseWithVideoData, _TestDeejayDBLibrary):
     library_class = VideoLibrary
     supported_ext = (".mpg",".avi")
 
     def setUp(self):
-        TestDeejayDBLibrary.setUp(self)
-        self.testdata.build_video_library_directory_tree()
-        self.setUpDB()
-        self.library._update()
+        TestCaseWithVideoData.setUp(self)
+        _TestDeejayDBLibrary.setUp(self)
+
+    def tearDown(self):
+        _TestDeejayDBLibrary.tearDown(self)
+        TestCaseWithVideoData.tearDown(self)
 
     def testGetDir(self):
         """built directory detected by video library"""
@@ -153,22 +152,33 @@ class TestVideoLibrary(TestDeejayDBLibrary):
         self.testdata.addMedia()
         self.verifyMediaDBContent()
 
+    def testAddSubtitle(self):
+        """Add a subtitle file in video library"""
+        self.testdata.add_subtitle()
+        self.verifyMediaDBContent()
+
+    def testRemoveSubtitle(self):
+        """Remove a subtitle file in video library"""
+        self.testdata.remove_subtitle()
+        self.verifyMediaDBContent()
+
     def verifyTag(self, filePath):
-        (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
+        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath)
+        for tag in ('length','videowidth','videoheight','external_subtitle'):
+            self.assertEqual(str(realFile[tag]), str(inDBfile[tag]))
 
-        for tag in ('length', 'videowidth', 'videoheight'):
-            self.assertEqual(realFile[tag], inDBfile[tag])
 
-
-class TestAudioLibrary(TestDeejayDBLibrary):
+class TestAudioLibrary(TestCaseWithAudioData, _TestDeejayDBLibrary):
     library_class = AudioLibrary
-    supported_ext = (".ogg",".mp3",".mp4")
+    supported_ext = (".ogg",".mp3",".mp4",".flac")
 
     def setUp(self):
-        TestDeejayDBLibrary.setUp(self)
-        self.testdata.build_audio_library_directory_tree()
-        self.setUpDB()
-        self.library._update()
+        TestCaseWithAudioData.setUp(self)
+        _TestDeejayDBLibrary.setUp(self)
+
+    def tearDown(self):
+        TestCaseWithAudioData.tearDown(self)
+        _TestDeejayDBLibrary.tearDown(self)
 
     def testGetDir(self):
         """built directory detected by audio library"""
@@ -214,6 +224,16 @@ class TestAudioLibrary(TestDeejayDBLibrary):
         self.testdata.changeMediaTags()
         self.verifyMediaDBContent()
 
+    def testAddCover(self):
+        """Add cover in audio library"""
+        self.testdata.add_cover()
+        self.verifyMediaDBContent()
+
+    def testRemoveCover(self):
+        """Add cover in audio library"""
+        self.testdata.remove_cover()
+        self.verifyMediaDBContent()
+
     def testSearchFile(self):
         """Search a file in audio library"""
         self.assertRaises(NotFoundException,
@@ -228,32 +248,31 @@ class TestAudioLibrary(TestDeejayDBLibrary):
         self.assertEqual(1,len(self.library.search("genre", media["genre"])))
 
     def verifyTag(self,filePath):
-        (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
-
+        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath)
         for tag in ("title","artist","album","genre"):
             self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \
                 (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
 
 
-class TestInotifySupport(TestDeejayDBLibrary):
+class TestInotifySupport(TestCaseWithAudioData, _TestDeejayDBLibrary):
     library_class = AudioLibrary
-    supported_ext = (".ogg",".mp3",".mp4")
+    supported_ext = (".ogg",".mp3",".mp4",".flac")
 
     def setUp(self):
-        TestDeejayDBLibrary.setUp(self)
-        self.testdata.build_audio_library_directory_tree()
-        self.setUpDB()
+        TestCaseWithAudioData.setUp(self)
+        _TestDeejayDBLibrary.setUp(self)
 
         # start inotify thread
         self.watcher = inotify.DeejaydInotify(self.db, self.library, None)
         self.watcher.start()
-
-        self.library._update()
+        time.sleep(5)
 
     def tearDown(self):
         self.watcher.close()
-        TestDeejayDBLibrary.tearDown(self)
+
+        _TestDeejayDBLibrary.tearDown(self)
+        TestCaseWithAudioData.tearDown(self)
 
     def testAddMedia(self):
         """Inotify support : Add a media in audio library"""
@@ -282,7 +301,7 @@ class TestInotifySupport(TestDeejayDBLibrary):
         self.verifyMediaDBContent(do_update = False)
 
     def verifyTag(self,filePath):
-        (inDBfile, realFile) = TestDeejayDBLibrary.verifyTag(self, filePath)
+        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath)
 
         for tag in ("title","artist","album","genre"):
             self.assert_(realFile[tag] == inDBfile[tag],
