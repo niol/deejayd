@@ -341,6 +341,7 @@
         <rule>
 
             <treechildren
+                ondraggesture = "queue_ref.dragStart(event);"
                 oncontextmenu="queue_ref.showPopupMenu(event);"
                 ondblclick = "queue_ref.play();"
                 id="queue-items">

@@ -7,6 +7,7 @@ var Queue = function()
     queue_ref = this;
     this.module = "queue";
     this.tree = $("queue-tree");
+    this.canDrop = true;
 
     var queueController = {
         supportsCommand : function(cmd){
@@ -27,7 +28,15 @@ var Queue = function()
 
     this.dropAction = function(pos)
     {
-        fileList_ref.loadItemsInQueue(pos);
+        if (this.mediaDragged) {
+            // move song at the new position
+            var s_ids = this.getTreeSelection();
+            ajaxdj_ref.send_post_command("queueMove",
+                {ids:s_ids, new_pos:pos});
+            }
+        else
+            fileList_ref.loadItemsInQueue(pos);
+        this.mediaDragged = false;
         fileList_ref.dragItemType = null;
     };
 

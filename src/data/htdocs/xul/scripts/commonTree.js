@@ -146,8 +146,6 @@ var CommonTreeManagement = function()
     this.dragStart = function(evt)
     {
         evt.stopPropagation();
-        if (!this.canDrop)
-            return;
         try{
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
@@ -176,6 +174,8 @@ var CommonTreeManagement = function()
     this.dragOver = function(evt)
     {
         evt.stopPropagation();
+        if (!this.mediaDragged && !fileList_ref.dragItemType)
+            return;
         try{
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
@@ -214,6 +214,8 @@ var CommonTreeManagement = function()
     this.dragEnter = function(evt)
     {
         evt.stopPropagation();
+        if (!this.mediaDragged && !fileList_ref.dragItemType)
+            return;
         try{
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
