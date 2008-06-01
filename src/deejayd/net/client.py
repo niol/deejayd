@@ -169,6 +169,12 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         cmd = DeejaydXMLCommand('queueClear')
         return self.server._send_command(cmd)
 
+    def move(self, ids, new_pos):
+        cmd = DeejaydXMLCommand('queueMove')
+        cmd.add_multiple_arg('ids', ids)
+        cmd.add_simple_arg('new_pos', new_pos)
+        return self.server._send_command(cmd)
+
     def del_songs(self, ids):
         cmd = DeejaydXMLCommand('queueRemove')
         cmd.add_multiple_arg('id', ids)

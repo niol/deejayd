@@ -632,6 +632,17 @@ class QueueRemove(UnknownCommand):
         queue.del_songs(self.args['id'], objanswer=False)
 
 
+class QueueMove(UnknownCommand):
+    """Move song in the queue with id "id" to position "new_position"."""
+    command_name = 'queueMove'
+    command_args = [{"name":"ids", "type":"int", "req":True, "mult": True},
+                    {"name":"new_pos", "type":"int", "req":True}]
+
+    def _execute(self):
+        queue = self.deejayd_core.get_queue()
+        queue.move(self.args['ids'], self.args['new_pos'], objanswer=False)
+
+
 class QueueClear(UnknownCommand):
     """Remove all songs from the queue."""
     command_name = 'queueClear'
