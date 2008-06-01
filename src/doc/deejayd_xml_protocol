@@ -583,6 +583,16 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
+=== `queueMove` ===
+
+Move song in the queue with id "id" to position "new_position".
+
+Arguments :
+  * {{{ids}}} (Multiple and Mandatory) : int
+  * {{{new_pos}}} (Simple and Mandatory) : int
+
+Expected return value : ''`Ack`''
+
 === `queueLoadPlaylist` ===
 
 Load playlists passed in arguments ("name") at the position "pos" in
