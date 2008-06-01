@@ -7,7 +7,6 @@ var Queue = function()
     queue_ref = this;
     this.module = "queue";
     this.tree = $("queue-tree");
-    this.canDrop = true;
 
     var queueController = {
         supportsCommand : function(cmd){

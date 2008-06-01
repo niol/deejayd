@@ -9,7 +9,6 @@ var Playlist = function()
 
     this.module = "playlist";
     this.tree = $("playlist-tree");
-    this.canDrop = true;
     // Activate this mode
     $("playlist-source").disabled = false;
 

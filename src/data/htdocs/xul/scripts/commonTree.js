@@ -3,7 +3,6 @@
 var CommonTreeManagement = function()
 {
     this.treeId = -1;
-    this.canDrop = false;
     this.mediaDragged = false;
     this.playing = null;
 
