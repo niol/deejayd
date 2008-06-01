@@ -18,7 +18,8 @@
 
 import sys
 import unittest
-from testdeejayd.databuilder import TestData, TestMediaCollection
+from testdeejayd.databuilder import TestData, TestAudioCollection,\
+                                    TestVideoCollection
 
 
 class DeejaydTest(unittest.TestCase):
@@ -32,33 +33,42 @@ class DeejaydTest(unittest.TestCase):
 class TestCaseWithData(DeejaydTest):
 
     def setUp(self):
-        DeejaydTest.setUp(self)
+        super(TestCaseWithData, self).setUp()
         self.testdata = TestData()
 
 
-class TestCaseWithMediaData(DeejaydTest):
+class _TestCaseWithMediaData(DeejaydTest):
 
     def setUp(self):
-        DeejaydTest.setUp(self)
-        self.testdata = TestMediaCollection()
+        super(_TestCaseWithMediaData, self).setUp()
+        self.testdata = self.collection_class()
+        self.testdata.buildLibraryDirectoryTree()
 
     def tearDown(self):
         self.testdata.cleanLibraryDirectoryTree()
 
 
+class TestCaseWithAudioData(_TestCaseWithMediaData):
+    collection_class = TestAudioCollection
+
+
+class TestCaseWithVideoData(_TestCaseWithMediaData):
+    collection_class = TestVideoCollection
+
+
 class TestCaseWithAudioAndVideoData(DeejaydTest):
 
     def setUp(self):
-        DeejaydTest.setUp(self)
+        super(TestCaseWithAudioAndVideoData, self).setUp()
 
         self.testdata = TestData()
         # audio library
-        self.test_audiodata = TestMediaCollection()
-        self.test_audiodata.build_audio_library_directory_tree()
+        self.test_audiodata = TestAudioCollection()
+        self.test_audiodata.buildLibraryDirectoryTree()
 
         # video library
-        self.test_videodata = TestMediaCollection()
-        self.test_videodata.build_video_library_directory_tree()
+        self.test_videodata = TestVideoCollection()
+        self.test_videodata.buildLibraryDirectoryTree()
 
     def tearDown(self):
         self.test_audiodata.cleanLibraryDirectoryTree()

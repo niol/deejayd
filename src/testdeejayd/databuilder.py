@@ -28,7 +28,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 class TestDataError: pass
 
-class TestData:
+class TestData(object):
 
     def __init__(self):
         # Grab some sample data
@@ -97,12 +97,21 @@ class TestVideo(TestSong):
 
     def __init__(self):
         self.testFile,self.ext = os.path.join(DATA_DIR, "mpg_test.mpg"), ".mpg"
-        TestSong.__init__(self)
+        super(TestVideo, self).__init__()
         # FIXME Shoudn't videowidth and videoheight be of type int?
-        self.tags = {"length": 2, "videowidth": '640', "videoheight": '480'}
+        self.tags = {"length": 2, "videowidth": '640', "videoheight": '480',\
+                     "external_subtitle": ""}
 
     def __getitem__(self,key):
-        return key in self.tags and self.tags[key] or None
+        try: return self.tags[key]
+        except KeyError:
+            return None
+
+    def set_subtitle(self, sub):
+        if sub != "":
+            self.tags["external_subtitle"] = "file:/"+sub
+        else:
+            self.tags["external_subtitle"] = ""
 
     def setRandomTag(self):pass
 
@@ -137,7 +146,7 @@ class TestMP4Song(TestSong):
 
     def __init__(self):
         self.testFile,self.ext = os.path.join(DATA_DIR, "mp4_test.mp4"), ".mp4"
-        TestSong.__init__(self)
+        super(TestMP4Song, self).__init__()
 
     def __getitem__(self,key):
         return key in self.tags and self.tags[key] or None
@@ -164,7 +173,7 @@ class TestOggSong(TestSong):
 
     def __init__(self):
         self.testFile,self.ext = os.path.join(DATA_DIR, "ogg_test.ogg"), ".ogg"
-        TestSong.__init__(self)
+        super(TestOggSong, self).__init__()
 
     def __getitem__(self,key):
         return key in self.tags and self.tags[key] or None
@@ -178,7 +187,7 @@ class TestFlacSong(TestSong):
 
     def __init__(self):
         self.testFile,self.ext = os.path.join(DATA_DIR,"flac_test.flac"),".flac"
-        TestSong.__init__(self)
+        super(TestFlacSong, self).__init__()
 
     def __getitem__(self,key):
         return key in self.tags and self.tags[key] or None
@@ -188,7 +197,7 @@ class TestFlacSong(TestSong):
         return FLAC(self.tags["filename"])
 
 
-class TestDir(TestData):
+class _TestDir(TestData):
 
     def __init__(self):
         self.build = False
@@ -217,6 +226,58 @@ class TestDir(TestData):
     def remove(self):
         shutil.rmtree(self.dirPath)
         self.build = False
+
+
+class TestAudioDir(_TestDir):
+
+    def __init__(self):
+        super(TestAudioDir, self).__init__()
+        self.cover = None
+
+    def buildContent(self, destDir, with_cover = False):
+        super(TestAudioDir, self).buildContent(destDir)
+        if with_cover: self.add_cover()
+
+    def add_cover(self):
+        if not self.cover:
+            cover_path = os.path.join(DATA_DIR, "cover.jpg")
+            self.cover = os.path.join(self.dirPath, "cover.jpg")
+            shutil.copy(cover_path, self.cover)
+
+    def remove_cover(self):
+        if self.cover:
+            os.unlink(self.cover)
+            self.cover = None
+
+
+class TestVideoDir(_TestDir):
+
+    def __init__(self):
+        super(TestVideoDir, self).__init__()
+        self.has_sub = False
+
+    def buildContent(self, destDir, with_subtitle = False):
+        super(TestVideoDir, self).buildContent(destDir)
+        if with_subtitle:
+            self.add_subtitle()
+
+    def add_subtitle(self):
+        sub_path = os.path.join(DATA_DIR, "sub.srt")
+        for item in self.items:
+            if not item["external_subtitle"]:
+                sub_name = os.path.basename(item["filename"])
+                (sub_name, ext) = os.path.splitext(sub_name)
+                dest = os.path.join(self.dirPath, sub_name + ".srt")
+                shutil.copy(sub_path, dest)
+                item.set_subtitle(dest)
+        self.has_sub = True
+
+    def remove_subtitle(self):
+        for item in self.items:
+            if item["external_subtitle"]:
+                os.unlink(item["external_subtitle"].replace("file:/", ""))
+                item.set_subtitle("")
+        self.has_sub = False
 
 
 class TestProvidedMusicCollection(TestData):
@@ -255,7 +316,7 @@ class TestProvidedMusicCollection(TestData):
         return random.sample(self.get_song_paths(), howMuch)
 
 
-class TestMediaCollection(TestProvidedMusicCollection):
+class _TestMediaCollection(TestProvidedMusicCollection):
 
     def __init__(self):
         self.dir_struct_written = False
@@ -279,7 +340,7 @@ class TestMediaCollection(TestProvidedMusicCollection):
      'Test data temporary directory exists, I do not want to mess your stuff.')
 
         # Add songs in the root directory
-        for media_class in self.supported_files_class:
+        for media_class in self.__class__.supported_files_class:
             media = media_class()
             media.build(self.datadir)
             self.medias[media.name] = media
@@ -293,22 +354,13 @@ class TestMediaCollection(TestProvidedMusicCollection):
 
         self.dir_struct_written = True
 
-    def build_audio_library_directory_tree(self, destDir = "/tmp"):
-        self.supported_files_class = (TestOggSong, TestMP3Song, TestMP4Song,\
-                TestFlacSong)
-        self.buildLibraryDirectoryTree(destDir)
-
-    def build_video_library_directory_tree(self, destDir = "/tmp"):
-        self.supported_files_class = (TestVideo,)
-        self.buildLibraryDirectoryTree(destDir)
-
     def get_song_paths(self):
         return self.medias.keys()
 
     def addMedia(self):
         dir = self.getRandomElement(self.dirs.values())
 
-        media_class=self.getRandomElement(self.supported_files_class)
+        media_class=self.getRandomElement(self.__class__.supported_files_class)
         media = media_class()
         dir.addItem(media)
         self.medias[os.path.join(dir.name, media.name)] = media
@@ -328,19 +380,19 @@ class TestMediaCollection(TestProvidedMusicCollection):
         del self.medias[mediaKeys]
 
     def addDir(self):
-        dir = TestDir()
-        for media_class in self.supported_files_class:
+        dir = self.dir_class()
+        for media_class in self.__class__.supported_files_class:
             media = media_class()
             self.medias[os.path.join(dir.name, media.name)] = media
             dir.addItem(media)
-        dir.buildContent(self.datadir)
+        dir.buildContent(self.datadir, random.choice((True, False)))
 
         self.dirs[dir.name] = dir
 
     def addSubdir(self):
         dir = self.getRandomElement(self.dirs.values())
-        subdir = TestDir()
-        for media_class in self.supported_files_class:
+        subdir = self.dir_class()
+        for media_class in self.__class__.supported_files_class:
             media = media_class()
             media_path = os.path.join(dir.name, subdir.name, media.name)
             self.medias[media_path] = media
@@ -362,9 +414,42 @@ class TestMediaCollection(TestProvidedMusicCollection):
         dir.remove()
         del self.dirs[dir.name]
 
+
+class TestAudioCollection( _TestMediaCollection):
+    dir_class = TestAudioDir
+    supported_files_class = (TestOggSong,TestMP3Song,TestMP4Song,TestFlacSong)
+
+    def remove_cover(self):
+        for dir in self.dirs.values():
+            if dir.cover:
+                dir.remove_cover()
+                return
+
+    def add_cover(self):
+        for dir in self.dirs.values():
+            if not dir.cover:
+                dir.add_cover()
+                return
+
     def changeMediaTags(self):
         media = self.getRandomElement(self.medias.values())
         media.setRandomTag()
 
+
+class TestVideoCollection( _TestMediaCollection):
+    dir_class = TestVideoDir
+    supported_files_class = (TestVideo,)
+
+    def remove_subtitle(self):
+        for dir in self.dirs.values():
+            if dir.has_sub:
+                dir.remove_subtitle()
+                return
+
+    def add_subtitle(self):
+        for dir in self.dirs.values():
+            if not dir.has_sub:
+                dir.add_subtitle()
+                return
 
 # vim: ts=4 sw=4 expandtab
