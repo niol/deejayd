@@ -99,6 +99,7 @@ class MysqlDatabase(Database):
         coldefs = []
         for column in table.columns:
             ctype = column.type
+            if ctype == "blob": ctype = "mediumblob"
             if column.auto_increment:
                 ctype = 'INT UNSIGNED NOT NULL AUTO_INCREMENT'
                 # Override the column type, as a text field cannot
