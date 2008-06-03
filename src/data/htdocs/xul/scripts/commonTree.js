@@ -39,11 +39,11 @@ var CommonTreeManagement = function()
 
     this.removeItems = function()
     {
-        var items = this.getTreeSelection();
+        var items = this.getTreeSelection("id");
         ajaxdj_ref.send_post_command(this.module+"Remove", {ids: items});
     };
 
-    this.getTreeSelection = function()
+    this.getTreeSelection = function(type)
     {
         var start = new Object();
         var end = new Object();
@@ -54,14 +54,24 @@ var CommonTreeManagement = function()
             this.tree.view.selection.getRangeAt(t,start,end);
             for (var v=start.value; v<=end.value; v++) {
                 var item = this.tree.contentView.getItemAtIndex(v);
-                var str = item.id;
-                selectedItems.push(str.split("/")[3]);
+                var str = item.getAttribute(type);
+                if (type == "id")
+                    selectedItems.push(str.split("/")[3]);
+                else
+                    selectedItems.push(str);
                 }
             }
 
         return selectedItems;
     };
 
+    this.setRating = function(rating)
+    {
+        var items = this.getTreeSelection("value");
+        var t = this.module == "video" ? "video" : "audio";
+        ajaxdj_ref.send_post_command("setMediaRating", {ids: items, type: t,
+                                                        value: rating});
+    };
 
     /**************************************************************/
     // Event handler
@@ -134,7 +144,6 @@ var CommonTreeManagement = function()
             this.playing = null;
             }
     };
-
     /**************************************************************/
     // Drag and Drop support
     /**************************************************************/

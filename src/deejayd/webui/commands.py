@@ -213,7 +213,8 @@ class PlayOrder(_UnknownCommand):
     command_args = [{"name":"source","type":"enum_str","req":True,\
                      "values":("playlist","video","queue")},
                     {"name":"value","type":"enum_str","req":True,\
-                     "values":("inorder","onemedia","random")}]
+                     "values":("inorder","onemedia","random",\
+                               "random-weighted")}]
 
     def execute(self):
         self._deejayd.set_option(self._args["source"],\
@@ -259,6 +260,18 @@ class PlayerOption(_UnknownCommand):
 
         self._deejayd.set_player_option(self._args["option_name"], val).\
             get_contents()
+
+class MediaRating(_UnknownCommand):
+    name = 'setMediaRating'
+    method = "post"
+    command_args = [{"name":"type", "type":"string", "req":True},
+                    {"name": "value", "type": "enum_int",\
+                     "values":range(0, 5), "req": True},
+                    {"name":"ids", "type":"int", "mult":True, "req": True}]
+
+    def execute(self):
+        self._deejayd.set_media_rating(self._args["ids"],\
+            self._args["value"], self._args["type"]).get_contents()
 
 #
 # Library commands

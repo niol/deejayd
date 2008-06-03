@@ -333,6 +333,9 @@
             <treecol persist="width ordinal hidden" id="qu-time"
                 flex="2" label="&time;"/>
             <splitter class="tree-splitter"/>
+            <treecol persist="width ordinal hidden" id="qu-rating"
+                flex="2" label="&rating;"/>
+            <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="qu-bitrate"
                 hidden="true" flex="2" label="&bitrate;"/>
         </treecols>
@@ -345,14 +348,16 @@
                 oncontextmenu="queue_ref.showPopupMenu(event);"
                 ondblclick = "queue_ref.play();"
                 id="queue-items">
-                <treeitem uri="rdf:*">
-                    <treerow>
+                <treeitem uri="rdf:*"
+                          value="rdf:http://queue/rdf#media_id">
+                    <treerow value="rdf:http://queue/rdf#media_id">
                         <treecell label="rdf:http://queue/rdf#tracknumber"/>
                         <treecell label="rdf:http://queue/rdf#title"/>
                         <treecell label="rdf:http://queue/rdf#artist"/>
                         <treecell label="rdf:http://queue/rdf#album"/>
                         <treecell label="rdf:http://queue/rdf#genre"/>
                         <treecell label="rdf:http://queue/rdf#length"/>
+                        <treecell label="rdf:http://queue/rdf#rating"/>
                         <treecell label="rdf:http://queue/rdf#bitrate"/>
                     </treerow>
                 </treeitem>

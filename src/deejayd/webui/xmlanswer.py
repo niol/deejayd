@@ -60,6 +60,7 @@ def build_language_dtd():
         "ok": _("Ok"),
         "cancel": _("Cancel"),
         "curSong": _("Go to current song"),
+        "rating": _("Rating"),
         # main
         "webradio": _("Webradio"),
         "video": _("Video"),
@@ -70,6 +71,7 @@ def build_language_dtd():
         "playorder": _("Play Order"),
         "inorder": _("In Order"),
         "random": _("Random"),
+        "randomWeighted": _("Weighted"),
         "onemedia": _("One Media"),
         "advancedOption": _("Advanced Option"),
         "audio_channel": _("Audio Channel:"),
@@ -176,6 +178,9 @@ class _DeejaydSourceRdf(_DeejaydXML):
                     value = 0
             elif p == "external_subtitle":
                 value = parms[p] == "" and _("No") or _("Yes")
+            elif p == "rating":
+             rating = u'\u266a' * int(parms[p])
+             value = self._to_xml_string(rating)
             else:
                 try: value = self._to_xml_string(parms[p])
                 except TypeError:

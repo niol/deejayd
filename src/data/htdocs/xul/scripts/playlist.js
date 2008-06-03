@@ -79,7 +79,7 @@ var Playlist = function()
     {
         if (this.mediaDragged) {
             // move song at the new position
-            var s_ids = this.getTreeSelection();
+            var s_ids = this.getTreeSelection("id");
             ajaxdj_ref.send_post_command("playlistMove",
                 {ids:s_ids, new_pos:pos});
             }

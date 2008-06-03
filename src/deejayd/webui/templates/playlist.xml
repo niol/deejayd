@@ -9,10 +9,35 @@
 <popupset>
     <popup id="queue-menu" onpopupshowing="javascript:;">
         <menuitem
+            class="menuitem-iconic play-action"
+            label="&play;"
+            oncommand="queue_ref.play();"/>
+        <menuitem
             class="menuitem-iconic remove-action"
             label="&remove;"
             oncommand="queue_ref.removeItems();"/>
+        <menu
+            label="&rating;">
+            <menupopup id="queue-rating-menu">
+                <menuitem
+                    label=" 0 "
+                    oncommand="queue_ref.setRating(0);"/>
+                <menuitem
+                    label="1 ♪"
+                    oncommand="queue_ref.setRating(1);"/>
+                <menuitem
+                    label="2 ♪♪"
+                    oncommand="queue_ref.setRating(2);"/>
+                <menuitem
+                    label="3 ♪♪♪"
+                    oncommand="queue_ref.setRating(3);"/>
+                <menuitem
+                    label="4 ♪♪♪♪"
+                    oncommand="queue_ref.setRating(4);"/>
+            </menupopup>
+        </menu>
     </popup>
+
     <popup id="playlist-menu" onpopupshowing="javascript:;">
         <menuitem
             class="menuitem-iconic play-action"
@@ -22,6 +47,26 @@
             class="menuitem-iconic remove-action"
             label="&remove;"
             oncommand="playlist_ref.removeItems();"/>
+        <menu
+            label="&rating;">
+            <menupopup id="pl-rating-menu">
+                <menuitem
+                    label=" 0 "
+                    oncommand="playlist_ref.setRating(0);"/>
+                <menuitem
+                    label="1 ♪"
+                    oncommand="playlist_ref.setRating(1);"/>
+                <menuitem
+                    label="2 ♪♪"
+                    oncommand="playlist_ref.setRating(2);"/>
+                <menuitem
+                    label="3 ♪♪♪"
+                    oncommand="playlist_ref.setRating(3);"/>
+                <menuitem
+                    label="4 ♪♪♪♪"
+                    oncommand="playlist_ref.setRating(4);"/>
+            </menupopup>
+        </menu>
     </popup>
 
     <popup id="fileList-menu" onpopupshowing="javascript:;">
@@ -152,6 +197,7 @@
                 <menuitem value="inorder" label="&inorder;"/>
                 <menuitem value="onemedia" label="&onemedia;"/>
                 <menuitem value="random" label="&random;"/>
+                <menuitem value="random-weighted" label="&randomWeighted;"/>
             </menupopup>
         </menulist>
         <command
@@ -197,6 +243,9 @@
                 <treecol persist="width ordinal hidden" id="pl-time"
                     flex="2" label="&time;"/>
                 <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="pl-rating"
+                    flex="2" label="&rating;"/>
+                <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="pl-bitrate"
                     hidden="true" flex="2" label="&bitrate;"/>
             </treecols>
@@ -209,8 +258,9 @@
                     oncontextmenu="playlist_ref.showPopupMenu(event);"
                     ondblclick = "playlist_ref.play();"
                     id="playlist-items">
-                    <treeitem uri="rdf:*">
-                        <treerow>
+                    <treeitem uri="rdf:*"
+                              value="rdf:http://playlist/rdf#media_id">
+                        <treerow value="rdf:http://playlist/rdf#media_id">
                             <treecell id="rdf:http://playlist/rdf#id" label=""/>
                             <treecell
                                 label="rdf:http://playlist/rdf#tracknumber"/>
@@ -219,6 +269,7 @@
                             <treecell label="rdf:http://playlist/rdf#album"/>
                             <treecell label="rdf:http://playlist/rdf#genre"/>
                             <treecell label="rdf:http://playlist/rdf#length"/>
+                            <treecell label="rdf:http://playlist/rdf#rating"/>
                             <treecell label="rdf:http://playlist/rdf#bitrate"/>
                         </treerow>
                     </treeitem>
