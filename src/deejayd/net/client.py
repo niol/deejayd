@@ -467,6 +467,13 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         cmd = DeejaydXMLCommand('playlistList')
         return self._send_command(cmd,DeejaydMediaList())
 
+    def set_media_rating(self, media_ids, rating, type = "audio"):
+        cmd = DeejaydXMLCommand('setMediaRating')
+        cmd.add_multiple_arg('ids', media_ids)
+        cmd.add_simple_arg('value', rating)
+        cmd.add_simple_arg('type', type)
+        return self._send_command(cmd)
+
     def get_audio_dir(self,dir = None):
         cmd = DeejaydXMLCommand('getdir')
         if dir != None:

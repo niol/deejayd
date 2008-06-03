@@ -436,6 +436,23 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             plname_list.append({'name': plname})
         return plname_list
 
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set_media_rating(self, media_ids, rating, type = "audio"):
+        try:
+            if int(rating) not in range(0, 5): raise TypeError
+        except TypeError:
+            raise DeejaydError(_("Bad rating value"))
+
+        try: library = getattr(self, type+"_library")
+        except AttributeError:
+            raise DeejaydError(_('Type %s is not supported') % (type,))
+        for id in media_ids:
+            try: library.set_file_info(int(id), "rating", rating)
+            except TypeError:
+                raise DeejaydError(_("%s library not activated") % type)
+            except deejayd.mediadb.library.NotFoundException:
+                raise DeejaydError(_("File with id %s not found") % str(id))
+
     @returns_deejaydanswer(DeejaydFileList)
     def get_audio_dir(self,dir = None):
         if dir == None: dir = ""

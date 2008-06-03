@@ -199,7 +199,7 @@ class Status(UnknownCommand):
   * playlistlength : _int_ length of the current playlist
   * playlisttimelength : _int_ time length of the current playlist
   * playlistrepeat : 0 (not activated) or 1 (activated)
-  * playlistplayorder : inorder | random | onemedia
+  * playlistplayorder : inorder | random | onemedia | random-weighted
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
@@ -210,7 +210,7 @@ class Status(UnknownCommand):
   * videolength : _int_ length of the current video list
   * videotimelength : _int_ time length of the current video list
   * videorepeat : 0 (not activated) or 1 (activated)
-  * videoplayorder : inorder | random | onemedia
+  * videoplayorder : inorder | random | onemedia | random-weighted
   * dvd : _int_ id of the current dvd
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
@@ -294,6 +294,19 @@ class UpdateVideoLibrary(UnknownCommand):
     def _execute(self):
         rsp = self.deejayd_core.update_video_library(objanswer=False)
         return self.get_keyvalue_answer(rsp)
+
+
+class MediaRating(UnknownCommand):
+    """List the files of the directory supplied as argument."""
+    command_name = 'setMediaRating'
+    command_args = [{"name":"type", "type":"string", "req":True},
+                    {"name": "value", "type": "enum_int",\
+                     "values":range(0, 5), "req": True},
+                    {"name":"ids", "type":"int", "mult":True, "req": True}]
+
+    def _execute(self):
+        self.deejayd_core.set_media_rating(self.args["ids"],\
+            self.args["value"], self.args["type"], objanswer=False)
 
 
 class GetDir(UnknownCommand):
@@ -761,14 +774,15 @@ class Seek(UnknownCommand):
 class SetOption(UnknownCommand):
     """Set player options "name" to "value" for mode "source",
        Available options are :
-       * playorder (inorder, onemedia or random)
+       * playorder (inorder, onemedia, random or random-weighted)
        * repeat (0 or 1) """
     command_name = 'setOption'
     command_args = [{"name":"source", "type":"str", "req":True},
                     {"name":"option_name", "type":"enum_str","req":True,
                      "values":("playorder","repeat")},
                     {"name":"option_value","type":"enum_str","req":True,
-                     "values":("0","1","inorder","random","onemedia")}]
+                     "values":("0","1","inorder","random","onemedia",\
+                               "random-weighted")}]
 
     def _execute(self):
         self.deejayd_core.set_option(self.args['source'],\

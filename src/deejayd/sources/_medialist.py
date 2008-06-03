@@ -36,10 +36,10 @@ class SimpleMediaList(object):
         return self._media_id
 
     def _set_media_ans(self, id, pos = -1):
-        ans = {"id": id, "pos": pos}
-        try: ans.update(self._content[id])
+        try: ans = self._content[id]
         except KeyError:
             return None
+        ans.update({"id": id, "pos": pos})
         return ans
 
     def get(self, start = 0, stop = None):

@@ -108,6 +108,7 @@ class Database(UnknownDatabase):
         query = "REPLACE INTO media_info (id,ikey,value)VALUES(%s,%s,%s)"
         entries = [(file_id, k, v) for k, v in infos.items()]
         self.executemany(query, entries)
+        return self.cursor.rowcount
 
     def remove_file(self, id):
         queries = [

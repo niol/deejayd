@@ -246,6 +246,26 @@ class InterfaceTests:
         video_list = video_obj.get().get_medias()
         self.assertEqual(len(video_list), 0)
 
+    def testMediaRating(self):
+        """Test media rating method"""
+        # wrong media id
+        random_id = self.testdata.getRandomInt(2000, 1000)
+        ans = self.deejayd.set_media_rating([random_id], "2", "audio")
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        ans = self.deejayd.get_audio_dir()
+        files = ans.get_files()
+        file_ids = [f["media_id"] for f in files]
+        # wrong rating
+        ans = self.deejayd.set_media_rating(file_ids, "9", "audio")
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        ans =  self.deejayd.set_media_rating(file_ids, "4", "audio")
+        self.failUnless(ans.get_contents())
+        ans = self.deejayd.get_audio_dir()
+        files = ans.get_files()
+        for f in files:
+            self.assertEqual(4, int(f["rating"]))
 
     def testAudioLibrary(self):
         """ Test request on audio library (get_audio_dir, search)"""

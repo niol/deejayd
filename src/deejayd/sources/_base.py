@@ -100,7 +100,7 @@ class _BaseSource(SignalingComponent):
 
 
 class _BaseLibrarySource(_BaseSource):
-    available_playorder = ("inorder", "random", "onemedia")
+    available_playorder = ("inorder", "random", "onemedia","random-weighted")
     has_repeat = True
     source_signal = ''
 
@@ -125,14 +125,14 @@ class _BaseLibrarySource(_BaseSource):
             self._media_list.repeat = int(value)
         else: raise NotImplementedError
 
-    def cb_library_changes(self, action, file_id):
+    def cb_library_changes(self, action, file_id, threaded = True):
         if action == "remove":
             reactor.callFromThread(self._remove_media, file_id)
         elif action == "add":
             reactor.callFromThread(self._add_media, file_id)
         elif action == "update":
-            reactor.callFromThread(self._update_media, file_id)
-            pass
+            if threaded: reactor.callFromThread(self._update_media, file_id)
+            else: self._update_media(file_id)
 
     def _add_media(self, media_id):
         pass

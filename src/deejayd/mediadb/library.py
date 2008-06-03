@@ -51,6 +51,16 @@ class _MediaFile(dict):
         self.db.set_media_infos(self["media_id"], infos)
         self.db.connection.commit()
 
+    def played(self):
+        played = int(self["playcount"]) + 1
+        self.set_info("playcount", played)
+        self["playcount"] = str(played)
+
+    def skip(self):
+        skip = int(self["skipcount"]) + 1
+        self.set_info("skipcount", skip)
+        self["skipcount"] = str(skip)
+
 
 class AudioFile(_MediaFile):
 
@@ -110,6 +120,7 @@ def inotify_action(func):
 
 class _Library(SignalingComponent):
     common_attr = ("type","title","length")
+    persistent_attr = ("rating","skipcount","playcount")
     type = None
     media_class = None
 
@@ -120,6 +131,7 @@ class _Library(SignalingComponent):
         self.media_attr = []
         for i in self.__class__.common_attr: self.media_attr.append(i)
         for j in self.__class__.custom_attr: self.media_attr.append(j)
+        for k in self.__class__.persistent_attr: self.media_attr.append(k)
         self._fs_charset = fs_charset
         self._update_id = 0
         self._update_end = True
@@ -155,6 +167,13 @@ class _Library(SignalingComponent):
 
     def _build_supported_extension(self, player):
         raise NotImplementedError
+
+    def set_file_info(self, file_id, key, value):
+        ans = self.db_con.set_media_infos(file_id, {key: value})
+        if not ans:
+            raise NotFoundException
+        self.emit_changes("update", file_id, threaded = False)
+        self.db_con.connection.commit()
 
     def _format_db_answer(self, answer):
         files = []
@@ -429,6 +448,8 @@ for more information.") % file_path)
             log.err(traceback.format_exc())
             log.err("-----------------------------------------------------")
             return
+        if file_id: # do not update persistent attribute
+            for attr in self.__class__.persistent_attr: del file_info[attr]
         fid = file_id or db_con.insert_file(dir_id, filename)
         db_con.set_media_infos(fid, file_info)
         return fid
@@ -453,10 +474,9 @@ for more information.") % file_path)
         self._changes_cb[self._changes_cb_id] = cb
         return self._changes_cb_id
 
-    def emit_changes(self, type, file_id):
+    def emit_changes(self, type, file_id, threaded = True):
         log.info(_("library: emit %s change for file %d") % (type, file_id))
-        for cb in self._changes_cb.itervalues():
-            cb(type, file_id)
+        for cb in self._changes_cb.itervalues(): cb(type, file_id, threaded)
 
     #######################################################################
     ## Inotify actions

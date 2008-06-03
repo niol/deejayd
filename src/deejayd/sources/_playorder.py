@@ -126,16 +126,24 @@ class OrderWeighted(OrderRemembered):
 
     def next(self, medialist, current):
         super(OrderWeighted, self).next(medialist, current)
-        medias = medialist.get()
-        max_score = sum([float(m['rating']) for m in medias])
-        choice = random.random() * max_score
-        current = 0.0
-        for i, media in enumerate(medias):
-            current += media["rating"]
+        played = set(self._played)
+        remaining = [(m["id"],int(m["rating"])) \
+                        for m in medialist.get() if m["id"] not in played]
+
+        max_score = sum([r for (id,r) in remaining])
+        choice = int(random.random() * max_score)
+        current = 0
+        for id, rating in remaining:
+            current += rating
             if current >= choice:
-                return medialist.get_item(media["id"])
-        else:
+                return medialist.get_item(id)
+
+        if medialist.repeat and not medialist.is_empty():
+            del(self._played[:])
             return medialist.get_item_first()
+        else:
+            del(self._played[:])
+            return None
 
 class OrderOneMedia(OrderInOrder):
     name = "onemedia"

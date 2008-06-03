@@ -27,6 +27,9 @@ class _MediaFile:
     def parse(self, file_path):
         return {
             "type": self.type,
+            "rating": "2", # [0-4]
+            "skipcount": "0",
+            "playcount": "0",
             }
 
 

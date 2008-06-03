@@ -426,6 +426,9 @@ class XinePlayer(UnknownPlayer):
     # callbacks
     #
     def _eof(self):
+        if self._media_file:
+            try: self._media_file.played()
+            except AttributeError: pass
         new_file = self._source.next(explicit = False)
         try: self._change_file(new_file, gapless = True)
         except PlayerError:

@@ -348,6 +348,9 @@ class DeejaydCore:
     def get_video(self):
         raise NotImplementedError
 
+    def set_media_rating(self, media_ids, rating, type = "audio"):
+        raise NotImplementedError
+
     def get_audio_dir(self, dir=None):
         raise NotImplementedError
 

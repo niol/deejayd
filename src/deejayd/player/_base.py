@@ -76,6 +76,9 @@ class UnknownPlayer(SignalingComponent):
         raise NotImplementedError
 
     def next(self):
+        if self.get_state() != PLAYER_STOP:
+            try: self._media_file.skip()
+            except AttributeError: pass
         self._change_file(self._source.next())
 
     def previous(self):
