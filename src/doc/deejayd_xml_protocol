@@ -189,7 +189,7 @@ Return status of deejayd. Given informations are :
   * playlistlength : _int_ length of the current playlist
   * playlisttimelength : _int_ time length of the current playlist
   * playlistrepeat : 0 (not activated) or 1 (activated)
-  * playlistplayorder : inorder | random | onemedia
+  * playlistplayorder : inorder | random | onemedia | random-weighted
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
   * queue : _int_ id of the current queue
@@ -200,7 +200,7 @@ Return status of deejayd. Given informations are :
   * videolength : _int_ length of the current video list
   * videotimelength : _int_ time length of the current video list
   * videorepeat : 0 (not activated) or 1 (activated)
-  * videoplayorder : inorder | random | onemedia
+  * videoplayorder : inorder | random | onemedia | random-weighted
   * dvd : _int_ id of the current dvd
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
@@ -386,7 +386,7 @@ Expected return value : ''`Ack`''
 
 Set player options "name" to "value" for mode "source",
        Available options are :
-       * playorder (inorder, onemedia or random)
+       * playorder (inorder, onemedia, random or random-weighted)
        * repeat (0 or 1) 
 
 Arguments :
@@ -667,6 +667,17 @@ Set subscribtion to "signal" signal notifications to "value" which should be 0 o
 Arguments :
   * {{{signal}}} (Simple and Mandatory) : enum_str
   * {{{value}}} (Simple and Mandatory) : enum_int
+
+Expected return value : ''`Ack`''
+
+=== `setMediaRating` ===
+
+Set rating of media file with id equal to media_id
+
+Arguments :
+  * {{{type}}} (Simple and Mandatory) : string
+  * {{{value}}} (Simple and Mandatory) : enum_int
+  * {{{ids}}} (Multiple and Mandatory) : int
 
 Expected return value : ''`Ack`''
 

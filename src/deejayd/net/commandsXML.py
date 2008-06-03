@@ -297,7 +297,7 @@ class UpdateVideoLibrary(UnknownCommand):
 
 
 class MediaRating(UnknownCommand):
-    """List the files of the directory supplied as argument."""
+    """Set rating of media file with id equal to media_id"""
     command_name = 'setMediaRating'
     command_args = [{"name":"type", "type":"string", "req":True},
                     {"name": "value", "type": "enum_int",\
