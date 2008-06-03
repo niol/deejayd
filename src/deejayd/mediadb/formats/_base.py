@@ -28,6 +28,7 @@ class _MediaFile:
         return {
             "type": self.type,
             "rating": "2", # [0-4]
+            "lastplayed": "0",
             "skipcount": "0",
             "playcount": "0",
             }

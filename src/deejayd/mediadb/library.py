@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -*- coding: utf-8 -*-
 
-import os, sys, urllib, threading, traceback
+import os, sys, urllib, threading, traceback, time
 from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
@@ -50,16 +50,16 @@ class _MediaFile(dict):
     def set_infos(self, infos):
         self.db.set_media_infos(self["media_id"], infos)
         self.db.connection.commit()
+        self.update(infos)
 
     def played(self):
         played = int(self["playcount"]) + 1
-        self.set_info("playcount", played)
-        self["playcount"] = str(played)
+        timestamp = int(time.time())
+        self.set_infos({"playcount":str(played), "lastplayed":str(timestamp)})
 
     def skip(self):
         skip = int(self["skipcount"]) + 1
-        self.set_info("skipcount", skip)
-        self["skipcount"] = str(skip)
+        self.set_info("skipcount", str(skip))
 
 
 class AudioFile(_MediaFile):
@@ -120,7 +120,7 @@ def inotify_action(func):
 
 class _Library(SignalingComponent):
     common_attr = ("type","title","length")
-    persistent_attr = ("rating","skipcount","playcount")
+    persistent_attr = ("rating","skipcount","playcount","lastplayed")
     type = None
     media_class = None
 
