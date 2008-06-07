@@ -1,3 +1,9 @@
+deejayd (0.7.2-1+darcsoftheday+1) UNRELEASED; urgency=low
+
+  * Update to policy 3.8.0 (nothing to do).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 05 Jun 2008 06:50:01 +0200
+
 deejayd (0.7.2-1) unstable; urgency=low
 
   * New upstream release.
