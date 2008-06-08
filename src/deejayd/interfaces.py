@@ -196,10 +196,6 @@ class DeejaydQueue:
 
 
 class DeejaydPlaylist:
-    """Playlist management."""
-
-    def __init__(self, pl_name = None):
-        self.__pl_name = pl_name
 
     def get(self, first = 0, length = None):
         raise NotImplementedError
