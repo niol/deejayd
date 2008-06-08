@@ -59,14 +59,20 @@ def get_testfile_from_id(id):
 def get_id_from_module(module):
     return module.__name__[len(TEST_NAMESPACE+'.'+'test_'):]
 
+def get_all_tests():
+    return [(x, None) for x in glob.glob(get_testfile_from_id("*"))]
+
 tests_to_run = None
 list_only = False
+args = None
 if len(sys.argv) > 1:
     if sys.argv[1] == 'list':
         list_only = True
         args = sys.argv[2:]
     else:
         args = sys.argv[1:]
+
+if args:
     tests_to_consider = []
     for test_id in args:
         try:
@@ -77,8 +83,7 @@ if len(sys.argv) > 1:
 
         tests_to_consider.append((get_testfile_from_id(test_module), test_name))
 else:
-    tests_to_consider = [(x, None)\
-                         for x in glob.glob(get_testfile_from_id("*"))]
+    tests_to_consider = get_all_tests()
 
 def get_test_suite(test_module, test_name=None):
     test_suite = None
