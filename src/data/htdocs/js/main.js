@@ -197,6 +197,7 @@ function ajaxdj()
                     selectedSrc = 3;
 
                 $('main').selectedIndex = selectedSrc;
+                $('mode-menu').value = mode;
             }
 
             rs = xmldoc.getElementsByTagName("message").item(0);
@@ -254,9 +255,9 @@ function ajaxdj()
         return;
     };
 
-    this.selectMode = function(newMode)
+    this.updateMode = function()
     {
-        this.send_command("setMode",{mode:newMode},true);
+        this.send_command("setMode",{mode:$('mode-menu').value},true);
     }
 
     this.parseConfig = function(config)

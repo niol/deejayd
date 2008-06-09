@@ -77,7 +77,7 @@ var VideoList = function()
     this.module = "video";
     this.tree = $("video-tree");
     // Activate this mode
-    $("video-source").disabled = false;
+    $("video-source").hidden = false;
 
     this.treeController = false;
     this.customUpdate = function(video)

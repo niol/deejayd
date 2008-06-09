@@ -10,7 +10,7 @@ var Webradio = function()
     this.module = "webradio";
     this.tree = $("webradio-tree");
     // Activate this mode
-    $("webradio-source").disabled = false;
+    $("webradio-source").hidden = false;
 
     this.treeController = {
         supportsCommand : function(cmd){

@@ -188,43 +188,36 @@
 
     <spacer flex="1"/>
 
-    <vbox
-        flex="1"
-        id="right-header" >
-        <toolbox
-            align="end">
-            <toolbar id="mode-menu-toolbar">
-                <toolbarbutton
-                    class="audio-item"
-                    flex="1"
-                    oncommand="ajaxdj_ref.selectMode('playlist');"
+    <hbox id="right-header" pack="center" align="center">
+        <description value="&mode; "/>
+        <menulist
+            id="mode-menu"
+            oncommand="ajaxdj_ref.updateMode();"
+            label="">
+            <menupopup>
+                <menuitem
+                    class="menuitem-iconic audio-item"
+                    hidden="true"
                     id="playlist-source"
-                    disabled="true"
-                    label="&playlist;"/>
-                <toolbarbutton
-                    class="webradio-item"
-                    flex="1"
-                    oncommand="ajaxdj_ref.selectMode('webradio');"
+                    value="playlist" label="&playlist;"/>
+                <menuitem
+                    class="menuitem-iconic webradio-item"
+                    hidden="true"
                     id="webradio-source"
-                    disabled="true"
-                    label="&webradio;"/>
-                <toolbarbutton
-                    class="video-item"
-                    flex="1"
-                    oncommand="ajaxdj_ref.selectMode('video');"
+                    value="webradio" label="&webradio;"/>
+                <menuitem
+                    class="menuitem-iconic video-item"
+                    hidden="true"
                     id="video-source"
-                    disabled="true"
-                    label="&video;"/>
-                <toolbarbutton
-                    class="dvd-item"
-                    flex="1"
-                    oncommand="ajaxdj_ref.selectMode('dvd');"
+                    value="video" label="&video;"/>
+                <menuitem
+                    class="menuitem-iconic dvd-item"
+                    hidden="true"
                     id="dvd-source"
-                    disabled="true"
-                    label="&dvd;"/>
-            </toolbar>
-        </toolbox>
-    </vbox>
+                    value="dvd" label="&dvd;"/>
+            </menupopup>
+        </menulist>
+    </hbox>
 </hbox>
 <!-- END HEADER -->
 

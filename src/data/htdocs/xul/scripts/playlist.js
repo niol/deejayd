@@ -10,7 +10,7 @@ var Playlist = function()
     this.module = "playlist";
     this.tree = $("playlist-tree");
     // Activate this mode
-    $("playlist-source").disabled = false;
+    $("playlist-source").hidden = false;
 
     this.treeController = {
         supportsCommand : function(cmd){

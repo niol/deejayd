@@ -10,7 +10,7 @@ var Dvd = function()
     this.module = "dvd";
     this.tree = $("dvd-tree");
     // Activate this mode
-    $("dvd-source").disabled = false;
+    $("dvd-source").hidden = false;
 
     this.init = function() { };
 

@@ -62,6 +62,7 @@ def build_language_dtd():
         "curSong": _("Go to current song"),
         "rating": _("Rating"),
         # main
+        "mode": _("Mode"),
         "webradio": _("Webradio"),
         "video": _("Video"),
         "dvd": _("Dvd"),
