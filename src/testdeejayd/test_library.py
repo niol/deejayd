@@ -243,9 +243,20 @@ class TestAudioLibrary(TestCaseWithAudioData, _TestDeejayDBLibrary):
         self.assertEqual([],
                   self.library.search("genre", self.testdata.getRandomString()))
 
-        medias = self.testdata.medias.keys()
-        media = self.testdata.medias[medias[0]]
-        self.assertEqual(1,len(self.library.search("genre", media["genre"])))
+        searched_genre = self.testdata.getRandomGenre()
+        matched_medias_paths = []
+        for path, media in self.testdata.medias.items():
+            if searched_genre == media.tags['genre']:
+                matched_medias_paths.append(path)
+
+        found_items_paths = [x['path'] for x\
+                             in self.library.search("genre", searched_genre)]
+
+        self.assertEqual(len(matched_medias_paths), len(found_items_paths))
+
+        found_items_paths.sort()
+        matched_medias_paths.sort()
+        self.assertEqual(found_items_paths, matched_medias_paths)
 
     def verifyTag(self,filePath):
         (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath)
