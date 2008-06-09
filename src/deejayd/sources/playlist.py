@@ -108,7 +108,7 @@ class PlaylistSource(_BaseAudioLibSource):
         if playlist == None:
             self._current = None
         media_list.clear()
-        if playlist:
+        if playlist != None:
             self.dispatch_signame('playlist.update')
         else:
             self.dispatch_signame('player.plupdate')
