@@ -184,7 +184,7 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
 class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
 
     def __init__(self, server, pl_name = None):
-        deejayd.interfaces.DeejaydPlaylist.__init__(self, pl_name)
+        self.__pl_name = pl_name
         self.server = server
 
     def get(self, first = 0, length = None):
