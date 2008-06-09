@@ -168,9 +168,7 @@ class TestMP4Song(TestSong):
         from mutagen.mp4 import MP4
         tag_info = MP4(self.tags["filename"])
         for tag, name in self.__translate.iteritems():
-            if name == "date": value = str(self.getRandomInt(2010,1971))
-            else: value = self.getRandomString(special = False)
-
+            value = self.get_random_tag_value(name)
             tag_info[tag] = unicode(value)
             self.tags[name] = value
 
