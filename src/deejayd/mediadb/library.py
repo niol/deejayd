@@ -109,9 +109,9 @@ def inotify_action(func):
 
         rs = func(*__args, **__kw)
         if rs: # commit change
-            self.inotify_db.record_mediadb_stats(self.type)
-            self.inotify_db.set_update_time(self.type)
-            self.inotify_db.connection.commit()
+            self.db_con.record_mediadb_stats(self.type)
+            self.db_con.set_update_time(self.type)
+            self.db_con.connection.commit()
             self.dispatch_signame(self.update_signal_name)
 
         self.mutex.release()
@@ -230,11 +230,9 @@ class _Library(SignalingComponent):
     def get_root_path(self):
         return self._path
 
-    def get_root_paths(self, db_con=None):
-        if not db_con:
-            db_con = self.db_con
+    def get_root_paths(self):
         root_paths = [self.get_root_path()]
-        for id, dirlink_record in db_con.get_all_dirlinks('', self.type):
+        for id, dirlink_record in self.db_con.get_all_dirlinks('', self.type):
             dirlink = os.path.join(self.get_root_path(),
                                    dirlink_record[1], dirlink_record[2])
             root_paths.append(dirlink)
@@ -317,8 +315,7 @@ class _Library(SignalingComponent):
         return False
 
     def _update(self):
-        conn = self.db_con.get_new_connection()
-        conn.connect()
+        conn = self.db_con
         self._update_end = False
 
         try:
@@ -475,15 +472,12 @@ for more information.") % file_path)
         return self._changes_cb_id
 
     def emit_changes(self, type, file_id, threaded = True):
-        log.info(_("library: emit %s change for file %d") % (type, file_id))
+        log.debug(_("library: emit %s change for file %d") % (type, file_id))
         for cb in self._changes_cb.itervalues(): cb(type, file_id, threaded)
 
     #######################################################################
     ## Inotify actions
     #######################################################################
-    def set_inotify_connection(self, db):
-        self.inotify_db = db
-
     @inotify_action
     def add_file(self, path, file):
         try: self._get_file_info(file)
@@ -491,11 +485,11 @@ for more information.") % file_path)
             return self._inotify_add_info(path, file)
 
         strip_path = self.strip_root(path)
-        dir_id = self.inotify_db.is_dir_exist(strip_path, self.type) or\
-                 self.inotify_db.insert_dir(strip_path, self.type)
-        fid = self.set_media(self.inotify_db, dir_id, strip_path, file, None)
+        dir_id = self.db_con.is_dir_exist(strip_path, self.type) or\
+                 self.db_con.insert_dir(strip_path, self.type)
+        fid = self.set_media(self.db_con, dir_id, strip_path, file, None)
         if fid:
-            self.set_extra_infos(self.inotify_db, strip_path, file, fid)
+            self.set_extra_infos(self.db_con, strip_path, file, fid)
             self._add_missing_dir(os.path.dirname(strip_path))
             self.emit_changes("add", fid)
         else:
@@ -506,10 +500,10 @@ for more information.") % file_path)
     @inotify_action
     def update_file(self, path, name):
         dir = self.strip_root(path)
-        file = self.inotify_db.is_file_exist(dir, name, self.type)
+        file = self.db_con.is_file_exist(dir, name, self.type)
         if file:
             dir_id, file_id = file
-            self.set_media(self.inotify_db, dir_id, dir, name, file_id)
+            self.set_media(self.db_con, dir_id, dir, name, file_id)
             self.emit_changes("update", file_id)
             return True
         else: return self._inotify_update_info(path, name)
@@ -517,10 +511,10 @@ for more information.") % file_path)
     @inotify_action
     def remove_file(self, path, name):
         dir = self.strip_root(path)
-        file = self.inotify_db.is_file_exist(dir, name, self.type)
+        file = self.db_con.is_file_exist(dir, name, self.type)
         if file:
             dir_id, file_id = file
-            self.inotify_db.remove_file(file_id)
+            self.db_con.remove_file(file_id)
             self._remove_empty_dir(path)
             self.emit_changes("remove", file_id)
             return True
@@ -532,11 +526,10 @@ for more information.") % file_path)
 
         if dirlink:
             dirlinkname = os.path.join(self.strip_root(path), name)
-            self.inotify_db.insert_dirlink(dirlinkname, self.type)
+            self.db_con.insert_dirlink(dirlinkname, self.type)
             self.watcher.watch_dir(dir_path, self)
 
-        self.walk_directory(self.inotify_db, dir_path,
-                            {}, {}, self.get_root_paths(self.inotify_db))
+        self.walk_directory(self.db_con, dir_path,{},{},self.get_root_paths())
         self._add_missing_dir(os.path.dirname(self.strip_root(dir_path)))
         self._remove_empty_dir(path)
         return True
@@ -544,14 +537,14 @@ for more information.") % file_path)
     @inotify_action
     def remove_directory(self, path, name, dirlink=False):
         rel_path = self.strip_root(os.path.join(path,name))
-        dir_id = self.inotify_db.is_dir_exist(rel_path, self.type)
+        dir_id = self.db_con.is_dir_exist(rel_path, self.type)
         if not dir_id: return False
 
         if dirlink:
-            self.inotify_db.remove_dirlink(rel_path, self.type)
+            self.db_con.remove_dirlink(rel_path, self.type)
             self.watcher.stop_watching_dir(rel_path)
 
-        ids = self.inotify_db.remove_recursive_dir(rel_path)
+        ids = self.db_con.remove_recursive_dir(rel_path)
         for id in ids: self.emit_changes("remove", id)
         self._remove_empty_dir(path)
         return True
@@ -559,18 +552,18 @@ for more information.") % file_path)
     def _remove_empty_dir(self, path):
         path = self.strip_root(path)
         while path != "":
-            if len(self.inotify_db.get_all_files(path, self.type)) > 0:
+            if len(self.db_con.get_all_files(path, self.type)) > 0:
                 break
-            dir_id = self.inotify_db.is_dir_exist(path, self.type)
-            if dir_id: self.inotify_db.remove_dir(dir_id)
+            dir_id = self.db_con.is_dir_exist(path, self.type)
+            if dir_id: self.db_con.remove_dir(dir_id)
             path = os.path.dirname(path)
 
     def _add_missing_dir(self, path):
         """ add missing dir in the mediadb """
         while path != "":
-            dir_id = self.inotify_db.is_dir_exist(path, self.type)
+            dir_id = self.db_con.is_dir_exist(path, self.type)
             if dir_id: break
-            self.inotify_db.insert_dir(path, self.type)
+            self.db_con.insert_dir(path, self.type)
             path = os.path.dirname(path)
 
 
@@ -628,39 +621,39 @@ class AudioLibrary(_Library):
     def _inotify_add_info(self, path, file):
         if file in self.cover_name:
             strip_dir = self.strip_root(path)
-            files = self.inotify_db.get_dircontent_id(strip_dir, self.type)
+            files = self.db_con.get_dircontent_id(strip_dir, self.type)
             if len(files) > 0:
                 image = self.__extract_cover(os.path.join(path, file))
                 if image:
-                    cover = self.inotify_db.add_cover(os.path.join(strip_dir,\
+                    cover = self.db_con.add_cover(os.path.join(strip_dir,\
                                 file), image)
                     for (id,) in files:
-                        self.inotify_db.set_media_infos(id, {"cover":cover})
+                        self.db_con.set_media_infos(id, {"cover":cover})
                         self.emit_changes("update", id)
                     return True
         return False
 
     def _inotify_remove_info(self, path, file):
         strip_dir = self.strip_root(path)
-        rs = self.inotify_db.is_cover_exist(os.path.join(strip_dir,file))
+        rs = self.db_con.is_cover_exist(os.path.join(strip_dir,file))
         try: (cover, lmod) = rs
         except TypeError:
             return False
-        ids = self.inotify_db.search_id("cover", cover)
+        ids = self.db_con.search_id("cover", cover)
         for (id,) in ids:
-            self.inotify_db.set_media_infos(id, {"cover": ""})
+            self.db_con.set_media_infos(id, {"cover": ""})
             self.emit_changes("update", id)
-        self.inotify_db.remove_cover(cover)
+        self.db_con.remove_cover(cover)
         return True
 
     def _inotify_update_info(self, path, file):
         strip_dir = self.strip_root(path)
-        rs = self.inotify_db.is_cover_exist(os.path.join(strip_dir,file))
+        rs = self.db_con.is_cover_exist(os.path.join(strip_dir,file))
         try: (cover, lmod) = rs
         except TypeError:
             return False
         image = self.__extract_cover(os.path.join(path, name))
-        if image: self.inotify_db.update_cover(cover, image)
+        if image: self.db_con.update_cover(cover, image)
         return True
     ###########################################################
 
@@ -698,11 +691,11 @@ class VideoLibrary(_Library):
         if ext in self.subtitle_ext:
             strip_path = self.strip_root(path)
             for video_ext in self.ext_dict.keys():
-                try: (dir_id,fid,) = self.inotify_db.is_file_exist(strip_path,\
+                try: (dir_id,fid,) = self.db_con.is_file_exist(strip_path,\
                                                 base_file+video_ext, self.type)
                 except TypeError: pass
                 else:
-                    self.inotify_db.set_media_infos(fid,\
+                    self.db_con.set_media_infos(fid,\
                         {"external_subtitle": os.path.join(strip_path, file)})
                     self.emit_changes("update", fid)
                     return True
@@ -712,10 +705,10 @@ class VideoLibrary(_Library):
         (base_file, ext) = os.path.splitext(file)
         if ext in self.subtitle_ext:
             strip_path = self.strip_root(path)
-            ids = self.inotify_db.search_id("external_subtitle",\
+            ids = self.db_con.search_id("external_subtitle",\
                 os.path.join(strip_path, file))
             for (id,) in ids:
-                self.inotify_db.set_media_infos(id, {"external_subtitle": ""})
+                self.db_con.set_media_infos(id, {"external_subtitle": ""})
                 self.emit_changes("update", id)
             return True
         return False

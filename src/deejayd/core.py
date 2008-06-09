@@ -264,7 +264,6 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             config = DeejaydConfig()
 
         self.db = database.init(config)
-        self.db.connect()
 
         self.player = player.init(self.db, config)
         self.player.register_dispatcher(self)

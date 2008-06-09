@@ -21,7 +21,8 @@ Deejayd DB testing module
 """
 import os,time
 from testdeejayd import TestCaseWithAudioData, TestCaseWithVideoData
-from deejayd.database.sqlite import SqliteDatabase
+from deejayd import database
+from deejayd.database.queries import DatabaseQueries
 from deejayd.mediadb.library import AudioLibrary,VideoLibrary,NotFoundException
 from deejayd.mediadb import inotify
 
@@ -33,15 +34,16 @@ from deejayd.ui.config import DeejaydConfig
 class _TestDeejayDBLibrary(object):
 
     def setUp(self):
-        self.dbfilename = '/tmp/testdeejayddb-' + \
-            self.testdata.getRandomString()
-        self.db = SqliteDatabase(self.dbfilename)
-        self.db.connect()
+        self.dbfilename = '/tmp/testdeejayddb-'+self.testdata.getRandomString()
 
         # init player
         config = DeejaydConfig()
+        config.set('database', 'db_type', 'sqlite')
+        config.set('database', 'db_name', self.dbfilename)
         config.set('xine','audio_output',"none")
         config.set('xine','video_output',"none")
+
+        self.db = database.init(config)
         player = xine.XinePlayer(self.db, config)
         player.init_video_support()
 

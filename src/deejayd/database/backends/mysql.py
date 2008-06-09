@@ -16,15 +16,15 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from threading import local
 from deejayd.ui import log
-from deejayd.database._base import Database, OperationalError
 import MySQLdb as mysql
 
+DatabaseError = mysql.DatabaseError
 
-class MysqlDatabase(Database):
+class DatabaseWrapper(local):
 
     def __init__(self, db_name, db_user, db_password, db_host, db_port):
-        Database.__init__(self)
         self.db_name = db_name
         self.db_user = db_user
         self.db_password = db_password
@@ -32,52 +32,41 @@ class MysqlDatabase(Database):
         self.db_port = db_port
 
         self.connection = None
-        self.cursor = None
 
-    def __connect(self):
-        if self.connection is None:
+    def _valid_connection(self):
+        if self.connection is not None:
             try:
-                self.connection = mysql.connect(db=self.db_name,\
-                      user=self.db_user, passwd=self.db_password,\
-                      host=self.db_host, port=self.db_port, use_unicode=False)
-                self.cursor = self.connection.cursor()
-            except mysql.DatabaseError, err:
+                self.connection.ping()
+                return True
+            except DatabaseError:
+                self.connection.close()
+                self.connection = None
+        return False
+
+    def cursor(self):
+        if not self._valid_connection():
+            try: self.connection = mysql.connect(db=self.db_name,\
+                  user=self.db_user, passwd=self.db_password,\
+                  host=self.db_host, port=self.db_port, use_unicode=False)
+            except DatabaseError, err:
                 error = _("Could not connect to MySQL server %s." % err)
                 log.err(error, fatal = True)
+        cursor = self.connection.cursor()
+        return cursor
 
-    def connect(self):
-        self.__connect()
-        self.verify_database_version()
+    def commit(self):
+        if self.connection is not None:
+            self.connection.commit()
 
-    def get_new_connection(self):
-        return MysqlDatabase(self.db_name, self.db_user, self.db_password, \
-            self.db_host, self.db_port)
+    def rollback(self):
+        if self.connection is not None:
+            try:
+                self.connection.rollback()
+            except mysql.NotSupportedError:
+                pass
 
-    def __valid_connection(self):
-        try: self.connection.ping()
-        except mysql.DatabaseError:
-            self.close()
-            log.info(_("Try Mysql reconnection"))
-            self.__connect()
-            return False
-        return True
-
-    def __execute(self, func_name, query, parm, raise_exception = False):
-        func = getattr(self.cursor, func_name)
-        try: func(query,parm)
-        except mysql.DatabaseError, err:
-            if self.__valid_connection():
-                log.err(_("Unable to execute database request '%s': %s") \
-                        % (query, err))
-                if raise_exception: raise OperationalError
-            self.__execute(func_name, query, parm, raise_exception)
-
-    def execute(self, query, parm = None, raise_exception = False):
-        self.__execute("execute", query, parm, raise_exception)
-
-    def executemany(self, query, parm = []):
-        if parm == []: return # no request to execute
-        self.__execute("executemany", query, parm)
+    def get_last_insert_id(self, cursor):
+        return cursor.lastrowid
 
     def __collist(self, table, columns):
         cols = []
@@ -109,7 +98,8 @@ class MysqlDatabase(Database):
         if len(table.key) > 0:
             coldefs.append('    PRIMARY KEY (%s)' %
                            self.__collist(table, table.key))
-        sql.append(',\n'.join(coldefs) + '\n) ENGINE=InnoDB')
+        #sql.append(',\n'.join(coldefs) + '\n) ENGINE=InnoDB')
+        sql.append(',\n'.join(coldefs) + '\n)')
         yield '\n'.join(sql)
 
         for index in table.indices:
@@ -119,9 +109,6 @@ class MysqlDatabase(Database):
                   self.__collist(table, index.columns))
 
     def close(self):
-        if self.cursor is not None:
-            self.cursor.close()
-            self.cursor = None
         if self.connection is not None:
             self.connection.close()
             self.connection = None

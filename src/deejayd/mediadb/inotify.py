@@ -47,8 +47,7 @@ class LibraryWatcher(ProcessEvent):
         else:
             # File seems to have been deleted, so we lookup for a dirlink
             # in the library.
-            db = self.__library.inotify_db
-            return file_path in self.__library.get_root_paths(db)
+            return file_path in self.__library.get_root_paths()
 
     @log_event
     def process_IN_CREATE(self, event):
@@ -132,17 +131,12 @@ class DeejaydInotify(threading.Thread):
             self.__wm.rm_watch(wdd[dir_path], rec=True)
 
     def run(self):
-        # open a new database connection for this thread
-        threaded_db = self.__db.get_new_connection()
-        threaded_db.connect()
-
         notifier = Notifier(self.__wm)
 
         for library in (self.__audio_library, self.__video_library):
             if library:
-                library.set_inotify_connection(threaded_db)
                 library.watcher = self
-                for dir_path in library.get_root_paths(threaded_db):
+                for dir_path in library.get_root_paths():
                     self.watch_dir(dir_path, library)
 
         while not self.should_stop.isSet():
@@ -151,10 +145,8 @@ class DeejaydInotify(threading.Thread):
             if notifier.check_events():
                 # read notified events and enqeue them
                 notifier.read_events()
-
         notifier.stop()
-        # close database connection
-        threaded_db.close()
+        self.__db.close()
 
     def close(self):
         self.should_stop.set()
