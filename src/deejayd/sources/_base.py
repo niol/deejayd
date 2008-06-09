@@ -128,14 +128,10 @@ class _BaseLibrarySource(_BaseSource):
     def cb_library_changes(self, action, file_id, threaded = True):
         if action == "remove":
             reactor.callFromThread(self._remove_media, file_id)
-        elif action == "add":
-            reactor.callFromThread(self._add_media, file_id)
+        elif action == "add": pass # not used for now
         elif action == "update":
             if threaded: reactor.callFromThread(self._update_media, file_id)
             else: self._update_media(file_id)
-
-    def _add_media(self, media_id):
-        pass
 
     def _update_media(self, media_id):
         media = self.library.get_file_withid(media_id)
