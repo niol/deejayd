@@ -27,4 +27,7 @@ songlibrary = [
  'artist': 'Ultra Nate', 'title': "Free"}
 ]
 
+sample_genres = ('Country', 'Disco', 'Rock', 'Trance', 'R&B', 'Big beat', )
+
+
 # vim: ts=4 sw=4 expandtab

@@ -23,6 +23,8 @@ This module generates the test data.
 import os, sys, shutil
 import random, time, string
 
+from testdeejayd.data import sample_genres
+
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
@@ -54,6 +56,10 @@ class TestData(object):
     def getBadCaracter(self):
         return "\xe0"
 
+    def getRandomGenre(self):
+        return self.getRandomElement(sample_genres)
+
+
 class TestSong(TestData):
     supportedTag = ("tracknumber","title","genre","artist","album","date")
 
@@ -80,16 +86,23 @@ class TestSong(TestData):
         self.tags["filename"] = newPath
         self.name = newName
 
+    def get_random_tag_value(self, tagname):
+        if tagname == "date":
+            value = str(self.getRandomInt(2010,1971))
+        elif tagname == "tracknumber":
+            value = str(self.getRandomInt(15))
+        elif tagname == "genre":
+            value = self.getRandomGenre()
+        else:
+            value = self.getRandomString(special=False)
+        return value
+
     def setRandomTag(self):
         tagInfo = self._getTagObject()
         for tag in self.__class__.supportedTag:
-            if tag == "date": value = str(self.getRandomInt(2010,1971))
-            elif tag == "tracknumber": value = str(self.getRandomInt(15))
-            else: value = self.getRandomString(special = False)
-
+            value = self.get_random_tag_value(tag)
             tagInfo[tag] = unicode(value)
             self.tags[tag] = value
-
         tagInfo.save()
 
 
