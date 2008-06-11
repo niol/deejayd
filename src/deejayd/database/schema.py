@@ -63,12 +63,12 @@ db_schema = [
         Column('id', auto_increment=True),
         Column('directory', type='int'),
         Column('name'),
-        Index(('name', 'directory'))],
+        Index(('name', 'directory')),
+        Index(('directory',), unique = False)],
     Table('media_info', key=('id','ikey'))[
         Column('id', type="int"),
         Column('ikey'),
-        Column('value'),
-        Index(('ikey','value'), unique = False)],
+        Column('value')],
     Table('cover', key='id')[
         Column('id', auto_increment=True),
         Column('source'), # path to the cover file or audio file (internal)

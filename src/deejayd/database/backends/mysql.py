@@ -68,7 +68,15 @@ class DatabaseWrapper(local):
     def get_last_insert_id(self, cursor):
         return cursor.lastrowid
 
-    def __collist(self, table, columns):
+    def close(self):
+        if self.connection is not None:
+            self.connection.close()
+            self.connection = None
+
+
+def to_sql(table):
+
+    def __collist(table, columns):
         cols = []
         limit = 333 / len(columns)
         if limit > 255:
@@ -83,34 +91,35 @@ class DatabaseWrapper(local):
             cols.append(name)
         return ','.join(cols)
 
-    def to_sql(self, table):
-        sql = ['CREATE TABLE %s (' % table.name]
-        coldefs = []
-        for column in table.columns:
-            ctype = column.type
-            if ctype == "blob": ctype = "mediumblob"
-            if column.auto_increment:
-                ctype = 'INT UNSIGNED NOT NULL AUTO_INCREMENT'
-                # Override the column type, as a text field cannot
-                # use auto_increment.
-                column.type = 'int'
-            coldefs.append('    `%s` %s' % (column.name, ctype))
-        if len(table.key) > 0:
-            coldefs.append('    PRIMARY KEY (%s)' %
-                           self.__collist(table, table.key))
-        #sql.append(',\n'.join(coldefs) + '\n) ENGINE=InnoDB')
-        sql.append(',\n'.join(coldefs) + '\n)')
-        yield '\n'.join(sql)
+    sql = ['CREATE TABLE %s (' % table.name]
+    coldefs = []
+    for column in table.columns:
+        ctype = column.type
+        if ctype == "blob": ctype = "mediumblob"
+        if column.auto_increment:
+            ctype = 'INT UNSIGNED NOT NULL AUTO_INCREMENT'
+            # Override the column type, as a text field cannot
+            # use auto_increment.
+            column.type = 'int'
+        coldefs.append('    `%s` %s' % (column.name, ctype))
+    if len(table.key) > 0:
+        coldefs.append('    PRIMARY KEY (%s)' %
+                       __collist(table, table.key))
+    #sql.append(',\n'.join(coldefs) + '\n) ENGINE=InnoDB')
+    sql.append(',\n'.join(coldefs) + '\n)')
+    yield '\n'.join(sql)
 
-        for index in table.indices:
-            unique = index.unique and "UNIQUE" or ""
-            yield 'CREATE %s INDEX %s_%s_idx ON %s (%s);' % (unique,table.name,
-                  '_'.join(index.columns), table.name,
-                  self.__collist(table, index.columns))
+    for index in table.indices:
+        unique = index.unique and "UNIQUE" or ""
+        yield 'CREATE %s INDEX %s_%s_idx ON %s (%s);' % (unique,table.name,
+              '_'.join(index.columns), table.name,
+              __collist(table, index.columns))
 
-    def close(self):
-        if self.connection is not None:
-            self.connection.close()
-            self.connection = None
+custom_queries = [
+    "CREATE UNIQUE INDEX id_key_value_idx ON media_info\
+        (id, ikey(64), value(64));",
+    "CREATE INDEX key_value_idx ON media_info\
+        (ikey(64), value(64));",
+    ]
 
 # vim: ts=4 sw=4 expandtab

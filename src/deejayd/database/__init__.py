@@ -28,11 +28,17 @@ def init(config):
 
     db_type =  config.get("database","db_type")
     db_name = config.get("database","db_name")
+    try: backend = __import__('deejayd.database.backends.%s' % db_type,\
+                              {}, {}, [''])
+    except ImportError:
+        log.err(_(\
+      "You chose a database which is not supported. Verify your config file."),\
+      fatal = True)
+    DatabaseError = backend.DatabaseError
+
     if db_type == "sqlite":
         from deejayd.database.backends import sqlite
         connection = sqlite.DatabaseWrapper(db_name)
-        DatabaseError = sqlite.DatabaseError
-
     elif db_type == "mysql":
         db_user = config.get("database","db_user")
         db_password = config.get("database","db_password")
@@ -46,12 +52,6 @@ def init(config):
         from deejayd.database.backends import mysql
         connection = mysql.DatabaseWrapper(db_name, db_user, db_password,\
             db_host, db_port)
-        DatabaseError = mysql.DatabaseError
-
-    else:
-        log.err(_(\
-      "You chose a database which is not supported. Verify your config file."),\
-      fatal = True)
 
     # verify database version
     cursor = connection.cursor()
@@ -62,8 +62,10 @@ def init(config):
         db_version = int(db_version)
     except DatabaseError: # initailise db
         for table in schema.db_schema:
-            for stmt in connection.to_sql(table):
+            for stmt in backend.to_sql(table):
                 cursor.execute(stmt)
+        for query in backend.custom_queries:
+            cursor.execute(query)
         log.info(_("Database structure successfully created."))
         for query in schema.db_init_cmds:
             cursor.execute(query)

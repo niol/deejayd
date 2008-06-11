@@ -75,27 +75,6 @@ class DatabaseWrapper(local):
             self.connection.close()
             self.connection = None
 
-    def to_sql(self, table):
-        sql = ["CREATE TABLE %s (" % table.name]
-        coldefs = []
-        for column in table.columns:
-            ctype = column.type.lower()
-            if column.auto_increment:
-                ctype = "integer PRIMARY KEY"
-            elif len(table.key) == 1 and column.name in table.key:
-                ctype += " PRIMARY KEY"
-            elif ctype == "int":
-                ctype = "integer"
-            coldefs.append("    %s %s" % (column.name, ctype))
-        if len(table.key) > 1:
-            coldefs.append("    UNIQUE (%s)" % ','.join(table.key))
-        sql.append(',\n'.join(coldefs) + '\n);')
-        yield '\n'.join(sql)
-        for index in table.indices:
-            unique = index.unique and "UNIQUE" or ""
-            yield "CREATE %s INDEX %s_%s_idx ON %s (%s);" % (unique,table.name,
-                  '_'.join(index.columns), table.name, ','.join(index.columns))
-
 
 class SQLiteCursorWrapper(sqlite.Cursor):
 
@@ -110,5 +89,60 @@ class SQLiteCursorWrapper(sqlite.Cursor):
 
     def convert_query(self, query, num_params):
         return query % tuple("?" * num_params)
+
+
+def to_sql(table):
+    sql = ["CREATE TABLE %s (" % table.name]
+    coldefs = []
+    for column in table.columns:
+        ctype = column.type.lower()
+        if column.auto_increment:
+            ctype = "integer PRIMARY KEY"
+        elif len(table.key) == 1 and column.name in table.key:
+            ctype += " PRIMARY KEY"
+        elif ctype == "int":
+            ctype = "integer"
+        coldefs.append("    %s %s" % (column.name, ctype))
+    if len(table.key) > 1:
+        coldefs.append("    UNIQUE (%s)" % ','.join(table.key))
+    sql.append(',\n'.join(coldefs) + '\n);')
+    yield '\n'.join(sql)
+    for index in table.indices:
+        unique = index.unique and "UNIQUE" or ""
+        yield "CREATE %s INDEX %s_%s_idx ON %s (%s);" % (unique,table.name,
+              '_'.join(index.columns), table.name, ','.join(index.columns))
+
+custom_queries = [
+    # custom indexes
+    "CREATE INDEX id_key_value_1x ON media_info(id,ikey,value COLLATE BINARY);",
+    "CREATE INDEX id_key_value_2x ON media_info(id,ikey,value COLLATE NOCASE);",
+    "CREATE INDEX key_value_1x ON media_info (ikey, value COLLATE BINARY);",
+    "CREATE INDEX key_value_2x ON media_info (ikey, value COLLATE NOCASE);",
+    # extract from ANALYZE request
+    "ANALYZE;",
+    "INSERT INTO sqlite_stat1 VALUES('cover', 'cover_source_idx','208 1');",
+    "INSERT INTO sqlite_stat1 VALUES('stats',\
+            'sqlite_autoindex_stats_1','7 1');",
+    "INSERT INTO sqlite_stat1 VALUES('variables',\
+            'sqlite_autoindex_variables_1','18 1');",
+    "INSERT INTO sqlite_stat1 VALUES('media_info',\
+            'key_value_2x','70538 3713 6');",
+    "INSERT INTO sqlite_stat1 VALUES('media_info',\
+            'key_value_1x','70538 3713 6');",
+    "INSERT INTO sqlite_stat1 VALUES('media_info',\
+            'id_key_value_2x','70538 16 1 1');",
+    "INSERT INTO sqlite_stat1 VALUES('media_info',\
+            'id_key_value_1x','70538 16 1 1');",
+    "INSERT INTO sqlite_stat1 VALUES('media_info',\
+            'sqlite_autoindex_media_info_1','70538 16 1');",
+    "INSERT INTO sqlite_stat1 VALUES('media_info',\
+            'sqlite_autoindex_media_info_1','70538 16 1');",
+    "INSERT INTO sqlite_stat1 VALUES('library',\
+            'library_directory_idx','4421 18');",
+    "INSERT INTO sqlite_stat1 VALUES('library',\
+            'library_name_directory_idx','4421 2 1');",
+    "INSERT INTO sqlite_stat1 VALUES('library_dir',\
+            'library_dir_name_lib_type_idx','377 2 1');",
+    ]
 
 # vim: ts=4 sw=4 expandtab
