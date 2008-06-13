@@ -315,48 +315,47 @@ class _Library(SignalingComponent):
         return False
 
     def _update(self):
-        conn = self.db_con
         self._update_end = False
 
         try:
-            self.last_update_time = conn.get_update_time(self.type)
+            self.last_update_time = self.db_con.get_update_time(self.type)
             # dirname/filename : id
             library_files = dict([(os.path.join(item[1],item[3]), item[2])\
-                for item in conn.get_all_files('',self.type)])
+                for item in self.db_con.get_all_files('',self.type)])
             # name : id
             library_dirs = dict([(item[1],item[0]) for item \
-                                in conn.get_all_dirs('',self.type)])
+                                in self.db_con.get_all_dirs('',self.type)])
             # name
             library_dirlinks = [item[1] for item\
-                                in conn.get_all_dirlinks('', self.type)]
+                                in self.db_con.get_all_dirlinks('', self.type)]
 
-            self.walk_directory(conn, self.get_root_path(),
+            self.walk_directory(self.get_root_path(),
                                 library_dirs, library_files, library_dirlinks)
 
             self.mutex.acquire()
             # Remove unexistent files and directories from library
             for id in library_files.values():
-                conn.remove_file(id)
+                self.db_con.remove_file(id)
                 self.emit_changes("remove", id)
-            for id in library_dirs.values(): conn.remove_dir(id)
+            for id in library_dirs.values(): self.db_con.remove_dir(id)
             for dirlinkname in library_dirlinks:
-                conn.remove_dirlink(dirlinkname, self.type)
+                self.db_con.remove_dirlink(dirlinkname, self.type)
                 if self.watcher:
                     self.watcher.stop_watching_dir(os.path.join(root,
                                                                 dirlinkname))
             # Remove empty dir
-            conn.erase_empty_dir(self.type)
+            self.db_con.erase_empty_dir(self.type)
             # update stat values
-            conn.record_mediadb_stats(self.type)
-            conn.set_update_time(self.type)
+            self.db_con.record_mediadb_stats(self.type)
+            self.db_con.set_update_time(self.type)
             # commit changes
-            conn.connection.commit()
+            self.db_con.connection.commit()
             self.mutex.release()
         finally:
             # close the connection
-            conn.close()
+            self.db_con.close()
 
-    def walk_directory(self, db_con, walk_root,
+    def walk_directory(self, walk_root,
                        library_dirs, library_files, library_dirlinks,
                        forbidden_roots=None):
         """Walk a directory for files to update. Called recursively to carefully handle symlinks."""
@@ -371,7 +370,7 @@ class _Library(SignalingComponent):
             strip_root = self.strip_root(root)
             try: dir_id = library_dirs[strip_root]
             except KeyError:
-                dir_id = db_con.insert_dir(strip_root, self.type)
+                dir_id = self.db_con.insert_dir(strip_root, self.type)
             else:
                 del library_dirs[strip_root]
 
@@ -392,10 +391,10 @@ class _Library(SignalingComponent):
                         if dirname in library_dirlinks:
                             library_dirlinks.remove(dirname)
                         else:
-                            db_con.insert_dirlink(dirname, self.type)
+                            self.db_con.insert_dirlink(dirname, self.type)
                             if self.watcher:
                                 self.watcher.watch_dir(dir_path, self)
-                        self.walk_directory(db_con, dir_path,
+                        self.walk_directory(dir_path,
                                  library_dirs, library_files, library_dirlinks,
                                  forbidden_roots)
 
@@ -417,8 +416,8 @@ class _Library(SignalingComponent):
                     changes_type = "add"
                 else: del library_files[filename]
                 if need_update:
-                    fid = self.set_media(db_con,dir_id,strip_root,file,fid)
-                if fid: self.set_extra_infos(db_con, strip_root, file, fid)
+                    fid = self.set_media(dir_id,strip_root,file,fid)
+                if fid: self.set_extra_infos(strip_root, file, fid)
                 if need_update and fid: self.emit_changes(changes_type, fid)
 
     def end_update(self, result = True):
@@ -430,7 +429,7 @@ class _Library(SignalingComponent):
             self._update_error = msg
         return True
 
-    def set_media(self, db_con, dir_id, dirname, filename, file_id):
+    def set_media(self, dir_id, dirname, filename, file_id):
         file_path = os.path.join(self._path, dirname, filename)
         try: mediainfo_obj = self._get_file_info(filename)
         except NotSupportedFormat:
@@ -447,11 +446,11 @@ for more information.") % file_path)
             return
         if file_id: # do not update persistent attribute
             for attr in self.__class__.persistent_attr: del file_info[attr]
-        fid = file_id or db_con.insert_file(dir_id, filename)
-        db_con.set_media_infos(fid, file_info)
+        fid = file_id or self.db_con.insert_file(dir_id, filename)
+        self.db_con.set_media_infos(fid, file_info)
         return fid
 
-    def set_extra_infos(self, db_con, dir, file, file_id):
+    def set_extra_infos(self, dir, file, file_id):
         raise NotImplementedError
 
     def _get_file_info(self, filename):
@@ -487,9 +486,9 @@ for more information.") % file_path)
         strip_path = self.strip_root(path)
         dir_id = self.db_con.is_dir_exist(strip_path, self.type) or\
                  self.db_con.insert_dir(strip_path, self.type)
-        fid = self.set_media(self.db_con, dir_id, strip_path, file, None)
+        fid = self.set_media(dir_id, strip_path, file, None)
         if fid:
-            self.set_extra_infos(self.db_con, strip_path, file, fid)
+            self.set_extra_infos(strip_path, file, fid)
             self._add_missing_dir(os.path.dirname(strip_path))
             self.emit_changes("add", fid)
         else:
@@ -503,7 +502,7 @@ for more information.") % file_path)
         file = self.db_con.is_file_exist(dir, name, self.type)
         if file:
             dir_id, file_id = file
-            self.set_media(self.db_con, dir_id, dir, name, file_id)
+            self.set_media(dir_id, dir, name, file_id)
             self.emit_changes("update", file_id)
             return True
         else: return self._inotify_update_info(path, name)
@@ -529,7 +528,7 @@ for more information.") % file_path)
             self.db_con.insert_dirlink(dirlinkname, self.type)
             self.watcher.watch_dir(dir_path, self)
 
-        self.walk_directory(self.db_con, dir_path,{},{},self.get_root_paths())
+        self.walk_directory(dir_path,{},{},self.get_root_paths())
         self._add_missing_dir(os.path.dirname(self.strip_root(dir_path)))
         self._remove_empty_dir(path)
         return True
@@ -593,27 +592,28 @@ class AudioLibrary(_Library):
         fd.close()
         return rs
 
-    def set_extra_infos(self, db_con, dir, file, file_id):
+    def set_extra_infos(self, dir, file, file_id):
         dir_path = os.path.join(self._path, dir)
         cover = ""
         for name in self.cover_name:
             if os.path.isfile(os.path.join(dir_path, name)):
-                rs = db_con.is_cover_exist(os.path.join(dir,name))
+                rs = self.db_con.is_cover_exist(os.path.join(dir,name))
                 try: (cover, lmod) = rs
                 except TypeError:
                     image = self.__extract_cover(os.path.join(dir_path, name))
                     if image:
-                        cover = db_con.add_cover(os.path.join(dir,name), image)
+                        cover = self.db_con.add_cover(\
+                            os.path.join(dir,name), image)
                 else:
                     if int(lmod)<os.stat(os.path.join(dir_path,file)).st_mtime:
                         image = self.__extract_cover(\
                             os.path.join(dir_path, name))
-                        if image: db_con.update_cover(cover, image)
+                        if image: self.db_con.update_cover(cover, image)
                 break
-        try: (recorded_cover,) = db_con.get_file_info(file_id, "cover")
+        try: (recorded_cover,) = self.db_con.get_file_info(file_id, "cover")
         except TypeError: recorded_cover = -1
         if str(recorded_cover) != str(cover):
-            db_con.set_media_infos(file_id,{"cover": cover})
+            self.db_con.set_media_infos(file_id,{"cover": cover})
 
     #
     # custom inotify actions
@@ -665,7 +665,7 @@ class VideoLibrary(_Library):
     custom_attr = ("videoheight", "videowidth","external_subtitle")
     subtitle_ext = (".srt",)
 
-    def set_extra_infos(self, db, dir, file, file_id):
+    def set_extra_infos(self, dir, file, file_id):
         file_path = os.path.join(dir, file)
         (base_path,ext) = os.path.splitext(file_path)
         sub = ""
@@ -673,11 +673,12 @@ class VideoLibrary(_Library):
             if os.path.isfile(os.path.join(self._path, base_path + ext_type)):
                 sub = base_path + ext_type
                 break
-        try: (recorded_sub,) = db.get_file_info(file_id, "external_subtitle")
+        try: (recorded_sub,) = self.db_con.get_file_info(file_id,\
+                                                         "external_subtitle")
         except TypeError:
             recorded_sub = None
         if recorded_sub != sub:
-            db.set_media_infos(file_id,{"external_subtitle": sub})
+            self.db_con.set_media_infos(file_id,{"external_subtitle": sub})
 
     def search(self, content):
         rsp = self.db_con.search("title", content, self.media_attr)
