@@ -16,28 +16,47 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import time
 from threading import local
 from deejayd.ui import log
 import MySQLdb as mysql
 
+# We want version (1, 2, 1, 'final', 2) or later. We can't just use
+# lexicographic ordering in this check because then (1, 2, 1, 'gamma')
+# inadvertently passes the version test.
+version = mysql.version_info
+if (version < (1,2,1) or (version[:3] == (1, 2, 1) and
+        (len(version) < 5 or version[3] != 'final' or version[4] < 2))):
+            raise ImportError, "MySQLdb-1.2.1p2 or newer is required; you have %s" % mysql.__version__
+
 DatabaseError = mysql.DatabaseError
 
 class DatabaseWrapper(local):
+    __slots__ = "globalcommit"
 
     def __init__(self, db_name, db_user, db_password, db_host, db_port):
+        self.connection = None
+        self.last_commit = 0
+
         self.db_name = db_name
         self.db_user = db_user
         self.db_password = db_password
         self.db_host = db_host
         self.db_port = db_port
 
-        self.connection = None
-
     def _valid_connection(self):
         if self.connection is not None:
             try:
                 self.connection.ping()
-                return True
+                try: globalcommit = self.globalcommit
+                except AttributeError:
+                    globalcommit = 0
+                if self.last_commit < globalcommit:
+                    self.connection.commit()
+                    self.connection.close()
+                    self.connection = None
+                    self.last_commit = globalcommit
+                else: return True
             except DatabaseError:
                 self.connection.close()
                 self.connection = None
@@ -47,7 +66,8 @@ class DatabaseWrapper(local):
         if not self._valid_connection():
             try: self.connection = mysql.connect(db=self.db_name,\
                   user=self.db_user, passwd=self.db_password,\
-                  host=self.db_host, port=self.db_port, use_unicode=False)
+                  host=self.db_host, port=self.db_port, charset="utf8",\
+                  use_unicode=False)
             except DatabaseError, err:
                 error = _("Could not connect to MySQL server %s." % err)
                 log.err(error, fatal = True)
@@ -57,6 +77,9 @@ class DatabaseWrapper(local):
     def commit(self):
         if self.connection is not None:
             self.connection.commit()
+            timestamp = time.time()
+            self.globalcommit = timestamp
+            self.lastcommit = timestamp
 
     def rollback(self):
         if self.connection is not None:
@@ -105,8 +128,8 @@ def to_sql(table):
     if len(table.key) > 0:
         coldefs.append('    PRIMARY KEY (%s)' %
                        __collist(table, table.key))
-    #sql.append(',\n'.join(coldefs) + '\n) ENGINE=InnoDB')
-    sql.append(',\n'.join(coldefs) + '\n)')
+    sql.append(',\n'.join(coldefs) + '\n) ENGINE=InnoDB')
+    #sql.append(',\n'.join(coldefs) + '\n)')
     yield '\n'.join(sql)
 
     for index in table.indices:

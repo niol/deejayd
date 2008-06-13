@@ -30,15 +30,14 @@ def init(config):
     db_name = config.get("database","db_name")
     try: backend = __import__('deejayd.database.backends.%s' % db_type,\
                               {}, {}, [''])
-    except ImportError:
+    except ImportError, ex:
         log.err(_(\
-      "You chose a database which is not supported. Verify your config file."),\
-      fatal = True)
+      "You chose a database which is not supported. see config file. %s")\
+      % str(ex), fatal = True)
     DatabaseError = backend.DatabaseError
 
     if db_type == "sqlite":
-        from deejayd.database.backends import sqlite
-        connection = sqlite.DatabaseWrapper(db_name)
+        connection = backend.DatabaseWrapper(db_name)
     elif db_type == "mysql":
         db_user = config.get("database","db_user")
         db_password = config.get("database","db_password")
@@ -49,8 +48,7 @@ def init(config):
         except (NoOptionError, ValueError):
             db_port = 3306
 
-        from deejayd.database.backends import mysql
-        connection = mysql.DatabaseWrapper(db_name, db_user, db_password,\
+        connection = backend.DatabaseWrapper(db_name, db_user, db_password,\
             db_host, db_port)
 
     # verify database version
