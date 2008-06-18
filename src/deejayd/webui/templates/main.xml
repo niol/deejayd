@@ -51,6 +51,38 @@
          {option_name:'zoom',option_value:'5',set_type:'down'},true);"/>
 </keyset>
 
+<popupset>
+    <menupopup id="queue-menu" onpopupshowing="javascript:;">
+        <menuitem
+            class="menuitem-iconic play-action"
+            label="&play;"
+            oncommand="queue_ref.play();"/>
+        <menuitem
+            class="menuitem-iconic remove-action"
+            label="&remove;"
+            oncommand="queue_ref.removeItems();"/>
+        <menu
+            label="&rating;">
+            <menupopup id="queue-rating-menu">
+                <menuitem
+                    label=" 0 "
+                    oncommand="queue_ref.setRating(0);"/>
+                <menuitem
+                    label="1 ♪"
+                    oncommand="queue_ref.setRating(1);"/>
+                <menuitem
+                    label="2 ♪♪"
+                    oncommand="queue_ref.setRating(2);"/>
+                <menuitem
+                    label="3 ♪♪♪"
+                    oncommand="queue_ref.setRating(3);"/>
+                <menuitem
+                    label="4 ♪♪♪♪"
+                    oncommand="queue_ref.setRating(4);"/>
+            </menupopup>
+        </menu>
+    </menupopup>
+</popupset>
 
 <!-- HEADER -->
 <hbox
@@ -234,7 +266,7 @@
 </deck>
 
 <!-- Insert Queue -->
-<hbox id="queue-menu">
+<hbox id="queue-panel">
     <toolbar>
         <toolbarbutton
             id="queue-button"

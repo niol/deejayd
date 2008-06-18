@@ -7,38 +7,7 @@
 </keyset>
 
 <popupset>
-    <popup id="queue-menu" onpopupshowing="javascript:;">
-        <menuitem
-            class="menuitem-iconic play-action"
-            label="&play;"
-            oncommand="queue_ref.play();"/>
-        <menuitem
-            class="menuitem-iconic remove-action"
-            label="&remove;"
-            oncommand="queue_ref.removeItems();"/>
-        <menu
-            label="&rating;">
-            <menupopup id="queue-rating-menu">
-                <menuitem
-                    label=" 0 "
-                    oncommand="queue_ref.setRating(0);"/>
-                <menuitem
-                    label="1 ♪"
-                    oncommand="queue_ref.setRating(1);"/>
-                <menuitem
-                    label="2 ♪♪"
-                    oncommand="queue_ref.setRating(2);"/>
-                <menuitem
-                    label="3 ♪♪♪"
-                    oncommand="queue_ref.setRating(3);"/>
-                <menuitem
-                    label="4 ♪♪♪♪"
-                    oncommand="queue_ref.setRating(4);"/>
-            </menupopup>
-        </menu>
-    </popup>
-
-    <popup id="playlist-menu" onpopupshowing="javascript:;">
+    <menupopup id="playlist-menu" onpopupshowing="javascript:;">
         <menuitem
             class="menuitem-iconic play-action"
             label="&play;"
@@ -67,9 +36,9 @@
                     oncommand="playlist_ref.setRating(4);"/>
             </menupopup>
         </menu>
-    </popup>
+    </menupopup>
 
-    <popup id="fileList-menu" onpopupshowing="javascript:;">
+    <menupopup id="fileList-menu" onpopupshowing="javascript:;">
         <menuitem
             class="menuitem-iconic add-action"
             label="&load;"
@@ -83,9 +52,9 @@
             <menupopup id="fileaddplaylist-menu">
             </menupopup>
         </menu>
-    </popup>
+    </menupopup>
 
-    <popup id="playlistList-menu" onpopupshowing="javascript:;">
+    <menupopup id="playlistList-menu" onpopupshowing="javascript:;">
         <menuitem
             label="&load;"
             class="menuitem-iconic add-action"
@@ -98,7 +67,7 @@
             label="&remove;"
             class="menuitem-iconic remove-action"
             oncommand="fileList_ref.erasePlaylist();"/>
-    </popup>
+    </menupopup>
 </popupset>
 
 <vbox
