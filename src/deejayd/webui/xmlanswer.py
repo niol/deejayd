@@ -79,6 +79,7 @@ def build_language_dtd():
         "subtitle_channel": _("Subtitle Channel:"),
         "av_offset": _("Audio/Video Offset:"),
         "sub_offset": _("Subtitle Offset:"),
+        "zoom": _("Zoom:"),
         # playlist
         "load": _("Load"),
         "loadQueue": _("Load in the queue"),
@@ -476,6 +477,7 @@ class DeejaydWebAnswer(_DeejaydXML):
                             val_elt.text = self._to_xml_string(it)
                 else:
                     elt.text = self._to_xml_string(cur_media[k])
+            # get cover if available
 
     def set_msg(self,msg,type = "confirmation"):
         msg_node = ET.SubElement(self.xmlroot,"message",type = type)

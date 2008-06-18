@@ -72,7 +72,7 @@ var playerStatus = {
             removeNode(media_info.firstChild);
         // hide option block
         var rows = Array("audio-row", "subtitle-row", "av_offset-row",
-            "sub_offset-row", "player-seekbar", "current-media",
+            "sub_offset-row", "zoom-row",  "player-seekbar", "current-media",
             "playeroption-button");
         for (ix in rows) {
             $(rows[ix]).style.visibility = "collapse";
@@ -144,7 +144,7 @@ var playerStatus = {
                     }
                 }
 
-            a = Array("av_offset","sub_offset");
+            a = Array("av_offset","sub_offset", "zoom");
             for (ix in a) {
                 var value = cur_song.getElementsByTagName(a[ix]).item(0);
                 if (value && value.firstChild) {
@@ -270,25 +270,31 @@ var Player = function()
     {
         ajaxdj_ref.send_command('setPlayerOption',{option_name:"audio_lang",
             option_value: idx},true);
-    }
+    };
 
     this.set_slang = function(idx)
     {
         ajaxdj_ref.send_command('setPlayerOption',{option_name:"sub_lang",
             option_value: idx},true);
-    }
+    };
 
     this.set_avoffset = function()
     {
         ajaxdj_ref.send_command('setPlayerOption',{option_name:"av_offset",
             option_value: $("av_offset-value").value},true);
-    }
+    };
 
     this.set_suboffset = function()
     {
         ajaxdj_ref.send_command('setPlayerOption',{option_name:"sub_offset",
             option_value: $("sub_offset-value").value},true);
-    }
+    };
+
+    this.set_zoom = function()
+    {
+        ajaxdj_ref.send_command('setPlayerOption',{option_name:"zoom",
+            option_value: $("zoom-value").value},true);
+    };
 };
 
 

@@ -186,11 +186,10 @@
                 id="av_offset-row">
                 <label value="&av_offset;"/>
                 <textbox
-                    size="6"
-                    maxlength="6"
-                    oncommand="player_ref.set_avoffset();"
-                    timeout="500"
-                    type="timed"
+                    increment="100"
+                    min="-10000"
+                    onchange="player_ref.set_avoffset();"
+                    type="number"
                     id="av_offset-value"/>
                 <label value="ms"/>
             </row>
@@ -199,13 +198,25 @@
                 id="sub_offset-row">
                 <label value="&sub_offset;"/>
                 <textbox
-                    size="6"
-                    maxlength="6"
-                    oncommand="player_ref.set_suboffset();"
-                    timeout="500"
-                    type="timed"
+                    increment="100"
+                    min="-10000"
+                    onchange="player_ref.set_suboffset();"
+                    type="number"
                     id="sub_offset-value"/>
                 <label value="ms"/>
+            </row>
+            <row align="center"
+                style="visibility: collapse"
+                id="zoom-row">
+                <label value="&zoom;"/>
+                <textbox
+                    increment="5"
+                    min="-85"
+                    max="400"
+                    onchange="player_ref.set_zoom();"
+                    type="number"
+                    id="zoom-value"/>
+                <label value="%"/>
             </row>
         </rows>
     </grid></panel>
