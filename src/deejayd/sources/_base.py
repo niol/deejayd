@@ -180,11 +180,12 @@ class _BaseAudioLibSource(_BaseLibrarySource):
     def load_playlist(self, playlists, pos = None):
         medias = []
         for pls in playlists:
-            content = self.db.get_static_medialist(pls,self.library.media_attr)
+            content = self.db.get_static_medialist(pls,\
+                infos=self.library.media_attr)
             if len(content) == 0 and (not pls.startswith("__") or \
                                       not pls.endswith("__")):
                 raise SourceError(_("Playlist %s does not exist.") % pls)
-            medias.extend(self.library._format_db_answer(content))
+            medias.extend(content)
         self._media_list.add_media(medias, pos)
         if pos: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)

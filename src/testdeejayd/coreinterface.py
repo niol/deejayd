@@ -73,7 +73,7 @@ class InterfaceTests:
         # Add songs to playlist
         howManySongs = 3
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
-            pl.append(songPath)
+            pl.append(self.test_audiodata.medias[songPath].tags["uri"])
             ans = djpl.add_song(songPath)
             self.failUnless(ans.get_contents())
 
@@ -92,7 +92,7 @@ class InterfaceTests:
         djpl = self.deejayd.get_playlist(djplname)
         retrievedPl = djpl.get().get_medias()
         for song_nb in range(len(pl)):
-            self.assertEqual(pl[song_nb], retrievedPl[song_nb]['path'])
+            self.assertEqual(pl[song_nb], retrievedPl[song_nb]['uri'])
 
     def testPlaylistActions(self):
         """Test actions on current playlist."""
@@ -194,29 +194,29 @@ class InterfaceTests:
         myq = []
         how_many_songs = 10
         for song_path in self.test_audiodata.getRandomSongPaths(how_many_songs):
-            myq.append(song_path)
+            myq.append(self.test_audiodata.medias[song_path].tags["uri"])
             ans = q.add_media(song_path)
             self.failUnless(ans.get_contents())
 
         ddq = q.get()
 
-        ddq_paths = [song['path'] for song in ddq.get_medias()]
-        for song_path in myq:
-            self.failUnless(song_path in ddq_paths)
+        ddq_uris = [song['uri'] for song in ddq.get_medias()]
+        for song_uri in myq:
+            self.failUnless(song_uri in ddq_uris)
 
         random.seed(time.time())
         songs_to_delete = random.sample(myq, how_many_songs / 3)
         ans = q.del_songs([song['id'] for song in ddq.get_medias()\
-                                      if song['path'] in songs_to_delete])
+                                      if song['uri'] in songs_to_delete])
         self.failUnless(ans.get_contents())
 
         ddq = q.get()
-        ddq_paths = [song['path'] for song in ddq.get_medias()]
-        for song_path in myq:
-            if song_path in songs_to_delete:
-                self.failIf(song_path in ddq_paths)
+        ddq_uris = [song['uri'] for song in ddq.get_medias()]
+        for song_uri in myq:
+            if song_uri in songs_to_delete:
+                self.failIf(song_uri in ddq_uris)
             else:
-                self.failUnless(song_path in ddq_paths)
+                self.failUnless(song_uri in ddq_uris)
 
         ans = q.clear()
         self.failUnless(ans.get_contents())

@@ -89,30 +89,30 @@ class _TestDeejayDBLibrary(object):
                     new_files.append(f)
             files = new_files
 
-            current_root = self.testdata.stripRoot(root)
-            try: contents = self.library.get_dir_content(current_root)
+            strip_root = self.testdata.stripRoot(root)
+            try: contents = self.library.get_dir_content(strip_root)
             except NotFoundException:
                 allContents = self.library.get_dir_content('')
                 self.assert_(False,
                     "'%s' is in directory tree but was not found in DB %s" %\
-                    (current_root,str(allContents)))
+                    (root,str(allContents)))
 
             # First, verify directory list
             self.assertEqual(len(contents["dirs"]), len(dirs))
             for dir in dirs:
                 self.assert_(dir in contents["dirs"],
-                    "'%s' is in directory tree but was not found in DB %s in current root '%s'" % (dir,str(contents["dirs"]),current_root))
+                    "'%s' is in directory tree but was not found in DB %s in current root '%s'" % (dir,str(contents["dirs"]),root))
 
             # then, verify file list
             self.assertEqual(len(contents["files"]), len(files))
-            db_files = [f["path"] for f in contents["files"]]
+            db_files = [f["filename"] for f in contents["files"]]
             for file in files:
                 (name,ext) = os.path.splitext(file)
-                relPath = os.path.join(current_root, file)
                 if ext.lower() in self.__class__.supported_ext:
-                    self.assert_(relPath in db_files,
+                    self.assert_(file in db_files,
                     "'%s' is a file in directory tree but was not found in DB"\
-                    % relPath)
+                    % file)
+                    relPath = os.path.join(strip_root, file)
                     if testTag: self.verifyTag(relPath)
 
     def verifyTag(self,filePath):
@@ -124,7 +124,6 @@ class _TestDeejayDBLibrary(object):
         else: inDBfile = inDBfile[0]
 
         realFile = self.testdata.medias[filePath]
-
         return (inDBfile, realFile)
 
 
@@ -246,19 +245,19 @@ class TestAudioLibrary(TestCaseWithAudioData, _TestDeejayDBLibrary):
                   self.library.search("genre", self.testdata.getRandomString()))
 
         searched_genre = self.testdata.getRandomGenre()
-        matched_medias_paths = []
+        matched_medias_uri = []
         for path, media in self.testdata.medias.items():
             if searched_genre == media.tags['genre']:
-                matched_medias_paths.append(path)
+                matched_medias_uri.append(media.tags['uri'])
 
-        found_items_paths = [x['path'] for x\
+        found_items_uri = [x['uri'] for x\
                              in self.library.search("genre", searched_genre)]
 
-        self.assertEqual(len(matched_medias_paths), len(found_items_paths))
+        self.assertEqual(len(matched_medias_uri), len(found_items_uri))
 
-        found_items_paths.sort()
-        matched_medias_paths.sort()
-        self.assertEqual(found_items_paths, matched_medias_paths)
+        found_items_uri.sort()
+        matched_medias_uri.sort()
+        self.assertEqual(found_items_uri, matched_medias_uri)
 
     def verifyTag(self,filePath):
         (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath)

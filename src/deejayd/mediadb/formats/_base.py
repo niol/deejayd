@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
+import os, urllib
 
 class _MediaFile:
     type = "unknown"
@@ -26,6 +26,7 @@ class _MediaFile:
 
     def parse(self, file_path):
         return {
+            "uri": "file:/%s" % urllib.quote(file_path),
             "type": self.type,
             "rating": "2", # [0-4]
             "lastplayed": "0",

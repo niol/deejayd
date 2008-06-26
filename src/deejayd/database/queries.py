@@ -16,9 +16,62 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import os, sys, time
 from deejayd.ui import log
-from os import path
-import sys, time
+
+
+############################################################################
+class MediaFile(dict):
+
+    def __init__(self, db, dir_id, dirname, filename, file_id):
+        self.db = db
+        self.replaygain_support = False
+        self["media_id"] = file_id
+        # record infos
+        self["filename"] = filename
+        self["dir_id"] = dir_id
+
+    def set_info(self, key, value):
+        self.set_infos({key: value})
+
+    def set_infos(self, infos):
+        self.db.set_media_infos(self["media_id"], infos)
+        self.db.connection.commit()
+        self.update(infos)
+
+    def played(self):
+        played = int(self["playcount"]) + 1
+        timestamp = int(time.time())
+        self.set_infos({"playcount":str(played), "lastplayed":str(timestamp)})
+
+    def skip(self):
+        skip = int(self["skipcount"]) + 1
+        self.set_info("skipcount", str(skip))
+
+    def get_cover(self):
+        if self["type"] != "audio":
+            raise AttributeError
+        try: (id, cover) = self.db.get_file_cover()
+        except TypeError:
+            return None
+        return cover
+
+    def replay_gain(self):
+        """Return the recommended Replay Gain scale factor."""
+        try:
+            db = float(self["replaygain_track_gain"].split()[0])
+            peak = self["replaygain_track_peak"] and\
+                     float(self["replaygain_track_peak"]) or 1.0
+        except (KeyError, ValueError, IndexError):
+            return 1.0
+        else:
+            scale = 10.**(db / 20)
+            if scale * peak > 1:
+                scale = 1.0 / peak # don't clip
+            return min(15, scale)
+
+############################################################################
+
 
 def query_decorator(answer_type):
     def query_decorator_instance(func):
@@ -34,6 +87,8 @@ def query_decorator(answer_type):
                 rs = cursor.fetchall()
             elif answer_type == "fetchone":
                 rs = cursor.fetchone()
+            elif answer_type == "medialist":
+                rs = self._medialist_answer(cursor.fetchall(),__kw['infos'])
 
             cursor.close()
             return rs
@@ -159,6 +214,17 @@ class DatabaseQueries(object):
             ORDER BY name"
         cursor.execute(query,(dirlink+"%%", type))
 
+    def _medialist_answer(self, answer, infos = []):
+        files = []
+        for m in answer:
+            current = MediaFile(self, m[0], m[1], m[3], m[2])
+            for index, attr in enumerate(infos):
+                current[attr] = m[index+4]
+            #current.set_uris(self._path)
+            files.append(current)
+
+        return files
+
     def _build_media_query(self, infos_list):
         selectquery = ""
         joinquery = ""
@@ -168,9 +234,9 @@ class DatabaseQueries(object):
                 i%d.ikey='%s'" % (index, index, index, key)
         return selectquery, joinquery
 
-    @query_decorator("fetchall")
-    def get_dir_content(self, cursor, dir, infos_list, type = "audio"):
-        selectquery, joinquery = self._build_media_query(infos_list)
+    @query_decorator("medialist")
+    def get_dir_content(self, cursor, dir, infos = [], type = "audio"):
+        selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
@@ -178,9 +244,9 @@ class DatabaseQueries(object):
             " WHERE d.name = %s AND d.lib_type = %s ORDER BY d.name,l.name"
         cursor.execute(query,(dir, type))
 
-    @query_decorator("fetchall")
-    def get_file(self, cursor, dir, file, infos_list, type = "audio"):
-        selectquery, joinquery = self._build_media_query(infos_list)
+    @query_decorator("medialist")
+    def get_file(self, cursor, dir, file, infos = [], type = "audio"):
+        selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
@@ -188,9 +254,9 @@ class DatabaseQueries(object):
             " WHERE d.name = %s AND l.name = %s AND d.lib_type = %s"
         cursor.execute(query, (dir, file, type))
 
-    @query_decorator("fetchall")
-    def get_file_withid(self, cursor, file_id, infos_list):
-        selectquery, joinquery = self._build_media_query(infos_list)
+    @query_decorator("medialist")
+    def get_file_withid(self, cursor, file_id, infos=[], type="audio"):
+        selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
@@ -198,9 +264,9 @@ class DatabaseQueries(object):
             " WHERE l.id = %s"
         cursor.execute(query, (file_id, ))
 
-    @query_decorator("fetchall")
-    def get_alldir_files(self, cursor, dir, infos_list, type = "audio"):
-        selectquery, joinquery = self._build_media_query(infos_list)
+    @query_decorator("medialist")
+    def get_alldir_files(self, cursor, dir, infos = [], type = "audio"):
+        selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
@@ -208,9 +274,9 @@ class DatabaseQueries(object):
             " WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
         cursor.execute(query,(dir+"%%", type))
 
-    @query_decorator("fetchall")
-    def search(self, cursor, type, content, infos_list):
-        selectquery, joinquery = self._build_media_query(infos_list)
+    @query_decorator("medialist")
+    def search(self, cursor, type, content, infos = []):
+        selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
@@ -264,9 +330,9 @@ class DatabaseQueries(object):
     #
     # static medialist requests
     #
-    @query_decorator("fetchall")
-    def get_static_medialist(self, cursor, name, infos_list):
-        selectquery, joinquery = self._build_media_query(infos_list)
+    @query_decorator("medialist")
+    def get_static_medialist(self, cursor, name, infos = []):
+        selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name"+ selectquery +\
             " FROM medialist m JOIN medialist_libraryitem mi\
                                     ON m.id = mi.medialist_id\

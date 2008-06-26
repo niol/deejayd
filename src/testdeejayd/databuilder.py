@@ -20,9 +20,7 @@
 """
 This module generates the test data.
 """
-import os, sys, shutil
-import random, time, string
-
+import os, sys, shutil, urllib, random, time, string
 from testdeejayd.data import sample_genres
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -71,6 +69,7 @@ class TestSong(TestData):
         filename = os.path.join(path, self.name)
         shutil.copy(self.testFile, filename)
         self.tags["filename"] = filename
+        self.tags["uri"] = "file:/%s" % urllib.quote(filename)
 
         self.setRandomTag()
 
