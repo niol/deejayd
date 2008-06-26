@@ -1,0 +1,41 @@
+= Deejayd for Debian =
+
+== Daemon Configuration ==
+
+All of the configuration for the daemon is kept in /etc/deejayd.conf . As for
+many daemons, for the changes in the configuration file to be taken into
+account, the daemon must be restarted.
+$ sudo invoke-rc.d deejayd restart
+
+The default configuration for deejayd is pretty minimal and you'll probably
+want to change the following items from their default value :
+- in the 'general' section, maybe enable more modes using the activated_modes
+  variable. The default does not enable video related modes.
+  activated_modes =  playlist,webradio,video,dvd
+  (this is new in version 0.7.0)
+- in the 'webui' section, enable it using the 'enabled' configuration variable.
+- you may want the daemon to be controllable from machines other than the one it
+  is running on. In the 'net' and 'webui' sections, you may want to change the
+  'bind_adresses' configuration variable to something other than 'localhost'.
+  'all' or the IP addresses of an interface you want to listen on should do the
+  trick.
+- in the 'mediadb' section, you want to change the 'music_directory' and the
+  'video_directory' configuration variables to point to where those are on your
+  machine, though symlinks in the default directories would also work.
+
+== Connection to an X server for video support ==
+
+Deejayd supports video. But it will not try to establish a connection to a
+X server until it is asked to play a video and if the 'video' mode is enabled.
+
+Connection to an existing user launched X server should be doable if deejayd
+is not launched using its initscript. On the contrary, if it is, the daemon
+must know both the display number (which does not change on most setups) and,
+and this is where the problems begin, the XAUTHORITY file, which is, on debian
+systems, generated whenever the X server is started with startx. When using a
+display manager, the same seams to happen.
+
+Some people use an initscript to launch the X server on a machine dedicated to
+deejayd. This method will be integrated in the deejayd packaging in the near
+future. More info here :
+http://sousmonlit.dyndns.org/~niol/playa/oss:debhowto:display-server
