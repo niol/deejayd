@@ -42,7 +42,7 @@ class SourceFactory(SignalingComponent):
         SignalingComponent.__init__(self)
         self.current = ""
         self.db = db
-        activated_sources = config.get('general', "activated_modes").split(",")
+        activated_sources = config.getlist('general', "activated_modes")
 
         self.sources_obj = {}
         from deejayd.sources import queue
