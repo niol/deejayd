@@ -169,7 +169,7 @@ if __name__ == "__main__":
     ##################
     config = DeejaydConfig()
     media_backend = config.get("general", "media_backend")
-    modes = config.get("general", "activated_modes").split(",")
+    modes = config.getlist("general", "activated_modes")
     video_support = "video" in modes or "dvd" in modes
     if media_backend == "gstreamer":
         if video_support:

@@ -2,8 +2,9 @@ deejayd (0.7.2-1+darcsoftheday+1) UNRELEASED; urgency=low
 
   * Update to policy 3.8.0 (nothing to do).
   * Add a README.Debian files for configuration information.
+  * Allow whitespace characters in activated_modes configuration variable.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 26 Jun 2008 07:34:38 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 26 Jun 2008 07:48:58 +0200
 
 deejayd (0.7.2-1) unstable; urgency=low
 

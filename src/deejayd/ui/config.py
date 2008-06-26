@@ -46,12 +46,16 @@ class DeejaydConfig:
     def set(self, section, variable, value):
         self.__config.set(section, variable, value)
 
+    def getlist(self, section, variable):
+        list_items = self.__config.get(section, variable).split(',')
+        return map(string.strip, list_items)
+
     def get_bind_addresses(self, service = 'net'):
-        bind_addresses = self.__config.get(service, 'bind_addresses').split(',')
-        clean_bind_addresses = map(string.strip, bind_addresses)
-        if 'all' in clean_bind_addresses:
+        bind_addresses = self.getlist(service, 'bind_addresses')
+        if 'all' in bind_addresses:
             return ['']
         else:
-            return map(string.strip, bind_addresses)
+            return bind_addresses
+
 
 # vim: ts=4 sw=4 expandtab
