@@ -55,7 +55,7 @@ def inotify_action(func):
 
 
 class _Library(SignalingComponent):
-    common_attr = ("uri","type","title","length")
+    common_attr = ("filename","uri","type","title","length")
     persistent_attr = ("rating","skipcount","playcount","lastplayed")
     type = None
 
