@@ -214,7 +214,7 @@ var FileList = function()
         var plsItem = document.createElement("listitem");
         plsItem.setAttribute("label",playlist.firstChild.data);
         plsItem.setAttribute("context","playlistList-menu");
-        plsItem.setAttribute("value",playlist.firstChild.data);
+        plsItem.setAttribute("value",playlist.getAttribute("name"));
         plsItem.setAttribute("type","playlist");
         plsItem.className = "playlist-item listitem-iconic";
         plsItem.addEventListener('draggesture', FileObserver.dragStart, true);
