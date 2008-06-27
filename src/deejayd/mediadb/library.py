@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -*- coding: utf-8 -*-
 
-import os, sys, threading, traceback, time, base64, urllib
+import os, sys, threading, traceback, time, base64, urllib, locale
 from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
@@ -93,10 +93,12 @@ class _Library(SignalingComponent):
         self.watcher = None
 
     def _encode(self, data):
+        if type(data) is unicode:
+            return data.encode(locale.getpreferredencoding())
         try: rs = data.decode(self._fs_charset, "strict").encode("utf-8")
         except UnicodeError:
             log.err(_("%s has wrong character") %\
-                 data.decode(self._fs_charset, "replace").encode("utf-8"))
+              data.decode(self._fs_charset, "ignore").encode("utf-8","ignore"))
             raise UnicodeError
         return rs
 
