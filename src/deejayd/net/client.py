@@ -106,6 +106,28 @@ class DeejaydDvdInfo(DeejaydAnswer, deejayd.interfaces.DeejaydDvdInfo):
         DeejaydAnswer.__init__(self, server)
 
 
+class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
+
+    def __init__(self, server, name):
+        self.server = server
+        self.__pl_name = name
+
+    def get(self, first=0, length=-1):
+        cmd = DeejaydXMLCommand('staticPlaylistInfo')
+        cmd.add_simple_arg('name', self.__pl_name)
+        cmd.add_simple_arg('first', first)
+        if length != None:
+            cmd.add_simple_arg('length', length)
+        ans = DeejaydMediaList(self)
+        return self.server._send_command(cmd, ans)
+
+    def add_songs(self, paths):
+        cmd = DeejaydXMLCommand('staticPlaylistAdd')
+        cmd.add_simple_arg('name', self.__pl_name)
+        cmd.add_multiple_arg('path', paths)
+        return self.server._send_command(cmd)
+
+
 class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
 
     def __init__(self, server):
@@ -181,16 +203,13 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         return self.server._send_command(cmd)
 
 
-class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
+class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
 
-    def __init__(self, server, pl_name = None):
-        self.__pl_name = pl_name
+    def __init__(self, server):
         self.server = server
 
     def get(self, first = 0, length = None):
         cmd = DeejaydXMLCommand('playlistInfo')
-        if self.__pl_name != None:
-            cmd.add_simple_arg('name', self.__pl_name)
         cmd.add_simple_arg('first', first)
         if length != None:
             cmd.add_simple_arg('length', length)
@@ -199,7 +218,7 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
 
     def save(self, name):
         cmd = DeejaydXMLCommand('playlistSave')
-        cmd.add_simple_arg('name', name or self.__pl_name)
+        cmd.add_simple_arg('name', name)
         return self.server._send_command(cmd)
 
     def add_songs(self, paths, position = None):
@@ -207,8 +226,6 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
         cmd.add_multiple_arg('path', paths)
         if position != None:
             cmd.add_simple_arg('pos', position)
-        if self.__pl_name != None:
-            cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
 
     def loads(self, names, pos = None):
@@ -226,21 +243,15 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
 
     def shuffle(self):
         cmd = DeejaydXMLCommand('playlistShuffle')
-        if self.__pl_name != None:
-            cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
 
     def clear(self):
         cmd = DeejaydXMLCommand('playlistClear')
-        if self.__pl_name != None:
-            cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
 
     def del_songs(self, ids):
         cmd = DeejaydXMLCommand('playlistRemove')
         cmd.add_multiple_arg('id', ids)
-        if self.__pl_name != None:
-            cmd.add_simple_arg('name', self.__pl_name)
         return self.server._send_command(cmd)
 
 
@@ -370,8 +381,11 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         cmd = DeejaydXMLCommand(cmd_name)
         return self._send_command(cmd)
 
-    def get_playlist(self, name = None):
-        return DeejaydPlaylist(self,name)
+    def get_static_playlist(self, name):
+        return DeejaydStaticPlaylist(self, name)
+
+    def get_playlist(self):
+        return DeejaydPlaylistMode(self)
 
     def get_webradios(self):
         return DeejaydWebradioList(self)

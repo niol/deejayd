@@ -405,28 +405,81 @@ class VideoInfo(UnknownCommand):
 
 
 ###################################################
-#  Playlist Commands                              #
+#  Static Playlist Commands                       #
+###################################################
+
+class StaticPlaylistInfo(UnknownCommand):
+    """Return the content of a recorded static playlists."""
+    command_name = 'staticPlaylistInfo'
+    command_rvalue = 'MediaList'
+    command_args = [{"name":"name", "type":"string", "req":True},]
+
+    def _execute(self):
+        pls = self.deejayd_core.get_static_playlist(self.args["name"])
+        songs = pls.get(self.args["first"], self.args["length"], \
+                        objanswer=False)
+
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype("song")
+        rsp.set_medias(songs)
+        if self.args["length"] != -1: rsp.set_total_length(len(songs))
+        return rsp
+
+
+class StaticPlaylistAdd(UnknownCommand):
+    """Add songs in a recorded static playlists."""
+    command_name = 'staticPlaylistAdd'
+    command_args = [{"mult":True,"name":"path", "type":"string", "req":True},
+                    {"name":"name", "type":"string", "req":True},]
+
+    def _execute(self):
+        pls = self.deejayd_core.get_static_playlist(self.args["name"])
+        pls.add_songs(self.args["path"], objanswer=False)
+
+
+class PlaylistList(UnknownCommand):
+    """Return the list of recorded playlists."""
+    command_name = 'playlistList'
+    command_rvalue = 'MediaList'
+
+    def _execute(self):
+        pls = self.deejayd_core.get_playlist_list(objanswer=False)
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype('playlist')
+        rsp.set_medias(pls)
+        return rsp
+
+
+class PlaylistErase(UnknownCommand):
+    """Erase recorded playlists passed as arguments."""
+    command_name = 'playlistErase'
+    command_args = [{"mult":"true","name":"name", "type":"string", "req":True}]
+
+    def _execute(self):
+        self.deejayd_core.erase_playlist(self.args["name"], objanswer=False)
+
+
+###################################################
+#  Playlist Mode Commands                         #
 ###################################################
 
 class SimplePlaylistCommand(UnknownCommand):
     func_name = None
 
     def _execute(self):
-        pls = self.deejayd_core.get_playlist(self.args["name"])
+        pls = self.deejayd_core.get_playlist()
         getattr(pls, self.func_name)(objanswer=False)
 
 
 class PlaylistClear(SimplePlaylistCommand):
     """Clear the current playlist."""
     command_name = 'playlistClear'
-    command_args = [{"name":"name","type":"string","req":False,"default":None}]
     func_name = "clear"
 
 
 class PlaylistShuffle(SimplePlaylistCommand):
     """Shuffle the current playlist."""
     command_name = 'playlistShuffle'
-    command_args = [{"name":"name","type":"string","req":False,"default":None}]
     func_name = "shuffle"
 
 
@@ -451,26 +504,16 @@ class PlaylistLoad(UnknownCommand):
         pls.loads(self.args["name"], self.args["pos"], objanswer=False)
 
 
-class PlaylistErase(UnknownCommand):
-    """Erase playlists passed as arguments."""
-    command_name = 'playlistErase'
-    command_args = [{"mult":"true","name":"name", "type":"string", "req":True}]
-
-    def _execute(self):
-        self.deejayd_core.erase_playlist(self.args["name"], objanswer=False)
-
-
 class PlaylistAdd(UnknownCommand):
     """Load files or directories passed as arguments ("path") at the position
     "pos" in the playlist "name". If no playlist name is provided, adds files
     in the current playlist."""
     command_name = 'playlistAdd'
     command_args = [{"mult":True,"name":"path", "type":"string", "req":True},
-                    {"name":"pos", "type":"int", "req":False,"default":None},
-                    {"name":"name", "type":"string","req":False,"default":None}]
+                    {"name":"pos", "type":"int", "req":False,"default":None},]
 
     def _execute(self):
-        pls = self.deejayd_core.get_playlist(self.args["name"])
+        pls = self.deejayd_core.get_playlist()
         pls.add_songs(self.args["path"], self.args["pos"], objanswer=False)
 
 
@@ -478,13 +521,12 @@ class PlaylistInfo(UnknownCommand):
     """Return the content of the playlist "name". If no name is given, return
     the content of the current playlist."""
     command_name = 'playlistInfo'
-    command_args = [{"name":"name","type":"string","req":False,"default":None},\
-                    {"name":"first","type":"int","req":False,"default":0},\
+    command_args = [{"name":"first","type":"int","req":False,"default":0},\
                     {"name":"length","type":"int","req":False,"default":-1}]
     command_rvalue = 'MediaList'
 
     def _execute(self):
-        pls = self.deejayd_core.get_playlist(self.args["name"])
+        pls = self.deejayd_core.get_playlist()
         songs = pls.get(self.args["first"], self.args["length"], \
                         objanswer=False)
 
@@ -501,11 +543,10 @@ class PlaylistRemove(UnknownCommand):
     """Remove songs with ids passed as argument ("id"), from the playlist
     "name". If no name are given, remove songs from current playlist."""
     command_name = 'playlistRemove'
-    command_args = [{"mult":True, "name":"id", "type":"int", "req":True},
-                    {"name":"name","type":"string","req":False,"default":None}]
+    command_args = [{"mult":True, "name":"id", "type":"int", "req":True},]
 
     def _execute(self):
-        pls = self.deejayd_core.get_playlist(self.args["name"])
+        pls = self.deejayd_core.get_playlist()
         pls.del_songs(self.args['id'], objanswer=False)
 
 
@@ -518,19 +559,6 @@ class PlaylistMove(UnknownCommand):
     def _execute(self):
         pls = self.deejayd_core.get_playlist()
         pls.move(self.args['ids'], self.args['new_pos'], objanswer=False)
-
-
-class PlaylistList(UnknownCommand):
-    """Return the list of recorded playlists."""
-    command_name = 'playlistList'
-    command_rvalue = 'MediaList'
-
-    def _execute(self):
-        pls = self.deejayd_core.get_playlist_list(objanswer=False)
-        rsp = self.get_answer('MediaList')
-        rsp.set_mediatype('playlist')
-        rsp.set_medias(pls)
-        return rsp
 
 
 ###################################################

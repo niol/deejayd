@@ -355,20 +355,32 @@ class AudioSearch(_Library):
         self._answer.set_audiofile_list(files_list)
 
 #
-# Playlist commands
+# Static playlist commands
+#
+class StaticPlaylistAdd(_UnknownCommand):
+    name = "staticPlaylistAdd"
+    method = "post"
+    command_args = [{"name":"path","type":"string","req":True,"mult": True},\
+                    {"name":"plname","type":"string","req":True}]
+
+    def execute(self):
+        pls = self._deejayd.get_static_playlist(self._args["plname"])
+        pls.add_songs(self._args["path"]).get_contents()
+
+#
+# Playlist Mode commands
 #
 class PlaylistAdd(_UnknownCommand):
     name = "playlistAdd"
     method = "post"
     command_args = [{"name":"path","type":"string","req":True,"mult": True},\
-        {"name":"name","type":"string","req":False,"default":None},
         {"name":"pos","type":"int","req":False,"default":-1}]
 
     def execute(self):
         pos = int(self._args["pos"])
         if pos == -1: pos = None
 
-        pls = self._deejayd.get_playlist(self._args["name"])
+        pls = self._deejayd.get_playlist()
         pls.add_songs(self._args["path"],pos).get_contents()
 
 class PlaylistRemove(_UnknownCommand):
@@ -384,14 +396,13 @@ class PlaylistLoad(_UnknownCommand):
     name = "playlistLoad"
     method = "post"
     command_args = [{"name":"pls_name","type":"string","req":True,"mult":True},\
-        {"name":"name","type":"string","req":False,"default":None},
         {"name":"pos","type":"int","req":True}]
 
     def execute(self):
         pos = int(self._args["pos"])
         if pos == -1: pos = None
 
-        pls = self._deejayd.get_playlist(self._args["name"])
+        pls = self._deejayd.get_playlist()
         pls.loads(self._args["pls_name"],pos).get_contents()
 
 class PlaylistMove(_UnknownCommand):

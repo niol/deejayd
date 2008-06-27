@@ -22,8 +22,9 @@ import sys
 from optparse import OptionParser
 import socket
 
-from deejayd.net.client import DeejayDaemonSync, DeejaydError,\
-                               DeejaydWebradioList,DeejaydPlaylist,\
+from deejayd.net.client import DeejayDaemonSync,DeejaydError,\
+                               DeejaydStaticPlaylist,\
+                               DeejaydWebradioList,DeejaydPlaylistMode,\
                                DeejaydQueue,ConnectError
 
 class DjcError(Exception): pass
@@ -244,20 +245,16 @@ class AvailableCommands:
                 raise DjcError("song_id has to be an integer")
         DeejaydQueue(self.server).del_songs(ids).get_contents()
 
-# Playlist commands
-    def __get_pl_obj(self, args, arg_pos = 0):
-        try: pl_name = args[arg_pos]
-        except IndexError:
-            pl_name = None
-        return DeejaydPlaylist(self.server, pl_name)
-
-    def playlist_save(self, args):
-        """ Save current playlist
-            usage : djc playlist_save pl_name"""
+# Recorded Playlist commands
+    def static_playlist_info(self, args):
+        """ get content of a recorded static playlist
+            usage : djc static_playlist_info pl_name"""
         try: pl_name = args[0]
         except IndexError:
             raise DjcError('You have to enter a playlist name')
-        DeejaydPlaylist(self.server, None).save(pl_name).get_contents()
+        pls = self.server.get_static_playlist(pl_name)
+        for media in pls.get().get_medias():
+            print media["title"], '|', media["artist"], '|', media["album"]
 
     def playlist_erase(self, args):
         """ Erase a recorded playlist
@@ -273,60 +270,62 @@ class AvailableCommands:
         for media in contents.get_medias():
             print media["name"]
 
+# Playlist Mode commands
+    def playlist_save(self, args):
+        """ Save current playlist
+            usage : djc playlist_save pl_name"""
+        try: pl_name = args[0]
+        except IndexError:
+            raise DjcError('You have to enter a playlist name')
+        DeejaydPlaylistMode(self.server).save(pl_name).get_contents()
+
     def playlist_info(self, args):
-        """ Get playlist's content
-            ex: djc playlist_info pl_name
-            if no name has been entered, return content of the current pl"""
-        contents = self.__get_pl_obj(args).get()
-        for media in contents.get_medias():
+        """ Get current playlist's content
+            ex: djc playlist_info"""
+        for media in DeejaydPlaylistMode(self.server).get().get_medias():
             print media["pos"], '|', media["title"], '|', media["artist"], '|',\
                   media["album"], '|', media["id"]
 
     def playlist_clear(self, args):
-        """ clear playlist
-            ex: djc playlist_clear pl_name
+        """ clear current playlist
+            ex: djc playlist_clear
             if no name has been entered, clear the current pl"""
-        self.__get_pl_obj(args).clear().get_contents()
+        DeejaydPlaylistMode(self.server).clear().get_contents()
 
     def playlist_shuffle(self, args):
-        """ shuffle playlist
-            ex: djc playlist_shuffle pl_name
-            if no name has been entered, shuffle the current pl"""
-        self.__get_pl_obj(args).shuffle().get_contents()
+        """ shuffle current playlist
+            ex: djc playlist_shuffle"""
+        DeejaydPlaylistMode(self.server).shuffle().get_contents()
 
     def playlist_add(self, args):
-        """ add dirs/files to playlist
-            ex: djc playlist_add dir1,dir2 pl_name
-            if no pl_name has been entered, add to the current pl"""
+        """ add dirs/files to current playlist
+            ex: djc playlist_add dir1,dir2"""
         try: item = args[0]
         except IndexError:
             raise DjcError('You have to enter dirs/files')
-        else: items = item.split(",")
-        self.__get_pl_obj(args, 1).add_songs(items).get_contents()
+        items = item.split(",")
+        DeejaydPlaylistMode(self.server).add_songs(items).get_contents()
 
     def playlist_load(self, args):
-        """ load playlist in the main playlist
+        """ load playlist in the current playlist
             ex: djc playlist_load playlist1,playlist2"""
         try: playlist = args[0]
         except IndexError:
             raise DjcError('You have to enter playlist names')
-        else: playlists = playlist.split(",")
-        pls_obj = DeejaydPlaylist(self.server)
-        pls_obj.loads(playlists).get_contents()
+        playlists = playlist.split(",")
+        DeejaydPlaylistMode(self.server).loads(playlists).get_contents()
 
     def playlist_remove(self, args):
-        """ remove songs from playlist
-            ex: djc playlist_remove song_id1,song_id2 pl_name
-            if no pl_name has been entered, remove from the current pl"""
+        """ remove songs from current playlist
+            ex: djc playlist_remove song_id1,song_id2"""
         try: item = args[0]
         except IndexError:
             raise DjcError('Enter song_id please')
-        else:
-            ids = item.split(",")
-            try: ids = [int(id) for id in ids]
-            except ValueError:
-                raise DjcError("song_id has to be an integer")
-        self.__get_pl_obj(args, 1).del_songs(ids).get_contents()
+        ids = item.split(",")
+        try: ids = [int(id) for id in ids]
+        except ValueError:
+            raise DjcError("song_id has to be an integer")
+        DeejaydPlaylistMode(self.server).del_songs(ids).get_contents()
 
 # Webradio commands
     def webradio_list(self, args):

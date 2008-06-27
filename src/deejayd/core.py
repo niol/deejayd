@@ -92,6 +92,34 @@ def returns_deejaydanswer(answer_class):
     return returns_deejaydanswer_instance
 
 
+class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
+
+    def __init__(self, deejaydcore, name):
+        self.db, self.library = deejaydcore.db, deejaydcore.audio_library
+        self.name = name
+        self.pl_id = self.db.is_static_medialist_exists(name)
+        if not self.pl_id:
+            raise DeejaydError(_("Playlist %s not found.") % self.name)
+
+    @returns_deejaydanswer(DeejaydMediaList)
+    def get(self, first=0, length=-1):
+        songs = self.db.get_static_medialist(self.name,\
+            infos = self.library.media_attr)
+        last = length == -1 and len(songs) or int(first) + int(length)
+        return songs[int(first):last]
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def add_songs(self, paths):
+        ids = []
+        for path in paths:
+            try: medias = self.library.get_all_files(path)
+            except deejayd.mediadb.library.NotFoundException:
+                raise DeejaydError(_('Path %s not found in library') % path)
+            for m in medias: ids.append(m["media_id"])
+        self.db.add_to_static_medialist(self.pl_id, ids)
+        self.db.connection.commit()
+
+
 class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
 
     def __init__(self, deejaydcore):
@@ -170,39 +198,32 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
             raise DeejaydError(str(ex))
 
 
-class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
+class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
+    """Audio playlist mode."""
 
-    def __init__(self, deejaydcore, name=None):
+    def __init__(self, deejaydcore):
         self.deejaydcore = deejaydcore
         self.source = self.deejaydcore.sources.get_source("playlist")
-        self.name = name
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first=0, length=-1):
-        try: songs = self.source.get_content(playlist = self.name)
-        except deejayd.sources._base.SourceError, ex:
-            raise DeejaydError(str(ex))
-        else:
-            last = length == -1 and len(songs) or int(first) + int(length)
-            return songs[int(first):last]
+        songs = self.source.get_content()
+        last = length == -1 and len(songs) or int(first) + int(length)
+        return songs[int(first):last]
 
     @returns_deejaydanswer(DeejaydAnswer)
     def save(self, name):
-        if self.name is not None:
-            raise DeejaydError(_("You can not save a recorded playlist"))
         self.source.save(name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_songs(self, paths, position=None):
         p = position and int(position) or None
-        try: self.source.add_path(paths, playlist = self.name, pos = p)
+        try: self.source.add_path(paths, pos = p)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def loads(self, names, pos=None):
-        if self.name is not None:
-            raise DeejaydError(_('Unable to load pls in a saved pls.'))
         pos = pos and int(pos) or None
         try: self.source.load_playlist(names, pos)
         except deejayd.sources._base.SourceError, ex:
@@ -211,32 +232,32 @@ class DeejaydPlaylist(deejayd.interfaces.DeejaydPlaylist):
     @returns_deejaydanswer(DeejaydAnswer)
     def move(self, ids, new_pos):
         ids = [int(id) for id in ids]
-        try: self.source.move(ids, int(new_pos), playlist = self.name)
+        try: self.source.move(ids, int(new_pos))
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def shuffle(self):
-        try: self.source.shuffle(playlist = self.name)
+        try: self.source.shuffle()
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def clear(self):
-        try: self.source.clear(playlist = self.name)
+        try: self.source.clear()
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def del_songs(self, ids):
         ids = [int(id) for id in ids]
-        try: self.source.delete(ids, playlist = self.name)
+        try: self.source.delete(ids)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
 
-class DeejaydVideo:
-    """Video management."""
+class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
+    """Video mode."""
 
     def __init__(self, deejaydcore):
         self.deejaydcore = deejaydcore
@@ -332,10 +353,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         return medias
 
     @require_mode("playlist")
-    def get_playlist(self, name=None):
-        pls = DeejaydPlaylist(self, name)
-        pls.get()
-        return pls
+    def get_playlist(self):
+        return DeejaydPlaylistMode(self)
 
     @require_mode("webradio")
     def get_webradios(self):
@@ -421,19 +440,19 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             raise DeejaydError(_("Video mode disabled"))
         return {'video_updating_db': self.video_library.update(sync)}
 
-    @require_mode("playlist")
+    def get_static_playlist(self, name):
+        return DeejaydStaticPlaylist(self, name)
+
     @returns_deejaydanswer(DeejaydAnswer)
     def erase_playlist(self, names):
         for name in names:
-            self.sources.get_source("playlist").rm(name)
+            self.db.delete_static_medialist(name)
+            self._dispatch_signame('playlist.update')
 
-    @require_mode("playlist")
     @returns_deejaydanswer(DeejaydMediaList)
     def get_playlist_list(self):
-        plname_list = []
-        for plname in self.sources.get_source('playlist').get_list():
-            plname_list.append({'name': plname})
-        return plname_list
+        return [{"name": pl} for (pl,) in self.db.get_medialist_list() if not \
+            pl.startswith("__") or not pl.endswith("__")]
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_media_rating(self, media_ids, rating, type = "audio"):

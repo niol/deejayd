@@ -32,7 +32,7 @@ class DeejaydError(Exception):
             return str(self.message)
 
 
-class DeejaydAnswer:
+class DeejaydAnswer(object):
     """General purpose core answer container."""
 
     def __init__(self):
@@ -145,7 +145,20 @@ class DeejaydDvdInfo(DeejaydAnswer):
         return self.dvd_content
 
 
-class DeejaydWebradioList:
+class DeejaydStaticPlaylist(object):
+    """ Static playlist object """
+
+    def get(self, first=0, length=-1):
+        raise NotImplementedError
+
+    def add_song(self, path):
+        return self.add_songs([path])
+
+    def add_songs(self, paths):
+        raise NotImplementedError
+
+
+class DeejaydWebradioList(object):
     """Webradio list management."""
 
     def get(self, first = 0, length = None):
@@ -164,7 +177,7 @@ class DeejaydWebradioList:
         raise NotImplementedError
 
 
-class DeejaydQueue:
+class DeejaydQueue(object):
     """Queue management."""
 
     def get(self, first = 0, length = None):
@@ -195,7 +208,7 @@ class DeejaydQueue:
         raise NotImplementedError
 
 
-class DeejaydPlaylist:
+class DeejaydPlaylistMode(object):
 
     def get(self, first = 0, length = None):
         raise NotImplementedError
@@ -231,7 +244,7 @@ class DeejaydPlaylist:
         raise NotImplementedError
 
 
-class DeejaydVideo:
+class DeejaydVideo(object):
     """Video management."""
 
     def get(self, first = 0, length = None):
@@ -241,7 +254,7 @@ class DeejaydVideo:
         raise NotImplementedError
 
 
-class DeejaydSignal:
+class DeejaydSignal(object):
 
     SIGNALS = ('player.status',       # Player status change (play/pause/stop/
                                       # random/repeat/volume/manseek)
@@ -269,7 +282,7 @@ class DeejaydSignal:
         return self.name
 
 
-class DeejaydCore:
+class DeejaydCore(object):
     """Abstract class for a deejayd core."""
 
     def __init__(self):
@@ -326,13 +339,16 @@ class DeejaydCore:
     def update_video_library(self):
         raise NotImplementedError
 
+    def get_static_playlist(self, name):
+        raise NotImplementedError
+
     def erase_playlist(self, names):
         raise NotImplementedError
 
     def get_playlist_list(self):
         raise NotImplementedError
 
-    def get_playlist(self, name=None):
+    def get_playlist(self):
         raise NotImplementedError
 
     def get_webradios(self):

@@ -26,20 +26,6 @@ class QueueSource(_BaseAudioLibSource):
     available_playorder = ("inorder", "random")
     has_repeat = False
 
-    def add_path(self, paths, pos = None):
-        _BaseAudioLibSource.add_path(self, paths, pos)
-        self.dispatch_signame(self.source_signal)
-
-    def delete(self, ids):
-        _BaseAudioLibSource.delete(self, ids)
-        self.dispatch_signame(self.source_signal)
-
-    def move(self, ids, new_pos):
-        if not self._media_list.move(ids, new_pos):
-            raise SourceError(_("Unable to move selected medias"))
-        self._media_list.reload_item_pos(self._current)
-        self.dispatch_signame(self.source_signal)
-
     def go_to(self, nb, type = "id"):
         self._current = super(QueueSource, self).go_to(nb, type)
         if self._current != None:

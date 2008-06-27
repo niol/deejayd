@@ -101,8 +101,8 @@ var FileList = function()
 
     this.addToPlaylist = function(name)
     {
-        ajaxdj_ref.send_post_command('playlistAdd&name='+urlencode(name),
-            {path: this.getSelectedItems("file-content")});
+        ajaxdj_ref.send_post_command('staticPlaylistAdd',
+            {plname: name, path: this.getSelectedItems("file-content")});
     };
 
     /*************************************/

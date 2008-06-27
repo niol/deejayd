@@ -330,6 +330,20 @@ class DatabaseQueries(object):
     #
     # static medialist requests
     #
+    @query_decorator("custom")
+    def is_static_medialist_exists(self, cursor, name):
+        query = "SELECT id FROM medialist m\
+                    WHERE m.name = %s AND m.type = 'static'"
+        cursor.execute(query,(name,))
+        rs = cursor.fetchone()
+        return rs and rs[0]
+
+    @query_decorator("none")
+    def add_to_static_medialist(self, cursor, pl_id, media_ids):
+        query = "INSERT INTO medialist_libraryitem\
+            ('medialist_id','libraryitem_id') VALUES(%s,%s)"
+        cursor.executemany(query, [(pl_id, mid) for mid in media_ids])
+
     @query_decorator("medialist")
     def get_static_medialist(self, cursor, name, infos = []):
         selectquery, joinquery = self._build_media_query(infos)

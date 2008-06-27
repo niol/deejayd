@@ -190,4 +190,19 @@ class _BaseAudioLibSource(_BaseLibrarySource):
         if pos: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)
 
+    def move(self, ids, new_pos):
+        if not self._media_list.move(ids, new_pos):
+            raise SourceError(_("Unable to move selected medias"))
+        self._media_list.reload_item_pos(self._current)
+        self.dispatch_signame(self.source_signal)
+
+    def delete(self, ids):
+        super(_BaseAudioLibSource, self).delete(ids)
+        self.dispatch_signame(self.source_signal)
+
+    def clear(self):
+        self._current = None
+        self._media_list.clear()
+        self.dispatch_signame(self.__class__.source_signal)
+
 # vim: ts=4 sw=4 expandtab
