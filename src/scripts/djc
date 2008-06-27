@@ -268,7 +268,7 @@ class AvailableCommands:
         """ Return list of recorded playlist """
         contents = self.server.get_playlist_list()
         for media in contents.get_medias():
-            print media["name"]
+            print "%s : %d songs" % (media["name"], int(media["length"]))
 
 # Playlist Mode commands
     def playlist_save(self, args):

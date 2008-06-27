@@ -451,7 +451,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get_playlist_list(self):
-        return [{"name": pl} for (pl,) in self.db.get_medialist_list() if not \
+        return [{"name": pl, "length":len, "type":"static"}\
+            for (pl, len) in self.db.get_medialist_list() if not \
             pl.startswith("__") or not pl.endswith("__")]
 
     @returns_deejaydanswer(DeejaydAnswer)

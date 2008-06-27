@@ -393,7 +393,9 @@ class DatabaseQueries(object):
 
     @query_decorator("fetchall")
     def get_medialist_list(self, cursor, type = 'static'):
-        query = "SELECT DISTINCT name FROM medialist WHERE type = %s"
+        query = "SELECT m.name, COUNT(mi.position)\
+            FROM medialist m JOIN medialist_libraryitem mi\
+                ON m.id = mi.medialist_id WHERE m.type = %s GROUP BY m.name"
         cursor.execute(query, (type,))
 
     #

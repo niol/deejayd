@@ -363,6 +363,10 @@ class StaticPlaylistAdd(_UnknownCommand):
     command_args = [{"name":"path","type":"string","req":True,"mult": True},\
                     {"name":"plname","type":"string","req":True}]
 
+    def default_result(self):
+        pls_list = self._deejayd.get_playlist_list()
+        self._answer.set_playlist_list(pls_list.get_medias())
+
     def execute(self):
         pls = self._deejayd.get_static_playlist(self._args["plname"])
         pls.add_songs(self._args["path"]).get_contents()

@@ -113,7 +113,7 @@ var FileList = function()
         var Items = playlistList.getElementsByTagName("item");
         this.playlistList = new Array();
         for (var i=0;item=Items[i];i++)
-            this.playlistList.push(item.firstChild.data);
+            this.playlistList.push(item.getAttribute("name"));
 
         // Update fileList Menu
         var menu = $('fileaddplaylist-menu');

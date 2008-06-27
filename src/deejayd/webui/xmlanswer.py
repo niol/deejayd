@@ -441,8 +441,10 @@ class DeejaydWebAnswer(_DeejaydXML):
     def set_playlist_list(self, playlist_list):
         list_elm = ET.SubElement(self.xmlroot, "playlist-list")
         for pls in playlist_list:
-            it = ET.SubElement(list_elm,"item", type = "playlist")
-            it.text = self._to_xml_string(pls["name"])
+            it = ET.SubElement(list_elm,"item",\
+                name=self._to_xml_string(pls["name"]), type="playlist")
+            desc = _("%s (%d Songs)") % (pls["name"], int(pls["length"]))
+            it.text = self._to_xml_string(desc)
 
     def set_player(self, status, cur_media):
         # Update player informations
