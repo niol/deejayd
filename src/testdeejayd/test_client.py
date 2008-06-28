@@ -24,8 +24,7 @@ from testdeejayd import TestCaseWithAudioAndVideoData
 from testdeejayd.server import TestServer
 from testdeejayd.coreinterface import InterfaceTests, InterfaceSubscribeTests
 from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, \
-                               DeejaydError, DeejaydPlaylist,\
-                               DeejaydWebradioList
+                               DeejaydError, DeejaydWebradioList
 
 
 class TestSyncClient(TestCaseWithAudioAndVideoData, InterfaceTests):
@@ -119,7 +118,7 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData, InterfaceSubscribeTests):
             cb_called.set()
             self.pl = answer.get_medias()
 
-        djpl = DeejaydPlaylist(self.deejayd)
+        djpl = self.deejayd.get_playlist()
         djpl.get().add_callback(tcb)
 
         cb_called.wait(4)

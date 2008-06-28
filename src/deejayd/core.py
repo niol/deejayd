@@ -95,6 +95,7 @@ def returns_deejaydanswer(answer_class):
 class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
 
     def __init__(self, deejaydcore, name):
+        self.deejaydcore = deejaydcore
         self.db, self.library = deejaydcore.db, deejaydcore.audio_library
         self.name = name
         self.pl_id = self.db.is_static_medialist_exists(name)
@@ -114,10 +115,13 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
         for path in paths:
             try: medias = self.library.get_all_files(path)
             except deejayd.mediadb.library.NotFoundException:
-                raise DeejaydError(_('Path %s not found in library') % path)
+                try: medias = self.library.get_file(path)
+                except NotFoundException:
+                    raise DeejaydError(_('Path %s not found in library') % path)
             for m in medias: ids.append(m["media_id"])
         self.db.add_to_static_medialist(self.pl_id, ids)
         self.db.connection.commit()
+        self.deejaydcore._dispatch_signame('playlist.update')
 
 
 class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):

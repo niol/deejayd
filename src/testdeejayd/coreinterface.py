@@ -89,7 +89,7 @@ class InterfaceTests:
         self.failUnless(djplname in [p["name"] for p in retrievedPls])
 
         # Retrieve the saved playlist
-        djpl = self.deejayd.get_playlist(djplname)
+        djpl = self.deejayd.get_static_playlist(djplname)
         retrievedPl = djpl.get().get_medias()
         for song_nb in range(len(pl)):
             self.assertEqual(pl[song_nb], retrievedPl[song_nb]['uri'])
@@ -104,6 +104,9 @@ class InterfaceTests:
 
         content = djpl.get().get_medias()
         song = self.testdata.getRandomElement(content)
+        # shuffle the playlist
+        ans = djpl.shuffle()
+        self.failUnless(ans.get_contents())
         # move this song
         ans = djpl.move([song["id"]], 1)
         self.failUnless(ans.get_contents())
@@ -126,15 +129,12 @@ class InterfaceTests:
         self.failUnless(ans.get_contents())
 
         # add songs in the saved playlist
-        savedpl = self.deejayd.get_playlist(djplname)
+        savedpl = self.deejayd.get_static_playlist(djplname)
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
             ans = savedpl.add_song(songPath)
             self.failUnless(ans.get_contents())
         content = savedpl.get().get_medias()
         self.assertEqual(len(content), howManySongs*2)
-        # shuffle
-        ans = savedpl.shuffle()
-        self.failUnless(ans.get_contents())
 
     def testWebradioAddRetrieve(self):
         """Save a webradio and check it is in the list, then delete it."""
@@ -486,15 +486,17 @@ class InterfaceSubscribeTests:
         djpl.add_songs([dir]).get_contents()
 
         test_pl_name = self.testdata.getRandomString()
+        test_pl_name2 = self.testdata.getRandomString()
 
         self.generic_sub_bcast_test('playlist.update',
                                     djpl.save, (test_pl_name, ))
 
-        saved_djpl = self.deejayd.get_playlist(test_pl_name)
+        saved_djpl = self.deejayd.get_static_playlist(test_pl_name)
 
-        trigger_list = ((saved_djpl.shuffle, ()),
-                        (saved_djpl.clear, ()),
+        trigger_list = (
+                        (saved_djpl.add_song, (dir,)),
                         (self.deejayd.erase_playlist, ([test_pl_name], )),
+                        (djpl.save, (test_pl_name2,)),
                        )
 
         for trig in trigger_list:
