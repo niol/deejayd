@@ -506,8 +506,7 @@ class PlaylistLoad(UnknownCommand):
 
 class PlaylistAdd(UnknownCommand):
     """Load files or directories passed as arguments ("path") at the position
-    "pos" in the playlist "name". If no playlist name is provided, adds files
-    in the current playlist."""
+    "pos" in the current playlist."""
     command_name = 'playlistAdd'
     command_args = [{"mult":True,"name":"path", "type":"string", "req":True},
                     {"name":"pos", "type":"int", "req":False,"default":None},]
@@ -518,8 +517,7 @@ class PlaylistAdd(UnknownCommand):
 
 
 class PlaylistInfo(UnknownCommand):
-    """Return the content of the playlist "name". If no name is given, return
-    the content of the current playlist."""
+    """Return the content of the current playlist."""
     command_name = 'playlistInfo'
     command_args = [{"name":"first","type":"int","req":False,"default":0},\
                     {"name":"length","type":"int","req":False,"default":-1}]
@@ -540,8 +538,8 @@ class PlaylistInfo(UnknownCommand):
 
 
 class PlaylistRemove(UnknownCommand):
-    """Remove songs with ids passed as argument ("id"), from the playlist
-    "name". If no name are given, remove songs from current playlist."""
+    """Remove songs with ids passed as argument ("id"),
+       from the current playlist"""
     command_name = 'playlistRemove'
     command_args = [{"mult":True, "name":"id", "type":"int", "req":True},]
 

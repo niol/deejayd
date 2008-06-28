@@ -421,13 +421,30 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== `playlistInfo` ===
+=== `staticPlaylistInfo` ===
 
-Return the content of the playlist "name". If no name is given, return
-    the content of the current playlist.
+Return the content of a recorded static playlists.
 
 Arguments :
-  * {{{name}}} (Simple and Optional) : string
+  * {{{name}}} (Simple and Mandatory) : string
+
+Expected return value : ''`MediaList`''
+
+=== `staticPlaylistAdd` ===
+
+Add songs in a recorded static playlists.
+
+Arguments :
+  * {{{path}}} (Multiple and Mandatory) : string
+  * {{{name}}} (Simple and Mandatory) : string
+
+Expected return value : ''`Ack`''
+
+=== `playlistInfo` ===
+
+Return the content of the current playlist.
+
+Arguments :
   * {{{first}}} (Simple and Optional) : int
   * {{{length}}} (Simple and Optional) : int
 
@@ -445,24 +462,21 @@ Expected return value : ''`MediaList`''
 === `playlistAdd` ===
 
 Load files or directories passed as arguments ("path") at the position
-    "pos" in the playlist "name". If no playlist name is provided, adds files
-    in the current playlist.
+    "pos" in the current playlist.
 
 Arguments :
   * {{{path}}} (Multiple and Mandatory) : string
   * {{{pos}}} (Simple and Optional) : int
-  * {{{name}}} (Simple and Optional) : string
 
 Expected return value : ''`Ack`''
 
 === `playlistRemove` ===
 
-Remove songs with ids passed as argument ("id"), from the playlist
-    "name". If no name are given, remove songs from current playlist.
+Remove songs with ids passed as argument ("id"),
+       from the current playlist
 
 Arguments :
   * {{{id}}} (Multiple and Mandatory) : int
-  * {{{name}}} (Simple and Optional) : string
 
 Expected return value : ''`Ack`''
 
@@ -471,7 +485,7 @@ Expected return value : ''`Ack`''
 Clear the current playlist.
 
 Arguments :
-  * {{{name}}} (Simple and Optional) : string
+  * ''This command does not accept any argument.''
 
 Expected return value : ''`Ack`''
 
@@ -490,13 +504,13 @@ Expected return value : ''`Ack`''
 Shuffle the current playlist.
 
 Arguments :
-  * {{{name}}} (Simple and Optional) : string
+  * ''This command does not accept any argument.''
 
 Expected return value : ''`Ack`''
 
 === `playlistErase` ===
 
-Erase playlists passed as arguments.
+Erase recorded playlists passed as arguments.
 
 Arguments :
   * {{{name}}} (Multiple and Mandatory) : string
