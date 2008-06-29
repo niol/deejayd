@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from os import path
 from ConfigParser import NoOptionError
 from deejayd.ui import log
 from deejayd.database.queries import DatabaseQueries
@@ -84,7 +85,7 @@ def init(config):
                 except ImportError:
                     err = _("Unable to upgrade database, have to quit")
                     log.err(err, True)
-                up.upgrade(cursor)
+                up.upgrade(cursor, backend, config)
                 i += 1
             connection.commit()
 

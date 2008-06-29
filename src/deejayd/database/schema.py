@@ -143,7 +143,7 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('video-repeat','0');",
     "INSERT INTO variables VALUES('queueid','1');",
     "INSERT INTO variables VALUES('playlistid','1');",
-    "INSERT INTO variables VALUES('songlistid','1');",
+    "INSERT INTO variables VALUES('panelid','1');",
     "INSERT INTO variables VALUES('webradioid','1');",
     "INSERT INTO variables VALUES('dvdid','1');",
     "INSERT INTO variables VALUES('videoid','1');",

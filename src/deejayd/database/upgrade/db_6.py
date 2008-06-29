@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-def upgrade(cursor):
+def upgrade(cursor, backend, config):
     sql = [
         "DELETE FROM variables WHERE name = 'currentPos';",
         "INSERT INTO variables VALUES('current','-1');",
