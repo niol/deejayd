@@ -77,7 +77,7 @@ and docbook-xsl in your Build-Depends control field.
     <title>DESCRIPTION</title>
 
     <para>This manual page documents briefly the
-      <command>&dhpackage;</command>.</para>
+      <command>&dhpackage;</command> command.</para>
 
     <para>This manual page was written for the &debian; distribution
       because the original program does not have a manual page.</para>
