@@ -1,4 +1,1 @@
-doc/deejayd_xml_protocol
-README
-NEWS
-scripts/deejayd_rgscan
+debian/tmp/usr/share/doc/deejayd/*
