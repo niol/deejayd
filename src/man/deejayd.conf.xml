@@ -1,0 +1,484 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+
+<!ENTITY % deejaydent SYSTEM "deejayd.ent">
+%deejaydent;
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Alexandre</firstname>">
+  <!ENTITY dhsurname   "<surname>Rossi</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>June, 30th 2008</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>5</manvolnum>">
+  <!ENTITY dhemail     "<email>alexandre.rossi@gmail.com</email>">
+  <!ENTITY dhusername  "Alexandre Rossi">
+  <!ENTITY dhucpackage "<refentrytitle>DEEJAYD.CONF</refentrytitle>">
+  <!ENTITY dhpackage   "deejayd.conf">
+
+  <!ENTITY debian      "<productname>Debian</productname>">
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+  <!ENTITY gpl         "&gnu; <acronym>GPL</acronym>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      &dhemail;
+    </address>
+    <copyright>
+      <year>2008</year>
+      <holder>&dhusername;</holder>
+    </copyright>
+    &dhdate;
+  </refentryinfo>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+    <refpurpose>Site-wide configuration file for deejayd,
+                a media player daemon.</refpurpose>
+  </refnamediv>
+
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para>The file <filename>/etc/deejayd.conf</filename> is an INI like file
+    which configures <literal>deejayd</literal>. The format looks like this :
+    </para>
+
+<informalexample><programlisting>
+[sectionname]
+variable = value
+othervariable = othervalue
+
+[othersection]
+foo = bar
+</programlisting></informalexample>
+
+  </refsect1>
+  <refsect1>
+    <title>general section</title>
+
+    <para>This section defines the <parameter>general</parameter> section
+    configuration values for all of deejayd components.</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>log</term>
+        <listitem>
+          <para>Log level. Possible values are
+            <parameter>error</parameter> to log only errors,
+            <parameter>info</parameter> to be more verbose and
+            <parameter>debug</parameter> to log all messages.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>activated_modes</term>
+        <listitem>
+          <para>Modes enabled. Available modes are :
+            <parameter>playlist</parameter> for audio playlists,
+            <parameter>webradio</parameter> for streamed webradios,
+            <parameter>video</parameter> for video directories playback,
+            <parameter>dvd</parameter> for DVD playback.
+            As an example :
+          </para>
+<informalexample><programlisting>
+activated_modes = playlist, webradio, video
+</programlisting></informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>fullscreen</term>
+        <listitem>
+          <para>Fullscreen video. This is mainly a debugging configuration
+          value and you want this to be set to <parameter>yes</parameter> if
+          you use the video mode. Set this to <parameter>no</parameter> if you
+          want to be able to control deejayd using some graphical client on
+          the same display.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>replaygain</term>
+        <listitem>
+          <para>Replaygain support, <parameter>yes</parameter> or
+           <parameter>no</parameter>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>media_backend</term>
+        <listitem>
+          <para>The chosen media backend. Possible values are :
+            <parameter>auto</parameter> for whichever works, trying first with
+            Xine,
+            <parameter>xine</parameter> for the Xine backend,
+            <parameter>gstreamer</parameter> for the GStreamer backend.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+    <title>net section</title>
+
+    <para>This section defines the <parameter>net</parameter> section
+    configuration values. This defines all that relates to the TCP XML
+    messaging interface to deejayd.</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>enabled</term>
+        <listitem>
+          <para>Remote control using XML messages, <parameter>yes</parameter>
+          or <parameter>no</parameter>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>port</term>
+        <listitem>
+          <para>The numerical TCP port number to listen on for XML messages,
+          <parameter>yes</parameter> or <parameter>no</parameter>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>bind_addresses</term>
+        <listitem>
+          <para>The hostname(s), the IP address(es) of the network ipv4
+          interface to listen on for XML messages, or
+          <parameter>all</parameter> to listen on all available interfaces.
+          </para>
+<informalexample><programlisting>
+bind_addresses = localhost, 192.168.51.1, 10.2.3.4
+</programlisting></informalexample>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>webui section</title>
+
+    <para>This section defines the <parameter>webui</parameter> section
+    configuration values. This defines all that relates to the HTTP web user
+    interface to deejayd.</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>enabled</term>
+        <listitem>
+          <para>Remote control using the HTTP web ui, <parameter>yes</parameter>
+          or <parameter>no</parameter>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>port</term>
+        <listitem>
+          <para>The numerical TCP port number to listen on for HTTP request.
+          <parameter>yes</parameter> or <parameter>no</parameter>. You can then
+          access the web ui by pointing your browser to
+          <filename>http://deejayd-host:port/</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>bind_addresses</term>
+        <listitem>
+          <para>The hostname(s), the IP address(es) of the network ipv4
+          interface to listen on for HTTP requests, or
+          <parameter>all</parameter> to listen on all available interfaces.
+          </para>
+<informalexample><programlisting>
+bind_addresses = 192.168.51.2, 10.0.0.3
+</programlisting></informalexample>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>htdocs_dir</term>
+        <listitem>
+          <para>The path to the directory which contains the static files
+          used by the webui. You obviously do not want to change this as those
+          files should have come with your distribution. But these should be
+          changed for a local (i.e. without appropriate packaging)
+          installation. This should probably be autodetected.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>rdf_dir</term>
+        <listitem>
+          <para>This is a temporary directory used by the deejayd webui for
+          caching. It should probably be located in <filename>/tmp</filename>.
+          The only use case which would involve changing this would be for
+          running multiple deejayd daemons running on the same host (with both
+          webuis enabled).
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>refresh</term>
+        <listitem>
+          <para>Automatic refreshing time for the webui (in seconds). This is
+          the delay after which your browser will be asked to reload the web ui
+          state (song position, current song, etc). Set to
+          <parameter>0</parameter> to disable this automatic reloading.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>database section</title>
+
+    <para>This section defines the <parameter>database</parameter> section
+    configuration values. This defines all that relates to the internal media
+    database used by deejayd.</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>db_type</term>
+        <listitem>
+          <para>Database backend used, among <parameter>sqlite</parameter>
+          and <parameter>mysql</parameter>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>db_name</term>
+        <listitem>
+          <para>(SQLite only) The full path to the sqlite database file.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>db_user</term>
+        <listitem>
+          <para>(MySQL only) The username to use to connect to the database.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>db_password</term>
+        <listitem>
+          <para>(MySQL only) The password to use to connect to the database.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>db_host</term>
+        <listitem>
+          <para>(MySQL only) The host to try to connect to to reach the
+          database.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>db_port</term>
+        <listitem>
+          <para>(MySQL only) The port to try to connect to to reach the
+          database. Usually <parameter>3306</parameter>.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>mediadb section</title>
+
+    <para>This section defines the <parameter>mediadb</parameter> section
+    configuration values. This defines all that relates to the relationship
+    between you media files and deejayd and its database.</para>
+
+    <para>Symlinked directories in both audio and video locations will be
+    followed and watched if <literal>inotify</literal> is supported.</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>music_directory</term>
+        <listitem>
+          <para>The full path to the directory holding you music files.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>video_directory</term>
+        <listitem>
+          <para>The full path to the directory holding you video files.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>filesystem_charset</term>
+        <listitem>
+          <para>The character set to use to decode your filenames. This should
+          probably be autodetected.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>gstreamer section</title>
+
+    <para>This section defines the <parameter>gstreamer</parameter> section
+    configuration values. Those options are specific to the GStreamer backend.
+    </para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>audio_output</term>
+        <listitem>
+          <para>The output device to use. This is usually one among
+            <parameter>auto</parameter>,
+            <parameter>alsa</parameter>,
+            <parameter>oss</parameter>,
+            <parameter>esd</parameter>, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>alsa_card</term>
+        <listitem>
+          <para>Optionnaly, the alsa card to output to,
+          e.g. <parameter>hw:2</parameter>.
+          This is usefull if you have more than one soundcard.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>video_output</term>
+        <listitem>
+          <para>The video driver to use. This is usually one among
+            <parameter>auto</parameter>,
+            <parameter>xv</parameter>,
+            <parameter>x</parameter>, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>xine section</title>
+
+    <para>This section defines the <parameter>xine</parameter> section
+    configuration values. Those options are specific to the Xine backend.
+    </para>
+
+    <para>The Xine backend may be customised even more using de Xine
+    configuration file used by deejayd. This is usually
+    <filename>~/.xine/config</filename>, <parameter>~</parameter> being
+    to home directory of the user running deejayd. This should change to be
+    <filename>/etc</filename>.
+    </para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>audio_output</term>
+        <listitem>
+          <para>The output device to use. This is usually one among
+            <parameter>auto</parameter>,
+            <parameter>alsa</parameter>,
+            <parameter>oss</parameter>, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>video_output</term>
+        <listitem>
+          <para>The video driver to use. This is usually one among
+            <parameter>auto</parameter>,
+            <parameter>xv</parameter>,
+            <parameter>x</parameter>, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>video_display</term>
+        <listitem>
+          <para>The X display to play the video to.
+          Usually <parameter>:0.0</parameter>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>osd_support</term>
+        <listitem>
+          <para>On-screen display enabled <parameter>yes</parameter> or
+          <parameter>no</parameter>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>osd_font_size</term>
+        <listitem>
+          <para>The On-screen display font size, an integer.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>&deejayd;.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>AUTHOR</title>
+
+    <para>This manual page was written by &dhusername; &dhemail; for
+      the &debian; system (but may be used by others).  Permission is
+      granted to copy, distribute and/or modify this document under
+      the terms of the &gnu; General Public License, Version 2 any
+	  later version published by the Free Software Foundation.
+    </para>
+	<para>
+	  On Debian systems, the complete text of the GNU General Public
+	  License can be found in /usr/share/common-licenses/GPL.
+	</para>
+
+  </refsect1>
+</refentry>

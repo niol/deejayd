@@ -40,7 +40,7 @@ clean:
 	rm -f $(CURDIR)/deejayd/__init__.pyc
 	rm -f $(CURDIR)/build/mo/fr/LC_MESSAGES/deejayd.mo
 	rm -f $(CURDIR)/MANIFEST
-	rm -f $(CURDIR)/man/*.1
+	rm -f $(CURDIR)/man/*.{1,5}
 
 	dh_clean
 

@@ -5,6 +5,12 @@
   </citerefentry>"
 >
 
+<!ENTITY deejayd-conf "<citerefentry>
+    <refentrytitle><filename>deejayd.conf</filename></refentrytitle>
+    <manvolnum>5</manvolnum>
+  </citerefentry>"
+>
+
 <!ENTITY djc "<citerefentry>
     <refentrytitle><command>djc</command></refentrytitle>
     <manvolnum>1</manvolnum>

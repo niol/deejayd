@@ -113,7 +113,7 @@ and docbook-xsl in your Build-Depends control field.
   <refsect1>
     <title>SEE ALSO</title>
 
-    <para>&djc;.</para>
+    <para>&deejayd-conf;, &djc;.</para>
   </refsect1>
   <refsect1>
     <title>AUTHOR</title>
