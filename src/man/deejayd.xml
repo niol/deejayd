@@ -2,6 +2,9 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
 
+<!ENTITY % deejaydent SYSTEM "deejayd.ent">
+%deejaydent;
+
 <!--
 
 Process this file with an XSLT processor: `xsltproc \
@@ -110,7 +113,7 @@ and docbook-xsl in your Build-Depends control field.
   <refsect1>
     <title>SEE ALSO</title>
 
-    <para>djc (1).</para>
+    <para>&djc;.</para>
   </refsect1>
   <refsect1>
     <title>AUTHOR</title>
