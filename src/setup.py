@@ -21,6 +21,9 @@
 import glob,os
 from distutils.command.build import build as distutils_build
 from distutils.core import setup,Command
+from distutils.errors import DistutilsFileError
+from distutils.dep_util import newer
+
 import deejayd
 
 
@@ -35,18 +38,35 @@ class build_manpages(Command):
     def finalize_options(self):
         self.manpages = glob.glob(os.path.join(self.mandir, "*.xml"))
 
+    def __get_man_section(self, name):
+        candidates = glob.glob(os.path.join(self.mandir, name + "*"))
+        for candidate in candidates:
+            manname, ext = os.path.splitext(os.path.basename(candidate))
+            if manname == name:
+                ext = ext[1:] # remove leading dot
+                try:
+                    return int(ext)
+                except ValueError:
+                    # Try another one
+                    pass
+        raise DistutilsFileError("Built manpage not found.")
+
     def run(self):
         data_files = self.distribution.data_files
 
-        for manpage in self.manpages:
-            cmd = ("xsltproc", "--nonet", "-o", self.mandir,
-                   self.db2man,
-                   manpage)
-            self.spawn(cmd)
+        for xmlmanpage in self.manpages:
+            filename, dummy = os.path.splitext(xmlmanpage)
+            section = self.__get_man_section(os.path.basename(filename))
+            manpage = filename + '.' + str(section)
+            print xmlmanpage, manpage
+            if newer(xmlmanpage, manpage):
+                cmd = ("xsltproc", "--nonet", "-o", self.mandir,
+                       self.db2man,
+                       xmlmanpage)
+                self.spawn(cmd)
 
             targetpath = os.path.join("share", "man")
-            filename, dummy = os.path.splitext(manpage)
-            data_files.append((targetpath, (filename + '.1', ), ))
+            data_files.append((targetpath, (manpage, ), ))
 
 
 class build_i18n(Command):
