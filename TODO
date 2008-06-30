@@ -16,8 +16,6 @@
 
 * debian package should make it easier to connect to Xorg
 
-* comonalize manpages
-
 * commonalize logrotate files
 
 * devscripts dir

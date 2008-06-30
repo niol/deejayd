@@ -23,9 +23,32 @@ from distutils.command.build import build as distutils_build
 from distutils.core import setup,Command
 import deejayd
 
-#
-# i18n
-#
+
+class build_manpages(Command):
+    manpages = None
+    db2man = "/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/manpages/docbook.xsl"
+    mandir = "man/"
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        self.manpages = glob.glob(os.path.join(self.mandir, "*.xml"))
+
+    def run(self):
+        data_files = self.distribution.data_files
+
+        for manpage in self.manpages:
+            cmd = ("xsltproc", "--nonet", "-o", self.mandir,
+                   self.db2man,
+                   manpage)
+            self.spawn(cmd)
+
+            targetpath = os.path.join("share", "man")
+            filename, dummy = os.path.splitext(manpage)
+            data_files.append((targetpath, (filename + '.1', ), ))
+
+
 class build_i18n(Command):
     user_options = []
     po_package = None
@@ -59,11 +82,15 @@ class build_i18n(Command):
 
 class deejayd_build(distutils_build):
 
+    def __has_manpages(self, command):
+        return self.distribution.cmdclass.has_key("build_manpages")
+
     def finalize_options(self):
         def has_i18n(command):
             return self.distribution.cmdclass.has_key("build_i18n")
         distutils_build.finalize_options(self)
         self.sub_commands.append(("build_i18n", has_i18n))
+        self.sub_commands.append(("build_manpages", self.__has_manpages))
 
 #
 # data files
@@ -100,7 +127,9 @@ if __name__ == "__main__":
            package_data={'deejayd.ui': ['defaults.conf'],
                          'deejayd.webui': ['templates/*.xml']},
            data_files= build_data_files_list(),
-           cmdclass={"build": deejayd_build, "build_i18n": build_i18n}
+           cmdclass={"build": deejayd_build,
+                     "build_i18n": build_i18n,
+                     "build_manpages": build_manpages,}
         )
 
 # vim: ts=4 sw=4 expandtab

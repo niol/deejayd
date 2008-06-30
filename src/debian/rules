@@ -7,18 +7,9 @@
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
-# manpages targets from docbook
-DB2MAN=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/manpages/docbook.xsl
-XP=xsltproc -''-nonet -o $(CURDIR)/debian/
-
-%.1 : %.xml
-	$(XP) $(DB2MAN) $<
-
-MANPAGES=$(CURDIR)/debian/deejayd.1 $(CURDIR)/debian/djc.1
-
 PYVERS=$(shell pyversions -vr)
 
-build: $(PYVERS:%=build-python%) $(MANPAGES)
+build: $(PYVERS:%=build-python%)
 
 build-python%:
 	touch $@
@@ -49,6 +40,7 @@ clean:
 	rm -f $(CURDIR)/deejayd/__init__.pyc
 	rm -f $(CURDIR)/build/mo/fr/LC_MESSAGES/deejayd.mo
 	rm -f $(CURDIR)/MANIFEST
+	rm -f $(CURDIR)/man/*.1
 
 	dh_clean
 
