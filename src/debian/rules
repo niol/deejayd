@@ -33,8 +33,7 @@ install-python%:
 
 	# Fixing example conffile location
 	mkdir $(CURDIR)/debian/tmp/etc
-	mv $(CURDIR)/debian/tmp/usr/share/doc/deejayd/deejayd.conf.example\
-	   $(CURDIR)/debian/tmp/etc/deejayd.conf
+	cp $(CURDIR)/deejayd/ui/defaults.conf $(CURDIR)/debian/tmp/etc/deejayd.conf
 
 	dh_install --sourcedir=$(CURDIR)/debian/tmp
 	dh_installdirs

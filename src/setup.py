@@ -70,8 +70,8 @@ class deejayd_build(distutils_build):
 #
 def build_data_files_list():
     data = [
-        ('share/doc/deejayd', glob.glob("doc/*")),
-        ('share/doc/deejayd', glob.glob("README*")),
+        ('share/doc/deejayd', ("doc/deejayd_xml_protocol", )),
+        ('share/doc/deejayd', ("README", "NEWS", )),
         ('share/doc/deejayd', ["scripts/deejayd_rgscan"]),
         ]
 
