@@ -30,7 +30,12 @@ import deejayd
 
 class build_manpages(Command):
     manpages = None
-    db2man = "/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/manpages/docbook.xsl"
+    db2mans = [
+        # debian
+        "/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/manpages/docbook.xsl",
+        # gentoo
+        "/usr/share/sgml/docbook/xsl-stylesheets/manpages/docbook.xsl",
+        ]
     mandir = "man/"
     executable = find_executable('xsltproc')
 
@@ -46,12 +51,16 @@ class build_manpages(Command):
 
     def run(self):
         data_files = self.distribution.data_files
+        db2man = None
+        for path in self.__class__.db2mans:
+            if os.path.exists(path):
+                db2man = path
+                continue
 
         for xmlmanpage in self.manpages:
             manpage = xmlmanpage[:-4] # remove '.xml' at the end
             if newer(xmlmanpage, manpage):
-                cmd = (self.executable, "--nonet", "-o", self.mandir,
-                       self.db2man,
+                cmd = (self.executable, "--nonet", "-o", self.mandir, db2man,
                        xmlmanpage)
                 self.spawn(cmd)
 
@@ -94,9 +103,11 @@ class build_i18n(Command):
 class deejayd_build(distutils_build):
 
     def __has_manpages(self, command):
+        has_db2man = False
+        for path in build_manpages.db2mans:
+            if os.path.exists(path): has_db2man = True
         return self.distribution.cmdclass.has_key("build_manpages")\
-        and os.path.exists(build_manpages.db2man)\
-        and build_manpages.executable != None
+            and has_db2man and build_manpages.executable != None
 
     def __has_i18n(self, command):
         return self.distribution.cmdclass.has_key("build_i18n")\
