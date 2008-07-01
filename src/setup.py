@@ -40,26 +40,15 @@ class build_manpages(Command):
     def finalize_options(self):
         self.manpages = glob.glob(os.path.join(self.mandir, "*.xml"))
 
-    def __get_man_section(self, name):
-        candidates = glob.glob(os.path.join(self.mandir, name + "*"))
-        for candidate in candidates:
-            manname, ext = os.path.splitext(os.path.basename(candidate))
-            if manname == name:
-                ext = ext[1:] # remove leading dot
-                try:
-                    return int(ext)
-                except ValueError:
-                    # Try another one
-                    pass
-        raise DistutilsFileError("Built manpage not found.")
+    def __get_man_section(self, filename):
+        # filename should be file.mansection.xml
+        return filename.split('.')[-2]
 
     def run(self):
         data_files = self.distribution.data_files
 
         for xmlmanpage in self.manpages:
-            filename, dummy = os.path.splitext(xmlmanpage)
-            section = self.__get_man_section(os.path.basename(filename))
-            manpage = filename + '.' + str(section)
+            manpage = xmlmanpage[:-4] # remove '.xml' at the end
             if newer(xmlmanpage, manpage):
                 cmd = (self.executable, "--nonet", "-o", self.mandir,
                        self.db2man,
