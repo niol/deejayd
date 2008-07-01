@@ -21,6 +21,7 @@ import time, random
 import threading
 
 from deejayd.interfaces import DeejaydError
+from deejayd.mediafilters import *
 
 
 class InterfaceTests:
@@ -401,6 +402,29 @@ class InterfaceTests:
         self.deejayd.dvd_reload().get_contents()
         status = self.deejayd.get_status().get_contents()
         self.assertEqual(status["dvd"], dvd_id + 1)
+
+    def test_mediadb_list(self):
+        """Test db queries for tags listing."""
+
+        tag = 'artist'
+        filter = Or(Equals('genre', self.test_audiodata.getRandomGenre()),
+                    Equals('genre', self.test_audiodata.getRandomGenre()))
+
+        expected_tag_list = []
+
+        for song_info in self.test_audiodata.medias.values():
+            matches = False
+            for f in filter.filterlist:
+                if song_info.tags['genre'] == f.pattern:
+                    matches = True
+            if matches:
+                if song_info.tags[tag] not in expected_tag_list:
+                    expected_tag_list.append(song_info.tags[tag])
+
+        result = self.deejayd.mediadb_list(tag, filter)
+
+        for tagvalue in expected_tag_list:
+            self.failUnless(tagvalue in result)
 
 
 class InterfaceSubscribeTests:

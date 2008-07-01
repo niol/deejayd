@@ -18,6 +18,7 @@
 
 import os, sys, time
 from deejayd.ui import log
+from deejayd.database.dbobjects import SQLizer
 
 
 ############################################################################
@@ -69,6 +70,36 @@ class MediaFile(dict):
 ############################################################################
 
 
+class MediaSelectQuery(object):
+
+    def __init__(self):
+        self.selects = []
+        self.joins = []
+        self.__joined_tags = []
+        self.wheres = []
+
+    def select_tag(self, tagname):
+        self.selects.append("%s.value" % tagname)
+        self.join_on_tag(tagname)
+
+    def join_on_tag(self, tagname):
+        if tagname not in self.__joined_tags:
+            self.__joined_tags.append(tagname)
+            j_st = "JOIN media_info %(tag)s ON %(tag)s.id == library.id\
+                                            AND %(tag)s.ikey == '%(tag)s'"\
+                   % { 'tag' : tagname }
+            self.joins.append(j_st)
+
+    def __str__(self):
+        return "SELECT DISTINCT %s FROM library %s WHERE %s"\
+               % (', '.join(self.selects),
+                  ' '.join(self.joins),
+                  ' AND '.join(self.wheres) or 1)
+
+    def to_sql(self):
+        return str(self)
+
+
 def query_decorator(answer_type):
     def query_decorator_instance(func):
 
@@ -99,6 +130,7 @@ class DatabaseQueries(object):
 
     def __init__(self, connection):
         self.connection = connection
+        self.sqlizer = SQLizer()
 
     #
     # MediaDB requests
@@ -288,6 +320,14 @@ class DatabaseQueries(object):
     def search_id(self, cursor, key, value):
         query = "SELECT DISTINCT id FROM media_info WHERE ikey=%s AND value=%s"
         cursor.execute(query,(key, value))
+
+    @query_decorator("fetchall")
+    def list_tags(self, cursor, tag, filter):
+        filter = self.sqlizer.translate(filter)
+        query = MediaSelectQuery()
+        query.select_tag('artist')
+        filter.restrict(query)
+        cursor.execute(query.to_sql())
 
     #
     # cover requests

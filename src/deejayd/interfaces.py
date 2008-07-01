@@ -375,6 +375,9 @@ class DeejaydCore(object):
     def dvd_reload(self):
         raise NotImplementedError
 
+    def mediadb_list(self, taglist, filter):
+        raise NotImplementedError
+
     def get_dvd_content(self):
         raise NotImplementedError
 
