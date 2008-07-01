@@ -201,7 +201,7 @@ var FileList = function()
         fileItem.setAttribute("label",fileName);
         fileItem.setAttribute("context","fileList-menu");
         fileItem.className = "audio-item listitem-iconic";
-        var path = file.getAttribute("path");
+        var path = this.curDir != "" ? this.curDir+"/"+fileName : fileName;
         fileItem.setAttribute("value",path);
         fileItem.setAttribute("type","audio-file");
         fileItem.addEventListener('draggesture', FileObserver.dragStart, true);

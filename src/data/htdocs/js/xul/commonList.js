@@ -127,8 +127,7 @@ var CommonList = function()
         var dirItem = document.createElement("listitem");
         dirItem.setAttribute("label",dirName);
         dirItem.setAttribute("type","directory");
-        var path = this.curDir != "" ? this.curDir+"/"
-            +dirName : dirName;
+        var path = this.curDir != "" ? this.curDir+"/"+dirName : dirName;
         dirItem.setAttribute("value",path);
         dirItem.setAttribute("context",this.contextMenuId);
         dirItem.setAttribute("type","directory");
