@@ -23,6 +23,7 @@ from distutils.command.build import build as distutils_build
 from distutils.core import setup,Command
 from distutils.errors import DistutilsFileError
 from distutils.dep_util import newer
+from distutils.spawn import find_executable
 
 import deejayd
 
@@ -31,6 +32,7 @@ class build_manpages(Command):
     manpages = None
     db2man = "/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/manpages/docbook.xsl"
     mandir = "man/"
+    executable = find_executable('xsltproc')
 
     def initialize_options(self):
         pass
@@ -60,7 +62,7 @@ class build_manpages(Command):
             manpage = filename + '.' + str(section)
             print xmlmanpage, manpage
             if newer(xmlmanpage, manpage):
-                cmd = ("xsltproc", "--nonet", "-o", self.mandir,
+                cmd = (self.executable, "--nonet", "-o", self.mandir,
                        self.db2man,
                        xmlmanpage)
                 self.spawn(cmd)
@@ -74,6 +76,7 @@ class build_i18n(Command):
     po_package = None
     po_directory = None
     po_files = None
+    executable = find_executable('msgfmt')
 
     def initialize_options(self):
         pass
@@ -93,7 +96,7 @@ class build_i18n(Command):
             if not os.path.exists(mo_dir):
                 os.makedirs(mo_dir)
 
-            cmd = ["msgfmt", po_file, "-o", mo_file]
+            cmd = (self.executable, po_file, "-o", mo_file)
             self.spawn(cmd)
 
             targetpath = os.path.join("share/locale", lang, "LC_MESSAGES")
@@ -103,13 +106,17 @@ class build_i18n(Command):
 class deejayd_build(distutils_build):
 
     def __has_manpages(self, command):
-        return self.distribution.cmdclass.has_key("build_manpages")
+        return self.distribution.cmdclass.has_key("build_manpages")\
+        and os.path.exists(build_manpages.db2man)\
+        and build_manpages.executable != None
+
+    def __has_i18n(self, command):
+        return self.distribution.cmdclass.has_key("build_i18n")\
+        and build_i18n.executable != None
 
     def finalize_options(self):
-        def has_i18n(command):
-            return self.distribution.cmdclass.has_key("build_i18n")
         distutils_build.finalize_options(self)
-        self.sub_commands.append(("build_i18n", has_i18n))
+        self.sub_commands.append(("build_i18n", self.__has_i18n))
         self.sub_commands.append(("build_manpages", self.__has_manpages))
 
 #
