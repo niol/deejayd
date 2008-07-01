@@ -60,7 +60,6 @@ class build_manpages(Command):
             filename, dummy = os.path.splitext(xmlmanpage)
             section = self.__get_man_section(os.path.basename(filename))
             manpage = filename + '.' + str(section)
-            print xmlmanpage, manpage
             if newer(xmlmanpage, manpage):
                 cmd = (self.executable, "--nonet", "-o", self.mandir,
                        self.db2man,
