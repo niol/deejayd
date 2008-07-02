@@ -77,9 +77,14 @@ class MediaSelectQuery(object):
         self.joins = []
         self.__joined_tags = []
         self.wheres = []
+        self.orders = []
 
     def select_tag(self, tagname):
         self.selects.append("%s.value" % tagname)
+        self.join_on_tag(tagname)
+
+    def order_by_tag(self, tagname):
+        self.orders.append("%s.value" % tagname)
         self.join_on_tag(tagname)
 
     def join_on_tag(self, tagname):
@@ -91,10 +96,15 @@ class MediaSelectQuery(object):
             self.joins.append(j_st)
 
     def __str__(self):
-        return "SELECT DISTINCT %s FROM library %s WHERE %s"\
+        orders = None
+        if len(self.orders) >= 1:
+            orders = 'ORDER BY ' + ', '.join(self.orders)
+
+        return "SELECT DISTINCT %s FROM library %s WHERE %s %s"\
                % (', '.join(self.selects),
                   ' '.join(self.joins),
-                  ' AND '.join(self.wheres) or 1)
+                  ' AND '.join(self.wheres) or 1,
+                  orders or '')
 
     def to_sql(self):
         return str(self)
@@ -327,6 +337,7 @@ class DatabaseQueries(object):
         query = MediaSelectQuery()
         query.select_tag('artist')
         filter.restrict(query)
+        query.order_by_tag('artist')
         cursor.execute(query.to_sql())
 
     #
