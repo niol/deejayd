@@ -21,3 +21,5 @@
 * devscripts dir
 
 * fix ratio using avi header
+
+* build testing library once and for all tests for speedups
