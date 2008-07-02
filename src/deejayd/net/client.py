@@ -533,7 +533,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                     elif elem.tag == 'signal':
                         signal = DeejaydSignal()
                 elif elem.tag in ("directory","file","media"):
-                     assert xmlpath == ['deejayd', 'response',elem.tag]
+                    assert xmlpath == ['deejayd', 'response', elem.tag]
                 elif elem.tag == "track":
                     assert xmlpath == ['deejayd','response','dvd','track']
                     track = {"audio":[],"subtitle":[],"chapter":[]}
