@@ -65,6 +65,12 @@ class DeejaydKeyValue(DeejaydAnswer):
         return self.contents.items()
 
 
+class DeejaydList(DeejaydAnswer):
+    """List answer."""
+
+    pass
+
+
 class DeejaydFileList(DeejaydAnswer):
     """File list answer."""
 

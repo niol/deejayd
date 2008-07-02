@@ -197,6 +197,12 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         kv.set_pairs(self.getSampleParmDict())
         return kv
 
+    def getList(self):
+        l = self.get_deejayd_xml_answer('List', 'cmdName')
+        for i in range(2):
+            l.contents.append("item%d" % i)
+        return l
+
     def getFileAndDirList(self):
         fl = self.get_deejayd_xml_answer('FileAndDirList', 'cmdName')
         fl.set_directory('optionnal_described_dirname')
@@ -244,12 +250,15 @@ class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
         dvd.set_info(dvd_info)
         return dvd
 
-    responseTypeExBuilders = { DeejaydXMLError: getError,
+    responseTypeExBuilders = {
+                               DeejaydXMLError: getError,
                                DeejaydXMLAck: getAck,
                                DeejaydXMLKeyValue: getKeyValue,
+                               DeejaydXMLList : getList,
                                DeejaydXMLFileDirList: getFileAndDirList,
                                DeejaydXMLDvdInfo: getDvdInfo,
-                               DeejaydXMLMediaList: getMediaList }
+                               DeejaydXMLMediaList: getMediaList,
+                             }
 
     def getExample(self, responseClass):
         builder = self.responseTypeExBuilders[responseClass]

@@ -85,6 +85,12 @@ class DeejaydKeyValue(DeejaydAnswer, deejayd.interfaces.DeejaydKeyValue):
         DeejaydAnswer.__init__(self, server)
 
 
+class DeejaydList(DeejaydAnswer, deejayd.interfaces.DeejaydList):
+
+    def __init__(self, server=None):
+        DeejaydAnswer.__init__(self, server)
+
+
 class DeejaydFileList(DeejaydAnswer, deejayd.interfaces.DeejaydFileList):
 
     def __init__(self, server = None):
@@ -521,7 +527,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     def _build_answer(self, string_io):
         xmlpath = []
         originating_command = ''
-        parms = {}
+        parms = []
         answer = True
         signal = None
         for event, elem in ET.iterparse(string_io,events=("start","end")):
@@ -559,7 +565,9 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                 elif elem.tag == "response":
                     rsp_type = elem.attrib['type']
                     if rsp_type == "KeyValue":
-                        answer = parms
+                        answer = dict(parms)
+                    elif rsp_type == "List":
+                        answer = [parm[1] for parm in parms]
                     elif rsp_type == "FileAndDirList":
                         if 'directory' in elem.attrib.keys():
                             expected_answer.set_rootdir(elem.\
@@ -571,7 +579,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                     expected_answer._received(answer)
                     expected_answer = None
                 elif elem.tag == "listparm":
-                    parms[elem.attrib["name"]] = list_parms
+                    parms.append((elem.attrib["name"], list_parms))
                 elif elem.tag == "listvalue":
                     list_parms.append(elem.attrib["value"])
                 elif elem.tag == "dictparm":
@@ -582,13 +590,13 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                     value = elem.attrib["value"]
                     try: value = int(value)
                     except ValueError: pass
-                    parms[elem.attrib["name"]] = value
+                    parms.append((elem.attrib["name"], value))
                 elif elem.tag == "media":
-                    expected_answer.add_media(parms)
+                    expected_answer.add_media(dict(parms))
                 elif elem.tag == "directory":
                     expected_answer.add_dir(elem.attrib['name'])
                 elif elem.tag == "file":
-                    expected_answer.add_file(parms)
+                    expected_answer.add_file(dict(parms))
                 elif elem.tag in ("audio","subtitle"):
                     track[elem.tag].append({"ix": elem.attrib['ix'],\
                         "lang": elem.attrib['lang']})
@@ -604,7 +612,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                              "longest_track": elem.attrib['longest_track']}
                     expected_answer.set_dvd_content(infos)
                 parms = elem.tag in ("parm","listparm","dictparm","listvalue",\
-                        "dictitem") and parms or {}
+                        "dictitem") and parms or []
 
                 elem.clear()
 

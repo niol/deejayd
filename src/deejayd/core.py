@@ -18,7 +18,9 @@
 
 import deejayd.interfaces
 from deejayd.interfaces import DeejaydError,\
-                               DeejaydAnswer, DeejaydKeyValue, DeejaydFileList,\
+                               DeejaydAnswer,\
+                               DeejaydKeyValue, DeejaydList,\
+                               DeejaydFileList,\
                                DeejaydMediaList, DeejaydDvdInfo
 from deejayd.ui.config import DeejaydConfig
 from deejayd import player, sources, mediadb, database

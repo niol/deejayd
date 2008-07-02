@@ -24,7 +24,7 @@ from StringIO import StringIO
 from testdeejayd import TestCaseWithData
 import testdeejayd.data
 from deejayd.net.client import _DeejayDaemon, DeejaydSignal,\
-                               DeejaydAnswer, DeejaydKeyValue,\
+                               DeejaydAnswer, DeejaydKeyValue, DeejaydList,\
                                DeejaydFileList, DeejaydMediaList,\
                                DeejaydPlaylist, DeejaydError
 from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory,\
@@ -140,6 +140,31 @@ class TestAnswerParser(TestCaseWithData):
 
         for key in origKeyValue.keys():
             self.assertEqual(origKeyValue[key], retrievedKeyValues[key])
+
+    def test_answer_parser_list(self):
+        """Test the client library parsing a list answer."""
+        originating_command = self.testdata.getRandomString()
+        list_answer = """<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <response name="%s" type="List">""" % originating_command
+        how_much = 10
+        orig_list = []
+        for count in range(how_much):
+            item = self.testdata.getRandomString()
+            orig_list.append(item)
+            list_answer = list_answer + """
+        <parm name="item" value="%s" />""" % item
+        list_answer = list_answer + """
+    </response>
+</deejayd>"""
+
+        ans = DeejaydList()
+        self.deejayd.expected_answers_queue.put(ans)
+        self.parseAnswer(list_answer)
+        retrieved_list = ans.get_contents()
+
+        for item in orig_list:
+            self.failUnless(item in retrieved_list)
 
     def testAnswerFileAndDirList(self):
         """Test the client library parsing a file/dir list answer"""

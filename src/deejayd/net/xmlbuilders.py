@@ -233,6 +233,22 @@ class DeejaydXMLKeyValue(DeejaydXMLAck):
             self.xmlcontent.append(self.build_xml_parm(k, v))
 
 
+class DeejaydXMLList(DeejaydXMLAck):
+    """A list of string values."""
+
+    response_type = 'List'
+
+    def __init__(self, originating_cmd, mother_xml_object = None):
+        DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
+        self.contents = []
+
+    def build_xml(self):
+        DeejaydXMLAck.build_xml(self)
+
+        for v in self.contents:
+            self.xmlcontent.append(self.build_xml_parm('item', v))
+
+
 class DeejaydXMLFileDirList(DeejaydXMLAck):
     """A list of files and directories."""
 
@@ -363,12 +379,15 @@ class DeejaydXMLDvdInfo(DeejaydXMLAck):
 
 class DeejaydXMLAnswerFactory:
 
-    response_types = [ DeejaydXMLError,
-                      DeejaydXMLAck,
-                      DeejaydXMLKeyValue,
-                      DeejaydXMLFileDirList,
-                      DeejaydXMLMediaList,
-                      DeejaydXMLDvdInfo    ]
+    response_types = (
+                       DeejaydXMLError,
+                       DeejaydXMLAck,
+                       DeejaydXMLKeyValue,
+                       DeejaydXMLList,
+                       DeejaydXMLFileDirList,
+                       DeejaydXMLMediaList,
+                       DeejaydXMLDvdInfo,
+                     )
 
     def __init__(self):
         self.mother_answer = None

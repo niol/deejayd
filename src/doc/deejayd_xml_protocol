@@ -62,6 +62,17 @@ ENDXML
 </deejayd>
 ENDXML
 }}}
+  * '''`List`''' : A list of string values.
+{{{
+<?xml version="1.0" encoding="utf-8"?>
+<deejayd>
+    <response name="cmdName" type="List">
+        <parm name="item" value="item0" />
+        <parm name="item" value="item1" />
+    </response>
+</deejayd>
+ENDXML
+}}}
   * '''`FileAndDirList`''' : A list of files and directories.
 {{{
 <?xml version="1.0" encoding="utf-8"?>
