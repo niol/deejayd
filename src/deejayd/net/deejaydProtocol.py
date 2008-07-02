@@ -26,6 +26,7 @@ except ImportError: # python 2.4
     import cElementTree as ET
 
 from deejayd.interfaces import DeejaydSignal
+from deejayd.mediafilters import *
 from deejayd.ui import log
 from deejayd.net import commandsXML, xmlbuilders
 
@@ -138,13 +139,20 @@ class DeejaydFactory(protocol.ServerFactory):
 
 class CommandFactory:
 
+    TAG2BASIC   = dict([(x(None, None).get_xml_identifier(), x)\
+                        for x in BASIC_FILTERS])
+    TAG2COMPLEX = dict([(x().get_xml_identifier(), x) for x in COMPLEX_FILTERS])
+
     def __init__(self, deejayd_core=None):
         self.deejayd_core = deejayd_core
+
+    def tree_from_line(self, line):
+        return ET.fromstring(line)
 
     def createCmdFromXML(self,line):
         queueCmd = commandsXML.queueCommands(self.deejayd_core)
 
-        try: xml_tree = ET.fromstring(line)
+        try: xml_tree = self.__tree_from_line(line)
         except:
             queueCmd.addCommand('parsing error', commandsXML.UnknownCommand, [])
         else:
@@ -154,6 +162,18 @@ class CommandFactory:
                 queueCmd.addCommand(cmdName,cmdClass,args)
 
         return queueCmd
+
+    def __parse_filter(self, xml_filter):
+        filter_xml_name = xml_filter.tag
+        if filter_xml_name in CommandFactory.TAG2BASIC.keys():
+            filter_class = CommandFactory.TAG2BASIC[filter_xml_name]
+            return filter_class(xml_filter.attrib['tag'], xml_filter.text)
+        elif filter_xml_name in CommandFactory.TAG2COMPLEX.keys():
+            filter_class = CommandFactory.TAG2COMPLEX[filter_xml_name]
+            filter_list = [self.__parse_filter(f) for f in xml_filter]
+            return filter_class(*filter_list)
+        else:
+            raise ValueError('Unknwown filter type %s' % filter_xml_name)
 
     def parseXMLCommand(self,cmd):
         cmdName = cmd.attrib["name"]
@@ -167,10 +187,18 @@ class CommandFactory:
                 value = []
                 for val in arg.findall("value"):
                     value.append(val.text)
+            elif type == "filter":
+                try:
+                    if len(arg) != 1:
+                        raise ValueError('Only one filter allowed in arg')
+                    value = self.__parse_filter(arg[0])
+                except ValueError, ex:
+                    return (str(ex), commandsXML.UnknownCommand, {})
             args[name] = value
 
         if cmdName in commandsXML.commands.keys():
             return (cmdName, commandsXML.commands[cmdName], args)
         else: return (cmdName,commandsXML.UnknownCommand,{})
+
 
 # vim: ts=4 sw=4 expandtab

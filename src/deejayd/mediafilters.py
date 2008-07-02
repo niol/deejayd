@@ -17,16 +17,20 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-__all__ = ('Equals', 'NotEquals', 'Contains', 'Regexi',
-           'And', 'Or',
+__all__ = (
+            'BASIC_FILTERS', 'Equals', 'NotEquals', 'Contains', 'Regexi',
+            'COMPLEX_FILTERS', 'And', 'Or',
           )
 
 
 class MediaFilter(object):
-    pass
+
+    def get_xml_identifier(self):
+        return self.__class__.__name__.lower()
 
 
 class BasicFilter(MediaFilter):
+    type = 'basic'
 
     def __init__(self, tag, pattern):
         super(BasicFilter, self).__init__()
@@ -34,27 +38,22 @@ class BasicFilter(MediaFilter):
         self.pattern = pattern
 
 
-class Equals(BasicFilter):
-
-    operator = 'EQUAL'
-
-
-class NotEquals(BasicFilter):
-
-    operator = 'NOT_EQUAL'
+class Equals(BasicFilter):    pass
+class NotEquals(BasicFilter): pass
+class Contains(BasicFilter):  pass
+class Regexi(BasicFilter):    pass
 
 
-class Contains(BasicFilter):
-
-    operator = 'CONTAINS'
-
-
-class Regexi(BasicFilter):
-
-    operator = 'REGEXI'
+BASIC_FILTERS = (
+                  Equals,
+                  NotEquals,
+                  Contains,
+                  Regexi,
+                )
 
 
 class ComplexFilter(MediaFilter):
+    type = 'complex'
 
     def __init__(*__args, **__kwargs):
         self = __args[0]
@@ -65,14 +64,15 @@ class ComplexFilter(MediaFilter):
             self.filterlist.append(filter)
 
 
-class And(ComplexFilter):
 
-    operator = 'AND'
+class And(ComplexFilter): pass
+class Or(ComplexFilter):  pass
 
 
-class Or(ComplexFilter):
-
-    operator = 'OR'
+COMPLEX_FILTERS = (
+                    And,
+                    Or,
+                  )
 
 
 # vim: ts=4 sw=4 expandtab

@@ -48,6 +48,15 @@ All data between the client and server is encoded in UTF-8.
             <value>value1</value>
             <value>value2</value>
         </arg>
+        <arg name="argName6" type="filter">
+            <and>
+                <contains tag="artist">Britney</contains>
+                <or>
+                    <equals tag="genre">Classical</equals>
+                    <equals tag="genre">Disco</equals>
+                </or>
+            </and>
+        </arg>
     </command>
 </deejayd>
 ENDXML

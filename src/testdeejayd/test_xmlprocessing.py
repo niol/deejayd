@@ -23,10 +23,13 @@ from StringIO import StringIO
 
 from testdeejayd import TestCaseWithData
 import testdeejayd.data
+
+from deejayd.mediafilters import *
+from deejayd.net.deejaydProtocol import CommandFactory
 from deejayd.net.client import _DeejayDaemon, DeejaydSignal,\
                                DeejaydAnswer, DeejaydKeyValue, DeejaydList,\
                                DeejaydFileList, DeejaydMediaList,\
-                               DeejaydPlaylist, DeejaydError
+                               DeejaydStaticPlaylist, DeejaydError
 from deejayd.net.xmlbuilders import DeejaydXMLAnswerFactory,\
                                     DeejaydXMLCommand, DeejaydXMLSignal
 
@@ -38,18 +41,40 @@ def trim_xml(xml):
 class TestCommandBuildParse(unittest.TestCase):
     """Test the Deejayd client library command building"""
 
-    def testCommandBuilder(self):
-        """Client library builds commands according to protocol scheme"""
-        cmd = DeejaydXMLCommand('command1')
+    def __get_sample_command(self, cmd_name):
+        cmd = DeejaydXMLCommand(cmd_name)
+
         cmd.add_simple_arg('argName1', 'bou')
         cmd.add_simple_arg('argName2', 'bou2')
-        cmd.add_simple_arg('argName3', ['bou2', 'haha', 'aza'])
+        cmd.add_multiple_arg('argName3', ['bou2', 'haha', 'aza'])
         cmd.add_simple_arg('argName4', 'bou3')
-        cmd.add_simple_arg('argName5', ['bou2', 'hihi', 'aza'])
+        cmd.add_multiple_arg('argName5', ['bou2', 'hihi', 'aza'])
+
+        filter = And(Contains('artist', 'Britney'),
+                     Or(Equals('genre', 'Classical'),
+                        Equals('genre', 'Disco')
+                     )
+                    )
+        cmd.add_filter_arg('argName6', filter)
+
+        return cmd
+
+    def testCommandBuilder(self):
+        """Client library builds commands according to protocol scheme"""
+        cmd = self.__get_sample_command('command1')
 
         expectedAnswer = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
     <command name="command1">
+        <arg name="argName6" type="filter">
+            <and>
+                <contains tag="artist">Britney</contains>
+                <or>
+                    <equals tag="genre">Classical</equals>
+                    <equals tag="genre">Disco</equals>
+                </or>
+            </and>
+        </arg>
         <arg name="argName5" type="multiple">
             <value>bou2</value>
             <value>hihi</value>
@@ -66,8 +91,39 @@ class TestCommandBuildParse(unittest.TestCase):
     </command>
 </deejayd>"""
 
-        self.assertEqual(trim_xml(cmd.to_xml()),\
-            trim_xml(expectedAnswer))
+        self.assertEqual(trim_xml(cmd.to_xml()), trim_xml(expectedAnswer))
+
+    def test_command_parser(self):
+        """Test a command being parsed correctly by the server."""
+        cmd_factory = CommandFactory()
+
+        cmd_name = 'status'
+        xml_cmd = self.__get_sample_command(cmd_name).to_xml()
+        xml_tree = cmd_factory.tree_from_line(xml_cmd).findall('command')[0]
+
+        cmd_name, cmd_class, cmd_args = cmd_factory.parseXMLCommand(xml_tree)
+
+        self.assertEqual(cmd_name, cmd_name)
+        self.assertEqual(cmd_args['argName1'], 'bou')
+        self.assertEqual(cmd_args['argName2'], 'bou2')
+        self.assertEqual(cmd_args['argName3'], ['bou2', 'haha', 'aza'])
+        self.assertEqual(cmd_args['argName4'], 'bou3')
+        self.assertEqual(cmd_args['argName5'], ['bou2', 'hihi', 'aza'])
+
+        retrieved_filter = cmd_args['argName6']
+        self.assertEqual(retrieved_filter.__class__.__name__, 'And')
+        anded = retrieved_filter.filterlist
+        self.assertEqual(anded[0].__class__.__name__, 'Contains')
+        self.assertEqual(anded[0].tag, 'artist')
+        self.assertEqual(anded[0].pattern, 'Britney')
+        self.assertEqual(anded[1].__class__.__name__, 'Or')
+        ored = anded[1].filterlist
+        self.assertEqual(ored[0].__class__.__name__, 'Equals')
+        self.assertEqual(ored[0].tag, 'genre')
+        self.assertEqual(ored[0].pattern, 'Classical')
+        self.assertEqual(ored[1].__class__.__name__, 'Equals')
+        self.assertEqual(ored[1].tag, 'genre')
+        self.assertEqual(ored[1].pattern, 'Disco')
 
 
 class TestAnswerParser(TestCaseWithData):

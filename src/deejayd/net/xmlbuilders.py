@@ -20,7 +20,22 @@ try: from xml.etree import cElementTree as ET # python 2.5
 except ImportError: # python 2.4
     import cElementTree as ET
 
-class _DeejaydXML:
+
+class _DeejaydXMLElement(object):
+
+    def _to_xml_string(self, s):
+        if isinstance(s, int) or isinstance(s, float) or isinstance(s, long):
+            return "%d" % (s,)
+        elif isinstance(s, str):
+            return "%s" % (s.decode('utf-8'))
+        elif isinstance(s, unicode):
+            rs = s.encode("utf-8")
+            return "%s" % (rs.decode('utf-8'))
+        else:
+            raise TypeError
+
+
+class _DeejaydXML(_DeejaydXMLElement):
 
     def __init__(self, mother_xml_object = None):
         self.appended_xml_objects = None
@@ -51,17 +66,6 @@ class _DeejaydXML:
         else:
             raise NotImplementedError('Do not build directly deejayd\
                                        XML that has a mother.')
-
-    def _to_xml_string(self, s):
-        if isinstance(s, int) or isinstance(s, float) or isinstance(s, long):
-            return "%d" % (s,)
-        elif isinstance(s, str):
-            return "%s" % (s.decode('utf-8'))
-        elif isinstance(s, unicode):
-            rs = s.encode("utf-8")
-            return "%s" % (rs.decode('utf-8'))
-        else:
-            raise TypeError
 
     def to_xml(self):
         self.__really_build_xml()
@@ -102,10 +106,13 @@ class DeejaydXMLCommand(_DeejaydXML):
         self.args = {}
 
     def add_simple_arg(self, name, value):
-        self.args[name] = value
+        self.args[name] = ('simple', value)
 
     def add_multiple_arg(self, name, valuelist):
-        self.add_simple_arg(name, valuelist)
+        self.args[name] = ('multiple', valuelist)
+
+    def add_filter_arg(self, name, filter):
+        self.args[name] = ('filter', filter)
 
     def build_xml(self):
         # Add command
@@ -115,17 +122,16 @@ class DeejaydXMLCommand(_DeejaydXML):
         for arg in self.args.keys():
             xmlarg = ET.SubElement(self.xmlcontent, 'arg', name = arg)
 
-            arg_param = self.args[arg]
-            if type(arg_param) is list:
-                # We've got multiple args
-                xmlarg.attrib['type'] = 'multiple'
+            arg_type, arg_param = self.args[arg]
 
+            xmlarg.attrib['type'] = arg_type
+            if arg_type == 'multiple':
                 for arg_param_value in arg_param:
                     xmlval = ET.SubElement(xmlarg,'value')
                     xmlval.text = self._to_xml_string(arg_param_value)
-
-            else:
-                # We've got a simple arg
+            elif arg_type == 'filter':
+                Get_xml_filter(arg_param).element(xmlarg)
+            elif arg_type == 'simple':
                 xmlarg.attrib['type'] = 'simple'
                 xmlarg.text = self._to_xml_string(arg_param)
 
@@ -405,6 +411,44 @@ class DeejaydXMLAnswerFactory:
                     return ans
         except StopIteration:
             raise NotImplementedError
+
+
+class XMLFilter(_DeejaydXMLElement):
+
+    def __init__(self, filter):
+        self.filter = filter
+
+    def _get_element(self, parent_element):
+        element_name = self.filter.get_xml_identifier()
+        return ET.SubElement(parent_element, element_name)
+
+    def element(self, parent_element):
+        return self._get_element(parent_element)
+
+
+class XMLBasicFilter(XMLFilter):
+
+    def element(self, parent_element):
+        e = super(XMLBasicFilter, self).element(parent_element)
+        e.attrib['tag'] = self.filter.tag
+        e.text = self._to_xml_string(self.filter.pattern)
+        return e
+
+
+class XMLComplexFilter(XMLFilter):
+
+    def element(self, parent_element):
+        e = super(XMLComplexFilter, self).element(parent_element)
+        for filter in self.filter.filterlist:
+            Get_xml_filter(filter).element(e)
+
+
+def Get_xml_filter(filter):
+    if filter.type == 'basic':
+        xml_filter_class = XMLBasicFilter
+    elif filter.type == 'complex':
+        xml_filter_class = XMLComplexFilter
+    return xml_filter_class(filter)
 
 
 # vim: ts=4 sw=4 expandtab
