@@ -524,6 +524,13 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         ans = DeejaydDvdInfo(self)
         return self._send_command(cmd, ans)
 
+    def mediadb_list(self, tag, filter):
+        cmd = DeejaydXMLCommand('mediadbList')
+        cmd.add_simple_arg('tag', tag)
+        cmd.add_filter_arg('filter', filter)
+        ans = DeejaydList(self)
+        return self._send_command(cmd, ans)
+
     def _build_answer(self, string_io):
         xmlpath = []
         originating_command = ''

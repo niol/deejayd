@@ -85,7 +85,7 @@ commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
                    "queueInfo", "queueAdd", "queueMove", "queueLoadPlaylist",
                    "queueRemove", "queueClear", "setvideo","videoInfo",
                    "dvdLoad","dvdInfo",
-                   "setSubscription", "setMediaRating")
+                   "setSubscription", "setMediaRating", "mediadbList")
 
 # Check for missing commands in commandsOrder
 missingCmdsInOrderredList = []

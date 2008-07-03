@@ -846,6 +846,22 @@ class SetSubscription(UnknownCommand):
         return self.get_ok_answer()
 
 
+class MediadbList(UnknownCommand):
+    """List all the possible values for a tag according to the optional filter argument."""
+    command_name = 'mediadbList'
+    command_args = ({"name":"tag", "type":"str", "req":True},
+                    {"name":"filter", "type":"filter", "req":False})
+    command_rvalue = 'List'
+
+    def _execute(self):
+        tag_list = self.deejayd_core.mediadb_list(self.args['tag'],
+                                                  self.args['filter'],
+                                                  objanswer=False)
+        ans = self.get_answer('List')
+        ans.contents = tag_list
+        return ans
+
+
 # Build the list of available commands
 commands = {}
 

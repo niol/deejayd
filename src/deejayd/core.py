@@ -520,6 +520,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def get_dvd_content(self):
         return self.sources.get_source("dvd").get_content()
 
+    @returns_deejaydanswer(DeejaydList)
     def mediadb_list(self, tag, filter):
         return [x[0] for x in self.db.list_tags(tag, filter)]
 

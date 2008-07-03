@@ -715,3 +715,13 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
+=== `mediadbList` ===
+
+List all the possible values for a tag according to the optional filter argument.
+
+Arguments :
+  * {{{tag}}} (Simple and Mandatory) : str
+  * {{{filter}}} (Simple and Optional) : filter
+
+Expected return value : ''`List`''
+

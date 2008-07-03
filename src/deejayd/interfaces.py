@@ -68,7 +68,9 @@ class DeejaydKeyValue(DeejaydAnswer):
 class DeejaydList(DeejaydAnswer):
     """List answer."""
 
-    pass
+    def __iter__(self):
+        self.get_contents()
+        return self.contents.__iter__()
 
 
 class DeejaydFileList(DeejaydAnswer):

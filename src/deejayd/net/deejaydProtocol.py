@@ -152,7 +152,7 @@ class CommandFactory:
     def createCmdFromXML(self,line):
         queueCmd = commandsXML.queueCommands(self.deejayd_core)
 
-        try: xml_tree = self.__tree_from_line(line)
+        try: xml_tree = self.tree_from_line(line)
         except:
             queueCmd.addCommand('parsing error', commandsXML.UnknownCommand, [])
         else:
