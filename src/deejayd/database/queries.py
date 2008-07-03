@@ -335,9 +335,9 @@ class DatabaseQueries(object):
     def list_tags(self, cursor, tag, filter):
         filter = self.sqlizer.translate(filter)
         query = MediaSelectQuery()
-        query.select_tag('artist')
+        query.select_tag(tag)
         filter.restrict(query)
-        query.order_by_tag('artist')
+        query.order_by_tag(tag)
         cursor.execute(query.to_sql())
 
     #
