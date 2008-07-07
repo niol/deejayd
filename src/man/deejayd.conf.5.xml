@@ -87,13 +87,14 @@ foo = bar
         <listitem>
           <para>Modes enabled. Available modes are :
             <parameter>playlist</parameter> for audio playlists,
+            <parameter>panel</parameter> for audio panel mode like rhythmbox,
             <parameter>webradio</parameter> for streamed webradios,
             <parameter>video</parameter> for video directories playback,
             <parameter>dvd</parameter> for DVD playback.
             As an example :
           </para>
 <informalexample><programlisting>
-activated_modes = playlist, webradio, video
+activated_modes = playlist, panel, webradio, video
 </programlisting></informalexample>
         </listitem>
       </varlistentry>

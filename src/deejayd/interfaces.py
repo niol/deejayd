@@ -216,6 +216,21 @@ class DeejaydQueue(object):
         raise NotImplementedError
 
 
+class DeejaydPanel(object):
+
+    def get(self, first = 0, length = None):
+        raise NotImplementedError
+
+    def set_panel_filters(self, filters):
+        raise NotImplementedError
+
+    def get_active_list(self):
+        raise NotImplementedError
+
+    def set_active_list(self, type, plname=""):
+        raise NotImplementedError
+
+
 class DeejaydPlaylistMode(object):
 
     def get(self, first = 0, length = None):
@@ -272,6 +287,7 @@ class DeejaydSignal(object):
                                       # (either a saved playlist has been saved
                                       # or deleted).
                'webradio.listupdate',
+               'panel.update',
                'queue.update',
                'video.update',
                'dvd.update',
@@ -363,6 +379,9 @@ class DeejaydCore(object):
         raise NotImplementedError
 
     def get_queue(self):
+        raise NotImplementedError
+
+    def get_panel(self):
         raise NotImplementedError
 
     def get_video(self):

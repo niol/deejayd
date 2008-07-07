@@ -160,9 +160,11 @@ def upgrade(cursor, backend, config):
         "DELETE FROM variables WHERE name='random'",
         "DELETE FROM variables WHERE name='qrandom'",
         "INSERT INTO variables VALUES('playlist-playorder','inorder');",
+        "INSERT INTO variables VALUES('panel-playorder','inorder');",
         "INSERT INTO variables VALUES('video-playorder','inorder');",
         "INSERT INTO variables VALUES('queue-playorder','inorder');",
         "INSERT INTO variables VALUES('playlist-repeat','0');",
+        "INSERT INTO variables VALUES('panel-repeat','0');",
         "INSERT INTO variables VALUES('video-repeat','0');",
         "INSERT INTO variables VALUES('panelid','1');",
 

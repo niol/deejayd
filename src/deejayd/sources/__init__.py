@@ -36,7 +36,7 @@ def format_rsp(func):
 
 
 class SourceFactory(SignalingComponent):
-    sources_list = ("playlist","queue","webradio","video","dvd")
+    sources_list = ("playlist","queue","webradio","video","dvd","panel")
 
     def __init__(self,player,db,audio_library,video_library,config):
         SignalingComponent.__init__(self)
@@ -54,6 +54,13 @@ class SourceFactory(SignalingComponent):
                                                                  audio_library)
         else:
             log.info(_("Playlist support disabled"))
+
+        # panel
+        if "panel" in activated_sources:
+            from deejayd.sources import panel
+            self.sources_obj["panel"] = panel.PanelSource(db, audio_library)
+        else:
+            log.info(_("Panel support disabled"))
 
         # Webradio
         if "webradio" in activated_sources and player.is_supported_uri("http"):
@@ -123,6 +130,9 @@ class SourceFactory(SignalingComponent):
         for k in self.sources_obj.keys():
             status.extend(self.sources_obj[k].get_status())
         return status
+
+    def get_all_sources(self):
+        return [m for m in self.sources_list if m != "queue"]
 
     def get_available_sources(self):
         modes = self.sources_obj.keys()

@@ -262,6 +262,35 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
             raise DeejaydError(str(ex))
 
 
+class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
+
+    def __init__(self, deejaydcore):
+        self.deejaydcore = deejaydcore
+        self.source = self.deejaydcore.sources.get_source("panel")
+
+    @returns_deejaydanswer(DeejaydMediaList)
+    def get(self, first=0, length=-1):
+        songs = self.source.get_content()
+        last = length == -1 and len(songs) or int(first) + int(length)
+        return songs[int(first):last]
+
+    @returns_deejaydanswer(DeejaydKeyValue)
+    def get_active_list(self):
+        return self.source.get_active_list()
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set_active_list(self, type, plname=""):
+        try: self.source.set_active_list(type, plname)
+        except TypeError:
+            raise DeejaydError(_("Not supported type"))
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set_panel_filters(self, filters):
+        try: self.source.set_panel_filters(filters)
+        except deejayd.sources._base.SourceError, ex:
+            raise DeejaydError(str(ex))
+
+
 class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
     """Video mode."""
 
@@ -362,6 +391,10 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def get_playlist(self):
         return DeejaydPlaylistMode(self)
 
+    @require_mode("panel")
+    def get_panel(self):
+        return DeejaydPanel(self)
+
     @require_mode("webradio")
     def get_webradios(self):
         return DeejaydWebradioList(self)
@@ -406,7 +439,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def get_mode(self):
         av_sources = self.sources.get_available_sources()
         modes = {}
-        for s in self.sources.sources_list:
+        for s in self.sources.get_all_sources():
             modes[s] = s in av_sources or 1 and 0
         return modes
 
