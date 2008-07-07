@@ -28,6 +28,9 @@ class MediaFilter(object):
     def get_xml_identifier(self):
         return self.__class__.__name__.lower()
 
+    def __str__(self):
+        return self.__class__.__name__.lower()
+
 
 class BasicFilter(MediaFilter):
     type = 'basic'
