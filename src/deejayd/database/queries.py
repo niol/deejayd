@@ -391,7 +391,7 @@ class DatabaseQueries(object):
     @query_decorator("medialist")
     def get_static_medialist(self, cursor, name, infos = []):
         selectquery, joinquery = self._build_media_query(infos)
-        query = "SELECT DISTINCT "+ selectquery +\
+        query = "SELECT DISTINCT "+ selectquery + ", mi.position " +\
             " FROM medialist m JOIN medialist_libraryitem mi\
                                     ON m.id = mi.medialist_id\
                            JOIN media_info i ON i.id=mi.libraryitem_id"\
