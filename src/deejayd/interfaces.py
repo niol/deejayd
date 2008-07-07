@@ -159,10 +159,16 @@ class DeejaydStaticPlaylist(object):
     def get(self, first=0, length=-1):
         raise NotImplementedError
 
-    def add_song(self, path):
-        return self.add_songs([path])
+    def add_path(self, path):
+        return self.add_paths([path])
 
-    def add_songs(self, paths):
+    def add_paths(self, paths):
+        raise NotImplementedError
+
+    def add_song(self, song_id):
+        return self.add_songs([song_id])
+
+    def add_songs(self, song_ids):
         raise NotImplementedError
 
 
@@ -191,10 +197,16 @@ class DeejaydQueue(object):
     def get(self, first = 0, length = None):
         raise NotImplementedError
 
-    def add_media(self, path, position=None):
-        return self.add_medias([path], position)
+    def add_path(self, path, pos = None):
+        return self.add_paths([path], pos)
 
-    def add_medias(self, paths, pos = None):
+    def add_paths(self, paths, pos = None):
+        raise NotImplementedError
+
+    def add_song(self, song_id, pos = None):
+        return self.add_songs([song_id], pos)
+
+    def add_songs(self, song_ids, pos = None):
         raise NotImplementedError
 
     def load_playlist(self, name, pos = None):
@@ -239,10 +251,16 @@ class DeejaydPlaylistMode(object):
     def save(self, name):
         raise NotImplementedError
 
-    def add_song(self, path, position = None):
-        return self.add_songs([path], position)
+    def add_path(self, path, pos = None):
+        return self.add_paths([path], pos)
 
-    def add_songs(self, paths, position = None):
+    def add_paths(self, paths, pos = None):
+        raise NotImplementedError
+
+    def add_song(self, song_id, pos = None):
+        return self.add_songs([song_id], pos)
+
+    def add_songs(self, song_ids, pos = None):
         raise NotImplementedError
 
     def load(self, name, pos = None):

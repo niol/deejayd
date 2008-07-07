@@ -112,7 +112,7 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
         return songs[int(first):last]
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def add_songs(self, paths):
+    def add_paths(self, paths):
         ids = []
         for path in paths:
             try: medias = self.library.get_all_files(path)
@@ -121,7 +121,11 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
                 except NotFoundException:
                     raise DeejaydError(_('Path %s not found in library') % path)
             for m in medias: ids.append(m["media_id"])
-        self.db.add_to_static_medialist(self.pl_id, ids)
+        self.add_songs(ids)
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def add_songs(self, song_ids):
+        self.db.add_to_static_medialist(self.pl_id, song_ids)
         self.db.connection.commit()
         self.deejaydcore._dispatch_signame('playlist.update')
 
@@ -172,9 +176,16 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         return songs[int(first):last]
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def add_medias(self, paths, pos = None):
-        position = pos and int(pos) or None
-        try: self.source.add_path(paths, position)
+    def add_songs(self, song_ids, pos = None):
+        p = pos and int(pos) or None
+        try: self.source.add_song(song_ids, pos = p)
+        except deejayd.sources._base.SourceError, ex:
+            raise DeejaydError(str(ex))
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def add_paths(self, paths, pos = None):
+        p = pos and int(pos) or None
+        try: self.source.add_path(paths, p)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
@@ -222,9 +233,16 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
         self.source.save(name)
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def add_songs(self, paths, position=None):
-        p = position and int(position) or None
+    def add_paths(self, paths, pos=None):
+        p = pos and int(pos) or None
         try: self.source.add_path(paths, pos = p)
+        except deejayd.sources._base.SourceError, ex:
+            raise DeejaydError(str(ex))
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def add_songs(self, song_ids, pos=None):
+        p = pos and int(pos) or None
+        try: self.source.add_song(song_ids, pos = p)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 

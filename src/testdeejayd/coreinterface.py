@@ -68,14 +68,14 @@ class InterfaceTests:
         djpl = self.deejayd.get_playlist()
         self.assertEqual(djpl.get().get_medias(), pl)
 
-        ans = djpl.add_song(self.testdata.getRandomString())
+        ans = djpl.add_path(self.testdata.getRandomString())
         self.assertRaises(DeejaydError, ans.get_contents)
 
         # Add songs to playlist
         howManySongs = 3
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
             pl.append(self.test_audiodata.medias[songPath].tags["uri"])
-            ans = djpl.add_song(songPath)
+            ans = djpl.add_path(songPath)
             self.failUnless(ans.get_contents())
 
         # Check for the playlist to be of appropriate length
@@ -100,7 +100,7 @@ class InterfaceTests:
         djpl = self.deejayd.get_playlist()
         howManySongs = 4
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
-            ans = djpl.add_song(songPath)
+            ans = djpl.add_path(songPath)
             self.failUnless(ans.get_contents())
 
         content = djpl.get().get_medias()
@@ -123,7 +123,7 @@ class InterfaceTests:
         howManySongs = 3
         # Add songs to playlist
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
-            ans = djpl.add_song(songPath)
+            ans = djpl.add_path(songPath)
             self.failUnless(ans.get_contents())
         # save playlist
         ans = djpl.save(djplname)
@@ -132,10 +132,13 @@ class InterfaceTests:
         # add songs in the saved playlist
         savedpl = self.deejayd.get_static_playlist(djplname)
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
-            ans = savedpl.add_song(songPath)
+            # add twice the same song
+            ans = savedpl.add_path(songPath)
+            self.failUnless(ans.get_contents())
+            ans = savedpl.add_path(songPath)
             self.failUnless(ans.get_contents())
         content = savedpl.get().get_medias()
-        self.assertEqual(len(content), howManySongs*2)
+        self.assertEqual(len(content), howManySongs*3)
 
     def testWebradioAddRetrieve(self):
         """Save a webradio and check it is in the list, then delete it."""
@@ -196,7 +199,7 @@ class InterfaceTests:
         how_many_songs = 10
         for song_path in self.test_audiodata.getRandomSongPaths(how_many_songs):
             myq.append(self.test_audiodata.medias[song_path].tags["uri"])
-            ans = q.add_media(song_path)
+            ans = q.add_path(song_path)
             self.failUnless(ans.get_contents())
 
         ddq = q.get()
@@ -342,7 +345,7 @@ class InterfaceTests:
         djpl = self.deejayd.get_playlist()
         ans = self.deejayd.get_audio_dir()
         dir = self.testdata.getRandomElement(ans.get_directories())
-        djpl.add_songs([dir]).get_contents()
+        djpl.add_paths([dir]).get_contents()
 
         # play song
         self.deejayd.set_mode("playlist").get_contents()
@@ -493,7 +496,7 @@ class InterfaceSubscribeTests:
         ans = self.deejayd.get_audio_dir()
         dir = self.testdata.getRandomElement(ans.get_directories())
 
-        trigger_list = ((djpl.add_songs, ([dir], )),
+        trigger_list = ((djpl.add_paths, ([dir], )),
                         (djpl.shuffle, ()),
                         (djpl.clear, ()),
                        )
@@ -507,7 +510,7 @@ class InterfaceSubscribeTests:
         djpl = self.deejayd.get_playlist()
         ans = self.deejayd.get_audio_dir()
         dir = self.testdata.getRandomElement(ans.get_directories())
-        djpl.add_songs([dir]).get_contents()
+        djpl.add_paths([dir]).get_contents()
 
         test_pl_name = self.testdata.getRandomString()
         test_pl_name2 = self.testdata.getRandomString()
@@ -518,7 +521,7 @@ class InterfaceSubscribeTests:
         saved_djpl = self.deejayd.get_static_playlist(test_pl_name)
 
         trigger_list = (
-                        (saved_djpl.add_song, (dir,)),
+                        (saved_djpl.add_path, (dir,)),
                         (self.deejayd.erase_playlist, ([test_pl_name], )),
                         (djpl.save, (test_pl_name2,)),
                        )
@@ -551,7 +554,7 @@ class InterfaceSubscribeTests:
         ans = self.deejayd.get_audio_dir()
         dir = self.testdata.getRandomElement(ans.get_directories())
 
-        self.generic_sub_bcast_test('queue.update', q.add_medias, ([dir], ))
+        self.generic_sub_bcast_test('queue.update', q.add_paths, ([dir], ))
 
         retrieved_song_id = [song['id'] for song in q.get().get_medias()]
         self.generic_sub_bcast_test('queue.update',

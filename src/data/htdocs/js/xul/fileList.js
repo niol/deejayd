@@ -89,20 +89,20 @@ var FileList = function()
     {
         this.dragItemType = null;
         ajaxdj_ref.send_post_command('playlistAdd&pos='+pos,
-            {path: this.getSelectedItems("file-content")});
+            {values: this.getSelectedItems("file-content")});
     };
 
     this.loadFilesInQueue = function(pos)
     {
         this.dragItemType = null;
         ajaxdj_ref.send_post_command('queueAdd&pos='+pos,
-            {path: this.getSelectedItems("file-content")});
+            {values: this.getSelectedItems("file-content")});
     };
 
     this.addToPlaylist = function(name)
     {
         ajaxdj_ref.send_post_command('staticPlaylistAdd',
-            {plname: name, path: this.getSelectedItems("file-content")});
+            {plname: name, values: this.getSelectedItems("file-content")});
     };
 
     /*************************************/

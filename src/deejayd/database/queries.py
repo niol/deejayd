@@ -292,14 +292,15 @@ class DatabaseQueries(object):
         cursor.execute(query, (dir, file, type))
 
     @query_decorator("medialist")
-    def get_file_withid(self, cursor, file_id, infos=[], type="audio"):
+    def get_file_withids(self, cursor, file_ids, infos=[], type="audio"):
         selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT "+ selectquery +\
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
                            + joinquery+\
-            " WHERE l.id = %s"
-        cursor.execute(query, (file_id, ))
+            " WHERE l.id IN (%s) AND d.lib_type = '%s'" % \
+                (",".join(map(str,file_ids)), type)
+        cursor.execute(query)
 
     @query_decorator("medialist")
     def get_alldir_files(self, cursor, dir, infos = [], type = "audio"):

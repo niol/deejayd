@@ -134,7 +134,7 @@ class _BaseLibrarySource(_BaseSource):
             else: self._update_media(file_id)
 
     def _update_media(self, media_id):
-        media = self.library.get_file_withid(media_id)
+        media = self.library.get_file_withids([media_id])
         if self._media_list.update_media(media[0]):
             self.dispatch_signame(self.source_signal)
 
@@ -164,6 +164,15 @@ class _BaseAudioLibSource(_BaseLibrarySource):
     def __init__(self, db, audio_library):
         super(_BaseAudioLibSource, self).__init__(db, audio_library)
         self.load_playlist((self.base_medialist,))
+
+    def add_song(self, song_ids, pos = None):
+        try: medias = self.library.get_file_withids(song_ids)
+        except NotFoundException:
+            raise SourceError(_("One of these ids %s not found") % \
+                ",".join(map(str, song_ids)))
+        self._media_list.add_media(medias, pos)
+        if pos: self._media_list.reload_item_pos(self._current)
+        self.dispatch_signame(self.source_signal)
 
     def add_path(self, paths, pos = None):
         medias = []

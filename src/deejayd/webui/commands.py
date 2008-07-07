@@ -352,8 +352,10 @@ class AudioSearch(_Library):
 class StaticPlaylistAdd(_UnknownCommand):
     name = "staticPlaylistAdd"
     method = "post"
-    command_args = [{"name":"path","type":"string","req":True,"mult": True},\
-                    {"name":"plname","type":"string","req":True}]
+    command_args = [{"name":"values","type":"string","req":True,"mult": True},\
+                    {"name":"plname","type":"string","req":True},
+                    {"name":"type","type":"enum_str",\
+                     "values": ('path','id'),"req":False, "default": "path"}]
 
     def default_result(self):
         pls_list = self._deejayd.get_playlist_list()
@@ -361,7 +363,13 @@ class StaticPlaylistAdd(_UnknownCommand):
 
     def execute(self):
         pls = self._deejayd.get_static_playlist(self._args["plname"])
-        pls.add_songs(self._args["path"]).get_contents()
+        if self._args["values"] == "id":
+            try: values = map(int, self._args["values"])
+            except (TypeError, ValueError):
+                raise ArgError(_("Ids arg must be integer"))
+            pls.add_songs(values).get_contents()
+        else:
+            pls.add_paths(self._args["values"]).get_contents()
 
 #
 # Playlist Mode commands
@@ -369,15 +377,23 @@ class StaticPlaylistAdd(_UnknownCommand):
 class PlaylistAdd(_UnknownCommand):
     name = "playlistAdd"
     method = "post"
-    command_args = [{"name":"path","type":"string","req":True,"mult": True},\
-        {"name":"pos","type":"int","req":False,"default":-1}]
+    command_args = [{"name":"values","type":"string","req":True,"mult": True},\
+        {"name":"pos","type":"int","req":False,"default":-1},\
+        {"name":"type","type":"enum_str",\
+         "values": ('path','id'),"req":False, "default": "path"}]
 
     def execute(self):
         pos = int(self._args["pos"])
         if pos == -1: pos = None
 
         pls = self._deejayd.get_playlist()
-        pls.add_songs(self._args["path"],pos).get_contents()
+        if self._args["values"] == "id":
+            try: values = map(int, self._args["values"])
+            except (TypeError, ValueError):
+                raise ArgError(_("Ids arg must be integer"))
+            pls.add_songs(values, pos).get_contents()
+        else:
+            pls.add_paths(self._args["values"], pos).get_contents()
 
 class PlaylistRemove(_UnknownCommand):
     name = "playlistRemove"
@@ -458,15 +474,23 @@ class PlaylistClear(_UnknownCommand):
 class QueueAdd(_UnknownCommand):
     name = "queueAdd"
     method = "post"
-    command_args = [{"name":"path","type":"string","req":True,"mult":True},\
-              {"name":"pos","type":"int","req":True}]
+    command_args = [{"name":"values","type":"string","req":True,"mult":True},\
+        {"name":"pos","type":"int","req":True},\
+        {"name":"type","type":"enum_str",\
+         "values": ('path','id'),"req":False, "default": "path"}]
 
     def execute(self):
         pos = int(self._args["pos"])
         if pos == -1: pos = None
 
         queue = self._deejayd.get_queue()
-        queue.add_medias(self._args["path"], pos).get_contents()
+        if self._args["values"] == "id":
+            try: values = map(int, self._args["values"])
+            except (TypeError, ValueError):
+                raise ArgError(_("Ids arg must be integer"))
+            queue.add_songs(values, pos).get_contents()
+        else:
+            queue.add_paths(self._args["values"], pos).get_contents()
 
 class QueueLoad(_UnknownCommand):
     name = "queueLoad"

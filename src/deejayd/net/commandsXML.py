@@ -412,7 +412,9 @@ class StaticPlaylistInfo(UnknownCommand):
     """Return the content of a recorded static playlists."""
     command_name = 'staticPlaylistInfo'
     command_rvalue = 'MediaList'
-    command_args = [{"name":"name", "type":"string", "req":True},]
+    command_args = [{"name":"name", "type":"string", "req":True},\
+        {"name":"first","type":"int","req":False,"default":0},\
+        {"name":"length","type":"int","req":False,"default":-1}]
 
     def _execute(self):
         pls = self.deejayd_core.get_static_playlist(self.args["name"])
@@ -429,12 +431,20 @@ class StaticPlaylistInfo(UnknownCommand):
 class StaticPlaylistAdd(UnknownCommand):
     """Add songs in a recorded static playlists."""
     command_name = 'staticPlaylistAdd'
-    command_args = [{"mult":True,"name":"path", "type":"string", "req":True},
-                    {"name":"name", "type":"string", "req":True},]
+    command_args = [{"mult":True,"name":"values", "type":"string", "req":True},
+        {"name":"name", "type":"string", "req":True},\
+        {"name":"type","type":"enum_str",\
+         "values": ('path','id'),"req":False, "default": "path"}]
 
     def _execute(self):
         pls = self.deejayd_core.get_static_playlist(self.args["name"])
-        pls.add_songs(self.args["path"], objanswer=False)
+        if self.args["values"] == "id":
+            try: values = map(int, self.args["values"])
+            except (TypeError, ValueError):
+                return self.get_error_answer(_("Ids arg must be integer"))
+            pls.add_songs(values, objanswer=False)
+        else:
+            pls.add_paths(self.args["values"], objanswer=False)
 
 
 class PlaylistList(UnknownCommand):
@@ -508,12 +518,20 @@ class PlaylistAdd(UnknownCommand):
     """Load files or directories passed as arguments ("path") at the position
     "pos" in the current playlist."""
     command_name = 'playlistAdd'
-    command_args = [{"mult":True,"name":"path", "type":"string", "req":True},
-                    {"name":"pos", "type":"int", "req":False,"default":None},]
+    command_args = [{"mult":True,"name":"values", "type":"string", "req":True},
+        {"name":"pos", "type":"int", "req":False,"default":None},\
+        {"name":"type","type":"enum_str",\
+         "values": ('path','id'),"req":False, "default": "path"}]
 
     def _execute(self):
         pls = self.deejayd_core.get_playlist()
-        pls.add_songs(self.args["path"], self.args["pos"], objanswer=False)
+        if self.args["values"] == "id":
+            try: values = map(int, self.args["values"])
+            except (TypeError, ValueError):
+                return self.get_error_answer(_("Ids arg must be integer"))
+            pls.add_songs(values, self.args["pos"], objanswer=False)
+        else:
+            pls.add_paths(self.args["values"],self.args["pos"],objanswer=False)
 
 
 class PlaylistInfo(UnknownCommand):
@@ -620,12 +638,20 @@ class QueueAdd(UnknownCommand):
     """Load files or directories passed as arguments ("path") at the position
     "pos" in the queue."""
     command_name = 'queueAdd'
-    command_args = [{"mult":True, "name":"path", "type":"string", "req":True},
-              {"name":"pos", "type":"int", "req":False, "default":None}]
+    command_args = [{"mult":True, "name":"values", "type":"string", "req":True},
+        {"name":"pos", "type":"int", "req":False, "default":None},\
+        {"name":"type","type":"enum_str",\
+         "values": ('path','id'),"req":False, "default": "path"}]
 
     def _execute(self):
-        queue = self.deejayd_core.get_queue()
-        queue.add_medias(self.args["path"], self.args["pos"], objanswer=False)
+        qu = self.deejayd_core.get_queue()
+        if self.args["values"] == "id":
+            try: values = map(int, self.args["values"])
+            except (TypeError, ValueError):
+                return self.get_error_answer(_("Ids arg must be integer"))
+            qu.add_songs(values, self.args["pos"], objanswer=False)
+        else:
+            qu.add_paths(self.args["values"],self.args["pos"],objanswer=False)
 
 
 class QueueLoadPlaylist(UnknownCommand):

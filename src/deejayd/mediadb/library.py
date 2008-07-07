@@ -152,11 +152,10 @@ class _Library(SignalingComponent):
             raise NotFoundException
         return files_rsp
 
-    def get_file_withid(self,file_id):
-        files_rsp = self.db_con.get_file_withid(file_id,\
+    def get_file_withids(self,file_ids):
+        files_rsp = self.db_con.get_file_withids(file_ids,\
             infos = self.media_attr, type = self.type)
-        if len(files_rsp) == 0:
-            # this file is not found
+        if len(files_rsp) != len(file_ids):
             raise NotFoundException
         return files_rsp
 

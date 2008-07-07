@@ -122,16 +122,23 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
         cmd = DeejaydXMLCommand('staticPlaylistInfo')
         cmd.add_simple_arg('name', self.__pl_name)
         cmd.add_simple_arg('first', first)
-        if length != None:
+        if length != -1:
             cmd.add_simple_arg('length', length)
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
-    def add_songs(self, paths):
+    def __add(self, values, type):
         cmd = DeejaydXMLCommand('staticPlaylistAdd')
         cmd.add_simple_arg('name', self.__pl_name)
-        cmd.add_multiple_arg('path', paths)
+        cmd.add_simple_arg('type', type)
+        cmd.add_multiple_arg('values', values)
         return self.server._send_command(cmd)
+
+    def add_songs(self, song_ids):
+        return self.__add(song_ids, "id")
+
+    def add_paths(self, paths):
+        return self.__add(paths, "path")
 
 
 class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
@@ -179,12 +186,19 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
-    def add_medias(self, paths, pos = None):
+    def __add(self, values, type, pos):
         cmd = DeejaydXMLCommand('queueAdd')
-        cmd.add_multiple_arg('path', paths)
-        if pos!= None:
+        cmd.add_simple_arg('type', type)
+        cmd.add_multiple_arg('values', values)
+        if pos != None:
             cmd.add_simple_arg('pos', pos)
         return self.server._send_command(cmd)
+
+    def add_songs(self, song_ids, pos = None):
+        return self.__add(song_ids, "id", pos)
+
+    def add_paths(self, paths, pos = None):
+        return self.__add(paths, "path", pos)
 
     def load_playlists(self, names, pos = None):
         cmd = DeejaydXMLCommand('queueLoadPlaylist')
@@ -227,12 +241,19 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
         cmd.add_simple_arg('name', name)
         return self.server._send_command(cmd)
 
-    def add_songs(self, paths, position = None):
+    def __add(self, values, type, pos):
         cmd = DeejaydXMLCommand('playlistAdd')
-        cmd.add_multiple_arg('path', paths)
-        if position != None:
-            cmd.add_simple_arg('pos', position)
+        cmd.add_simple_arg('type', type)
+        cmd.add_multiple_arg('values', values)
+        if pos != None:
+            cmd.add_simple_arg('pos', pos)
         return self.server._send_command(cmd)
+
+    def add_songs(self, song_ids, pos = None):
+        return self.__add(song_ids, "id", pos)
+
+    def add_paths(self, paths, pos = None):
+        return self.__add(paths, "path", pos)
 
     def loads(self, names, pos = None):
         cmd = DeejaydXMLCommand('playlistLoad')
