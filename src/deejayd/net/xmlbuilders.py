@@ -56,11 +56,11 @@ class _DeejaydXML(DeejaydXMLObject):
 
     def to_xml(self):
         self.__really_build_xml()
-        super(_DeejaydXML, self).to_xml()
+        return super(_DeejaydXML, self).to_xml()
 
     def to_pretty_xml(self):
         self.__really_build_xml()
-        super(_DeejaydXML, self).to_pretty_xml()
+        return super(_DeejaydXML, self).to_pretty_xml()
 
     def build_xml(self):
         raise NotImplementedError
