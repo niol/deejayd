@@ -447,6 +447,8 @@ Return the content of a recorded static playlists.
 
 Arguments :
   * {{{name}}} (Simple and Mandatory) : string
+  * {{{first}}} (Simple and Optional) : int
+  * {{{length}}} (Simple and Optional) : int
 
 Expected return value : ''`MediaList`''
 
@@ -455,8 +457,9 @@ Expected return value : ''`MediaList`''
 Add songs in a recorded static playlists.
 
 Arguments :
-  * {{{path}}} (Multiple and Mandatory) : string
+  * {{{values}}} (Multiple and Mandatory) : string
   * {{{name}}} (Simple and Mandatory) : string
+  * {{{type}}} (Simple and Optional) : enum_str
 
 Expected return value : ''`Ack`''
 
@@ -485,8 +488,9 @@ Load files or directories passed as arguments ("path") at the position
     "pos" in the current playlist.
 
 Arguments :
-  * {{{path}}} (Multiple and Mandatory) : string
+  * {{{values}}} (Multiple and Mandatory) : string
   * {{{pos}}} (Simple and Optional) : int
+  * {{{type}}} (Simple and Optional) : enum_str
 
 Expected return value : ''`Ack`''
 
@@ -612,8 +616,9 @@ Load files or directories passed as arguments ("path") at the position
     "pos" in the queue.
 
 Arguments :
-  * {{{path}}} (Multiple and Mandatory) : string
+  * {{{values}}} (Multiple and Mandatory) : string
   * {{{pos}}} (Simple and Optional) : int
+  * {{{type}}} (Simple and Optional) : enum_str
 
 Expected return value : ''`Ack`''
 
