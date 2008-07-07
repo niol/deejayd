@@ -85,12 +85,6 @@ var VideoList = function()
         $("videolist-description").value = video.getAttribute("description");
         return true;
     };
-
-    this.setPlayorder = function()
-    {
-        var val = $('video-playorder').value;
-        ajaxdj_ref.send_post_command("playorder",{value:val,source:"video"});
-    };
 };
 // heritage by prototype
 VideoList.prototype = new CommonTreeManagement;

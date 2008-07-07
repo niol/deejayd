@@ -22,7 +22,8 @@ from twisted.web.resource import Resource
 
 from deejayd.interfaces import DeejaydError
 from deejayd.ui.log import LogFile
-from deejayd.webui.xmlanswer import DeejaydWebAnswer,build_web_interface
+from deejayd.webui.xmlanswer import DeejaydWebAnswer
+from deejayd.webui.templates import build_template
 from deejayd.webui import commands
 
 class DeejaydWebError(Exception): pass
@@ -30,8 +31,10 @@ default_path = os.path.abspath(os.path.dirname(__file__))
 
 class DeejaydMainHandler(Resource):
 
-    def __init__(self):
+    def __init__(self, deejayd, config):
         Resource.__init__(self)
+        self.__deejayd = deejayd
+        self.__config = config
 
     def getChild(self, name, request):
         if name == '': return self
@@ -39,7 +42,7 @@ class DeejaydMainHandler(Resource):
 
     def render_GET(self, request):
         request.setHeader("Content-Type", "application/vnd.mozilla.xul+xml")
-        try: rs = build_web_interface()
+        try: rs = build_template(self.__deejayd, self.__config)
         except IOError, err:
             raise DeejaydWebError(err)
         return rs
@@ -114,7 +117,7 @@ def init(deejayd_core, config, webui_logfile):
     except IOError:
         raise DeejaydWebError(_("Unable to create rdf directory %s") % rdf_dir)
 
-    root = DeejaydMainHandler()
+    root = DeejaydMainHandler(deejayd_core, config)
     root.putChild("commands",DeejaydCommandHandler(deejayd_core, rdf_dir))
 
     htdocs_dir = config.get("webui","htdocs_dir")

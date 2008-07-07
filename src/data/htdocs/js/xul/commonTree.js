@@ -142,6 +142,14 @@ var CommonTreeManagement = function()
             this.playing = null;
             }
     };
+
+    this.setPlayorder = function()
+    {
+        var val = $(this.module + '-playorder').value;
+        ajaxdj_ref.send_post_command("playorder",
+            {value:val,source:this.module});
+    };
+
     /**************************************************************/
     // Drag and Drop support
     /**************************************************************/

@@ -164,6 +164,11 @@ function ajaxdj()
 	                        this.plObj.init();
                             break;
 
+                            case "panel":
+                            this.panelObj = new Panel();
+	                        this.panelObj.init();
+                            break;
+
                             case "webradio":
                             this.webradioObj = new Webradio();
 	                        this.webradioObj.init();
@@ -189,12 +194,14 @@ function ajaxdj()
             {
                 var mode = rs.getAttribute("value");
                 var selectedSrc = 0;
-                if (mode == "webradio")
+                if (mode == "panel")
                     selectedSrc = 1;
-                else if (mode == "video")
+                else if (mode == "webradio")
                     selectedSrc = 2;
-                else if (mode == "dvd")
+                else if (mode == "video")
                     selectedSrc = 3;
+                else if (mode == "dvd")
+                    selectedSrc = 4;
 
                 $('main').selectedIndex = selectedSrc;
                 $('mode-menu').value = mode;
@@ -226,12 +233,18 @@ function ajaxdj()
                 this.webradioObj.update(rs);
 
             rs = xmldoc.getElementsByTagName("playlist-list").item(0);
-            if (rs)
+            if (rs) {
                 this.fileListObj.updatePlaylistList(rs);
+                this.panelObj.updatePlaylistList(rs);
+                }
 
             rs = xmldoc.getElementsByTagName("queue").item(0);
             if (rs)
                 this.quObj.update(rs);
+
+            rs = xmldoc.getElementsByTagName("panel").item(0);
+            if (rs)
+                this.panelObj.update(rs);
 
             rs = xmldoc.getElementsByTagName("dvd").item(0);
             if (rs)

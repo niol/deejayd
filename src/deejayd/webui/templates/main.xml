@@ -15,6 +15,7 @@
 <script src="./static/js/xul/fileList.js"/>
 <script src="./static/js/xul/player.js"/>
 <script src="./static/js/xul/playlist.js"/>
+<script src="./static/js/xul/panel.js"/>
 <script src="./static/js/xul/webradio.js"/>
 <script src="./static/js/xul/queue.js"/>
 <script src="./static/js/xul/video.js"/>
@@ -236,6 +237,11 @@
                     id="playlist-source"
                     value="playlist" label="&playlist;"/>
                 <menuitem
+                    class="menuitem-iconic panel-item"
+                    hidden="true"
+                    id="panel-source"
+                    value="panel" label="&panel;"/>
+                <menuitem
                     class="menuitem-iconic webradio-item"
                     hidden="true"
                     id="webradio-source"
@@ -267,6 +273,7 @@
         selectedIndex="0"
         id="main">
             $playlist_box
+            $panel_box
             $webradio_box
             $video_box
             $dvd_box

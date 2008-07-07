@@ -1,3 +1,4 @@
 usr/lib/python*/site-packages/deejayd/webui/*.py
 usr/lib/python*/site-packages/deejayd/webui/templates/*.xml
+usr/lib/python*/site-packages/deejayd/webui/templates/*.py
 usr/share/deejayd/htdocs/*

@@ -1,0 +1,232 @@
+<hbox flex="1">
+
+    <popupset>
+        <popup id="panel-pls-menu" onpopupshowing="javascript:;">
+            <menuitem
+                class="menuitem-iconic remove-action"
+                label="&remove;"
+                oncommand="panel_ref.removePlaylist();"/>
+        </popup>
+        <popup id="panel-menu" onpopupshowing="javascript:;">
+            <menuitem
+                class="menuitem-iconic play-action"
+                label="&play;"
+                oncommand="panel_ref.play();"/>
+            <menu
+                label="&rating;">
+                <menupopup id="panel-rating-menu">
+                    <menuitem
+                        label=" 0 "
+                        oncommand="panel_ref.setRating(0);"/>
+                    <menuitem
+                        label="1 ♪"
+                        oncommand="panel_ref.setRating(1);"/>
+                    <menuitem
+                        label="2 ♪♪"
+                        oncommand="panel_ref.setRating(2);"/>
+                    <menuitem
+                        label="3 ♪♪♪"
+                        oncommand="panel_ref.setRating(3);"/>
+                    <menuitem
+                        label="4 ♪♪♪♪"
+                        oncommand="panel_ref.setRating(4);"/>
+                </menupopup>
+            </menu>
+        </popup>
+    </popupset>
+
+    <vbox persist="width" id="panel-select-box" flex="1">
+        <listbox
+            flex="1"
+            id="panel-pls-list">
+            <listitem class="listitem-title" label="Panel"/>
+            <listitem label=""/>
+            <listitem class="listitem-title" label="Playlist"/>
+        </listbox>
+        <button label="new"/>
+    </vbox>
+
+    <splitter persist="position" collapse="before" resizeafter="farthest">
+        <grippy/>
+    </splitter>
+
+    <vbox persist="width" id="panel-songlist-box" flex="5">
+        <hbox persist="height" align="center" id="filter-box">
+            <textbox
+                flex="1"
+                oncommand="panel_ref.updateFilter();"
+                timeout="700"
+                type="timed"
+                id="filter-text"/>
+            <menulist
+                id="panel-filter-type"
+                oncommand="panel_ref.updateFilter();"
+                label="">
+                <menupopup>
+                    <menuitem value="all" label="&all;" selected="true"/>
+                    <menuitem value="album" label="&album;"/>
+                    <menuitem value="artist" label="&artist;"/>
+                    <menuitem value="title" label="&title;"/>
+                    <menuitem value="genre" label="&genre;"/>
+                </menupopup>
+            </menulist>
+            <button
+                id="filter-clear"
+                class="clear-button"
+                label="&clear;"
+                oncommand="panel_ref.clearFilter();"/>
+        </hbox>
+        <hbox persist="height" id="panel-box">
+            <listbox
+                ref="http://panel/all-genre"
+                datasources="rdf:null"
+                flex="1"
+                id="genre-panel">
+                <listhead>
+                    <listheader label="&genre;"/>
+                </listhead>
+                <listcols>
+                    <listcol flex="1"/>
+                </listcols>
+                <template>
+                    <rule>
+                        <listitem uri="rdf:*">
+                            <listcell label="rdf:http://panel/rdf#name"/>
+                        </listitem>
+                    </rule>
+                </template>
+            </listbox>
+
+            <listbox
+                ref="http://panel/all-artist"
+                datasources="rdf:null"
+                flex="1"
+                id="artist-panel">
+                <listhead>
+                    <listheader label="&artist;"/>
+                </listhead>
+                <listcols>
+                    <listcol flex="1"/>
+                </listcols>
+                <template>
+                    <rule>
+                        <listitem uri="rdf:*">
+                            <listcell label="rdf:http://panel/rdf#name"/>
+                        </listitem>
+                    </rule>
+                </template>
+            </listbox>
+
+            <listbox
+                ref="http://panel/all-album"
+                datasources="rdf:null"
+                flex="1"
+                id="album-panel">
+                <listhead>
+                    <listheader label="&album;"/>
+                </listhead>
+                <listcols>
+                    <listcol flex="1"/>
+                </listcols>
+                <template>
+                    <rule>
+                        <listitem uri="rdf:*">
+                            <listcell label="rdf:http://panel/rdf#name"/>
+                        </listitem>
+                    </rule>
+                </template>
+            </listbox>
+        </hbox>
+
+        <splitter
+            id="panel-splitter"
+            collapse="before" />
+
+        <tree
+            persist="height"
+            id="panel-tree"
+            enableColumnDrag="true"
+            ref="http://panel/all-content"
+            datasources="rdf:null"
+            flex="8">
+            <treecols>
+                <treecol persist="width ordinal hidden" id="panel-status"
+                    label=""/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="panel-track"
+                    flex="1" label="#"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="panel-title"
+                    flex="4" label="&title;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="panel-artist"
+                    flex="3" label="&artist;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="panel-album"
+                    flex="3" label="&album;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="panel-genre"
+                    hidden="true" flex="3" label="&genre;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="panel-rating"
+                    flex="2" label="&rating;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="panel-time"
+                    flex="2" label="&time;"/>
+                <splitter class="tree-splitter"/>
+                <treecol persist="width ordinal hidden" id="panel-bitrate"
+                    hidden="true" flex="2" label="&bitrate;"/>
+            </treecols>
+
+            <template>
+            <rule>
+
+                <treechildren
+                    ondblclick = "panel_ref.play();"
+                    id="panel-items">
+                    <treeitem uri="rdf:*">
+                        <treerow>
+                            <treecell label=""/>
+                            <treecell label="rdf:http://panel/rdf#track"/>
+                            <treecell label="rdf:http://panel/rdf#title"/>
+                            <treecell label="rdf:http://panel/rdf#artist"/>
+                            <treecell label="rdf:http://panel/rdf#album"/>
+                            <treecell label="rdf:http://panel/rdf#genre"/>
+                            <treecell label="rdf:http://panel/rdf#rating"/>
+                            <treecell label="rdf:http://panel/rdf#length"/>
+                            <treecell label="rdf:http://panel/rdf#bitrate"/>
+                        </treerow>
+                    </treeitem>
+                </treechildren>
+
+            </rule>
+            </template>
+        </tree>
+
+        <hbox align="center">
+            <description value="&playorder;"/>
+            <menulist
+                id="panel-playorder"
+                oncommand="panel_ref.setPlayorder();"
+                label="">
+                <menupopup>
+                    <menuitem value="inorder" label="&inorder;"/>
+                    <menuitem value="onemedia" label="&onemedia;"/>
+                    <menuitem value="random" label="&random;"/>
+                    <menuitem value="random-weighted" label="&randomWeighted;"/>
+                </menupopup>
+            </menulist>
+            <command
+                oncommand=
+                  "ajaxdj_ref.send_command('repeat',{source:'panel'},true);"
+                id="panelrepeat-command"/>
+            <checkbox
+                label="&repeat;"
+                id="panel-repeat"
+                command="panelrepeat-command"
+                checked="false"/>
+            <spacer flex="1"/>
+            <description id="panel-description" value=""/>
+        </hbox>
+    </vbox>
+</hbox>

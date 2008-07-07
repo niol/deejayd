@@ -66,12 +66,6 @@ var Playlist = function()
             }
     };
 
-    this.setPlayorder = function()
-    {
-        var val = $('playlist-playorder').value;
-        ajaxdj_ref.send_post_command("playorder",{value:val,source:"playlist"});
-    };
-
     /********************************************************************/
     // custom drag and drop actions
     /********************************************************************/

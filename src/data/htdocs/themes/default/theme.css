@@ -152,3 +152,8 @@ height:30px;
 min-height:30px;
 max-height:30px;
 }
+
+/*
+ * Panel
+ */
+#panel-select-box .listitem-title { font-weight: bold; }

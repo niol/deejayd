@@ -95,15 +95,7 @@ class _UnknownCommand:
         self._answer.set_player(status, cur)
 
         # source update
-        self._answer.set_queue(status, self._deejayd)
-        if "playlist" in status.keys():
-            self._answer.set_playlist(status, self._deejayd)
-        if "webradio" in status.keys():
-            self._answer.set_webradio(status, self._deejayd)
-        if "dvd" in status.keys():
-            self._answer.set_dvd(status, self._deejayd)
-        if "video" in status.keys():
-            self._answer.set_video(status, self._deejayd)
+        self._answer.set_mode(status, self._deejayd)
 
         # video library update
         stats = self._deejayd.get_stats()

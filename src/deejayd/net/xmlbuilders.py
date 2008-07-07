@@ -19,23 +19,10 @@
 try: from xml.etree import cElementTree as ET # python 2.5
 except ImportError: # python 2.4
     import cElementTree as ET
+from deejayd.xmlobject import DeejaydXMLObject
 
 
-class _DeejaydXMLElement(object):
-
-    def _to_xml_string(self, s):
-        if isinstance(s, int) or isinstance(s, float) or isinstance(s, long):
-            return "%d" % (s,)
-        elif isinstance(s, str):
-            return "%s" % (s.decode('utf-8'))
-        elif isinstance(s, unicode):
-            rs = s.encode("utf-8")
-            return "%s" % (rs.decode('utf-8'))
-        else:
-            raise TypeError
-
-
-class _DeejaydXML(_DeejaydXMLElement):
+class _DeejaydXML(DeejaydXMLObject):
 
     def __init__(self, mother_xml_object = None):
         self.appended_xml_objects = None
@@ -69,30 +56,11 @@ class _DeejaydXML(_DeejaydXMLElement):
 
     def to_xml(self):
         self.__really_build_xml()
-        return '<?xml version="1.0" encoding="utf-8"?>' + \
-            ET.tostring(self.xmlroot,'utf-8')
-
-    def _indent(self,elem, level=0):
-        indent_char = "    "
-        i = "\n" + level*indent_char
-        if len(elem):
-            if not elem.text or not elem.text.strip():
-                elem.text = i + indent_char
-            for e in elem:
-                self._indent(e, level+1)
-                if not e.tail or not e.tail.strip():
-                    e.tail = i + indent_char
-            if not e.tail or not e.tail.strip():
-                e.tail = i
-        else:
-            if level and (not elem.tail or not elem.tail.strip()):
-                elem.tail = i
+        super(_DeejaydXML, self).to_xml()
 
     def to_pretty_xml(self):
         self.__really_build_xml()
-        self._indent(self.xmlroot)
-        return '<?xml version="1.0" encoding="utf-8"?>' + "\n" +\
-            ET.tostring(self.xmlroot,'utf-8') + "\n"
+        super(_DeejaydXML, self).to_pretty_xml()
 
     def build_xml(self):
         raise NotImplementedError
@@ -413,7 +381,7 @@ class DeejaydXMLAnswerFactory:
             raise NotImplementedError
 
 
-class XMLFilter(_DeejaydXMLElement):
+class XMLFilter(DeejaydXMLObject):
 
     def __init__(self, filter):
         self.filter = filter

@@ -149,9 +149,9 @@ if __name__ == "__main__":
                      "deejayd.mediadb.formats", "deejayd.player",\
                      "deejayd.player.display","deejayd.sources","deejayd.ui",\
                      "deejayd.database","deejayd.database.upgrade",\
-                     "deejayd.webui"],
+                     "deejayd.webui","deejayd.webui.templates"],
            package_data={'deejayd.ui': ['defaults.conf'],
-                         'deejayd.webui': ['templates/*.xml']},
+                         'deejayd.webui.templates': ['*.xml']},
            data_files= build_data_files_list(),
            cmdclass={"build": deejayd_build,
                      "build_i18n": build_i18n,
