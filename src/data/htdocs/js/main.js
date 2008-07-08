@@ -228,6 +228,10 @@ function ajaxdj()
                 this.fileListObj.updateFileList(rs,
                     rs.getAttribute("directory"));
 
+            rs = xmldoc.getElementsByTagName("audiosearch-list").item(0);
+            if (rs)
+                this.fileListObj.updateFileList(rs, "");
+
             rs = xmldoc.getElementsByTagName("webradio").item(0);
             if (rs)
                 this.webradioObj.update(rs);

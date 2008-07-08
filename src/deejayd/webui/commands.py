@@ -342,9 +342,8 @@ class AudioSearch(_Library):
                     {"name":"txt", "type":"string", "req":True}]
 
     def execute(self):
-        files_list = self._deejayd.audio_search(self._args["txt"],
-                self._args["type"])
-        self._answer.set_audiofile_list(files_list)
+        songs = self._deejayd.audio_search(self._args["txt"],self._args["type"])
+        self._answer.set_audiosearch_list(songs.get_medias())
 
 #
 # Static playlist commands
@@ -363,7 +362,7 @@ class StaticPlaylistAdd(_UnknownCommand):
 
     def execute(self):
         pls = self._deejayd.get_static_playlist(self._args["plname"])
-        if self._args["values"] == "id":
+        if self._args["type"] == "id":
             try: values = map(int, self._args["values"])
             except (TypeError, ValueError):
                 raise ArgError(_("Ids arg must be integer"))
@@ -387,7 +386,7 @@ class PlaylistAdd(_UnknownCommand):
         if pos == -1: pos = None
 
         pls = self._deejayd.get_playlist()
-        if self._args["values"] == "id":
+        if self._args["type"] == "id":
             try: values = map(int, self._args["values"])
             except (TypeError, ValueError):
                 raise ArgError(_("Ids arg must be integer"))
@@ -484,7 +483,7 @@ class QueueAdd(_UnknownCommand):
         if pos == -1: pos = None
 
         queue = self._deejayd.get_queue()
-        if self._args["values"] == "id":
+        if self._args["type"] == "id":
             try: values = map(int, self._args["values"])
             except (TypeError, ValueError):
                 raise ArgError(_("Ids arg must be integer"))

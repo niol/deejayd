@@ -85,24 +85,38 @@ var FileList = function()
             this.loadFilesInQueue(pos);
     };
 
+    this.__getSelectedType = function(id)
+    {
+        var navList = $(id);
+        var items = navList.selectedItems;
+        try { var type = items[0].getAttribute("value_type"); }
+        catch(ex) {
+            var type = "path";
+            }
+        return type;
+    };
+
     this.loadFiles = function(pos)
     {
         this.dragItemType = null;
         ajaxdj_ref.send_post_command('playlistAdd&pos='+pos,
-            {values: this.getSelectedItems("file-content")});
+            {values: this.getSelectedItems("file-content"),
+             type: this.__getSelectedType("file-content")});
     };
 
     this.loadFilesInQueue = function(pos)
     {
         this.dragItemType = null;
         ajaxdj_ref.send_post_command('queueAdd&pos='+pos,
-            {values: this.getSelectedItems("file-content")});
+            {values: this.getSelectedItems("file-content"),
+             type: this.__getSelectedType("file-content")});
     };
 
     this.addToPlaylist = function(name)
     {
         ajaxdj_ref.send_post_command('staticPlaylistAdd',
-            {plname: name, values: this.getSelectedItems("file-content")});
+            {plname: name, values: this.getSelectedItems("file-content"),
+             type: this.__getSelectedType("file-content")});
     };
 
     /*************************************/
@@ -192,6 +206,7 @@ var FileList = function()
             ajaxdj_ref.send_post_command("getdir",
                 { dir:e.target.value }); };
         dirItem.addEventListener('draggesture', FileObserver.dragStart, true);
+        dirItem.setAttribute("value_type", "path");
     };
 
     this.constructFileRow = function(file)
@@ -201,8 +216,8 @@ var FileList = function()
         fileItem.setAttribute("label",fileName);
         fileItem.setAttribute("context","fileList-menu");
         fileItem.className = "audio-item listitem-iconic";
-        var path = this.curDir != "" ? this.curDir+"/"+fileName : fileName;
-        fileItem.setAttribute("value",path);
+        fileItem.setAttribute("value",file.getAttribute("value"));
+        fileItem.setAttribute("value_type",file.getAttribute("value_type"));
         fileItem.setAttribute("type","audio-file");
         fileItem.addEventListener('draggesture', FileObserver.dragStart, true);
 

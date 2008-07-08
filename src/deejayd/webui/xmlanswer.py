@@ -67,21 +67,29 @@ class DeejaydWebAnswer(DeejaydXMLObject):
             update(new_id)
         ET.SubElement(self.xmlroot,"videodir", id = self._to_xml_string(nid))
 
-    def __build_file_list(self, parent, list):
-        for dir in list.get_directories():
-            it = ET.SubElement(parent,"item", type = "directory")
+    def set_audiofile_list(self, files_list, root_dir = ""):
+        list_elm = ET.SubElement(self.xmlroot, "file-list",\
+                                 directory = self._to_xml_string(root_dir))
+        for dir in files_list.get_directories():
+            it = ET.SubElement(list_elm,"item", type = "directory")
             it.text = self._to_xml_string(dir)
 
-        for file in list.get_files():
-            it = ET.SubElement(parent,"item")
+        for file in files_list.get_files():
+            path = os.path.join(root_dir,file["filename"])
+            it = ET.SubElement(list_elm,"item",\
+                value_type="path",
+                value=self._to_xml_string(path),\
+                type=self._to_xml_string(file["type"]))
             it.text = self._to_xml_string(file["filename"])
-            for key in [k for k in file.keys() if k not in ("filename","dir")]:
-                it.attrib[key] = self._to_xml_string(file[key])
 
-    def set_audiofile_list(self, files_list, dir = ""):
-        list_elm = ET.SubElement(self.xmlroot, "file-list",\
-                                 directory = self._to_xml_string(dir))
-        self.__build_file_list(list_elm,files_list)
+    def set_audiosearch_list(self, medias):
+        list_elm = ET.SubElement(self.xmlroot, "audiosearch-list")
+        for m in medias:
+            it = ET.SubElement(list_elm,"item",\
+                value_type="id",
+                value=self._to_xml_string(m["media_id"]),\
+                type=self._to_xml_string(m["type"]))
+            it.text = self._to_xml_string(m["filename"])
 
     def set_playlist_list(self, playlist_list):
         list_elm = ET.SubElement(self.xmlroot, "playlist-list")
