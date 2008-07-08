@@ -74,8 +74,8 @@ so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
 """ % xml_doc_builder.get_sample_command('cmdName1').to_pretty_xml()
 
 commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
-                   "audioUpdate", "videoUpdate", "getdir", "audioSearch",
-                   "getvideodir", "playToggle", "goto", "stop", "next",
+                   "audioUpdate", "videoUpdate", "getAudioDir", "audioSearch",
+                   "getVideoDir", "playToggle", "goto", "stop", "next",
                    "previous", "setVolume", "seek", "setOption", "current",
                    "setPlayerOption", "staticPlaylistInfo",
                    "staticPlaylistAdd", "playlistInfo", "playlistList",

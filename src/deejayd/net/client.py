@@ -516,7 +516,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         return self._send_command(cmd)
 
     def get_audio_dir(self,dir = None):
-        cmd = DeejaydXMLCommand('getdir')
+        cmd = DeejaydXMLCommand('getAudioDir')
         if dir != None:
             cmd.add_simple_arg('directory', dir)
         ans = DeejaydFileList(self)
@@ -530,7 +530,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         return self._send_command(cmd, ans)
 
     def get_video_dir(self,dir = None):
-        cmd = DeejaydXMLCommand('getvideodir')
+        cmd = DeejaydXMLCommand('getVideoDir')
         if dir != None:
             cmd.add_simple_arg('directory', dir)
         ans = DeejaydFileList(self)

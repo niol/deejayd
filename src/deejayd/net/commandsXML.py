@@ -309,9 +309,9 @@ class MediaRating(UnknownCommand):
             self.args["value"], self.args["type"], objanswer=False)
 
 
-class GetDir(UnknownCommand):
+class GetAudioDir(UnknownCommand):
     """List the files of the directory supplied as argument."""
-    command_name = 'getdir'
+    command_name = 'getAudioDir'
     command_args = [{"name":"directory", "type":"string", "req":False, \
                      "default":""}]
     command_rvalue = 'FileAndDirList'
@@ -347,9 +347,9 @@ class AudioSearch(UnknownCommand):
         return rsp
 
 
-class GetVideoDir(GetDir):
+class GetVideoDir(GetAudioDir):
     """Lists the files in video dir "directory"."""
-    command_name = 'getvideodir'
+    command_name = 'getVideoDir'
     command_args = [{"name":"directory","type":"string","req":False,\
                      "default": ""}]
     command_rvalue = 'FileAndDirList'

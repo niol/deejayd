@@ -310,7 +310,7 @@ Arguments :
 
 Expected return value : ''`KeyValue`''
 
-=== `getdir` ===
+=== `getAudioDir` ===
 
 List the files of the directory supplied as argument.
 
@@ -329,7 +329,7 @@ Arguments :
 
 Expected return value : ''`MediaList`''
 
-=== `getvideodir` ===
+=== `getVideoDir` ===
 
 Lists the files in video dir "directory".
 
