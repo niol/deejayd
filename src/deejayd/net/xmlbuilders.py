@@ -351,7 +351,7 @@ class DeejaydXMLDvdInfo(DeejaydXMLAck):
                     xmlchapter.attrib[info] = self._to_xml_string(chapter[info])
 
 
-class DeejaydXMLAnswerFactory:
+class DeejaydXMLAnswerFactory(object):
 
     response_types = (
                        DeejaydXMLError,
