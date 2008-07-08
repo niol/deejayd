@@ -158,8 +158,8 @@ class AvailableCommands:
         except IndexError:
             raise DjcError('You need to enter a search text')
         rsp = self.server.audio_search(search_txt, type)
-        for file in rsp.get_files():
-            print "file:", file["filename"]
+        for m in rsp.get_medias():
+            print m["media_id"], "|" ,m["filename"]
 
 # Video commands
     def video_update(self, args):

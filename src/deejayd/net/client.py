@@ -523,10 +523,10 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         return self._send_command(cmd, ans)
 
     def audio_search(self, search_txt, type = 'all'):
-        cmd = DeejaydXMLCommand('search')
+        cmd = DeejaydXMLCommand('audioSearch')
         cmd.add_simple_arg('type', type)
         cmd.add_simple_arg('txt', search_txt)
-        ans = DeejaydFileList(self)
+        ans = DeejaydMediaList(self)
         return self._send_command(cmd, ans)
 
     def get_video_dir(self,dir = None):

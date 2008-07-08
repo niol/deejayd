@@ -538,13 +538,13 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         return dir, contents['dirs'], contents['files']
 
-    @returns_deejaydanswer(DeejaydFileList)
+    @returns_deejaydanswer(DeejaydMediaList)
     def audio_search(self, search_txt, type = 'all'):
-        try: list = self.audio_library.search(type, search_txt)
+        try: songs = self.audio_library.search(type, search_txt)
         except deejayd.mediadb.library.NotFoundException:
             raise DeejaydError(_('Type %s is not supported') % (type,))
 
-        return None, [], list
+        return songs
 
     @require_mode("video")
     @returns_deejaydanswer(DeejaydFileList)

@@ -317,15 +317,15 @@ Arguments :
 
 Expected return value : ''`FileAndDirList`''
 
-=== `search` ===
+=== `audioSearch` ===
 
-Search files where "type" contains "txt" content.
+Search files in audio library where "type" contains "txt" content.
 
 Arguments :
   * {{{type}}} (Simple and Mandatory) : enum_str
   * {{{txt}}} (Simple and Mandatory) : string
 
-Expected return value : ''`FileAndDirList`''
+Expected return value : ''`MediaList`''
 
 === `getvideodir` ===
 

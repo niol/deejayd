@@ -288,12 +288,12 @@ class InterfaceTests:
         # search an unknown terms
         text = self.testdata.getRandomString()
         ans = self.deejayd.audio_search(text)
-        self.assertEqual(ans.get_files(), [])
+        self.assertEqual(ans.get_medias(), [])
 
         # search a known terms
         file = self.testdata.getRandomElement(song_files)
         ans = self.deejayd.audio_search(file["title"], "title")
-        self.failUnless(len(ans.get_files()) > 0)
+        self.failUnless(len(ans.get_medias()) > 0)
 
     def testVideoLibrary(self):
         """ Test request on video library """

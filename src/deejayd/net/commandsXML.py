@@ -329,21 +329,21 @@ class GetDir(UnknownCommand):
         return rsp
 
 
-class Search(UnknownCommand):
-    """Search files where "type" contains "txt" content."""
-    command_name = 'search'
+class AudioSearch(UnknownCommand):
+    """Search files in audio library where "type" contains "txt" content."""
+    command_name = 'audioSearch'
     command_args = [{"name":"type", "type":"enum_str",
                      "values": ('all','title','genre','filename','artist',
                                 'album'),"req":True},
                     {"name":"txt", "type":"string", "req":True}]
-    command_rvalue = 'FileAndDirList'
+    command_rvalue = 'MediaList'
 
     def _execute(self):
-        root_dir, dirs, files = self.deejayd_core.audio_search(\
-            self.args['txt'], self.args['type'], objanswer=False)
-        rsp = self.get_answer('FileAndDirList')
-        rsp.set_filetype('song')
-        rsp.set_files(files)
+        songs = self.deejayd_core.audio_search(\
+                    self.args['txt'], self.args['type'], objanswer=False)
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype("song")
+        rsp.set_medias(songs)
         return rsp
 
 
@@ -438,7 +438,7 @@ class StaticPlaylistAdd(UnknownCommand):
 
     def _execute(self):
         pls = self.deejayd_core.get_static_playlist(self.args["name"])
-        if self.args["values"] == "id":
+        if self.args["type"] == "id":
             try: values = map(int, self.args["values"])
             except (TypeError, ValueError):
                 return self.get_error_answer(_("Ids arg must be integer"))
@@ -525,7 +525,7 @@ class PlaylistAdd(UnknownCommand):
 
     def _execute(self):
         pls = self.deejayd_core.get_playlist()
-        if self.args["values"] == "id":
+        if self.args["type"] == "id":
             try: values = map(int, self.args["values"])
             except (TypeError, ValueError):
                 return self.get_error_answer(_("Ids arg must be integer"))
@@ -645,7 +645,7 @@ class QueueAdd(UnknownCommand):
 
     def _execute(self):
         qu = self.deejayd_core.get_queue()
-        if self.args["values"] == "id":
+        if self.args["type"] == "id":
             try: values = map(int, self.args["values"])
             except (TypeError, ValueError):
                 return self.get_error_answer(_("Ids arg must be integer"))

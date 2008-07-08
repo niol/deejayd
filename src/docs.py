@@ -73,7 +73,7 @@ so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
 """
 
 commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
-                   "audioUpdate", "videoUpdate", "getdir", "search",
+                   "audioUpdate", "videoUpdate", "getdir", "audioSearch",
                    "getvideodir", "playToggle", "goto", "stop", "next",
                    "previous", "setVolume", "seek", "setOption", "current",
                    "setPlayerOption", "staticPlaylistInfo",
