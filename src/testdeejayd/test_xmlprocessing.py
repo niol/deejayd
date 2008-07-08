@@ -21,7 +21,7 @@
 import re, unittest, random
 from StringIO import StringIO
 
-from testdeejayd import TestCaseWithData
+from testdeejayd import XmlTestCase, TestCaseWithData
 import testdeejayd.data
 
 from deejayd.mediafilters import *
@@ -38,30 +38,12 @@ def trim_xml(xml):
     return re.sub('(\s{2,})|(\\n)','', xml)
 
 
-class TestCommandBuildParse(unittest.TestCase):
+class TestCommandBuildParse(XmlTestCase):
     """Test the Deejayd client library command building"""
-
-    def __get_sample_command(self, cmd_name):
-        cmd = DeejaydXMLCommand(cmd_name)
-
-        cmd.add_simple_arg('argName1', 'bou')
-        cmd.add_simple_arg('argName2', 'bou2')
-        cmd.add_multiple_arg('argName3', ['bou2', 'haha', 'aza'])
-        cmd.add_simple_arg('argName4', 'bou3')
-        cmd.add_multiple_arg('argName5', ['bou2', 'hihi', 'aza'])
-
-        filter = And(Contains('artist', 'Britney'),
-                     Or(Equals('genre', 'Classical'),
-                        Equals('genre', 'Disco')
-                     )
-                    )
-        cmd.add_filter_arg('argName6', filter)
-
-        return cmd
 
     def testCommandBuilder(self):
         """Client library builds commands according to protocol scheme"""
-        cmd = self.__get_sample_command('command1')
+        cmd = self.xmldata.get_sample_command('command1')
 
         expectedAnswer = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -98,7 +80,7 @@ class TestCommandBuildParse(unittest.TestCase):
         cmd_factory = CommandFactory()
 
         cmd_name = 'status'
-        xml_cmd = self.__get_sample_command(cmd_name).to_xml()
+        xml_cmd = self.xmldata.get_sample_command(cmd_name).to_xml()
         xml_tree = cmd_factory.tree_from_line(xml_cmd).findall('command')[0]
 
         cmd_name, cmd_class, cmd_args = cmd_factory.parseXMLCommand(xml_tree)

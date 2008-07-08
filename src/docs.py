@@ -23,9 +23,35 @@ Use to create documentation of the protocol
 """
 
 from deejayd.net import commandsXML
-from deejayd.net.xmlbuilders import *
+from testdeejayd.xmldatabuilder import DeejaydXMLSampleFactory
 
-def headerXMLCommands():
+
+class DeejaydXMLDocFactory(DeejaydXMLSampleFactory):
+
+    def formatResponseDoc(self, response):
+        info = {}
+        info['type'] = response.response_type
+        info['desc'] = response.__doc__
+        info['example'] = self.get_sample_answer(response).to_pretty_xml()
+
+        responseDoc = """
+  * '''`%(type)s`''' : %(desc)s
+{{{
+%(example)sENDXML
+}}}""" % info
+
+        return responseDoc
+
+    def formatCombinedResponse(self):
+        combi = self.getAck()
+        self.set_mother(combi)
+        combiFact = DeejaydXMLDocFactory()
+        combiFact.set_mother(combi)
+        vl = combiFact.getMediaList()
+        return combi.to_pretty_xml()
+
+
+def headerXMLCommands(xml_doc_builder):
     return """= deejayd - XML Protocol =
 
 All data between the client and server is encoded in UTF-8.
@@ -33,32 +59,7 @@ All data between the client and server is encoded in UTF-8.
 == Commands Format ==
 
 {{{
-<?xml version="1.0" encoding="utf-8"?>
-<deejayd>
-    <command name="cmdName1">
-        <arg name="argName1" type="simple">value</arg>
-        <arg name="argName2" type="multiple">
-            <value>value1</value>
-            <value>value2</value>
-        </arg>
-    </command>
-    <command name="cmdName2">
-        <arg name="argName1" type="simple">value</arg>
-        <arg name="argName2" type="multiple">
-            <value>value1</value>
-            <value>value2</value>
-        </arg>
-        <arg name="argName6" type="filter">
-            <and>
-                <contains tag="artist">Britney</contains>
-                <or>
-                    <equals tag="genre">Classical</equals>
-                    <equals tag="genre">Disco</equals>
-                </or>
-            </and>
-        </arg>
-    </command>
-</deejayd>
+%s
 ENDXML
 }}}
 
@@ -70,7 +71,7 @@ so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
 == Response Format ==
 
 {{{ENDXML}}} is also used as an answer delimiter.
-"""
+""" % xml_doc_builder.get_sample_command('cmdName1').to_pretty_xml()
 
 commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
                    "audioUpdate", "videoUpdate", "getdir", "audioSearch",
@@ -184,136 +185,23 @@ description :
     }
 
 
-class DeejaydXMLDocFactory(DeejaydXMLAnswerFactory):
-
-    def getSampleParmDict(self, howMuch = 2):
-        parmDict = {}
-        for i in range(howMuch):
-            parmDict['parmName' + str(i)] = 'parmValue' + str(i)
-        return parmDict
-
-    def getError(self):
-        error = self.get_deejayd_xml_answer('error', 'cmdName')
-        error.set_error_text('error text')
-        return error
-
-    def getAck(self):
-        ack = self.get_deejayd_xml_answer('Ack', 'cmdName')
-        return ack
-
-    def getKeyValue(self):
-        kv = self.get_deejayd_xml_answer('KeyValue', 'cmdName')
-        kv.set_pairs(self.getSampleParmDict())
-        return kv
-
-    def getList(self):
-        l = self.get_deejayd_xml_answer('List', 'cmdName')
-        for i in range(2):
-            l.contents.append("item%d" % i)
-        return l
-
-    def getFileAndDirList(self):
-        fl = self.get_deejayd_xml_answer('FileAndDirList', 'cmdName')
-        fl.set_directory('optionnal_described_dirname')
-        fl.add_directory('dirName')
-        fl.set_filetype('song or video')
-
-        fl.add_file(self.getSampleParmDict())
-
-        return fl
-
-    def getMediaList(self):
-        ml = self.get_deejayd_xml_answer('MediaList', 'cmdName')
-        ml.set_mediatype("song or video or webradio or playlist")
-        ml.add_media(self.getSampleParmDict())
-        ml.add_media({"parmName1": "parmValue1", \
-            "audio": [{"idx": "0", "lang": "lang1"}, \
-                      {"idx": "1", "lang": "lang2"}],\
-            "subtitle": [{"idx": "0", "lang": "lang1"}]})
-        return ml
-
-    def getDvdInfo(self):
-        dvd = self.get_deejayd_xml_answer('DvdInfo', 'cmdName')
-        dvd_info = {'title': "DVD Title", "longest_track": 1,\
-                    'track':
-                      [ {"ix": 1,\
-                         "length":"track length",\
-                         "audio":[\
-                            { 'ix': 0,\
-                              'lang': 'lang code'\
-                            }],\
-                         "subp":[\
-                            { 'ix': 0,\
-                              'lang': 'lang code'\
-                            },\
-                            { 'ix': 1,\
-                              'lang': 'lang code'\
-                            }],\
-                         "chapter":[
-                            {'ix': 1,\
-                             'length': 'chapter length'\
-                            }]\
-                        },\
-                      ],\
-                   }
-        dvd.set_info(dvd_info)
-        return dvd
-
-    responseTypeExBuilders = {
-                               DeejaydXMLError: getError,
-                               DeejaydXMLAck: getAck,
-                               DeejaydXMLKeyValue: getKeyValue,
-                               DeejaydXMLList : getList,
-                               DeejaydXMLFileDirList: getFileAndDirList,
-                               DeejaydXMLDvdInfo: getDvdInfo,
-                               DeejaydXMLMediaList: getMediaList,
-                             }
-
-    def getExample(self, responseClass):
-        builder = self.responseTypeExBuilders[responseClass]
-        if builder == None:
-            return 'No example available.'
-        else:
-            return builder(self)
-
-    def formatResponseDoc(self, response):
-        info = {}
-        info['type'] = response.response_type
-        info['desc'] = response.__doc__
-        info['example'] = self.getExample(response).to_pretty_xml()
-
-        responseDoc = """
-  * '''`%(type)s`''' : %(desc)s
-{{{
-%(example)sENDXML
-}}}""" % info
-
-        return responseDoc
-
-    def formatCombinedResponse(self):
-        combi = self.getAck()
-        self.set_mother(combi)
-        combiFact = DeejaydXMLDocFactory()
-        combiFact.set_mother(combi)
-        vl = combiFact.getMediaList()
-        return combi.to_pretty_xml()
-
 if __name__ == "__main__":
+    xml_doc_builder = DeejaydXMLDocFactory()
+
     # XML Doc
-    docs = headerXMLCommands()
+    docs = headerXMLCommands(xml_doc_builder)
 
     docs += """
 There are 6 response types :"""
 
-    respDocBuilder = DeejaydXMLDocFactory()
-    for response in respDocBuilder.response_types:
-        docs += respDocBuilder.formatResponseDoc(response)
+    for response in xml_doc_builder.response_types:
+        docs += xml_doc_builder.formatResponseDoc(response)
 
     docs += """
 Responses may be combined in the same physical message :
 {{{
 %s
-}}}""" % respDocBuilder.formatCombinedResponse()
+}}}""" % xml_doc_builder.formatCombinedResponse()
 
     docs += """
 
@@ -326,5 +214,6 @@ Responses may be combined in the same physical message :
     f = open("doc/deejayd_xml_protocol","w")
     try: f.write(docs)
     finally: f.close()
+
 
 # vim: ts=4 sw=4 expandtab

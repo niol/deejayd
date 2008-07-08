@@ -8,18 +8,6 @@ All data between the client and server is encoded in UTF-8.
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
     <command name="cmdName1">
-        <arg name="argName1" type="simple">value</arg>
-        <arg name="argName2" type="multiple">
-            <value>value1</value>
-            <value>value2</value>
-        </arg>
-    </command>
-    <command name="cmdName2">
-        <arg name="argName1" type="simple">value</arg>
-        <arg name="argName2" type="multiple">
-            <value>value1</value>
-            <value>value2</value>
-        </arg>
         <arg name="argName6" type="filter">
             <and>
                 <contains tag="artist">Britney</contains>
@@ -29,8 +17,22 @@ All data between the client and server is encoded in UTF-8.
                 </or>
             </and>
         </arg>
+        <arg name="argName5" type="multiple">
+            <value>bou2</value>
+            <value>hihi</value>
+            <value>aza</value>
+        </arg>
+        <arg name="argName4" type="simple">bou3</arg>
+        <arg name="argName3" type="multiple">
+            <value>bou2</value>
+            <value>haha</value>
+            <value>aza</value>
+        </arg>
+        <arg name="argName2" type="simple">bou2</arg>
+        <arg name="argName1" type="simple">bou</arg>
     </command>
 </deejayd>
+
 ENDXML
 }}}
 

@@ -20,6 +20,7 @@ import sys
 import unittest
 from testdeejayd.databuilder import TestData, TestAudioCollection,\
                                     TestVideoCollection
+from testdeejayd.xmldatabuilder import DeejaydXMLSampleFactory
 
 
 class DeejaydTest(unittest.TestCase):
@@ -73,5 +74,13 @@ class TestCaseWithAudioAndVideoData(DeejaydTest):
     def tearDown(self):
         self.test_audiodata.cleanLibraryDirectoryTree()
         self.test_videodata.cleanLibraryDirectoryTree()
+
+
+class XmlTestCase(TestCaseWithData):
+
+    def setUp(self):
+        super(XmlTestCase, self).setUp()
+        self.xmldata = DeejaydXMLSampleFactory()
+
 
 # vim: ts=4 sw=4 expandtab
