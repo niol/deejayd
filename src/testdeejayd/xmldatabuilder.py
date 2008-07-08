@@ -23,34 +23,49 @@ from deejayd.net.xmlbuilders import *
 
 class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
 
+    def get_deejayd_xml_answer(self, ans_type, cmd_name=None):
+        if not cmd_name:
+            cmd_name = 'cmdName'
+
+        return super(DeejaydXMLSampleFactory,
+                     self).get_deejayd_xml_answer(ans_type, cmd_name)
+
     def getSampleParmDict(self, howMuch = 2):
         parmDict = {}
         for i in range(howMuch):
             parmDict['parmName' + str(i)] = 'parmValue' + str(i)
         return parmDict
 
-    def getError(self):
-        error = self.get_deejayd_xml_answer('error', 'cmdName')
+    def get_sample_filter(self):
+        filter = And(Contains('artist', 'Britney'),
+                     Or(Equals('genre', 'Classical'),
+                        Equals('genre', 'Disco')
+                     )
+                    )
+        return filter
+
+    def getError(self, cmd_name=None):
+        error = self.get_deejayd_xml_answer('error', cmd_name)
         error.set_error_text('error text')
         return error
 
-    def getAck(self):
-        ack = self.get_deejayd_xml_answer('Ack', 'cmdName')
+    def getAck(self, cmd_name=None):
+        ack = self.get_deejayd_xml_answer('Ack', cmd_name)
         return ack
 
-    def getKeyValue(self):
-        kv = self.get_deejayd_xml_answer('KeyValue', 'cmdName')
+    def getKeyValue(self, cmd_name=None):
+        kv = self.get_deejayd_xml_answer('KeyValue', cmd_name)
         kv.set_pairs(self.getSampleParmDict())
         return kv
 
-    def getList(self):
-        l = self.get_deejayd_xml_answer('List', 'cmdName')
+    def getList(self, cmd_name=None):
+        l = self.get_deejayd_xml_answer('List', cmd_name)
         for i in range(2):
             l.contents.append("item%d" % i)
         return l
 
-    def getFileAndDirList(self):
-        fl = self.get_deejayd_xml_answer('FileAndDirList', 'cmdName')
+    def getFileAndDirList(self, cmd_name=None):
+        fl = self.get_deejayd_xml_answer('FileAndDirList', cmd_name)
         fl.set_directory('optionnal_described_dirname')
         fl.add_directory('dirName')
         fl.set_filetype('song or video')
@@ -59,8 +74,8 @@ class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
 
         return fl
 
-    def getMediaList(self):
-        ml = self.get_deejayd_xml_answer('MediaList', 'cmdName')
+    def getMediaList(self, cmd_name=None):
+        ml = self.get_deejayd_xml_answer('MediaList', cmd_name)
         ml.set_mediatype("song or video or webradio or playlist")
         ml.add_media(self.getSampleParmDict())
         ml.add_media({"parmName1": "parmValue1", \
@@ -69,8 +84,8 @@ class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
             "subtitle": [{"idx": "0", "lang": "lang1"}]})
         return ml
 
-    def getDvdInfo(self):
-        dvd = self.get_deejayd_xml_answer('DvdInfo', 'cmdName')
+    def getDvdInfo(self, cmd_name=None):
+        dvd = self.get_deejayd_xml_answer('DvdInfo', cmd_name)
         dvd_info = {'title': "DVD Title", "longest_track": 1,\
                     'track':
                       [ {"ix": 1,\
