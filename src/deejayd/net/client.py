@@ -21,15 +21,13 @@
 import socket, asyncore, threading
 import sys,time
 from cStringIO import StringIO
-try: from xml.etree import cElementTree as ET # python 2.5
-except ImportError: # python 2.4
-    import cElementTree as ET
 
 from Queue import Queue, Empty
 
 import deejayd.interfaces
-from deejayd.interfaces import DeejaydError, DeejaydKeyValue, DeejaydSignal
+from deejayd.interfaces import DeejaydError, DeejaydKeyValue
 from deejayd.net.xmlbuilders import DeejaydXMLCommand
+from deejayd.net.xmlparsers import DeejaydXMLAnswerParser
 
 
 MSG_DELIMITER = 'ENDXML\n'
@@ -314,6 +312,9 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
 
         self.__timeout = 2
         self.expected_answers_queue = Queue()
+        self.answer_parser = DeejaydXMLAnswerParser(\
+                                              self.expected_answers_queue.get,
+                                              self._dispatch_signal)
         self.next_msg = ""
 
         # Socket setup
@@ -553,96 +554,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         return self._send_command(cmd, ans)
 
     def _build_answer(self, string_io):
-        xmlpath = []
-        originating_command = ''
-        parms = []
-        answer = True
-        signal = None
-        for event, elem in ET.iterparse(string_io,events=("start","end")):
-            if event == "start":
-                xmlpath.append(elem.tag)
-                if len(xmlpath) == 2:
-                    if elem.tag in ('error', 'response'):
-                        expected_answer = self.expected_answers_queue.get()
-                    elif elem.tag == 'signal':
-                        signal = DeejaydSignal()
-                elif elem.tag in ("directory","file","media"):
-                    assert xmlpath == ['deejayd', 'response', elem.tag]
-                elif elem.tag == "track":
-                    assert xmlpath == ['deejayd','response','dvd','track']
-                    track = {"audio":[],"subtitle":[],"chapter":[]}
-                elif elem.tag in ("audio","subtitle","chapter"):
-                    assert xmlpath == ['deejayd','response','dvd','track',\
-                                            elem.tag]
-                elif elem.tag == "listparm":
-                    list_parms = []
-                elif elem.tag == "dictparm":
-                    dict_parms = {}
-            else: # event = "end"
-                xmlpath.pop()
-
-                if elem.tag in ('error','response'):
-                    expected_answer.set_originating_command(elem.attrib['name'])
-                elif elem.tag == 'signal':
-                    signal.set_name(elem.attrib['name'])
-                    self._dispatch_signal(signal)
-                    signal = None
-
-                if elem.tag == "error":
-                    expected_answer.set_error(elem.text)
-                elif elem.tag == "response":
-                    rsp_type = elem.attrib['type']
-                    if rsp_type == "KeyValue":
-                        answer = dict(parms)
-                    elif rsp_type == "List":
-                        answer = [parm[1] for parm in parms]
-                    elif rsp_type == "FileAndDirList":
-                        if 'directory' in elem.attrib.keys():
-                            expected_answer.set_rootdir(elem.\
-                                                           attrib['directory'])
-                    elif rsp_type == "MediaList":
-                        if 'total_length' in elem.attrib.keys():
-                            expected_answer.set_total_length(elem.\
-                                attrib['total_length'])
-                    expected_answer._received(answer)
-                    expected_answer = None
-                elif elem.tag == "listparm":
-                    parms.append((elem.attrib["name"], list_parms))
-                elif elem.tag == "listvalue":
-                    list_parms.append(elem.attrib["value"])
-                elif elem.tag == "dictparm":
-                    list_parms.append(dict_parms)
-                elif elem.tag == "dictitem":
-                    dict_parms[elem.attrib["name"]] = elem.attrib["value"]
-                elif elem.tag == "parm":
-                    value = elem.attrib["value"]
-                    try: value = int(value)
-                    except ValueError: pass
-                    parms.append((elem.attrib["name"], value))
-                elif elem.tag == "media":
-                    expected_answer.add_media(dict(parms))
-                elif elem.tag == "directory":
-                    expected_answer.add_dir(elem.attrib['name'])
-                elif elem.tag == "file":
-                    expected_answer.add_file(dict(parms))
-                elif elem.tag in ("audio","subtitle"):
-                    track[elem.tag].append({"ix": elem.attrib['ix'],\
-                        "lang": elem.attrib['lang']})
-                elif elem.tag == "chapter":
-                    track["chapter"].append({"ix": elem.attrib['ix'],\
-                        "length": elem.attrib['length']})
-                elif elem.tag == "track":
-                    track["ix"] = elem.attrib["ix"]
-                    track["length"] = elem.attrib["length"]
-                    expected_answer.add_track(track)
-                elif elem.tag == "dvd":
-                    infos = {"title": elem.attrib['title'], \
-                             "longest_track": elem.attrib['longest_track']}
-                    expected_answer.set_dvd_content(infos)
-                parms = elem.tag in ("parm","listparm","dictparm","listvalue",\
-                        "dictitem") and parms or []
-
-                elem.clear()
+        return self.answer_parser.parse(string_io)
 
 
 class DeejayDaemonSync(_DeejayDaemon):
