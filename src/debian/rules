@@ -39,6 +39,7 @@ clean:
 	python setup.py clean --all
 	rm -f $(CURDIR)/deejayd/__init__.pyc
 	rm -f $(CURDIR)/build/mo/fr/LC_MESSAGES/deejayd.mo
+	rmdir -p build
 	rm -f $(CURDIR)/MANIFEST
 	rm -f $(CURDIR)/man/*.{1,5}
 
