@@ -29,7 +29,7 @@ class MediaFilter(object):
         return self.__class__.__name__.lower()
 
     def __str__(self):
-        return self.__class__.__name__.lower()
+        return NotImplementedError
 
 
 class BasicFilter(MediaFilter):
@@ -40,11 +40,14 @@ class BasicFilter(MediaFilter):
         self.tag = tag
         self.pattern = pattern
 
+    def __str__(self):
+        return self.repr_str % (self.tag, self.pattern)
 
-class Equals(BasicFilter):    pass
-class NotEquals(BasicFilter): pass
-class Contains(BasicFilter):  pass
-class Regexi(BasicFilter):    pass
+
+class Equals(BasicFilter):    repr_str = "(%s == '%s')"
+class NotEquals(BasicFilter): repr_str = "(%s != '%s')"
+class Contains(BasicFilter):  repr_str = "(%s == '%%%s%%')"
+class Regexi(BasicFilter):    repr_str = "(%s ~ /%s/)"
 
 
 BASIC_FILTERS = (
@@ -69,9 +72,13 @@ class ComplexFilter(MediaFilter):
     def combine(self, filter):
         self.filterlist.append(filter)
 
+    def __str__(self):
+        filters_str = map(str, self.filterlist)
+        return "(%s)" % self.repr_joiner.join(filters_str)
 
-class And(ComplexFilter): pass
-class Or(ComplexFilter):  pass
+
+class And(ComplexFilter): repr_joiner = " && "
+class Or(ComplexFilter):  repr_joiner = " || "
 
 
 COMPLEX_FILTERS = (
