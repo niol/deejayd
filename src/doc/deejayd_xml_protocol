@@ -129,6 +129,15 @@ ENDXML
                 </dictparm>
             </listparm>
         </media>
+        <filter>
+            <and>
+                <contains tag="artist">Britney</contains>
+                <or>
+                    <equals tag="genre">Classical</equals>
+                    <equals tag="genre">Disco</equals>
+                </or>
+            </and>
+        </filter>
     </response>
 </deejayd>
 ENDXML
@@ -179,6 +188,15 @@ Responses may be combined in the same physical message :
                 </dictparm>
             </listparm>
         </media>
+        <filter>
+            <and>
+                <contains tag="artist">Britney</contains>
+                <or>
+                    <equals tag="genre">Classical</equals>
+                    <equals tag="genre">Disco</equals>
+                </or>
+            </and>
+        </filter>
     </response>
 </deejayd>
 

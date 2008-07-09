@@ -64,8 +64,10 @@ class ComplexFilter(MediaFilter):
 
         self.filterlist = []
         for filter in __args[1:]:
-            self.filterlist.append(filter)
+            self.combine(filter)
 
+    def combine(self, filter):
+        self.filterlist.append(filter)
 
 
 class And(ComplexFilter): pass

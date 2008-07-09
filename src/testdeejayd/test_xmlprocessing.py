@@ -26,7 +26,8 @@ import testdeejayd.data
 
 from deejayd.mediafilters import *
 from deejayd.net.deejaydProtocol import CommandFactory
-from deejayd.net.client import _DeejayDaemon, DeejaydSignal,\
+from deejayd.interfaces import DeejaydSignal
+from deejayd.net.client import _DeejayDaemon,\
                                DeejaydAnswer, DeejaydKeyValue, DeejaydList,\
                                DeejaydFileList, DeejaydMediaList,\
                                DeejaydStaticPlaylist, DeejaydError
@@ -93,26 +94,14 @@ class TestCommandBuildParse(XmlTestCase):
         self.assertEqual(cmd_args['argName5'], ['bou2', 'hihi', 'aza'])
 
         retrieved_filter = cmd_args['argName6']
-        self.assertEqual(retrieved_filter.__class__.__name__, 'And')
-        anded = retrieved_filter.filterlist
-        self.assertEqual(anded[0].__class__.__name__, 'Contains')
-        self.assertEqual(anded[0].tag, 'artist')
-        self.assertEqual(anded[0].pattern, 'Britney')
-        self.assertEqual(anded[1].__class__.__name__, 'Or')
-        ored = anded[1].filterlist
-        self.assertEqual(ored[0].__class__.__name__, 'Equals')
-        self.assertEqual(ored[0].tag, 'genre')
-        self.assertEqual(ored[0].pattern, 'Classical')
-        self.assertEqual(ored[1].__class__.__name__, 'Equals')
-        self.assertEqual(ored[1].tag, 'genre')
-        self.assertEqual(ored[1].pattern, 'Disco')
+        self.assert_filter_matches_sample(retrieved_filter)
 
 
-class TestAnswerParser(TestCaseWithData):
+class TestAnswerParser(XmlTestCase):
     """Test the Deejayd client library answer parser"""
 
     def setUp(self):
-        TestCaseWithData.setUp(self)
+        super(TestAnswerParser, self).setUp()
         self.deejayd = _DeejayDaemon()
 
     def parseAnswer(self, str):
@@ -277,43 +266,23 @@ class TestAnswerParser(TestCaseWithData):
             for dir in origDirs:
                 self.failUnless(dir in ans.get_directories())
 
-    def testAnswerParserMediaList(self):
+    def test_answer_parser_MediaList(self):
         """Test the client library parsing a media list answer"""
-        originatingCommand = 'webradioList'
-        webradioListAnswer = """<?xml version="1.0" encoding="utf-8"?>
-<deejayd>
-    <response name="%s" type="MediaList">""" % originatingCommand
-        howMuch = self.testdata.getRandomInt(50)
-        origWebradios = []
+        originating_command = 'playlistInfo'
 
-        for count in range(howMuch):
-
-            webradioListAnswer = webradioListAnswer + """
-        <media type="webradio">"""
-            howMuchParms = self.testdata.getRandomInt()
-            webradio = {}
-            for parmCount in range(howMuchParms):
-                name = self.testdata.getRandomString()
-                value =  self.testdata.getRandomString()
-                webradio[name] = value
-                webradioListAnswer = webradioListAnswer + """
-            <parm name="%s" value="%s" />""" % (name, value)
-            webradioListAnswer = webradioListAnswer + """
-        </media>"""
-            origWebradios.append(webradio)
-
-        webradioListAnswer = webradioListAnswer + """
-    </response>
-</deejayd>"""
+        medialist_answer = self.xmldata.getMediaList(originating_command)
 
         ans = DeejaydMediaList()
         self.deejayd.expected_answers_queue.put(ans)
-        self.parseAnswer(webradioListAnswer)
+        self.parseAnswer(medialist_answer.to_xml())
 
-        self.assertEqual(ans.get_originating_command(), originatingCommand)
+        self.assertEqual(ans.get_originating_command(), originating_command)
 
-        for webradio in origWebradios:
-            self.failUnless(webradio in ans.get_medias())
+        for media_item in medialist_answer.media_items:
+            self.failUnless(media_item in ans.get_medias())
+
+        self.failUnless(ans.is_magic())
+        self.assert_filter_matches_sample(ans.get_filter())
 
     def test_answer_parser_signal(self):
         """Parse a signal message"""

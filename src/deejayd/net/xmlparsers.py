@@ -23,9 +23,14 @@ except ImportError: # python 2.4
 
 
 from deejayd.interfaces import DeejaydSignal
+from deejayd.mediafilters import *
 
 
 class DeejaydXMLParser(object):
+
+    TAG2BASIC   = dict([(x(None, None).get_xml_identifier(), x)\
+                        for x in BASIC_FILTERS])
+    TAG2COMPLEX = dict([(x().get_xml_identifier(), x) for x in COMPLEX_FILTERS])
 
     def parse(self, string_io):
         xmlpath = []
@@ -53,6 +58,11 @@ class DeejaydXMLParser(object):
                     list_parms = []
                 elif elem.tag == "dictparm":
                     dict_parms = {}
+                elif elem.tag == 'filter':
+                    filter_stack = []
+                elif elem.tag in DeejaydXMLParser.TAG2COMPLEX.keys():
+                    filter_class = DeejaydXMLParser.TAG2COMPLEX[elem.tag]
+                    filter_stack.append(filter_class())
             else: # event = "end"
                 xmlpath.pop()
 
@@ -114,6 +124,26 @@ class DeejaydXMLParser(object):
                     infos = {"title": elem.attrib['title'], \
                              "longest_track": elem.attrib['longest_track']}
                     expected_answer.set_dvd_content(infos)
+                elif elem.tag == 'filter':
+                    expected_answer.set_filter(filter)
+                    del filter
+                    del filter_stack
+                elif elem.tag in DeejaydXMLParser.TAG2COMPLEX.keys()\
+                or elem.tag in DeejaydXMLParser.TAG2BASIC.keys():
+                    if elem.tag in DeejaydXMLParser.TAG2BASIC.keys():
+                        fnd_filter_cls = DeejaydXMLParser.TAG2BASIC[elem.tag]
+                        fnd_filter = fnd_filter_cls(elem.attrib['tag'],
+                                                    elem.text)
+                    elif elem.tag in DeejaydXMLParser.TAG2COMPLEX.keys():
+                        fnd_filter = filter_stack.pop()
+                    try:
+                        father_filter = filter_stack[-1]
+                    except IndexError:
+                        # No father, list is empty
+                        filter = fnd_filter
+                    else:
+                        father_filter.combine(fnd_filter)
+
                 parms = elem.tag in ("parm","listparm","dictparm","listvalue",\
                         "dictitem") and parms or []
 

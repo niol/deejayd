@@ -113,6 +113,7 @@ class DeejaydMediaList(DeejaydAnswer):
         DeejaydAnswer.__init__(self)
         self.medias = []
         self.total_length = None
+        self.filter = None
 
     def set_total_length(self, length):
         self.total_length = length
@@ -129,6 +130,16 @@ class DeejaydMediaList(DeejaydAnswer):
 
     def set_medias(self, medias):
         self.medias = medias
+
+    def is_magic(self):
+        return self.filter != None
+
+    def set_filter(self, filter):
+        self.filter = filter
+
+    def get_filter(self):
+        return self.filter
+
 
 class DeejaydDvdInfo(DeejaydAnswer):
     """Dvd information answer."""

@@ -82,6 +82,7 @@ class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
             "audio": [{"idx": "0", "lang": "lang1"}, \
                       {"idx": "1", "lang": "lang2"}],\
             "subtitle": [{"idx": "0", "lang": "lang1"}]})
+        ml.set_filter(self.get_sample_filter())
         return ml
 
     def getDvdInfo(self, cmd_name=None):
@@ -140,12 +141,7 @@ class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
         cmd.add_simple_arg('argName4', 'bou3')
         cmd.add_multiple_arg('argName5', ['bou2', 'hihi', 'aza'])
 
-        filter = And(Contains('artist', 'Britney'),
-                     Or(Equals('genre', 'Classical'),
-                        Equals('genre', 'Disco')
-                     )
-                    )
-        cmd.add_filter_arg('argName6', filter)
+        cmd.add_filter_arg('argName6', self.get_sample_filter())
 
         return cmd
 

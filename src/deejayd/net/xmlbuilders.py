@@ -283,6 +283,7 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
         DeejaydXMLAck.__init__(self, originating_cmd, mother_xml_object)
         self.media_items = []
         self.total_length = None
+        self.filter = None
 
     def set_total_length(self, length):
         self.total_length = length
@@ -296,6 +297,9 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
     def set_medias(self, medias):
         self.media_items = medias
 
+    def set_filter(self, filter):
+        self.filter = filter
+
     def build_xml(self):
         DeejaydXMLAck.build_xml(self)
         if self.total_length:
@@ -305,6 +309,10 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
             xmlitem = ET.SubElement(self.xmlcontent,'media',\
                 type=self.media_type)
             self.build_xml_parm_list(item, xmlitem)
+        if self.filter:
+            xmlfilter_element = ET.SubElement(self.xmlcontent,'filter')
+            xmlfilter = Get_xml_filter(self.filter)
+            xmlfilter.element(xmlfilter_element)
 
 
 class DeejaydXMLDvdInfo(DeejaydXMLAck):
