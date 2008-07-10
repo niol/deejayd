@@ -32,14 +32,11 @@ install-python%:
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-python*
-	rm -f $(CURDIR)/debian/djc.1 $(CURDIR)/debian/deejayd.1
 
-	# Add here commands to clean up after the build process.
+	rm -f build-python*
+	rm -rf $(CURDIR)/build/mo
 	python setup.py clean --all
 	rm -f $(CURDIR)/deejayd/__init__.pyc
-	rm -f $(CURDIR)/build/mo/fr/LC_MESSAGES/deejayd.mo
-	rmdir -p build
 	rm -f $(CURDIR)/MANIFEST
 	rm -f $(CURDIR)/man/*.{1,5}
 
