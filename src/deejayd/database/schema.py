@@ -149,6 +149,8 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('webradioid','1');",
     "INSERT INTO variables VALUES('dvdid','1');",
     "INSERT INTO variables VALUES('videoid','1');",
+    "INSERT INTO variables VALUES('panel-type','panel');",
+    "INSERT INTO variables VALUES('panel-value','');",
     "INSERT INTO variables VALUES('database_version','8');",
     ]
 

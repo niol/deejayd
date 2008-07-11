@@ -167,6 +167,8 @@ def upgrade(cursor, backend, config):
         "INSERT INTO variables VALUES('panel-repeat','0');",
         "INSERT INTO variables VALUES('video-repeat','0');",
         "INSERT INTO variables VALUES('panelid','1');",
+        "INSERT INTO variables VALUES('panel-type','panel');",
+        "INSERT INTO variables VALUES('panel-value','');",
 
         "UPDATE variables SET value = '8' WHERE name = 'database_version';",
         ]
