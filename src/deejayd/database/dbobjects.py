@@ -23,6 +23,14 @@ from deejayd import mediafilters
 class _DBObject(object):
     pass
 
+class NoneFilter(_DBObject):
+
+    def __init__(self, basic_filter):
+        pass
+
+    def restrict(self, query):
+        pass
+
 
 class _BasicFilter(mediafilters.BasicFilter, _DBObject):
 
@@ -101,6 +109,8 @@ class SQLizer(object):
                    }
 
     def translate(self, object):
+        if object == None:
+            return NoneFilter(object)
         object_class = SQLizer.translations[object.__class__]
         return object_class(object)
 
