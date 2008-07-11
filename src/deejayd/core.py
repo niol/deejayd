@@ -73,6 +73,9 @@ def returns_deejaydanswer(answer_class):
                     if res == None:
                         ans.contents = True
                     elif answer_class == DeejaydMediaList:
+                        if isinstance(res, tuple):
+                            ans.set_filter(res[1])
+                            res = res[0]
                         ans.set_medias(res)
                     elif answer_class == DeejaydFileList:
                         root_dir, dirs, files = res
@@ -288,9 +291,9 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first=0, length=-1):
-        songs = self.source.get_content()
+        songs, filters = self.source.get_content()
         last = length == -1 and len(songs) or int(first) + int(length)
-        return songs[int(first):last]
+        return (songs[int(first):last], filters)
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_active_list(self):
