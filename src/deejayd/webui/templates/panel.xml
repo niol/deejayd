@@ -39,7 +39,9 @@
         <listbox
             flex="1"
             id="panel-pls-list">
-            <listitem class="listitem-title" label="Panel"/>
+            <listitem
+         onclick="ajaxdj_ref.send_post_command('panelSet',{type: 'panel'})"
+         class="listitem-title" label="Panel"/>
             <listitem label=""/>
             <listitem class="listitem-title" label="Playlist"/>
         </listbox>
@@ -90,9 +92,8 @@
                 </listcols>
                 <template>
                     <rule>
-                        <listitem uri="rdf:*">
-                            <listcell label="rdf:http://panel/rdf#name"/>
-                        </listitem>
+                        <listitem uri="rdf:*"
+                            label="rdf:http://panel/rdf#name" />
                     </rule>
                 </template>
             </listbox>
@@ -110,9 +111,8 @@
                 </listcols>
                 <template>
                     <rule>
-                        <listitem uri="rdf:*">
-                            <listcell label="rdf:http://panel/rdf#name"/>
-                        </listitem>
+                        <listitem uri="rdf:*"
+                            label="rdf:http://panel/rdf#name"/>
                     </rule>
                 </template>
             </listbox>
@@ -130,9 +130,8 @@
                 </listcols>
                 <template>
                     <rule>
-                        <listitem uri="rdf:*">
-                            <listcell label="rdf:http://panel/rdf#name"/>
-                        </listitem>
+                        <listitem uri="rdf:*"
+                            label="rdf:http://panel/rdf#name"/>
                     </rule>
                 </template>
             </listbox>
@@ -187,7 +186,7 @@
                     <treeitem uri="rdf:*">
                         <treerow>
                             <treecell label=""/>
-                            <treecell label="rdf:http://panel/rdf#track"/>
+                            <treecell label="rdf:http://panel/rdf#tracknumber"/>
                             <treecell label="rdf:http://panel/rdf#title"/>
                             <treecell label="rdf:http://panel/rdf#artist"/>
                             <treecell label="rdf:http://panel/rdf#album"/>
