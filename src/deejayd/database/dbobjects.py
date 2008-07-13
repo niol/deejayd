@@ -61,7 +61,7 @@ class NotEquals(mediafilters.NotEquals, _BasicFilter):
 class Contains(mediafilters.Contains, _BasicFilter):
 
     def _match_tag(self):
-        return "(%s.value LIKE '%%%s%%'" % (self.tag, self.pattern)
+        return "(%s.value LIKE '%s')" % (self.tag, "%%"+self.pattern+"%%")
 
 
 class Regexi(mediafilters.Regexi, _BasicFilter):
