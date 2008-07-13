@@ -25,7 +25,7 @@ __all__ = (
 
 class MediaFilter(object):
 
-    def get_xml_identifier(self):
+    def get_identifier(self):
         return self.__class__.__name__.lower()
 
     def __str__(self):

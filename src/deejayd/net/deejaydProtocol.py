@@ -139,9 +139,9 @@ class DeejaydFactory(protocol.ServerFactory):
 
 class CommandFactory:
 
-    TAG2BASIC   = dict([(x(None, None).get_xml_identifier(), x)\
+    TAG2BASIC   = dict([(x(None, None).get_identifier(), x)\
                         for x in BASIC_FILTERS])
-    TAG2COMPLEX = dict([(x().get_xml_identifier(), x) for x in COMPLEX_FILTERS])
+    TAG2COMPLEX = dict([(x().get_identifier(), x) for x in COMPLEX_FILTERS])
 
     def __init__(self, deejayd_core=None):
         self.deejayd_core = deejayd_core

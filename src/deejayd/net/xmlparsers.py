@@ -28,9 +28,9 @@ from deejayd.mediafilters import *
 
 class DeejaydXMLParser(object):
 
-    TAG2BASIC   = dict([(x(None, None).get_xml_identifier(), x)\
+    TAG2BASIC   = dict([(x(None, None).get_identifier(), x)\
                         for x in BASIC_FILTERS])
-    TAG2COMPLEX = dict([(x().get_xml_identifier(), x) for x in COMPLEX_FILTERS])
+    TAG2COMPLEX = dict([(x().get_identifier(), x) for x in COMPLEX_FILTERS])
 
     def parse(self, string_io):
         xmlpath = []

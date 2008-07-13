@@ -395,7 +395,7 @@ class XMLFilter(DeejaydXMLObject):
         self.filter = filter
 
     def _get_element(self, parent_element):
-        element_name = self.filter.get_xml_identifier()
+        element_name = self.filter.get_identifier()
         return ET.SubElement(parent_element, element_name)
 
     def element(self, parent_element):
