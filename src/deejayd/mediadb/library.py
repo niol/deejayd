@@ -161,7 +161,9 @@ class _Library(SignalingComponent):
 
     def search(self, filter):
         type_filter = mediafilters.Equals("type", self.__class__.search_type)
-        if filter.type == "complex" and filter.get_name() == "and":
+        if not filter:
+            filter = type_filter
+        elif filter.type == "complex" and filter.get_name() == "and":
             filter.combine(type_filter)
         else:
             filter = mediafilters.And(filter, type_filter)
