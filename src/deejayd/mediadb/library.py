@@ -22,7 +22,7 @@ from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
 from deejayd.mediadb import formats
-from deejayd import database
+from deejayd import database, mediafilters
 from deejayd.ui import log
 
 class NotFoundException(Exception):pass
@@ -158,6 +158,16 @@ class _Library(SignalingComponent):
         if len(files_rsp) != len(file_ids):
             raise NotFoundException
         return files_rsp
+
+    def search(self, filter):
+        type_filter = mediafilters.Equals("type", self.__class__.search_type)
+        if filter.type == "complex" and filter.get_name() == "and":
+            filter.combine(type_filter)
+        else:
+            filter = mediafilters.And(filter, type_filter)
+
+        rs = self.db_con.search(filter, infos = self.media_attr)
+        return rs
 
     def get_root_path(self):
         return self._path
@@ -484,18 +494,11 @@ for more information.") % file_path)
 
 class AudioLibrary(_Library):
     type = "audio"
+    search_type = "song"
     update_signal_name = 'mediadb.aupdate'
     custom_attr = ("artist","album","genre","tracknumber","date","bitrate",\
                    "replaygain_track_gain","replaygain_track_peak")
     cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg")
-
-    def search(self,type,content):
-        accepted_type = ('all','title','genre','filename','artist','album')
-        if type not in accepted_type:
-            raise NotFoundException
-
-        rs = self.db_con.search(type, content, infos = self.media_attr)
-        return rs
 
     def __extract_cover(self, image_path):
         if os.path.getsize(image_path) > 512*1024: return None # file too large
@@ -571,6 +574,7 @@ class AudioLibrary(_Library):
 
 class VideoLibrary(_Library):
     type = "video"
+    search_type = "video"
     update_signal_name = 'mediadb.vupdate'
     custom_attr = ("videoheight", "videowidth","external_subtitle")
     subtitle_ext = (".srt",)
@@ -592,10 +596,6 @@ class VideoLibrary(_Library):
             recorded_sub = None
         if recorded_sub != sub:
             self.db_con.set_media_infos(file_id,{"external_subtitle": sub})
-
-    def search(self, content):
-        rsp = self.db_con.search("title", content, infos = self.media_attr)
-        return rsp
 
     #
     # custom inotify actions

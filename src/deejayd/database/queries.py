@@ -78,6 +78,10 @@ class MediaSelectQuery(object):
         self.__joined_tags = []
         self.wheres = []
         self.orders = []
+        self.id = False
+
+    def select_id(self):
+        self.id = True
 
     def select_tag(self, tagname):
         self.selects.append("%s.value" % tagname)
@@ -100,8 +104,9 @@ class MediaSelectQuery(object):
         if len(self.orders) >= 1:
             orders = 'ORDER BY ' + ', '.join(self.orders)
 
-        return "SELECT DISTINCT %s FROM library %s WHERE %s %s"\
-               % (', '.join(self.selects),
+        return "SELECT DISTINCT %s %s FROM library %s WHERE %s %s"\
+               % (self.id and 'library.id,' or '',
+                  ', '.join(self.selects),
                   ' '.join(self.joins),
                   ' AND '.join(self.wheres) or 1,
                   orders or '')
@@ -312,14 +317,6 @@ class DatabaseQueries(object):
             " WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
         cursor.execute(query,(dir+"%%", type))
 
-    @query_decorator("medialist")
-    def search(self, cursor, type, content, infos = []):
-        selectquery, joinquery = self._build_media_query(infos)
-        query = "SELECT DISTINCT "+ selectquery +\
-            " FROM media_info i " + joinquery+\
-            " WHERE i.ikey=%s AND i.value LIKE %s"
-        cursor.execute(query,(type, "%%"+content+"%%"))
-
     @query_decorator("fetchall")
     def get_dircontent_id(self, cursor, dir, type):
         query = "SELECT l.id\
@@ -331,6 +328,16 @@ class DatabaseQueries(object):
     def search_id(self, cursor, key, value):
         query = "SELECT DISTINCT id FROM media_info WHERE ikey=%s AND value=%s"
         cursor.execute(query,(key, value))
+
+    @query_decorator("medialist")
+    def search(self, cursor, filter, infos = []):
+        filter = self.sqlizer.translate(filter)
+        query = MediaSelectQuery()
+        query.select_id()
+        for tag in infos:
+            query.select_tag(tag)
+        filter.restrict(query)
+        cursor.execute(query.to_sql())
 
     @query_decorator("fetchall")
     def list_tags(self, cursor, tag, filter):

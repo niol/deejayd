@@ -19,6 +19,7 @@
 import os
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._base import _BaseLibrarySource, SourceError
+from deejayd import mediafilters
 
 class VideoSource(_BaseLibrarySource):
     name = "video"
@@ -38,7 +39,8 @@ class VideoSource(_BaseLibrarySource):
             except NotFoundException:
                 raise SourceError(_("Directory %s not found") % value)
         elif type == "search":
-            video_list = self.library.search(value)
+            video_list = self.library.search(\
+                mediafilters.Contains("title",value))
         else:
             raise SourceError(_("type %s not supported") % type)
 
