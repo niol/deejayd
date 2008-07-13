@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from deejayd.mediafilters import *
 from deejayd.sources._base import _BaseLibrarySource
 
 class PanelSource(_BaseLibrarySource):
@@ -33,26 +34,67 @@ class PanelSource(_BaseLibrarySource):
         self.__selected_mode = {"type": "panel", "value": ""}
         self.__panel_filters = None
 
-    def set_panel_filters(self, filters):
+    def __set_panel_filters(self, filters):
         self.__panel_filters = filters
+        medias = self.library.search(self.__panel_filters)
+        self._media_list.set(medias)
         self.dispatch_signame(self.__class__.source_signal)
+
+    def update_panel_filters(self, tag, type, value):
+        try: filter_list = self.__panel_filters.filterlist
+        except (TypeError, AttributeError):
+            self.__panel_filters = And()
+            filter_list = []
+        if type == "equals":
+            found = False
+            for ft in filter_list:
+                if ft.get_name() == "equals" and ft.tag == tag:
+                    ft.pattern = value
+                    found = True
+                    break
+            if not found: self.__panel_filters.combine(Equals(tag, value))
+        elif type == "contains":
+            pass # TODO
+        elif type == "order":
+            pass # TODO
+        else:
+            raise TypeError
+        self.__set_panel_filters(self.__panel_filters)
+
+    def remove_panel_filters(self, type, tag):
+        pass # TODO
+
+    def clear_panel_filters(self):
+        self.__set_panel_filters(None)
 
     def get_active_list(self):
         return self.__selected_mode
 
     def set_active_list(self, type, plname):
-        if type == "static-pl":
-            value = plname
-        elif type == "magic-pl":
+        if type == "playlist":
+            self._media_list.set(self._get_playlist_content(plname))
             value = plname
         elif type == "panel":
+            medias = self.library.search(self.__panel_filters)
+            self._media_list.set(medias)
             value = ""
         else:
             raise TypeError
-        self.__selected_mode = {"type": type, "value": ""}
+        self.__selected_mode = {"type": type, "value": plname}
         self.dispatch_signame(self.__class__.source_signal)
 
     def get_content(self, start = 0, stop = None):
-        return self._media_list.get(start, stop)
+        return self._media_list.get(start, stop), self.__panel_filters
+
+    def close(self):
+        states = [
+            (self._playorder.name, self.name+"-playorder"),
+            (str(self._media_list.list_id),self.__class__.name+"id"),
+            (self.__selected_mode["type"],"panelmode-type"),
+            (self.__selected_mode["value"],"panelmode-value"),
+            ]
+        if self.has_repeat:
+            states.append((self._media_list.repeat, self.name+"-repeat"))
+        self.db.set_state(states)
 
 # vim: ts=4 sw=4 expandtab

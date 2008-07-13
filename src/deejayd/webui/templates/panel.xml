@@ -12,6 +12,10 @@
                 class="menuitem-iconic play-action"
                 label="&play;"
                 oncommand="panel_ref.play();"/>
+            <menuitem
+                class="menuitem-iconic play-action"
+                label="&loadQueue;"
+                oncommand="panel_ref.loadInQueue();"/>
             <menu
                 label="&rating;">
                 <menupopup id="panel-rating-menu">
@@ -56,13 +60,13 @@
         <hbox persist="height" align="center" id="filter-box">
             <textbox
                 flex="1"
-                oncommand="panel_ref.updateFilter();"
+                oncommand="panel_ref.updatePanelFilterText();"
                 timeout="700"
                 type="timed"
                 id="filter-text"/>
             <menulist
                 id="panel-filter-type"
-                oncommand="panel_ref.updateFilter();"
+                oncommand="panel_ref.updatePanelFilterText();"
                 label="">
                 <menupopup>
                     <menuitem value="all" label="&all;" selected="true"/>
@@ -76,9 +80,19 @@
                 id="filter-clear"
                 class="clear-button"
                 label="&clear;"
-                oncommand="panel_ref.clearFilter();"/>
+                oncommand="ajaxdj_ref.send_command('panelClearFilter');"/>
         </hbox>
         <hbox persist="height" id="panel-box">
+
+            <!--
+            <command id="genre-panel-command"
+                oncommand="panel_ref.updatePanelFilter('genre');"/>
+            <command id="artist-panel-command"
+                oncommand="panel_ref.updatePanelFilter('artist');"/>
+            <command id="album-panel-command"
+                oncommand="panel_ref.updatePanelFilter('album');"/>
+            -->
+
             <listbox
                 ref="http://panel/all-genre"
                 datasources="rdf:null"
@@ -93,6 +107,10 @@
                 <template>
                     <rule>
                         <listitem uri="rdf:*"
+                            onclick="panel_ref.updatePanelFilter(this,'genre');"
+                            selected="rdf:http://panel/rdf#sel"
+                            class="rdf:http://panel/rdf#class"
+                            value="rdf:http://panel/rdf#value"
                             label="rdf:http://panel/rdf#name" />
                     </rule>
                 </template>
@@ -112,7 +130,11 @@
                 <template>
                     <rule>
                         <listitem uri="rdf:*"
-                            label="rdf:http://panel/rdf#name"/>
+                          selected="rdf:http://panel/rdf#sel"
+                          onclick="panel_ref.updatePanelFilter(this,'artist');"
+                          class="rdf:http://panel/rdf#class"
+                          value="rdf:http://panel/rdf#value"
+                          label="rdf:http://panel/rdf#name"/>
                     </rule>
                 </template>
             </listbox>
@@ -131,6 +153,10 @@
                 <template>
                     <rule>
                         <listitem uri="rdf:*"
+                            selected="rdf:http://panel/rdf#sel"
+                            onclick="panel_ref.updatePanelFilter(this,'album');"
+                            class="rdf:http://panel/rdf#class"
+                            value="rdf:http://panel/rdf#value"
                             label="rdf:http://panel/rdf#name"/>
                     </rule>
                 </template>
@@ -182,6 +208,8 @@
 
                 <treechildren
                     ondblclick = "panel_ref.play();"
+                    oncontextmenu="panel_ref.showPopupMenu(event);"
+                    ondraggesture = "panel_ref.dragStart(event);"
                     id="panel-items">
                     <treeitem uri="rdf:*">
                         <treerow>

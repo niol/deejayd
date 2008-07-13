@@ -16,6 +16,23 @@ var Panel = function()
     this.customUpdate = function(panel)
     {
         $("panel-description").value = panel.getAttribute("description");
+        var mode = panel.getAttribute("type");
+        if (mode == "playlist") {
+            $('filter-box').style.visibility = "collapse";
+            $('panel-box').style.visibility = "collapse";
+            }
+        else {
+            $('filter-box').style.visibility = "visible";
+            $('panel-box').style.visibility = "visible";
+            // update panel
+            var panels = Array("genre", "artist", "album");
+            for (t in panels) {
+                var pn = $(panels[t]+"-panel");
+                pn.clearSelection();
+                pn.setAttribute("datasources",window.location.href+"rdf/"+
+                    this.module+"-"+this.treeId+".rdf");
+                }
+            }
         return true;
     };
 
@@ -31,6 +48,8 @@ var Panel = function()
             plsItem.setAttribute("context","panel-pls-menu");
             plsItem.setAttribute("value",playlist.getAttribute("name"));
             plsItem.className = "playlist-item listitem-iconic";
+            plsItem.addEventListener("click",
+                PanelObserver.selectPlaylist,true);
 
             listbox.appendChild(plsItem);
             }
@@ -50,17 +69,32 @@ var Panel = function()
             }
     };
 
-    this.setPlaylist = function(pls)
+    this.updatePanelFilter = function(elt, tag)
     {
-    }
+        var value = elt.getAttribute("value");
+        ajaxdj_ref.send_post_command('panelUpdateFilter',{"type": "panel-list",
+            "tag": tag, "value": value});
+    };
 
-    this.updatePanel = function()
+    this.updatePanelFilterText = function()
     {
-
+        var tag = $("panel-filter-type").value;
+        var value = $("filter-text").value;
+        ajaxdj_ref.send_post_command('panelUpdateFilter',
+            {"type": "panel-text", "tag": tag, "value": value});
     };
 
 };
 // heritage by prototype
 Panel.prototype = new CommonTreeManagement;
+
+var PanelObserver = {
+    selectPlaylist: function (evt)
+        {
+            var pls = evt.target.getAttribute("value");
+            ajaxdj_ref.send_post_command('panelSet',
+                {type: "playlist", value:pls});
+        },
+};
 
 // vim: ts=4 sw=4 expandtab

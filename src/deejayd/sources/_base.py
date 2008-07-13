@@ -142,6 +142,13 @@ class _BaseLibrarySource(_BaseSource):
         if self._media_list.remove_media(media_id):
             self.dispatch_signame(self.source_signal)
 
+    def _get_playlist_content(self, pls):
+        rs = self.db.get_static_medialist(pls, infos=self.library.media_attr)
+        if len(rs) == 0 and (not pls.startswith("__") or \
+                             not pls.endswith("__")):
+            raise SourceError(_("Playlist %s does not exist.") % pls)
+        return rs
+
     def get_status(self):
         status = super(_BaseLibrarySource, self).get_status()
         status.append((self.name+"playorder", self._playorder.name))
@@ -189,12 +196,7 @@ class _BaseAudioLibSource(_BaseLibrarySource):
     def load_playlist(self, playlists, pos = None):
         medias = []
         for pls in playlists:
-            content = self.db.get_static_medialist(pls,\
-                infos=self.library.media_attr)
-            if len(content) == 0 and (not pls.startswith("__") or \
-                                      not pls.endswith("__")):
-                raise SourceError(_("Playlist %s does not exist.") % pls)
-            medias.extend(content)
+            medias.extend(self._get_playlist_content(pls))
         self._media_list.add_media(medias, pos)
         if pos: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)

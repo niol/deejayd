@@ -23,7 +23,7 @@ from deejayd.interfaces import DeejaydError,\
                                DeejaydFileList,\
                                DeejaydMediaList, DeejaydDvdInfo
 from deejayd.ui.config import DeejaydConfig
-from deejayd import player, sources, mediadb, database
+from deejayd import mediafilters, player, sources, mediadb, database
 
 # Exception imports
 import deejayd.sources.webradio
@@ -306,10 +306,20 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
             raise DeejaydError(_("Not supported type"))
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def set_panel_filters(self, filters):
-        try: self.source.set_panel_filters(filters)
+    def update_panel_filters(self, tag, type, value):
+        try: self.source.update_panel_filters(tag, type, value)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def remove_panel_filters(self, tag):
+        try: self.source.remove_panel_filters(tag)
+        except deejayd.sources._base.SourceError, ex:
+            raise DeejaydError(str(ex))
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def clear_panel_filters(self):
+        self.source.clear_panel_filters()
 
 
 class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
@@ -542,10 +552,16 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         return dir, contents['dirs'], contents['files']
 
     @returns_deejaydanswer(DeejaydMediaList)
-    def audio_search(self, search_txt, type = 'all'):
-        try: songs = self.audio_library.search(type, search_txt)
-        except deejayd.mediadb.library.NotFoundException:
+    def audio_search(self, pattern, type = 'all'):
+        if type not in ('all','title','genre','filename','artist','album'):
             raise DeejaydError(_('Type %s is not supported') % (type,))
+        if type == "all":
+            filter = mediafilters.Or()
+            for tag in ('title','genre','filename','artist','album'):
+                filter.combine(mediafilters.Contains(tag, pattern))
+        else:
+            filter = mediafilters.Contains(type, pattern)
+        songs = self.audio_library.search(filter)
 
         return songs
 

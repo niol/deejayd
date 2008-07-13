@@ -61,6 +61,7 @@ var playerStatus = {
         this.modes["playlist"] = playlist_ref;
         this.modes["webradio"] = webradio_ref;
         this.modes["video"] = videolist_ref;
+        this.modes["panel"] = panel_ref;
         this.modes["dvd"] = dvd_ref;
         },
     current: "",

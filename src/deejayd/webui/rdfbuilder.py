@@ -22,14 +22,7 @@ except ImportError: # python 2.4
     import cElementTree as ET
 from deejayd.xmlobject import DeejaydXMLObject
 from deejayd.webui.utils import *
-
-modes = (
-    "DeejaydPlaylistRdf",
-    "DeejaydQueueRdf",
-    "DeejaydPanelRdf",
-    "DeejaydWebradioRdf",
-    "DeejaydVideoRdf",
-    )
+from deejayd.mediafilters import *
 
 class _DeejaydSourceRdf(DeejaydXMLObject):
     name = "unknown"
@@ -61,6 +54,7 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
         else:
             if time > 0: desc += " (%s)" % format_time_long(time)
         elt.attrib["description"] = desc
+        return elt
 
     def _build_root_elt(self):
         root = ET.Element("RDF:RDF")
@@ -96,8 +90,8 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
             elif p == "external_subtitle":
                 value = parms[p] == "" and _("No") or _("Yes")
             elif p == "rating":
-             rating = u'\u266a' * int(parms[p])
-             value = self._to_xml_string(rating)
+                rating = u'\u266a' * int(parms[p])
+                value = self._to_xml_string(rating)
             else:
                 try: value = self._to_xml_string(parms[p])
                 except TypeError:
@@ -148,6 +142,13 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
     locale_strings = ("%s Songs", "%s Songs")
     get_list_func = "get_panel"
 
+    def update(self, xml_ans, status):
+        panel = self._deejayd.get_panel()
+        mode = panel.get_active_list()
+        elt = super(DeejaydPanelRdf, self).update(xml_ans, status)
+        elt.attrib["type"] = mode["type"]
+        elt.attrib["value"] = mode["value"]
+
     def _build_rdf_file(self,new_id):
         root = self._build_root_elt()
         panel = self._deejayd.get_panel()
@@ -155,10 +156,26 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
 
         mode = panel.get_active_list()
         if mode["type"] == "panel":
-            pass
-        elif mode["type"] == "magic-pl":
-            pass
-        elif mode["type"] == "static-pl":
+            filters = panel_content.get_filter()
+            try: filter_list = filters.filterlist
+            except (TypeError, AttributeError):
+                filter_list = []
+
+            panel_filter = And()
+            for t in ("genre", "artist", "album"):
+                selected = None
+                for ft in filter_list:
+                    if ft.tag == t and ft.get_name() == "equals":
+                        selected = ft.pattern
+                        break
+
+                list = self._deejayd.mediadb_list(t, panel_filter)
+                self.__build_tag_list(root, t, list, selected)
+
+                # add filter for next panel
+                if selected: panel_filter.combine(Equals(t, selected))
+
+        elif mode["type"] == "playlist":
             pass
 
         seq = ET.SubElement(root,"RDF:Seq")
@@ -167,14 +184,23 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
             li = ET.SubElement(seq,"RDF:li")
             self._rdf_description(li,m,"http://%s/%s" % (self.name, m["id"]))
 
-    def __build_tag_list(self, root, tag, list, selected = None):
+        self._save_rdf(root,new_id)
+
+    def __build_tag_list(self, root, type, list, selected = None):
         seq = ET.SubElement(root,"RDF:Seq")
         seq.attrib["RDF:about"] = "http://panel/all-%s" % type
 
-        for l in list:
-            url = "http://panel/%s" % l
+        items = [{"name": "All", "value":"__all__", "class":"list-all",\
+                  "sel":str(selected==None).lower()}]
+        items.extend([{"name": l,"value":l,"sel":str(selected==l).lower(),\
+                       "class":""} for l in list])
+        for idx, item in enumerate(items):
+            url = "http://panel/%s-%d" % (type, idx)
             elt = ET.SubElement(seq, "RDF:li")
-            self._rdf_description(elt, {"name":l}, url)
+            self._rdf_description(elt, item, url)
+
+    def __build_filter(self, filter):
+        pass
 
 class DeejaydQueueRdf(_DeejaydSourceRdf):
     name = "queue"
@@ -282,4 +308,12 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
     def _get_media_list(self):
         return self._deejayd.get_dvd_content().get_dvd_contents()
 
+
+modes = (
+    "DeejaydPlaylistRdf",
+    "DeejaydQueueRdf",
+    "DeejaydPanelRdf",
+    "DeejaydWebradioRdf",
+    "DeejaydVideoRdf",
+    )
 

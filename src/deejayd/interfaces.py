@@ -244,7 +244,13 @@ class DeejaydPanel(object):
     def get(self, first = 0, length = None):
         raise NotImplementedError
 
-    def set_panel_filters(self, filters):
+    def update_panel_filters(self, tag, type, value):
+        raise NotImplementedError
+
+    def remove_panel_filters(self, type, tag):
+        raise NotImplementedError
+
+    def clear_panel_filters(self):
         raise NotImplementedError
 
     def get_active_list(self):

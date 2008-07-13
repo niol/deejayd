@@ -468,6 +468,42 @@ class PlaylistClear(_UnknownCommand):
         pls.clear().get_contents()
 
 #
+# Panel commands
+#
+class PanelSet(_UnknownCommand):
+    name = "panelSet"
+    method = "post"
+    command_args = [{"name":"value","type":"string","req":False,"default":""},\
+        {"name":"type","type":"enum_str","values": ('panel','playlist'),\
+         "req":True}]
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        panel.set_active_list(self._args["type"], self._args["value"])
+
+
+class PanelUpdateFilter(_UnknownCommand):
+    name = "panelUpdateFilter"
+    method = "post"
+    command_args = [{"name":"value","type":"string","req":True},\
+        {"name":"tag","type":"string","req":True},\
+        {"name":"type","type":"enum_str","values": ('panel-text','panel-list'),\
+         "req":True}]
+
+    def execute(self):
+        type = self._args["type"] == "panel-list" and "equals" or "contains"
+        panel = self._deejayd.get_panel()
+        panel.update_panel_filters(self._args["tag"],type,self._args["value"])
+
+
+class PanelClearFilter(_UnknownCommand):
+    name = "panelClearFilter"
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        panel.clear_panel_filters()
+
+#
 # Queue commands
 #
 class QueueAdd(_UnknownCommand):
