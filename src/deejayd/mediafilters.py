@@ -28,6 +28,9 @@ class MediaFilter(object):
     def get_identifier(self):
         return self.__class__.__name__.lower()
 
+    def get_name(self):
+        return self.__class__.__name__.lower()
+
     def __str__(self):
         return NotImplementedError
 
