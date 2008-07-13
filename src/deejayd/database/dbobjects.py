@@ -77,13 +77,18 @@ class _ComplexFilter(mediafilters.ComplexFilter, _DBObject):
         mediafilters.ComplexFilter.__init__(*arglist)
 
     def restrict(self, query):
-        for filter in self.filterlist:
-            query.join_on_tag(filter.tag)
-            query.wheres.append("(%s)" % self._combine_wheres())
+        if self.filterlist:
+            query.wheres.append(self._build_wheres(query))
 
-    def _combine_wheres(self):
-        return self.combinator.join(map(lambda x: x._match_tag(),
-                                    self.filterlist))
+    def _build_wheres(self, query):
+        wheres = []
+        for filter in self.filterlist:
+            if filter.type == "basic":
+                query.join_on_tag(filter.tag)
+                wheres.append(filter._match_tag())
+            else: # complex filter
+                wheres.append(filter._build_wheres(query))
+        return "(%s)" % (self.combinator.join(wheres),)
 
 
 class And(mediafilters.And, _ComplexFilter): combinator = ' AND '
