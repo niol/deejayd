@@ -165,8 +165,7 @@ class _Library(SignalingComponent):
     def get_root_paths(self):
         root_paths = [self.get_root_path()]
         for id, dirlink_record in self.db_con.get_all_dirlinks('', self.type):
-            dirlink = os.path.join(self.get_root_path(),
-                                   dirlink_record[1], dirlink_record[2])
+            dirlink = os.path.join(self.get_root_path(), dirlink_record)
             root_paths.append(dirlink)
         return root_paths
 
@@ -309,7 +308,7 @@ class _Library(SignalingComponent):
                 dir_path = os.path.join(root, dir)
                 if os.path.islink(dir_path):
                     if not self.is_in_a_root(dir_path, forbidden_roots):
-                        forbidden_roots.append(dir_path)
+                        forbidden_roots.append(os.path.realpath(dir_path))
                         if dir_path in library_dirlinks:
                             library_dirlinks.remove(dir_path)
                         else:

@@ -58,7 +58,7 @@ db_schema = [
         Column('name'),
         Column('lib_type'), # audio or video
         Column('type'), # directory or dirlink
-        Index(('name', 'lib_type'))],
+        Index(('name', 'lib_type', 'type'))],
     Table('library', key='id')[
         Column('id', auto_increment=True),
         Column('directory', type='int'),
