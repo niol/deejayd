@@ -82,19 +82,12 @@ class _ComplexFilter(mediafilters.ComplexFilter, _DBObject):
             query.wheres.append("(%s)" % self._combine_wheres())
 
     def _combine_wheres(self):
-        raise NotImplementedError
+        return self.combinator.join(map(lambda x: x._match_tag(),
+                                    self.filterlist))
 
 
-class And(mediafilters.And, _ComplexFilter):
-
-    def _combine_wheres(self):
-        return ' AND '.join(map(lambda x: x._match_tag(), self.filterlist))
-
-
-class Or(mediafilters.Or, _ComplexFilter):
-
-    def _combine_wheres(self):
-        return ' OR '.join(map(lambda x: x._match_tag(), self.filterlist))
+class And(mediafilters.And, _ComplexFilter): combinator = ' AND '
+class Or(mediafilters.Or, _ComplexFilter):   combinator = ' OR '
 
 
 class SQLizer(object):
