@@ -76,9 +76,13 @@ class MediaSelectQuery(object):
         self.selects = []
         self.joins = []
         self.__joined_tags = []
-        self.wheres = []
+        self.wheres, self.wheres_args = [], []
         self.orders = []
         self.id = False
+
+    def append_where(self, where_query, args):
+        self.wheres.append(where_query)
+        self.wheres_args.extend(args)
 
     def select_id(self):
         self.id = True
@@ -110,6 +114,9 @@ class MediaSelectQuery(object):
                   ' '.join(self.joins),
                   ' AND '.join(self.wheres) or 1,
                   orders or '')
+
+    def get_args(self):
+        return self.wheres_args
 
     def to_sql(self):
         return str(self)
@@ -337,7 +344,7 @@ class DatabaseQueries(object):
         for tag in infos:
             query.select_tag(tag)
         filter.restrict(query)
-        cursor.execute(query.to_sql())
+        cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("fetchall")
     def list_tags(self, cursor, tag, filter):
@@ -346,7 +353,7 @@ class DatabaseQueries(object):
         query.select_tag(tag)
         filter.restrict(query)
         query.order_by_tag(tag)
-        cursor.execute(query.to_sql())
+        cursor.execute(query.to_sql(), query.get_args())
 
     #
     # cover requests
