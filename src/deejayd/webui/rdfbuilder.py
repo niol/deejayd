@@ -149,14 +149,9 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
         elt.attrib["type"] = mode["type"]
         elt.attrib["value"] = mode["value"]
 
-    def _build_rdf_file(self,new_id):
-        root = self._build_root_elt()
-        panel = self._deejayd.get_panel()
-        panel_content = panel.get()
-
         mode = panel.get_active_list()
         if mode["type"] == "panel":
-            filters = panel_content.get_filter()
+            filters = panel.get().get_filter()
             try: filter_list = filters.filterlist
             except (TypeError, AttributeError):
                 filter_list = []
@@ -170,34 +165,23 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
                         break
 
                 list = self._deejayd.mediadb_list(t, panel_filter)
-                self.__build_tag_list(root, t, list, selected)
+                self.__build_tag_list(elt, t, list, selected)
 
                 # add filter for next panel
                 if selected: panel_filter.combine(Equals(t, selected))
 
-        elif mode["type"] == "playlist":
-            pass
-
-        seq = ET.SubElement(root,"RDF:Seq")
-        seq.attrib["RDF:about"] = "http://%s/all-content" % self.name
-        for m in panel_content.get_medias():
-            li = ET.SubElement(seq,"RDF:li")
-            self._rdf_description(li,m,"http://%s/%s" % (self.name, m["id"]))
-
-        self._save_rdf(root,new_id)
-
-    def __build_tag_list(self, root, type, list, selected = None):
-        seq = ET.SubElement(root,"RDF:Seq")
-        seq.attrib["RDF:about"] = "http://panel/all-%s" % type
-
+    def __build_tag_list(self, elt, type, list, selected = None):
+        panel_elt = ET.SubElement(elt, "%s-panel" % type)
         items = [{"name": "All", "value":"__all__", "class":"list-all",\
                   "sel":str(selected==None).lower()}]
         items.extend([{"name": l,"value":l,"sel":str(selected==l).lower(),\
                        "class":""} for l in list])
-        for idx, item in enumerate(items):
-            url = "http://panel/%s-%d" % (type, idx)
-            elt = ET.SubElement(seq, "RDF:li")
-            self._rdf_description(elt, item, url)
+        for item in items:
+            name_elt = ET.SubElement(panel_elt, "item",
+                label=self._to_xml_string(item["name"]),
+                value=self._to_xml_string(item["value"]),
+                sel=self._to_xml_string(item["sel"]))
+            name_elt.attrib["class"]=self._to_xml_string(item["class"])
 
     def __build_filter(self, filter):
         pass

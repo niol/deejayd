@@ -28,9 +28,28 @@ var Panel = function()
             var panels = Array("genre", "artist", "album");
             for (t in panels) {
                 var pn = $(panels[t]+"-panel");
+
+                // remove old child
                 pn.clearSelection();
-                pn.setAttribute("datasources",window.location.href+"rdf/"+
-                    this.module+"-"+this.treeId+".rdf");
+                var count = pn.getRowCount();
+                while (count >= 0) {
+                    pn.removeItemAt(count);
+                    count -= 1;
+                }
+
+                // build new child
+                var pn_list = panel.getElementsByTagName(panels[t]+"-panel")[0];
+                var items = pn_list.getElementsByTagName("item");
+                for (var i=0; item=items[i]; i++) {
+                    var new_elt = document.createElement('listitem');
+                    new_elt.setAttribute("label", item.getAttribute("label"));
+                    new_elt.setAttribute("value", item.getAttribute("value"));
+                    new_elt.setAttribute("class", item.getAttribute("class"));
+                    new_elt.setAttribute("selected", item.getAttribute("sel"));
+                    new_elt.setAttribute("onclick",
+                      "panel_ref.updatePanelFilter(this,'"+panels[t]+"');");
+                    pn.appendChild(new_elt);
+                    }
                 }
             }
         return true;
