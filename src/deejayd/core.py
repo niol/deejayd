@@ -312,8 +312,8 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def remove_panel_filters(self, tag):
-        try: self.source.remove_panel_filters(tag)
+    def remove_panel_filters(self, type, tag):
+        try: self.source.remove_panel_filters(type, tag)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 

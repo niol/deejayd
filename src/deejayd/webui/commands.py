@@ -493,7 +493,11 @@ class PanelUpdateFilter(_UnknownCommand):
     def execute(self):
         type = self._args["type"] == "panel-list" and "equals" or "contains"
         panel = self._deejayd.get_panel()
-        panel.update_panel_filters(self._args["tag"],type,self._args["value"])
+        if self._args["value"] == "__all__":
+            panel.remove_panel_filters(type,self._args["tag"])
+        else:
+            panel.update_panel_filters(self._args["tag"],\
+                type,self._args["value"])
 
 
 class PanelClearFilter(_UnknownCommand):

@@ -62,7 +62,13 @@ class PanelSource(_BaseLibrarySource):
         self.__set_panel_filters(self.__panel_filters)
 
     def remove_panel_filters(self, type, tag):
-        pass # TODO
+        if not self.__panel_filters: return
+        if type == "equals":
+            for ft in self.__panel_filters.filterlist:
+                if ft.get_name() == "equals" and ft.tag == tag:
+                    self.__panel_filters.filterlist.remove(ft)
+                    self.__set_panel_filters(self.__panel_filters)
+                    return
 
     def clear_panel_filters(self):
         self.__set_panel_filters(None)
@@ -71,6 +77,9 @@ class PanelSource(_BaseLibrarySource):
         return self.__selected_mode
 
     def set_active_list(self, type, plname):
+        if type == self.__selected_mode["type"]\
+                and plname == self.__selected_mode["value"]:
+            return # we do not need to update panel
         if type == "playlist":
             self._media_list.set(self._get_playlist_content(plname))
             value = plname
