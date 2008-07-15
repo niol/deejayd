@@ -95,9 +95,10 @@ db_schema = [
         Column('pattern')], # matched value
     Table('medialist_complexfilters', key=('complexfilter_id'))[
         Column('complexfilter_id', type='int'),
-        Column('lfilter', type='int'), # filter_id
-        Column('combinator'), # AND, OR, XOR
-        Column('rfilter', type='int')], # filter_id
+        Column('combinator')], # AND, OR, XOR
+    Table('medialist_complexfilters_filters')[
+        Column('complexfilter_id', type='int'),
+        Column('filter', type='int')], # filter_id
     Table('webradio', key='wid')[
         Column('wid', type='int'),
         Column('name'),
