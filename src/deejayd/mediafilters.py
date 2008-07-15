@@ -18,8 +18,10 @@
 
 
 __all__ = (
-            'BASIC_FILTERS', 'Equals', 'NotEquals', 'Contains', 'Regexi',
-            'COMPLEX_FILTERS', 'And', 'Or',
+            'BASIC_FILTERS', 'NAME2BASIC',
+            'Equals', 'NotEquals', 'Contains', 'Regexi',
+            'COMPLEX_FILTERS', 'NAME2COMPLEX',
+            'And', 'Or',
           )
 
 
@@ -60,6 +62,8 @@ BASIC_FILTERS = (
                   Regexi,
                 )
 
+NAME2BASIC = dict([(x(None, None).get_identifier(), x) for x in BASIC_FILTERS])
+
 
 class ComplexFilter(MediaFilter):
     type = 'complex'
@@ -88,6 +92,8 @@ COMPLEX_FILTERS = (
                     And,
                     Or,
                   )
+
+NAME2COMPLEX = dict([(x().get_identifier(), x) for x in COMPLEX_FILTERS])
 
 
 # vim: ts=4 sw=4 expandtab

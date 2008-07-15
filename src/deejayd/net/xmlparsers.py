@@ -28,10 +28,6 @@ from deejayd.mediafilters import *
 
 class DeejaydXMLParser(object):
 
-    TAG2BASIC   = dict([(x(None, None).get_identifier(), x)\
-                        for x in BASIC_FILTERS])
-    TAG2COMPLEX = dict([(x().get_identifier(), x) for x in COMPLEX_FILTERS])
-
     def parse(self, string_io):
         xmlpath = []
         originating_command = ''
@@ -60,8 +56,8 @@ class DeejaydXMLParser(object):
                     dict_parms = {}
                 elif elem.tag == 'filter':
                     filter_stack = []
-                elif elem.tag in DeejaydXMLParser.TAG2COMPLEX.keys():
-                    filter_class = DeejaydXMLParser.TAG2COMPLEX[elem.tag]
+                elif elem.tag in NAME2COMPLEX.keys():
+                    filter_class = NAME2COMPLEX[elem.tag]
                     filter_stack.append(filter_class())
             else: # event = "end"
                 xmlpath.pop()
@@ -128,13 +124,13 @@ class DeejaydXMLParser(object):
                     expected_answer.set_filter(filter)
                     del filter
                     del filter_stack
-                elif elem.tag in DeejaydXMLParser.TAG2COMPLEX.keys()\
-                or elem.tag in DeejaydXMLParser.TAG2BASIC.keys():
-                    if elem.tag in DeejaydXMLParser.TAG2BASIC.keys():
-                        fnd_filter_cls = DeejaydXMLParser.TAG2BASIC[elem.tag]
+                elif elem.tag in NAME2COMPLEX.keys()\
+                or elem.tag in NAME2BASIC.keys():
+                    if elem.tag in NAME2BASIC.keys():
+                        fnd_filter_cls = NAME2BASIC[elem.tag]
                         fnd_filter = fnd_filter_cls(elem.attrib['tag'],
                                                     elem.text)
-                    elif elem.tag in DeejaydXMLParser.TAG2COMPLEX.keys():
+                    elif elem.tag in NAME2COMPLEX.keys():
                         fnd_filter = filter_stack.pop()
                     try:
                         father_filter = filter_stack[-1]

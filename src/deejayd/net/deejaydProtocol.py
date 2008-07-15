@@ -139,10 +139,6 @@ class DeejaydFactory(protocol.ServerFactory):
 
 class CommandFactory:
 
-    TAG2BASIC   = dict([(x(None, None).get_identifier(), x)\
-                        for x in BASIC_FILTERS])
-    TAG2COMPLEX = dict([(x().get_identifier(), x) for x in COMPLEX_FILTERS])
-
     def __init__(self, deejayd_core=None):
         self.deejayd_core = deejayd_core
 
@@ -165,11 +161,11 @@ class CommandFactory:
 
     def __parse_filter(self, xml_filter):
         filter_xml_name = xml_filter.tag
-        if filter_xml_name in CommandFactory.TAG2BASIC.keys():
-            filter_class = CommandFactory.TAG2BASIC[filter_xml_name]
+        if filter_xml_name in NAME2BASIC.keys():
+            filter_class = NAME2BASIC[filter_xml_name]
             return filter_class(xml_filter.attrib['tag'], xml_filter.text)
-        elif filter_xml_name in CommandFactory.TAG2COMPLEX.keys():
-            filter_class = CommandFactory.TAG2COMPLEX[filter_xml_name]
+        elif filter_xml_name in NAME2COMPLEX.keys():
+            filter_class = NAME2COMPLEX[filter_xml_name]
             filter_list = [self.__parse_filter(f) for f in xml_filter]
             return filter_class(*filter_list)
         else:
