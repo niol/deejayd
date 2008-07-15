@@ -20,8 +20,13 @@
 from deejayd.mediafilters import *
 from deejayd.net.xmlbuilders import *
 
+from testdeejayd.databuilder import TestData
 
 class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
+
+    def __init__(self):
+        super(DeejaydXMLSampleFactory, self).__init__()
+        self.sampledata = TestData()
 
     def get_deejayd_xml_answer(self, ans_type, cmd_name=None):
         if not cmd_name:
@@ -29,20 +34,6 @@ class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
 
         return super(DeejaydXMLSampleFactory,
                      self).get_deejayd_xml_answer(ans_type, cmd_name)
-
-    def getSampleParmDict(self, howMuch = 2):
-        parmDict = {}
-        for i in range(howMuch):
-            parmDict['parmName' + str(i)] = 'parmValue' + str(i)
-        return parmDict
-
-    def get_sample_filter(self):
-        filter = And(Contains('artist', 'Britney'),
-                     Or(Equals('genre', 'Classical'),
-                        Equals('genre', 'Disco')
-                     )
-                    )
-        return filter
 
     def getError(self, cmd_name=None):
         error = self.get_deejayd_xml_answer('error', cmd_name)
@@ -55,7 +46,7 @@ class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
 
     def getKeyValue(self, cmd_name=None):
         kv = self.get_deejayd_xml_answer('KeyValue', cmd_name)
-        kv.set_pairs(self.getSampleParmDict())
+        kv.set_pairs(self.sampledata.getSampleParmDict())
         return kv
 
     def getList(self, cmd_name=None):
@@ -70,19 +61,19 @@ class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
         fl.add_directory('dirName')
         fl.set_filetype('song or video')
 
-        fl.add_file(self.getSampleParmDict())
+        fl.add_file(self.sampledata.getSampleParmDict())
 
         return fl
 
     def getMediaList(self, cmd_name=None):
         ml = self.get_deejayd_xml_answer('MediaList', cmd_name)
         ml.set_mediatype("song or video or webradio or playlist")
-        ml.add_media(self.getSampleParmDict())
+        ml.add_media(self.sampledata.getSampleParmDict())
         ml.add_media({"parmName1": "parmValue1", \
             "audio": [{"idx": "0", "lang": "lang1"}, \
                       {"idx": "1", "lang": "lang2"}],\
             "subtitle": [{"idx": "0", "lang": "lang1"}]})
-        ml.set_filter(self.get_sample_filter())
+        ml.set_filter(self.sampledata.get_sample_filter())
         return ml
 
     def getDvdInfo(self, cmd_name=None):
@@ -141,7 +132,7 @@ class DeejaydXMLSampleFactory(DeejaydXMLAnswerFactory):
         cmd.add_simple_arg('argName4', 'bou3')
         cmd.add_multiple_arg('argName5', ['bou2', 'hihi', 'aza'])
 
-        cmd.add_filter_arg('argName6', self.get_sample_filter())
+        cmd.add_filter_arg('argName6', self.sampledata.get_sample_filter())
 
         return cmd
 

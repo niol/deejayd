@@ -21,6 +21,9 @@
 This module generates the test data.
 """
 import os, sys, shutil, urllib, random, time, string
+
+from deejayd.mediafilters import *
+
 from testdeejayd.data import sample_genres
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -56,6 +59,20 @@ class TestData(object):
 
     def getRandomGenre(self):
         return self.getRandomElement(sample_genres)
+
+    def getSampleParmDict(self, howMuch = 2):
+        parmDict = {}
+        for i in range(howMuch):
+            parmDict['parmName' + str(i)] = 'parmValue' + str(i)
+        return parmDict
+
+    def get_sample_filter(self):
+        filter = And(Contains('artist', 'Britney'),
+                     Or(Equals('genre', 'Classical'),
+                        Equals('genre', 'Disco')
+                     )
+                    )
+        return filter
 
 
 class TestSong(TestData):

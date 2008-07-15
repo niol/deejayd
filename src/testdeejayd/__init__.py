@@ -37,6 +37,21 @@ class TestCaseWithData(DeejaydTest):
         super(TestCaseWithData, self).setUp()
         self.testdata = TestData()
 
+    def assert_filter_matches_sample(self, retrieved_filter):
+        self.assertEqual(retrieved_filter.__class__.__name__, 'And')
+        anded = retrieved_filter.filterlist
+        self.assertEqual(anded[0].__class__.__name__, 'Contains')
+        self.assertEqual(anded[0].tag, 'artist')
+        self.assertEqual(anded[0].pattern, 'Britney')
+        self.assertEqual(anded[1].__class__.__name__, 'Or')
+        ored = anded[1].filterlist
+        self.assertEqual(ored[0].__class__.__name__, 'Equals')
+        self.assertEqual(ored[0].tag, 'genre')
+        self.assertEqual(ored[0].pattern, 'Classical')
+        self.assertEqual(ored[1].__class__.__name__, 'Equals')
+        self.assertEqual(ored[1].tag, 'genre')
+        self.assertEqual(ored[1].pattern, 'Disco')
+
 
 class _TestCaseWithMediaData(DeejaydTest):
 
@@ -81,21 +96,6 @@ class XmlTestCase(TestCaseWithData):
     def setUp(self):
         super(XmlTestCase, self).setUp()
         self.xmldata = DeejaydXMLSampleFactory()
-
-    def assert_filter_matches_sample(self, retrieved_filter):
-        self.assertEqual(retrieved_filter.__class__.__name__, 'And')
-        anded = retrieved_filter.filterlist
-        self.assertEqual(anded[0].__class__.__name__, 'Contains')
-        self.assertEqual(anded[0].tag, 'artist')
-        self.assertEqual(anded[0].pattern, 'Britney')
-        self.assertEqual(anded[1].__class__.__name__, 'Or')
-        ored = anded[1].filterlist
-        self.assertEqual(ored[0].__class__.__name__, 'Equals')
-        self.assertEqual(ored[0].tag, 'genre')
-        self.assertEqual(ored[0].pattern, 'Classical')
-        self.assertEqual(ored[1].__class__.__name__, 'Equals')
-        self.assertEqual(ored[1].tag, 'genre')
-        self.assertEqual(ored[1].pattern, 'Disco')
 
 
 # vim: ts=4 sw=4 expandtab
