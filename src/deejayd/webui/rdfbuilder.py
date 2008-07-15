@@ -157,10 +157,23 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
                 filter_list = []
 
             panel_filter = And()
+            elt.attrib["filtertext_text"] = ""
+            elt.attrib["filtertext_type"] = "all"
+            for ft in filter_list:
+                if ft.type == "basic" and ft.get_name() == "contains":
+                    elt.attrib["filtertext_text"] = ft.pattern
+                    elt.attrib["filtertext_type"] = ft.tag
+                    panel_filter.combine(ft)
+                    break
+                elif ft.type == "complex" and ft.get_name() == "or":
+                    elt.attrib["filtertext_text"] = ft.filterlist[0].pattern
+                    elt.attrib["filtertext_type"] = "all"
+                    panel_filter.combine(ft)
+                    break
             for t in ("genre", "artist", "album"):
                 selected = None
                 for ft in filter_list:
-                    if ft.tag == t and ft.get_name() == "equals":
+                    if ft.get_name() == "equals" and ft.tag == t:
                         selected = ft.pattern
                         break
 

@@ -486,7 +486,8 @@ class PanelUpdateFilter(_UnknownCommand):
     name = "panelUpdateFilter"
     method = "post"
     command_args = [{"name":"value","type":"string","req":True},\
-        {"name":"tag","type":"string","req":True},\
+        {"name":"tag","type":"enum_str",\
+         "values":("genre","artist","album","title","all"),"req":True},\
         {"name":"type","type":"enum_str","values": ('panel-text','panel-list'),\
          "req":True}]
 
@@ -498,6 +499,13 @@ class PanelUpdateFilter(_UnknownCommand):
         else:
             panel.update_panel_filters(self._args["tag"],\
                 type,self._args["value"])
+
+            # remove filter for panels at the right of this tag
+            if self._args["type"] == "panel-list":
+                for tg in ('album','artist','album'):
+                    if tg == self._args["tag"]:
+                        break
+                    panel.remove_panel_filters(type,tg)
 
 
 class PanelClearFilter(_UnknownCommand):

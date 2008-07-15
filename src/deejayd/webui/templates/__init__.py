@@ -78,6 +78,7 @@ TRANSLATE = {
     # panel
     "magicPlaylist": _("Magic Playlist"),
     "staticPlaylist": _("Static Playlist"),
+    "chooseAll": _("Choose All"),
     # queue
     "queue": _("Song Queue"),
     # dvd

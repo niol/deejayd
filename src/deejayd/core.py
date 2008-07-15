@@ -557,7 +557,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             raise DeejaydError(_('Type %s is not supported') % (type,))
         if type == "all":
             filter = mediafilters.Or()
-            for tag in ('title','genre','filename','artist','album'):
+            for tag in ('title','genre','artist','album'):
                 filter.combine(mediafilters.Contains(tag, pattern))
         else:
             filter = mediafilters.Contains(type, pattern)

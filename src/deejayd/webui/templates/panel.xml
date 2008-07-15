@@ -13,7 +13,7 @@
                 label="&play;"
                 oncommand="panel_ref.play();"/>
             <menuitem
-                class="menuitem-iconic play-action"
+                class="menuitem-iconic add-action"
                 label="&loadQueue;"
                 oncommand="panel_ref.loadInQueue();"/>
             <menu
@@ -44,6 +44,7 @@
             flex="1"
             id="panel-pls-list">
             <listitem
+         id="panel-list-entry"
          onclick="ajaxdj_ref.send_post_command('panelSet',{type: 'panel'})"
          class="listitem-title" label="Panel"/>
             <listitem label=""/>
@@ -80,7 +81,12 @@
                 id="filter-clear"
                 class="clear-button"
                 label="&clear;"
-                oncommand="ajaxdj_ref.send_command('panelClearFilter');"/>
+                oncommand="panel_ref.clearPanelFilterText();"/>
+            <button
+                id="panel-chooseall"
+                label="&chooseAll;"
+                oncommand=
+                  "ajaxdj_ref.send_command('panelClearFilter',{},true);"/>
         </hbox>
         <hbox persist="height" id="panel-box">
 
@@ -175,7 +181,8 @@
                     oncontextmenu="panel_ref.showPopupMenu(event);"
                     ondraggesture = "panel_ref.dragStart(event);"
                     id="panel-items">
-                    <treeitem uri="rdf:*">
+                    <treeitem uri="rdf:*"
+                              value="rdf:http://panel/rdf#media_id">
                         <treerow>
                             <treecell label=""/>
                             <treecell label="rdf:http://panel/rdf#tracknumber"/>

@@ -17,22 +17,34 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd.mediafilters import *
-from deejayd.sources._base import _BaseLibrarySource
+from deejayd.sources._base import _BaseLibrarySource, SourceError
 
 class PanelSource(_BaseLibrarySource):
     base_medialist = "__panelcurrent__"
     name = "panel"
     source_signal = 'panel.update'
+    panel_tags = ('genre','artist','album')
+    contains_tags = ('genre','artist','album','title','all')
 
     def __init__(self, db, library):
         super(PanelSource, self).__init__(db, library)
-        # load saved
-        ans = self.db.get_static_medialist(self.base_medialist,\
-            infos = library.media_attr)
+        # TODO : load saved panel
+        ans = []
         self._media_list.set(ans)
         # custom attributes
         self.__selected_mode = {"type": "panel", "value": ""}
         self.__panel_filters = None
+
+    def __find_contains_filter(self):
+        try: filter_list = self.__panel_filters.filterlist
+        except (TypeError, AttributeError):
+            return None
+        for ft in filter_list:
+            if ft.type == "basic" and ft.get_name() == "contains":
+                return ft
+            elif ft.type == "complex" and ft.get_name() == "or":
+                return ft
+        return None
 
     def __set_panel_filters(self, filters):
         self.__panel_filters = filters
@@ -53,8 +65,17 @@ class PanelSource(_BaseLibrarySource):
                     found = True
                     break
             if not found: self.__panel_filters.combine(Equals(tag, value))
+
         elif type == "contains":
-            pass # TODO
+            self.__panel_filters = And()
+            if tag == "all":
+                new_filter = Or()
+                for tg in ('title','genre','artist','album'):
+                    new_filter.combine(Contains(tg, value))
+            else:
+                new_filter = Contains(tag, value)
+            self.__panel_filters.combine(new_filter)
+
         elif type == "order":
             pass # TODO
         else:
@@ -69,6 +90,12 @@ class PanelSource(_BaseLibrarySource):
                     self.__panel_filters.filterlist.remove(ft)
                     self.__set_panel_filters(self.__panel_filters)
                     return
+        elif type == "contains":
+            try: self.__panel_filters.filterlist.\
+                remove(self.__find_contains_filter())
+            except (TypeError, ValueError, AttributeError):
+                return
+        self.__set_panel_filters(self.__panel_filters)
 
     def clear_panel_filters(self):
         self.__set_panel_filters(None)

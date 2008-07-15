@@ -20,11 +20,15 @@ var Panel = function()
         if (mode == "playlist") {
             $('filter-box').style.visibility = "collapse";
             $('panel-box').style.visibility = "collapse";
+            $('panel-list-entry').selected = false;
             }
         else {
             $('filter-box').style.visibility = "visible";
             $('panel-box').style.visibility = "visible";
-            // update panel
+            // select panel entry in left column
+            $('panel-list-entry').selected = true;
+
+            // update panels
             var panels = Array("genre", "artist", "album");
             for (t in panels) {
                 var pn = $(panels[t]+"-panel");
@@ -48,8 +52,11 @@ var Panel = function()
                     new_elt.setAttribute("selected", item.getAttribute("sel"));
                     new_elt.setAttribute("onclick",
                       "panel_ref.updatePanelFilter(this,'"+panels[t]+"');");
+                    if (item.getAttribute("sel") == "true")
+                        var selected_item = new_elt;
                     pn.appendChild(new_elt);
                     }
+                pn.ensureElementIsVisible(selected_item);
                 }
             }
         return true;
@@ -99,10 +106,17 @@ var Panel = function()
     {
         var tag = $("panel-filter-type").value;
         var value = $("filter-text").value;
+        if (value == "")
+            value = "__all__";
         ajaxdj_ref.send_post_command('panelUpdateFilter',
             {"type": "panel-text", "tag": tag, "value": value});
     };
 
+    this.clearPanelFilterText = function()
+    {
+        $("filter-text").value = "";
+        this.updatePanelFilterText();
+    };
 };
 // heritage by prototype
 Panel.prototype = new CommonTreeManagement;
