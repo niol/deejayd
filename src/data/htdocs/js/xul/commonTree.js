@@ -188,7 +188,8 @@ var CommonTreeManagement = function()
     this.dragOver = function(evt)
     {
         evt.stopPropagation();
-        if (!this.mediaDragged && !fileList_ref.dragItemType)
+        if (!this.mediaDragged && !panel_ref.mediaDragged
+             && !fileList_ref.dragItemType)
             return;
         try{
             netscape.security.PrivilegeManager.
@@ -220,7 +221,9 @@ var CommonTreeManagement = function()
             getService().QueryInterface(Components.interfaces.nsIDragService);
         if (dragService) {
             var dragSession = dragService.getCurrentSession();
-            if (dragSession && (this.mediaDragged || fileList_ref.dragItemType))
+            if (dragSession &&
+                (this.mediaDragged || panel_ref.mediaDragged ||
+                 fileList_ref.dragItemType))
                 dragSession.canDrop = true;
             }
     };
@@ -228,7 +231,8 @@ var CommonTreeManagement = function()
     this.dragEnter = function(evt)
     {
         evt.stopPropagation();
-        if (!this.mediaDragged && !fileList_ref.dragItemType)
+        if (!this.mediaDragged && !panel_ref.mediaDragged
+             && !fileList_ref.dragItemType)
             return;
         try{
             netscape.security.PrivilegeManager.
@@ -240,7 +244,9 @@ var CommonTreeManagement = function()
             getService().QueryInterface(Components.interfaces.nsIDragService);
         if (dragService) {
             var dragSession = dragService.getCurrentSession();
-            if (dragSession && (this.mediaDragged || fileList_ref.dragItemType))
+            if (dragSession &&
+                (this.mediaDragged || panel_ref.mediaDragged ||
+                 fileList_ref.dragItemType))
                 dragSession.canDrop = true;
             }
     };

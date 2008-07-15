@@ -15,7 +15,7 @@
             <menuitem
                 class="menuitem-iconic add-action"
                 label="&loadQueue;"
-                oncommand="panel_ref.loadInQueue();"/>
+                oncommand="panel_ref.loadInQueue(-1);"/>
             <menu
                 label="&rating;">
                 <menupopup id="panel-rating-menu">

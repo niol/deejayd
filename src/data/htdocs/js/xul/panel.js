@@ -117,6 +117,13 @@ var Panel = function()
         $("filter-text").value = "";
         this.updatePanelFilterText();
     };
+
+    this.loadInQueue = function(pos)
+    {
+        var items = this.getTreeSelection("value");
+        ajaxdj_ref.send_post_command("queueAdd", {"values": items, type: "id",
+                                                  "pos": pos});
+    };
 };
 // heritage by prototype
 Panel.prototype = new CommonTreeManagement;

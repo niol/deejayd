@@ -32,11 +32,16 @@ var Queue = function()
             var s_ids = this.getTreeSelection("id");
             ajaxdj_ref.send_post_command("queueMove",
                 {ids:s_ids, new_pos:pos});
+            this.mediaDragged = false;
             }
-        else
+        else if (panel_ref.mediaDragged) {
+            panel_ref.loadInQueue(pos);
+            panel_ref.mediaDragged = false;
+            }
+        else {
             fileList_ref.loadItemsInQueue(pos);
-        this.mediaDragged = false;
-        fileList_ref.dragItemType = null;
+            fileList_ref.dragItemType = null;
+            }
     };
 
     this.toogleQueue = function()
