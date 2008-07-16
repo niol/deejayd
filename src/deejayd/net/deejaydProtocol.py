@@ -21,9 +21,7 @@ from twisted.application import service, internet
 from twisted.internet import protocol, reactor
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
-try: from xml.etree import cElementTree as ET # python 2.5
-except ImportError: # python 2.4
-    import cElementTree as ET
+from deejayd.xmlobject import ET
 
 from deejayd.interfaces import DeejaydSignal
 from deejayd.mediafilters import *

@@ -16,9 +16,18 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-try: from xml.etree import cElementTree as ET # python 2.5
-except ImportError: # python 2.4
-    import cElementTree as ET
+IS_LXML = False
+try: # use python-lxml if available
+    from lxml import etree as ET
+    IS_LXML = True
+except ImportError:
+    # try to import cElementTree module
+    try: from xml.etree import cElementTree as ET # python 2.5
+    except ImportError: # python 2.4
+        try: import cElementTree as ET
+        except ImportError:
+            import sys
+            sys.exit(_("Unable to import module to build/parse xml"))
 
 
 class DeejaydXMLObject(object):
@@ -50,14 +59,18 @@ class DeejaydXMLObject(object):
             if level and (not elem.tail or not elem.tail.strip()):
                 elem.tail = i
 
+    def to_string(self):
+        if IS_LXML: return ET.tostring(self.xmlroot)
+        else:
+            return ET.tostring(self.xmlroot,'utf-8')
+
     def to_xml(self):
-        return '<?xml version="1.0" encoding="utf-8"?>' + \
-            ET.tostring(self.xmlroot,'utf-8')
+        return '<?xml version="1.0" encoding="utf-8"?>' + self.to_string()
 
     def to_pretty_xml(self):
         self._indent(self.xmlroot)
         return '<?xml version="1.0" encoding="utf-8"?>' + "\n" +\
-            ET.tostring(self.xmlroot,'utf-8') + "\n"
+            self.to_string() + "\n"
 
 
 # vim: ts=4 sw=4 expandtab

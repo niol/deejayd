@@ -16,10 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-try: from xml.etree import cElementTree as ET # python 2.5
-except ImportError: # python 2.4
-    import cElementTree as ET
-from deejayd.xmlobject import DeejaydXMLObject
+from deejayd.xmlobject import DeejaydXMLObject, ET
 
 
 class _DeejaydXML(DeejaydXMLObject):

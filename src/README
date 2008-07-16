@@ -38,6 +38,9 @@ Requirements:
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
     * cElementTree (http://effbot.org/zone/celementtree.htm) module.
       It is include in python 2.5
+        OR
+      lxml (http://codespeak.net/lxml/), this library is recommended because it
+      really improves deejayd performance
     * twisted-web >= 0.6.0 if you want to use deejayd-webui
     * if you want to use gstreamer backend
         * (2.9 > pygtk >= 2.8) or pygobject >= 2.12 (http://www.pygtk.org/)

@@ -17,11 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-try: from xml.etree import cElementTree as ET # python 2.5
-except ImportError: # python 2.4
-    import cElementTree as ET
-
-
+from deejayd.xmlobject import ET
 from deejayd.interfaces import DeejaydSignal
 from deejayd.mediafilters import *
 
