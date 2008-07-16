@@ -17,8 +17,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os, sys, time
+from deejayd.mediafilters import *
 from deejayd.ui import log
-from deejayd.database.querybuilders import query_decorator, MediaSelectQuery
+from deejayd.database.querybuilders import *
 from deejayd.database.dbobjects import SQLizer
 
 
@@ -278,6 +279,61 @@ class DatabaseQueries(object):
         filter.restrict(query)
         query.order_by_tag(tag)
         cursor.execute(query.to_sql(), query.get_args())
+
+    @query_decorator("custom")
+    def get_filter(self, cursor, id):
+        query = SimpleSelect('filters')
+        query.select_column('type')
+        query.append_where("filter_id == %s", (id, ))
+        cursor.execute(query.to_sql(), query.get_args())
+        record = cursor.fetchone()
+
+        if record:
+            filter_type = record[0]
+            if filter_type == 'basic':
+                return self.get_basic_filter(id)
+            elif filter_type == 'complex':
+                return self.get_complex_filter(id)
+
+
+    @query_decorator("custom")
+    def get_basic_filter(self, cursor, id):
+        query = SimpleSelect('filters_basicfilters')
+        query.select_column('tag')
+        query.select_column('operator')
+        query.select_column('pattern')
+        query.append_where("filter_id == %s", (id, ))
+        cursor.execute(query.to_sql(), query.get_args())
+        record = cursor.fetchone()
+
+        if record:
+            bfilter_class = NAME2BASIC[record[1]]
+            f = bfilter_class(record[0], record[2])
+            sqlf = self.sqlizer.translate(f)
+            sqlf.id = id
+            return sqlf
+
+    @query_decorator("custom")
+    def get_complex_filter(self, cursor, id):
+        query = SimpleSelect('filters_complexfilters')
+        query.select_column('combinator')
+        query.append_where("filter_id == %s", (id, ))
+        cursor.execute(query.to_sql(), query.get_args())
+        record = cursor.fetchone()
+
+        if record:
+            cfilter_class = NAME2COMPLEX[record[0]]
+            query = SimpleSelect('filters_complexfilters_subfilters')
+            query.select_column('filter_id')
+            query.append_where("complexfilter_id == %s", (id, ))
+            cursor.execute(query.to_sql(), query.get_args())
+            sf_records = cursor.fetchall()
+            filterlist = []
+            for sf_record in sf_records:
+                sf_id = sf_record[0]
+                filterlist.append(self.get_filter(sf_id))
+            cfilter = cfilter_class(*filterlist)
+            return cfilter
 
     #
     # cover requests
