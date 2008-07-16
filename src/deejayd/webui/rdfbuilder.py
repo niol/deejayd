@@ -17,12 +17,68 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os,re
+
 try: from xml.etree import cElementTree as ET # python 2.5
 except ImportError: # python 2.4
     import cElementTree as ET
 from deejayd.xmlobject import DeejaydXMLObject
 from deejayd.webui.utils import *
 from deejayd.mediafilters import *
+
+
+class RdfBuilder(DeejaydXMLObject):
+
+    def __init__(self, source_name):
+        self.rdf_nsp = "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}"
+        self.file_nsp = "{http://%s/rdf#}" % source_name
+        self.xmlroot = ET.Element(self.rdf_nsp+"RDF")
+
+    def build_seq(self, url, parent = None):
+        if parent is None: parent = self.xmlroot
+        seq = ET.SubElement(parent, self.rdf_nsp+"Seq")
+        seq.attrib[self.rdf_nsp+"about"] = self._to_xml_string(url)
+
+        return seq
+
+    def build_li(self, parent, url = None):
+        li = ET.SubElement(parent, self.rdf_nsp+"li")
+        if url: li.attrib[self.rdf_nsp+"about"] = self._to_xml_string(url)
+
+        return li
+
+    def build_item_desc(self, parms, parent = None, url = None):
+        if parent is None: parent = self.xmlroot
+        desc = ET.SubElement(parent, self.rdf_nsp+"Description")
+        if url: desc.attrib[self.rdf_nsp+"about"] = self._to_xml_string(url)
+
+        for p in parms.keys():
+            if p in ("time","length"):
+                if parms[p]:
+                    value = format_time(int(parms[p]))
+                else:
+                    value = 0
+            elif p == "external_subtitle":
+                value = parms[p] == "" and _("No") or _("Yes")
+            elif p == "rating":
+                rating = u'\u266a' * int(parms[p])
+                value = self._to_xml_string(rating)
+            else:
+                try: value = self._to_xml_string(parms[p])
+                except TypeError:
+                    continue
+            node = ET.SubElement(desc, self.file_nsp+"%s"\
+                % self._to_xml_string(p))
+            node.text = value
+
+        return desc
+
+    def set_resource(self, elt, url):
+        elt.attrib[self.rdf_nsp+"resource"] = self._to_xml_string(url)
+
+    def to_xml(self):
+        return '<?xml version="1.0" encoding="utf-8"?>' + "\n" + \
+                ET.tostring(self.xmlroot)
+
 
 class _DeejaydSourceRdf(DeejaydXMLObject):
     name = "unknown"
@@ -56,63 +112,29 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
         elt.attrib["description"] = desc
         return elt
 
-    def _build_root_elt(self):
-        root = ET.Element("RDF:RDF")
-        root.attrib["xmlns:RDF"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        root.attrib["xmlns:FILE"] = "http://%s/rdf#" % self.name
-
-        return root
-
     def _build_rdf_file(self,new_id):
-        medias = self._get_media_list()
+        # get media list
+        obj = getattr(self._deejayd, self.__class__.get_list_func)()
+        media_list = obj.get().get_medias()
 
         # build xml
-        root = self._build_root_elt()
-        seq = ET.SubElement(root,"RDF:Seq")
-        seq.attrib["RDF:about"] = "http://%s/all-content" % self.name
-        for media in medias:
-            li = ET.SubElement(seq,"RDF:li")
-            self._rdf_description(li,media,\
+        rdf_builder = RdfBuilder(self.__class__.name)
+        seq = rdf_builder.build_seq("http://%s/all-content" % self.name)
+        for media in media_list:
+            li = rdf_builder.build_li(seq)
+            rdf_builder.build_item_desc(media, li,\
                 "http://%s/%s" % (self.name, media["id"]))
 
-        self._save_rdf(root,new_id)
+        self._save_rdf(rdf_builder, new_id)
 
-    def _rdf_description(self, parent, parms,url = None):
-        desc = ET.SubElement(parent,"RDF:Description")
-        if url:
-            desc.attrib["RDF:about"] = self._to_xml_string(url)
-        for p in parms.keys():
-            if p in ("time","length"):
-                if parms[p]:
-                    value = format_time(int(parms[p]))
-                else:
-                    value = 0
-            elif p == "external_subtitle":
-                value = parms[p] == "" and _("No") or _("Yes")
-            elif p == "rating":
-                rating = u'\u266a' * int(parms[p])
-                value = self._to_xml_string(rating)
-            else:
-                try: value = self._to_xml_string(parms[p])
-                except TypeError:
-                    continue
-            node = ET.SubElement(desc,"FILE:%s" % self._to_xml_string(p))
-            node.text = value
-
-    def _save_rdf(self, root_element, new_id):
+    def _save_rdf(self, rdf_builder, new_id):
         filename = "%s-%d.rdf" % (self.__class__.name, new_id);
         file_path = os.path.join(self._rdf_dir,filename)
 
-        rs = '<?xml version="1.0" encoding="utf-8"?>' + "\n" + \
-                ET.tostring(root_element,"utf-8")
-        fd = open(file_path,"w")
-        fd.write(rs)
+        fd = open(file_path, "w")
+        fd.write(rdf_builder.to_xml())
         fd.close()
         os.chmod(file_path,0644)
-
-    def _get_media_list(self):
-        obj = getattr(self._deejayd, self.__class__.get_list_func)()
-        return obj.get().get_medias()
 
     def _clean_rdfdir(self):
         for file in os.listdir(self._rdf_dir):
@@ -226,35 +248,27 @@ class DeejaydVideoDirRdf(_DeejaydSourceRdf):
         return new_id
 
     def _build_rdf_file(self,new_id):
-        # build xml
-        self.root = ET.Element("RDF:RDF")
-        self.root.attrib["xmlns:RDF"] =\
-            "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        self.root.attrib["xmlns:FILE"] = "http://videodir/rdf#"
+        rdf_builder = RdfBuilder(self.__class__.name)
 
-        seq = ET.SubElement(self.root,"RDF:Seq")
-        seq.attrib["RDF:about"] = "http://videodir/all-content"
-        self._build_dir_list(seq, "")
+        seq = rdf_builder.build_seq("http://videodir/all-content")
+        self._build_dir_list(rdf_builder, seq, "")
+        self._save_rdf(rdf_builder, new_id)
 
-        self._save_rdf(self.root,new_id)
-
-    def _build_dir_list(self, seq_elt, dir, id = "1"):
-        dir_elt = ET.SubElement(seq_elt, "RDF:li")
+    def _build_dir_list(self, rdf_builder, seq_elt, dir, id = "1"):
+        dir_elt = rdf_builder.build_li(seq_elt)
         dir_url = "http://videodir/%s" % os.path.join("root", dir)
         title = dir == "" and _("Root Directory") or os.path.basename(dir)
-        self._rdf_description(self.root, {"title": title}, dir_url)
+        rdf_builder.build_item_desc({"title": title}, url = dir_url)
 
         subdirs = self._deejayd.get_video_dir(dir).get_directories()
         if subdirs == []:
-            dir_elt.attrib["RDF:resource"] = self._to_xml_string(dir_url)
+            rdf_builder.set_resource(dir_elt, dir_url)
         else:
-            subdir_list =  ET.SubElement(dir_elt,"RDF:Seq")
-            subdir_list.attrib["RDF:about"] = self._to_xml_string(dir_url)
-            j = 1
-            for d in subdirs:
-                new_id = id + "/%d" % j
-                self._build_dir_list(subdir_list, os.path.join(dir, d), new_id)
-                j += 1
+            subdir_list =  rdf_builder.build_seq(dir_url, parent = dir_elt)
+            for idx, d in enumerate(subdirs):
+                new_id = id + "/%d" % (idx+1,)
+                self._build_dir_list(rdf_builder, subdir_list,\
+                    os.path.join(dir, d), new_id)
 
 class DeejaydDvdRdf(_DeejaydSourceRdf):
     name = "dvd"
