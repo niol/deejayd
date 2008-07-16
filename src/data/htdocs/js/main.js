@@ -238,8 +238,10 @@ function ajaxdj()
 
             rs = xmldoc.getElementsByTagName("playlist-list").item(0);
             if (rs) {
-                this.fileListObj.updatePlaylistList(rs);
-                this.panelObj.updatePlaylistList(rs);
+                if (this.fileListObj)
+                    this.fileListObj.updatePlaylistList(rs);
+                if (this.panelObj)
+                    this.panelObj.updatePlaylistList(rs);
                 }
 
             rs = xmldoc.getElementsByTagName("queue").item(0);
