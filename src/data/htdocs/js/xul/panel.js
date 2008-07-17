@@ -6,7 +6,6 @@ var Panel = function()
     panel_ref = this;
     this.ref = "panel_ref";
 
-    this.mediaDragged = true;
     this.module = "panel";
     this.tree = $("panel-tree");
     // Activate this mode

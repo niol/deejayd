@@ -69,19 +69,21 @@ var Playlist = function()
     /********************************************************************/
     // custom drag and drop actions
     /********************************************************************/
-    this.dropAction = function(pos)
+    this.supportedDropData = Array('playlist', 'playlist-list',
+                                   'directory-list', 'audio-file-list');
+    this.dropAction = function(pos, data)
     {
-        if (this.mediaDragged) {
+        if (data == 'playlist') {
             // move song at the new position
             var s_ids = this.getTreeSelection("id");
             ajaxdj_ref.send_post_command("playlistMove",
                 {ids:s_ids, new_pos:pos});
             }
-        else
-            fileList_ref.loadItems(pos);
-        this.mediaDragged = false;
-        fileList_ref.dragItemType = null;
-    };
+        else if ((data == 'directory-list') || (data == 'audio-file-list')) {
+            fileList_ref.loadFiles(pos);
+            }
+        else if (data == 'playlist-list') { fileList_ref.loadPlaylist(pos); };
+    }
 };
 
 // heritage by prototype

@@ -8,7 +8,6 @@ var FileList = function()
     this.menuId = "navigation-path";
     this.menuCommand = "getdir";
     this.contextMenuId = "fileList-menu";
-    this.dragItemType = null;
     this.playlistList = new Array();
     this.updateBox = "audio-update";
     this.listType = "audio";
@@ -69,22 +68,6 @@ var FileList = function()
             this.loadPlaylist(-1);
     }
 
-    this.loadItems = function(pos)
-    {
-        if (this.dragItemType == "playlist")
-            this.loadPlaylist(pos);
-        else
-            this.loadFiles(pos);
-    };
-
-    this.loadItemsInQueue = function(pos)
-    {
-        if (this.dragItemType == "playlist")
-            this.loadPlaylistInQueue(pos);
-        else
-            this.loadFilesInQueue(pos);
-    };
-
     this.__getSelectedType = function(id)
     {
         var navList = $(id);
@@ -98,7 +81,6 @@ var FileList = function()
 
     this.loadFiles = function(pos)
     {
-        this.dragItemType = null;
         ajaxdj_ref.send_post_command('playlistAdd&pos='+pos,
             {values: this.getSelectedItems("file-content"),
              type: this.__getSelectedType("file-content")});
@@ -106,7 +88,6 @@ var FileList = function()
 
     this.loadFilesInQueue = function(pos)
     {
-        this.dragItemType = null;
         ajaxdj_ref.send_post_command('queueAdd&pos='+pos,
             {values: this.getSelectedItems("file-content"),
              type: this.__getSelectedType("file-content")});
@@ -146,14 +127,12 @@ var FileList = function()
 
     this.loadPlaylist = function(pos)
     {
-        this.dragItemType = null;
         ajaxdj_ref.send_post_command('playlistLoad&pos='+pos,
             {pls_name: this.getSelectedItems("playlistList-content")});
     };
 
     this.loadPlaylistInQueue = function(pos)
     {
-        this.dragItemType = null;
         ajaxdj_ref.send_post_command('queueLoad&pos='+pos,
             {pls_name: this.getSelectedItems("playlistList-content")});
     };
@@ -253,22 +232,22 @@ var FileObserver = {
             }
         catch(ex){return}
 
-        fileList_ref.dragItemType = evt.target.getAttribute("type");
-        var plainText=evt.target.value;
-
+        var plainText = evt.target.getAttribute("type") + "-list";
         var ds = Components.classes["@mozilla.org/widget/dragservice;1"].
                getService(Components.interfaces.nsIDragService);
+
         var trans = Components.classes["@mozilla.org/widget/transferable;1"].
                createInstance(Components.interfaces.nsITransferable);
-        trans.addDataFlavor("text/plain");
+        trans.addDataFlavor("text/unicode");
         var textWrapper = Components.classes["@mozilla.org/supports-string;1"].
                createInstance(Components.interfaces.nsISupportsString);
         textWrapper.data = plainText;
-        trans.setTransferData("text/plain",textWrapper,textWrapper.data.length);
+        trans.setTransferData("text/unicode",textWrapper,plainText.length*2);
         // create an array for our drag items, though we only have one this time
         var transArray = Components.classes["@mozilla.org/supports-array;1"].
                 createInstance(Components.interfaces.nsISupportsArray);
         transArray.AppendElement(trans);
+
         // Actually start dragging
         ds.invokeDragSession(evt.target, transArray, null,
             ds.DRAGDROP_ACTION_COPY + ds.DRAGDROP_ACTION_MOVE);

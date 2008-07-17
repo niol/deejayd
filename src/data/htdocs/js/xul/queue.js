@@ -25,25 +25,6 @@ var Queue = function()
         return true;
     };
 
-    this.dropAction = function(pos)
-    {
-        if (this.mediaDragged) {
-            // move song at the new position
-            var s_ids = this.getTreeSelection("id");
-            ajaxdj_ref.send_post_command("queueMove",
-                {ids:s_ids, new_pos:pos});
-            this.mediaDragged = false;
-            }
-        else if (panel_ref.mediaDragged) {
-            panel_ref.loadInQueue(pos);
-            panel_ref.mediaDragged = false;
-            }
-        else {
-            fileList_ref.loadItemsInQueue(pos);
-            fileList_ref.dragItemType = null;
-            }
-    };
-
     this.toogleQueue = function()
     {
         var currentState = $('queue-splitter').getAttribute("state");
@@ -80,6 +61,27 @@ var Queue = function()
             var state = "inorder";
         ajaxdj_ref.send_post_command("playorder",{source:"queue",value:state});
         return false;
+    };
+
+    /********************************************************************/
+    // custom drag and drop actions
+    /********************************************************************/
+    this.supportedDropData = Array('queue', 'panel', 'playlist-list',
+                                   'directory-list', 'audio-file-list');
+    this.dropAction = function(pos, data)
+    {
+        if (data == "queue") {
+            // move song at the new position
+            var s_ids = this.getTreeSelection("id");
+            ajaxdj_ref.send_post_command("queueMove",{ids:s_ids, new_pos:pos});
+            }
+        else if (data == "panel") { panel_ref.loadInQueue(pos); }
+        else if ((data == 'directory-list') || (data == 'audio-file-list')) {
+            fileList_ref.loadFilesInQueue(pos);
+            }
+        else if (data == 'playlist-list') {
+            fileList_ref.loadPlaylistInQueue(pos);
+            }
     };
 };
 
