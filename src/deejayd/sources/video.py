@@ -29,9 +29,7 @@ class VideoSource(_BaseLibrarySource):
     def __init__(self, db, library):
         super(VideoSource, self).__init__(db, library)
         # load saved
-        ans = self.db.get_static_medialist(self.base_medialist,\
-            infos = library.media_attr)
-        self._media_list.set(ans)
+        self._media_list.set(self._get_playlist_content(self.base_medialist))
 
     def set(self, type, value):
         if type == "directory":

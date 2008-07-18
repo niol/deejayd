@@ -79,7 +79,7 @@ db_schema = [
         Column('id', auto_increment=True),
         Column('name'),
         Column('type'), # magic or static
-        Index(('name','type'))],
+        Index(('name','type'), unique = False)],
     Table('medialist_libraryitem', key=('position'))[
         Column('position', auto_increment=True),
         Column('medialist_id', type='int'),

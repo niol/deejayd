@@ -142,10 +142,18 @@ class _BaseLibrarySource(_BaseSource):
         if self._media_list.remove_media(media_id):
             self.dispatch_signame(self.source_signal)
 
-    def _get_playlist_content(self, pls):
-        rs = self.db.get_static_medialist(pls, infos=self.library.media_attr)
-        if len(rs) == 0 and (not pls.startswith("__") or \
-                             not pls.endswith("__")):
+    def _get_playlist_content(self, pattern, p_type = "name"):
+        try:
+            pl_id, name, type = self.db.is_medialist_exists(pattern, p_type)
+            if type == "static":
+                rs = self.db.get_static_medialist(pl_id,\
+                    infos=self.library.media_attr)
+            elif type == "magic":
+                pass # TODO
+        except TypeError:
+            rs = []
+        if len(rs) == 0 and (not str(pattern).startswith("__") or \
+                             not str(pattern).endswith("__")):
             raise SourceError(_("Playlist %s does not exist.") % pls)
         return rs
 
@@ -170,7 +178,8 @@ class _BaseAudioLibSource(_BaseLibrarySource):
 
     def __init__(self, db, audio_library):
         super(_BaseAudioLibSource, self).__init__(db, audio_library)
-        self.load_playlist((self.base_medialist,))
+        # load saved
+        self._media_list.set(self._get_playlist_content(self.base_medialist))
 
     def add_song(self, song_ids, pos = None):
         try: medias = self.library.get_file_withids(song_ids)
@@ -193,10 +202,10 @@ class _BaseAudioLibSource(_BaseLibrarySource):
         if pos: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)
 
-    def load_playlist(self, playlists, pos = None):
+    def load_playlist(self, pl_ids, pos = None):
         medias = []
-        for pls in playlists:
-            medias.extend(self._get_playlist_content(pls))
+        for id in pl_ids:
+            medias.extend(self._get_playlist_content(id, pattern_type = "id"))
         self._media_list.add_media(medias, pos)
         if pos: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)

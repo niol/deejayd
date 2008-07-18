@@ -34,12 +34,15 @@ class SimpleSelect(_DBQuery):
     def __init__(self, table_name):
         super(SimpleSelect, self).__init__(table_name)
         self.selects = []
+        self.orders = []
         self.wheres, self.wheres_args = [], []
 
-    def select_column(self, column_name, table_name=None):
-        if not table_name:
-            table_name = self.table_name
-        self.selects.append("%s.%s" % (table_name, column_name))
+    def select_column(self, *__args, **__kw):
+        for col in __args:
+            self.selects.append("%s.%s" % (self.table_name, col))
+
+    def order_by(self, column, desc = False):
+        self.orders.append("%s.%s" % (self.table_name, column))
 
     def append_where(self, where_query, args):
         self.wheres.append(where_query)
@@ -61,11 +64,15 @@ class MediaSelectQuery(SimpleSelect):
         super(MediaSelectQuery, self).__init__('library')
         self.joins = []
         self.__joined_tags = []
-        self.orders = []
         self.id = False
 
     def select_id(self):
         self.id = True
+
+    def select_column(self, column_name, table_name=None):
+        if not table_name:
+            table_name = self.table_name
+        self.selects.append("%s.%s" % (table_name, column_name))
 
     def select_tag(self, tagname):
         self.select_column('value', tagname)

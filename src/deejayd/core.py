@@ -99,13 +99,11 @@ def returns_deejaydanswer(answer_class):
 
 class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
 
-    def __init__(self, deejaydcore, name):
+    def __init__(self, deejaydcore, pl_id, name):
         self.deejaydcore = deejaydcore
         self.db, self.library = deejaydcore.db, deejaydcore.audio_library
         self.name = name
-        self.pl_id = self.db.is_static_medialist_exists(name)
-        if not self.pl_id:
-            raise DeejaydError(_("Playlist %s not found.") % self.name)
+        self.pl_id = pl_id
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first=0, length=-1):
@@ -193,9 +191,9 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def load_playlists(self, names, pos=None):
+    def load_playlists(self, pl_ids, pos=None):
         pos = pos and int(pos) or None
-        try: self.source.load_playlist(names, pos)
+        try: self.source.load_playlist(pl_ids, pos)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
@@ -250,9 +248,9 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def loads(self, names, pos=None):
+    def loads(self, pl_ids, pos=None):
         pos = pos and int(pos) or None
-        try: self.source.load_playlist(names, pos)
+        try: self.source.load_playlist(pl_ids, pos)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
@@ -510,19 +508,27 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             raise DeejaydError(_("Video mode disabled"))
         return {'video_updating_db': self.video_library.update(sync)}
 
-    def get_static_playlist(self, name):
-        return DeejaydStaticPlaylist(self, name)
+    def get_recorded_playlist(self, id):
+        try:
+            pl_id, name, type = self.db.is_medialist_exists(id,\
+                pattern_type = "id")
+        except TypeError:
+            raise DeejaydError(_("Playlist with id %s not found.") % str(id))
+        if type == "static":
+            return DeejaydStaticPlaylist(self, pl_id, name)
+        elif type == "magic":
+            pass # TODO
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def erase_playlist(self, names):
-        for name in names:
-            self.db.delete_static_medialist(name)
+    def erase_playlist(self, ids):
+        for id in ids:
+            self.db.delete_medialist(id)
             self._dispatch_signame('playlist.update')
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get_playlist_list(self):
-        return [{"name": pl, "length":len, "type":"static"}\
-            for (pl, len) in self.db.get_medialist_list() if not \
+        return [{"name": pl, "id":id, "type":type}\
+            for (id, pl, type) in self.db.get_medialist_list() if not \
             pl.startswith("__") or not pl.endswith("__")]
 
     @returns_deejaydanswer(DeejaydAnswer)

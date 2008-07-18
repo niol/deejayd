@@ -220,10 +220,10 @@ class DeejaydQueue(object):
     def add_songs(self, song_ids, pos = None):
         raise NotImplementedError
 
-    def load_playlist(self, name, pos = None):
+    def load_playlist(self, pl_id, pos = None):
         return self.load_playlists([name], pos)
 
-    def load_playlists(self, names, pos = None):
+    def load_playlists(self, pl_ids, pos = None):
         raise NotImplementedError
 
     def move(self, ids, new_pos):
@@ -280,10 +280,10 @@ class DeejaydPlaylistMode(object):
     def add_songs(self, song_ids, pos = None):
         raise NotImplementedError
 
-    def load(self, name, pos = None):
+    def load(self, pl_id, pos = None):
         return self.loads([name], pos)
 
-    def loads(self, names, pos = None):
+    def loads(self, pl_ids, pos = None):
         raise NotImplementedError
 
     def move(self, ids, new_pos):
@@ -398,10 +398,10 @@ class DeejaydCore(object):
     def update_video_library(self):
         raise NotImplementedError
 
-    def get_static_playlist(self, name):
+    def get_recorded_playlist(self, pl_id):
         raise NotImplementedError
 
-    def erase_playlist(self, names):
+    def erase_playlist(self, pl_ids):
         raise NotImplementedError
 
     def get_playlist_list(self):

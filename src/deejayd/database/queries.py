@@ -299,9 +299,7 @@ class DatabaseQueries(object):
     @query_decorator("custom")
     def get_basic_filter(self, cursor, id):
         query = SimpleSelect('filters_basicfilters')
-        query.select_column('tag')
-        query.select_column('operator')
-        query.select_column('pattern')
+        query.select_column('tag', 'operator', 'pattern')
         query.append_where("filter_id == %s", (id, ))
         cursor.execute(query.to_sql(), query.get_args())
         record = cursor.fetchone()
@@ -367,45 +365,51 @@ class DatabaseQueries(object):
         cursor.execute(query, (id,))
 
     #
-    # static medialist requests
+    # medialist requests
     #
-    @query_decorator("custom")
-    def is_static_medialist_exists(self, cursor, name):
-        query = "SELECT id FROM medialist m\
-                    WHERE m.name = %s AND m.type = 'static'"
-        cursor.execute(query,(name,))
-        rs = cursor.fetchone()
-        return rs and rs[0]
+    @query_decorator("fetchall")
+    def get_medialist_list(self, cursor):
+        query = SimpleSelect('medialist')
+        query.select_column('id', 'name', 'type')
+        query.order_by('name')
+        cursor.execute(query.to_sql(), query.get_args())
+
+    @query_decorator("fetchone")
+    def is_medialist_exists(self, cursor, pattern, pattern_type = "name"):
+        query = SimpleSelect('medialist')
+        query.select_column('id', 'name', 'type')
+        query.append_where(pattern_type + " == %s", (pattern, ))
+        cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("none")
-    def add_to_static_medialist(self, cursor, pl_id, media_ids):
+    def delete_medialist(self, cursor, ml_id):
+        try: ml_id, name, type = self.db.is_medialist_exists(ml_id, "id")
+        except TypeError:
+            return
+        if type == "static":
+            query = "DELETE FROM medialist_libraryitem WHERE medialist_id = %s"
+            cursor.execute(query, (ml_id,))
+        elif type == "magic":
+            pass # TODO
+        cursor.execute("DELETE FROM medialist WHERE id = %s", (ml_id,))
+        self.connection.commit()
+
+    @query_decorator("none")
+    def add_to_static_medialist(self, cursor, ml_id, media_ids):
         query = "INSERT INTO medialist_libraryitem\
             ('medialist_id','libraryitem_id') VALUES(%s,%s)"
-        cursor.executemany(query, [(pl_id, mid) for mid in media_ids])
+        cursor.executemany(query, [(ml_id, mid) for mid in media_ids])
 
     @query_decorator("medialist")
-    def get_static_medialist(self, cursor, name, infos = []):
+    def get_static_medialist(self, cursor, ml_id, infos = []):
         selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT "+ selectquery + ", mi.position " +\
             " FROM medialist m JOIN medialist_libraryitem mi\
                                     ON m.id = mi.medialist_id\
                            JOIN media_info i ON i.id=mi.libraryitem_id"\
                            + joinquery+\
-            " WHERE m.name = %s AND m.type = 'static' ORDER BY mi.position"
-        cursor.execute(query,(name,))
-
-    @query_decorator("none")
-    def delete_static_medialist(self, cursor, name):
-        # get id of medialist entries
-        query = "SELECT id FROM medialist WHERE name=%s AND type = 'static'"
-        cursor.execute(query ,(name,))
-        try: (id,) = cursor.fetchone()
-        except (IndexError, TypeError): return # medialist does not exist
-        # remove medialist entries
-        cursor.execute("DELETE FROM medialist_libraryitem\
-            WHERE medialist_id = %s",(id,))
-        cursor.execute("DELETE FROM medialist WHERE id = %s",(id,))
-        self.connection.commit()
+            " WHERE m.id = %s AND m.type = 'static' ORDER BY mi.position"
+        cursor.execute(query,(ml_id,))
 
     @query_decorator("none")
     def set_static_medialist(self, cursor, name, content):
@@ -415,9 +419,7 @@ class DatabaseQueries(object):
         if not rs:
             query = "INSERT INTO medialist (name,type)VALUES(%s,'static')"
             cursor.execute(query, (name,))
-            self.connection.commit()
-            cursor.execute(slt_query,(name,))
-            (id,) = cursor.fetchone()
+            id = self.connection.get_last_insert_id(cursor)
         else: (id,) = rs
 
         cursor.execute(\
@@ -427,13 +429,6 @@ class DatabaseQueries(object):
             VALUES(%s,%s)"
         cursor.executemany(query,values)
         self.connection.commit()
-
-    @query_decorator("fetchall")
-    def get_medialist_list(self, cursor, type = 'static'):
-        query = "SELECT m.name, COUNT(mi.position)\
-            FROM medialist m JOIN medialist_libraryitem mi\
-                ON m.id = mi.medialist_id WHERE m.type = %s GROUP BY m.name"
-        cursor.execute(query, (type,))
 
     #
     # Webradio requests
