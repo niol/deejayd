@@ -90,7 +90,11 @@ class InterfaceTests:
         self.failUnless(djplname in [p["name"] for p in retrievedPls])
 
         # Retrieve the saved playlist
-        djpl = self.deejayd.get_static_playlist(djplname)
+        for pls in retrievedPls:
+            if pls["name"] == djplname:
+                djpl_id = pls["id"]
+                break
+        djpl = self.deejayd.get_recorded_playlist(djpl_id)
         retrievedPl = djpl.get().get_medias()
         for song_nb in range(len(pl)):
             self.assertEqual(pl[song_nb], retrievedPl[song_nb]['uri'])
@@ -130,7 +134,12 @@ class InterfaceTests:
         self.failUnless(ans.get_contents())
 
         # add songs in the saved playlist
-        savedpl = self.deejayd.get_static_playlist(djplname)
+        retrievedPls = self.deejayd.get_playlist_list().get_medias()
+        for pls in retrievedPls:
+            if pls["name"] == djplname:
+                djpl_id = pls["id"]
+                break
+        savedpl = self.deejayd.get_recorded_playlist(djpl_id)
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
             # add twice the same song
             ans = savedpl.add_path(songPath)
@@ -518,11 +527,16 @@ class InterfaceSubscribeTests:
         self.generic_sub_bcast_test('playlist.update',
                                     djpl.save, (test_pl_name, ))
 
-        saved_djpl = self.deejayd.get_static_playlist(test_pl_name)
+        retrievedPls = self.deejayd.get_playlist_list().get_medias()
+        for pls in retrievedPls:
+            if pls["name"] == test_pl_name:
+                djpl_id = pls["id"]
+                break
+        saved_djpl = self.deejayd.get_recorded_playlist(djpl_id)
 
         trigger_list = (
                         (saved_djpl.add_path, (dir,)),
-                        (self.deejayd.erase_playlist, ([test_pl_name], )),
+                        (self.deejayd.erase_playlist, ([djpl_id], )),
                         (djpl.save, (test_pl_name2,)),
                        )
 

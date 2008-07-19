@@ -221,7 +221,7 @@ class DeejaydQueue(object):
         raise NotImplementedError
 
     def load_playlist(self, pl_id, pos = None):
-        return self.load_playlists([name], pos)
+        return self.load_playlists([pl_id], pos)
 
     def load_playlists(self, pl_ids, pos = None):
         raise NotImplementedError
@@ -256,7 +256,7 @@ class DeejaydPanel(object):
     def get_active_list(self):
         raise NotImplementedError
 
-    def set_active_list(self, type, plname=""):
+    def set_active_list(self, type, pl_id=""):
         raise NotImplementedError
 
 
@@ -281,7 +281,7 @@ class DeejaydPlaylistMode(object):
         raise NotImplementedError
 
     def load(self, pl_id, pos = None):
-        return self.loads([name], pos)
+        return self.loads([pl_id], pos)
 
     def loads(self, pl_ids, pos = None):
         raise NotImplementedError

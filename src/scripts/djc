@@ -224,13 +224,13 @@ class AvailableCommands:
 
     def queue_loadpls(self, args):
         """ load playlist in the queue
-            ex: djc queue_loadpls playlist1,playlist2"""
+            ex: djc queue_loadpls playlist_id1,playlist_id2"""
         try: playlist = args[0]
         except IndexError:
             raise DjcError('You have to enter playlist names')
-        else: playlists = playlist.split(",")
+        pl_ids = playlist.split(",")
         queue_obj = DeejaydQueue(self.server)
-        queue_obj.load_playlists(playlists).get_contents()
+        queue_obj.load_playlists(pl_ids).get_contents()
 
     def queue_remove(self, args):
         """ remove songs from queue
@@ -246,29 +246,30 @@ class AvailableCommands:
         DeejaydQueue(self.server).del_songs(ids).get_contents()
 
 # Recorded Playlist commands
-    def static_playlist_info(self, args):
-        """ get content of a recorded static playlist
-            usage : djc static_playlist_info pl_name"""
-        try: pl_name = args[0]
+    def recorded_playlist_info(self, args):
+        """ get content of a recorded playlist
+            usage : djc static_playlist_info pl_id"""
+        try: pl_id = args[0]
         except IndexError:
             raise DjcError('You have to enter a playlist name')
-        pls = self.server.get_static_playlist(pl_name)
+        pls = self.server.get_recorded_playlist(pl_id)
         for media in pls.get().get_medias():
             print media["title"], '|', media["artist"], '|', media["album"]
 
     def playlist_erase(self, args):
         """ Erase a recorded playlist
-            usage : djc playlist_erase pl_name"""
-        try: pl_name = args[0]
+            usage : djc playlist_erase pl_id"""
+        try: pl_id = args[0]
         except IndexError:
             raise DjcError('You have to enter a playlist name')
-        self.server.erase_playlist([pl_name]).get_contents()
+        self.server.erase_playlist([pl_id]).get_contents()
 
     def playlist_list(self, args):
         """ Return list of recorded playlist """
         contents = self.server.get_playlist_list()
         for media in contents.get_medias():
-            print "%s : %d songs" % (media["name"], int(media["length"]))
+            print "%d : %s (%s)" % (int(media["id"]) ,media["name"],\
+                                    media["type"])
 
 # Playlist Mode commands
     def playlist_save(self, args):
@@ -308,12 +309,12 @@ class AvailableCommands:
 
     def playlist_load(self, args):
         """ load playlist in the current playlist
-            ex: djc playlist_load playlist1,playlist2"""
+            ex: djc playlist_load playlist_id1,playlist_id2"""
         try: playlist = args[0]
         except IndexError:
             raise DjcError('You have to enter playlist names')
-        playlists = playlist.split(",")
-        DeejaydPlaylistMode(self.server).loads(playlists).get_contents()
+        pl_ids = playlist.split(",")
+        DeejaydPlaylistMode(self.server).loads(pl_ids).get_contents()
 
     def playlist_remove(self, args):
         """ remove songs from current playlist

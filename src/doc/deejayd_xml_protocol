@@ -58,7 +58,7 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response name="cmdName" type="Ack" />
+    <response type="Ack" name="cmdName"/>
 </deejayd>
 ENDXML
 }}}
@@ -66,9 +66,9 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response name="cmdName" type="KeyValue">
-        <parm name="parmName0" value="parmValue0" />
-        <parm name="parmName1" value="parmValue1" />
+    <response type="KeyValue" name="cmdName">
+        <parm name="parmName0" value="parmValue0"/>
+        <parm name="parmName1" value="parmValue1"/>
     </response>
 </deejayd>
 ENDXML
@@ -77,9 +77,9 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response name="cmdName" type="List">
-        <parm name="item" value="item0" />
-        <parm name="item" value="item1" />
+    <response type="List" name="cmdName">
+        <parm name="item" value="item0"/>
+        <parm name="item" value="item1"/>
     </response>
 </deejayd>
 ENDXML
@@ -88,11 +88,11 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response directory="optionnal_described_dirname" name="cmdName" type="FileAndDirList">
-        <directory name="dirName" />
+    <response type="FileAndDirList" name="cmdName" directory="optionnal_described_dirname">
+        <directory name="dirName"/>
         <file type="song or video">
-            <parm name="parmName0" value="parmValue0" />
-            <parm name="parmName1" value="parmValue1" />
+            <parm name="parmName0" value="parmValue0"/>
+            <parm name="parmName1" value="parmValue1"/>
         </file>
     </response>
 </deejayd>
@@ -105,27 +105,27 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response name="cmdName" type="MediaList">
+    <response type="MediaList" name="cmdName">
         <media type="song or video or webradio or playlist">
-            <parm name="parmName0" value="parmValue0" />
-            <parm name="parmName1" value="parmValue1" />
+            <parm name="parmName0" value="parmValue0"/>
+            <parm name="parmName1" value="parmValue1"/>
         </media>
         <media type="song or video or webradio or playlist">
-            <parm name="parmName1" value="parmValue1" />
+            <parm name="parmName1" value="parmValue1"/>
             <listparm name="audio">
                 <dictparm>
-                    <dictitem name="lang" value="lang1" />
-                    <dictitem name="idx" value="0" />
+                    <dictitem name="lang" value="lang1"/>
+                    <dictitem name="idx" value="0"/>
                 </dictparm>
                 <dictparm>
-                    <dictitem name="lang" value="lang2" />
-                    <dictitem name="idx" value="1" />
+                    <dictitem name="lang" value="lang2"/>
+                    <dictitem name="idx" value="1"/>
                 </dictparm>
             </listparm>
             <listparm name="subtitle">
                 <dictparm>
-                    <dictitem name="lang" value="lang1" />
-                    <dictitem name="idx" value="0" />
+                    <dictitem name="lang" value="lang1"/>
+                    <dictitem name="idx" value="0"/>
                 </dictparm>
             </listparm>
         </media>
@@ -146,13 +146,13 @@ ENDXML
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response name="cmdName" type="DvdInfo">
-        <dvd longest_track="1" title="DVD Title">
+    <response type="DvdInfo" name="cmdName">
+        <dvd title="DVD Title" longest_track="1">
             <track ix="1" length="track length">
-                <audio ix="0" lang="lang code" />
-                <subtitle ix="0" lang="lang code" />
-                <subtitle ix="1" lang="lang code" />
-                <chapter ix="1" length="chapter length" />
+                <audio ix="0" lang="lang code"/>
+                <subtitle ix="0" lang="lang code"/>
+                <subtitle ix="1" lang="lang code"/>
+                <chapter ix="1" length="chapter length"/>
             </track>
         </dvd>
     </response>
@@ -163,28 +163,28 @@ Responses may be combined in the same physical message :
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <response name="cmdName" type="Ack" />
-    <response name="cmdName" type="MediaList">
+    <response type="Ack" name="cmdName"/>
+    <response type="MediaList" name="cmdName">
         <media type="song or video or webradio or playlist">
-            <parm name="parmName0" value="parmValue0" />
-            <parm name="parmName1" value="parmValue1" />
+            <parm name="parmName0" value="parmValue0"/>
+            <parm name="parmName1" value="parmValue1"/>
         </media>
         <media type="song or video or webradio or playlist">
-            <parm name="parmName1" value="parmValue1" />
+            <parm name="parmName1" value="parmValue1"/>
             <listparm name="audio">
                 <dictparm>
-                    <dictitem name="lang" value="lang1" />
-                    <dictitem name="idx" value="0" />
+                    <dictitem name="lang" value="lang1"/>
+                    <dictitem name="idx" value="0"/>
                 </dictparm>
                 <dictparm>
-                    <dictitem name="lang" value="lang2" />
-                    <dictitem name="idx" value="1" />
+                    <dictitem name="lang" value="lang2"/>
+                    <dictitem name="idx" value="1"/>
                 </dictparm>
             </listparm>
             <listparm name="subtitle">
                 <dictparm>
-                    <dictitem name="lang" value="lang1" />
-                    <dictitem name="idx" value="0" />
+                    <dictitem name="lang" value="lang1"/>
+                    <dictitem name="idx" value="0"/>
                 </dictparm>
             </listparm>
         </media>
@@ -466,7 +466,7 @@ Expected return value : ''`Ack`''
 Return the content of a recorded static playlists.
 
 Arguments :
-  * {{{name}}} (Simple and Mandatory) : string
+  * {{{playlist_id}}} (Simple and Mandatory) : int
   * {{{first}}} (Simple and Optional) : int
   * {{{length}}} (Simple and Optional) : int
 
@@ -478,7 +478,7 @@ Add songs in a recorded static playlists.
 
 Arguments :
   * {{{values}}} (Multiple and Mandatory) : string
-  * {{{name}}} (Simple and Mandatory) : string
+  * {{{playlist_id}}} (Simple and Mandatory) : int
   * {{{type}}} (Simple and Optional) : enum_str
 
 Expected return value : ''`Ack`''
@@ -557,7 +557,7 @@ Expected return value : ''`Ack`''
 Erase recorded playlists passed as arguments.
 
 Arguments :
-  * {{{name}}} (Multiple and Mandatory) : string
+  * {{{ids}}} (Multiple and Mandatory) : int
 
 Expected return value : ''`Ack`''
 
@@ -566,7 +566,7 @@ Expected return value : ''`Ack`''
 Load playlists passed as arguments ("name") at the position "pos".
 
 Arguments :
-  * {{{name}}} (Multiple and Mandatory) : string
+  * {{{id}}} (Multiple and Mandatory) : int
   * {{{pos}}} (Simple and Optional) : int
 
 Expected return value : ''`Ack`''
@@ -658,7 +658,7 @@ Load playlists passed in arguments ("name") at the position "pos" in
     the queue.
 
 Arguments :
-  * {{{name}}} (Multiple and Mandatory) : string
+  * {{{id}}} (Multiple and Mandatory) : int
   * {{{pos}}} (Simple and Optional) : int
 
 Expected return value : ''`Ack`''

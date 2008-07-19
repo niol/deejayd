@@ -103,20 +103,20 @@ class PanelSource(_BaseLibrarySource):
     def get_active_list(self):
         return self.__selected_mode
 
-    def set_active_list(self, type, plname):
+    def set_active_list(self, type, pl_id):
         if type == self.__selected_mode["type"]\
-                and plname == self.__selected_mode["value"]:
+                and pl_id == self.__selected_mode["value"]:
             return # we do not need to update panel
         if type == "playlist":
-            self._media_list.set(self._get_playlist_content(plname))
-            value = plname
+            self._media_list.set(self._get_playlist_content(pl_id, "id"))
+            value = pl_id
         elif type == "panel":
             medias = self.library.search(self.__panel_filters)
             self._media_list.set(medias)
             value = ""
         else:
             raise TypeError
-        self.__selected_mode = {"type": type, "value": plname}
+        self.__selected_mode = {"type": type, "value": pl_id}
         self.dispatch_signame(self.__class__.source_signal)
 
     def get_content(self, start = 0, stop = None):

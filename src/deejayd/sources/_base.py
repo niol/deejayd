@@ -154,7 +154,7 @@ class _BaseLibrarySource(_BaseSource):
             rs = []
         if len(rs) == 0 and (not str(pattern).startswith("__") or \
                              not str(pattern).endswith("__")):
-            raise SourceError(_("Playlist %s does not exist.") % pls)
+            raise SourceError(_("Playlist %s does not exist.") % str(pattern))
         return rs
 
     def get_status(self):
@@ -205,7 +205,7 @@ class _BaseAudioLibSource(_BaseLibrarySource):
     def load_playlist(self, pl_ids, pos = None):
         medias = []
         for id in pl_ids:
-            medias.extend(self._get_playlist_content(id, pattern_type = "id"))
+            medias.extend(self._get_playlist_content(id, "id"))
         self._media_list.add_media(medias, pos)
         if pos: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)

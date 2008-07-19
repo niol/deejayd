@@ -107,7 +107,7 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first=0, length=-1):
-        songs = self.db.get_static_medialist(self.name,\
+        songs = self.db.get_static_medialist(self.pl_id,\
             infos = self.library.media_attr)
         last = length == -1 and len(songs) or int(first) + int(length)
         return songs[int(first):last]
@@ -298,10 +298,12 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
         return self.source.get_active_list()
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def set_active_list(self, type, plname=""):
-        try: self.source.set_active_list(type, plname)
+    def set_active_list(self, type, pl_id=""):
+        try: self.source.set_active_list(type, pl_id)
         except TypeError:
             raise DeejaydError(_("Not supported type"))
+        except deejayd.sources._base.SourceError, ex:
+            raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def update_panel_filters(self, tag, type, value):

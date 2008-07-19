@@ -352,7 +352,7 @@ class StaticPlaylistAdd(_UnknownCommand):
     name = "staticPlaylistAdd"
     method = "post"
     command_args = [{"name":"values","type":"string","req":True,"mult": True},\
-                    {"name":"plname","type":"string","req":True},
+                    {"name":"pl_id","type":"int","req":True},
                     {"name":"type","type":"enum_str",\
                      "values": ('path','id'),"req":False, "default": "path"}]
 
@@ -361,7 +361,7 @@ class StaticPlaylistAdd(_UnknownCommand):
         self._answer.set_playlist_list(pls_list.get_medias())
 
     def execute(self):
-        pls = self._deejayd.get_static_playlist(self._args["plname"])
+        pls = self._deejayd.get_recorded_playlist(self._args["pl_id"])
         if self._args["type"] == "id":
             try: values = map(int, self._args["values"])
             except (TypeError, ValueError):
@@ -406,7 +406,7 @@ class PlaylistRemove(_UnknownCommand):
 class PlaylistLoad(_UnknownCommand):
     name = "playlistLoad"
     method = "post"
-    command_args = [{"name":"pls_name","type":"string","req":True,"mult":True},\
+    command_args = [{"name":"pls_ids","type":"int","req":True,"mult":True},\
         {"name":"pos","type":"int","req":True}]
 
     def execute(self):
@@ -414,7 +414,7 @@ class PlaylistLoad(_UnknownCommand):
         if pos == -1: pos = None
 
         pls = self._deejayd.get_playlist()
-        pls.loads(self._args["pls_name"],pos).get_contents()
+        pls.loads(self._args["pls_ids"],pos).get_contents()
 
 class PlaylistMove(_UnknownCommand):
     name = "playlistMove"
@@ -444,14 +444,14 @@ class PlaylistSave(_UnknownCommand):
 class PlaylistErase(_UnknownCommand):
     name = "playlistErase"
     method = "post"
-    command_args = [{"name":"name","type":"string","req":True,"mult":True}]
+    command_args = [{"name":"pl_ids","type":"int","req":True,"mult":True}]
 
     def default_result(self):
         pls_list = self._deejayd.get_playlist_list()
         self._answer.set_playlist_list(pls_list.get_medias())
 
     def execute(self):
-        self._deejayd.erase_playlist(self._args["name"]).get_contents()
+        self._deejayd.erase_playlist(self._args["pl_ids"]).get_contents()
 
 class PlaylistShuffle(_UnknownCommand):
     name = "playlistShuffle"
@@ -542,7 +542,7 @@ class QueueAdd(_UnknownCommand):
 class QueueLoad(_UnknownCommand):
     name = "queueLoad"
     method = "post"
-    command_args = [{"name":"pls_name","type":"string","req":True,"mult":True},\
+    command_args = [{"name":"pls_ids","type":"int","req":True,"mult":True},\
                     {"name":"pos","type":"int","req":True}]
 
     def execute(self):
@@ -550,7 +550,7 @@ class QueueLoad(_UnknownCommand):
         if pos == -1: pos = None
 
         queue = self._deejayd.get_queue()
-        queue.load_playlists(self._args["pls_name"],pos).get_contents()
+        queue.load_playlists(self._args["pls_ids"],pos).get_contents()
 
 class QueueMove(_UnknownCommand):
     name = "queueMove"

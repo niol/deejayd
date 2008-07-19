@@ -412,12 +412,12 @@ class StaticPlaylistInfo(UnknownCommand):
     """Return the content of a recorded static playlists."""
     command_name = 'staticPlaylistInfo'
     command_rvalue = 'MediaList'
-    command_args = [{"name":"name", "type":"string", "req":True},\
+    command_args = [{"name":"playlist_id", "type":"int", "req":True},\
         {"name":"first","type":"int","req":False,"default":0},\
         {"name":"length","type":"int","req":False,"default":-1}]
 
     def _execute(self):
-        pls = self.deejayd_core.get_static_playlist(self.args["name"])
+        pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
         songs = pls.get(self.args["first"], self.args["length"], \
                         objanswer=False)
 
@@ -432,12 +432,12 @@ class StaticPlaylistAdd(UnknownCommand):
     """Add songs in a recorded static playlists."""
     command_name = 'staticPlaylistAdd'
     command_args = [{"mult":True,"name":"values", "type":"string", "req":True},
-        {"name":"name", "type":"string", "req":True},\
+        {"name":"playlist_id", "type":"int", "req":True},\
         {"name":"type","type":"enum_str",\
          "values": ('path','id'),"req":False, "default": "path"}]
 
     def _execute(self):
-        pls = self.deejayd_core.get_static_playlist(self.args["name"])
+        pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
         if self.args["type"] == "id":
             try: values = map(int, self.args["values"])
             except (TypeError, ValueError):
@@ -463,10 +463,10 @@ class PlaylistList(UnknownCommand):
 class PlaylistErase(UnknownCommand):
     """Erase recorded playlists passed as arguments."""
     command_name = 'playlistErase'
-    command_args = [{"mult":"true","name":"name", "type":"string", "req":True}]
+    command_args = [{"mult":"true","name":"ids", "type":"int", "req":True}]
 
     def _execute(self):
-        self.deejayd_core.erase_playlist(self.args["name"], objanswer=False)
+        self.deejayd_core.erase_playlist(self.args["ids"], objanswer=False)
 
 
 ###################################################
@@ -506,12 +506,12 @@ class PlaylistSave(UnknownCommand):
 class PlaylistLoad(UnknownCommand):
     """Load playlists passed as arguments ("name") at the position "pos"."""
     command_name = 'playlistLoad'
-    command_args = [{"name":"name", "type":"string", "req":True, "mult":True},
+    command_args = [{"name":"id", "type":"int", "req":True, "mult":True},
                     {"name":"pos", "type":"int", "req":False,"default": None}]
 
     def _execute(self):
         pls = self.deejayd_core.get_playlist()
-        pls.loads(self.args["name"], self.args["pos"], objanswer=False)
+        pls.loads(self.args["id"], self.args["pos"], objanswer=False)
 
 
 class PlaylistAdd(UnknownCommand):
@@ -658,13 +658,12 @@ class QueueLoadPlaylist(UnknownCommand):
     """Load playlists passed in arguments ("name") at the position "pos" in
     the queue."""
     command_name = 'queueLoadPlaylist'
-    command_args = [{"name":"name", "type":"string", "req":True, "mult":True},
+    command_args = [{"name":"id", "type":"int", "req":True, "mult":True},
                     {"name":"pos", "type":"int", "req":False, "default":None}]
 
     def _execute(self):
         queue = self.deejayd_core.get_queue()
-        queue.load_playlists(self.args["name"],\
-            self.args["pos"], objanswer=False)
+        queue.load_playlists(self.args["id"],self.args["pos"],objanswer=False)
 
 
 class QueueInfo(PlaylistInfo):

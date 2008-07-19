@@ -383,7 +383,7 @@ class DatabaseQueries(object):
 
     @query_decorator("none")
     def delete_medialist(self, cursor, ml_id):
-        try: ml_id, name, type = self.db.is_medialist_exists(ml_id, "id")
+        try: ml_id, name, type = self.is_medialist_exists(ml_id, "id")
         except TypeError:
             return
         if type == "static":

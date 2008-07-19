@@ -93,10 +93,10 @@ var FileList = function()
              type: this.__getSelectedType("file-content")});
     };
 
-    this.addToPlaylist = function(name)
+    this.addToPlaylist = function(pl_id)
     {
         ajaxdj_ref.send_post_command('staticPlaylistAdd',
-            {plname: name, values: this.getSelectedItems("file-content"),
+            {pl_id: pl_id, values: this.getSelectedItems("file-content"),
              type: this.__getSelectedType("file-content")});
     };
 
@@ -108,7 +108,8 @@ var FileList = function()
         var Items = playlistList.getElementsByTagName("item");
         this.playlistList = new Array();
         for (var i=0;item=Items[i];i++)
-            this.playlistList.push(item.getAttribute("name"));
+            this.playlistList.push({id: item.getAttribute("id"),
+                                    name: item.firstChild.data});
 
         // Update fileList Menu
         var menu = $('fileaddplaylist-menu');
@@ -128,13 +129,13 @@ var FileList = function()
     this.loadPlaylist = function(pos)
     {
         ajaxdj_ref.send_post_command('playlistLoad&pos='+pos,
-            {pls_name: this.getSelectedItems("playlistList-content")});
+            {pls_ids: this.getSelectedItems("playlistList-content")});
     };
 
     this.loadPlaylistInQueue = function(pos)
     {
         ajaxdj_ref.send_post_command('queueLoad&pos='+pos,
-            {pls_name: this.getSelectedItems("playlistList-content")});
+            {pls_ids: this.getSelectedItems("playlistList-content")});
     };
 
     this.erasePlaylist = function()
@@ -143,7 +144,7 @@ var FileList = function()
 
         if (rs)
             ajaxdj_ref.send_post_command('playlistErase',
-                {name: this.getSelectedItems("playlistList-content")});
+                {pl_ids: this.getSelectedItems("playlistList-content")});
     };
 
     /*************************************/
@@ -173,7 +174,7 @@ var FileList = function()
             item.setAttribute("label",this.playlistList[i]);
             if (cmd) {
                 item.setAttribute("oncommand",
-                "fileList_ref.addToPlaylist('"+this.playlistList[i]+"');");
+                "fileList_ref.addToPlaylist('"+this.playlistList[i].id+"');");
                 }
             menu.appendChild(item);
             }
@@ -208,7 +209,7 @@ var FileList = function()
         var plsItem = document.createElement("listitem");
         plsItem.setAttribute("label",playlist.firstChild.data);
         plsItem.setAttribute("context","playlistList-menu");
-        plsItem.setAttribute("value",playlist.getAttribute("name"));
+        plsItem.setAttribute("value",playlist.getAttribute("id"));
         plsItem.setAttribute("type","playlist");
         plsItem.className = "playlist-item listitem-iconic";
         plsItem.addEventListener('draggesture', FileObserver.dragStart, true);

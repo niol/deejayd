@@ -71,7 +71,7 @@ var Panel = function()
             plsItem.setAttribute("label",playlist.firstChild.data);
             plsItem.setAttribute("type", "playlist");
             plsItem.setAttribute("context","panel-pls-menu");
-            plsItem.setAttribute("value",playlist.getAttribute("name"));
+            plsItem.setAttribute("value",playlist.getAttribute("id"));
             plsItem.className = "playlist-item listitem-iconic";
             plsItem.addEventListener("click",
                 PanelObserver.selectPlaylist,true);
@@ -90,7 +90,7 @@ var Panel = function()
                 if (items[id].type == "playlist")
                     plsList.push(items[id].value);
                 }
-            ajaxdj_ref.send_post_command('playlistErase', {name: plsList});
+            ajaxdj_ref.send_post_command('playlistErase', {pl_ids: plsList});
             }
     };
 
