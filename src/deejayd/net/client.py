@@ -237,7 +237,7 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
     def save(self, name):
         cmd = DeejaydXMLCommand('playlistSave')
         cmd.add_simple_arg('name', name)
-        return self.server._send_command(cmd)
+        return self.server._send_command(cmd, DeejaydKeyValue())
 
     def __add(self, values, type, pos):
         cmd = DeejaydXMLCommand('playlistAdd')

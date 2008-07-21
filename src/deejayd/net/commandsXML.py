@@ -494,13 +494,16 @@ class PlaylistShuffle(SimplePlaylistCommand):
 
 
 class PlaylistSave(UnknownCommand):
-    """Save the current playlist to "name" in the database."""
+    """Save the current playlist to "name" in the database.
+  * playlist_id : id of the recorded playlist"""
     command_name = 'playlistSave'
     command_args = [{"name":"name", "type":"string", "req":True}]
+    command_rvalue = 'KeyValue'
 
     def _execute(self):
         pls = self.deejayd_core.get_playlist()
-        pls.save(self.args["name"], objanswer=False)
+        pl_id = pls.save(self.args["name"], objanswer=False)
+        return self.get_keyvalue_answer(pl_id)
 
 
 class PlaylistLoad(UnknownCommand):

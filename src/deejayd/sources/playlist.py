@@ -29,7 +29,8 @@ class PlaylistSource(_BaseAudioLibSource):
         self.dispatch_signame(self.__class__.source_signal)
 
     def save(self, playlist_name):
-        self.db.set_static_medialist(playlist_name, self._media_list.get())
+        id = self.db.set_static_medialist(playlist_name, self._media_list.get())
         self.dispatch_signame('playlist.update')
+        return {"playlist_id": id}
 
 # vim: ts=4 sw=4 expandtab

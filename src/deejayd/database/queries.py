@@ -411,7 +411,7 @@ class DatabaseQueries(object):
             " WHERE m.id = %s AND m.type = 'static' ORDER BY mi.position"
         cursor.execute(query,(ml_id,))
 
-    @query_decorator("none")
+    @query_decorator("custom")
     def set_static_medialist(self, cursor, name, content):
         slt_query = "SELECT id FROM medialist WHERE name=%s AND type = 'static'"
         cursor.execute(slt_query, (name,))
@@ -429,6 +429,8 @@ class DatabaseQueries(object):
             VALUES(%s,%s)"
         cursor.executemany(query,values)
         self.connection.commit()
+        # return id of the playlist
+        return id
 
     #
     # Webradio requests

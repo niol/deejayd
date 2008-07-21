@@ -83,17 +83,15 @@ class InterfaceTests:
                          howManySongs)
 
         ans = djpl.save(djplname)
+
         self.failUnless(ans.get_contents())
+        djpl_id = ans["playlist_id"]
 
         # Check for the saved playslit to be available
         retrievedPls = self.deejayd.get_playlist_list().get_medias()
         self.failUnless(djplname in [p["name"] for p in retrievedPls])
 
         # Retrieve the saved playlist
-        for pls in retrievedPls:
-            if pls["name"] == djplname:
-                djpl_id = pls["id"]
-                break
         djpl = self.deejayd.get_recorded_playlist(djpl_id)
         retrievedPl = djpl.get().get_medias()
         for song_nb in range(len(pl)):
@@ -132,13 +130,9 @@ class InterfaceTests:
         # save playlist
         ans = djpl.save(djplname)
         self.failUnless(ans.get_contents())
+        djpl_id = ans["playlist_id"]
 
         # add songs in the saved playlist
-        retrievedPls = self.deejayd.get_playlist_list().get_medias()
-        for pls in retrievedPls:
-            if pls["name"] == djplname:
-                djpl_id = pls["id"]
-                break
         savedpl = self.deejayd.get_recorded_playlist(djpl_id)
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
             # add twice the same song

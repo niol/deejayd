@@ -574,11 +574,12 @@ Expected return value : ''`Ack`''
 === `playlistSave` ===
 
 Save the current playlist to "name" in the database.
+  * playlist_id : id of the recorded playlist
 
 Arguments :
   * {{{name}}} (Simple and Mandatory) : string
 
-Expected return value : ''`Ack`''
+Expected return value : ''`KeyValue`''
 
 === `webradioList` ===
 

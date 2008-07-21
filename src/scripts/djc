@@ -278,7 +278,9 @@ class AvailableCommands:
         try: pl_name = args[0]
         except IndexError:
             raise DjcError('You have to enter a playlist name')
-        DeejaydPlaylistMode(self.server).save(pl_name).get_contents()
+        ans = DeejaydPlaylistMode(self.server).save(pl_name)
+        print "The current playlist has been saved with id %s" %\
+            ans["playlist_id"]
 
     def playlist_info(self, args):
         """ Get current playlist's content

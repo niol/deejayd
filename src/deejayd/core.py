@@ -229,9 +229,9 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
         last = length == -1 and len(songs) or int(first) + int(length)
         return songs[int(first):last]
 
-    @returns_deejaydanswer(DeejaydAnswer)
+    @returns_deejaydanswer(DeejaydKeyValue)
     def save(self, name):
-        self.source.save(name)
+        return self.source.save(name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_paths(self, paths, pos=None):
