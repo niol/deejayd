@@ -92,10 +92,10 @@
                 id="file-content"
                 seltype="multiple"
                 flex="1"/>
-            <groupbox>
+            <groupbox minheight="50px">
             <caption class="search-action" label="&search;"/>
             <hbox
-                id="search-box">
+                id="search-box" flex="1">
                 <button
                     id="search-clear"
                     class="clear-button"

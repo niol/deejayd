@@ -73,7 +73,8 @@ var playerStatus = {
             removeNode(media_info.firstChild);
         // hide option block
         var rows = Array("audio-row", "subtitle-row", "av_offset-row",
-            "sub_offset-row", "player-seekbar", "current-media");
+            "sub_offset-row", "zoom-row",  "player-seekbar", "current-media",
+            "playeroption-button");
         for (ix in rows) {
             $(rows[ix]).style.visibility = "collapse";
             }

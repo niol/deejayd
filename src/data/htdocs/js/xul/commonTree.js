@@ -98,8 +98,7 @@ var CommonTreeManagement = function()
 
         var context_x = evt.clientX + 5;
         var context_y = evt.clientY;
-        menu.showPopup(this.tree,context_x,context_y,"context",
-            null,null,null);
+        menu.openPopup(null , "",context_x,context_y,true,false);
     };
 
     this.setPlaying = function(pos, id, state)
