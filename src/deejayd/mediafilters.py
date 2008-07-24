@@ -45,6 +45,11 @@ class BasicFilter(MediaFilter):
         self.tag = tag
         self.pattern = pattern
 
+    def equals(self, filter):
+        if filter.type == 'basic' and filter.get_name() == self.get_name():
+            return filter.tag == self.tag and filter.pattern == self.pattern
+        return False
+
     def __str__(self):
         return self.repr_str % (self.tag, self.pattern)
 
@@ -78,6 +83,32 @@ class ComplexFilter(MediaFilter):
 
     def combine(self, filter):
         self.filterlist.append(filter)
+
+    def equals(self, filter):
+        if filter.type == 'complex' and len(filter) == len(self.filterlist):
+            for ft in self.filterlist:
+                if not filter.find_filter(ft): return False
+            return True
+        return False
+
+    def find_filter_by_tag(self, tag):
+        return [ft for ft in self.filterlist\
+            if ft.type == 'basic' and ft.tag == tag]
+
+    def find_filter_by_name(self, name):
+        return [ft for ft in self.filterlist if ft.get_name() == name]
+
+    def find_filter(self, filter):
+        return [ft for ft in self.filterlist if ft.equals(filter)]
+
+    def remove_filter(self, filter):
+        filters = self.find_filter(filter)
+        if not filters:
+            raise ValueError
+        for ft in filters: self.filterlist.remove(ft)
+
+    def __len__(self):
+        return len(self.filterlist)
 
     def __str__(self):
         filters_str = map(str, self.filterlist)
