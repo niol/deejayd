@@ -142,19 +142,16 @@ class _BaseLibrarySource(_BaseSource):
         if self._media_list.remove_media(media_id):
             self.dispatch_signame(self.source_signal)
 
-    def _get_playlist_content(self, pattern, p_type = "name"):
+    def _get_playlist_content(self, pl_id):
         try:
-            pl_id, name, type = self.db.is_medialist_exists(pattern, p_type)
+            pl_id, name, type = self.db.is_medialist_exists(pl_id)
             if type == "static":
                 rs = self.db.get_static_medialist(pl_id,\
                     infos=self.library.media_attr)
             elif type == "magic":
                 pass # TODO
         except TypeError:
-            rs = []
-        if len(rs) == 0 and (not str(pattern).startswith("__") or \
-                             not str(pattern).endswith("__")):
-            raise SourceError(_("Playlist %s does not exist.") % str(pattern))
+            raise SourceError(_("Playlist %s does not exist.") % str(pl_id))
         return rs
 
     def get_status(self):
@@ -179,7 +176,11 @@ class _BaseAudioLibSource(_BaseLibrarySource):
     def __init__(self, db, audio_library):
         super(_BaseAudioLibSource, self).__init__(db, audio_library)
         # load saved
-        self._media_list.set(self._get_playlist_content(self.base_medialist))
+        try: ml_id = self.db.get_medialist_id(self.base_medialist, 'static')
+        except ValueError: # medialist does not exist
+            pass
+        else:
+            self._media_list.set(self._get_playlist_content(ml_id))
 
     def add_song(self, song_ids, pos = None):
         try: medias = self.library.get_file_withids(song_ids)
@@ -205,7 +206,7 @@ class _BaseAudioLibSource(_BaseLibrarySource):
     def load_playlist(self, pl_ids, pos = None):
         medias = []
         for id in pl_ids:
-            medias.extend(self._get_playlist_content(id, "id"))
+            medias.extend(self._get_playlist_content(id))
         self._media_list.add_media(medias, pos)
         if pos: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)

@@ -488,24 +488,23 @@ class PanelUpdateFilter(_UnknownCommand):
     command_args = [{"name":"value","type":"string","req":True},\
         {"name":"tag","type":"enum_str",\
          "values":("genre","artist","album","title","all"),"req":True},\
-        {"name":"type","type":"enum_str","values": ('panel-text','panel-list'),\
+        {"name":"type","type":"enum_str","values": ('equals','contains'),\
          "req":True}]
 
     def execute(self):
-        type = self._args["type"] == "panel-list" and "equals" or "contains"
         panel = self._deejayd.get_panel()
         if self._args["value"] == "__all__":
-            panel.remove_panel_filters(type,self._args["tag"])
+            panel.remove_panel_filters(self._args["type"], self._args["tag"])
         else:
             panel.update_panel_filters(self._args["tag"],\
-                type,self._args["value"])
+                self._args["type"], self._args["value"])
 
             # remove filter for panels at the right of this tag
-            if self._args["type"] == "panel-list":
+            if self._args["type"] == "equals":
                 for tg in ('album','artist','album'):
                     if tg == self._args["tag"]:
                         break
-                    panel.remove_panel_filters(type,tg)
+                    panel.remove_panel_filters(self._args["type"], tg)
 
 
 class PanelClearFilter(_UnknownCommand):

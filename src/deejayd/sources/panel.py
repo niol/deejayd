@@ -28,12 +28,19 @@ class PanelSource(_BaseLibrarySource):
 
     def __init__(self, db, library):
         super(PanelSource, self).__init__(db, library)
-        # TODO : load saved panel
-        ans = []
-        self._media_list.set(ans)
+        try: ml_id = self.db.get_medialist_id(self.base_medialist, 'magic')
+        except ValueError: # medialist does not exist
+            self.__panel_filters = None
+        else:
+            recorded_filters = self.db.get_magic_medialist_filters(ml_id)
+            self.__panel_filters = And()
+            self.__panel_filters.filterlist = recorded_filters
         # custom attributes
-        self.__selected_mode = {"type": "panel", "value": ""}
-        self.__panel_filters = None
+        self.__selected_mode = {
+            "type": self.db.get_state("panel-type"),
+            "value": self.db.get_state("panel-value")}
+        self.__update_active_list(self.__selected_mode["type"],\
+            self.__selected_mode["value"])
 
     def __find_contains_filter(self):
         try: filter_list = self.__panel_filters.filterlist
@@ -51,6 +58,15 @@ class PanelSource(_BaseLibrarySource):
         medias = self.library.search(self.__panel_filters)
         self._media_list.set(medias)
         self.dispatch_signame(self.__class__.source_signal)
+
+    def __update_active_list(self, type, pl_id):
+        if type == "playlist":
+            self._media_list.set(self._get_playlist_content(pl_id))
+        elif type == "panel":
+            medias = self.library.search(self.__panel_filters)
+            self._media_list.set(medias)
+        else:
+            raise TypeError
 
     def update_panel_filters(self, tag, type, value):
         try: filter_list = self.__panel_filters.filterlist
@@ -107,30 +123,30 @@ class PanelSource(_BaseLibrarySource):
         if type == self.__selected_mode["type"]\
                 and pl_id == self.__selected_mode["value"]:
             return # we do not need to update panel
-        if type == "playlist":
-            self._media_list.set(self._get_playlist_content(pl_id, "id"))
-            value = pl_id
-        elif type == "panel":
-            medias = self.library.search(self.__panel_filters)
-            self._media_list.set(medias)
-            value = ""
-        else:
-            raise TypeError
+        self.__update_active_list(type, pl_id)
         self.__selected_mode = {"type": type, "value": pl_id}
         self.dispatch_signame(self.__class__.source_signal)
 
     def get_content(self, start = 0, stop = None):
-        return self._media_list.get(start, stop), self.__panel_filters
+        if self.__selected_mode["type"] == "panel":
+            return self._media_list.get(start, stop), self.__panel_filters
+        elif self.__selected_mode["type"] == "playlist":
+            return self._media_list.get(start, stop)
 
     def close(self):
         states = [
             (self._playorder.name, self.name+"-playorder"),
             (str(self._media_list.list_id),self.__class__.name+"id"),
-            (self.__selected_mode["type"],"panelmode-type"),
-            (self.__selected_mode["value"],"panelmode-value"),
+            (self.__selected_mode["type"],"panel-type"),
+            (self.__selected_mode["value"],"panel-value"),
             ]
         if self.has_repeat:
             states.append((self._media_list.repeat, self.name+"-repeat"))
         self.db.set_state(states)
+        # save panel filters
+        filter_list = []
+        if self.__panel_filters is not None:
+            filter_list = self.__panel_filters.filterlist
+        self.db.set_magic_medialist_filters(self.base_medialist, filter_list)
 
 # vim: ts=4 sw=4 expandtab

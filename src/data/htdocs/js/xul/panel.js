@@ -27,6 +27,9 @@ var Panel = function()
             // select panel entry in left column
             $('panel-list-entry').selected = true;
 
+            // update filter bar
+            $('panel-filter-text').value=panel.getAttribute("filtertext_text");
+            $('panel-filter-type').value=panel.getAttribute("filtertext_type");
             // update panels
             var panels = Array("genre", "artist", "album");
             for (t in panels) {
@@ -97,23 +100,23 @@ var Panel = function()
     this.updatePanelFilter = function(elt, tag)
     {
         var value = elt.getAttribute("value");
-        ajaxdj_ref.send_post_command('panelUpdateFilter',{"type": "panel-list",
+        ajaxdj_ref.send_post_command('panelUpdateFilter',{"type": "equals",
             "tag": tag, "value": value});
     };
 
     this.updatePanelFilterText = function()
     {
         var tag = $("panel-filter-type").value;
-        var value = $("filter-text").value;
+        var value = $("panel-filter-text").value;
         if (value == "")
             value = "__all__";
         ajaxdj_ref.send_post_command('panelUpdateFilter',
-            {"type": "panel-text", "tag": tag, "value": value});
+            {"type": "contains", "tag": tag, "value": value});
     };
 
     this.clearPanelFilterText = function()
     {
-        $("filter-text").value = "";
+        $("panel-filter-text").value = "";
         this.updatePanelFilterText();
     };
 

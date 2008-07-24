@@ -47,8 +47,8 @@
          id="panel-list-entry"
          onclick="ajaxdj_ref.send_post_command('panelSet',{type: 'panel'})"
          class="listitem-title" label="Panel"/>
-            <listitem label=""/>
-            <listitem class="listitem-title" label="Playlist"/>
+            <listitem disable="true" label=""/>
+            <listitem disable="true" class="listitem-title" label="Playlist"/>
         </listbox>
         <button label="new"/>
     </vbox>
@@ -64,7 +64,7 @@
                 oncommand="panel_ref.updatePanelFilterText();"
                 timeout="700"
                 type="timed"
-                id="filter-text"/>
+                id="panel-filter-text"/>
             <menulist
                 id="panel-filter-type"
                 oncommand="panel_ref.updatePanelFilterText();"

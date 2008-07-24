@@ -511,9 +511,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         return {'video_updating_db': self.video_library.update(sync)}
 
     def get_recorded_playlist(self, id):
-        try:
-            pl_id, name, type = self.db.is_medialist_exists(id,\
-                pattern_type = "id")
+        try: pl_id, name, type = self.db.is_medialist_exists(id)
         except TypeError:
             raise DeejaydError(_("Playlist with id %s not found.") % str(id))
         if type == "static":
