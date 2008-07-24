@@ -205,5 +205,4 @@ class SQLizer(object):
         object_class = SQLizer.translations[object.__class__]
         return object_class(object)
 
-
 # vim: ts=4 sw=4 expandtab

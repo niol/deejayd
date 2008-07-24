@@ -56,19 +56,19 @@ class TestDatabase(TestCaseWithData):
         fid = sqlf.save(self.db)
         self.db.connection.commit()
 
-        retrieved_filter = self.db.get_basic_filter(fid)
+        cursor = self.db.connection.cursor()
+        retrieved_filter = self.db.get_filter(cursor, fid)
 
-        self.failUnless(f.get_name(), retrieved_filter.get_name())
-        self.failUnless(f.tag, retrieved_filter.tag)
-        self.failUnless(f.pattern, retrieved_filter.pattern)
+        self.failUnless(f.equals(retrieved_filter))
 
         sqlf.tag = self.testdata.getRandomString()
         sqlf.save(self.db)
         self.db.connection.commit()
 
-        retrieved_filter = self.db.get_basic_filter(fid)
+        retrieved_filter = self.db.get_filter(cursor, fid)
+        self.failUnless(sqlf.equals(retrieved_filter))
 
-        self.failUnless(f.tag, retrieved_filter.tag)
+        cursor.close()
 
     def test_complex_filter_save_retrieve(self):
         """Test the saving and retrieval of a complex filter"""
@@ -78,9 +78,25 @@ class TestDatabase(TestCaseWithData):
         fid = sqlf.save(self.db)
         self.db.connection.commit()
 
-        retrieved_filter = self.db.get_complex_filter(fid)
+        cursor = self.db.connection.cursor()
+        retrieved_filter = self.db.get_filter(cursor, fid)
 
         self.assert_filter_matches_sample(retrieved_filter)
+        cursor.close()
 
+    def test_magic_medialist_save_retrieve(self):
+        """Test the saving and retrieval of a magic medialist"""
+        f = self.testdata.get_sample_filter()
+
+        pl_name = self.testdata.getRandomString()
+        pl_id = self.db.set_magic_medialist_filters(pl_name, [f])
+
+        # retrieve magic playlist
+        retrieved_filters = self.db.get_magic_medialist_filters(pl_id)
+        self.assertEqual(len(retrieved_filters), 1)
+        self.failUnless(f.equals(retrieved_filters[0]))
+
+        # resave the same playlist
+        self.db.set_magic_medialist_filters(pl_name, retrieved_filters)
 
 # vim: ts=4 sw=4 expandtab

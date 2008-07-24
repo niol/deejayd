@@ -280,59 +280,6 @@ class DatabaseQueries(object):
         query.order_by_tag(tag)
         cursor.execute(query.to_sql(), query.get_args())
 
-    @query_decorator("custom")
-    def get_filter(self, cursor, id):
-        query = SimpleSelect('filters')
-        query.select_column('type')
-        query.append_where("filter_id == %s", (id, ))
-        cursor.execute(query.to_sql(), query.get_args())
-        record = cursor.fetchone()
-
-        if record:
-            filter_type = record[0]
-            if filter_type == 'basic':
-                return self.get_basic_filter(id)
-            elif filter_type == 'complex':
-                return self.get_complex_filter(id)
-
-
-    @query_decorator("custom")
-    def get_basic_filter(self, cursor, id):
-        query = SimpleSelect('filters_basicfilters')
-        query.select_column('tag', 'operator', 'pattern')
-        query.append_where("filter_id == %s", (id, ))
-        cursor.execute(query.to_sql(), query.get_args())
-        record = cursor.fetchone()
-
-        if record:
-            bfilter_class = NAME2BASIC[record[1]]
-            f = bfilter_class(record[0], record[2])
-            sqlf = self.sqlizer.translate(f)
-            sqlf.id = id
-            return sqlf
-
-    @query_decorator("custom")
-    def get_complex_filter(self, cursor, id):
-        query = SimpleSelect('filters_complexfilters')
-        query.select_column('combinator')
-        query.append_where("filter_id == %s", (id, ))
-        cursor.execute(query.to_sql(), query.get_args())
-        record = cursor.fetchone()
-
-        if record:
-            cfilter_class = NAME2COMPLEX[record[0]]
-            query = SimpleSelect('filters_complexfilters_subfilters')
-            query.select_column('filter_id')
-            query.append_where("complexfilter_id == %s", (id, ))
-            cursor.execute(query.to_sql(), query.get_args())
-            sf_records = cursor.fetchall()
-            filterlist = []
-            for sf_record in sf_records:
-                sf_id = sf_record[0]
-                filterlist.append(self.get_filter(sf_id))
-            cfilter = cfilter_class(*filterlist)
-            return cfilter
-
     #
     # cover requests
     #
@@ -365,7 +312,7 @@ class DatabaseQueries(object):
         cursor.execute(query, (id,))
 
     #
-    # medialist requests
+    # common medialist requests
     #
     @query_decorator("fetchall")
     def get_medialist_list(self, cursor):
@@ -374,16 +321,28 @@ class DatabaseQueries(object):
         query.order_by('name')
         cursor.execute(query.to_sql(), query.get_args())
 
+    @query_decorator("custom")
+    def get_medialist_id(self, cursor, pl_name, pl_type = 'static'):
+        query = SimpleSelect('medialist')
+        query.select_column('id')
+        query.append_where("name == %s", (pl_name, ))
+        query.append_where("type == %s", (pl_type, ))
+        cursor.execute(query.to_sql(), query.get_args())
+
+        ans = cursor.fetchone()
+        if ans is None: raise ValueError
+        return ans[0]
+
     @query_decorator("fetchone")
-    def is_medialist_exists(self, cursor, pattern, pattern_type = "name"):
+    def is_medialist_exists(self, cursor, pl_id):
         query = SimpleSelect('medialist')
         query.select_column('id', 'name', 'type')
-        query.append_where(pattern_type + " == %s", (pattern, ))
+        query.append_where("id == %s", (pl_id, ))
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("none")
     def delete_medialist(self, cursor, ml_id):
-        try: ml_id, name, type = self.is_medialist_exists(ml_id, "id")
+        try: ml_id, name, type = self.is_medialist_exists(ml_id)
         except TypeError:
             return
         if type == "static":
@@ -393,6 +352,126 @@ class DatabaseQueries(object):
             pass # TODO
         cursor.execute("DELETE FROM medialist WHERE id = %s", (ml_id,))
         self.connection.commit()
+
+    def get_filter(self, cursor, id):
+        try: filter_type = self.__get_filter_type(cursor, id)
+        except ValueError:
+            return None
+        if filter_type == 'basic':
+            return self.__get_basic_filter(cursor, id)
+        elif filter_type == 'complex':
+            return self.__get_complex_filter(cursor, id)
+
+    def delete_filter(self, cursor, filter_id):
+        try: filter_type = self.__get_filter_type(cursor, filter_id)
+        except ValueError:
+            return None
+
+        if filter_type == 'basic':
+            cursor.execute("DELETE FROM filters_basicfilters\
+                WHERE filter_id = %s", (filter_id,))
+        elif filter_type == 'complex':
+            # get filters id associated with this filter
+            query = SimpleSelect('filters_complexfilters_subfilters')
+            query.select_column('filter_id')
+            query.append_where("complexfilter_id == %s", (filter_id, ))
+            cursor.execute(query.to_sql(), query.get_args())
+
+            for (id,) in cursor.fetchall():
+                self.delete_filter(cursor, id)
+                cursor.execute("DELETE FROM filters_complexfilters_subfilters \
+                    WHERE complexfilter_id = %s AND filter_id = %s",\
+                    (filter_id, id))
+            cursor.execute("DELETE FROM filters_complexfilters \
+                WHERE filter_id = %s",(filter_id,))
+
+        cursor.execute("DELETE FROM filters WHERE filter_id = %s",(filter_id,))
+
+    def __get_filter_type(self, cursor, filter_id):
+        query = SimpleSelect('filters')
+        query.select_column('type')
+        query.append_where("filter_id == %s", (filter_id, ))
+        cursor.execute(query.to_sql(), query.get_args())
+        record = cursor.fetchone()
+
+        if not record: raise ValueError
+        return record[0]
+
+    def __get_basic_filter(self, cursor, id):
+        query = SimpleSelect('filters_basicfilters')
+        query.select_column('tag', 'operator', 'pattern')
+        query.append_where("filter_id == %s", (id, ))
+        cursor.execute(query.to_sql(), query.get_args())
+        record = cursor.fetchone()
+
+        if record:
+            bfilter_class = NAME2BASIC[record[1]]
+            f = bfilter_class(record[0], record[2])
+            return f
+
+    def __get_complex_filter(self, cursor, id):
+        query = SimpleSelect('filters_complexfilters')
+        query.select_column('combinator')
+        query.append_where("filter_id == %s", (id, ))
+        cursor.execute(query.to_sql(), query.get_args())
+        record = cursor.fetchone()
+
+        if record:
+            cfilter_class = NAME2COMPLEX[record[0]]
+            query = SimpleSelect('filters_complexfilters_subfilters')
+            query.select_column('filter_id')
+            query.append_where("complexfilter_id == %s", (id, ))
+            cursor.execute(query.to_sql(), query.get_args())
+            sf_records = cursor.fetchall()
+            filterlist = []
+            for sf_record in sf_records:
+                sf_id = sf_record[0]
+                filterlist.append(self.get_filter(cursor, sf_id))
+            cfilter = cfilter_class(*filterlist)
+            return cfilter
+
+    def __get_medialist_filterids(self, cursor, ml_id):
+        query = SimpleSelect('medialist_filters')
+        query.select_column('filter_id')
+        query.append_where("medialist_id == %s", (ml_id, ))
+        cursor.execute(query.to_sql(), query.get_args())
+
+        return cursor.fetchall()
+
+    @query_decorator("custom")
+    def get_magic_medialist_filters(self, cursor, ml_id):
+        rs = self.__get_medialist_filterids(cursor, ml_id)
+        if not rs: return []
+        filters = []
+        for (filter_id,) in rs:
+            filter = self.get_filter(cursor, filter_id)
+            if filter: filters.append(filter)
+        return filters
+
+    @query_decorator("custom")
+    def set_magic_medialist_filters(self, cursor, pl_name, filters):
+        slt_query = "SELECT id FROM medialist WHERE name=%s AND type = 'magic'"
+        cursor.execute(slt_query, (pl_name,))
+        rs = cursor.fetchone()
+        if not rs:
+            query = "INSERT INTO medialist (name,type)VALUES(%s,'magic')"
+            cursor.execute(query, (pl_name,))
+            id = self.connection.get_last_insert_id(cursor)
+        else: (id,) = rs
+
+        for (filter_id,) in self.__get_medialist_filterids(cursor, id):
+            self.delete_filter(cursor, filter_id)
+        cursor.execute(\
+          "DELETE FROM medialist_filters WHERE medialist_id=%s", (id,))
+
+        filter_ids = []
+        for filter in filters:
+            filter_id = self.sqlizer.translate(filter).save(self)
+            if filter_id: filter_ids.append((id, filter_id))
+        cursor.executemany("INSERT INTO medialist_filters\
+            (medialist_id,filter_id)VALUES(%s,%s)", filter_ids)
+        self.connection.commit()
+        return id
 
     @query_decorator("none")
     def add_to_static_medialist(self, cursor, ml_id, media_ids):

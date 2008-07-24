@@ -79,12 +79,12 @@ db_schema = [
         Column('id', auto_increment=True),
         Column('name'),
         Column('type'), # magic or static
-        Index(('name','type'), unique = False)],
+        Index(('name','type'))],
     Table('medialist_libraryitem', key=('position'))[
         Column('position', auto_increment=True),
         Column('medialist_id', type='int'),
         Column('libraryitem_id', type='int')],
-    Table('medialist_filters', key=('filter_id', 'medialist_id'))[
+    Table('medialist_filters', key=('medialist_id', 'filter_id'))[
         Column('medialist_id', type='int'),
         Column('filter_id', type='int')],
     Table('filters', key=('filter_id'))[
