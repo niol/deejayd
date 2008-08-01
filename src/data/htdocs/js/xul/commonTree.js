@@ -1,20 +1,35 @@
-// commonTree.js
+/* Deejayd, a media player daemon
+# Copyright (C) 2007-2008 Mickael Royer <mickael.royer@gmail.com>
+#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
+
 
 var CommonTreeManagement = function()
 {
     this.treeId = -1;
     this.playing = null;
+    this.treeBuilder = null;
 
     this.init = function()
     {
-        try{
+        if (typeof this.treeController == 'object') {
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
-            }
-        catch(ex){return}
-
-        if (typeof this.treeController == 'object')
             this.tree.controllers.appendController(this.treeController);
+            }
     };
 
     this.update = function(obj)
@@ -22,11 +37,23 @@ var CommonTreeManagement = function()
         var id = parseInt(obj.getAttribute("id"));
         if (id != this.treeId) {
             this.treeId = id;
-            // clear selection
-            if (this.tree.view) { this.tree.view.selection.clearSelection(); }
+
+            netscape.security.PrivilegeManager.
+                enablePrivilege("UniversalXPConnect");
             // Update datasources
-            this.tree.setAttribute("datasources",window.location.href+"rdf/"+
+            var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].
+                getService(Components.interfaces.nsIRDFService);
+            var ds = RDF.GetDataSource(window.location.href+"rdf/"+
                 this.module+"-"+id+".rdf");
+
+            var currentSources = this.tree.database.GetDataSources();
+            while (currentSources.hasMoreElements()) {
+                var src = currentSources.getNext();
+                this.tree.database.RemoveDataSource(src);
+                }
+            this.tree.database.AddDataSource(ds);
+            this.tree.builder.rebuild();
+
             // do custom update
             this.customUpdate(obj);
             // update playing
@@ -195,11 +222,8 @@ var CommonTreeManagement = function()
     this.dragStart = function(evt)
     {
         evt.stopPropagation();
-        try{
-            netscape.security.PrivilegeManager.
-                enablePrivilege("UniversalXPConnect");
-            }
-        catch(ex){return} // drag and drop not allowed
+        netscape.security.PrivilegeManager.
+            enablePrivilege("UniversalXPConnect");
 
         // set drag session
         var ds = Components.classes["@mozilla.org/widget/dragservice;1"].
@@ -227,11 +251,8 @@ var CommonTreeManagement = function()
     this.dragOver = function(evt)
     {
         evt.stopPropagation();
-        try{
-            netscape.security.PrivilegeManager.
-                enablePrivilege("UniversalXPConnect");
-            }
-        catch(ex){return} // drag and drop not allowed
+        netscape.security.PrivilegeManager.
+            enablePrivilege("UniversalXPConnect");
 
         var dragService = Components
             .classes["@mozilla.org/widget/dragservice;1"].
@@ -267,11 +288,8 @@ var CommonTreeManagement = function()
     this.dragEnter = function(evt)
     {
         evt.stopPropagation();
-        try{
-            netscape.security.PrivilegeManager.
-                enablePrivilege("UniversalXPConnect");
-            }
-        catch(ex){return} // drag and drop not allowed
+        netscape.security.PrivilegeManager.
+            enablePrivilege("UniversalXPConnect");
 
         var dragService=Components.classes["@mozilla.org/widget/dragservice;1"].
             getService().QueryInterface(Components.interfaces.nsIDragService);
@@ -285,11 +303,8 @@ var CommonTreeManagement = function()
     this.dragExit = function(evt)
     {
         evt.stopPropagation();
-        try{
-            netscape.security.PrivilegeManager.
-                enablePrivilege("UniversalXPConnect");
-            }
-        catch(ex){return} // drag and drop not allowed
+        netscape.security.PrivilegeManager.
+            enablePrivilege("UniversalXPConnect");
 
         if (this.row.obj) {
             this.row.pos = -1;
@@ -310,11 +325,8 @@ var CommonTreeManagement = function()
     this.drop = function(evt)
     {
         evt.stopPropagation();
-        try{
-            netscape.security.PrivilegeManager.
-                enablePrivilege("UniversalXPConnect");
-            }
-        catch(ex){return} // drag and drop not allowed
+        netscape.security.PrivilegeManager.
+            enablePrivilege("UniversalXPConnect");
 
         var dragService = Components
             .classes["@mozilla.org/widget/dragservice;1"].
@@ -332,3 +344,36 @@ var CommonTreeManagement = function()
         this.dropAction(this.row.pos, data);
     };
 };
+
+var TreeBuilderObserver = function(source)
+{
+    this.source = source;
+    this.item = null;
+
+    this.willRebuild = function(builder)
+    {
+        var tree = this.source.tree;
+        if (tree.currentIndex != -1) {
+            this.item = tree.contentView.getItemAtIndex(tree.currentIndex);
+            }
+        else { this.item = null; }
+    };
+
+    this.didRebuild = function(builder)
+    {
+        // update playing
+        if (this.source.playing != null)
+            this.source.setPlaying(this.source.playing["pos"],
+                this.source.playing["id"], this.source.playing["state"]);
+
+        // set previous selection
+        if (this.item) {
+            alert(this.item);
+            var tree = this.source.tree;
+            var idx = tree.contentView.getIndexOfItem(item);
+            if (idx != -1) tree.view.selection.select(idx);
+            }
+    };
+};
+
+// vim: ts=4 sw=4 expandtab

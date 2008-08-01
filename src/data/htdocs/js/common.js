@@ -67,8 +67,3 @@ function replaceNodeText(node,content)
     else
         node.appendChild(text);
 }
-
-function DEBUG(msg)
-{
-    $('debug').value += "\n" + msg;
-}

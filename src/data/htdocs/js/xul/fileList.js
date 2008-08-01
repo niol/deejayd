@@ -14,11 +14,8 @@ var FileList = function()
 
     this.init = function()
     {
-        try{
-            netscape.security.PrivilegeManager.
-                enablePrivilege("UniversalXPConnect");
-            }
-        catch(ex){return}
+        netscape.security.PrivilegeManager.
+            enablePrivilege("UniversalXPConnect");
         var fileList = $('file-content');
         var fileListController = {
             supportsCommand : function(cmd){ return (cmd == "cmd_selectAll"); },
@@ -227,11 +224,8 @@ var FileObserver = {
         {
         evt.stopPropagation();
 
-        try{
-            netscape.security.PrivilegeManager.
-                enablePrivilege("UniversalXPConnect");
-            }
-        catch(ex){return}
+        netscape.security.PrivilegeManager.
+            enablePrivilege("UniversalXPConnect");
 
         var plainText = evt.target.getAttribute("type") + "-list";
         var ds = Components.classes["@mozilla.org/widget/dragservice;1"].
