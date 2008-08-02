@@ -44,7 +44,7 @@ caption{font-weight: bold;}
 
 #random-button{list-style-image: url("./images/shuffle.png");}
 #repeat-button{list-style-image: url("./images/repeat.png");}
-#playlist-goCurSong{list-style-image: url("./images/go.png");}
+.goCurSong-button{list-style-image: url("./images/go.png");}
 
 .home-menu{list-style-image: url("./images/home.png");}
 .search-menu{list-style-image: url("./images/search.png");}

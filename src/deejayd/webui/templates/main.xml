@@ -10,6 +10,7 @@
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script src="./static/js/common.js"/>
+<script src="./static/js/xul/base.js"/>
 <script src="./static/js/xul/commonTree.js"/>
 <script src="./static/js/xul/commonList.js"/>
 <script src="./static/js/xul/fileList.js"/>

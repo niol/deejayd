@@ -131,7 +131,7 @@ class PanelSource(_BaseLibrarySource):
         if self.__selected_mode["type"] == "panel":
             return self._media_list.get(start, stop), self.__panel_filters
         elif self.__selected_mode["type"] == "playlist":
-            return self._media_list.get(start, stop)
+            return self._media_list.get(start, stop), None
 
     def close(self):
         states = [

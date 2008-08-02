@@ -99,6 +99,14 @@ var CommonTreeManagement = function()
                                                         value: rating});
     };
 
+    this.goToCurSong = function()
+    {
+        if (this.playing != null) {
+            var boxobject = this.tree.treeBoxObject;
+            boxobject.ensureRowIsVisible(this.playing["pos"]);
+            }
+    };
+
     /**************************************************************/
     // Event handler
     /**************************************************************/

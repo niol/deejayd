@@ -47,10 +47,32 @@
          id="panel-list-entry"
          onclick="ajaxdj_ref.send_post_command('panelSet',{type: 'panel'})"
          class="listitem-title" label="Panel"/>
-            <listitem disable="true" label=""/>
+            <listitem disable="true" onmousedown="return false;" label=""/>
             <listitem disable="true" class="listitem-title" label="Playlist"/>
         </listbox>
-        <button label="new"/>
+        <button label="new" popup="newplaylist-panel"/>
+        <panel position="before_start" id="newplaylist-panel"><grid>
+            <columns>
+                <column flex="1"/>
+                <column flex="1"/>
+            </columns>
+
+            <rows>
+                <row align="center">
+                    <label value="&enterPlsName;"/>
+                    <textbox
+                        flex="1"
+                        oncommand="panel_ref.updatePanelFilterText();"
+                        id="newplaylist-entry"/>
+                </row>
+                <row align="center">
+                    <label value=""/>
+                    <button
+                        label="&create;"
+                        oncommand="panel_ref.createPlaylist();"/>
+                </row>
+            </rows>
+        </grid></panel>
     </vbox>
 
     <splitter persist="position" collapse="before" resizeafter="farthest">
@@ -88,7 +110,7 @@
                 oncommand=
                   "ajaxdj_ref.send_command('panelClearFilter',{},true);"/>
         </hbox>
-        <hbox persist="height" id="panel-box">
+        <hbox flex="1" persist="height" id="panel-box">
 
             <!--
             <command id="genre-panel-command"
@@ -223,6 +245,11 @@
                 id="panel-repeat"
                 command="panelrepeat-command"
                 checked="false"/>
+            <button
+                id="panel-goCurSong"
+                class="goCurSong-button"
+                oncommand="panel_ref.goToCurSong();"
+                label="&curSong;"/>
             <spacer flex="1"/>
             <description id="panel-description" value=""/>
         </hbox>

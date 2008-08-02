@@ -79,6 +79,8 @@ TRANSLATE = {
     "magicPlaylist": _("Magic Playlist"),
     "staticPlaylist": _("Static Playlist"),
     "chooseAll": _("Choose All"),
+    "enterPlsName": _("Enter Playlist Name"),
+    "create": _("Create"),
     # queue
     "queue": _("Song Queue"),
     # dvd

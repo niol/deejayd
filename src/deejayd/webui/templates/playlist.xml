@@ -275,7 +275,8 @@
                     label="&clear;"/>
                 <toolbarbutton
                     id="playlist-goCurSong"
-                    oncommand="player_ref.goToCurSong();"
+                    class="goCurSong-button"
+                    oncommand="playlist_ref.goToCurSong();"
                     label="&curSong;"/>
                 <toolbarbutton
                     class="shuffle-button"

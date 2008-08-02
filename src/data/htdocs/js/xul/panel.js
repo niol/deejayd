@@ -16,22 +16,34 @@ var Panel = function()
     {
         $("panel-description").value = panel.getAttribute("description");
         var mode = panel.getAttribute("type");
+        $('panel-pls-list').clearSelection();
         if (mode == "playlist") {
             $('filter-box').style.visibility = "collapse";
             $('panel-box').style.visibility = "collapse";
-            $('panel-list-entry').selected = false;
+
+            // select current playlist
+            var listbox = $("panel-pls-list");
+            var items = listbox.getElementsByTagName("listitem");
+            for (var i=0; item=items[i]; i++) {
+                if (item.getAttribute("type") == "playlist" &&
+                  item.getAttribute("value") == panel.getAttribute("value")) {
+                    listbox.selectItem(item);
+                    break;
+                    }
+                }
             }
         else {
             $('filter-box').style.visibility = "visible";
             $('panel-box').style.visibility = "visible";
             // select panel entry in left column
-            $('panel-list-entry').selected = true;
+            $('panel-pls-list').selectItem($('panel-list-entry'));
 
             // update filter bar
             $('panel-filter-text').value=panel.getAttribute("filtertext_text");
             $('panel-filter-type').value=panel.getAttribute("filtertext_type");
             // update panels
             var panels = Array("genre", "artist", "album");
+            var selections = Array();
             for (t in panels) {
                 var pn = $(panels[t]+"-panel");
 
@@ -41,7 +53,7 @@ var Panel = function()
                 while (count >= 0) {
                     pn.removeItemAt(count);
                     count -= 1;
-                }
+                    }
 
                 // build new child
                 var pn_list = panel.getElementsByTagName(panels[t]+"-panel")[0];
@@ -54,11 +66,10 @@ var Panel = function()
                     new_elt.setAttribute("selected", item.getAttribute("sel"));
                     new_elt.setAttribute("onclick",
                       "panel_ref.updatePanelFilter(this,'"+panels[t]+"');");
-                    if (item.getAttribute("sel") == "true")
-                        var selected_item = new_elt;
                     pn.appendChild(new_elt);
+                    if (item.getAttribute("sel") == "true")
+                        selections[t] = new_elt;
                     }
-                pn.ensureElementIsVisible(selected_item);
                 }
             }
         return true;
@@ -68,6 +79,15 @@ var Panel = function()
     {
         var listbox = $("panel-pls-list");
         // first Erase the playlist list
+        var total_rows = listbox.getRowCount();
+        while (total_rows > 0) {
+            var item = listbox.getItemAtIndex(total_rows-1);
+            if (item.getAttribute("type") != "playlist") break;
+            listbox.removeItemAt(total_rows-1);
+            total_rows -= 1;
+            }
+
+        // insert new playlist
         var Items = playlistList.getElementsByTagName("item");
         for (var i=0;playlist=Items[i];i++) {
             var plsItem = document.createElement("listitem");
@@ -89,9 +109,10 @@ var Panel = function()
         if (rs) {
             // get selected playlist
             var plsList = new Array();
-            for (var id in $("").selectedItems) {
-                if (items[id].type == "playlist")
-                    plsList.push(items[id].value);
+            for (var id in $("panel-pls-list").selectedItems) {
+                var item = $("panel-pls-list").selectedItems[id];
+                if (item.type == "playlist")
+                    plsList.push(item.value);
                 }
             ajaxdj_ref.send_post_command('playlistErase', {pl_ids: plsList});
             }
@@ -133,6 +154,8 @@ Panel.prototype = new CommonTreeManagement;
 var PanelObserver = {
     selectPlaylist: function (evt)
         {
+            // test if it is a right click
+            // if (evt.which == 3) { return true; }
             var pls = evt.target.getAttribute("value");
             ajaxdj_ref.send_post_command('panelSet',
                 {type: "playlist", value:pls});

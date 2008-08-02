@@ -257,16 +257,6 @@ var Player = function()
             }
     };
 
-    this.goToCurSong = function()
-    {
-        if (playerStatus.current != "") {
-            var cur = playerStatus.current.split(":");
-            var tree = $("playlist-tree");
-            var boxobject = tree.treeBoxObject;
-            boxobject.ensureRowIsVisible(cur[0]);
-            }
-    };
-
     this.set_alang = function(idx)
     {
         ajaxdj_ref.send_command('setPlayerOption',{option_name:"audio_lang",
