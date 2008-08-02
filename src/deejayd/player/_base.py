@@ -49,9 +49,15 @@ class UnknownPlayer(SignalingComponent):
         # Update state
         state = self.db.get_state("state")
         if state != PLAYER_STOP:
-            self.play()
-            if self._media_file and self._media_file["source"] != "queue":
-                self.set_position(int(self.db.get_state("current_pos")))
+            try:
+                self.play()
+            except PlayerError:
+                # There is an issue restoring the playing state on this file
+                # so pause for now.
+                self.stop()
+            else:
+                if self._media_file and self._media_file["source"] != "queue":
+                   self.set_position(int(self.db.get_state("current_pos")))
         if state == PLAYER_PAUSE:
             self.pause()
 
