@@ -191,7 +191,7 @@ class Previous(_UnknownCommand):
 class Repeat(_UnknownCommand):
     name = "repeat"
     command_args = [{"name":"source","type":"enum_str","req":True,\
-                     "values":("playlist","video")}]
+                     "values":("panel","playlist","video")}]
 
     def execute(self):
         status = self._deejayd.get_status()
@@ -203,7 +203,7 @@ class PlayOrder(_UnknownCommand):
     name = "playorder"
     method = "post"
     command_args = [{"name":"source","type":"enum_str","req":True,\
-                     "values":("playlist","video","queue")},
+                     "values":("panel","playlist","video","queue")},
                     {"name":"value","type":"enum_str","req":True,\
                      "values":("inorder","onemedia","random",\
                                "random-weighted")}]

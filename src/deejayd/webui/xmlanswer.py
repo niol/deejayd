@@ -104,7 +104,7 @@ class DeejaydWebAnswer(DeejaydXMLObject):
         status_elt = ET.SubElement(player, "status")
         for info in ("volume","queueplayorder","playlistplayorder",\
                      "playlistrepeat","videoplayorder","videorepeat",\
-                     "time","state","current"):
+                     "panelplayorder","panelrepeat","time","state","current"):
             try: val = self._to_xml_string(status[info])
             except KeyError: pass
             else:

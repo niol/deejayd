@@ -34,6 +34,16 @@ var playerStatus = {
         $("video-playorder").value = this.videoplayorder;
         },
 
+    panelrepeat: "",
+    update_panelrepeat: function() {
+        $("panel-repeat").checked = this.panelrepeat == "1" ?  true : false;
+        },
+
+    panelplayorder: "",
+    update_panelplayorder: function() {
+        $("panel-playorder").value = this.panelplayorder;
+        },
+
     state: "",
     update_state: function() {
         $("playtoggle-button").className = this.state == "play" ?
@@ -231,7 +241,7 @@ var Player = function()
 
         var list = Array("state","volume","playlistplayorder",
             "playlistrepeat","videoplayorder","videorepeat",
-            "queueplayorder");
+            "queueplayorder","panelplayorder","panelrepeat");
         for (var i in list) {
             var key = list[i];
             if (st_obj[key] && st_obj[key] != playerStatus[key]) {
