@@ -8,35 +8,37 @@ var Panel = function()
 
     this.module = "panel";
     this.tree = $("panel-tree");
+    this.selected_playlist = null;
     // Activate this mode
     $("panel-source").hidden = false;
 
     this.treeController = false;
     this.customUpdate = function(panel)
     {
+        var tree = $('panel-pls-list');
+        tree.view.selection.clearSelection();
         $("panel-description").value = panel.getAttribute("description");
         var mode = panel.getAttribute("type");
-        $('panel-pls-list').clearSelection();
         if (mode == "playlist") {
+            $('panel-select-button').checked = false;
             $('filter-box').style.visibility = "collapse";
             $('panel-box').style.visibility = "collapse";
 
             // select current playlist
-            var listbox = $("panel-pls-list");
-            var items = listbox.getElementsByTagName("listitem");
+            var items = tree.getElementsByTagName("treerow");
             for (var i=0; item=items[i]; i++) {
-                if (item.getAttribute("type") == "playlist" &&
-                  item.getAttribute("value") == panel.getAttribute("value")) {
-                    listbox.selectItem(item);
+                if (item.getAttribute("value") == panel.getAttribute("value")){
+                    tree.view.selection.select(i);
                     break;
                     }
                 }
+            this.selected_playlist = panel.getAttribute("value");
             }
         else {
+            $('panel-select-button').checked = true;
             $('filter-box').style.visibility = "visible";
             $('panel-box').style.visibility = "visible";
-            // select panel entry in left column
-            $('panel-pls-list').selectItem($('panel-list-entry'));
+            this.selected_playlist = null;
 
             // update filter bar
             $('panel-filter-text').value=panel.getAttribute("filtertext_text");
@@ -77,45 +79,39 @@ var Panel = function()
 
     this.updatePlaylistList = function(playlistList)
     {
-        var listbox = $("panel-pls-list");
+        var tree = $("panel-pls-list");
+        var tree_children = $("panel-pls-list-children");
         // first Erase the playlist list
-        var total_rows = listbox.getRowCount();
-        while (total_rows > 0) {
-            var item = listbox.getItemAtIndex(total_rows-1);
-            if (item.getAttribute("type") != "playlist") break;
-            listbox.removeItemAt(total_rows-1);
-            total_rows -= 1;
+        while(tree_children.hasChildNodes()){
+            tree_children.removeChild(tree_children.firstChild);
             }
 
         // insert new playlist
         var Items = playlistList.getElementsByTagName("item");
+        var selected_index = -1;
         for (var i=0;playlist=Items[i];i++) {
-            var plsItem = document.createElement("listitem");
-            plsItem.setAttribute("label",playlist.firstChild.data);
-            plsItem.setAttribute("type", "playlist");
-            plsItem.setAttribute("context","panel-pls-menu");
+            var plsItem = document.createElement("treeitem");
             plsItem.setAttribute("value",playlist.getAttribute("id"));
-            plsItem.className = "playlist-item listitem-iconic";
-            plsItem.addEventListener("click",
-                PanelObserver.selectPlaylist,true);
+            var plsRow = document.createElement("treerow");
+            plsRow.setAttribute("value",playlist.getAttribute("id"));
 
-            listbox.appendChild(plsItem);
-            }
-    };
+            var cell = document.createElement("treecell");
+            cell.setAttribute("label",playlist.firstChild.data);
+            cell.setAttribute("properties","playlist-item");
+            plsRow.appendChild(cell);
 
-    this.removePlaylist = function()
-    {
-        var rs = window.confirm(ajaxdj_ref.getString("confirm"));
-        if (rs) {
-            // get selected playlist
-            var plsList = new Array();
-            for (var id in $("panel-pls-list").selectedItems) {
-                var item = $("panel-pls-list").selectedItems[id];
-                if (item.type == "playlist")
-                    plsList.push(item.value);
-                }
-            ajaxdj_ref.send_post_command('playlistErase', {pl_ids: plsList});
+            var cell = document.createElement("treecell");
+            cell.setAttribute("properties","remove-action");
+            plsRow.appendChild(cell);
+
+            plsItem.appendChild(plsRow);
+            tree_children.appendChild(plsItem);
+
+            if (playlist.getAttribute("id") == this.selected_playlist)
+                selected_index = i;
             }
+        // reselect current playlist
+        if (selected_index != -1) {tree.view.selection.select(selected_index);}
     };
 
     this.updatePanelFilter = function(elt, tag)
@@ -152,14 +148,40 @@ var Panel = function()
 Panel.prototype = new CommonTreeManagement;
 
 var PanelObserver = {
-    selectPlaylist: function (evt)
+    setPlaylist: function (evt)
         {
-            // test if it is a right click
-            // if (evt.which == 3) { return true; }
-            var pls = evt.target.getAttribute("value");
+            var tree = $('panel-pls-list');
+            var childElement = {}, rowObject = {}, columnObject = {};
+            tree.treeBoxObject.getCellAt(evt.clientX, evt.clientY, rowObject,
+                columnObject, childElement);
+
+            if (columnObject.value && rowObject.value != -1) {
+                var item = tree.contentView.getItemAtIndex(rowObject.value);
+                if (columnObject.value.index == 0)
+                    this.selectPlaylist(item);
+                else if (columnObject.value.index == 1)
+                    this.removePlaylist(item);
+                }
+            return true;
+        },
+    selectPlaylist: function (item)
+        {
+            var pls = item.getAttribute("value");
             ajaxdj_ref.send_post_command('panelSet',
                 {type: "playlist", value:pls});
         },
+
+    removePlaylist: function(item)
+        {
+            var rs = window.confirm(ajaxdj_ref.getString("confirm"));
+            if (rs) {
+                var pls = item.getAttribute("value");
+                var list = new Array(pls);
+                ajaxdj_ref.send_post_command('playlistErase', {pl_ids: list});
+                }
+            else { this.selectPlaylist(item); }
+        },
+
 };
 
 // vim: ts=4 sw=4 expandtab
