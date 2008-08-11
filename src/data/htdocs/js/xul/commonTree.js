@@ -140,7 +140,7 @@ var CommonTreeManagement = function()
     {
         if (!this.tree.contentView) { // tree not ready
             var cmd = this.ref+'.setPlaying('+pos+','+id+',"'+state+'")';
-            setTimeout(cmd,500);
+            setTimeout(cmd,300);
             return;
             }
         var item = this.tree.contentView.getItemAtIndex(parseInt(pos))

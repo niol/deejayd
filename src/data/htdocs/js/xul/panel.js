@@ -13,68 +13,92 @@ var Panel = function()
     $("panel-source").hidden = false;
 
     this.treeController = false;
-    this.customUpdate = function(panel)
+
+    this.__setPanel = function(panel)
     {
-        var tree = $('panel-pls-list');
-        tree.view.selection.clearSelection();
-        $("panel-description").value = panel.getAttribute("description");
-        var mode = panel.getAttribute("type");
-        if (mode == "playlist") {
-            $('panel-select-button').checked = false;
-            $('filter-box').style.visibility = "collapse";
-            $('panel-box').style.visibility = "collapse";
+        var state = panel ? "visible" : "collapse"
+        $('panel-select-button').checked = false;
+        $('filter-box').style.visibility = state;
+        $('panel-box').style.visibility = state;
+        this.selected_playlist = null;
+    };
 
-            // select current playlist
-            var items = tree.getElementsByTagName("treerow");
-            for (var i=0; item=items[i]; i++) {
-                if (item.getAttribute("value") == panel.getAttribute("value")){
-                    tree.view.selection.select(i);
-                    break;
-                    }
-                }
-            this.selected_playlist = panel.getAttribute("value");
-            }
-        else {
-            $('panel-select-button').checked = true;
-            $('filter-box').style.visibility = "visible";
-            $('panel-box').style.visibility = "visible";
-            this.selected_playlist = null;
+    this.update = function(obj)
+    {
+        var id = parseInt(obj.getAttribute("id"));
+        if (id != this.treeId) {
+            this.treeId = id;
 
-            // update filter bar
-            $('panel-filter-text').value=panel.getAttribute("filtertext_text");
-            $('panel-filter-type').value=panel.getAttribute("filtertext_type");
-            // update panels
-            var panels = Array("genre", "artist", "album");
-            var selections = Array();
-            for (t in panels) {
-                var pn = $(panels[t]+"-panel");
+            netscape.security.PrivilegeManager.
+                enablePrivilege("UniversalXPConnect");
+            var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].
+                getService(Components.interfaces.nsIRDFService);
+            var ds = RDF.GetDataSource(window.location.href+"rdf/"+
+                "panel"+"-"+this.treeId+".rdf");
 
-                // remove old child
-                pn.clearSelection();
-                var count = pn.getRowCount();
-                while (count >= 0) {
-                    pn.removeItemAt(count);
-                    count -= 1;
-                    }
+            var pls_tree = $('panel-pls-list');
+            pls_tree.view.selection.clearSelection();
+            var mode = obj.getAttribute("type");
+            if (mode == "playlist") {
+                this.__setPanel(false);
 
-                // build new child
-                var pn_list = panel.getElementsByTagName(panels[t]+"-panel")[0];
-                var items = pn_list.getElementsByTagName("item");
+                // select current playlist
+                var items = pls_tree.getElementsByTagName("treerow");
                 for (var i=0; item=items[i]; i++) {
-                    var new_elt = document.createElement('listitem');
-                    new_elt.setAttribute("label", item.getAttribute("label"));
-                    new_elt.setAttribute("value", item.getAttribute("value"));
-                    new_elt.setAttribute("class", item.getAttribute("class"));
-                    new_elt.setAttribute("selected", item.getAttribute("sel"));
-                    new_elt.setAttribute("onclick",
-                      "panel_ref.updatePanelFilter(this,'"+panels[t]+"');");
-                    pn.appendChild(new_elt);
-                    if (item.getAttribute("sel") == "true")
-                        selections[t] = new_elt;
+                    if (item.getAttribute("value") ==
+                            obj.getAttribute("value")){
+                        pls_tree.view.selection.select(i);
+                        break;
+                        }
+                    }
+                this.selected_playlist = obj.getAttribute("value");
+                }
+            else {
+                this.__setPanel(true);
+
+                // update filter bar
+                $('panel-filter-text').value=
+                    obj.getAttribute("filtertext_text");
+                $('panel-filter-type').value=
+                    obj.getAttribute("filtertext_type");
+                // update panels
+                var panels = Array("genre", "artist", "album");
+                var selections = Array();
+                for (t in panels) {
+                    var pn = $(panels[t]+"-panel");
+
+                    // remove old child
+                    pn.clearSelection();
+
+                    netscape.security.PrivilegeManager.
+                        enablePrivilege("UniversalXPConnect");
+                    // Update datasources
+
+                    var currentSources = pn.database.GetDataSources();
+                    while (currentSources.hasMoreElements()) {
+                        var src = currentSources.getNext();
+                        pn.database.RemoveDataSource(src);
+                        }
+                    pn.database.AddDataSource(ds);
+                    pn.builder.rebuild();
+                    this.showSelectedPanel(panels[t]);
                     }
                 }
+
+            var currentSources = this.tree.database.GetDataSources();
+            while (currentSources.hasMoreElements()) {
+                var src = currentSources.getNext();
+                this.tree.database.RemoveDataSource(src);
+                }
+            this.tree.database.AddDataSource(ds);
+            this.tree.builder.rebuild();
+
+            $("panel-description").value = obj.getAttribute("description");
+            // update playing
+            if (this.playing != null)
+                this.setPlaying(this.playing["pos"], this.playing["id"],
+                    this.playing["state"]);
             }
-        return true;
     };
 
     this.updatePlaylistList = function(playlistList)
@@ -143,6 +167,27 @@ var Panel = function()
         ajaxdj_ref.send_post_command("queueAdd", {"values": items, type: "id",
                                                   "pos": pos});
     };
+
+    this.showSelectedPanel = function(panel_type)
+    {
+        var pn = $(panel_type+"-panel");
+        if (!pn.getRowCount()) { // panel not ready
+            var cmd = this.ref+".showSelectedPanel('"+panel_type+"')";
+            setTimeout(cmd,300);
+            }
+        else {
+            // panel is now built
+            // scroll to the selected item
+            var idx = 0;
+            while (idx < pn.getRowCount()) {
+                var item = pn.getItemAtIndex(idx);
+                if (item.getAttribute("selected") == "true") { break; }
+                idx += 1;
+                }
+            idx = Math.min(idx+1, pn.getRowCount());
+            pn.ensureIndexIsVisible(idx);
+            }
+    };
 };
 // heritage by prototype
 Panel.prototype = new CommonTreeManagement;
@@ -181,7 +226,6 @@ var PanelObserver = {
                 }
             else { this.selectPlaylist(item); }
         },
-
 };
 
 // vim: ts=4 sw=4 expandtab

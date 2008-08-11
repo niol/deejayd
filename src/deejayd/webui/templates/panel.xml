@@ -84,6 +84,7 @@
         <hbox persist="height" align="center" id="filter-box">
             <textbox
                 flex="1"
+                onfocus="this.select();"
                 oncommand="panel_ref.updatePanelFilterText();"
                 timeout="700"
                 type="timed"
@@ -113,16 +114,9 @@
         </hbox>
         <hbox flex="1" persist="height" id="panel-box">
 
-            <!--
-            <command id="genre-panel-command"
-                oncommand="panel_ref.updatePanelFilter('genre');"/>
-            <command id="artist-panel-command"
-                oncommand="panel_ref.updatePanelFilter('artist');"/>
-            <command id="album-panel-command"
-                oncommand="panel_ref.updatePanelFilter('album');"/>
-            -->
-
             <listbox
+                ref="http://panel/all-genre"
+                datasources="rdf:null"
                 flex="1"
                 id="genre-panel">
                 <listhead>
@@ -131,9 +125,21 @@
                 <listcols>
                     <listcol flex="1"/>
                 </listcols>
+                <template>
+                    <rule>
+                        <listitem uri="rdf:*"
+                            onclick="panel_ref.updatePanelFilter(this,'genre');"
+                            selected="rdf:http://panel/rdf#sel"
+                            class="rdf:http://panel/rdf#class"
+                            value="rdf:http://panel/rdf#value"
+                            label="rdf:http://panel/rdf#name" />
+                    </rule>
+                </template>
             </listbox>
 
             <listbox
+                ref="http://panel/all-artist"
+                datasources="rdf:null"
                 flex="1"
                 id="artist-panel">
                 <listhead>
@@ -142,9 +148,21 @@
                 <listcols>
                     <listcol flex="1"/>
                 </listcols>
+                <template>
+                    <rule>
+                        <listitem uri="rdf:*"
+                          onclick="panel_ref.updatePanelFilter(this,'artist');"
+                          selected="rdf:http://panel/rdf#sel"
+                          class="rdf:http://panel/rdf#class"
+                          value="rdf:http://panel/rdf#value"
+                          label="rdf:http://panel/rdf#name" />
+                    </rule>
+                </template>
             </listbox>
 
             <listbox
+                ref="http://panel/all-album"
+                datasources="rdf:null"
                 flex="1"
                 id="album-panel">
                 <listhead>
@@ -153,6 +171,16 @@
                 <listcols>
                     <listcol flex="1"/>
                 </listcols>
+                <template>
+                    <rule>
+                        <listitem uri="rdf:*"
+                          onclick="panel_ref.updatePanelFilter(this,'album');"
+                          selected="rdf:http://panel/rdf#sel"
+                          class="rdf:http://panel/rdf#class"
+                          value="rdf:http://panel/rdf#value"
+                          label="rdf:http://panel/rdf#name" />
+                    </rule>
+                </template>
             </listbox>
         </hbox>
 
@@ -225,6 +253,12 @@
         </tree>
 
         <hbox align="center">
+            <button
+                id="panel-goCurSong"
+                class="goCurSong-button"
+                oncommand="panel_ref.goToCurSong();"
+                label="&curSong;"/>
+            <spacer width="5px"/>
             <description value="&playorder;"/>
             <menulist
                 id="panel-playorder"
@@ -246,11 +280,6 @@
                 id="panel-repeat"
                 command="panelrepeat-command"
                 checked="false"/>
-            <button
-                id="panel-goCurSong"
-                class="goCurSong-button"
-                oncommand="panel_ref.goToCurSong();"
-                label="&curSong;"/>
             <spacer flex="1"/>
             <description id="panel-description" value=""/>
         </hbox>

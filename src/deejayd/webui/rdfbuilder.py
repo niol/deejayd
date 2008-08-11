@@ -109,7 +109,7 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
         elt.attrib["description"] = desc
         return elt
 
-    def _build_rdf_file(self,new_id):
+    def _build_rdf_file(self, new_id):
         # get media list
         obj = getattr(self._deejayd, self.__class__.get_list_func)()
         media_list = obj.get().get_medias()
@@ -189,6 +189,29 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
                     elt.attrib["filtertext_type"] = "all"
                     panel_filter.combine(ft)
                     break
+
+    def _build_rdf_file(self, new_id):
+        panel = self._deejayd.get_panel()
+        mode = panel.get_active_list()
+        media_list = panel.get().get_medias()
+
+        rdf_builder = RdfBuilder(self.__class__.name)
+        # build panel if needed
+        if mode["type"] == "panel":
+            filters = panel.get().get_filter()
+            try: filter_list = filters.filterlist
+            except (TypeError, AttributeError):
+                filter_list = []
+
+            panel_filter = And()
+            for ft in filter_list:
+                if ft.type == "basic" and ft.get_name() == "contains":
+                    panel_filter.combine(ft)
+                    break
+                elif ft.type == "complex" and ft.get_name() == "or":
+                    panel_filter.combine(ft)
+                    break
+
             for t in ("genre", "artist", "album"):
                 selected = None
                 for ft in filter_list:
@@ -197,23 +220,30 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
                         break
 
                 list = self._deejayd.mediadb_list(t, panel_filter)
-                self.__build_tag_list(elt, t, list, selected)
+                self.__build_tag_list(rdf_builder, t, list, selected)
 
                 # add filter for next panel
                 if selected: panel_filter.combine(Equals(t, selected))
 
-    def __build_tag_list(self, elt, type, list, selected = None):
-        panel_elt = ET.SubElement(elt, "%s-panel" % type)
+        # build medialist
+        seq = rdf_builder.build_seq("http://%s/all-content" % self.name)
+        for media in media_list:
+            li = rdf_builder.build_li(seq)
+            rdf_builder.build_item_desc(media, li,\
+                "http://%s/%s" % (self.name, media["id"]))
+
+        self._save_rdf(rdf_builder, new_id)
+
+    def __build_tag_list(self, rdf_builder, type, list, selected = None):
+        seq = rdf_builder.build_seq("http://panel/all-%s" % type)
         items = [{"name": "All", "value":"__all__", "class":"list-all",\
                   "sel":str(selected==None).lower()}]
         items.extend([{"name": l,"value":l,"sel":str(selected==l).lower(),\
                        "class":""} for l in list])
-        for item in items:
-            name_elt = ET.SubElement(panel_elt, "item",
-                label=self._to_xml_string(item["name"]),
-                value=self._to_xml_string(item["value"]),
-                sel=self._to_xml_string(item["sel"]))
-            name_elt.attrib["class"]=self._to_xml_string(item["class"])
+        for idx, item in enumerate(items):
+            li = rdf_builder.build_li(seq)
+            rdf_builder.build_item_desc(item, li,\
+                "http://panel/%s-%d" % (type, idx))
 
     def __build_filter(self, filter):
         pass
