@@ -346,8 +346,22 @@ class AudioSearch(_Library):
         self._answer.set_audiosearch_list(songs.get_medias())
 
 #
-# Static playlist commands
+# Recorded playlist commands
 #
+class PlaylistCreate(_UnknownCommand):
+    name = "playlistCreate"
+    method = "post"
+    command_args = [{"name":"name","type":"string","req":True},\
+      {"name":"type","type":"enum_str","values":("static","magic"),"req":True}]
+
+    def default_result(self):
+        pls_list = self._deejayd.get_playlist_list()
+        self._answer.set_playlist_list(pls_list.get_medias())
+
+    def execute(self):
+        self._deejayd.create_recorded_playlist(self._args["name"],\
+            self._args["type"])
+
 class StaticPlaylistAdd(_UnknownCommand):
     name = "staticPlaylistAdd"
     method = "post"

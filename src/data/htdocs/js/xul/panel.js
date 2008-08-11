@@ -168,6 +168,17 @@ var Panel = function()
                                                   "pos": pos});
     };
 
+    this.createPlaylist = function()
+    {
+        var pl_type = "static"; // TODO magic pls support
+        var pl_name = $('newplaylist-entry').value;
+        if (pl_name == "") { return; }
+        ajaxdj_ref.send_post_command("playlistCreate", {"name": pl_name,
+            type: pl_type});
+        // hide panel
+        $('newplaylist-panel').hidePopup();
+    };
+
     this.showSelectedPanel = function(panel_type)
     {
         var pn = $(panel_type+"-panel");

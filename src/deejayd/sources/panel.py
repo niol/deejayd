@@ -61,12 +61,14 @@ class PanelSource(_BaseLibrarySource):
 
     def __update_active_list(self, type, pl_id):
         if type == "playlist":
-            self._media_list.set(self._get_playlist_content(pl_id))
+            try: medias = self._get_playlist_content(pl_id)
+            except SourceError: # playlist does not exist, set to panel
+                self.__selected_mode["type"] = "panel";
+                medias = self.library.search(self.__panel_filters)
         elif type == "panel":
             medias = self.library.search(self.__panel_filters)
-            self._media_list.set(medias)
-        else:
-            raise TypeError
+        else: raise TypeError
+        self._media_list.set(medias)
 
     def update_panel_filters(self, tag, type, value):
         try: filter_list = self.__panel_filters.filterlist

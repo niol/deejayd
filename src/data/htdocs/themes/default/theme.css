@@ -165,3 +165,4 @@ list-style-image: url("./images/playlist.png");
 treechildren::-moz-tree-image(remove-action) {
 list-style-image: url("./images/clear.png");
 }
+.playlist-new {list-style-image: url("./images/playlist-new.png");}

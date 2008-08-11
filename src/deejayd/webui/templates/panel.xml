@@ -51,7 +51,7 @@
             </treecols>
             <treechildren id="panel-pls-list-children" />
         </tree>
-        <button label="new" popup="newplaylist-panel"/>
+        <button class="playlist-new" label="new" popup="newplaylist-panel"/>
         <panel position="before_start" id="newplaylist-panel"><grid>
             <columns>
                 <column flex="1"/>
@@ -63,7 +63,6 @@
                     <label value="&enterPlsName;"/>
                     <textbox
                         flex="1"
-                        oncommand="panel_ref.updatePanelFilterText();"
                         id="newplaylist-entry"/>
                 </row>
                 <row align="center">

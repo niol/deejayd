@@ -398,6 +398,9 @@ class DeejaydCore(object):
     def update_video_library(self):
         raise NotImplementedError
 
+    def create_recorded_playlist(self, name, type):
+        raise NotImplementedError
+
     def get_recorded_playlist(self, pl_id):
         raise NotImplementedError
 
