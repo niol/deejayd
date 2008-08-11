@@ -75,7 +75,7 @@ var Playlist = function()
     {
         if (data == 'playlist') {
             // move song at the new position
-            var s_ids = this.getTreeSelection("id");
+            var s_ids = playlist_ref.getTreeSelection("id");
             ajaxdj_ref.send_post_command("playlistMove",
                 {ids:s_ids, new_pos:pos});
             }
@@ -87,6 +87,6 @@ var Playlist = function()
 };
 
 // heritage by prototype
-Playlist.prototype = new CommonTreeManagement;
+Playlist.prototype = new _Source;
 
 // vim: ts=4 sw=4 expandtab

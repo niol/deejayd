@@ -229,7 +229,7 @@
                 <treechildren
                     ondblclick = "panel_ref.play();"
                     oncontextmenu="panel_ref.showPopupMenu(event);"
-                    ondraggesture = "panel_ref.dragStart(event);"
+                    ondraggesture = "dragStart(event, 'panel');"
                     id="panel-items">
                     <treeitem uri="rdf:*"
                               value="rdf:http://panel/rdf#media_id">

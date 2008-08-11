@@ -11,8 +11,8 @@
 
 <script src="./static/js/common.js"/>
 <script src="./static/js/xul/base.js"/>
-<script src="./static/js/xul/commonTree.js"/>
-<script src="./static/js/xul/commonList.js"/>
+<script src="./static/js/xul/_drag_and_drop.js"/>
+<script src="./static/js/xul/_source.js"/>
 <script src="./static/js/xul/fileList.js"/>
 <script src="./static/js/xul/player.js"/>
 <script src="./static/js/xul/playlist.js"/>
@@ -380,7 +380,7 @@
         <rule>
 
             <treechildren
-                ondraggesture = "queue_ref.dragStart(event);"
+                ondraggesture = "dragStart(event, 'queue');"
                 oncontextmenu="queue_ref.showPopupMenu(event);"
                 ondblclick = "queue_ref.play();"
                 id="queue-items">

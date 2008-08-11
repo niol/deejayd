@@ -5,6 +5,7 @@ var Panel = function()
 {
     panel_ref = this;
     this.ref = "panel_ref";
+    this.dropSupport = false;
 
     this.module = "panel";
     this.tree = $("panel-tree");
@@ -201,7 +202,7 @@ var Panel = function()
     };
 };
 // heritage by prototype
-Panel.prototype = new CommonTreeManagement;
+Panel.prototype = new _Source;
 
 var PanelObserver = {
     setPlaylist: function (evt)

@@ -9,6 +9,7 @@ var Webradio = function()
 
     this.module = "webradio";
     this.tree = $("webradio-tree");
+    this.dropSupport = false;
     // Activate this mode
     $("webradio-source").hidden = false;
 
@@ -49,6 +50,6 @@ var Webradio = function()
 };
 
 // heritage by prototype
-Webradio.prototype = new CommonTreeManagement;
+Webradio.prototype = new _Source;
 
 // vim: ts=4 sw=4 expandtab

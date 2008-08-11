@@ -144,7 +144,6 @@
         <rule>
 
             <treechildren
-                ondraggesture = "videolist_ref.dragStart(event);"
                 ondblclick = "videolist_ref.play();"
                 oncontextmenu="videolist_ref.showPopupMenu(event);"
                 id="video-items">

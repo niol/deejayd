@@ -72,6 +72,7 @@ var VideoList = function()
 {
     videolist_ref = this;
     this.ref = "videolist_ref";
+    this.dropSupport = false;
 
     this.mediaDragged = true;
     this.module = "video";
@@ -87,6 +88,6 @@ var VideoList = function()
     };
 };
 // heritage by prototype
-VideoList.prototype = new CommonTreeManagement;
+VideoList.prototype = new _Source;
 
 // vim: ts=4 sw=4 expandtab

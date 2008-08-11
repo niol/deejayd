@@ -223,7 +223,7 @@
             <rule>
 
                 <treechildren
-                    ondraggesture = "playlist_ref.dragStart(event);"
+                    ondraggesture = "dragStart(event, 'playlist');"
                     oncontextmenu="playlist_ref.showPopupMenu(event);"
                     ondblclick = "playlist_ref.play();"
                     id="playlist-items">

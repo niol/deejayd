@@ -72,7 +72,7 @@ var Queue = function()
     {
         if (data == "queue") {
             // move song at the new position
-            var s_ids = this.getTreeSelection("id");
+            var s_ids = queue_ref.getTreeSelection("id");
             ajaxdj_ref.send_post_command("queueMove",{ids:s_ids, new_pos:pos});
             }
         else if (data == "panel") { panel_ref.loadInQueue(pos); }
@@ -84,8 +84,7 @@ var Queue = function()
             }
     };
 };
-
 // heritage by prototype
-Queue.prototype = new CommonTreeManagement;
+Queue.prototype = new _Source;
 
 // vim: ts=4 sw=4 expandtab

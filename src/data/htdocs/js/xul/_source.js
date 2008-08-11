@@ -17,11 +17,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
 
-var CommonTreeManagement = function()
+var _Source = function()
 {
     this.treeId = -1;
     this.playing = null;
     this.treeBuilder = null;
+    this.dropSupport = true;
 
     this.init = function()
     {
@@ -29,6 +30,10 @@ var CommonTreeManagement = function()
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
             this.tree.controllers.appendController(this.treeController);
+            }
+        if (this.dropSupport) {
+            this.dropSupport = new TreeDropSupport(this.tree, this.dropAction,
+                this.supportedDropData);
             }
     };
 
@@ -185,172 +190,27 @@ var CommonTreeManagement = function()
     };
 
     /**************************************************************/
-    // Drag and Drop support
+    // drop support
     /**************************************************************/
-    this.row = {obj: null, pos: -1};
-
-    this.dragFileExit = function(evt) { evt.target.className = ""; };
-
-    this.getDragData = function(dragSession)
-    {
-        if (dragSession.isDataFlavorSupported("text/unicode")
-               && dragSession.numDropItems == 1) {
-            var trans = Components.
-                classes["@mozilla.org/widget/transferable;1"].
-                createInstance(Components.interfaces.nsITransferable);
-            trans.addDataFlavor("text/unicode");
-            dragSession.getData(trans, 0);
-
-            var len = {};
-            var data = {};
-            try {
-                trans.getTransferData("text/unicode", data, len);
-                var result = data.value.QueryInterface(
-                    Components.interfaces.nsISupportsString);
-                return result.data;
-                }
-            catch(ex){return false}
-            }
-        return false;
-    };
-
-    this.supportedDropData = Array();
-    this.isDataCanDrop = function(dragSession)
-    {
-        var data = this.getDragData(dragSession);
-        if (data) {
-            for (var i in this.supportedDropData) {
-                if (data == this.supportedDropData[i])
-                    return true;
-                }
-            }
-        return false;
-    };
-
-    this.dragStart = function(evt)
-    {
-        evt.stopPropagation();
-        netscape.security.PrivilegeManager.
-            enablePrivilege("UniversalXPConnect");
-
-        // set drag session
-        var ds = Components.classes["@mozilla.org/widget/dragservice;1"].
-               getService(Components.interfaces.nsIDragService);
-
-        // build object to carry in this drag session
-        var trans = Components.classes["@mozilla.org/widget/transferable;1"].
-               createInstance(Components.interfaces.nsITransferable);
-        trans.addDataFlavor("text/unicode");
-        var textWrapper = Components.classes["@mozilla.org/supports-string;1"].
-               createInstance(Components.interfaces.nsISupportsString);
-        textWrapper.data = this.module;
-        trans.setTransferData("text/unicode",textWrapper,this.module.length*2);
-
-        // create an array for our drag items, though we only have one this time
-        var transArray = Components.classes["@mozilla.org/supports-array;1"].
-                createInstance(Components.interfaces.nsISupportsArray);
-        transArray.AppendElement(trans);
-
-        // Actually start dragging
-        ds.invokeDragSession(evt.target, transArray, null,
-            ds.DRAGDROP_ACTION_COPY + ds.DRAGDROP_ACTION_MOVE);
-    };
-
     this.dragOver = function(evt)
     {
-        evt.stopPropagation();
-        netscape.security.PrivilegeManager.
-            enablePrivilege("UniversalXPConnect");
-
-        var dragService = Components
-            .classes["@mozilla.org/widget/dragservice;1"].
-            getService().QueryInterface(Components.interfaces.nsIDragService);
-        if (dragService) {
-            var dragSession = dragService.getCurrentSession();
-            if (!dragSession) { return; }
-            dragSession.canDrop = this.isDataCanDrop(dragSession);
-            }
-
-        if (dragSession.canDrop) {
-            var oldRow = this.row.obj;
-            var row = this.tree.treeBoxObject.getRowAt(evt.pageX, evt.pageY)
-            if (this.tree.view && row >= 0) {
-                var item = this.tree.contentView.getItemAtIndex(row);
-                this.row.obj = item.firstChild;
-                this.row.pos = row;
-                this.row.obj.setAttribute("properties","dragged");
-                if (oldRow && oldRow != this.row.obj){
-                    oldRow.setAttribute("properties","");
-                    }
-                }
-            else {
-                this.row.pos = -1;
-                if (oldRow) {
-                    try{ oldRow.setAttribute("properties","");}
-                    catch(ex){}
-                    }
-                }
-           }
-    };
+        if (this.dropSupport) { this.dropSupport.dragOver(evt); }
+    }
 
     this.dragEnter = function(evt)
     {
-        evt.stopPropagation();
-        netscape.security.PrivilegeManager.
-            enablePrivilege("UniversalXPConnect");
-
-        var dragService=Components.classes["@mozilla.org/widget/dragservice;1"].
-            getService().QueryInterface(Components.interfaces.nsIDragService);
-        if (dragService) {
-            var dragSession = dragService.getCurrentSession();
-            if (dragSession)
-                dragSession.canDrop = this.isDataCanDrop(dragSession);
-            }
-    };
+        if (this.dropSupport) { this.dropSupport.dragEnter(evt); }
+    }
 
     this.dragExit = function(evt)
     {
-        evt.stopPropagation();
-        netscape.security.PrivilegeManager.
-            enablePrivilege("UniversalXPConnect");
-
-        if (this.row.obj) {
-            this.row.pos = -1;
-            try{ this.row.obj.setAttribute("properties","");}
-            catch(ex){}
-            }
-
-        var dragService = Components
-            .classes["@mozilla.org/widget/dragservice;1"].
-            getService().QueryInterface(Components.interfaces.nsIDragService);
-        if (dragService) {
-            var dragSession = dragService.getCurrentSession();
-            if (dragSession)
-                dragSession.canDrop = false;
-            }
-    };
+        if (this.dropSupport) { this.dropSupport.dragExit(evt); }
+    }
 
     this.drop = function(evt)
     {
-        evt.stopPropagation();
-        netscape.security.PrivilegeManager.
-            enablePrivilege("UniversalXPConnect");
-
-        var dragService = Components
-            .classes["@mozilla.org/widget/dragservice;1"].
-            getService().QueryInterface(Components.interfaces.nsIDragService);
-        if (dragService) {
-            var dragSession = dragService.getCurrentSession();
-            if (dragSession) { var data = this.getDragData(dragSession); }
-            if (!dragSession || !data) { return; }
-            }
-        if (this.row.obj) {
-            try{ this.row.obj.setAttribute("properties","");}
-            catch(ex){}
-            }
-
-        this.dropAction(this.row.pos, data);
-    };
+        if (this.dropSupport) { this.dropSupport.drop(evt); }
+    }
 };
 
 var TreeBuilderObserver = function(source)

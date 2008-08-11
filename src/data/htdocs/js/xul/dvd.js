@@ -6,6 +6,7 @@ var Dvd = function()
 {
     dvd_ref = this;
     this.ref = "dvd_ref";
+    this.dropSupport = false;
 
     this.module = "dvd";
     this.tree = $("dvd-tree");
@@ -47,6 +48,6 @@ var Dvd = function()
 };
 
 // heritage by prototype
-Dvd.prototype = new CommonTreeManagement;
+Dvd.prototype = new _Source;
 
 // vim: ts=4 sw=4 expandtab
