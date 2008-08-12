@@ -42,14 +42,18 @@
         <tree
             id="panel-pls-list"
             hidecolumnpicker="true"
-            onclick = "PanelObserver.setPlaylist(event);"
+            onclick = "PlsPanelObserver.setPlaylist(event);"
+            ondragover="panel_ref.plsDropSupport.dragOver(event);"
+            ondragenter="panel_ref.plsDropSupport.dragEnter(event);"
+            ondragexit="panel_ref.plsDropSupport.dragExit(event);"
+            ondragdrop="panel_ref.plsDropSupport.drop(event);"
             seltype="single"
             flex="1">
             <treecols>
                 <treecol flex="1" label="Playlist"/>
                 <treecol width="30px" id="panel-action"/>
             </treecols>
-            <treechildren id="panel-pls-list-children" />
+            <treechildren id="panel-pls-list-children"/>
         </tree>
         <button class="playlist-new" label="new" popup="newplaylist-panel"/>
         <panel position="before_start" id="newplaylist-panel"><grid>
@@ -229,7 +233,7 @@
                 <treechildren
                     ondblclick = "panel_ref.play();"
                     oncontextmenu="panel_ref.showPopupMenu(event);"
-                    ondraggesture = "dragStart(event, 'panel');"
+                    ondraggesture = "dragStart(event, panel_ref.selected_mode);"
                     id="panel-items">
                     <treeitem uri="rdf:*"
                               value="rdf:http://panel/rdf#media_id">

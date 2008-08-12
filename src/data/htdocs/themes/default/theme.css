@@ -166,3 +166,9 @@ treechildren::-moz-tree-image(remove-action) {
 list-style-image: url("./images/clear.png");
 }
 .playlist-new {list-style-image: url("./images/playlist-new.png");}
+
+#panel-pls-list treechildren::-moz-tree-row(dragged) {
+border-top: 0px solid #333;
+background-color: #ded;
+}
+

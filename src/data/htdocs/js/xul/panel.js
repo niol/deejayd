@@ -10,6 +10,7 @@ var Panel = function()
     this.module = "panel";
     this.tree = $("panel-tree");
     this.selected_playlist = null;
+    this.selected_mode = null;
     // Activate this mode
     $("panel-source").hidden = false;
 
@@ -17,11 +18,12 @@ var Panel = function()
 
     this.__setPanel = function(panel)
     {
-        var state = panel ? "visible" : "collapse"
+        var state = panel ? "visible" : "collapse";
         $('panel-select-button').checked = false;
         $('filter-box').style.visibility = state;
         $('panel-box').style.visibility = state;
         this.selected_playlist = null;
+        this.selected_mode = panel ? "panel" : "panel-playlist";
     };
 
     this.update = function(obj)
@@ -54,7 +56,7 @@ var Panel = function()
                     }
                 this.selected_playlist = obj.getAttribute("value");
                 }
-            else {
+            else if (mode == "panel") {
                 this.__setPanel(true);
 
                 // update filter bar
@@ -200,11 +202,31 @@ var Panel = function()
             pn.ensureIndexIsVisible(idx);
             }
     };
+
+    // drop support for pls list
+    this.plsDropSupport = new TreeDropSupport($('panel-pls-list'),
+        function(pos, data) {
+            if (pos == -1) { return; } // no playlist selected
+
+            var pls = $('panel-pls-list').contentView.getItemAtIndex(pos);
+            if (panel_ref.selected_playlist == pls.getAttribute("value"))
+                return;
+
+            if (data == 'panel') {
+                var items = panel_ref.getTreeSelection("value");
+                }
+            else if (data == 'queue') {
+                var items = queue_ref.getTreeSelection("value");
+                }
+            ajaxdj_ref.send_post_command('staticPlaylistAdd',
+                {pl_id: pls.getAttribute("value"), values: items, type: 'id'});
+            },
+        Array('panel', 'queue'));
 };
 // heritage by prototype
 Panel.prototype = new _Source;
 
-var PanelObserver = {
+var PlsPanelObserver = {
     setPlaylist: function (evt)
         {
             var tree = $('panel-pls-list');
@@ -227,7 +249,6 @@ var PanelObserver = {
             ajaxdj_ref.send_post_command('panelSet',
                 {type: "playlist", value:pls});
         },
-
     removePlaylist: function(item)
         {
             var rs = window.confirm(ajaxdj_ref.getString("confirm"));

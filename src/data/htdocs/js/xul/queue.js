@@ -67,7 +67,8 @@ var Queue = function()
     // custom drag and drop actions
     /********************************************************************/
     this.supportedDropData = Array('queue', 'panel', 'playlist-list',
-                                   'directory-list', 'audio-file-list');
+                                   'directory-list', 'audio-file-list',
+                                   'panel-playlist');
     this.dropAction = function(pos, data)
     {
         if (data == "queue") {
@@ -75,7 +76,9 @@ var Queue = function()
             var s_ids = queue_ref.getTreeSelection("id");
             ajaxdj_ref.send_post_command("queueMove",{ids:s_ids, new_pos:pos});
             }
-        else if (data == "panel") { panel_ref.loadInQueue(pos); }
+        else if (data == "panel" || data == "panel-playlist") {
+            panel_ref.loadInQueue(pos);
+            }
         else if ((data == 'directory-list') || (data == 'audio-file-list')) {
             fileList_ref.loadFilesInQueue(pos);
             }
