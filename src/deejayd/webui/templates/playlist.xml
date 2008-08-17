@@ -36,6 +36,11 @@
                     oncommand="playlist_ref.setRating(4);"/>
             </menupopup>
         </menu>
+        <menu
+            label="&plAdd;">
+            <menupopup id="playlist-pls-menu">
+            </menupopup>
+        </menu>
     </menupopup>
 
     <menupopup id="fileList-menu" onpopupshowing="javascript:;">

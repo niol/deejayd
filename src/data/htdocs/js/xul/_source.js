@@ -112,6 +112,18 @@ var _Source = function()
             }
     };
 
+    this.updatePlaylistList = function(playlistList)
+    {
+        updatePlaylistMenu(this.module+"-pls-menu", playlistList, this.ref);
+    };
+
+    this.addToPlaylist = function(pl_id)
+    {
+        var items = this.getTreeSelection("value");
+        ajaxdj_ref.send_post_command('staticPlaylistAdd',
+            {pl_id: pl_id, values: items, type: 'id'});
+    };
+
     /**************************************************************/
     // Event handler
     /**************************************************************/

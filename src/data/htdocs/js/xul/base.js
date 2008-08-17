@@ -157,6 +157,9 @@ var UIController = function(mainController)
                 this.fileListObj.updatePlaylistList(rs);
             if (this.panelObj)
                 this.panelObj.updatePlaylistList(rs);
+            if (this.plObj)
+                this.plObj.updatePlaylistList(rs);
+            this.quObj.updatePlaylistList(rs);
             }
 
         rs = xmldoc.getElementsByTagName("queue").item(0);
@@ -195,5 +198,27 @@ var UIController = function(mainController)
             obj.selectedIndex = 0;
     };
 }
+
+//
+//general functions
+//
+function updatePlaylistMenu(menu_id, playlistList, command_ref)
+{
+    var menu = $(menu_id);
+    // first remove old playlist
+    while(menu.hasChildNodes())
+        menu.removeChild(menu.firstChild);
+
+    var playlists = playlistList.getElementsByTagName("item");
+    for (var i=0;pls=playlists[i];i++) {
+        var item = document.createElement("menuitem");
+        item.setAttribute("label",pls.firstChild.data);
+        if (command_ref) {
+            item.setAttribute("oncommand",
+                command_ref+".addToPlaylist('"+pls.getAttribute("id")+"');");
+            }
+        menu.appendChild(item);
+        }
+};
 
 // vim: ts=4 sw=4 expandtab

@@ -30,6 +30,11 @@
                         oncommand="panel_ref.setRating(4);"/>
                 </menupopup>
             </menu>
+        <menu
+            label="&plAdd;">
+            <menupopup id="panel-pls-menu">
+            </menupopup>
+        </menu>
         </popup>
     </popupset>
 

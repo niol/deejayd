@@ -5,6 +5,7 @@ var queue_ref;
 var Queue = function()
 {
     queue_ref = this;
+    this.ref = "queue_ref";
     this.module = "queue";
     this.tree = $("queue-tree");
 

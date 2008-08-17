@@ -25,8 +25,6 @@ var FileList = function()
     this.menuId = "navigation-path";
     this.menuCommand = "getdir";
     this.contextMenuId = "fileList-menu";
-    this.playlistList = new Array();
-    this.updateBox = "audio-update";
     this.listType = "audio";
     this.dragFunc = function (evt) {
         var plainText = evt.target.getAttribute("type") + "-list";
@@ -61,44 +59,6 @@ var FileList = function()
 
         playlistList.controllers.appendController(playlistListController);
         fileList.controllers.appendController(fileListController);
-    };
-
-    this.constructItemList = function(itemList,content)
-    {
-        var listObj = $(content);
-        var currentItem = listObj.firstChild;
-
-        var Items = itemList.getElementsByTagName("item");
-        for(var i=0;item=Items.item(i);i++) {
-            var type = item.getAttribute("type");
-            switch (type) {
-                case "song":
-                    var row = this.constructFileRow(item);
-                    break;
-                case "directory":
-                    var row = this.constructDirRow(item);
-                    break;
-                case "playlist":
-                    var row = this.constructPlaylistRow(item);
-                    break;
-                case "video":
-                    var row = this.constructVideoRow(item);
-                    break;
-                }
-
-            if (currentItem) {
-                listObj.replaceChild(row,currentItem);
-                currentItem = row.nextSibling;
-                }
-            else
-                listObj.appendChild(row);
-            }
-
-        while(currentItem) {
-            var nextItem = currentItem.nextSibling;
-            listObj.removeChild(currentItem);
-            currentItem = nextItem;
-            }
     };
 
     this.constructMenu = function(path)
@@ -145,28 +105,12 @@ var FileList = function()
             navMenu.removeChild(navMenu.firstChild);
     };
 
-    this.constructDirRow = function(dir)
-    {
-        var dirName = dir.firstChild.data;
-        var dirItem = document.createElement("listitem");
-        dirItem.setAttribute("label",dirName);
-        dirItem.setAttribute("type","directory");
-        var path = this.curDir != "" ? this.curDir+"/"+dirName : dirName;
-        dirItem.setAttribute("value",path);
-        dirItem.setAttribute("context",this.contextMenuId);
-        dirItem.setAttribute("type","directory");
-        dirItem.className = "listitem-iconic directory-item";
-
-        this.customConstructDirRow(dirItem)
-        return dirItem;
-    };
-
     this.updateDatabase = function(upObj)
     {
         var progress = upObj.getAttribute("p");
         var upId = upObj.firstChild.data;
         if (progress == "1") {
-            $(this.updateBox).selectedIndex = 1
+            $("audio-update").selectedIndex = 1
             $('audio-update-progressbar').mode = "undetermined";
             setTimeout(
                 "ajaxdj_ref.send_command('"+this.listType+
@@ -174,7 +118,7 @@ var FileList = function()
                 "},false)",1000);
             }
         else {
-            $(this.updateBox).selectedIndex = 0
+            $("audio-update").selectedIndex = 0
             $('audio-update-progressbar').mode = "determined";
             }
     };
@@ -252,23 +196,8 @@ var FileList = function()
     /*************************************/
     this.updatePlaylistList = function(playlistList)
     {
-        var Items = playlistList.getElementsByTagName("item");
-        this.playlistList = new Array();
-        for (var i=0;item=Items[i];i++)
-            this.playlistList.push({id: item.getAttribute("id"),
-                                    name: item.firstChild.data});
-
-        // Update fileList Menu
-        var menu = $('fileaddplaylist-menu');
-        while(menu.hasChildNodes())
-            menu.removeChild(menu.firstChild);
-        this.contructPlsListMenu(menu,true);
-
-        // Update playlist-save Menu
-        var menu = $('playlist-save-plslist');
-        while(menu.hasChildNodes())
-            menu.removeChild(menu.firstChild);
-        this.contructPlsListMenu(menu,false);
+        updatePlaylistMenu('fileaddplaylist-menu',playlistList,"fileList_ref");
+        updatePlaylistMenu('playlist-save-plslist',playlistList,"fileList_ref");
 
         this.constructItemList(playlistList,"playlistList-content");
     };
@@ -327,41 +256,65 @@ var FileList = function()
             }
     };
 
-    this.customConstructDirRow = function(dirItem)
+    this.constructItemList = function(itemList,content)
     {
-        dirItem.ondblclick = function(e) {
-            ajaxdj_ref.send_post_command("getdir",
-                { dir:e.target.value }); };
-        dirItem.addEventListener('draggesture', this.dragFunc, true);
-        dirItem.setAttribute("value_type", "path");
+        var listObj = $(content);
+        var currentItem = listObj.firstChild;
+
+        var Items = itemList.getElementsByTagName("item");
+        for(var i=0;item=Items.item(i);i++) {
+            var type = item.getAttribute("type");
+            switch (type) {
+                case "song":
+                    var row = this.__constructRow({label: item.firstChild.data,
+                        value: item.getAttribute("value"),type:"audio-file",
+                        value_type: item.getAttribute("value_type"),
+                        context: "fileList-menu"});
+                    row.className = "audio-item listitem-iconic";
+                    break;
+                case "directory":
+                    var dirName = item.firstChild.data;
+                    var path = this.curDir != "" ?
+                        this.curDir+"/"+dirName : dirName;
+                    var row = this.__constructRow({label: dirName,
+                        value: path, value_type: "path", type: "directory",
+                        context: this.contextMenuId});
+                    row.className = "listitem-iconic directory-item";
+                    row.ondblclick = function(e) {
+                        ajaxdj_ref.send_post_command("getdir",
+                            { dir:e.target.value }); };
+                    break;
+                case "playlist":
+                    var row = this.__constructRow({label: item.firstChild.data,
+                        value: item.getAttribute("id"),type:"playlist",
+                        context: "playlistList-menu"});
+                    row.className = "playlist-item listitem-iconic";
+                    break;
+                }
+
+            if (currentItem) {
+                listObj.replaceChild(row,currentItem);
+                currentItem = row.nextSibling;
+                }
+            else
+                listObj.appendChild(row);
+            }
+
+        while(currentItem) {
+            var nextItem = currentItem.nextSibling;
+            listObj.removeChild(currentItem);
+            currentItem = nextItem;
+            }
     };
 
-    this.constructFileRow = function(file)
+    this.__constructRow = function(row, type)
     {
-        var fileName = file.firstChild.data;
-        var fileItem = document.createElement("listitem");
-        fileItem.setAttribute("label",fileName);
-        fileItem.setAttribute("context","fileList-menu");
-        fileItem.className = "audio-item listitem-iconic";
-        fileItem.setAttribute("value",file.getAttribute("value"));
-        fileItem.setAttribute("value_type",file.getAttribute("value_type"));
-        fileItem.setAttribute("type","audio-file");
-        fileItem.addEventListener('draggesture', this.dragFunc, true);
+        var item = document.createElement("listitem");
+        item.setAttribute("type",type);
+        for (key in row) { item.setAttribute(key, row[key]); }
+        item.addEventListener('draggesture', this.dragFunc, true);
 
-        return fileItem;
-    };
-
-    this.constructPlaylistRow = function(playlist)
-    {
-        var plsItem = document.createElement("listitem");
-        plsItem.setAttribute("label",playlist.firstChild.data);
-        plsItem.setAttribute("context","playlistList-menu");
-        plsItem.setAttribute("value",playlist.getAttribute("id"));
-        plsItem.setAttribute("type","playlist");
-        plsItem.className = "playlist-item listitem-iconic";
-        plsItem.addEventListener('draggesture', this.dragFunc, true);
-
-        return plsItem;
+        return item;
     };
 };
 

@@ -106,6 +106,8 @@ var Panel = function()
 
     this.updatePlaylistList = function(playlistList)
     {
+        updatePlaylistMenu(this.module+"-pls-menu", playlistList, this.ref);
+
         var tree = $("panel-pls-list");
         var tree_children = $("panel-pls-list-children");
         // first Erase the playlist list
