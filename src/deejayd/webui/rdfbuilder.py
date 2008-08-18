@@ -236,10 +236,14 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
 
     def __build_tag_list(self, rdf_builder, type, list, selected = None):
         seq = rdf_builder.build_seq("http://panel/all-%s" % type)
-        items = [{"name": "All", "value":"__all__", "class":"list-all",\
+        items = [{"name": _("All"), "value":"__all__", "class":"list-all",\
                   "sel":str(selected==None).lower()}]
         items.extend([{"name": l,"value":l,"sel":str(selected==l).lower(),\
-                       "class":""} for l in list])
+                       "class":""} for l in list if l != ""])
+        if "" in list:
+            items.append({"name": _("Unknown"), "value":"",\
+                "class":"list-unknown","sel":str(selected=="").lower()})
+
         for idx, item in enumerate(items):
             li = rdf_builder.build_li(seq)
             rdf_builder.build_item_desc(item, li,\

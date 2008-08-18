@@ -157,7 +157,7 @@ max-height:30px;
  * Panel
  */
 #panel-select-box .listitem-title { font-weight: bold; }
-.list-all { font-weight: bold; }
+.list-all, .list-unknown { font-weight: bold; }
 
 treechildren::-moz-tree-image(playlist-item) {
 list-style-image: url("./images/playlist.png");
