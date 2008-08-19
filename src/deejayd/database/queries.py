@@ -325,8 +325,8 @@ class DatabaseQueries(object):
     def get_medialist_id(self, cursor, pl_name, pl_type = 'static'):
         query = SimpleSelect('medialist')
         query.select_column('id')
-        query.append_where("name == %s", (pl_name, ))
-        query.append_where("type == %s", (pl_type, ))
+        query.append_where("name = %s", (pl_name, ))
+        query.append_where("type = %s", (pl_type, ))
         cursor.execute(query.to_sql(), query.get_args())
 
         ans = cursor.fetchone()
@@ -337,7 +337,7 @@ class DatabaseQueries(object):
     def is_medialist_exists(self, cursor, pl_id):
         query = SimpleSelect('medialist')
         query.select_column('id', 'name', 'type')
-        query.append_where("id == %s", (pl_id, ))
+        query.append_where("id = %s", (pl_id, ))
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("none")
@@ -374,7 +374,7 @@ class DatabaseQueries(object):
             # get filters id associated with this filter
             query = SimpleSelect('filters_complexfilters_subfilters')
             query.select_column('filter_id')
-            query.append_where("complexfilter_id == %s", (filter_id, ))
+            query.append_where("complexfilter_id = %s", (filter_id, ))
             cursor.execute(query.to_sql(), query.get_args())
 
             for (id,) in cursor.fetchall():
@@ -390,7 +390,7 @@ class DatabaseQueries(object):
     def __get_filter_type(self, cursor, filter_id):
         query = SimpleSelect('filters')
         query.select_column('type')
-        query.append_where("filter_id == %s", (filter_id, ))
+        query.append_where("filter_id = %s", (filter_id, ))
         cursor.execute(query.to_sql(), query.get_args())
         record = cursor.fetchone()
 
@@ -400,7 +400,7 @@ class DatabaseQueries(object):
     def __get_basic_filter(self, cursor, id):
         query = SimpleSelect('filters_basicfilters')
         query.select_column('tag', 'operator', 'pattern')
-        query.append_where("filter_id == %s", (id, ))
+        query.append_where("filter_id = %s", (id, ))
         cursor.execute(query.to_sql(), query.get_args())
         record = cursor.fetchone()
 
@@ -412,7 +412,7 @@ class DatabaseQueries(object):
     def __get_complex_filter(self, cursor, id):
         query = SimpleSelect('filters_complexfilters')
         query.select_column('combinator')
-        query.append_where("filter_id == %s", (id, ))
+        query.append_where("filter_id = %s", (id, ))
         cursor.execute(query.to_sql(), query.get_args())
         record = cursor.fetchone()
 
@@ -420,7 +420,7 @@ class DatabaseQueries(object):
             cfilter_class = NAME2COMPLEX[record[0]]
             query = SimpleSelect('filters_complexfilters_subfilters')
             query.select_column('filter_id')
-            query.append_where("complexfilter_id == %s", (id, ))
+            query.append_where("complexfilter_id = %s", (id, ))
             cursor.execute(query.to_sql(), query.get_args())
             sf_records = cursor.fetchall()
             filterlist = []
@@ -433,7 +433,7 @@ class DatabaseQueries(object):
     def __get_medialist_filterids(self, cursor, ml_id):
         query = SimpleSelect('medialist_filters')
         query.select_column('filter_id')
-        query.append_where("medialist_id == %s", (ml_id, ))
+        query.append_where("medialist_id = %s", (ml_id, ))
         cursor.execute(query.to_sql(), query.get_args())
 
         return cursor.fetchall()

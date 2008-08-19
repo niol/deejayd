@@ -85,8 +85,8 @@ class MediaSelectQuery(SimpleSelect):
     def join_on_tag(self, tagname):
         if tagname not in self.__joined_tags:
             self.__joined_tags.append(tagname)
-            j_st = "JOIN media_info %(tag)s ON %(tag)s.id == library.id\
-                                            AND %(tag)s.ikey == '%(tag)s'"\
+            j_st = "JOIN media_info %(tag)s ON %(tag)s.id = library.id\
+                                            AND %(tag)s.ikey = '%(tag)s'"\
                    % { 'tag' : tagname }
             self.joins.append(j_st)
 

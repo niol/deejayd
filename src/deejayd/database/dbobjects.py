@@ -106,7 +106,7 @@ class _BasicFilter(mediafilters.BasicFilter, NoneFilter):
 class Equals(mediafilters.Equals, _BasicFilter):
 
     def _match_tag(self):
-        return "(%s.value == " % (self.tag,) + "%s)", self.pattern
+        return "(%s.value = " % (self.tag,) + "%s)", self.pattern
 
 
 class NotEquals(mediafilters.NotEquals, _BasicFilter):
