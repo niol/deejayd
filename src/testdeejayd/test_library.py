@@ -21,7 +21,7 @@ Deejayd DB testing module
 """
 import os,time
 from testdeejayd import TestCaseWithAudioData, TestCaseWithVideoData
-from deejayd import database
+from deejayd import database,mediafilters
 from deejayd.database.queries import DatabaseQueries
 from deejayd.mediadb.library import AudioLibrary,VideoLibrary,NotFoundException
 from deejayd.mediadb import inotify
@@ -237,21 +237,17 @@ class TestAudioLibrary(TestCaseWithAudioData, _TestDeejayDBLibrary):
 
     def testSearchFile(self):
         """Search a file in audio library"""
-        self.assertRaises(NotFoundException,
-              self.library.search, self.testdata.getRandomString(),\
-              self.testdata.getRandomString())
-
-        self.assertEqual([],
-                  self.library.search("genre", self.testdata.getRandomString()))
+        filter = mediafilters.Contains("genre", self.testdata.getRandomString())
+        self.assertEqual([], self.library.search(filter))
 
         searched_genre = self.testdata.getRandomGenre()
+        filter = mediafilters.Contains("genre", searched_genre)
         matched_medias_uri = []
         for path, media in self.testdata.medias.items():
             if searched_genre == media.tags['genre']:
                 matched_medias_uri.append(media.tags['uri'])
 
-        found_items_uri = [x['uri'] for x\
-                             in self.library.search("genre", searched_genre)]
+        found_items_uri = [x['uri'] for x in self.library.search(filter)]
 
         self.assertEqual(len(matched_medias_uri), len(found_items_uri))
 
