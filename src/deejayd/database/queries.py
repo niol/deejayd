@@ -109,16 +109,6 @@ class DatabaseQueries(object):
             WHERE l.name = %s AND d.name = %s AND d.lib_type = %s"
         cursor.execute(query,(filename, dirname, type))
 
-    @query_decorator("none")
-    def erase_empty_dir(self, cursor, type = "audio"):
-        cursor.execute("SELECT DISTINCT name FROM library_dir\
-            WHERE lib_type=%s", (type,))
-        for (dirname,) in cursor.fetchall():
-            rs = self.get_all_files(dirname, type)
-            if len(rs) == 0: # remove directory
-                cursor.execute("DELETE FROM library_dir WHERE name = %s",\
-                    (dirname,))
-
     @query_decorator("lastid")
     def insert_dir(self, cursor, new_dir, type="audio"):
         query = "INSERT INTO library_dir (name,type,lib_type)VALUES(%s,%s,%s)"
@@ -279,6 +269,60 @@ class DatabaseQueries(object):
         filter.restrict(query)
         query.order_by_tag(tag)
         cursor.execute(query.to_sql(), query.get_args())
+
+    @query_decorator("none")
+    def post_update_action(self, cursor, type = "audio"):
+        # erase empty dir
+        cursor.execute("SELECT DISTINCT name FROM library_dir\
+            WHERE lib_type=%s", (type,))
+        for (dirname,) in cursor.fetchall():
+            rs = self.get_all_files(dirname, type)
+            if len(rs) == 0: # remove directory
+                cursor.execute("DELETE FROM library_dir WHERE name = %s",\
+                    (dirname,))
+
+        if type == "audio": # update compilation tag
+            #query = "SELECT DISTINCT value,value FROM media_info\
+            #            WHERE ikey='album'"
+            #cursor.execute(query)
+
+            #query = "UPDATE media_info SET value = \
+            #  (SELECT COUNT(DISTINCT m.value) FROM media_info m\
+            #    JOIN media_info m2 ON m.id = m2.id WHERE m.ikey='artist'\
+            #            AND m2.ikey='album' AND m2.value=%s)\
+            #  WHERE ikey='compilation' AND id IN\
+            #    (SELECT id FROM media_info WHERE ikey='album' AND value=%s)"
+            #cursor.executemany(query, cursor.fetchall())
+
+            query = "SELECT DISTINCT value FROM media_info WHERE ikey='album'"
+            cursor.execute(query)
+            for (album,) in cursor.fetchall():
+                query = "SELECT COUNT(DISTINCT m.value) FROM media_info m \
+                        JOIN media_info m2 ON m.id = m2.id\
+                        WHERE m.ikey='artist' AND m2.ikey='album'\
+                        AND m2.value=%s"
+                cursor.execute(query, (album,))
+                (value,) = cursor.fetchone()
+
+                cursor.execute("SELECT id FROM media_info\
+                        WHERE ikey='album' AND value=%s", (album,))
+                for (id,) in cursor.fetchall():
+                    cursor.execute("UPDATE media_info SET value = %s\
+                            WHERE ikey='compilation' AND id = %s",(value, id))
+
+        # record mediadb stats
+        query = "UPDATE stats SET value = \
+          (SELECT COUNT(DISTINCT m.value) FROM media_info m JOIN media_info m2\
+            ON m.id = m2.id WHERE m.ikey=%s AND m2.ikey='type' AND m2.value=%s)\
+          WHERE name = %s"
+        if type == "audio":
+            values = [("uri", "song", "songs"),
+                    ("artist", "song", "artists"),
+                    ("genre", "song", "genres"),
+                    ("album", "song", "albums")]
+        elif type == "video":
+            values = [("uri", "video", "videos")]
+        cursor.executemany(query, values)
 
     #
     # cover requests
@@ -532,25 +576,6 @@ class DatabaseQueries(object):
     #
     # Stat requests
     #
-    @query_decorator("none")
-    def record_mediadb_stats(self, cursor, type):
-        values = []
-        if type == "audio":
-            # number of songs
-            cursor.execute("SELECT COUNT(l.name) FROM library l, library_dir d\
-                WHERE d.lib_type = 'audio' AND l.directory = d.id")
-            values.append((cursor.fetchone()[0],"songs"))
-            for tag in ("genre", "artist", "album"):
-                cursor.execute("SELECT DISTINCT value FROM media_info\
-                    WHERE ikey = %s", (tag,))
-                values.append((len(cursor.fetchall()),tag+"s"))
-        elif type == "video":
-            cursor.execute("SELECT COUNT(l.name) FROM library l, library_dir d\
-                WHERE d.lib_type = 'video' AND l.directory = d.id")
-            values.append((cursor.fetchone()[0],"videos"))
-
-        cursor.executemany("UPDATE stats SET value = %s WHERE name = %s",values)
-
     @query_decorator("none")
     def set_update_time(self, cursor, type):
         cursor.execute("UPDATE stats SET value = %s WHERE name = %s",\

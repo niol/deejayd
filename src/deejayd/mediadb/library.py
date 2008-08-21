@@ -44,7 +44,7 @@ def inotify_action(func):
 
         rs = func(*__args, **__kw)
         if rs: # commit change
-            self.db_con.record_mediadb_stats(self.type)
+            self.db_con.post_update_action(self.type)
             self.db_con.set_update_time(self.type)
             self.db_con.connection.commit()
             self.dispatch_signame(self.update_signal_name)
@@ -277,12 +277,8 @@ class _Library(SignalingComponent):
                 if self.watcher:
                     self.watcher.stop_watching_dir(os.path.join(root,
                                                                 dirlinkname))
-            # Remove empty dir
-            self.db_con.erase_empty_dir(self.type)
-            # update stat values
-            self.db_con.record_mediadb_stats(self.type)
+            self.db_con.post_update_action(self.type)
             self.db_con.set_update_time(self.type)
-            # update root
             # commit changes
             self.db_con.connection.commit()
             self.mutex.release()
@@ -499,7 +495,8 @@ class AudioLibrary(_Library):
     search_type = "song"
     update_signal_name = 'mediadb.aupdate'
     custom_attr = ("artist","album","genre","tracknumber","date","bitrate",\
-                   "replaygain_track_gain","replaygain_track_peak")
+                   "replaygain_track_gain","replaygain_track_peak",\
+                   "compilation")
     cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg")
 
     def __extract_cover(self, image_path):

@@ -94,6 +94,7 @@ def upgrade(cursor, backend, config):
                 "lastplayed": "0",
                 "skipcount": "0",
                 "playcount": "0",
+                "compilation": "0",
                 "tracknumber": tk,
                 "title": tit,
                 "genre": gn,
