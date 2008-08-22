@@ -44,7 +44,7 @@ def inotify_action(func):
 
         rs = func(*__args, **__kw)
         if rs: # commit change
-            self.db_con.post_update_action(self.type)
+            self.db_con.update_stats(self.type)
             self.db_con.connection.commit()
             self.dispatch_signame(self.update_signal_name)
 
@@ -247,35 +247,41 @@ class _Library(SignalingComponent):
                 return True
         return False
 
+    def _update_dir(self, dir):
+        # dirname/filename : (id, lastmodified)
+        library_files = dict([(os.path.join(it[1],it[3]), (it[2],it[4]))\
+            for it in self.db_con.get_all_files(dir,self.type)])
+        # name : id
+        library_dirs = dict([(item[1],item[0]) for item \
+                            in self.db_con.get_all_dirs(dir,self.type)])
+        # name
+        library_dirlinks = [item[1] for item\
+                            in self.db_con.get_all_dirlinks(dir, self.type)]
+
+        self.walk_directory(dir or self.get_root_path(),
+                            library_dirs, library_files, library_dirlinks)
+
+        # Remove unexistent files and directories from library
+        for (id, lastmodified) in library_files.values():
+            self.db_con.remove_file(id)
+            self.emit_changes("remove", id)
+        for id in library_dirs.values(): self.db_con.remove_dir(id)
+        for dirlinkname in library_dirlinks:
+            self.db_con.remove_dirlink(dirlinkname, self.type)
+            if self.watcher:
+                self.watcher.stop_watching_dir(os.path.join(root,
+                                                            dirlinkname))
+
     def _update(self):
         self._update_end = False
 
         try:
-            # dirname/filename : (id, lastmodified)
-            library_files = dict([(os.path.join(it[1],it[3]), (it[2],it[4]))\
-                for it in self.db_con.get_all_files('',self.type)])
-            # name : id
-            library_dirs = dict([(item[1],item[0]) for item \
-                                in self.db_con.get_all_dirs('',self.type)])
-            # name
-            library_dirlinks = [item[1] for item\
-                                in self.db_con.get_all_dirlinks('', self.type)]
-
-            self.walk_directory(self.get_root_path(),
-                                library_dirs, library_files, library_dirlinks)
+            self._update_dir('')
 
             self.mutex.acquire()
-            # Remove unexistent files and directories from library
-            for (id, lastmodified) in library_files.values():
-                self.db_con.remove_file(id)
-                self.emit_changes("remove", id)
-            for id in library_dirs.values(): self.db_con.remove_dir(id)
-            for dirlinkname in library_dirlinks:
-                self.db_con.remove_dirlink(dirlinkname, self.type)
-                if self.watcher:
-                    self.watcher.stop_watching_dir(os.path.join(root,
-                                                                dirlinkname))
-            self.db_con.post_update_action(self.type)
+            self.db_con.erase_empty_dir(self.type)
+            self.db_con.update_stats(self.type)
+            if self.type == "audio": self.db_con.set_compilation_tag()
             # commit changes
             self.db_con.connection.commit()
             self.mutex.release()
@@ -343,9 +349,6 @@ class _Library(SignalingComponent):
                 else: del library_files[file_path]
                 if need_update:
                     fid = self.set_media(dir_id,root,file,fid)
-                    if changes_type == "update":
-                        lastmodified = os.stat(file_path).st_mtime
-                        self.db_con.update_file(fid, lastmodified)
                 if fid: self.set_extra_infos(root, file, fid)
                 if need_update and fid: self.emit_changes(changes_type, fid)
 
@@ -373,9 +376,11 @@ for more information.") % file_path)
             log.err(traceback.format_exc())
             log.err("-----------------------------------------------------")
             return
+        lastmodified = os.stat(file_path).st_mtime
         if file_id: # do not update persistent attribute
             for attr in self.__class__.persistent_attr: del file_info[attr]
             fid = file_id
+            self.db_con.update_file(fid, lastmodified)
         else:
             lastmodified = os.stat(file_path).st_mtime
             fid = self.db_con.insert_file(dir_id, filename, lastmodified)
@@ -415,16 +420,22 @@ for more information.") % file_path)
         except NotSupportedFormat: # file not supported
             return self._inotify_add_info(path, file)
 
-        dir_id = self.db_con.is_dir_exist(path, self.type) or\
-                 self.db_con.insert_dir(path, self.type)
-        fid = self.set_media(dir_id, path, file, None)
+        file_record = self.db_con.is_file_exist(path, file, self.type)
+        if file_record: # file already exists
+            dir_id, file_id = file_record
+        else:
+            dir_id = self.db_con.is_dir_exist(path, self.type) or\
+                     self.db_con.insert_dir(path, self.type)
+            file_id = None
+
+        fid = self.set_media(dir_id, path, file, file_id)
         if fid:
             self.set_extra_infos(path, file, fid)
             self._add_missing_dir(path)
             self.emit_changes("add", fid)
         else:
-            self._inotify_add_info(path, file)
             self._remove_empty_dir(path)
+            return self._inotify_add_info(path, file)
         return True
 
     @inotify_action
@@ -433,11 +444,6 @@ for more information.") % file_path)
         if file:
             dir_id, file_id = file
             self.set_media(dir_id, path, name, file_id)
-            # update lastmodified info
-            file_path = os.path.join(path, name)
-            lastmodified = os.stat(file_path).st_mtime
-            self.db_con.update_file(file_id, lastmodified)
-
             self.emit_changes("update", file_id)
             return True
         else: return self._inotify_update_info(path, name)
@@ -461,7 +467,7 @@ for more information.") % file_path)
             self.db_con.insert_dirlink(dir_path, self.type)
             self.watcher.watch_dir(dir_path, self)
 
-        self.walk_directory(dir_path,{},{},self.get_root_paths())
+        self._update_dir(dir_path.rstrip("/"))
         self._add_missing_dir(os.path.dirname(dir_path))
         self._remove_empty_dir(path)
         return True
