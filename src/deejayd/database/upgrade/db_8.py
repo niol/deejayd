@@ -143,6 +143,24 @@ def upgrade(cursor, backend, config):
                 (id,ikey,value)VALUES(%s,%s,%s)", entries)
             library_files[os.path.join(path,dir,fn)] = file_id
 
+    # set compilation tag
+    query = "SELECT DISTINCT value FROM media_info WHERE ikey='album'"
+    cursor.execute(query)
+    for (album,) in cursor.fetchall():
+        if album == '': continue # do not set compilation tag
+        query = "SELECT COUNT(DISTINCT m.value) FROM media_info m \
+                JOIN media_info m2 ON m.id = m2.id\
+                WHERE m.ikey='artist' AND m2.ikey='album'\
+                AND m2.value=%s"
+        cursor.execute(query, (album,))
+        (value,) = cursor.fetchone()
+
+        if int(value) > 1:
+            cursor.execute("SELECT id FROM media_info\
+                    WHERE ikey='album' AND value=%s", (album,))
+            cursor.executemany("UPDATE media_info SET value = '1'\
+                    WHERE ikey='compilation' AND id = %s",cursor.fetchall())
+
     # set medialist
     for pl_name, items in medialist.items():
         cursor.execute("INSERT INTO medialist (name,type)VALUES(%s,%s)",\
