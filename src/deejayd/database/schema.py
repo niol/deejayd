@@ -63,6 +63,7 @@ db_schema = [
         Column('id', auto_increment=True),
         Column('directory', type='int'),
         Column('name'),
+        Column('lastmodified', type='int'),
         Index(('name', 'directory')),
         Index(('directory',), unique = False)],
     Table('media_info', key=('id','ikey'))[

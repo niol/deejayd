@@ -77,19 +77,21 @@ def upgrade(cursor, backend, config):
 
     # set library files
     library_files = {}
-    query = "INSERT INTO library (directory,name)VALUES(%s, %s)"
+    query = "INSERT INTO library (directory,name,lastmodified)VALUES(%s,%s,%s)"
     for id,dir,fn,type,tit,art,alb,gn,tk,date,len,bt,rpg,rpp in audio_library:
         path = config.get("mediadb","music_directory")
         if type == "file":
             try: dir_id = audio_dirs[os.path.join(path,dir).rstrip("/")]
             except KeyError:
                 continue
-            cursor.execute(query, (dir_id,fn))
+            file_path = os.path.join(path,dir,fn)
+            if not os.path.isfile(file_path): continue
+            cursor.execute(query, (dir_id,fn,os.stat(file_path).st_mtime))
             file_id = cursor.lastrowid
             infos = {
                 "type": "song",
                 "filename": fn,
-                "uri": "file:/%s" % urllib.quote(os.path.join(path,dir,fn)),
+                "uri": "file:/%s" % urllib.quote(file_path),
                 "rating": "2",
                 "lastplayed": "0",
                 "skipcount": "0",
@@ -118,12 +120,14 @@ def upgrade(cursor, backend, config):
             try: dir_id = video_dirs[os.path.join(path,dir).rstrip("/")]
             except KeyError:
                 continue
-            cursor.execute(query, (dir_id,fn))
+            file_path = os.path.join(path,dir,fn)
+            if not os.path.isfile(file_path): continue
+            cursor.execute(query, (dir_id,fn,os.stat(file_path).st_mtime))
             file_id = cursor.lastrowid
             infos = {
                 "type": "video",
                 "filename": fn,
-                "uri": "file:/%s" % urllib.quote(os.path.join(path,dir,fn)),
+                "uri": "file:/%s" % urllib.quote(file_path),
                 "rating": "2",
                 "lastplayed": "0",
                 "skipcount": "0",
@@ -156,6 +160,7 @@ def upgrade(cursor, backend, config):
 
     # other updates
     sql = [
+        "DELETE FROM variables WHERE name='repeat'",
         "DELETE FROM variables WHERE name='songlistid'",
         "DELETE FROM variables WHERE name='repeat'",
         "DELETE FROM variables WHERE name='random'",
@@ -170,7 +175,6 @@ def upgrade(cursor, backend, config):
         "INSERT INTO variables VALUES('panelid','1');",
         "INSERT INTO variables VALUES('panel-type','panel');",
         "INSERT INTO variables VALUES('panel-value','');",
-
         "UPDATE variables SET value = '8' WHERE name = 'database_version';",
         ]
     for s in sql:

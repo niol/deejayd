@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -*- coding: utf-8 -*-
 
-import os, sys, threading, traceback, time, base64, urllib, locale
+import os, sys, threading, traceback, base64, urllib, locale
 from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
@@ -45,7 +45,6 @@ def inotify_action(func):
         rs = func(*__args, **__kw)
         if rs: # commit change
             self.db_con.post_update_action(self.type)
-            self.db_con.set_update_time(self.type)
             self.db_con.connection.commit()
             self.dispatch_signame(self.update_signal_name)
 
@@ -252,10 +251,9 @@ class _Library(SignalingComponent):
         self._update_end = False
 
         try:
-            self.last_update_time = self.db_con.get_update_time(self.type)
-            # dirname/filename : id
-            library_files = dict([(os.path.join(item[1],item[3]), item[2])\
-                for item in self.db_con.get_all_files('',self.type)])
+            # dirname/filename : (id, lastmodified)
+            library_files = dict([(os.path.join(it[1],it[3]), (it[2],it[4]))\
+                for it in self.db_con.get_all_files('',self.type)])
             # name : id
             library_dirs = dict([(item[1],item[0]) for item \
                                 in self.db_con.get_all_dirs('',self.type)])
@@ -268,7 +266,7 @@ class _Library(SignalingComponent):
 
             self.mutex.acquire()
             # Remove unexistent files and directories from library
-            for id in library_files.values():
+            for (id, lastmodified) in library_files.values():
                 self.db_con.remove_file(id)
                 self.emit_changes("remove", id)
             for id in library_dirs.values(): self.db_con.remove_dir(id)
@@ -278,7 +276,6 @@ class _Library(SignalingComponent):
                     self.watcher.stop_watching_dir(os.path.join(root,
                                                                 dirlinkname))
             self.db_con.post_update_action(self.type)
-            self.db_con.set_update_time(self.type)
             # commit changes
             self.db_con.connection.commit()
             self.mutex.release()
@@ -289,7 +286,8 @@ class _Library(SignalingComponent):
     def walk_directory(self, walk_root,
                        library_dirs, library_files, library_dirlinks,
                        forbidden_roots=None):
-        """Walk a directory for files to update. Called recursively to carefully handle symlinks."""
+        """Walk a directory for files to update.
+        Called recursively to carefully handle symlinks."""
         if not forbidden_roots:
             forbidden_roots = [self.get_root_path()]
 
@@ -335,9 +333,8 @@ class _Library(SignalingComponent):
 
                 file_path = os.path.join(root, file)
                 try:
-                    fid = library_files[file_path]
-                    need_update = os.stat(file_path).st_mtime >= \
-                        int(self.last_update_time)
+                    fid, lastmodified = library_files[file_path]
+                    need_update = os.stat(file_path).st_mtime > lastmodified
                     changes_type = "update"
                 except KeyError:
                     need_update = True
@@ -346,6 +343,9 @@ class _Library(SignalingComponent):
                 else: del library_files[file_path]
                 if need_update:
                     fid = self.set_media(dir_id,root,file,fid)
+                    if changes_type == "update":
+                        lastmodified = os.stat(file_path).st_mtime
+                        self.db_con.update_file(fid, lastmodified)
                 if fid: self.set_extra_infos(root, file, fid)
                 if need_update and fid: self.emit_changes(changes_type, fid)
 
@@ -375,7 +375,10 @@ for more information.") % file_path)
             return
         if file_id: # do not update persistent attribute
             for attr in self.__class__.persistent_attr: del file_info[attr]
-        fid = file_id or self.db_con.insert_file(dir_id, filename)
+            fid = file_id
+        else:
+            lastmodified = os.stat(file_path).st_mtime
+            fid = self.db_con.insert_file(dir_id, filename, lastmodified)
         self.db_con.set_media_infos(fid, file_info)
         return fid
 
@@ -430,6 +433,11 @@ for more information.") % file_path)
         if file:
             dir_id, file_id = file
             self.set_media(dir_id, path, name, file_id)
+            # update lastmodified info
+            file_path = os.path.join(path, name)
+            lastmodified = os.stat(file_path).st_mtime
+            self.db_con.update_file(file_id, lastmodified)
+
             self.emit_changes("update", file_id)
             return True
         else: return self._inotify_update_info(path, name)

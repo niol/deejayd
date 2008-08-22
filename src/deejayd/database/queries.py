@@ -83,9 +83,15 @@ class DatabaseQueries(object):
     # MediaDB requests
     #
     @query_decorator("lastid")
-    def insert_file(self, cursor, dir, filename):
-        query = "INSERT INTO library (directory,name)VALUES(%s, %s)"
-        cursor.execute(query, (dir, filename))
+    def insert_file(self, cursor, dir, filename, lastmodified):
+        query = "INSERT INTO library \
+                (directory,name,lastmodified)VALUES(%s, %s, %s)"
+        cursor.execute(query, (dir, filename, lastmodified))
+
+    @query_decorator("none")
+    def update_file(self, cursor, id, lastmodified):
+        query = "UPDATE library SET lastmodified = %s WHERE id = %s"
+        cursor.execute(query, (lastmodified, id))
 
     @query_decorator("rowcount")
     def set_media_infos(self, cursor, file_id, infos):
@@ -160,7 +166,7 @@ class DatabaseQueries(object):
 
     @query_decorator("fetchall")
     def get_all_files(self, cursor, dir, type = "audio"):
-        query = "SELECT DISTINCT d.id, d.name, l.id, l.name\
+        query = "SELECT DISTINCT d.id, d.name, l.id, l.name, l.lastmodified\
             FROM library l JOIN library_dir d ON d.id=l.directory\
             WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
         cursor.execute(query,(dir+"%%", type))
@@ -323,6 +329,10 @@ class DatabaseQueries(object):
         elif type == "video":
             values = [("uri", "video", "videos")]
         cursor.executemany(query, values)
+
+        # update last updated stats
+        cursor.execute("UPDATE stats SET value = %s WHERE name = %s",\
+            (time.time(),type+"_library_update"))
 
     #
     # cover requests
@@ -576,18 +586,6 @@ class DatabaseQueries(object):
     #
     # Stat requests
     #
-    @query_decorator("none")
-    def set_update_time(self, cursor, type):
-        cursor.execute("UPDATE stats SET value = %s WHERE name = %s",\
-                                        (time.time(),type+"_library_update"))
-
-    @query_decorator("custom")
-    def get_update_time(self, cursor, type):
-        cursor.execute("SELECT value FROM stats WHERE name = %s",\
-                                                    (type+"_library_update",))
-        (rs,) =  cursor.fetchone()
-        return rs
-
     @query_decorator("fetchall")
     def get_stats(self, cursor):
         cursor.execute("SELECT * FROM stats")
