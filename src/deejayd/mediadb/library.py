@@ -281,7 +281,6 @@ class _Library(SignalingComponent):
             self.mutex.acquire()
             self.db_con.erase_empty_dir(self.type)
             self.db_con.update_stats(self.type)
-            if self.type == "audio": self.db_con.set_compilation_tag()
             # commit changes
             self.db_con.connection.commit()
             self.mutex.release()
@@ -385,6 +384,9 @@ for more information.") % file_path)
             lastmodified = os.stat(file_path).st_mtime
             fid = self.db_con.insert_file(dir_id, filename, lastmodified)
         self.db_con.set_media_infos(fid, file_info)
+        # update compilation tag if necessary
+        if fid and "album" in file_info.keys() and file_info["album"] != '':
+            self.db_con.set_compilation_tag(fid, file_info)
         return fid
 
     def set_extra_infos(self, dir, file, file_id):

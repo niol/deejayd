@@ -280,40 +280,29 @@ class DatabaseQueries(object):
 # Post update action
 #
     @query_decorator("none")
-    def set_compilation_tag(self, cursor, album = None):
-        #query = "SELECT DISTINCT value,value FROM media_info\
-        #            WHERE ikey='album'"
-        #cursor.execute(query)
-
-        #query = "UPDATE media_info SET value = \
-        #  (SELECT COUNT(DISTINCT m.value) FROM media_info m\
-        #    JOIN media_info m2 ON m.id = m2.id WHERE m.ikey='artist'\
-        #            AND m2.ikey='album' AND m2.value=%s)\
-        #  WHERE ikey='compilation' AND id IN\
-        #    (SELECT id FROM media_info WHERE ikey='album' AND value=%s)"
-        #cursor.executemany(query, cursor.fetchall())
-
-        if album is None:
-            query = "SELECT DISTINCT value FROM media_info WHERE ikey='album'"
-            cursor.execute(query)
-            albums = cursor.fetchall()
+    def set_compilation_tag(self, cursor, fid, file_info):
+        query = "SELECT DISTINCT m.id,m.value,m3.value FROM media_info m\
+                JOIN media_info m2 ON m.id = m2.id\
+                JOIN media_info m3 ON m.id = m3.id\
+                WHERE m.ikey='compilation' AND m2.ikey='album'\
+                AND m2.value=%s AND m3.ikey='artist'"
+        cursor.execute(query, (file_info["album"],))
+        try: (id, compilation, artist) = cursor.fetchone()
+        except TypeError: # first song of this album
+            return
         else:
-            albums = [(album,)]
+            need_update = False
+            if int(compilation) == 1:
+                need_update, ids = True, [(fid,)]
+            elif artist != file_info["artist"]:
+                need_update = True
+                cursor.execute("SELECT id FROM media_info\
+                        WHERE ikey='album' AND value=%s", (file_info["album"],))
+                ids = cursor.fetchall()
 
-        for (album,) in albums:
-            if album == '': continue # do not set compilation tag
-            query = "SELECT COUNT(DISTINCT m.value) FROM media_info m \
-                    JOIN media_info m2 ON m.id = m2.id\
-                    WHERE m.ikey='artist' AND m2.ikey='album'\
-                    AND m2.value=%s"
-            cursor.execute(query, (album,))
-            (value,) = cursor.fetchone()
-
-            cursor.execute("SELECT id FROM media_info\
-                    WHERE ikey='album' AND value=%s", (album,))
-            for (id,) in cursor.fetchall():
-                cursor.execute("UPDATE media_info SET value = %s\
-                        WHERE ikey='compilation' AND id = %s",(value, id))
+        if need_update:
+            cursor.executemany("UPDATE media_info SET value = '1'\
+                    WHERE ikey='compilation' AND id = %s", ids)
 
     @query_decorator("none")
     def erase_empty_dir(self, cursor, type = "audio"):
