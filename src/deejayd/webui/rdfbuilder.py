@@ -223,7 +223,8 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
                 self.__build_tag_list(rdf_builder, t, list, selected)
 
                 # add filter for next panel
-                if selected: panel_filter.combine(Equals(t, selected))
+                if selected is not None:
+                    panel_filter.combine(Equals(t, selected))
 
         # build medialist
         seq = rdf_builder.build_seq("http://%s/all-content" % self.name)
