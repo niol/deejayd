@@ -142,6 +142,7 @@ class _ComplexFilter(mediafilters.ComplexFilter, NoneFilter):
             query.append_where(where_str, args)
 
     def _build_wheres(self, query):
+        if not self.filterlist: return "(1)", []
         wheres, wheres_args = [], []
         for filter in self.filterlist:
             if filter.type == "basic":
