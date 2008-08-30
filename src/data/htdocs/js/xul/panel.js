@@ -200,7 +200,7 @@ var Panel = function()
                 if (item.getAttribute("selected") == "true") { break; }
                 idx += 1;
                 }
-            idx = Math.min(idx+1, pn.getRowCount());
+            idx = Math.min(idx+1, pn.getRowCount()-1);
             pn.ensureIndexIsVisible(idx);
             }
     };
