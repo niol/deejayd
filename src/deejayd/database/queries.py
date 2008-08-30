@@ -265,6 +265,9 @@ class DatabaseQueries(object):
         for tag in infos:
             query.select_tag(tag)
         filter.restrict(query)
+        # TODO : do not set static orders
+        query.order_by_tag("album")
+        query.order_by_tag("tracknumber")
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("fetchall")
