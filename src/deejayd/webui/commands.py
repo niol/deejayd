@@ -509,7 +509,12 @@ class PanelUpdateFilter(_UnknownCommand):
         panel = self._deejayd.get_panel()
         if self._args["value"] == "__all__":
             panel.remove_panel_filters(self._args["type"], self._args["tag"])
+        elif self._args["value"] == "__compilation__":
+            panel.remove_panel_filters(self._args["type"], self._args["tag"])
+            panel.update_panel_filters("compilation", "equals", "1")
         else:
+            if self._args["tag"] in ("artist", "genre"):
+                panel.remove_panel_filters("equals", "compilation")
             panel.update_panel_filters(self._args["tag"],\
                 self._args["type"], self._args["value"])
 

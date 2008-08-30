@@ -22,8 +22,9 @@ from deejayd.webui import rdfbuilder
 
 class DeejaydWebAnswer(DeejaydXMLObject):
 
-    def __init__(self,rdf_dir):
+    def __init__(self,rdf_dir,compilation):
         self.__rdf_dir = rdf_dir
+        self.__compilation = compilation
         self.xmlroot = ET.Element('deejayd')
 
     def set_config(self, config_parms):
@@ -56,8 +57,8 @@ class DeejaydWebAnswer(DeejaydXMLObject):
 
     def set_mode(self, status, deejayd):
         for builder in rdfbuilder.modes:
-            getattr(rdfbuilder, builder)(deejayd,self.__rdf_dir)\
-                .update(self, status)
+            getattr(rdfbuilder, builder)\
+              (deejayd,self.__rdf_dir,self.__compilation).update(self, status)
 
     def set_videodir(self, new_id, deejayd):
         nid = rdfbuilder.DeejaydVideoDirRdf(deejayd,self.__rdf_dir).\

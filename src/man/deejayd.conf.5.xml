@@ -252,6 +252,17 @@ bind_addresses = 192.168.51.2, 10.0.0.3
         </listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>compilation</term>
+        <listitem>
+          <para>set to true to use compilation tag in panel mode
+          (compilations's artist under "Various Artist" name)
+          <parameter>true</parameter> to enable use of compilation tag
+          <parameter>false</parameter> to disable use of compilation tag
+          </para>
+        </listitem>
+      </varlistentry>
+
     </variablelist>
   </refsect1>
 

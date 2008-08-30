@@ -51,10 +51,11 @@ class DeejaydMainHandler(Resource):
 class DeejaydCommandHandler(Resource):
     isLeaf = True
 
-    def __init__(self, deejayd, rdf_dir):
+    def __init__(self, deejayd, rdf_dir, compilation):
         Resource.__init__(self)
         self.__deejayd = deejayd
         self.__rdf_dir = rdf_dir
+        self.__compilation = compilation
 
     def render_GET(self,request):
         return self.__render(request,"get")
@@ -65,7 +66,7 @@ class DeejaydCommandHandler(Resource):
     def __render(self, request, type):
         # init xml answer
         request.setHeader("Content-type","text/xml")
-        ans = DeejaydWebAnswer(self.__rdf_dir)
+        ans = DeejaydWebAnswer(self.__rdf_dir, self.__compilation)
 
         try: action = request.args["action"]
         except KeyError:
@@ -106,6 +107,7 @@ class SiteWithCustomLogging(server.Site):
 
 
 def init(deejayd_core, config, webui_logfile):
+    compilation = config.get("webui","compilation")
     # create tmp directory
     rdf_dir = config.get("webui","rdf_dir")
     if os.path.isdir(rdf_dir):
@@ -118,7 +120,8 @@ def init(deejayd_core, config, webui_logfile):
         raise DeejaydWebError(_("Unable to create rdf directory %s") % rdf_dir)
 
     root = DeejaydMainHandler(deejayd_core, config)
-    root.putChild("commands",DeejaydCommandHandler(deejayd_core, rdf_dir))
+    root.putChild("commands",DeejaydCommandHandler(deejayd_core, rdf_dir,\
+            compilation))
 
     htdocs_dir = config.get("webui","htdocs_dir")
     if not os.path.isdir(htdocs_dir):

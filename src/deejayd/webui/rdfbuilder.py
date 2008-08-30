@@ -81,9 +81,10 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
     name = "unknown"
     locale_strings = None
 
-    def __init__(self, deejayd, rdf_dir):
+    def __init__(self, deejayd, rdf_dir, compilation = False):
         self._deejayd = deejayd
         self._rdf_dir = rdf_dir
+        self._compilation = compilation
 
     def update(self, xml_ans, status):
         current_id = self._get_current_id()
@@ -214,17 +215,72 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
 
             for t in ("genre", "artist", "album"):
                 selected = None
-                for ft in filter_list:
-                    if ft.get_name() == "equals" and ft.tag == t:
-                        selected = ft.pattern
-                        break
 
-                list = self._deejayd.mediadb_list(t, panel_filter)
-                self.__build_tag_list(rdf_builder, t, list, selected)
+                if t == "artist" and self._compilation:
+                    list = []
+                    # find compilation
+                    for ft in filter_list:
+                        if ft.get_name() == "equals" \
+                                and ft.tag == "compilation"\
+                                and ft.pattern == "1":
+                            selected = "__compilation__"
+                            break
+                        elif ft.get_name() == "equals" and ft.tag == t:
+                            selected = ft.pattern
+                            break
+                    tag_filter = And()
+                    tag_filter.combine(panel_filter)
+                    tag_filter.combine(Equals("compilation", "0"))
+                    list = self._deejayd.mediadb_list(t, tag_filter)
 
-                # add filter for next panel
-                if selected is not None:
-                    panel_filter.combine(Equals(t, selected))
+                    # add filter for next panel
+                    if selected is not None:
+                        if selected == "__compilation__":
+                            panel_filter.combine(Equals("compilation", "1"))
+                        else:
+                            panel_filter.combine(Equals(t, selected))
+
+                    items = [{"name": _("All"), "value":"__all__", \
+                              "class":"list-all", \
+                              "sel":str(selected==None).lower()}]
+                    # set various artist tag only if needed
+                    tag_filter = And()
+                    tag_filter.combine(panel_filter)
+                    tag_filter.combine(Equals("compilation", "1"))
+                    if len(self._deejayd.mediadb_list("album", tag_filter)):
+                        items.append({"name": _("Various Artists"),\
+                              "value":"__compilation__", "class":"", \
+                              "sel":str(selected=="__compilation__").lower()})
+                    items.extend([{"name": l,"value":l,\
+                            "sel":str(selected==l).lower(), "class":""}\
+                            for l in list if l != ""])
+                    if "" in list:
+                        items.append({"name": _("Unknown"), "value":"",\
+                            "class":"list-unknown",\
+                            "sel":str(selected=="").lower()})
+
+                else:
+                    for ft in filter_list:
+                        if ft.get_name() == "equals" and ft.tag == t:
+                            selected = ft.pattern
+                            break
+                    list = self._deejayd.mediadb_list(t, panel_filter)
+                    # add filter for next panel
+                    if selected is not None:
+                        panel_filter.combine(Equals(t, selected))
+
+                    items = [{"name": _("All"), "value":"__all__", \
+                            "class":"list-all", \
+                            "sel":str(selected==None).lower()}]
+                    items.extend([{"name": l,"value":l,\
+                            "sel":str(selected==l).lower(), "class":""}\
+                            for l in list if l != ""])
+                    if "" in list:
+                        items.append({"name": _("Unknown"), "value":"",\
+                            "class":"list-unknown",\
+                            "sel":str(selected=="").lower()})
+
+                self.__build_tag_list(rdf_builder, t, items, selected)
 
         # build medialist
         seq = rdf_builder.build_seq("http://%s/all-content" % self.name)
@@ -235,15 +291,8 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
 
         self._save_rdf(rdf_builder, new_id)
 
-    def __build_tag_list(self, rdf_builder, type, list, selected = None):
+    def __build_tag_list(self, rdf_builder, type, items, selected = None):
         seq = rdf_builder.build_seq("http://panel/all-%s" % type)
-        items = [{"name": _("All"), "value":"__all__", "class":"list-all",\
-                  "sel":str(selected==None).lower()}]
-        items.extend([{"name": l,"value":l,"sel":str(selected==l).lower(),\
-                       "class":""} for l in list if l != ""])
-        if "" in list:
-            items.append({"name": _("Unknown"), "value":"",\
-                "class":"list-unknown","sel":str(selected=="").lower()})
 
         for idx, item in enumerate(items):
             li = rdf_builder.build_li(seq)
