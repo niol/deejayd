@@ -149,6 +149,7 @@ if __name__ == "__main__":
                      "deejayd.mediadb.formats", "deejayd.player",\
                      "deejayd.player.display","deejayd.sources","deejayd.ui",\
                      "deejayd.database","deejayd.database.upgrade",\
+                     "deejayd.database.backends",\
                      "deejayd.webui","deejayd.webui.templates"],
            package_data={'deejayd.ui': ['defaults.conf'],
                          'deejayd.webui.templates': ['*.xml']},
