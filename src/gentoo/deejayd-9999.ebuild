@@ -26,6 +26,7 @@ RDEPEND="
 	|| ( >=dev-lang/python-2.5.0
 		 >=dev-python/celementtree-1.0.2 )
 	>=media-libs/mutagen-1.9
+	>=dev-python/lxml-1.3.0
 	logrotate? ( app-admin/logrotate )
 	webui? ( >=dev-python/twisted-web-0.6.0 )
 	inotify? ( >=dev-python/pyinotify-0.6.0 )
@@ -66,7 +67,7 @@ src_install() {
 
 	# Conf
 	insinto /etc
-	newins doc/deejayd.conf.example deejayd.conf
+	newins deejayd/ui/defaults.conf deejayd.conf
 
 	# conf.d
 	newconfd "${FILESDIR}/deejayd.confd" deejayd
