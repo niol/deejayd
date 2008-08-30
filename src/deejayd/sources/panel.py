@@ -23,7 +23,7 @@ class PanelSource(_BaseLibrarySource):
     base_medialist = "__panelcurrent__"
     name = "panel"
     source_signal = 'panel.update'
-    panel_tags = ('genre','artist','album')
+    equals_tags = ('genre','artist','album','compilation')
     contains_tags = ('genre','artist','album','title','all')
 
     def __init__(self, db, library):
@@ -75,7 +75,10 @@ class PanelSource(_BaseLibrarySource):
         except (TypeError, AttributeError):
             self.__panel_filters = And()
             filter_list = []
-        if type == "equals":
+
+        if type == "equals": # panel
+            if tag not in self.__class__.equals_tags:
+                raise SourceError(_("Tag %s not supported") % tag)
             found = False
             for ft in filter_list:
                 if ft.get_name() == "equals" and ft.tag == tag:
@@ -85,6 +88,8 @@ class PanelSource(_BaseLibrarySource):
             if not found: self.__panel_filters.combine(Equals(tag, value))
 
         elif type == "contains":
+            if tag not in self.__class__.contains_tags:
+                raise SourceError(_("Tag %s not supported") % tag)
             self.__panel_filters = And()
             if tag == "all":
                 new_filter = Or()
@@ -97,22 +102,25 @@ class PanelSource(_BaseLibrarySource):
         elif type == "order":
             pass # TODO
         else:
-            raise TypeError
+            raise SourceError(_("Unknown filter type"))
         self.__set_panel_filters(self.__panel_filters)
 
     def remove_panel_filters(self, type, tag):
         if not self.__panel_filters: return
+
         if type == "equals":
             for ft in self.__panel_filters.filterlist:
                 if ft.get_name() == "equals" and ft.tag == tag:
                     self.__panel_filters.filterlist.remove(ft)
                     self.__set_panel_filters(self.__panel_filters)
                     return
+
         elif type == "contains":
             try: self.__panel_filters.filterlist.\
                 remove(self.__find_contains_filter())
             except (TypeError, ValueError, AttributeError):
                 return
+
         self.__set_panel_filters(self.__panel_filters)
 
     def clear_panel_filters(self):
