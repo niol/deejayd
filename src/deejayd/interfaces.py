@@ -68,6 +68,10 @@ class DeejaydKeyValue(DeejaydAnswer):
 class DeejaydList(DeejaydAnswer):
     """List answer."""
 
+    def __len__(self):
+        self.get_contents()
+        return len(self.contents)
+
     def __iter__(self):
         self.get_contents()
         return self.contents.__iter__()
