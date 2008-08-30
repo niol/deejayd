@@ -42,6 +42,14 @@ class _AudioFile(_MediaFile):
     supported_tag = ("tracknumber","title","genre","artist","album","date",\
                      "replaygain_track_gain", "replaygain_track_peak")
 
+    def _format_tracknumber(self, tckn):
+        numbers = tckn.split("/")
+        try: numbers = ["%02d" % int(num) for num in numbers]
+        except (TypeError, ValueError):
+            return tckn
+
+        return "/".join(numbers)
+
     def parse(self, file):
         infos = _MediaFile.parse(self, file)
         infos["compilation"] = "0"
@@ -52,9 +60,12 @@ class _AudioFile(_MediaFile):
                 except AttributeError:
                     infos[i] = 0
             for t in self.supported_tag:
-                try: infos[t] = tag_info[t][0]
+                try: info = tag_info[t][0]
                 except:
-                    infos[t] = ''
+                    info = ''
+                if t == "tracknumber":
+                    info = self._format_tracknumber(info)
+                infos[t] = info
 
         return infos
 

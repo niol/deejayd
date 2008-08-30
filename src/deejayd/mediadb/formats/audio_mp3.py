@@ -28,7 +28,6 @@ class Mp3File(_AudioFile):
     IDS = { "TIT2": "title",
             "TPE1": "artist",
             "TALB": "album",
-            "TRCK": "tracknumber",
             }
     replaygain_process = False
 
@@ -72,6 +71,8 @@ class Mp3File(_AudioFile):
                 list = [stamp.text for stamp in frame.text]
                 infos["date"] = list[0]
                 continue
+            elif frame.FrameID == "TRCK": # tracknumber
+                infos["tracknumber"] = self._format_tracknumber(frame.text[0])
             elif frame.FrameID in self.IDS.keys():
                 infos[self.IDS[frame.FrameID]] = frame.text[0]
             else: continue

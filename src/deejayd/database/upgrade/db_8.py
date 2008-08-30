@@ -19,6 +19,14 @@
 import os, urllib
 from deejayd.database import schema
 
+def format_tracknumber(tckn):
+    numbers = tckn.split("/")
+    try: numbers = ["%02d" % int(num) for num in numbers]
+    except (TypeError, ValueError):
+        return tckn
+
+    return "/".join(numbers)
+
 def upgrade(cursor, backend, config):
     # get audio/video library
     cursor.execute("SELECT * FROM audio_library;")
@@ -97,7 +105,7 @@ def upgrade(cursor, backend, config):
                 "skipcount": "0",
                 "playcount": "0",
                 "compilation": "0",
-                "tracknumber": tk,
+                "tracknumber": format_tracknumber(tk),
                 "title": tit,
                 "genre": gn,
                 "artist": art,
