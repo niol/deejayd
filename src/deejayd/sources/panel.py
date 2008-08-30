@@ -25,6 +25,7 @@ class PanelSource(_BaseLibrarySource):
     source_signal = 'panel.update'
     equals_tags = ('genre','artist','album','compilation')
     contains_tags = ('genre','artist','album','title','all')
+    orders = ["album", "tracknumber"]
 
     def __init__(self, db, library):
         super(PanelSource, self).__init__(db, library)
@@ -55,7 +56,8 @@ class PanelSource(_BaseLibrarySource):
 
     def __set_panel_filters(self, filters):
         self.__panel_filters = filters
-        medias = self.library.search(self.__panel_filters)
+        medias = self.library.search(self.__panel_filters,\
+                self.__class__.orders)
         self._media_list.set(medias)
         self.dispatch_signame(self.__class__.source_signal)
 
@@ -64,9 +66,11 @@ class PanelSource(_BaseLibrarySource):
             try: medias = self._get_playlist_content(pl_id)
             except SourceError: # playlist does not exist, set to panel
                 self.__selected_mode["type"] = "panel";
-                medias = self.library.search(self.__panel_filters)
+                medias = self.library.search(self.__panel_filters,\
+                        self.__class__.orders)
         elif type == "panel":
-            medias = self.library.search(self.__panel_filters)
+            medias = self.library.search(self.__panel_filters,\
+                    self.__class__.orders)
         else: raise TypeError
         self._media_list.set(medias)
 

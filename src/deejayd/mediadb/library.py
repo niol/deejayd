@@ -158,7 +158,7 @@ class _Library(SignalingComponent):
             raise NotFoundException
         return files_rsp
 
-    def search(self, filter):
+    def search(self, filter, ords = []):
         type_filter = mediafilters.Equals("type", self.__class__.search_type)
         if not filter: filter = type_filter
         elif filter.get_name() == "and" \
@@ -167,7 +167,7 @@ class _Library(SignalingComponent):
         else:
             filter = mediafilters.And(filter, type_filter)
 
-        rs = self.db_con.search(filter, infos = self.media_attr)
+        rs = self.db_con.search(filter, infos = self.media_attr, orders=ords)
         return rs
 
     def get_root_path(self):

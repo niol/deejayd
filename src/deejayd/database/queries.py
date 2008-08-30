@@ -258,16 +258,15 @@ class DatabaseQueries(object):
         cursor.execute(query,(key, value))
 
     @query_decorator("medialist")
-    def search(self, cursor, filter, infos = []):
+    def search(self, cursor, filter, infos = [], orders = []):
         filter = self.sqlizer.translate(filter)
         query = MediaSelectQuery()
         query.select_id()
         for tag in infos:
             query.select_tag(tag)
         filter.restrict(query)
-        # TODO : do not set static orders
-        query.order_by_tag("album")
-        query.order_by_tag("tracknumber")
+        for order in orders:
+            query.order_by_tag(order)
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("fetchall")
