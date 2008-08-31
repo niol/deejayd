@@ -580,7 +580,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
                 filter.combine(mediafilters.Contains(tag, pattern))
         else:
             filter = mediafilters.Contains(type, pattern)
-        songs = self.audio_library.search(filter)
+        songs = self.audio_library.search(filter, ("album", "tracknumber"))
 
         return songs
 
