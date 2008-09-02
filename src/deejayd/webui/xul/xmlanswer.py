@@ -18,7 +18,7 @@
 
 import os,re
 from deejayd.xmlobject import DeejaydXMLObject, ET
-from deejayd.webui import rdfbuilder
+from deejayd.webui.xul import rdfbuilder
 
 class DeejaydWebAnswer(DeejaydXMLObject):
 

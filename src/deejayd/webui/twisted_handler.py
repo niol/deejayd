@@ -22,14 +22,38 @@ from twisted.web.resource import Resource
 
 from deejayd.interfaces import DeejaydError
 from deejayd.ui.log import LogFile
-from deejayd.webui.xmlanswer import DeejaydWebAnswer
-from deejayd.webui.templates import build_template
-from deejayd.webui import commands
+
+# xul parts
+from deejayd.webui.xul import templates as xul_templates
+from deejayd.webui.xul import xmlanswer as xul_xmlanswer
+from deejayd.webui.xul import commands as xul_commands
 
 class DeejaydWebError(Exception): pass
-default_path = os.path.abspath(os.path.dirname(__file__))
 
 class DeejaydMainHandler(Resource):
+
+    def getChild(self, name, request):
+        if name == '': return self
+        return Resource.getChild(self,name,request)
+
+    def render_GET(self, request):
+        try: user_agent = request.getHeader("user-agent")
+        except KeyError:
+            return self.__send_error()
+        if user_agent.find("Gecko") != -1 and user_agent.find("rv:1.9") != -1:
+            # xul interface is supported
+            request.redirect("xul/")
+            return _("Please go to xul subdirectory")
+        else:
+            return self.__send_error()
+
+    def __send_error(self):
+        return _("""
+        Your navigator is not supported.
+        """)
+
+
+class DeejaydXulHandler(Resource):
 
     def __init__(self, deejayd, config):
         Resource.__init__(self)
@@ -42,19 +66,19 @@ class DeejaydMainHandler(Resource):
 
     def render_GET(self, request):
         request.setHeader("Content-Type", "application/vnd.mozilla.xul+xml")
-        try: rs = build_template(self.__deejayd, self.__config)
+        try: rs = xul_templates.build_template(self.__deejayd, self.__config)
         except IOError, err:
             raise DeejaydWebError(err)
         return rs
 
 
-class DeejaydCommandHandler(Resource):
+class DeejaydXulCommandHandler(Resource):
     isLeaf = True
 
-    def __init__(self, deejayd, rdf_dir, compilation):
+    def __init__(self, deejayd, tmp_dir, compilation):
         Resource.__init__(self)
         self.__deejayd = deejayd
-        self.__rdf_dir = rdf_dir
+        self.__tmp_dir = tmp_dir
         self.__compilation = compilation
 
     def render_GET(self,request):
@@ -66,13 +90,13 @@ class DeejaydCommandHandler(Resource):
     def __render(self, request, type):
         # init xml answer
         request.setHeader("Content-type","text/xml")
-        ans = DeejaydWebAnswer(self.__rdf_dir, self.__compilation)
+        ans = xul_xmlanswer.DeejaydWebAnswer(self.__tmp_dir, self.__compilation)
 
         try: action = request.args["action"]
         except KeyError:
             ans.set_error(_("You have to enter an action."))
             return ans.to_xml()
-        try: cmd_cls = commands.commands[action[0]]
+        try: cmd_cls = xul_commands.commands[action[0]]
         except KeyError:
             ans.set_error(_("Command %s not found") % action[0])
             return ans.to_xml()
@@ -109,26 +133,31 @@ class SiteWithCustomLogging(server.Site):
 def init(deejayd_core, config, webui_logfile):
     compilation = config.get("webui","compilation")
     # create tmp directory
-    rdf_dir = config.get("webui","rdf_dir")
-    if os.path.isdir(rdf_dir):
-        try: shutil.rmtree(rdf_dir)
+    tmp_dir = config.get("webui","tmp_dir")
+    if os.path.isdir(tmp_dir):
+        try: shutil.rmtree(tmp_dir)
         except (IOError, OSError):
-            raise DeejaydWebError(_("Unable to remove rdf directory %s") % \
-                    rdf_dir)
-    try: os.mkdir(rdf_dir)
+            raise DeejaydWebError(_("Unable to remove tmp directory %s") % \
+                    tmp_dir)
+    try: os.mkdir(tmp_dir)
     except IOError:
-        raise DeejaydWebError(_("Unable to create rdf directory %s") % rdf_dir)
-
-    root = DeejaydMainHandler(deejayd_core, config)
-    root.putChild("commands",DeejaydCommandHandler(deejayd_core, rdf_dir,\
-            compilation))
-
+        raise DeejaydWebError(_("Unable to create tmp directory %s") % tmp_dir)
+    # get htdocs directory
     htdocs_dir = config.get("webui","htdocs_dir")
     if not os.path.isdir(htdocs_dir):
         raise DeejaydWebError(_("Htdocs directory %s does not exists") % \
                 htdocs_dir)
-    root.putChild("static",static.File(htdocs_dir))
-    root.putChild("rdf",static.File(rdf_dir))
+
+    root = DeejaydMainHandler()
+
+    # xul part
+    xul_handler = DeejaydXulHandler(deejayd_core, config)
+    xul_handler.putChild("commands",DeejaydXulCommandHandler(deejayd_core,\
+            tmp_dir, compilation))
+    xul_handler.putChild("static",static.File(htdocs_dir))
+    xul_handler.putChild("rdf",static.File(tmp_dir))
+    root.putChild("xul", xul_handler)
+
 
     return SiteWithCustomLogging(root, logPath=webui_logfile)
 
