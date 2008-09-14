@@ -28,42 +28,7 @@ function urlencode(str) {
   return output;
 }
 
-function $(id) {
-  return document.getElementById(id);
-}
-
 function eregReplace(search, replace, subject) {
 	return subject.replace(new RegExp(search,'g'), replace);
 }
 
-function toogleNodeVisibility(node)
-{
-    if (typeof node == 'string')
-        node = $(node);
-
-    var newState = node.style.visibility == "visible" ? "collapse" : "visible";
-    node.style.visibility = newState;
-}
-
-function removeNode(node)
-{
-	if (typeof node == 'string')
-		node = $(node);
-
-	if (node && node.parentNode)
-		return node.parentNode.removeChild(node);
-	else
-		return false;
-}
-
-function replaceNodeText(node,content)
-{
-    text = document.createTextNode(content);
-    if (typeof node == 'string')
-        node = $(node);
-
-    if (node.firstChild)
-        node.replaceChild(text,node.firstChild)
-    else
-        node.appendChild(text);
-}

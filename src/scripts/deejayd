@@ -219,14 +219,14 @@ if __name__ == "__main__":
     # webui service
     if config.getboolean("webui","enabled"):
         try:
-            from deejayd.webui import twisted_handler as handler
+            from deejayd import webui
         except ImportError:
             log.err("webui does not seem to be installed, disabling.")
             config.set("webui", "enabled", False)
         else:
             service = True
-            try: site = handler.init(deejayd_core,config,options.webui_logfile)
-            except handler.DeejaydWebError, err:
+            try: site = webui.init(deejayd_core,config,options.webui_logfile)
+            except webui.DeejaydWebError, err:
                 log.err(err)
                 sys.exit(1)
 

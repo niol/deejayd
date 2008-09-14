@@ -141,11 +141,6 @@ function ajaxdj()
         return;
     };
 
-    this.updateMode = function()
-    {
-        this.send_command("setMode",{mode:$('mode-menu').value},true);
-    }
-
     this.parseConfig = function(config)
     {
         var args = config.getElementsByTagName("arg");

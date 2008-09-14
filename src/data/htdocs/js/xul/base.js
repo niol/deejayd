@@ -16,15 +16,57 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-function is_supported() {
-    try {
-        netscape.security.PrivilegeManager.
-            enablePrivilege("UniversalXPConnect");
-        }
-    catch (ex) {
-        // return error message
-        }
+/****************************************************************************/
+/* Common functions
+/****************************************************************************/
+
+function $(id) {
+  return document.getElementById(id);
 }
+
+function toogleNodeVisibility(node)
+{
+    if (typeof node == 'string')
+        node = $(node);
+
+    var newState = node.style.visibility == "visible" ? "collapse" : "visible";
+    node.style.visibility = newState;
+}
+
+function removeNode(node)
+{
+	if (typeof node == 'string')
+		node = $(node);
+
+	if (node && node.parentNode)
+		return node.parentNode.removeChild(node);
+	else
+		return false;
+}
+
+function replaceNodeText(node,content)
+{
+    text = document.createTextNode(content);
+    if (typeof node == 'string')
+        node = $(node);
+
+    if (node.firstChild)
+        node.replaceChild(text,node.firstChild)
+    else
+        node.appendChild(text);
+}
+
+/****************************************************************************/
+/****************************************************************************/
+
+var hasPrivilege = true;
+try {
+    netscape.security.PrivilegeManager.
+        enablePrivilege("UniversalXPConnect");
+    }
+catch (ex) {
+    hasPrivilege = false;
+    }
 
 var UIController = function(mainController)
 {
@@ -186,6 +228,11 @@ var UIController = function(mainController)
         if (rs)
             this.playerObj.updatePlayerInfo(rs);
     };
+
+    this.updateMode = function()
+    {
+        this.send_command("setMode",{mode:$('mode-menu').value},true);
+    }
 
 /************************************************/
 /************************************************/
