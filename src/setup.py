@@ -140,7 +140,7 @@ def build_data_files_list():
 if __name__ == "__main__":
     setup( name="deejayd", version=deejayd.__version__,
            url="http://mroy31.dyndns.org/~roy/projects/deejayd",
-           description="deejayd is a media player daemon based on twisted",
+           description="Network controllable media player daemon",
            author="Mikael Royer, Alexandre Rossi",
            author_email="mickael.royer@gmail.com",
            license="GNU GPL v2",
