@@ -20,7 +20,7 @@ import os
 import gobject,gtk,pango
 from djmote.utils.decorators import gui_callback
 from djmote.const import PL_PAGER_LENGTH
-from deejayd.net.client import DeejaydPlaylist, DeejaydError
+from deejayd.net.client import DeejaydError
 from djmote.widgets._base import _BaseSourceBox, _BaseLibraryDialog,\
                                  DjmoteTreeView, _BaseWidget,\
                                  DjmoteTreeBox, format_time
