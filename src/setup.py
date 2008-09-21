@@ -147,10 +147,11 @@ if __name__ == "__main__":
            scripts=["scripts/deejayd","scripts/djc"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
                      "deejayd.mediadb.formats", "deejayd.player",\
-                     "deejayd.player.display","deejayd.sources","deejayd.ui",\
+                     "deejayd.sources","deejayd.ui",\
                      "deejayd.database","deejayd.database.upgrade",\
                      "deejayd.database.backends",\
-                     "deejayd.webui","deejayd.webui.templates"],
+                     "deejayd.webui","deejayd.webui.templates",
+                     "pytyxi"],
            package_data={'deejayd.ui': ['defaults.conf'],
                          'deejayd.webui.templates': ['*.xml']},
            data_files= build_data_files_list(),
