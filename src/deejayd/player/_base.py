@@ -44,7 +44,7 @@ class UnknownPlayer(SignalingComponent):
         # Restore current media
         media_pos = int(self.db.get_state("current"))
         source = self.db.get_state("current_source")
-        if media_pos != -1 and source not in ("queue", "none"):
+        if media_pos != -1 and source not in ("queue", "none", 'webradio'):
             self._media_file = self._source.get(media_pos, "pos", source)
         # Update state
         state = self.db.get_state("state")
