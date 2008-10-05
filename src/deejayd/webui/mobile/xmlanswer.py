@@ -18,29 +18,7 @@
 
 import os,re
 from deejayd.xmlobject import DeejaydXMLObject, ET
-
-class _Page(object):
-
-    def __init__(self, deejayd):
-        self._core = deejayd
-
-    def get(self):
-        raise NotImplementedError
-
-def NowPlaying(_Page):
-    name = "now_playing"
-
-    def get(self):
-        template = """
-<div id="playing-control">
-    <div class="control-button" id="previous-button"/>
-    <div class="control-button %{state}" id="playpause-button"/>
-    <div class="control-button" id="play-button"/>
-</dib>
-<div id="playing-volume">
-</dib>
-"""
-
+from deejayd.webui.mobile import pages
 
 class DeejaydWebAnswer(DeejaydXMLObject):
 
@@ -55,12 +33,11 @@ class DeejaydWebAnswer(DeejaydXMLObject):
             elt = ET.SubElement(conf,"arg",name=parm,\
                 value=self._to_xml_string(config_parms[parm]))
 
-    def set_page(self, modes):
-        av_elt = ET.SubElement(self.xmlroot,"availableModes")
-        for (name,active) in modes.items():
-            elt = ET.SubElement(av_elt,"mode")
-            elt.attrib["name"] = self._to_xml_string(name)
-            elt.attrib["activate"] = self._to_xml_string(active)
+    def set_page(self, deejayd_core, mode = "now_playing"):
+        pages.page_list[mode](deejayd_core).get(self.xmlroot)
+
+    def refresh_page(self, deejayd_core, mode = "now_playing"):
+        pages.page_list[mode](deejayd_core).refresh(self.xmlroot)
 
     def update_player(self, status, cur_media):
         # Update player informations

@@ -28,10 +28,10 @@ from deejayd.webui.xul import templates as xul_templates
 from deejayd.webui.xul import xmlanswer as xul_xmlanswer
 from deejayd.webui.xul import commands as xul_commands
 
-# html parts
-from deejayd.webui import html
-from deejayd.webui.html import commands as html_commands
-from deejayd.webui.html import xmlanswer as html_xmlanswer
+# mobile parts
+from deejayd.webui import mobile
+from deejayd.webui.mobile import commands as mobile_commands
+from deejayd.webui.mobile import xmlanswer as mobile_xmlanswer
 
 class DeejaydWebError(Exception): pass
 
@@ -50,8 +50,8 @@ class DeejaydMainHandler(Resource):
             request.redirect("xul/")
             return _("Please go to xul subdirectory")
         elif user_agent.lower().find("mobile") != -1:
-            request.redirect("html/")
-            return _("Please go to html subdirectory for mobile device")
+            request.redirect("m/")
+            return _("Please go to mobile subdirectory for mobile device")
         else:
             return self.__send_error()
 
@@ -80,7 +80,7 @@ class DeejaydXulHandler(Resource):
         return rs
 
 
-class DeejaydHtmlHandler(Resource):
+class DeejaydMobileHandler(Resource):
 
     def __init__(self, deejayd, config):
         Resource.__init__(self)
@@ -92,7 +92,7 @@ class DeejaydHtmlHandler(Resource):
         return Resource.getChild(self,name,request)
 
     def render_GET(self, request):
-        try: rs = html.build_template()
+        try: rs = mobile.build_template(request.getHeader("user-agent"))
         except IOError, err:
             raise DeejaydWebError(err)
         return rs
@@ -103,9 +103,9 @@ class _DeejaydCommandHandler(Resource):
 
     def __init__(self, deejayd, tmp_dir, compilation):
         Resource.__init__(self)
-        self.__deejayd = deejayd
-        self.__tmp_dir = tmp_dir
-        self.__compilation = compilation
+        self._deejayd = deejayd
+        self._tmp_dir = tmp_dir
+        self._compilation = compilation
 
     def render_GET(self,request):
         return self._render(request,"get")
@@ -122,7 +122,7 @@ class DeejaydXulCommandHandler(_DeejaydCommandHandler):
     def _render(self, request, type):
         # init xml answer
         request.setHeader("Content-type","text/xml")
-        ans = xul_xmlanswer.DeejaydWebAnswer(self.__tmp_dir, self.__compilation)
+        ans = xul_xmlanswer.DeejaydWebAnswer(self._tmp_dir, self._compilation)
 
         try: action = request.args["action"]
         except KeyError:
@@ -136,7 +136,7 @@ class DeejaydXulCommandHandler(_DeejaydCommandHandler):
         if cmd_cls.method != type:
             ans.set_error(_("Command send with invalid method"))
         else:
-            cmd = cmd_cls(self.__deejayd,ans)
+            cmd = cmd_cls(self._deejayd,ans)
             try:
                 cmd.argument_validation(request.args)
                 cmd.execute()
@@ -149,17 +149,17 @@ class DeejaydXulCommandHandler(_DeejaydCommandHandler):
         return ans.to_xml()
 
 
-class DeejaydHtmlCommandHandler(_DeejaydCommandHandler):
+class DeejaydMobileCommandHandler(_DeejaydCommandHandler):
 
     def _render(self, request, type):
         request.setHeader("Content-type","text/xml")
-        ans = html_xmlanswer.DeejaydWebAnswer(self.__tmp_dir,self.__compilation)
+        ans = mobile_xmlanswer.DeejaydWebAnswer(self._tmp_dir,self._compilation)
 
         try: action = request.args["action"]
         except KeyError:
             ans.set_error(_("You have to enter an action."))
             return ans.to_xml()
-        try: cmd_cls = html_commands.commands[action[0]]
+        try: cmd_cls = mobile_commands.commands[action[0]]
         except KeyError:
             ans.set_error(_("Command %s not found") % action[0])
             return ans.to_xml()
@@ -167,7 +167,7 @@ class DeejaydHtmlCommandHandler(_DeejaydCommandHandler):
         if cmd_cls.method != type:
             ans.set_error(_("Command send with invalid method"))
         else:
-            cmd = cmd_cls(self.__deejayd)
+            cmd = cmd_cls(self._deejayd, ans)
             try:
                 cmd.argument_validation(request.args)
                 cmd.execute()
@@ -221,13 +221,13 @@ def init(deejayd_core, config, webui_logfile):
     xul_handler.putChild("rdf",static.File(tmp_dir))
     root.putChild("xul", xul_handler)
 
-    # html part
-    html_handler = DeejaydHtmlHandler(deejayd_core, config)
-    html_handler.putChild("commands",DeejaydHtmlCommandHandler(deejayd_core,\
-            tmp_dir, compilation))
-    html_handler.putChild("static",static.File(htdocs_dir))
-    html_handler.putChild("rdf",static.File(tmp_dir))
-    root.putChild("html", html_handler)
+    # mobile part
+    mobile_handler = DeejaydMobileHandler(deejayd_core, config)
+    mobile_handler.putChild("commands",DeejaydMobileCommandHandler(\
+            deejayd_core, tmp_dir, compilation))
+    mobile_handler.putChild("static",static.File(htdocs_dir))
+    mobile_handler.putChild("tmp",static.File(tmp_dir))
+    root.putChild("m", mobile_handler)
 
     return SiteWithCustomLogging(root, logPath=webui_logfile)
 

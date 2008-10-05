@@ -1,0 +1,203 @@
+/*
+ * General parms
+ */
+.hide { display: none; }
+body {
+    margin: 0px; padding: 0px;
+    background-color: #121212;
+    color: #fff;
+}
+
+#header, #main { width: 100%; }
+
+/*
+ * Header
+ */
+#header {
+    margin: 0px; padding: 0px;
+    background-image: url(images/control-bg.png);
+    background-repeat: repeat-x;
+    height: 30px;
+    text-align: center;
+}
+#header div {
+    display: inline-block;
+    text-align: center;
+}
+#header div.button {
+    height: 25px;
+    font-size: 15px;
+    background: #cdcdcd;
+    padding: 2px 8px 0px 8px;
+}
+#header #main_title {
+    padding-top: 2px;
+    font-size: 18px; font-weight: bold;
+}
+#header #loading {
+    width: 30px; height: 30px;
+    position: fixed; top: 0px; right: 2px;
+    z-index: 10;
+    background-image: url(images/loading.gif);
+    background-repeat: no-repeat;
+}
+
+
+/*
+ * control command
+ */
+#playing-control {
+    width: 100%;
+    height: 55px;
+    text-align: center;
+    background-image: url(images/control-bg.png);
+    background-repeat: repeat-x;
+}
+#playing-control div.control-button {
+    padding: 0px;
+    width: 48px;
+    height: 48px;
+    background-repeat: no-repeat;
+    display: inline-block;
+    text-align: center;
+    margin-right: auto; margin-left: auto;
+}
+#previous_button { background-image: url(images/previous.png); }
+#next_button { background-image: url(images/next.png); }
+#stop_button { background-image: url('images/stop.png'); }
+div.play { background-image: url('images/pause.png'); }
+div.pause, div.stop { background-image: url('images/play.png'); }
+
+/*
+ * playing info
+ */
+#playing-info {
+    width: 100%;
+    height:291px;
+    background-image: url('images/missing-cover.png');
+    background-repeat: no-repeat;
+    background-color: #121212;
+    text-align: center;
+}
+#playing-info #playing-text {
+    opacity: 0.5;
+    background-color: #000;
+    text-align: center;
+    z-index: 1;
+    width: 100%;
+    height: 100px;
+}
+#playing-info #playing-text div {
+    width: 100%;
+    z-index: 2;
+}
+#playing-info #playing-text div.title {
+    padding-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+}
+#playing-info #playing-text div.artist, #playing-info #playing-text div.url {
+    font-size: 14px;
+    font-style: italic;
+}
+
+/*
+ * volume widget
+ */
+#volume-widget {
+    width: 100%;
+    height: 40px;
+    background-image: url(images/volume-bg.png);
+    background-repeat: repeat-x;
+}
+#volume-widget div { display: inline-block; }
+#volume-slider {
+    position: relative;
+    top: 5px;
+    width: 200px; height: 15px;
+    background-color: #fff;
+}
+#volume-handle {
+    position: relative;
+    top: -5px;
+    width: 25px; height: 25px;
+    background-image: url(images/vol-handle.png);
+}
+.volume-button {
+    position: relative; top: 6px;
+    width: 24px; height: 24px;
+}
+#volume-up { background-image: url(images/add.png); }
+#volume-down { background-image: url('images/remove.png'); }
+
+/*
+ * Mode List
+ */
+#modelist-content {
+    text-align: center;
+    width: 100%;
+    background-color: #121212;
+    padding: 10px 0px;
+}
+#modelist-content div.mode-button {
+    text-align: center;
+    height: 40px;
+    font-size: 20px; font-weight: bold;
+    margin: 0px 20px 10px 20px;
+    background-color: #454545;
+    padding-top: 20px;
+}
+
+/*
+ * current mode toolbar
+ */
+#mode-toolbar {
+    background-color: #232323;
+    width: 100%; height: 30px;
+}
+#mode-toolbar div.toolbar-button {
+    display: inline-block;
+    width: 30px; height: 30px;
+    background-repeat: no-repeat;
+}
+#pl-add { background-image: url(images/add-btn.png); }
+#pl-clear { background-image: url(images/clear-btn.png); }
+#pl-shuffle { background-image: url(images/refresh.png); }
+
+/*
+ * current mode - media list
+ */
+#mode-content div.media-item {
+    width: 100%; height: 40px;
+    border-bottom: 1px solid #676767;
+}
+#mode-content div.media-item div {
+    height: 40px;
+    display: inline-block;
+}
+#mode-content div.media-item div.media-info div {
+    height: 40px;
+    display: block;
+}
+#mode-content div.media-item div.media-info .media-title,
+#mode-content div.media-item div.media-info .media-desc {
+    height: 20px;
+    overflow:hidden;
+    white-space: nowrap;
+}
+#mode-content div.media-item div.media-info .media-title {
+    font-weight: bold; font-size: 15px;
+}
+#mode-content div.media-item div.media-info .media-desc {
+    font-style: italic; font-size: 14px;
+    padding-left: 15px;
+}
+#mode-content div.media-item div.media-play-btn {
+    height: 40px; width: 40px;
+    background-image: url(images/last.png);
+    background-repeat: no-repeat;
+}
+#mode-content div.media-item div.media-select {
+    height: 40px; width: 40px;
+    text-align: center; vertical-align: middle;
+}

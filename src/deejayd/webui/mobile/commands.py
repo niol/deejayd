@@ -18,40 +18,73 @@
 
 from deejayd.ui.config import DeejaydConfig
 from deejayd.webui.commands import _Command
-from deejayd.webui.html import xmlanswers
 
 class _UnknownCommand(_Command):
-    answer_type = "now_playling"
+    answer_type = "custom"
 
-    def build_answer(self):
-        answer = xmlanswers.answers[answer_type]
+    def _set_result(self):
+        raise NotImplementedError
+
+    def set_result(self):
+        if self.answer_type == "page":
+            self._answer.set_page(self._deejayd, self.page_name)
+        elif self.answer_type == "custom":
+            self._set_result()
 
 class Init(_UnknownCommand):
+    answer_type = "page"
+    page_name = "now_playing"
     name = "init"
 
-    def execute(self):
-        status = self._deejayd.get_status()
+    def execute(self): pass
 
 class Refresh(_UnknownCommand):
     name = "refresh"
+    command_args = [{"name": "page", "type": "string", "req": True}]
+
     def execute(self): pass
+
+class SetPage(_UnknownCommand):
+    answer_type = "page"
+    name = "setPage"
+    command_args = [{"name": "page", "type": "string", "req": True}]
+
+    def execute(self):
+        self.page_name = self._args["page"]
 
 class SetMode(_UnknownCommand):
     name = "setMode"
     command_args = [{"name": "mode", "type": "string", "req": True}]
+    answer_type = "page"
+    page_name = "current_mode"
 
     def execute(self):
         self._deejayd.set_mode(self._args["mode"]).get_contents()
-        self._answer.set_view_mode(self._args["mode"])
 
 #
 # Player controls
 #
-class PlayToggle(_UnknownCommand):
-    name = "playtoggle"
+class _ControlCommand(_UnknownCommand):
+
+    def _set_result(self):
+        self._answer.refresh_page(self._deejayd, "now_playing")
 
     def execute(self):
-        self._deejayd.play_toggle().get_contents()
+        cmd = getattr(self._deejayd, self.__class__.name)
+        cmd().get_contents()
+
+class PlayToggle(_ControlCommand): name = "play_toggle"
+class Stop(_ControlCommand): name = "stop"
+class Next(_ControlCommand): name = "next"
+class Previous(_ControlCommand): name = "previous"
+
+class Volume(_ControlCommand):
+    name = "setVol"
+    command_args = [
+        {"name":"volume", "type":"enum_int", "req":True, "values":range(0,101)}]
+
+    def execute(self):
+        self._deejayd.set_volume(int(self._args["volume"])).get_contents()
 
 class GoTo(_UnknownCommand):
     name = "goto"
@@ -59,36 +92,12 @@ class GoTo(_UnknownCommand):
             "value":"^\w{1,}|\w{1,}\.\w{1,}$","req": True},
           {"name": "id_type", "type": "string", "req": False, "default": "id"},
           {"name":"source", "type": "string", "req": False, "default": None}]
+    answer_type = "page"
+    page_name = "now_playing"
 
     def execute(self):
         self._deejayd.go_to(self._args["id"], self._args["id_type"], \
             self._args["source"]).get_contents()
-
-class Stop(_UnknownCommand):
-    name = "stop"
-
-    def execute(self):
-        self._deejayd.stop().get_contents()
-
-class Next(_UnknownCommand):
-    name = "next"
-
-    def execute(self):
-        self._deejayd.next().get_contents()
-
-class Previous(_UnknownCommand):
-    name = "previous"
-
-    def execute(self):
-        self._deejayd.previous().get_contents()
-
-class Volume(_UnknownCommand):
-    name = "setVol"
-    command_args = [
-        {"name":"volume", "type":"enum_int", "req":True, "values":range(0,101)}]
-
-    def execute(self):
-        self._deejayd.set_volume(int(self._args["volume"])).get_contents()
 
 #
 # Library commands

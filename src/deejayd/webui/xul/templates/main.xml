@@ -10,7 +10,6 @@
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script src="./static/js/common.js"/>
-<script src="./static/js/xul/base.js"/>
 <script src="./static/js/xul/_drag_and_drop.js"/>
 <script src="./static/js/xul/_source.js"/>
 <script src="./static/js/xul/fileList.js"/>
@@ -21,8 +20,8 @@
 <script src="./static/js/xul/queue.js"/>
 <script src="./static/js/xul/video.js"/>
 <script src="./static/js/xul/dvd.js"/>
-<script src="./static/js/ajax.js"/>
-<script src="./static/js/main.js"/>
+<script src="./static/js/xul/ajax.js"/>
+<script src="./static/js/xul/main.js"/>
 
 <keyset>
     <key id="playpause-key" key="x"

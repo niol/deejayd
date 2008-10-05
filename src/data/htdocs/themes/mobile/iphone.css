@@ -1,0 +1,30 @@
+body {
+    min-height: 416px;
+}
+
+#header div.button, #volume-slider {
+    -webkit-border-radius: 5px;
+}
+#header div.button {
+    position: fixed;
+    top: 1px;
+}
+#left_button { left: 2px; }
+#right_button { right: 2px; }
+
+#playing-control {
+    padding-left: 1px;
+    width: 320px !important;
+}
+#playing-control div.control-button {
+    padding: 0px 8px;
+}
+
+#volume-slider, #volume-widget div.volume-button {
+    position: relative;
+    left: 30px;
+}
+#volume-widget div.volume-button { top: 10px; }
+
+#modelist-content div.mode-button { -webkit-border-radius: 10px; }
+#mode-content div.media-item div.media-info { width: 230px; }

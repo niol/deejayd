@@ -230,7 +230,7 @@ bind_addresses = 192.168.51.2, 10.0.0.3
       </varlistentry>
 
       <varlistentry>
-        <term>rdf_dir</term>
+        <term>tmp_dir</term>
         <listitem>
           <para>This is a temporary directory used by the deejayd webui for
           caching. It should probably be located in <filename>/tmp</filename>.
