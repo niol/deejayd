@@ -35,32 +35,6 @@ from deejayd.webui.mobile import xmlanswer as mobile_xmlanswer
 
 class DeejaydWebError(Exception): pass
 
-class DeejaydMainHandler(Resource):
-
-    def getChild(self, name, request):
-        if name == '': return self
-        return Resource.getChild(self,name,request)
-
-    def render_GET(self, request):
-        try: user_agent = request.getHeader("user-agent")
-        except KeyError:
-            return self.__send_error()
-        if user_agent.find("Gecko") != -1 and user_agent.find("rv:1.9") != -1:
-            # xul interface is supported
-            request.redirect("xul/")
-            return _("Please go to xul subdirectory")
-        elif user_agent.lower().find("mobile") != -1:
-            request.redirect("m/")
-            return _("Please go to mobile subdirectory for mobile device")
-        else:
-            return self.__send_error()
-
-    def __send_error(self):
-        return _("""
-        Your navigator is not supported.
-        """)
-
-
 class DeejaydXulHandler(Resource):
 
     def __init__(self, deejayd, config):
@@ -211,24 +185,22 @@ def init(deejayd_core, config, webui_logfile):
         raise DeejaydWebError(_("Htdocs directory %s does not exists") % \
                 htdocs_dir)
 
-    root = DeejaydMainHandler()
-
-    # xul part
+    # main (xul) part
     xul_handler = DeejaydXulHandler(deejayd_core, config)
     xul_handler.putChild("commands",DeejaydXulCommandHandler(deejayd_core,\
             tmp_dir, compilation))
     xul_handler.putChild("static",static.File(htdocs_dir))
     xul_handler.putChild("rdf",static.File(tmp_dir))
-    root.putChild("xul", xul_handler)
 
     # mobile part
-    mobile_handler = DeejaydMobileHandler(deejayd_core, config)
-    mobile_handler.putChild("commands",DeejaydMobileCommandHandler(\
-            deejayd_core, tmp_dir, compilation))
-    mobile_handler.putChild("static",static.File(htdocs_dir))
-    mobile_handler.putChild("tmp",static.File(tmp_dir))
-    root.putChild("m", mobile_handler)
+    if config.getboolean("webui","mobile_ui"):
+        mobile_handler = DeejaydMobileHandler(deejayd_core, config)
+        mobile_handler.putChild("commands",DeejaydMobileCommandHandler(\
+                deejayd_core, tmp_dir, compilation))
+        mobile_handler.putChild("static",static.File(htdocs_dir))
+        mobile_handler.putChild("tmp",static.File(tmp_dir))
+        xul_handler.putChild("m", mobile_handler)
 
-    return SiteWithCustomLogging(root, logPath=webui_logfile)
+    return SiteWithCustomLogging(xul_handler, logPath=webui_logfile)
 
 # vim: ts=4 sw=4 expandtab
