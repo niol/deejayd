@@ -194,7 +194,7 @@ class SiteWithCustomLogging(server.Site):
 
 
 def init(deejayd_core, config, webui_logfile):
-    compilation = config.get("webui","compilation")
+    compilation = config.getboolean("webui","compilation")
     # create tmp directory
     tmp_dir = config.get("webui","tmp_dir")
     if os.path.isdir(tmp_dir):
