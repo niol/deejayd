@@ -467,7 +467,7 @@ class Stream(object):
         return _lang.value
 
     def get_spu_lang(self, channel):
-        _lang = ctypes.create_string_buffer(XINE_LANG_MAX)
+        _lang = ctypes.create_string_buffer(Stream.XINE_LANG_MAX)
 
         result = xinelib.xine_get_spu_lang(self.__stream_p, channel, _lang)
         if not result:
