@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import os
 from deejayd.mediadb.formats._base import _AudioFile
 
 extensions = [".mp3",".mp2",".aac"]
@@ -50,7 +51,8 @@ class Mp3File(_AudioFile):
 
         tag = mp3_info.tags
         if not tag:
-            return
+            infos["title"] = os.path.split(file)[1]
+            return infos
 
         for frame in tag.values():
             if frame.FrameID == "TXXX":
