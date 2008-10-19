@@ -42,7 +42,7 @@ class XinePlayer(UnknownPlayer):
         # init main instance
         try:
             self.__xine = xine.XinePlayer(os.path.expanduser('~/.xine/config'))
-        except XineError:
+        except xine.XineError:
             raise PlayerError(_("Unable to init a xine instance"))
 
         # init vars
@@ -236,7 +236,7 @@ class XinePlayer(UnknownPlayer):
     def get_video_file_info(self,file):
         try:
             self.__mine_stream.open(file)
-        except XineError:
+        except xine.XineError:
             raise PlayerError
 
         rs = {}
