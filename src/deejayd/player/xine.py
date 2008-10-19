@@ -41,7 +41,7 @@ class XinePlayer(UnknownPlayer):
 
         # init main instance
         try:
-            self.__xine = xine.XinePlayer(os.path.expanduser('~/.xine/config'))
+            self.__xine = xine.XinePlayer()
         except xine.XineError:
             raise PlayerError(_("Unable to init a xine instance"))
 

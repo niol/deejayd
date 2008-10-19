@@ -50,6 +50,9 @@ _xinelib.xine_new.restype = ctypes.c_void_p
 # void xine_config_load  (xine_t *self, const char *cfg_filename)
 _xinelib.xine_config_load.argstype = (ctypes.c_void_p, ctypes.c_char_p)
 
+# const char *xine_get_homedir(void)
+_xinelib.xine_get_homedir.restype = ctypes.c_char_p
+
 # void xine_init (xine_t *self)
 _xinelib.xine_init.argstype = (ctypes.c_void_p, )
 

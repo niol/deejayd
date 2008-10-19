@@ -20,7 +20,7 @@
 # http://search.cpan.org/~stephen/Video-Xine/
 
 
-import ctypes
+import ctypes, os
 import _xinelib as xinelib
 import x11
 
@@ -542,6 +542,9 @@ class XinePlayer(object):
 
         if config_file_path:
             xinelib.xine_config_load(self.__xine, config_file_path)
+        else: # load default config file
+            default = os.path.join(xinelib.xine_get_homedir(),".xine/config")
+            xinelib.xine_config_load(self.__xine, default)
 
         xinelib.xine_init(self.__xine)
 
