@@ -30,8 +30,8 @@ from deejayd.webui.xul import commands as xul_commands
 
 # mobile parts
 from deejayd.webui import mobile
-from deejayd.webui.mobile import commands as mobile_commands
 from deejayd.webui.mobile import xmlanswer as mobile_xmlanswer
+from deejayd.webui.mobile import commands as mobile_commands
 
 class DeejaydWebError(Exception): pass
 
@@ -127,25 +127,29 @@ class DeejaydMobileCommandHandler(_DeejaydCommandHandler):
 
     def _render(self, request, type):
         request.setHeader("Content-type","text/xml")
-        ans = mobile_xmlanswer.DeejaydWebAnswer(self._tmp_dir,self._compilation)
 
         try: action = request.args["action"]
         except KeyError:
-            ans.set_error(_("You have to enter an action."))
+            ans = mobile_xmlanswer.DeejaydErrorAnswer(\
+                    _("You have to enter an action."))
             return ans.to_xml()
-        try: cmd_cls = mobile_commands.commands[action[0]]
+        try:
+            cmd_cls = mobile_commands.commands[action[0]]
+            ans_cls = mobile_xmlanswer.answers[action[0]]
+            cmd = cmd_cls(self._deejayd)
+            ans = ans_cls(self._deejayd, self._tmp_dir,self._compilation)
         except KeyError:
-            ans.set_error(_("Command %s not found") % action[0])
+            ans = mobile_xmlanswer.DeejaydErrorAnswer(\
+                    _("Command %s not found") % action[0])
             return ans.to_xml()
 
         if cmd_cls.method != type:
             ans.set_error(_("Command send with invalid method"))
         else:
-            cmd = cmd_cls(self._deejayd, ans)
             try:
                 cmd.argument_validation(request.args)
                 cmd.execute()
-                cmd.set_result()
+                ans.build(cmd._args)
             except DeejaydError, err:
                 ans.set_error("%s" % err)
             except commands.ArgError, err:

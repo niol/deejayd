@@ -1,0 +1,20 @@
+<div xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+    <div id="mode-toolbar">
+        <div py:for="tb in tb_objects" class="toolbar-button"
+            id="${tb['id']}" onclick="${tb['cmd']};return false;">
+            ${tb['text']}
+        </div>
+    </div>
+    <div id="mode-body">
+        <div id="mode-loading" style="display: none;">${_("Loading...")}</div>
+        <div id="mode-content">
+            <xi:include href="modes/media_list.thtml"/>
+        </div>
+        <div id="mode-extra" style="display:none;">
+            <div class="mode-extra-title"></div>
+            <div class="mode-extra-close" onclick="">Close</div>
+            <div id="mode-extra-content"></div>
+        </div>
+    </div>
+</div>

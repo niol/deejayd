@@ -1,0 +1,45 @@
+<div xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <!-- pager -->
+    <div py:if="page_total > 1" class='media-item pager'>
+        <div onclick="mobileui_ref.medialist_first(); return false;"
+            class="pager-first pager-btn"></div>
+        <div onclick="mobileui_ref.medialist_previous(); return false;"
+            class="pager-previous pager-btn"></div>
+        <div class="pager-desc">${str(page)}/${str(page_total)}</div>
+        <div onclick="mobileui_ref.medialist_next(); return false;"
+            class="pager-next pager-btn"></div>
+        <div onclick="mobileui_ref.medialist_last(); return false;"
+            class="pager-last pager-btn"></div>
+    </div>
+
+    <!-- medialist -->
+    <div py:for="m in medias" class='media-item'>
+        <div class='media-select'>
+            <input py:if="can_select" value="${m['id']}" type='checkbox'/>
+        </div>
+        <div class='media-info'>
+            <py:if test="m['type'] == 'song'">
+                <div class="media-title">
+                    ${m["title"]} (${format_time(int(m["length"]))})
+                </div>
+                <div class="media-desc">${m["artist"]} - ${m["album"]}</div>
+            </py:if>
+            <py:if test="m['type'] == 'video'">
+                <div class="media-title">
+                    ${m["title"]} (${format_time(int(m["length"]))})
+                </div>
+                <div class="media-desc">
+                    ${m["videoheight"]} X ${m["videowidth"]}
+                </div>
+            </py:if>
+            <py:if test="m['type'] == 'webradio'">
+                <div class="media-title"> ${m["title"]} </div>
+                <div class="media-desc"> ${m["url"]} </div>
+            </py:if>
+        </div>
+        <div onclick="mobileui_ref.send_command('goto',{id:'${m['id']}'},true);
+            return false;" class="media-play-btn"></div>
+    </div>
+</div>

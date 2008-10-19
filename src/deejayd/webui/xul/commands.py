@@ -21,6 +21,11 @@ from deejayd.webui.commands import _Command
 
 class _UnknownCommand(_Command):
 
+    def __init__(self, deejayd, ans):
+        self._deejayd = deejayd
+        self._answer = ans
+        self._args = {}
+
     def default_result(self):
         status = self._deejayd.get_status()
         # player update

@@ -16,61 +16,38 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os,re
+import os,re, StringIO
+from genshi.template import TemplateLoader
 from deejayd.xmlobject import DeejaydXMLObject, ET
-from deejayd.webui.mobile import pages
+from deejayd.webui.utils import format_time
 
-class DeejaydWebAnswer(DeejaydXMLObject):
+class _DeejaydWebAnswer(DeejaydXMLObject):
 
-    def __init__(self,tmp_dir,compilation):
-        self.__tmp_dir = tmp_dir
-        self.__compilation = compilation
+    def __init__(self,deejayd,tmp_dir,compilation):
+        self._deejayd = deejayd
+        self._tmp_dir = tmp_dir
+        self._compilation = compilation
         self.xmlroot = ET.Element('deejayd')
 
-    def set_config(self, config_parms):
-        conf = ET.SubElement(self.xmlroot,"config")
-        for parm in config_parms.keys():
-            elt = ET.SubElement(conf,"arg",name=parm,\
-                value=self._to_xml_string(config_parms[parm]))
+    def load_templates(self, subdir = None):
+        directory = os.path.join(os.path.dirname(__file__), 'templates')
+        if subdir: directory = os.path.join(directory, subdir)
+        self._loader = TemplateLoader( directory, auto_reload = True)
 
-    def set_page(self, deejayd_core, mode = "now_playing"):
-        pages.page_list[mode](deejayd_core).get(self.xmlroot)
+    def get_template(self, tpl):
+        if not self._loader:
+            raise ValueError
+        return self._loader.load(tpl)
 
-    def refresh_page(self, deejayd_core, mode = "now_playing"):
-        pages.page_list[mode](deejayd_core).refresh(self.xmlroot)
+    def set_block(self, nm, value):
+        str_io = StringIO.StringIO(value)
+        block_node = ET.SubElement(self.xmlroot,"block",name = nm)
 
-    def update_player(self, status, cur_media):
-        # Update player informations
-        player  = ET.SubElement(self.xmlroot,"player")
-
-        # update status
-        status_elt = ET.SubElement(player, "status")
-        for info in ("volume","time","state","current"):
-            try: val = self._to_xml_string(status[info])
-            except KeyError: pass
-            else:
-                node = ET.SubElement(status_elt, "parm")
-                node.attrib["key"] = info
-                node.attrib["value"] = val
-
-        if cur_media != None:
-            cur_elt = ET.SubElement(player,"cursong")
-            cur_elt.attrib["type"] = cur_media["type"]
-            for k in cur_media.keys():
-                elt = ET.SubElement(cur_elt,k)
-                if isinstance(cur_media[k], list): # listparm
-                    for it in cur_media[k]:
-                        if isinstance(it, dict): # dictparm
-                            dict_elt = ET.SubElement(elt,"dictparm")
-                            for dict_k in it.keys():
-                                dict_elt.attrib[dict_k] = self._to_xml_string(\
-                                    it[dict_k])
-                        else:
-                            val_elt = ET.SubElement(elt,"listvalue")
-                            val_elt.text = self._to_xml_string(it)
-                else:
-                    elt.text = self._to_xml_string(cur_media[k])
-            # get cover if available
+        content = str_io.read(3500)
+        while (content):
+            part = ET.SubElement(block_node, "part")
+            part.text = self._to_xml_string(content)
+            content = str_io.read(3500)
 
     def set_msg(self,msg,type = "confirmation"):
         msg_node = ET.SubElement(self.xmlroot,"message",type = type)
@@ -78,5 +55,304 @@ class DeejaydWebAnswer(DeejaydXMLObject):
 
     def set_error(self, error):
         self.set_msg(error,"error")
+
+    def buid(self, args):
+        raise NotImplementedError
+
+
+class DeejaydErrorAnswer(_DeejaydWebAnswer):
+
+    def __init__(self, error):
+        self.xmlroot = ET.Element('deejayd')
+        self.set_error(error)
+
+
+class _DeejaydPageAns(_DeejaydWebAnswer):
+
+    def build(self, args):
+        self.set_block("main_title", self.title) # set title
+        # set top button
+        button = ET.SubElement(self.xmlroot, "page_btn")
+        lbtn_elt = ET.SubElement(button, "btn", name = "left_button",\
+                link = self.left_btn["link"])
+        lbtn_elt.text = self._to_xml_string(self.left_btn["title"])
+        rbtn_elt = ET.SubElement(button, "btn", name = "right_button",\
+                link = self.right_btn["link"])
+        rbtn_elt.text = self._to_xml_string(self.right_btn["title"])
+
+        self.load_templates()
+        return self.get_template("%s.thtml" % self.name)
+
+#
+# Now playing page
+#
+class NowPlaying(_DeejaydPageAns):
+    commands = ('goto',)
+    name = "now_playing"
+    title = _("Now Playing")
+    left_btn = {"title": _("Current Mode"), "link": "current_mode"}
+    right_btn = {"title": "", "link": ""}
+
+    def _get_current(self, status):
+        m = False
+        if status["state"] != "stop":
+            m = self._deejayd.get_current().get_medias()[0]
+        return m
+
+    def build(self, args):
+        tmpl = super(NowPlaying, self).build(args)
+        status = self._deejayd.get_status().get_contents()
+        self.set_block("main", tmpl.generate(state=status["state"],\
+                current=self._get_current(status),\
+                format_time=format_time).render('xhtml'))
+        # set volume
+        player = ET.SubElement(self.xmlroot, "player")
+        ET.SubElement(player, "volume", value = str(status['volume']))
+
+class RefreshNowPlaying(NowPlaying):
+    commands = ('play_toggle', 'stop', 'next', 'previous', 'setVol')
+
+    def build(self, args):
+        self.load_templates()
+        status = self._deejayd.get_status().get_contents()
+        tmpl = self.get_template("playing_title.thtml").generate(\
+                current = self._get_current(status),\
+                format_time=format_time)
+        self.set_block("playing-text", tmpl.render("xhtml"))
+
+        player = ET.SubElement(self.xmlroot, "player")
+        ET.SubElement(player, "volume", value = str(status['volume']))
+        ET.SubElement(player, "state", value = status['state'])
+
+#
+# mode list page
+#
+class ModeList(_DeejaydPageAns):
+    name = "mode_list"
+    title = _("Mode List")
+    left_btn = {"title": "", "link": ""}
+    right_btn = {"title": _("Current Mode"), "link": "current_mode"}
+
+    def build(self, args):
+        tmpl = super(ModeList, self).build(args)
+        mode_names = {
+                "playlist" : _("Playlist Mode"),
+                "video" : _("Video"),
+                "panel" : _("Navigation Panel"),
+                "webradio" : _("Webradio"),
+                "dvd" : _("Dvd Playback"),
+                }
+        modes = self._deejayd.get_mode().get_contents()
+        self.set_block("main", tmpl.generate(mode_list=modes,\
+                mode_names=mode_names).render('xhtml'))
+
+#
+# mode page
+#
+MEDIALIST_LENGTH = 15
+class _Mode:
+    tb_objects = []
+    can_select = False
+
+    def __init__(self, deejayd):
+        self._deejayd = deejayd
+        self._source = getattr(self._deejayd, self.__class__.source)()
+
+    def get_total_page(self):
+        status = self._deejayd.get_status().get_contents()
+        return int(status[self.source_name+"length"]) / MEDIALIST_LENGTH + 1
+
+    def get_page(self, page = 1):
+        return self._source.get(MEDIALIST_LENGTH*(page-1), MEDIALIST_LENGTH)\
+                .get_medias()
+
+class PlaylistMode(_Mode):
+    source = "get_playlist"
+    source_name = "playlist"
+    title = _("Playlist Mode")
+    can_select = True
+    tb_objects = [
+        {"id":"pl-opt", "cmd":"mobileui_ref.send_command('extraPage',\
+                {page:'options'},true)", "text": ""},
+        {"id":"pl-add", "cmd":"mobileui_ref.send_command('extraPage',\
+                {page:'audio_dir'},true)", "text": ""},
+        {"id":"pl-shuffle", "cmd":"playlist_ref.shuffle()","text":""},
+        {"id":"pl-remove", "cmd":"playlist_ref.remove()", "text":""},
+        {"id":"pl-clear", "cmd":"playlist_ref.clear()", "text":""},
+        ]
+
+class VideoMode(_Mode):
+    source = "get_video"
+    source_name = "video"
+    title = _("Video Mode")
+    tb_objects = [
+        {"id":"video-opt", "cmd":"mobileui_ref.send_command('extraPage',\
+                {page:'options'},true)", "text": ""},
+        {"id":"video-set", "cmd":"mobileui_ref.send_command('extraPage',\
+                {page:'video_dir'},true)", "text": ""},
+        {"id":"video-search", "cmd":"mobileui_ref.send_command('extraPage',\
+                {page:'video_search'},true)", "text": ""},
+        ]
+
+class PanelMode(_Mode):
+    source = "get_panel"
+    source_name = "panel"
+    title = _("Panel Mode")
+    tb_objects = [
+        {"id":"panel-opt", "cmd":"mobileui_ref.send_command('extraPage',\
+                {page:'options'},true)", "text": ""},
+        ]
+
+class WebradioMode(_Mode):
+    source = "get_webradios"
+    source_name = "webradio"
+    title = _("Webradio Mode")
+    can_select = True
+    tb_objects = [
+        {"id":"wb-add", "cmd":"mobileui_ref.send_command('extraPage',\
+                {page: 'wb_form'},true)", "text": ""},
+        {"id":"wb-remove", "cmd":"wb_ref.remove()", "text":""},
+        {"id":"wb-clear", "cmd":"wb_ref.clear()", "text":""},
+        ]
+
+class DvdMode(_Mode):
+    source_name = "dvd"
+    title = _("Dvd Mode")
+
+    def __init__(self, deejayd):
+        self._core = deejayd
+
+    def get(self, root): pass
+    def get_total_page(self):
+        return 1
+
+MODES = {
+    "playlist": PlaylistMode,
+    "panel": PanelMode,
+    "video": VideoMode,
+    "webradio": WebradioMode,
+    "dvd": DvdMode,
+    }
+
+class CurrentMode(_DeejaydPageAns):
+    commands = ("setMode",)
+    name = "current_mode"
+    left_btn = {"title": _("Mode List"), "link": "mode_list"}
+    right_btn = {"title": "Now Playing", "link": "now_playing"}
+
+    def build(self, args):
+        status = self._deejayd.get_status().get_contents()
+        source = MODES[status["mode"]](self._deejayd)
+        self.title = source.title
+
+        tmpl = super(CurrentMode, self).build(args)
+        self.set_block("main", tmpl.generate(can_select=source.can_select,\
+                medias=source.get_page(), page=1,\
+                page_total=source.get_total_page(),\
+                tb_objects=source.tb_objects,\
+                format_time=format_time).render('xhtml'))
+        # update medialist info
+        ET.SubElement(self.xmlroot, "medialist",\
+                source = status["mode"], id = str(status[status["mode"]]),\
+                page = "1", page_total=str(source.get_total_page()))
+
+class RefreshCurrentMode(_DeejaydWebAnswer):
+
+    def build(self, args):
+        status = self._deejayd.get_status().get_contents()
+        # update medialist info
+        ET.SubElement(self.xmlroot, "refresh_medialist",\
+                source = status["mode"], id = str(status[status["mode"]]))
+
+##########################################################################
+##########################################################################
+class PageAnswer(_DeejaydWebAnswer):
+    commands = ("setPage",)
+
+    def build(self, args):
+        pages = {
+            "now_playing": NowPlaying,
+            "mode_list": ModeList,
+            "current_mode": CurrentMode,
+            }
+        self._page = pages[args["page"]](self._deejayd,\
+                self._tmp_dir,self._compilation)
+        self._page.build(args)
+
+    def to_xml(self):
+        try: return self._page.to_xml()
+        except AttributeError:
+            return super(PageAnswer, self).to_xml()
+
+class DeejaydInit(NowPlaying):
+    commands = ('init',)
+
+    def build(self, args):
+        # set config
+        config_parms = {}
+        conf = ET.SubElement(self.xmlroot,"config")
+        for parm in config_parms.keys():
+            elt = ET.SubElement(conf,"arg",name=parm,\
+                value=self._to_xml_string(config_parms[parm]))
+        super(DeejaydInit, self).build(args)
+
+##########################################################################
+# modes answer
+##########################################################################
+class UpdateMedialist(_DeejaydWebAnswer):
+    commands = ("mediaList", "playlistClear", "playlistShuffle",\
+            "webradioClear", "playlistRemove", "webradioRemove")
+
+    def build(self, args):
+        status = self._deejayd.get_status().get_contents()
+        source = MODES[status["mode"]](self._deejayd)
+
+        try: page = int(args["page"])
+        except KeyError:
+            page = 1
+
+        self.load_templates("modes")
+        tmpl = self.get_template("media_list.thtml")
+        self.set_block("mode-content", \
+                tmpl.generate(can_select=source.can_select,\
+                medias=source.get_page(page),page=page,\
+                page_total=source.get_total_page(),\
+                format_time=format_time).render('xhtml'))
+        # update medialist info
+        ET.SubElement(self.xmlroot, "medialist",\
+                source = status["mode"], id = str(status[status["mode"]]),\
+                page = str(page), page_total=str(source.get_total_page()))
+
+class ExtraPage(_DeejaydWebAnswer):
+    commands = ("extraPage",)
+
+    def build(self, args):
+        self.load_templates("modes")
+        if args["page"] == "options":
+            status = self._deejayd.get_status().get_contents()
+            title = _("Options")
+            content = self.get_template("options.thtml").\
+                    generate(status=status).render('xhtml')
+        elif args["page"] == "audio_dir":
+            pass
+        elif args["page"] == "video_dir":
+            pass
+        elif args["page"] == "wb_form":
+            pass
+
+        # set extra page info
+        self.set_block("mode-extra-content", content)
+        ex_elt = ET.SubElement(self.xmlroot, "extra_page", title=title)
+
+answers = {}
+import sys
+thismodule = sys.modules[__name__]
+for itemName in dir(thismodule):
+    try:
+        item = getattr(thismodule, itemName)
+        for name in item.commands:
+            answers[name] = item
+    except AttributeError:
+        pass
 
 # vim: ts=4 sw=4 expandtab

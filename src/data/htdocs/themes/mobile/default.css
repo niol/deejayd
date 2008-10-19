@@ -149,7 +149,7 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 }
 
 /*
- * current mode toolbar
+ * current mode - toolbar
  */
 #mode-toolbar {
     background-color: #232323;
@@ -158,46 +158,75 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 #mode-toolbar div.toolbar-button {
     display: inline-block;
     width: 30px; height: 30px;
+    padding: 0px 5px;
     background-repeat: no-repeat;
 }
-#pl-add { background-image: url(images/add-btn.png); }
-#pl-clear { background-image: url(images/clear-btn.png); }
+#pl-add, #wb-add, #video-set { background-image: url(images/add-btn.png); }
+#pl-opt, #panel-opt, #video-opt { background-image: url(images/options.png); }
+#video-search { background-image: url(images/search-btn.png); }
+#pl-clear, #wb-clear { background-image: url(images/clear-btn.png); }
+#pl-remove, #wb-remove { background-image: url(images/remove-btn.png); }
 #pl-shuffle { background-image: url(images/refresh.png); }
+
+/*
+ * current mode - loading
+ */
+#mode-loading {
+    width: 100%;
+    height: 30px; padding-left: 35px;
+    font-size: 18px; line-height: 15px;
+    background-image: url(images/loading.gif); background-repeat: no-repeat;
+    margin: 20px;
+}
 
 /*
  * current mode - media list
  */
-#mode-content div.media-item {
-    width: 100%; height: 40px;
+#mode-content div div.media-item {
+    width: 100%; height: 45px;
     border-bottom: 1px solid #676767;
 }
-#mode-content div.media-item div {
-    height: 40px;
+#mode-content div div.media-item div {
+    height: 45px;
     display: inline-block;
 }
-#mode-content div.media-item div.media-info div {
-    height: 40px;
+#mode-content div div.media-item div.media-info div {
+    height: 45px;
     display: block;
 }
-#mode-content div.media-item div.media-info .media-title,
-#mode-content div.media-item div.media-info .media-desc {
+#mode-content div div.media-item div.media-info .media-title,
+#mode-content div div.media-item div.media-info .media-desc {
     height: 20px;
     overflow:hidden;
     white-space: nowrap;
 }
-#mode-content div.media-item div.media-info .media-title {
+#mode-content div div.media-item div.media-info .media-title {
     font-weight: bold; font-size: 15px;
 }
-#mode-content div.media-item div.media-info .media-desc {
+#mode-content div div.media-item div.media-info .media-desc {
     font-style: italic; font-size: 14px;
     padding-left: 15px;
 }
-#mode-content div.media-item div.media-play-btn {
+#mode-content div div.media-item div.media-play-btn {
     height: 40px; width: 40px;
-    background-image: url(images/last.png);
+    background-image: url(images/go-last.png);
     background-repeat: no-repeat;
 }
-#mode-content div.media-item div.media-select {
+#mode-content div div.media-item div.media-select {
     height: 40px; width: 40px;
     text-align: center; vertical-align: middle;
+}
+
+/*
+ * current mode - pager
+ */
+#mode-content div div.pager { text-align: center; vertical-align: middle; }
+.pager-btn{ height: 40px; width: 40px; }
+.pager-previous { background-image: url(images/go-previous.png); }
+.pager-next { background-image: url(images/go-next.png); }
+.pager-first { background-image: url(images/go-first.png); }
+.pager-last { background-image: url(images/go-last.png); }
+.pager-desc {
+    font-size: 30px; vertical-align: middle;
+    line-height: 10px;
 }

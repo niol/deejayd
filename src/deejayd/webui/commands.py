@@ -22,9 +22,8 @@ class _Command(object):
     method = "get"
     command_args = []
 
-    def __init__(self, deejayd, answer):
+    def __init__(self, deejayd):
         self._deejayd = deejayd
-        self._answer = answer
         self._args = {}
 
     def argument_validation(self, http_args):
@@ -83,10 +82,113 @@ class _Command(object):
             else:
                 self._args[arg['name']] = arg['default']
 
-    def default_result(self):
-        raise NotImplementedError
+    def execute(self): pass
+
+########################################################################
+########################################################################
+
+class SetMode(_Command):
+    name = "setMode"
+    command_args = [{"name": "mode", "type": "string", "req": True}]
 
     def execute(self):
-        raise NotImplementedError
+        self._deejayd.set_mode(self._args["mode"]).get_contents()
+
+class _ControlCommand(_Command):
+
+    def execute(self):
+        cmd = getattr(self._deejayd, self.__class__.name)
+        cmd().get_contents()
+
+class PlayToggle(_ControlCommand): name = "play_toggle"
+class Stop(_ControlCommand): name = "stop"
+class Next(_ControlCommand): name = "next"
+class Previous(_ControlCommand): name = "previous"
+
+class Volume(_Command):
+    name = "setVol"
+    command_args = [
+        {"name":"volume", "type":"enum_int", "req":True, "values":range(0,101)}]
+
+    def execute(self):
+        self._deejayd.set_volume(int(self._args["volume"])).get_contents()
+
+class GoTo(_Command):
+    name = "goto"
+    command_args = [{"name": "id", "type": "regexp",\
+            "value":"^\w{1,}|\w{1,}\.\w{1,}$","req": True},
+          {"name": "id_type", "type": "string", "req": False, "default": "id"},
+          {"name":"source", "type": "string", "req": False, "default": None}]
+
+    def execute(self):
+        self._deejayd.go_to(self._args["id"], self._args["id_type"], \
+            self._args["source"]).get_contents()
+
+class Repeat(_Command):
+    name = "repeat"
+    command_args = [{"name":"source","type":"enum_str","req":True,\
+                     "values":("panel","playlist","video")}]
+
+    def execute(self):
+        status = self._deejayd.get_status()
+        val = status[self._args["source"]+"repeat"] == 1 and (0,) or (1,)
+        self._deejayd.set_option(self._args["source"],\
+            "repeat",val[0]).get_contents()
+
+class PlayOrder(_Command):
+    name = "playorder"
+    method = "post"
+    command_args = [{"name":"source","type":"enum_str","req":True,\
+                     "values":("panel","playlist","video","queue")},
+                    {"name":"value","type":"enum_str","req":True,\
+                     "values":("inorder","onemedia","random",\
+                               "random-weighted")}]
+
+    def execute(self):
+        self._deejayd.set_option(self._args["source"],\
+            "playorder",self._args["value"]).get_contents()
+
+########################################################################
+########################################################################
+class PlaylistShuffle(_Command):
+    name = "playlistShuffle"
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.shuffle().get_contents()
+
+class PlaylistClear(_Command):
+    name = "playlistClear"
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.clear().get_contents()
+
+class PlaylistRemove(_Command):
+    name = "playlistRemove"
+    method = "post"
+    command_args = [{"name":"ids","type":"int","req":True,"mult":True},]
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.del_songs(self._args["ids"]).get_contents()
+
+########################################################################
+########################################################################
+class WebradioClear(_Command):
+    name = "webradioClear"
+
+    def execute(self):
+        wb = self._deejayd.get_webradios()
+        wb.clear().get_contents()
+
+class WebradioRemove(_Command):
+    name = "webradioRemove"
+    method = "post"
+    command_args = [{"name":"ids","type":"int","req":True,"mult":True},]
+
+    def execute(self):
+        wb = self._deejayd.get_webradios()
+        wb.delete_webradios(self._args["ids"]).get_contents()
 
 # vim: ts=4 sw=4 expandtab

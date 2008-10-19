@@ -61,6 +61,7 @@ def build_template(user_agent):
     <script type="text/javascript" src="./static/js/lib/jquery.js"></script>
     <script type="text/javascript" src="./static/js/common.js"></script>
     <script type="text/javascript" src="./static/js/mobile/main.js"></script>
+    <script type="text/javascript" src="./static/js/mobile/modes.js"></script>
    </head>
    <body>
         <div id="header">
@@ -69,7 +70,8 @@ def build_template(user_agent):
             <div class="title" id="main_title"></div>
             <div class="button" id="right_button"></div>
         </div>
-        <div class="hide" id="notification"></div>
+        <div style="display: none;" id="notification">
+        </div>
         <div id="main">
         </div>
    </body>

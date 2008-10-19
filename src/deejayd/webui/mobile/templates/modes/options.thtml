@@ -1,0 +1,16 @@
+<div xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+    <div id="playorder-option">
+        ${_("Play Order")} :
+        <select id="playorder-select">
+            <option value="inorder">${_("In Order")}</option>
+            <option value="random">${_("Random")}</option>
+            <option value="onemedia">${_("One Media")}</option>
+        </select>
+    </div>
+    <div id="repeat-option">
+        ${_("Repeat")} : <input type="checkbox" id="repeat-checkbox" value="1"/>
+    </div>
+    <input class="save-submit" type="submit" value="${_('Save')}"
+        onclick="${status['mode']}_ref.set_option(); return false;"/>
+</div>

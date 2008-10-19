@@ -28,6 +28,7 @@ function mobileUI()
     this.message_time = 4000;
     mobileui_ref = this;
     this.ref = 'mobileui_ref';
+    this.media_list = {source: ""};
 
     // handler on ajax event
     $("#loading").ajaxStart(function(){ $(this).show(); });
@@ -40,7 +41,13 @@ function mobileUI()
 
     this.display_message = function(msg, type)
     {
-        $("#notification").html(msg).show();
+        var cont = msg;
+        if (type == 'error')
+            cont = '<input type="submit" onclick="mobileui_ref.hide_message();'+
+                        ' return false;" value="Close"/>' + cont;
+        cont = '<div class="'+type+'">'+cont+'</div>';
+
+        $("#notification").html(cont).show();
         if (type != 'error') {
             setTimeout(this.ref+'.hide_message()', this.message_time);
             }
@@ -50,7 +57,7 @@ function mobileUI()
 
     this.format_ajax_parms = function(parm)
     {
-        var to_send = '';
+        var toSend = '';
         if (typeof parm == 'object') {
             for (var i in parm) {
                 if (typeof parm[i] == 'object') {
@@ -63,9 +70,9 @@ function mobileUI()
                 }
             }
         else
-            to_send = parm;
+            toSend = parm;
 
-        return to_send;
+        return toSend;
     };
 
     this.send_http_request = function(type, url, parm, lock)
@@ -120,8 +127,18 @@ function mobileUI()
     {
         rs = xmldoc.getElementsByTagName("block");
         for (var i=0; inner=rs.item(i); i++) {
-            if (inner.firstChild) {
-                var content = inner.firstChild.data;
+            var content = '';
+            var parts_obj = inner.getElementsByTagName('part');
+            for(var j=0; part=parts_obj.item(j); j++) {
+                if (part.firstChild)
+                    content += part.firstChild.data;
+                }
+
+            // Formatte le texte avant d'être insérer
+            content = content.replace(/\'/g,"'");
+            content = content.replace(/\"/g,'"');
+
+            if (content != '') {
                 $("#"+inner.getAttribute('name')).show().html(content);
                 }
             else { $("#"+inner.getAttribute('name')).hide(); }
@@ -143,28 +160,26 @@ function mobileUI()
                 }
             }
 
-        rs = xmldoc.getElementsByTagName("media_list").item(0);
+        rs = xmldoc.getElementsByTagName("medialist").item(0);
         if (rs) {
-            $("#mode-content").hide();
-            $("#mode-loading").show();
-
-            var items = rs.getElementsByTagName("item");
-            var html_content = "";
-            for (var i=0; item=items[i]; i++) {
-                html_content += item.firstChild.data;
-                }
-
-            $("#mode-content").html(html_content);
             $("#mode-loading").hide();
             $("#mode-content").show();
+            // update medialist info
+            mobileui_ref.media_list = {
+                page: rs.getAttribute("page"),
+                page_total: rs.getAttribute("page_total"),
+                source: rs.getAttribute("source"),
+                id: rs.getAttribute("id")
+                };
             }
 
         rs = xmldoc.getElementsByTagName("player").item(0);
         if (rs) {
             // update state
             var state = rs.getElementsByTagName("state").item(0);
-            $("#playpause_button").
-                attr("class", "control-button "+ state.getAttribute("value"));
+            if (state)
+                $("#playpause_button").
+                  attr("class", "control-button "+ state.getAttribute("value"));
             // update volume
             var volume = rs.getElementsByTagName("volume").item(0);
             var left = parseInt(volume.getAttribute("value"))*2 - 12;
@@ -172,9 +187,55 @@ function mobileUI()
             $("#volume-handle").css("left", left+"px");
             }
 
+        rs = xmldoc.getElementsByTagName("extra_page").item(0);
+        if (rs) {
+            $("#mode-extra-title").html(rs.getAttribute("title"));
+
+            $("#mode-content").hide();
+            $("#mode-extra").show();
+            }
+
+        rs = xmldoc.getElementsByTagName("message").item(0);
+        if (rs)
+            mobileui_ref.display_message(rs.firstChild.data,
+                rs.getAttribute("type"));
+
         window.scrollTo(0, 1);
     };
 
+    /*
+     * medialist pager
+     */
+    this.medialist_previous = function()
+    {
+        if (mobileui_ref.media_list.page > 0) {
+            this.send_command("mediaList",
+                    {page: parseInt(mobileui_ref.media_list.page)-1},true);
+            }
+    };
+
+    this.medialist_next = function()
+    {
+        if (mobileui_ref.media_list.page<mobileui_ref.media_list.page_total) {
+            this.send_command("mediaList",
+                    {page: parseInt(mobileui_ref.media_list.page)+1},true);
+            }
+    };
+
+    this.medialist_first = function()
+    {
+        if (mobileui_ref.media_list.page > 1) {
+            this.send_command("mediaList",{page: 1},true);
+            }
+    };
+
+    this.medialist_last = function()
+    {
+        if (this.media_list.page < this.media_list.page_total) {
+            this.send_command("mediaList",
+                    {page: this.media_list.page_total},true);
+            }
+    };
 }
 
 window.onload = function(e)
