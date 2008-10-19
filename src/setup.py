@@ -150,10 +150,13 @@ if __name__ == "__main__":
                      "deejayd.sources","deejayd.ui",\
                      "deejayd.database","deejayd.database.upgrade",\
                      "deejayd.database.backends",\
-                     "deejayd.webui","deejayd.webui.templates",
+                     "deejayd.webui","deejayd.webui.mobile",\
+                     "deejayd.webui.xul","deejayd.webui.xul.templates",\
                      "pytyxi"],
            package_data={'deejayd.ui': ['defaults.conf'],
-                         'deejayd.webui.templates': ['*.xml']},
+                         'deejayd.webui.xul.templates': ['*.xml'],
+                         'deejayd.webui.mobile': ["templates/*thtml",\
+                                 "templates/modes/*thtml"],},
            data_files= build_data_files_list(),
            cmdclass={"build": deejayd_build,
                      "build_i18n": build_i18n,
