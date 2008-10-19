@@ -28,7 +28,11 @@ RDEPEND="
 	>=media-libs/mutagen-1.9
 	>=dev-python/lxml-1.3.0
 	logrotate? ( app-admin/logrotate )
-	webui? ( >=dev-python/twisted-web-0.6.0 )
+	webui?
+        (
+            >=dev-python/twisted-web-0.6.0
+            >=dev-python/genshi-0.5.0
+        )
 	inotify? ( >=dev-python/pyinotify-0.6.0 )
 	gstreamer?
 		(
