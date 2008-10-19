@@ -128,7 +128,12 @@ class DvdSource(SignalingComponent):
         return self.get_current()
 
     def get_status(self):
-        status = [("dvd",self.current_id)]
+        length = 0
+        if self.dvd_info: length = len(self.dvd_info)
+        status = [
+            (self.name, self.current_id),
+            (self.name+"length",length)
+            ]
         return status
 
     def close(self):

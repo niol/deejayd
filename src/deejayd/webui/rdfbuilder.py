@@ -353,18 +353,16 @@ class DeejaydVideoDirRdf(_DeejaydSourceRdf):
 
 class DeejaydDvdRdf(_DeejaydSourceRdf):
     name = "dvd"
+    locale_strings = ("%s Track", "%s Tracks")
+    get_list_func = "get_dvd_content"
 
     def _build_rdf_file(self,new_id):
         dvd_content = self._get_media_list()
-
-        # build xml
-        root = ET.Element("RDF:RDF")
-        root.attrib["xmlns:RDF"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        root.attrib["xmlns:FILE"] = "http://dvd/rdf#"
+        rdf_builder = RdfBuilder(self.__class__.name)
 
         # general dvd infos
-        seq = ET.SubElement(root,"RDF:Seq")
-        seq.attrib["RDF:about"] = "http://dvd/infos"
+        seq = rdf_builder.build_seq("http://dvd/infos")
+
         i = 0
         infos = [{"name": "title",\
                   "value": _("DVD Title : %s") % dvd_content["title"]},\
@@ -372,30 +370,34 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
                   "value": _("Longest Track : %s")\
                                 % dvd_content["longest_track"]}]
         for inf in infos:
-            li = ET.SubElement(seq,"RDF:li")
-            self._rdf_description(li,inf,"http://dvd/%d" % i)
+            li = rdf_builder.build_li(seq)
+            rdf_builder.build_item_desc(inf,li,"http://dvd/%d" % i)
             i += 1
+
         # dvd structure
-        seq = ET.SubElement(root,"RDF:Seq")
-        seq.attrib["RDF:about"] = "http://dvd/all-content"
+        seq = rdf_builder.build_seq("http://dvd/all-content")
         for track in dvd_content["track"]:
-            track_li = ET.SubElement(seq,"RDF:li")
+            track_li = rdf_builder.build_li(seq)
+
             track_url = "http://dvd/%s" % track["ix"]
-            track_struct =  ET.SubElement(track_li,"RDF:Seq")
-            track_struct.attrib["RDF:about"] = track_url
-            self._rdf_description(root,\
-                {"title": _("Title %s") % track["ix"],\
-                    "id": track["ix"], "length": track["length"]},track_url)
+            track_struct = rdf_builder.build_seq(track_url,track_li)
+
+            track_data = {"title": _("Title %s") % track["ix"],\
+                             "id": track["ix"],\
+                         "length": track["length"]}
+            rdf_builder.build_item_desc(track_data,None,track_url)
 
             for chapter in track["chapter"]:
                 chapter_url = track_url + "/%s" % chapter["ix"]
-                li = ET.SubElement(track_struct,"RDF:li")
-                li.attrib["RDF:resource"] = chapter_url
-                self._rdf_description(root,\
-                  {"title": _("Chapter %s") % chapter["ix"],\
-                   "id": chapter["ix"],"length": chapter["length"]},chapter_url)
+                chapter_li = rdf_builder.build_li(track_struct)
+                rdf_builder.set_resource(chapter_li,chapter_url)
 
-        self._save_rdf(root,new_id)
+                chapter_data = {"title": _("Chapter %s") % chapter["ix"],\
+                                   "id": chapter["ix"],\
+                               "length": chapter["length"]}
+                rdf_builder.build_item_desc(chapter_data,None,chapter_url)
+
+        self._save_rdf(rdf_builder,new_id)
 
     def _get_media_list(self):
         return self._deejayd.get_dvd_content().get_dvd_contents()
@@ -407,5 +409,6 @@ modes = (
     "DeejaydPanelRdf",
     "DeejaydWebradioRdf",
     "DeejaydVideoRdf",
+    "DeejaydDvdRdf",
     )
 

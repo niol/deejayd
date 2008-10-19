@@ -212,6 +212,7 @@ class Status(UnknownCommand):
   * videorepeat : 0 (not activated) or 1 (activated)
   * videoplayorder : inorder | random | onemedia | random-weighted
   * dvd : _int_ id of the current dvd
+  * dvdlength : _int_ number of tracks on the current dvd
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
   * current : _int_:_int_:_str_ current media pos : current media file id :
