@@ -47,6 +47,10 @@
             </template>
 
         </tree>
+        <hbox align="center">
+            <spacer flex="1"/>
+            <description id="dvd-description" value=""/>
+        </hbox>
     </vbox>
     <vbox>
         <button

@@ -15,11 +15,11 @@ var Dvd = function()
 
     this.init = function() { };
 
-    this.customUpdate = function(webradio)
+    this.customUpdate = function(dvd)
     {
         $("dvdinfo-box").setAttribute("datasources",window.location.href+"rdf/"+
             this.module+"-"+this.treeId+".rdf");
-        return true;
+        $("dvd-description").value = dvd.getAttribute("description");
     };
 
     /**************************************************************/
