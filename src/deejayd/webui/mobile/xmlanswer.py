@@ -103,7 +103,7 @@ class NowPlaying(_DeejaydPageAns):
         tmpl = super(NowPlaying, self).build(args)
         status = self._deejayd.get_status().get_contents()
         self.set_block("main", tmpl.generate(state=status["state"],\
-                current=self._get_current(status),\
+                current=self._get_current(status),f=self._to_xml_string,\
                 format_time=format_time).render('xhtml'))
         # set volume
         player = ET.SubElement(self.xmlroot, "player")
@@ -116,7 +116,7 @@ class RefreshNowPlaying(NowPlaying):
         self.load_templates()
         status = self._deejayd.get_status().get_contents()
         tmpl = self.get_template("playing_title.thtml").generate(\
-                current = self._get_current(status),\
+                current = self._get_current(status),f=self._to_xml_string,\
                 format_time=format_time)
         self.set_block("playing-text", tmpl.render("xhtml"))
 
@@ -144,7 +144,7 @@ class ModeList(_DeejaydPageAns):
                 }
         modes = self._deejayd.get_mode().get_contents()
         self.set_block("main", tmpl.generate(mode_list=modes,\
-                mode_names=mode_names).render('xhtml'))
+                mode_names=mode_names,f=self._to_xml_string).render('xhtml'))
 
 #
 # mode page
@@ -249,6 +249,7 @@ class CurrentMode(_DeejaydPageAns):
         self.set_block("main", tmpl.generate(can_select=source.can_select,\
                 medias=source.get_page(), page=1,\
                 page_total=source.get_total_page(),\
+                f=self._to_xml_string,
                 tb_objects=source.tb_objects,\
                 format_time=format_time).render('xhtml'))
         # update medialist info
@@ -317,6 +318,7 @@ class UpdateMedialist(_DeejaydWebAnswer):
                 tmpl.generate(can_select=source.can_select,\
                 medias=source.get_page(page),page=page,\
                 page_total=source.get_total_page(),\
+                f=self._to_xml_string,
                 format_time=format_time).render('xhtml'))
         # update medialist info
         ET.SubElement(self.xmlroot, "medialist",\

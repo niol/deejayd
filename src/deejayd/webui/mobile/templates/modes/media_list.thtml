@@ -22,21 +22,23 @@
         <div class='media-info'>
             <py:if test="m['type'] == 'song'">
                 <div class="media-title">
-                    ${m["title"]} (${format_time(int(m["length"]))})
+                    ${f(m["title"])} (${format_time(int(m["length"]))})
                 </div>
-                <div class="media-desc">${m["artist"]} - ${m["album"]}</div>
+                <div class="media-desc">
+                    ${f(m["artist"])} - ${f(m["album"])}
+                </div>
             </py:if>
             <py:if test="m['type'] == 'video'">
                 <div class="media-title">
-                    ${m["title"]} (${format_time(int(m["length"]))})
+                    ${f(m["title"])} (${format_time(int(m["length"]))})
                 </div>
                 <div class="media-desc">
                     ${m["videoheight"]} X ${m["videowidth"]}
                 </div>
             </py:if>
             <py:if test="m['type'] == 'webradio'">
-                <div class="media-title"> ${m["title"]} </div>
-                <div class="media-desc"> ${m["url"]} </div>
+                <div class="media-title"> ${f(m["title"])} </div>
+                <div class="media-desc"> ${f(m["url"])} </div>
             </py:if>
         </div>
         <div onclick="mobileui_ref.send_command('goto',{id:'${m['id']}'},true);

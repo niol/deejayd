@@ -2,20 +2,20 @@
     <div py:if="current">
         <py:if test="current['type'] == 'song'">
             <div class='title'>
-              ${current['title']} (${format_time(int(current['length']))})
+              ${f(current['title'])} (${format_time(int(current['length']))})
             </div>
             <div class='artist album'>
-                ${current['artist']} - ${current['album']}
+                ${f(current['artist'])} - ${f(current['album'])}
             </div>
         </py:if>
         <py:if test="current['type'] == 'video'">
             <div class='title'>
-              ${current['title']} (${format_time(int(current['length']))})
+              ${f(current['title'])} (${format_time(int(current['length']))})
             </div>
         </py:if>
         <py:if test="current['type'] == 'webradio'">
-            <div class='title'>${current['title']}</div>
-            <div class='wb-url'>${current['url']}</div>
+            <div class='title'>${f(current['title'])}</div>
+            <div class='wb-url'>${f(current['url'])}</div>
         </py:if>
     </div>
     <div py:if="not current">
