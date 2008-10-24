@@ -363,7 +363,7 @@ class XinePlayer(UnknownPlayer):
             (xine.Stream.XINE_META_INFO_ALBUM, 'song-album'),
         ]
         for info, name in meta:
-            text = xine_get_meta_info(self.__stream, info)
+            text = self.__stream.get_meta_info(info)
             if not text:
                 continue
             text = text.decode('UTF-8', 'replace')
