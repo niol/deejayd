@@ -115,7 +115,7 @@ class SimpleMediaList(object):
         try:
             idx = self._order.index(media["id"])
             id = self._order[idx+1]
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, IndexError):
             return None
         return self._set_media_ans(id, idx+1)
 
