@@ -330,6 +330,7 @@ class XinePlayer(UnknownPlayer):
             self.__stream.destroy()
             self.__stream = None
             self.__window = None
+            self.__osd = None
 
     def _osd_set(self, text):
         if not self.__osd: return
