@@ -162,8 +162,6 @@ function mobileUI()
 
         rs = xmldoc.getElementsByTagName("medialist").item(0);
         if (rs) {
-            $("#mode-loading").hide();
-            $("#mode-content").show();
             // update medialist info
             mobileui_ref.media_list = {
                 page: rs.getAttribute("page"),
@@ -191,7 +189,7 @@ function mobileUI()
         if (rs) {
             $("#mode-extra-title").html(rs.getAttribute("title"));
 
-            $("#mode-content").hide();
+            $("#mode-main").hide();
             $("#mode-extra").show();
             }
 
@@ -208,7 +206,7 @@ function mobileUI()
      */
     this.medialist_previous = function()
     {
-        if (mobileui_ref.media_list.page > 0) {
+        if (mobileui_ref.media_list.page > 1) {
             this.send_command("mediaList",
                     {page: parseInt(mobileui_ref.media_list.page)-1},true);
             }

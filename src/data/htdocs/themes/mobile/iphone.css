@@ -27,4 +27,10 @@ body {
 #volume-widget div.volume-button { top: 10px; }
 
 #modelist-content div.mode-button { -webkit-border-radius: 10px; }
-#mode-content div.media-item div.media-info { width: 230px; }
+#mode-content div.media-item div.media-info,
+
+#mode-extra-content div div.library-item div.directory,
+#mode-extra-content div div.library-item div.file { width: 230px; }
+#mode-extra-content div div.library-item div.directory {
+    position: relative; top: -10px;
+}

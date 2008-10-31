@@ -1,6 +1,7 @@
 /*
  * General parms
  */
+.center { text-align: center; vertical-align: middle; }
 .hide { display: none; }
 body {
     margin: 0px; padding: 0px;
@@ -93,12 +94,10 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 }
 #playing-info #playing-text div.title {
     padding-top: 10px;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 16px; font-weight: bold;
 }
 #playing-info #playing-text div.artist, #playing-info #playing-text div.url {
-    font-size: 14px;
-    font-style: italic;
+    font-size: 14px; font-style: italic;
 }
 
 /*
@@ -169,17 +168,6 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 #pl-shuffle { background-image: url(images/refresh.png); }
 
 /*
- * current mode - loading
- */
-#mode-loading {
-    width: 100%;
-    height: 30px; padding-left: 35px;
-    font-size: 18px; line-height: 15px;
-    background-image: url(images/loading.gif); background-repeat: no-repeat;
-    margin: 20px;
-}
-
-/*
  * current mode - media list
  */
 #mode-content div div.media-item {
@@ -218,7 +206,7 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 }
 
 /*
- * current mode - pager
+ * current mode - medialist pager
  */
 #mode-content div div.pager { text-align: center; vertical-align: middle; }
 .pager-btn{ height: 40px; width: 40px; }
@@ -229,4 +217,55 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 .pager-desc {
     font-size: 30px; vertical-align: middle;
     line-height: 10px;
+}
+
+/*
+ * current mode - extra content
+ */
+#mode-extra-header {
+    height: 30px; width: 100%;
+    vertical-align: middle; text-align: center;
+    background-color: #343434;
+}
+#mode-extra-header div {
+    display: inline-block;
+}
+#mode-extra-title { height: 30px; font-style: italic; line-height: 30px;}
+#mode-extra-close {
+    height: 25px; position: fixed; right: 5px; top: 30px;
+    padding: 2px;
+    background-color: #565656;
+}
+
+/*
+ * current mode - library list
+ */
+#mode-extra-content div div.library-item {
+    width: 100%; height: 40px;
+    border-bottom: 1px solid #676767;
+}
+#mode-extra-content div  div.library-item div {
+    height: 40px;
+    display: inline-block;
+}
+#mode-extra-content div  div.library-item div.media-play-btn {
+    height: 40px; width: 40px;
+    background-image: url(images/go-last.png);
+    background-repeat: no-repeat;
+}
+#mode-extra-content div  div.library-item div.library-select {
+    height: 40px; width: 40px;
+    text-align: center; vertical-align: middle;
+}
+#mode-extra-content div div.library-item div.directory,
+#mode-extra-content div div.library-item div.file {
+    font-size: 15px; line-height: 40px;
+    overflow:hidden;
+    white-space: nowrap;
+}
+/*
+ * current mode - option
+ */
+#playorder-option, #repeat-option {
+    padding: 10px 10px 10px 100px;
 }

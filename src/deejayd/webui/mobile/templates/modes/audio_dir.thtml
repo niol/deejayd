@@ -1,0 +1,42 @@
+<div xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <!-- pager -->
+    <div py:if="page_total > 1" class='library-item pager'>
+        <div onclick="playlist_ref.library_first(); return false;"
+            class="pager-first pager-btn"></div>
+        <div onclick="playlist_ref.library_previous(); return false;"
+            class="pager-previous pager-btn"></div>
+        <div class="pager-desc">${str(page)}/${str(page_total)}</div>
+        <div onclick="playlist_ref.library_next(); return false;"
+            class="pager-next pager-btn"></div>
+        <div onclick="playlist_ref.library_last(); return false;"
+            class="pager-last pager-btn"></div>
+    </div>
+
+    <py:if test="dir != ''">
+        <div class="library-item">
+            <div class='library-select'></div>
+            <div class="directory">..</div>
+            <div class="media-play-btn"
+                onclick="mobileui_ref.send_post_command('getdir',
+                    {type:'audio',dir:'${f(root)}'},true);return false;"></div>
+        </div>
+    </py:if>
+
+    <div py:for="item in items" class="library-item">
+        <div class='library-select'>
+            <input value="${f(item['path'])}" type='checkbox'/>
+        </div>
+        <div class="${item['type']}"> ${f(item['name'])} </div>
+        <div py:if="item['type'] == 'directory'" class="media-play-btn"
+            onclick="mobileui_ref.send_post_command('getdir',
+                {type:'audio',dir:'${f(item['path'])}'},true);return false;">
+        </div>
+    </div>
+
+    <div class="center">
+        <input class="add-submit" type="submit" value="${_('Load Files')}"
+            onclick="playlist_ref.load_files(); return false;"/>
+    </div>
+</div>

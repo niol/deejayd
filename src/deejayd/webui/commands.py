@@ -127,11 +127,16 @@ class GoTo(_Command):
 class Repeat(_Command):
     name = "repeat"
     command_args = [{"name":"source","type":"enum_str","req":True,\
-                     "values":("panel","playlist","video")}]
+                     "values":("panel","playlist","video")},\
+                     {"name":"value","type":"enum_int","req":False,\
+                      "values":(0,1),"default": None}]
 
     def execute(self):
         status = self._deejayd.get_status()
-        val = status[self._args["source"]+"repeat"] == 1 and (0,) or (1,)
+        if self._args["value"] == None:
+            val = status[self._args["source"]+"repeat"] == 1 and (0,) or (1,)
+        else:
+            val = (int(self._args["value"]),)
         self._deejayd.set_option(self._args["source"],\
             "repeat",val[0]).get_contents()
 
@@ -150,6 +155,37 @@ class PlayOrder(_Command):
 
 ########################################################################
 ########################################################################
+class GetLibraryDir(_Command):
+    name = "getdir"
+    method = "post"
+    command_args = [{"name":"dir","type":"string","req":False,"default":""},\
+        {"name":"type","type":"enum_str","values":("video","audio"),\
+            "req":False,"default":"audio"},\
+        {"name":"page", "type":"int", "req":False, "default":1}]
+
+########################################################################
+########################################################################
+class PlaylistAdd(_Command):
+    name = "playlistAdd"
+    method = "post"
+    command_args = [{"name":"values","type":"string","req":True,"mult": True},\
+        {"name":"pos","type":"int","req":False,"default":-1},\
+        {"name":"type","type":"enum_str",\
+         "values": ('path','id'),"req":False, "default": "path"}]
+
+    def execute(self):
+        pos = int(self._args["pos"])
+        if pos == -1: pos = None
+
+        pls = self._deejayd.get_playlist()
+        if self._args["type"] == "id":
+            try: values = map(int, self._args["values"])
+            except (TypeError, ValueError):
+                raise ArgError(_("Ids arg must be integer"))
+            pls.add_songs(values, pos).get_contents()
+        else:
+            pls.add_paths(self._args["values"], pos).get_contents()
+
 class PlaylistShuffle(_Command):
     name = "playlistShuffle"
 

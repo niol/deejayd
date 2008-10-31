@@ -18,12 +18,14 @@
 
 import os,re, StringIO
 from genshi.template import TemplateLoader
+from genshi.filters import HTMLFormFiller
+
 from deejayd.xmlobject import DeejaydXMLObject, ET
 from deejayd.webui.utils import format_time
 
 class _DeejaydWebAnswer(DeejaydXMLObject):
 
-    def __init__(self,deejayd,tmp_dir,compilation):
+    def __init__(self,deejayd,tmp_dir = "",compilation = True):
         self._deejayd = deejayd
         self._tmp_dir = tmp_dir
         self._compilation = compilation
@@ -324,27 +326,84 @@ class UpdateMedialist(_DeejaydWebAnswer):
         ET.SubElement(self.xmlroot, "medialist",\
                 source = status["mode"], id = str(status[status["mode"]]),\
                 page = str(page), page_total=str(source.get_total_page()))
+        # set medialist description
+        # self.set_block("mode-description", "zboub")
+
+class PlaylistAdd(UpdateMedialist):
+    commands = ("playlistAdd",)
+
+    def build(self, args):
+        super(PlaylistAdd, self).build(args)
+        self.set_msg(_("Files has been loaded to the playlist"))
+
+LIB_PG_LEN = 15
+class LibraryList(_DeejaydWebAnswer):
+    commands = ("getdir", )
+
+    def _build(self, args):
+        func = "get_%s_dir" % args["type"]
+        ans = getattr(self._deejayd, func)(args['dir'])
+        items = [{"type":"directory", "name":d,\
+            "path":os.path.join(args['dir'],d)} for d in ans.get_directories()]
+        if args["type"] == "audio":
+            items += [{"type":"file", "name":f["filename"],\
+                "path":os.path.join(args['dir'],f["filename"])}\
+                for f in ans.get_files()]
+
+        self.load_templates("modes")
+        tpl_name = "%s_dir.thtml" % args["type"]
+
+        page_total = len(items) / LIB_PG_LEN + 1
+        page = int(args["page"])
+        content = self.get_template(tpl_name).generate(\
+            items=items[LIB_PG_LEN*(page-1):LIB_PG_LEN*page],\
+            page_total=page_total,page=page,root=os.path.dirname(args['dir']),\
+            dir=args['dir'],f=self._to_xml_string).render('xhtml')
+        return content
+
+    def build(self, args):
+        self.set_block("mode-extra-content", self._build(args))
 
 class ExtraPage(_DeejaydWebAnswer):
     commands = ("extraPage",)
 
     def build(self, args):
         self.load_templates("modes")
+        content = None
         if args["page"] == "options":
             status = self._deejayd.get_status().get_contents()
             title = _("Options")
-            content = self.get_template("options.thtml").\
-                    generate(status=status).render('xhtml')
+            source = status["mode"]
+            content = self.get_template("options.thtml").generate(s=source)
+            # set form input value
+            form = HTMLFormFiller(data={\
+                    "select-playorder": status[source+"playorder"],\
+                    "checkbox-repeat": str(status[source+"repeat"])})
+            content = content | form
+            content = content.render('xhtml')
         elif args["page"] == "audio_dir":
-            pass
+            content = LibraryList(self._deejayd)._build(\
+                    {"type":"audio","dir":'',"page":1})
+            title = _("Audio Library")
         elif args["page"] == "video_dir":
+            content = LibraryList(self._deejayd)._build(\
+                    {"type":"video","dir":'',"page":1})
+            title = _("Video Library")
+        elif args["page"] == "video_search":
             pass
         elif args["page"] == "wb_form":
-            pass
+            title = _("Add Webradio")
+            content = self.get_template("wb_form.thtml").\
+                    generate().render('xhtml')
 
         # set extra page info
-        self.set_block("mode-extra-content", content)
         ex_elt = ET.SubElement(self.xmlroot, "extra_page", title=title)
+        if content: self.set_block("mode-extra-content",content)
+
+class Options(_DeejaydWebAnswer):
+    commands = ("playorder","repeat")
+    def build(self, args):
+        pass
 
 answers = {}
 import sys

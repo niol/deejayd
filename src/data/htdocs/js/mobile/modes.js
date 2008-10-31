@@ -45,7 +45,6 @@ var Mode = function()
    this.remove = function()
    {
        if (this.has_selection) {
-           this.set_loading();
            mobileui_ref.send_post_command(this.sourceName+"Remove",
                    {ids: this.get_selection()});
            }
@@ -53,14 +52,24 @@ var Mode = function()
 
    this.clear = function()
    {
-       this.set_loading();
        mobileui_ref.send_command(this.sourceName+"Clear", {}, true);
    };
 
-   this.set_loading = function()
+   this.set_option = function()
    {
-        $("#mode-content").hide();
-        $("#mode-loading").show();
+        if (!this.has_playmode) { return false; }
+
+        // update playorder option
+        var val = $("#playorder-option").val();
+        mobileui_ref.send_post_command("playorder",
+                {source: this.sourceName, value: val}, true);
+        // update repeat option
+        val = $("#repeat-option")[0].checked ? "1" : "0";
+        mobileui_ref.send_command("repeat",
+                {source: this.sourceName, value: val}, true);
+        // close extra page
+        $('#mode-main').show();
+        $('#mode-extra').hide();
    };
 };
 
@@ -71,20 +80,28 @@ var PlaylistMode = function()
     this.sourceName = "playlist";
     this.has_selection = true;
 
-    this.__getLibrarySelection = function()
+    this.load_files = function()
     {
-        return;
-    };
+        var items = $(".library-select");
+        var paths = new Array();
+        for (var i = 0; item = items[i]; i++) {
+            var input = item.getElementsByTagName("input").item(0);
+            if (input && input.checked)
+                paths.push(input.value)
+            }
+        mobileui_ref.send_post_command("playlistAdd", {values: paths}, true);
 
-    this.add = function()
-    {
-        return;
+        // unchecked paths
+        for (var i = 0; item = items[i]; i++) {
+            var input = item.getElementsByTagName("input").item(0);
+            if (input && input.checked)
+                input.checked = false;
+            }
     };
 
    this.shuffle = function()
    {
-       this.set_loading();
-       mobileui_ref.send_command("playlistShuffle", {}, true);
+        mobileui_ref.send_command("playlistShuffle", {}, true);
    };
 
 };
