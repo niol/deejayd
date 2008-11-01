@@ -155,12 +155,13 @@ var _Source = function()
 
     this.setPlaying = function(pos, id, state)
     {
-        if (!this.tree.contentView) { // tree not ready
+        try { var item = this.tree.contentView.getItemAtIndex(parseInt(pos)) }
+        catch (ex) { // tree not ready
             var cmd = this.ref+'.setPlaying('+pos+','+id+',"'+state+'")';
             setTimeout(cmd,300);
             return;
             }
-        var item = this.tree.contentView.getItemAtIndex(parseInt(pos))
+
         if (item) {
             // get id of item
             var item_id = item.id;
