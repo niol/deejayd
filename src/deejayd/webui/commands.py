@@ -22,7 +22,8 @@ class _Command(object):
     method = "get"
     command_args = []
 
-    def __init__(self, deejayd):
+    def __init__(self, deejayd, ans):
+        self._answer = ans
         self._deejayd = deejayd
         self._args = {}
 
@@ -83,6 +84,7 @@ class _Command(object):
                 self._args[arg['name']] = arg['default']
 
     def execute(self): pass
+    def set_answer(self): pass
 
 ########################################################################
 ########################################################################
@@ -108,7 +110,7 @@ class Previous(_ControlCommand): name = "previous"
 class Volume(_Command):
     name = "setVol"
     command_args = [
-        {"name":"volume", "type":"enum_int", "req":True, "values":range(0,101)}]
+      {"name":"volume", "type":"enum_int", "req":True, "values":range(0,101)}]
 
     def execute(self):
         self._deejayd.set_volume(int(self._args["volume"])).get_contents()

@@ -127,20 +127,18 @@ class DeejaydMobileCommandHandler(_DeejaydCommandHandler):
 
     def _render(self, request, type):
         request.setHeader("Content-type","text/xml")
+        ans = mobile_xmlanswer.DeejaydWebAnswer(self._deejayd, \
+                self._tmp_dir, self._compilation)
 
         try: action = request.args["action"]
         except KeyError:
-            ans = mobile_xmlanswer.DeejaydErrorAnswer(\
-                    _("You have to enter an action."))
+            ans.set_error(_("You have to enter an action."))
             return ans.to_xml()
         try:
             cmd_cls = mobile_commands.commands[action[0]]
-            ans_cls = mobile_xmlanswer.answers[action[0]]
-            cmd = cmd_cls(self._deejayd)
-            ans = ans_cls(self._deejayd, self._tmp_dir,self._compilation)
+            cmd = cmd_cls(self._deejayd, ans)
         except KeyError:
-            ans = mobile_xmlanswer.DeejaydErrorAnswer(\
-                    _("Command %s not found") % action[0])
+            ans.set_error(_("Command %s not found") % action[0])
             return ans.to_xml()
 
         if cmd_cls.method != type:
@@ -149,7 +147,7 @@ class DeejaydMobileCommandHandler(_DeejaydCommandHandler):
             try:
                 cmd.argument_validation(request.args)
                 cmd.execute()
-                ans.build(cmd._args)
+                cmd.set_answer()
             except DeejaydError, err:
                 ans.set_error("%s" % err)
             except commands.ArgError, err:
