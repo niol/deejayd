@@ -143,6 +143,12 @@ class WebradioAdd(MedialistAnswer, default_commands.WebradioAdd): pass
 class WebradioClear(MedialistAnswer, default_commands.WebradioClear): pass
 class WebradioRemove(MedialistAnswer, default_commands.WebradioRemove): pass
 
+########################################################################
+# video commands
+########################################################################
+
+class SetVideo(MedialistAnswer, default_commands.SetVideo): pass
+
 commands = {}
 import sys
 thismodule = sys.modules[__name__]

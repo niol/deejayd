@@ -68,6 +68,11 @@ var Mode = function()
         mobileui_ref.send_command("repeat",
                 {source: this.sourceName, value: val}, true);
         // close extra page
+        this.close();
+   };
+
+   this.close = function()
+   {
         $('#mode-main').show();
         $('#mode-extra').hide();
    };
@@ -129,6 +134,7 @@ var WebradioMode = function()
 {
     this.sourceName = "webradio";
     this.has_selection = true;
+    this.has_playmode = false;
 
     this.add = function()
     {
@@ -140,13 +146,42 @@ var WebradioMode = function()
         mobileui_ref.send_post_command("webradioAdd", {name: name, url: url},
                 true);
         // close extra page
-        $('#mode-main').show();
-        $('#mode-extra').hide();
+        this.close();
     };
 };
 // heritage by prototype
 WebradioMode.prototype = new Mode;
 
 var webradio_ref = new WebradioMode();
+
+/************************************************************************/
+/************************************************************************/
+
+var VideoMode = function()
+{
+    this.sourceName = "video";
+
+    this.select_dir = function(obj)
+    {
+        mobileui_ref.send_post_command("videoset",
+                {value:obj.getAttribute("value")}, true);
+        // close extra page
+        this.close();
+    };
+
+    this.search = function()
+    {
+        var value = $("#search-input").val();
+        if (!value) { return false; }
+        mobileui_ref.send_post_command("videoset",
+                {value:value, type:"search"}, true);
+        // close extra page
+        this.close();
+    };
+};
+// heritage by prototype
+VideoMode.prototype = new Mode;
+
+var video_ref = new VideoMode();
 
 // vim: ts=4 sw=4 expandtab

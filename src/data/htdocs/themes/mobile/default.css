@@ -8,6 +8,7 @@ body {
     background-color: #121212;
     color: #fff;
 }
+input { padding: 2px; }
 
 #header, #main { width: 100%; }
 
@@ -257,6 +258,11 @@ div.pause, div.stop { background-image: url('images/play.png'); }
     height: 40px; width: 40px;
     text-align: center; vertical-align: middle;
 }
+#mode-extra-content div div.library-apply div.apply-btn {
+    height: 40px; width: 40px;
+    background-image: url(images/apply.png);
+    background-repeat: no-repeat;
+}
 #mode-extra-content div div.library-item div.directory,
 #mode-extra-content div div.library-item div.file {
     font-size: 15px; line-height: 40px;
@@ -264,16 +270,15 @@ div.pause, div.stop { background-image: url('images/play.png'); }
     white-space: nowrap;
 }
 
-/*
- * current mode - option
- */
+/* current mode - option */
 #playorder-option, #repeat-option {
     padding: 10px 10px 10px 100px;
 }
 
-/*
- * current mode - webradio form
- */
-.wb-input {
-    margin-left: 5px; padding: 10px;
+/* current mode - webradio form */
+.wb-input { margin-left: 5px; padding: 10px; }
+
+/* current mode - video search */
+.videosearch-box {
+    margin-top: 5px;
 }

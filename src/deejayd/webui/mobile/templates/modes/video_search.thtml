@@ -1,0 +1,9 @@
+<div xmlns:py="http://genshi.edgewall.org/">
+    <div class="center videosearch-box">
+        <input size="36" maxlength="64" id="search-input" type="text"
+               class="form-text"/>
+        <br/>
+        <input class="form-submit" type="submit" value="${_('Search')}"
+            onclick="video_ref.search(); return false;"/>
+    </div>
+</div>

@@ -1,0 +1,39 @@
+<div xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <!-- pager -->
+    <div py:if="page_total > 1" class='library-item pager'>
+        <div onclick="video_ref.library_first(); return false;"
+            class="pager-first pager-btn"></div>
+        <div onclick="video_ref.library_previous(); return false;"
+            class="pager-previous pager-btn"></div>
+        <div class="pager-desc">${str(page)}/${str(page_total)}</div>
+        <div onclick="video_ref.library_next(); return false;"
+            class="pager-next pager-btn"></div>
+        <div onclick="video_ref.library_last(); return false;"
+            class="pager-last pager-btn"></div>
+    </div>
+
+    <py:if test="dir != ''">
+        <div class="library-item">
+            <div class='library-select'></div>
+            <div class="directory">..</div>
+            <div class="media-play-btn"
+                onclick="mobileui_ref.send_post_command('getdir',
+                    {type:'video',dir:'${f(root)}'},true);return false;"></div>
+        </div>
+    </py:if>
+
+    <div py:for="item in items" class="library-item">
+        <div class='library-apply'>
+            <div class="apply-btn" value="${f(item['path'])}"
+                onclick="video_ref.select_dir(this);return false;"/>
+        </div>
+        <div class="${item['type']}"> ${f(item['name'])} </div>
+        <div py:if="item['type'] == 'directory'" class="media-play-btn"
+            onclick="mobileui_ref.send_post_command('getdir',
+                {type:'video',dir:'${f(item['path'])}'},true);return false;">
+        </div>
+    </div>
+
+</div>

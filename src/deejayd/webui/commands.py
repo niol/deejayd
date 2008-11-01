@@ -239,4 +239,17 @@ class WebradioRemove(_Command):
         wb = self._deejayd.get_webradios()
         wb.delete_webradios(self._args["ids"]).get_contents()
 
+########################################################################
+########################################################################
+class SetVideo(_Command):
+    name = "videoset"
+    method = "post"
+    command_args = [{"name":"value", "type":"str", "req":False, "default":""},
+            {"name":"type","type":"enum_str","values":("directory","search"),\
+            "req":False,"default":"directory"},]
+
+    def execute(self):
+        video = self._deejayd.get_video()
+        video.set(self._args["value"], self._args["type"]).get_contents()
+
 # vim: ts=4 sw=4 expandtab
