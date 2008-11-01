@@ -71,7 +71,9 @@ class ExtraPage(default_commands._Command):
             self._answer.build_library("video", "")
             title = _("Video Library")
         elif self._args["page"] == "video_search":
-            pass
+            title = _("Video Search")
+            content = self._answer.get_template("video_search.thtml").\
+                    generate().render('xhtml')
         elif self._args["page"] == "wb_form":
             title = _("Add Webradio")
             content = self._answer.get_template("wb_form.thtml").\
@@ -137,6 +139,7 @@ class PlaylistRemove(MedialistAnswer, default_commands.PlaylistRemove): pass
 # webradio commands
 ########################################################################
 
+class WebradioAdd(MedialistAnswer, default_commands.WebradioAdd): pass
 class WebradioClear(MedialistAnswer, default_commands.WebradioClear): pass
 class WebradioRemove(MedialistAnswer, default_commands.WebradioRemove): pass
 

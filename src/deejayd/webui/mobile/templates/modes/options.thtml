@@ -14,7 +14,7 @@
                             name="checkbox-repeat" value="1"/>
     </div></form>
     <div class="center">
-        <input class="save-submit" type="submit" value="${_('Save Options')}"
+        <input class="form-submit" type="submit" value="${_('Save Options')}"
             onclick="${s}_ref.set_option(); return false;"/>
     </div>
 </div>

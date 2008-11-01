@@ -261,8 +261,8 @@ class WebradioMode(_Mode):
     tb_objects = [
         {"id":"wb-add", "cmd":"mobileui_ref.send_command('extraPage',\
                 {page: 'wb_form'},true)", "text": ""},
-        {"id":"wb-remove", "cmd":"wb_ref.remove()", "text":""},
-        {"id":"wb-clear", "cmd":"wb_ref.clear()", "text":""},
+        {"id":"wb-remove", "cmd":"webradio_ref.remove()", "text":""},
+        {"id":"wb-clear", "cmd":"webradio_ref.clear()", "text":""},
         ]
 
 class DvdMode(_Mode):

@@ -263,9 +263,17 @@ div.pause, div.stop { background-image: url('images/play.png'); }
     overflow:hidden;
     white-space: nowrap;
 }
+
 /*
  * current mode - option
  */
 #playorder-option, #repeat-option {
     padding: 10px 10px 10px 100px;
+}
+
+/*
+ * current mode - webradio form
+ */
+.wb-input {
+    margin-left: 5px; padding: 10px;
 }

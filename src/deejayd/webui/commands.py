@@ -213,6 +213,16 @@ class PlaylistRemove(_Command):
 
 ########################################################################
 ########################################################################
+class WebradioAdd(_Command):
+    name = "webradioAdd"
+    method = "post"
+    command_args = [{"name":"name","type":"string","req":True},\
+                    {"name":"url","type":"string","req":True},]
+
+    def execute(self):
+        wb = self._deejayd.get_webradios()
+        wb.add_webradio(self._args["name"], self._args["url"]).get_contents()
+
 class WebradioClear(_Command):
     name = "webradioClear"
 

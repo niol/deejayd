@@ -132,12 +132,21 @@ var WebradioMode = function()
 
     this.add = function()
     {
-        return;
+        var name = $("#wb-name").val();
+        var url = $("#wb-url").val();
+        if (!url || !name)
+            return false;
+
+        mobileui_ref.send_post_command("webradioAdd", {name: name, url: url},
+                true);
+        // close extra page
+        $('#mode-main').show();
+        $('#mode-extra').hide();
     };
 };
 // heritage by prototype
 WebradioMode.prototype = new Mode;
 
-var wb_ref = new WebradioMode();
+var webradio_ref = new WebradioMode();
 
 // vim: ts=4 sw=4 expandtab
