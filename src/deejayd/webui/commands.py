@@ -252,4 +252,13 @@ class SetVideo(_Command):
         video = self._deejayd.get_video()
         video.set(self._args["value"], self._args["type"]).get_contents()
 
+########################################################################
+########################################################################
+class DvdLoad(_Command):
+    name = "dvdLoad"
+
+    def execute(self):
+        self._deejayd.dvd_reload().get_contents()
+
+
 # vim: ts=4 sw=4 expandtab

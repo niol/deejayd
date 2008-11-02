@@ -268,13 +268,23 @@ class WebradioMode(_Mode):
 class DvdMode(_Mode):
     source_name = "dvd"
     title = _("Dvd Mode")
+    tb_objects = [
+        {"id":"dvd-load", "cmd":"mobileui_ref.send_command('dvdLoad',\
+                {},true)", "text": ""},
+        ]
 
     def __init__(self, deejayd):
-        self._core = deejayd
+        self._deejayd = deejayd
 
-    def get(self, root): pass
     def get_total_page(self):
         return 1
+
+    def get_page(self, page = 1):
+        content = self._deejayd.get_dvd_content().get_dvd_contents()
+        return [{"title": _("Title %s") % track["ix"],\
+                 "id": track["ix"],\
+                 "type": "dvd_track",
+                 "length": track["length"]} for track in content["track"]]
 
 MODES = {
     "playlist": PlaylistMode,

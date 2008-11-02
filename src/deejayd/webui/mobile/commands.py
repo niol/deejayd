@@ -149,6 +149,12 @@ class WebradioRemove(MedialistAnswer, default_commands.WebradioRemove): pass
 
 class SetVideo(MedialistAnswer, default_commands.SetVideo): pass
 
+########################################################################
+# dvd commands
+########################################################################
+
+class DvdLoad(MedialistAnswer, default_commands.DvdLoad): pass
+
 commands = {}
 import sys
 thismodule = sys.modules[__name__]

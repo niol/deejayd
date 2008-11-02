@@ -40,6 +40,12 @@
                 <div class="media-title"> ${f(m["title"])} </div>
                 <div class="media-desc"> ${f(m["url"])} </div>
             </py:if>
+            <py:if test="m['type'] == 'dvd_track'">
+                <div class="media-title">
+                    ${f(m["title"])} (${format_time(int(m["length"]))})
+                </div>
+                <div class="media-desc"></div>
+            </py:if>
         </div>
         <div onclick="mobileui_ref.send_command('goto',{id:'${m['id']}'},true);
             return false;" class="media-play-btn"></div>

@@ -166,7 +166,7 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 #video-search { background-image: url(images/search-btn.png); }
 #pl-clear, #wb-clear { background-image: url(images/clear-btn.png); }
 #pl-remove, #wb-remove { background-image: url(images/remove-btn.png); }
-#pl-shuffle { background-image: url(images/refresh.png); }
+#pl-shuffle,#dvd-load { background-image: url(images/refresh.png); }
 
 /*
  * current mode - media list
