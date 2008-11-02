@@ -22,25 +22,46 @@ import glob,os
 from distutils.dep_util import newer
 from distutils.spawn import spawn
 
+
+def update_translation(po_dir, po_package, po):
+    # Update runtime translations
+    os.chdir(po_dir)
+    spawn(["intltool-update", "--dist", "--gettext-package", po_package,
+           os.path.basename(po[:-3])])
+
+
+def update_template(po_dir, po_package):
+    os.chdir(po_dir)
+    # We force here the python language for gettext strings extraction because
+    # xgettext (which is called by intltool-update) reverts to C for
+    # templates, as they do not have a .py extension, and this does not work
+    # and translatable strings are not extracted.
+    os.environ['XGETTEXT_ARGS'] = "-L Python"
+    spawn(["intltool-update", "--pot", "--gettext-package", po_package])
+
+
 def update_po():
     po_package = "deejayd"
-    po_dir = "po"
+    po_dir = os.path.abspath("po")
 
     pot_file = os.path.join(po_dir, po_package + ".pot")
     po_files = glob.glob(os.path.join(po_dir, "*.po"))
     infilename = os.path.join(po_dir, "POTFILES.in")
     infiles = file(infilename).read().splitlines()
 
+    oldpath = os.getcwd()
+
+    need_tpl_update = False
     for filename in infiles:
         if newer(filename, pot_file):
-            oldpath = os.getcwd()
-            os.chdir(po_dir)
-            spawn(["intltool-update", "--pot", "--gettext-package", po_package])
-            for po in po_files:
-                spawn(["intltool-update", "--dist",
-                            "--gettext-package", po_package,
-                            os.path.basename(po[:-3])])
-            os.chdir(oldpath)
+            need_tpl_update = True
+
+    if need_tpl_update:
+        update_template(po_dir, po_package)
+        for po in po_files:
+            update_translation(po_dir, po_package, po)
+
+    os.chdir(oldpath)
 
 if __name__ == "__main__":
     update_po()
