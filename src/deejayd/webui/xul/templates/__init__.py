@@ -96,7 +96,7 @@ TRANSLATE = {
 def build_template(deejayd, config):
     dtd = "\n"
     for k, v in TRANSLATE.iteritems():
-        dtd += "<!ENTITY %s \"%s\">\n" % (k, v)
+        dtd += "<!ENTITY %s \"%s\">\n" % (k, v.encode("utf-8"))
     templates = {"dtd": dtd}
 
     template_dir = os.path.abspath(os.path.dirname(__file__))

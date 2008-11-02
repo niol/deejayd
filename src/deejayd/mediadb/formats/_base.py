@@ -27,7 +27,7 @@ class _MediaFile:
     def parse(self, file_path):
         return {
             "filename": os.path.basename(file_path),
-            "uri": "file:/%s" % urllib.quote(file_path),
+            "uri": "file:/%s" % urllib.quote(file_path.encode('utf-8')),
             "type": self.type,
             "rating": "2", # [0-4]
             "lastplayed": "0",

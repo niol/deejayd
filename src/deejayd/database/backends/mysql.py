@@ -67,7 +67,7 @@ class DatabaseWrapper(local):
             try: self.connection = mysql.connect(db=self.db_name,\
                   user=self.db_user, passwd=self.db_password,\
                   host=self.db_host, port=self.db_port, charset="utf8",\
-                  use_unicode=False)
+                  use_unicode=True)
             except DatabaseError, err:
                 error = _("Could not connect to MySQL server %s." % err)
                 log.err(error, fatal = True)

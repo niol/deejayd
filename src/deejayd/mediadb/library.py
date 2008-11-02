@@ -92,14 +92,13 @@ class _Library(SignalingComponent):
         self.watcher = None
 
     def _encode(self, data):
-        if type(data) is unicode:
-            return data.encode(locale.getpreferredencoding())
-        try: rs = data.decode(self._fs_charset, "strict").encode("utf-8")
+        if type(data) is unicode: return
+        try: rs = data.decode(self._fs_charset, "strict")
         except UnicodeError:
             log.err(_("%s has wrong character") %\
               data.decode(self._fs_charset, "ignore").encode("utf-8","ignore"))
             raise UnicodeError
-        return rs
+        return unicode(rs)
 
     def _build_supported_extension(self, player):
         raise NotImplementedError
@@ -595,7 +594,7 @@ class VideoLibrary(_Library):
     subtitle_ext = (".srt",)
 
     def __quote_suburi(self, uri):
-        return "file:/%s" % urllib.quote(uri)
+        return "file:/%s" % urllib.quote(uri.encode('utf-8'))
 
     def set_extra_infos(self, dir, file, file_id):
         file_path = os.path.join(dir, file)

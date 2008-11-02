@@ -17,8 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-import signal
-import sys
+import signal, sys, locale
 
 from twisted.python import log
 from deejayd.ui.config import DeejaydConfig
@@ -78,19 +77,21 @@ class SignaledFileLogObserver(log.FileLogObserver):
 
 
 def err(err, fatal = False):
-    log.msg(_("ERROR - %s") % err)
+    msg = _("ERROR - %s") % err
+    log.msg(msg.encode(locale.getpreferredencoding()))
     if fatal: sys.exit(err)
 
 def msg(msg):
-    log.msg(msg)
+    log.msg(msg.encode(locale.getpreferredencoding()))
 
 def info(msg):
     if log_level >= INFO:
-        log.msg(_("INFO - %s") % msg)
+        msg = _("INFO - %s") % msg
+        log.msg(msg.encode(locale.getpreferredencoding()))
 
 def debug(msg):
     if log_level >= DEBUG:
-        log.msg(_("DEBUG - %s") % msg)
-
+        msg = _("DEBUG - %s") % msg
+        log.msg(msg.encode(locale.getpreferredencoding()))
 
 # vim: ts=4 sw=4 expandtab

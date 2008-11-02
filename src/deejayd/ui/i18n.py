@@ -26,8 +26,12 @@ class DeejaydTranslations(gettext.GNUTranslations):
         self.plural = lambda n: n > 1
         gettext.GNUTranslations.__init__(self, *args, **kwargs)
 
-    def install(self):
-        __builtin__.__dict__["_"] = self.gettext
-        __builtin__.__dict__["ngettext"] = self.ngettext
+    def install(self, unicode = True):
+        if unicode:
+            __builtin__.__dict__["_"] = self.ugettext
+            __builtin__.__dict__["ngettext"] = self.ungettext
+        else:
+            __builtin__.__dict__["_"] = self.gettext
+            __builtin__.__dict__["ngettext"] = self.ngettext
 
 # vim: ts=4 sw=4 expandtab

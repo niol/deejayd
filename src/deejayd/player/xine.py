@@ -62,7 +62,7 @@ class XinePlayer(UnknownPlayer):
         if not self._media_file: return
 
         # format correctly the uri
-        uri = self._media_file["uri"]
+        uri = self._media_file["uri"].encode("utf-8")
         # For dvd chapter
         if "chapter" in self._media_file.keys() and \
                     self._media_file["chapter"] != -1:
@@ -70,7 +70,8 @@ class XinePlayer(UnknownPlayer):
         # load external subtitle
         if "external_subtitle" in self._media_file and \
                 self._media_file["external_subtitle"].startswith("file://"):
-            uri += "#subtitle:%s" % self._media_file["external_subtitle"]
+            uri += "#subtitle:%s" \
+                    % self._media_file["external_subtitle"].encode("utf-8")
             self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
                                             {"lang": "auto", "ix": -1},\
                                             {"lang": "external", "ix":0}]
@@ -235,7 +236,7 @@ class XinePlayer(UnknownPlayer):
 
     def get_video_file_info(self,file):
         try:
-            self.__mine_stream.open(file)
+            self.__mine_stream.open(file.encode("utf-8"))
         except xine.XineError:
             raise PlayerError
 

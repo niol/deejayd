@@ -54,7 +54,6 @@ class DatabaseWrapper(local):
                 error = _("Could not connect to sqlite database %s.")%self._file
                 log.err(error, fatal = True)
             # configure connection
-            self.connection.text_factory = str
             sqlite.register_adapter(str,str_encode)
 
         return self.connection.cursor(factory = SQLiteCursorWrapper)
