@@ -1,8 +1,15 @@
 <div xmlns:py="http://genshi.edgewall.org/"
   xmlns:xi="http://www.w3.org/2001/XInclude">
 
-    <!-- pager -->
-    <div py:if="page_total > 1" class='library-item pager'>
+    <!-- pager attributes -->
+    <div style="display: none;" py:if="page_total > 1">
+        <input type="hidden" id="library-page" value="${str(page)}"/>
+        <input type="hidden" id="library-total" value="${str(page_total)}"/>
+        <input type="hidden" id="library-dir" value="${dir}"/>
+    </div>
+
+    <!-- pager definition -->
+    <div py:match="pager" class='library-item pager'>
         <div onclick="playlist_ref.library_first(); return false;"
             class="pager-first pager-btn"></div>
         <div onclick="playlist_ref.library_previous(); return false;"
@@ -13,6 +20,8 @@
         <div onclick="playlist_ref.library_last(); return false;"
             class="pager-last pager-btn"></div>
     </div>
+
+    <pager py:if="page_total > 1"/>
 
     <py:if test="dir != ''">
         <div class="library-item">
@@ -34,6 +43,8 @@
                 {type:'audio',dir:'${f(item['path'])}'},true);return false;">
         </div>
     </div>
+
+    <pager py:if="page_total > 1"/>
 
     <div class="center">
         <input class="add-submit" type="submit" value="${_('Load Files')}"

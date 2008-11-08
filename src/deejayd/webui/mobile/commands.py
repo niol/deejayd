@@ -119,7 +119,7 @@ class GetLibraryDir(default_commands.GetLibraryDir):
 
     def set_answer(self):
         self._answer.build_library(self._args["type"], self._args["dir"],\
-                self._args["page"])
+                int(self._args["page"]))
 
 ########################################################################
 # playlist commands

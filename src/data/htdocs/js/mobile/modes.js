@@ -20,6 +20,7 @@ var Mode = function()
 {
     this.has_playmode = true;
     this.has_selection = false;
+    this.has_library = false;
 
     this.update_playmode = function(evt)
     {
@@ -76,6 +77,48 @@ var Mode = function()
         $('#mode-main').show();
         $('#mode-extra').hide();
    };
+
+   this.library_first = function()
+   {
+       var page = parseInt($("#library-page").val());
+       var dir = $("#library-dir").val();
+       if (page > 1) {
+            mobileui_ref.send_post_command("getdir",
+                    {type: this.has_library, dir:dir, page: 1},true);
+            }
+   };
+
+   this.library_previous = function()
+   {
+       var page = parseInt($("#library-page").val());
+       var dir = $("#library-dir").val();
+       if (page > 1) {
+            mobileui_ref.send_post_command("getdir",
+                    {type: this.has_library, dir:dir, page: page-1},true);
+            }
+   };
+
+   this.library_next = function()
+   {
+       var page_total = parseInt($("#library-total").val());
+       var page = parseInt($("#library-page").val());
+       var dir = $("#library-dir").val();
+       if (page < page_total) {
+            mobileui_ref.send_post_command("getdir",
+                    {type: this.has_library, dir:dir, page: page+1},true);
+            }
+   };
+
+   this.library_last = function()
+   {
+       var page_total = parseInt($("#library-total").val());
+       var page = parseInt($("#library-page").val());
+       var dir = $("#library-dir").val();
+       if (page < page_total) {
+            mobileui_ref.send_post_command("getdir",
+                    {type: this.has_library, dir:dir, page: page_total},true);
+            }
+   };
 };
 
 /************************************************************************/
@@ -84,6 +127,7 @@ var PlaylistMode = function()
 {
     this.sourceName = "playlist";
     this.has_selection = true;
+    this.has_library = "audio";
 
     this.load_files = function()
     {
@@ -160,6 +204,7 @@ var webradio_ref = new WebradioMode();
 var VideoMode = function()
 {
     this.sourceName = "video";
+    this.has_library = "video";
 
     this.select_dir = function(obj)
     {

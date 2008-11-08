@@ -1,8 +1,8 @@
 <div xmlns:py="http://genshi.edgewall.org/"
   xmlns:xi="http://www.w3.org/2001/XInclude">
 
-    <!-- pager -->
-    <div py:if="page_total > 1" class='media-item pager'>
+    <!-- pager definition -->
+    <div py:match="pager" class='media-item pager'>
         <div onclick="mobileui_ref.medialist_first(); return false;"
             class="pager-first pager-btn"></div>
         <div onclick="mobileui_ref.medialist_previous(); return false;"
@@ -14,6 +14,7 @@
             class="pager-last pager-btn"></div>
     </div>
 
+    <pager py:if="page_total > 1"/>
     <!-- medialist -->
     <div py:for="m in medias" class='media-item'>
         <div class='media-select'>
@@ -50,4 +51,5 @@
         <div onclick="mobileui_ref.send_command('goto',{id:'${m['id']}'},true);
             return false;" class="media-play-btn"></div>
     </div>
+    <pager py:if="page_total > 1"/>
 </div>

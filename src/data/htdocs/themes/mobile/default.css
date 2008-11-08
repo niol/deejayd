@@ -269,6 +269,7 @@ div.pause, div.stop { background-image: url('images/play.png'); }
     overflow:hidden;
     white-space: nowrap;
 }
+#mode-extra-content div.pager { text-align: center; vertical-align: middle; }
 
 /* current mode - option */
 #playorder-option, #repeat-option {
