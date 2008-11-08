@@ -64,13 +64,12 @@ def build_template(user_agent):
     <script type="text/javascript" src="./static/js/mobile/modes.js"></script>
    </head>
    <body>
+        <div style="display: none;" id="notification"></div>
         <div id="header">
             <div class="button" id="left_button"></div>
             <div id="loading" style="display: none"></div>
             <div class="title" id="main_title"></div>
             <div class="button" id="right_button"></div>
-        </div>
-        <div style="display: none;" id="notification">
         </div>
         <div id="main">
         </div>
