@@ -76,6 +76,10 @@ class SourceFactory(SignalingComponent):
                 # Critical error, we have to quit deejayd
                 msg = _('Cannot initialise video support, either disable video and dvd mode or check your player video support.')
                 log.err(msg, fatal = True)
+            except NotImplementedError:
+                # player not supported video playback, quit deejayd
+                msg = _("player '%s' don't support video playback, either disable video and dvd mode or change your player to have video support.")
+                log.err(msg % player.name, fatal = True)
 
         # Video
         if "video" in activated_sources:

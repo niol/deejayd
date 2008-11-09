@@ -169,17 +169,10 @@ if __name__ == "__main__":
     ##################
     config = DeejaydConfig()
     media_backend = config.get("general", "media_backend")
-    modes = config.getlist("general", "activated_modes")
-    video_support = "video" in modes or "dvd" in modes
     if media_backend == "gstreamer":
-        if video_support:
-            # Install gtk2 reactor
-            from twisted.internet import gtk2reactor
-            gtk2reactor.install()
-        else:
-            # Install glib2 reactor
-            from twisted.internet import glib2reactor
-            glib2reactor.install()
+        # Install glib2 reactor
+        from twisted.internet import glib2reactor
+        glib2reactor.install()
 
     from twisted.internet import reactor
     ###############################################################

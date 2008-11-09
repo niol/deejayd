@@ -22,7 +22,7 @@ from deejayd.ui import log
 def quote_uri(path):
     if type(path) is unicode:
         path = path.encode('utf-8')
-    return "file:/%s" % urllib.quote(path)
+    return "file://%s" % urllib.quote(path)
 
 def str_encode(data, charset = 'utf-8'):
     if type(data) is unicode: return data
