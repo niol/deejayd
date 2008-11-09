@@ -117,11 +117,11 @@ class DeejaydWebAnswer(DeejaydXMLObject):
         func = "get_%s_dir" % type
         ans = getattr(self._deejayd, func)(dir)
         items = [{"type":"directory", "name":d,\
-            "path":os.path.join(dir.decode('utf-8'),d)}\
+            "path":os.path.join(dir,d)}\
             for d in ans.get_directories()]
         if type == "audio":
             items += [{"type":"file", "name":f["filename"],\
-                "path":os.path.join(dir.decode('utf-8'),f["filename"])}\
+                "path":os.path.join(dir,f["filename"])}\
                 for f in ans.get_files()]
 
         self.load_templates("modes")

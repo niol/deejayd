@@ -22,7 +22,7 @@ from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
 from deejayd.mediadb import formats
-from deejayd.mediadb.utils import quote_uri
+from deejayd.utils import quote_uri, str_encode
 from deejayd import database, mediafilters
 from deejayd.ui import log
 
@@ -93,13 +93,7 @@ class _Library(SignalingComponent):
         self.watcher = None
 
     def _encode(self, data):
-        if type(data) is unicode: return
-        try: rs = data.decode(self._fs_charset, "strict")
-        except UnicodeError:
-            log.err(_("%s has wrong character") %\
-              data.decode(self._fs_charset, "ignore").encode("utf-8","ignore"))
-            raise UnicodeError
-        return unicode(rs)
+        return str_encode(data, self._fs_charset)
 
     def _build_supported_extension(self, player):
         raise NotImplementedError

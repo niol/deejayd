@@ -16,6 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from deejayd.utils import str_encode
+
 class ArgError(Exception): pass
 
 class _Command(object):
@@ -27,6 +29,10 @@ class _Command(object):
         self._deejayd = deejayd
         self._args = {}
 
+    def _encode_arg(self, arg):
+        # only accept argument encoded to utf-8
+        return str_encode(arg is not None and arg or "")
+
     def argument_validation(self, http_args):
         for arg in self.command_args:
             if arg['name'] in http_args:
@@ -34,10 +40,16 @@ class _Command(object):
                 value = http_args[arg['name']]
                 if "mult" in arg.keys() and arg["mult"]:
                     if not isinstance(value, list): value = [value]
-                    self._args[arg['name']] = value
+                    try:
+                        self._args[arg['name']] = [self._encode_arg(v)\
+                             for v in value]
+                    except UnicodeError:
+                        continue
                 else:
                     if isinstance(value, list): value = value[0]
-                    self._args[arg['name']] = value
+                    try: self._args[arg['name']] = self._encode_arg(value)
+                    except UnicodeError:
+                        continue
                     value = [value]
 
                 for v in value:

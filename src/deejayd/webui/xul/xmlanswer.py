@@ -73,7 +73,7 @@ class DeejaydWebAnswer(DeejaydXMLObject):
             it.text = self._to_xml_string(dir)
 
         for file in files_list.get_files():
-            path = os.path.join(root_dir.decode('utf-8'),file["filename"])
+            path = os.path.join(root_dir,file["filename"])
             it = ET.SubElement(list_elm,"item",\
                 value_type="path",
                 value=self._to_xml_string(path),\

@@ -21,11 +21,12 @@ from twisted.application import service, internet
 from twisted.internet import protocol, reactor
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
-from deejayd.xmlobject import ET
 
+from deejayd.xmlobject import ET
 from deejayd.interfaces import DeejaydSignal
 from deejayd.mediafilters import *
 from deejayd.ui import log
+from deejayd.utils import str_encode
 from deejayd.net import commandsXML, xmlbuilders
 
 class DeejaydProtocol(LineReceiver):
@@ -157,6 +158,10 @@ class CommandFactory:
 
         return queueCmd
 
+    def __encode_arg(self, arg):
+        # only accept argument encoded to utf-8
+        return str_encode(arg is not None and arg or "")
+
     def __parse_filter(self, xml_filter):
         filter_xml_name = xml_filter.tag
         if filter_xml_name in NAME2BASIC.keys():
@@ -176,11 +181,15 @@ class CommandFactory:
             name = arg.attrib["name"]
             type = arg.attrib["type"]
             if type == "simple":
-                value = arg.text
+                try: value = self.__encode_arg(arg.text)
+                except UnicodeError:
+                    continue
             elif type == "multiple":
                 value = []
                 for val in arg.findall("value"):
-                    value.append(val.text)
+                    try: value.append(self.__encode_arg(val.text))
+                    except UnicodeError:
+                        continue
             elif type == "filter":
                 try:
                     if len(arg) != 1:

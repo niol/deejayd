@@ -102,10 +102,6 @@ class UnknownCommand:
     def args_validation(self):
         for arg in self.__class__.command_args:
             if arg['name'] in self.args:
-                # FIXME need to remove this
-                if self.args[arg['name']] == None:
-                    self.args[arg['name']] = ""
-
                 value = self.args[arg['name']]
                 if isinstance(value,list) and "mult" not in arg:
                     return self.get_error_answer(\
@@ -131,7 +127,7 @@ class UnknownCommand:
                                 str(v)))
 
                     elif arg['type'] == "enum_str":
-                        if v not in arg['values']:
+                        if str(v) not in arg['values']:
                             return self.get_error_answer(\
                                 _("Arg %s (%s) is not in the possible list")\
                                 % (arg['name'],str(v)))

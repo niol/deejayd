@@ -132,7 +132,7 @@ class DatabaseQueries(object):
         files = self.get_all_files(dir, type)
         for file in files: self.remove_file(file[2])
         cursor.execute("DELETE FROM library_dir\
-                      WHERE name LIKE %s AND lib_type = %s", (dir+"%%", type))
+                      WHERE name LIKE %s AND lib_type = %s", (dir+u"%%", type))
         return [f[2] for f in files]
 
     @query_decorator("custom")
@@ -153,11 +153,11 @@ class DatabaseQueries(object):
         cursor.execute(query, (dirlink, type))
 
     @query_decorator("fetchall")
-    def get_dir_list(self, cursor, dir, type = "audio"):
+    def get_dir_list(self, cursor, dir, t = "audio"):
         query = "SELECT DISTINCT id, name FROM library_dir\
             WHERE name LIKE %s AND lib_type = %s ORDER BY name"
-        term = dir == "" and "%%" or dir+"/%%"
-        cursor.execute(query, (term, type))
+        term = dir == unicode("") and u"%%" or dir+unicode("/%%")
+        cursor.execute(query, (term, t))
 
     @query_decorator("fetchone")
     def get_file_info(self, cursor, file_id, info_type):
@@ -169,21 +169,21 @@ class DatabaseQueries(object):
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name, l.lastmodified\
             FROM library l JOIN library_dir d ON d.id=l.directory\
             WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
-        cursor.execute(query,(dir+"%%", type))
+        cursor.execute(query,(dir+u"%%", type))
 
     @query_decorator("fetchall")
     def get_all_dirs(self, cursor, dir, type = "audio"):
         query = "SELECT DISTINCT id,name FROM library_dir\
             WHERE name LIKE %s AND type='directory' AND lib_type = %s\
             ORDER BY name"
-        cursor.execute(query,(dir+"%%", type))
+        cursor.execute(query,(dir+u"%%", type))
 
     @query_decorator("fetchall")
     def get_all_dirlinks(self, cursor, dirlink, type = 'audio'):
         query = "SELECT DISTINCT id,name FROM library_dir\
             WHERE name LIKE %s AND type='dirlink' AND lib_type = %s\
             ORDER BY name"
-        cursor.execute(query,(dirlink+"%%", type))
+        cursor.execute(query,(dirlink+u"%%", type))
 
     def _medialist_answer(self, answer, infos = []):
         files = []
@@ -243,7 +243,7 @@ class DatabaseQueries(object):
                            JOIN media_info i ON i.id=l.id"\
                            + joinquery+\
             " WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
-        cursor.execute(query,(dir+"%%", type))
+        cursor.execute(query,(dir+u"%%", type))
 
     @query_decorator("fetchall")
     def get_dircontent_id(self, cursor, dir, type):

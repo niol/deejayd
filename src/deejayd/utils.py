@@ -17,10 +17,20 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import urllib
+from deejayd.ui import log
 
 def quote_uri(path):
     if type(path) is unicode:
         path = path.encode('utf-8')
     return "file:/%s" % urllib.quote(path)
+
+def str_encode(data, charset = 'utf-8'):
+    if type(data) is unicode: return data
+    try: rs = data.decode(charset, "strict")
+    except UnicodeError:
+        log.err(_("%s string has wrong characters, skip it") %\
+          data.decode(charset, "ignore").encode("utf-8","ignore"))
+        raise UnicodeError
+    return unicode(rs)
 
 # vim: ts=4 sw=4 expandtab
