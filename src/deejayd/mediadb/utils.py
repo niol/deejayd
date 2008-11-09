@@ -16,23 +16,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, glob
+import urllib
 
-def get_extensions(player, type = "audio"):
-    base = os.path.dirname(__file__)
-    base_import = "deejayd.mediadb.formats"
-    ext_dict = {}
-
-    modules = [os.path.basename(f[:-3]) \
-                for f in glob.glob(os.path.join(base, "[!_]*.py"))\
-                if os.path.basename(f).startswith(type)]
-    for m in modules:
-        mod = __import__(base_import+"."+m, {}, {}, base)
-        inst = mod.object()
-        for ext in mod.extensions:
-            if player.is_supported_format(ext):
-                ext_dict[ext] = inst
-
-    return ext_dict
+def quote_uri(path):
+    if type(path) is unicode:
+        path = path.encode('utf-8')
+    return "file:/%s" % urllib.quote(path)
 
 # vim: ts=4 sw=4 expandtab

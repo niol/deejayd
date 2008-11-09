@@ -16,27 +16,46 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
+import os, datetime
+# hachoir
+from hachoir_core.error import HachoirError
+from hachoir_core.cmd_line import unicodeFilename
+from hachoir_parser import createParser
+from hachoir_metadata import extractMetadata
+
 from deejayd.mediadb.formats._base import _VideoFile
-extensions = (".avi", ".mpeg", ".mpg", ".mkv", ".asf", )
+extensions = (".avi", ".mpeg", ".mpg", ".mkv", ".asf", ".mp4")
 
 class VideoFile(_VideoFile):
-    supported_tag = ("videowidth","length","videoheight")
+
+    def __format_title(self, f):
+        (filename,ext) = os.path.splitext(f)
+        title = filename.replace(".", " ")
+        title = title.replace("_", " ")
+        return title.title()
+
+    def __format_duration(self, duration):
+        return str(duration.days*86400 + duration.seconds)
 
     def parse(self, file):
         infos = _VideoFile.parse(self, file)
         (path,filename) = os.path.split(file)
-        def format_title(f):
-            (filename,ext) = os.path.splitext(f)
-            title = filename.replace(".", " ")
-            title = title.replace("_", " ")
+        infos["title"] = self.__format_title(filename)
 
-            return title.title()
+        # parse video file with hachoir
+        parser = createParser(unicode(file))
+        if not parser: # file not supported
+            raise TypeError(_("Video media not supported by hachoir lib"))
+        try: metadata = extractMetadata(parser)
+        except HachoirError, err:
+            raise TypeError(_("Metadata extraction error: %s") % unicode(err))
+        if not metadata:
+            raise TypeError(_("Hachoir don't succeed to extract metadata"))
 
-        infos["title"] = format_title(filename)
-        video_info = self.player.get_video_file_info(file)
-        for t in self.supported_tag:
-            infos[t] = video_info[t]
+        infos["videowidth"] = str(metadata.get("width", "0"))
+        infos["videoheight"] = str(metadata.get("height", "0"))
+        infos["length"] = self.__format_duration(metadata.get("duration",\
+                datetime.timedelta(0,0,0)))
 
         return infos
 

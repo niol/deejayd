@@ -22,6 +22,7 @@ from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
 from deejayd.mediadb import formats
+from deejayd.mediadb.utils import quote_uri
 from deejayd import database, mediafilters
 from deejayd.ui import log
 
@@ -593,16 +594,13 @@ class VideoLibrary(_Library):
     custom_attr = ("videoheight", "videowidth","external_subtitle")
     subtitle_ext = (".srt",)
 
-    def __quote_suburi(self, uri):
-        return "file:/%s" % urllib.quote(uri.encode('utf-8'))
-
     def set_extra_infos(self, dir, file, file_id):
         file_path = os.path.join(dir, file)
         (base_path,ext) = os.path.splitext(file_path)
         sub = ""
         for ext_type in self.subtitle_ext:
             if os.path.isfile(os.path.join(base_path + ext_type)):
-                sub = self.__quote_suburi(base_path + ext_type)
+                sub = quote_uri(base_path + ext_type)
                 break
         try: (recorded_sub,) = self.db_con.get_file_info(file_id,\
                                                          "external_subtitle")
@@ -622,7 +620,7 @@ class VideoLibrary(_Library):
                                                 base_file+video_ext, self.type)
                 except TypeError: pass
                 else:
-                    uri = self.__quote_suburi(os.path.join(path, file))
+                    uri = quote_uri(os.path.join(path, file))
                     self.db_con.set_media_infos(fid, {"external_subtitle": uri})
                     self.emit_changes("update", fid)
                     return True
@@ -632,7 +630,7 @@ class VideoLibrary(_Library):
         (base_file, ext) = os.path.splitext(file)
         if ext in self.subtitle_ext:
             ids = self.db_con.search_id("external_subtitle",\
-                    self.__quote_suburi(os.path.join(path, file)))
+                    quote_uri(os.path.join(path, file)))
             for (id,) in ids:
                 self.db_con.set_media_infos(id, {"external_subtitle": ""})
                 self.emit_changes("update", id)

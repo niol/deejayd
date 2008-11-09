@@ -16,18 +16,16 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, urllib
+import os
+from deejayd.mediadb.utils import quote_uri
 
 class _MediaFile:
     type = "unknown"
 
-    def __init__(self, player):
-        self.player = player
-
     def parse(self, file_path):
         return {
             "filename": os.path.basename(file_path),
-            "uri": "file:/%s" % urllib.quote(file_path.encode('utf-8')),
+            "uri": quote_uri(file_path),
             "type": self.type,
             "rating": "2", # [0-4]
             "lastplayed": "0",
