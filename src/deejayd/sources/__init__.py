@@ -91,9 +91,9 @@ class SourceFactory(SignalingComponent):
         # dvd
         if "dvd" in activated_sources and player.is_supported_uri("dvd"):
             from deejayd.sources import dvd
-            try: self.sources_obj["dvd"] = dvd.DvdSource(player,db,config)
-            except dvd.DvdError:
-                log.err(_("Unable to init dvd support"))
+            try: self.sources_obj["dvd"] = dvd.DvdSource(db,config)
+            except dvd.DvdError, ex:
+                log.err(_("Unable to init dvd support : %s") % str(ex))
         else:
             log.info(_("DVD support disabled"))
 

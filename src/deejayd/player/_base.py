@@ -207,29 +207,4 @@ class UnknownPlayer(SignalingComponent):
         if self.get_state() != PLAYER_STOP:
             self.stop()
 
-    def _is_lsdvd_exists(self):
-        path = os.getenv('PATH')
-        if not path: return False
-        for p in path.split(':'):
-            if os.path.isfile(os.path.join(p,"lsdvd")):
-                return True
-        return False
-
-    def _get_dvd_info(self):
-        command = 'lsdvd -Oy -s -a -c'
-        lsdvd_process = subprocess.Popen(command, shell=True, stdin=None,\
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        lsdvd_process.wait()
-
-        # read error
-        error = lsdvd_process.stderr.read()
-        output = lsdvd_process.stdout.read()
-        if error and output == '':
-            raise PlayerError(error)
-
-        try: exec(output)
-        except:
-            raise PlayerError(_("error in lsdvd command"))
-        return lsdvd
-
 # vim: ts=4 sw=4 expandtab

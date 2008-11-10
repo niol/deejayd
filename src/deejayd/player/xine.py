@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import os, subprocess
 from os import path
 from twisted.internet import reactor
 from pytyxi import xine
@@ -50,13 +51,7 @@ class XinePlayer(UnknownPlayer):
         self.__volume = 100
         self.__window = None
         self.__stream = None
-        self.__mine_stream = None
         self.__osd = None
-
-    def init_video_support(self):
-        UnknownPlayer.init_video_support(self)
-        # init dummy stream to get video and dvd informations
-        self.__mine_stream = self.__xine.stream_new(None, None)
 
     def start_play(self):
         if not self._media_file: return
@@ -170,7 +165,8 @@ class XinePlayer(UnknownPlayer):
         self.__stream.set_param(xine.Stream.XINE_PARAM_SPU_CHANNEL, lang_idx)
 
     def _player_get_alang(self):
-        return self.__stream.get_param(xine.Stream.XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
+        return self.__stream.get_param(xine.Stream.\
+                XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
 
     def _player_get_slang(self):
         return self.__stream.get_param(xine.Stream.XINE_PARAM_SPU_CHANNEL)
@@ -224,9 +220,6 @@ class XinePlayer(UnknownPlayer):
         if self.plugins == None:
             self.plugins = self.__xine.list_input_plugins()
 
-        if uri_type == "dvd":
-            # test lsdvd  installation
-            if not self._is_lsdvd_exists(): return False
         return uri_type in self.plugins
 
     def is_supported_format(self,format):
@@ -234,55 +227,8 @@ class XinePlayer(UnknownPlayer):
             self.supported_extensions = self.__xine.get_supported_extensions()
         return format.strip(".") in self.supported_extensions
 
-    def get_video_file_info(self,file):
-        try:
-            self.__mine_stream.open(file.encode("utf-8"))
-        except xine.XineError:
-            raise PlayerError
-
-        rs = {}
-        rs["videowidth"] = self.__mine_stream.get_stream_info(\
-            xine.Stream.XINE_STREAM_INFO_VIDEO_WIDTH)
-        rs["videoheight"] =  self.__mine_stream.get_stream_info(\
-            xine.Stream.XINE_STREAM_INFO_VIDEO_HEIGHT)
-        rs["length"] = self.__mine_stream.get_length()
-
-        self.__mine_stream.close()
-
-        return rs
-
-    def get_dvd_info(self):
-        dvd_info = self._get_dvd_info()
-        ix = 0
-        for track in dvd_info['track']:
-            try:
-                self.__mine_stream.open("dvd://%d" % track['ix'])
-            except xine.XineError, ex:
-                raise PlayerError, ex
-            # get audio channels info
-            channels_number = len(track['audio'])
-            audio_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
-            for ch in range(0,channels_number):
-                lang = self.__mine_stream.get_audio_lang(ch)
-                audio_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
-            dvd_info['track'][ix]["audio"] = audio_channels
-
-            # get subtitles channels info
-            channels_number = len(track['subp'])
-            sub_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
-            for ch in range(0,channels_number):
-                lang = self.__mine_stream.get_spu_lang(ch)
-                sub_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
-            dvd_info['track'][ix]["subp"] = sub_channels
-
-            ix += 1
-
-        return dvd_info
-
     def close(self):
         UnknownPlayer.close(self)
-        if self.__mine_stream:
-            self.__mine_stream.destroy()
         self.__xine.destroy()
 
     def _create_stream(self, has_video = True):
@@ -400,5 +346,70 @@ class XinePlayer(UnknownPlayer):
                 reactor.callFromThread(log.err, message)
         return True
 
+
+class DvdParser:
+
+    def __init__(self):
+        try:
+            self.__xine = xine.XinePlayer()
+        except xine.XineError:
+            raise PlayerError(_("Unable to init a xine instance"))
+        self.__mine_stream = self.__xine.stream_new(None, None)
+
+        # test lsdvd availability
+        path = os.getenv('PATH') or ""
+        for p in path.split(':'):
+            if os.path.isfile(os.path.join(p,"lsdvd")):
+                return
+        raise PlayerError(_("lsdvd not found, can't extract dvd info"))
+
+    def _get_dvd_info(self):
+        command = 'lsdvd -Oy -s -a -c'
+        lsdvd_process = subprocess.Popen(command, shell=True, stdin=None,\
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        lsdvd_process.wait()
+
+        # read error
+        error = lsdvd_process.stderr.read()
+        output = lsdvd_process.stdout.read()
+        if error and output == '':
+            raise PlayerError(error)
+
+        try: exec(output)
+        except:
+            raise PlayerError(_("error in lsdvd command"))
+        return lsdvd
+
+    def get_dvd_info(self):
+        dvd_info = self._get_dvd_info()
+        ix = 0
+        for track in dvd_info['track']:
+            try:
+                self.__mine_stream.open("dvd://%d" % track['ix'])
+            except xine.XineError, ex:
+                raise PlayerError, ex
+            # get audio channels info
+            channels_number = len(track['audio'])
+            audio_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
+            for ch in range(0,channels_number):
+                lang = self.__mine_stream.get_audio_lang(ch)
+                audio_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
+            dvd_info['track'][ix]["audio"] = audio_channels
+
+            # get subtitles channels info
+            channels_number = len(track['subp'])
+            sub_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
+            for ch in range(0,channels_number):
+                lang = self.__mine_stream.get_spu_lang(ch)
+                sub_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
+            dvd_info['track'][ix]["subp"] = sub_channels
+
+            ix += 1
+
+        return dvd_info
+
+    def close(self):
+        self.__mine_stream.destroy()
+        self.__xine.destroy()
 
 # vim: ts=4 sw=4 expandtab

@@ -19,24 +19,24 @@
 
 from deejayd.component import SignalingComponent
 from deejayd.player._base import PlayerError
+from deejayd.player.xine import DvdParser
 
 class DvdError(Exception): pass
 
 class DvdSource(SignalingComponent):
     name = "dvd"
 
-    def __init__(self, player, db, config):
+    def __init__(self, db, config):
         super(DvdSource, self).__init__()
-        self.player = player
+        try: self.parser = DvdParser()
+        except PlayerError, ex: # dvd parser does not work
+            raise DvdError(ex)
+
         self.db = db
         self.current_id = int(self.db.get_state("dvdid"))
 
         self.dvd_info = None
         self.selected_track = None
-
-        # load dvd content
-        #try: self.load()
-        #except DvdError: pass
 
     def get_content(self):
         if not self.dvd_info:
@@ -50,7 +50,7 @@ class DvdSource(SignalingComponent):
         self.selected_track = None
         self.current_id +=1
 
-        try: self.dvd_info = self.player.get_dvd_info()
+        try: self.dvd_info = self.parser.get_dvd_info()
         except PlayerError, err:
             raise DvdError("Unable to load the dvd : %s " % err)
         # select the default track of the dvd
@@ -139,5 +139,6 @@ class DvdSource(SignalingComponent):
     def close(self):
         states = [(str(self.current_id),self.__class__.name+"id")]
         self.db.set_state(states)
+        self.parser.close()
 
 # vim: ts=4 sw=4 expandtab
