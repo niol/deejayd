@@ -26,6 +26,7 @@ RDEPEND="
 	|| ( >=dev-lang/python-2.5.0
 		 >=dev-python/celementtree-1.0.2 )
 	>=media-libs/mutagen-1.9
+	>=app-misc/hachoir-metadata-1.1
 	>=dev-python/lxml-1.3.0
 	logrotate? ( app-admin/logrotate )
 	webui?
@@ -36,7 +37,7 @@ RDEPEND="
 	inotify? ( >=dev-python/pyinotify-0.6.0 )
 	gstreamer?
 		(
-			>=dev-python/pygtk-2.8
+			>=dev-python/pygobject-2.14
 			>=media-libs/gstreamer-0.10.2
 			>=media-libs/gst-plugins-base-0.10.2
 			>=media-libs/gst-plugins-good-0.10.2
