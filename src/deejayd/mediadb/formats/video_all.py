@@ -51,11 +51,26 @@ class VideoFile(_VideoFile):
             raise TypeError(_("Metadata extraction error: %s") % unicode(err))
         if not metadata:
             raise TypeError(_("Hachoir don't succeed to extract metadata"))
+        # verify if it is really a video
+        mime_type = metadata.get("mime_type", "")
+        if not mime_type.startswith("video"):
+            raise TypeError(_("Wrong file mime type"))
 
-        infos["videowidth"] = str(metadata.get("width", "0"))
-        infos["videoheight"] = str(metadata.get("height", "0"))
+        # extract infos
         infos["length"] = self.__format_duration(metadata.get("duration",\
                 datetime.timedelta(0,0,0)))
+        try:
+            infos["videowidth"] = str(metadata.get("width"))
+            infos["videoheight"] = str(metadata.get("height"))
+        except ValueError:
+            # resolution not found in the container, extract from video stream
+            for group in metadata.iterGroups():
+                if group.has("width") and group.has("height"):
+                    infos["videowidth"] = str(group.get("width"))
+                    infos["videoheight"] = str(group.get("height"))
+                    break
+        if "videoheight" not in infos.keys():
+            raise TypeError(_("Unable to get resolution from this file"))
 
         return infos
 
