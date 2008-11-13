@@ -131,6 +131,31 @@ class DeejaydWebAnswer(DeejaydXMLObject):
                 else:
                     elt.text = self._to_xml_string(cur_media[k])
             # get cover if available
+            try: cover = cur_media.get_cover()
+            except AttributeError:
+                return
+            # save cover in the tmp dir if not already exists
+            cover_ids = self.__find_cover_ids()
+            ext = cover["mime"] == "image/jpeg" and "jpg" or "png"
+            filename = "cover-%s.%s" % (str(cover["id"]), ext)
+            if cover["id"] not in cover_ids:
+                file_path = os.path.join(self.__rdf_dir,filename)
+                fd = open(file_path, "w")
+                fd.write(cover["cover"])
+                fd.close()
+                os.chmod(file_path,0644)
+                # erase unused cover files
+                for id in cover_ids:
+                    try:
+                        os.unlink(os.path.join(self.__rdf_dir,\
+                                "cover-%s.jpg" % id))
+                        os.unlink(os.path.join(self.__rdf_dir,\
+                                "cover-%s.png" % id))
+                    except OSError:
+                        pass
+            # let client to know cover availability
+            elt = ET.SubElement(cur_elt, "cover")
+            elt.text = self._to_xml_string(filename)
 
     def set_msg(self,msg,type = "confirmation"):
         msg_node = ET.SubElement(self.xmlroot,"message",type = type)
@@ -139,5 +164,14 @@ class DeejaydWebAnswer(DeejaydXMLObject):
     def set_error(self, error):
         self.set_msg(error,"error")
 
+    def __find_cover_ids(self):
+        ids = []
+        for file in os.listdir(self.__rdf_dir):
+            if re.compile("^cover-[0-9]+").search(file):
+                t = file.split("-")[1] # id.ext
+                t = t.split(".")
+                try : ids.append(int(t[0]))
+                except ValueError: pass
+        return ids
 
 # vim: ts=4 sw=4 expandtab

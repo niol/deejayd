@@ -227,6 +227,9 @@
         </rows>
     </grid></panel>
 
+    <image id="cover-img" src=""
+        style="visibility: collapse" width="90px" height="90px"/>
+
     <spacer flex="1"/>
 
     <hbox id="right-header" pack="center" align="center">

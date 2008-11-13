@@ -95,6 +95,8 @@ var playerStatus = {
             this.modes[this.current_mode].resetPlaying();
             this.current_mode = null;
             }
+        // hide cover
+        $("cover-img").style.visibility = "collapse";
         },
     __update_current_state: function() {
         var current = this.current.split(":");
@@ -124,6 +126,12 @@ var playerStatus = {
             var album = cur_song.getElementsByTagName("album").item(0);
             if (album && album.firstChild)
                 this.__build_label_item("album",album.firstChild.data);
+            // Cover
+            var cover = cur_song.getElementsByTagName("cover").item(0);
+            if (cover && cover.firstChild) {
+                $('cover-img').src = "rdf/"+cover.firstChild.data;
+                $('cover-img').style.visibility = "visible";
+                }
             break;
 
             case "webradio":
