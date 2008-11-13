@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, sys, time
+import os, sys, time, base64
 from deejayd.mediafilters import *
 from deejayd.ui import log
 from deejayd.database.querybuilders import *
@@ -48,12 +48,12 @@ class MediaFile(dict):
         self.set_info("skipcount", str(skip))
 
     def get_cover(self):
-        if self["type"] != "audio":
+        if self["type"] != "song":
             raise AttributeError
-        try: (id, cover) = self.db.get_file_cover()
+        try: (id, mime, cover) = self.db.get_file_cover(self["media_id"])
         except TypeError:
-            return None
-        return cover
+            raise AttributeError
+        return {"cover": base64.b64decode(cover), "id":id, "mime": mime}
 
     def replay_gain(self):
         """Return the recommended Replay Gain scale factor."""
@@ -340,9 +340,10 @@ class DatabaseQueries(object):
     # cover requests
     #
     @query_decorator("fetchone")
-    def get_file_cover(self, cursor, file_id):
-        query = "SELECT c.id, c.image \
-            FROM media_info m JOIN cover c\
+    def get_file_cover(self, cursor, file_id, source = False):
+        var = source and "source" or "image"
+        query = "SELECT c.id, c.mime_type, c." + var +\
+            " FROM media_info m JOIN cover c\
                               ON m.ikey = 'cover' AND m.value = c.id\
             WHERE m.id = %s"
         cursor.execute(query, (file_id,))
@@ -353,19 +354,27 @@ class DatabaseQueries(object):
         cursor.execute(query, (source,))
 
     @query_decorator("lastid")
-    def add_cover(self, cursor, source, image):
-        query = "INSERT INTO cover (source,lmod,image)VALUES(%s,%s,%s)"
-        cursor.execute(query, (source, time.time(), image))
+    def add_cover(self, cursor, source, mime, image):
+        query = "INSERT INTO cover (source,mime_type,lmod,image)\
+                VALUES(%s,%s,%s,%s)"
+        cursor.execute(query, (source, mime, time.time(), image))
 
     @query_decorator("none")
-    def update_cover(self, cursor, id, new_image):
-        query = "UPDATE cover SET lmod = %s, image = %s WHERE id=%s"
-        cursor.execute(query, (time.time(), new_image, id))
+    def update_cover(self, cursor, id, mime, new_image):
+        query = "UPDATE cover SET mime_type = %s lmod = %s, image = %s\
+                WHERE id=%s"
+        cursor.execute(query, (mime, time.time(), new_image, id))
 
     @query_decorator("none")
     def remove_cover(self, cursor, id):
         query = "DELETE FROM cover WHERE id=%s"
         cursor.execute(query, (id,))
+
+    @query_decorator("none")
+    def remove_unused_cover(self, cursor):
+        query = "DELETE FROM cover WHERE id NOT IN \
+                  (SELECT DISTINCT value FROM media_info WHERE ikey = 'cover')"
+        cursor.execute(query)
 
     #
     # common medialist requests

@@ -17,7 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -*- coding: utf-8 -*-
 
-import os, sys, threading, traceback, base64, urllib, locale
+import os, sys, threading, traceback, base64, locale, hashlib
+from hachoir_core.error import HachoirError
+from hachoir_parser import createParser
+from hachoir_metadata import extractMetadata
 from twisted.internet import threads
 
 from deejayd.component import SignalingComponent
@@ -325,25 +328,7 @@ class _Library(SignalingComponent):
                                  forbidden_roots)
 
             # else update files
-            for file in files:
-                try: file = self._encode(file)
-                except UnicodeError: # skip this file
-                    continue
-
-                file_path = os.path.join(root, file)
-                try:
-                    fid, lastmodified = library_files[file_path]
-                    need_update = os.stat(file_path).st_mtime > lastmodified
-                    changes_type = "update"
-                except KeyError:
-                    need_update = True
-                    fid = None
-                    changes_type = "add"
-                else: del library_files[file_path]
-                if need_update:
-                    fid = self.set_media(dir_id,root,file,fid)
-                if fid: self.set_extra_infos(root, file, fid)
-                if need_update and fid: self.emit_changes(changes_type, fid)
+            self.update_files(root, dir_id, files, library_files)
 
     def end_update(self, result = True):
         self._update_end = True
@@ -354,45 +339,58 @@ class _Library(SignalingComponent):
             self._update_error = msg
         return True
 
-    def set_media(self, dir_id, dirname, filename, file_id):
-        file_path = os.path.join(dirname, filename)
-        try: mediainfo_obj = self._get_file_info(filename)
-        except NotSupportedFormat:
-            log.info(_("File %s not supported") % file_path)
-            return
-        # try to get infos from this file
-        try: file_info = mediainfo_obj.parse(file_path)
-        except Exception, ex:
-            log.err(_("Unable to get metadata from %s, see traceback\
-for more information.") % file_path)
-            log.err("------------------Traceback lines--------------------")
-            log.err(traceback.format_exc())
-            log.err("-----------------------------------------------------")
-            return
+    def update_files(self, root, dir_id, files, library_files):
+        for file in files:
+            try: file = self._encode(file)
+            except UnicodeError: # skip this file
+                continue
+
+            file_path = os.path.join(root, file)
+            try:
+                fid, lastmodified = library_files[file_path]
+                need_update = os.stat(file_path).st_mtime > lastmodified
+                changes_type = "update"
+            except KeyError:
+                need_update, fid = True, None
+                changes_type = "add"
+            else: del library_files[file_path]
+            if need_update:
+                file_info = self._get_file_info(file_path)
+                if file_info is not None: # file supported
+                    fid = self.set_media(dir_id, file_path, file_info, fid)
+            if fid: self.set_extra_infos(root, file, fid)
+            if need_update and fid: self.emit_changes(changes_type, fid)
+
+    def set_media(self, dir_id, file_path, file_info, file_id):
         lastmodified = os.stat(file_path).st_mtime
         if file_id: # do not update persistent attribute
             for attr in self.__class__.persistent_attr: del file_info[attr]
             fid = file_id
             self.db_con.update_file(fid, lastmodified)
         else:
-            lastmodified = os.stat(file_path).st_mtime
+            filename = os.path.basename(file_path)
             fid = self.db_con.insert_file(dir_id, filename, lastmodified)
         self.db_con.set_media_infos(fid, file_info)
-        # update compilation tag if necessary
-        if fid and "album" in file_info.keys() and file_info["album"] != '':
-            self.db_con.set_compilation_tag(fid, file_info)
         return fid
 
     def set_extra_infos(self, dir, file, file_id):
-        raise NotImplementedError
+        pass
 
-    def _get_file_info(self, filename):
-        (base, ext) = os.path.splitext(filename)
+    def _get_file_info(self, file_path):
+        (base, ext) = os.path.splitext(file_path)
         ext = ext.lower()
-        if ext in self.ext_dict.keys():
-            return self.ext_dict[ext]
-        else:
-            raise NotSupportedFormat
+        # try to get infos from this file
+        try: file_info = self.ext_dict[ext].parse(file_path)
+        except KeyError:
+            log.info(_("File %s not supported") % file_path)
+            return None
+        except Exception, ex:
+            log.err(_("Unable to get infos from %s, see traceback")%file_path)
+            log.err("------------------Traceback lines--------------------")
+            log.err(traceback.format_exc())
+            log.err("-----------------------------------------------------")
+            return None
+        return file_info
 
     def disconnect_to_changes(self, id):
         if id in self._changes_cb.keys():
@@ -412,37 +410,36 @@ for more information.") % file_path)
     #######################################################################
     @inotify_action
     def add_file(self, path, file):
-        try: self._get_file_info(file)
-        except NotSupportedFormat: # file not supported
-            return self._inotify_add_info(path, file)
+        file_path = os.path.join(path, file)
+        file_info = self._get_file_info(file_path)
+        if not file_info: return self._inotify_add_info(path, file)
 
-        file_record = self.db_con.is_file_exist(path, file, self.type)
-        if file_record: # file already exists
-            dir_id, file_id = file_record
-        else:
+        try: dir_id, file_id = self.db_con.is_file_exist(path, file, self.type)
+        except TypeError:
             dir_id = self.db_con.is_dir_exist(path, self.type) or\
                      self.db_con.insert_dir(path, self.type)
             file_id = None
 
-        fid = self.set_media(dir_id, path, file, file_id)
+        fid = self.set_media(dir_id, file_path, file_info, file_id)
         if fid:
             self.set_extra_infos(path, file, fid)
             self._add_missing_dir(path)
             self.emit_changes("add", fid)
-        else:
-            self._remove_empty_dir(path)
-            return self._inotify_add_info(path, file)
         return True
 
     @inotify_action
     def update_file(self, path, name):
-        file = self.db_con.is_file_exist(path, name, self.type)
-        if file:
-            dir_id, file_id = file
-            self.set_media(dir_id, path, name, file_id)
+        try: dir_id, file_id = self.db_con.is_file_exist(path, name, self.type)
+        except TypeError:
+            return self._inotify_update_info(path, name)
+        else:
+            file_path = os.path.join(path, name)
+            file_info = self._get_file_info(file_path)
+            if not file_info:
+                return self._inotify_update_info(path, name)
+            self.set_media(dir_id, file_path, file_info, file_id)
             self.emit_changes("update", file_id)
             return True
-        else: return self._inotify_update_info(path, name)
 
     @inotify_action
     def remove_file(self, path, name):
@@ -507,44 +504,134 @@ class AudioLibrary(_Library):
     custom_attr = ("artist","album","genre","tracknumber","date","bitrate",\
                    "replaygain_track_gain","replaygain_track_peak",\
                    "compilation")
-    cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg")
+    cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg",\
+                  "cover.png", "folder.png", ".folder.png")
 
-    def __extract_cover(self, image_path):
-        if os.path.getsize(image_path) > 512*1024: return None # file too large
-        try: fd = open(image_path)
+    def get_cover(self, file_id):
+        try: (cover_id, mime, image) = self.db_con.get_file_cover(file_id)
+        except TypeError:
+            raise NotFoundException
+        return {"mime": mime, "cover": base64.b64decode(image), "id": cover_id}
+
+    def __extract_cover(self, cover_path):
+        if os.path.getsize(cover_path) > 512*1024:
+            return None # file too large (> 512k)
+
+        parser = createParser(unicode(cover_path))
+        if not parser:
+            log.info(_("cover %s not supported") % cover_path)
+            return None
+        try: metadata = extractMetadata(parser)
+        except HachoirError, err:
+            log.info(_("cover %s not supported") % cover_path)
+            return None
+        if not metadata:
+            log.info(_("cover %s not supported") % cover_path)
+            return None
+        # get mime type of this picture
+        mime_type = metadata.get("mime_type", "")
+        if mime_type not in (u"image/jpeg", u"image/png"):
+            log.info(_("cover %s : wrong mime type") % cover_path)
+            return None
+
+        try: fd = open(cover_path)
         except Exception, ex:
-            log.info(_("Unable to open cover file"))
+            log.info(_("Unable to open cover file %s") % cover_path)
             return None
         rs = fd.read()
         fd.close()
-        return base64.b64encode(rs)
+        return mime_type, base64.b64encode(rs)
 
-    def set_extra_infos(self, dir, file, file_id):
-        cover = ""
+    def __find_cover(self, dir):
+        cover = None
         for name in self.cover_name:
-            if os.path.isfile(os.path.join(dir, name)):
-                rs = self.db_con.is_cover_exist(os.path.join(dir,name))
-                try: (cover, lmod) = rs
+            cover_path = os.path.join(dir, name)
+            if os.path.isfile(cover_path):
+                try: (cover, lmod) = self.db_con.is_cover_exist(cover_path)
                 except TypeError:
-                    image = self.__extract_cover(os.path.join(dir, name))
-                    if image:
-                        cover = self.db_con.add_cover(\
-                            os.path.join(dir,name), image)
+                    try: mime, image = self.__extract_cover(cover_path)
+                    except TypeError:
+                        return None
+                    cover = self.db_con.add_cover(cover_path, mime, image)
                 else:
-                    if int(lmod)<os.stat(os.path.join(dir,file)).st_mtime:
-                        image = self.__extract_cover(os.path.join(dir, name))
-                        if image: self.db_con.update_cover(cover, image)
+                    if int(lmod)<os.stat(cover_path).st_mtime:
+                        try: mime, image = self.__extract_cover(cover_path)
+                        except TypeError:
+                            return None
+                        self.db_con.update_cover(cover, mime, image)
                 break
-        try: (recorded_cover,) = self.db_con.get_file_info(file_id, "cover")
-        except TypeError: recorded_cover = -1
-        if str(recorded_cover) != str(cover):
+        return cover
+
+    def __update_cover(self, file_id, cover):
+        try:
+            (recorded_cover, mime, source) = self.db_con.get_file_cover(\
+                    file_id,True)
+        except TypeError:
+            recorded_cover, mime, source = -1, "", ""
+        if not source.startswith("hash") and str(recorded_cover) != str(cover):
             self.db_con.set_media_infos(file_id,{"cover": cover})
+            return True
+        return False
+
+    def __get_digest(self, data):
+        return "hash_-_%s" % hashlib.md5(data).hexdigest()
+
+    def _update_dir(self, dir):
+        super(AudioLibrary, self)._update_dir(dir)
+        # remove unused cover
+        self.db_con.remove_unused_cover()
+
+    def update_files(self, root, dir_id, files, library_files):
+        if len(files): cover = self.__find_cover(root)
+        for file in files:
+            try: file = self._encode(file)
+            except UnicodeError: # skip this file
+                continue
+
+            file_path = os.path.join(root, file)
+            try:
+                fid, lastmodified = library_files[file_path]
+                need_update = os.stat(file_path).st_mtime > lastmodified
+                changes_type = "update"
+            except KeyError:
+                need_update, fid = True, None
+                changes_type = "add"
+            else: del library_files[file_path]
+            if need_update:
+                file_info = self._get_file_info(file_path)
+                if file_info is not None: # file supported
+                    fid = self.set_media(dir_id,file_path,file_info,fid,cover)
+            elif fid and cover:
+                self.__update_cover(fid, cover)
+            if need_update and fid: self.emit_changes(changes_type, fid)
+
+    def set_media(self, dir_id, file_path, file_info, file_id, cover = None):
+        if "cover" in file_info: # find a cover in the file
+            image = base64.b64encode(file_info["cover"]["data"])
+            mime = file_info["cover"]["mime"]
+            # use hash to identify cover in the db and avoid duplication
+            img_hash = self.__get_digest(image)
+            try: (cover, lmod) = self.db_con.is_cover_exist(img_hash)
+            except TypeError:
+                cover = self.db_con.add_cover(img_hash, mime, image)
+            file_info["cover"] = cover
+        elif cover: # use the cover available in this directory
+            file_info["cover"] = cover
+        fid = super(AudioLibrary, self).set_media(dir_id, file_path, \
+                file_info, file_id)
+        # update compilation tag if necessary
+        if fid and "album" in file_info.keys() and file_info["album"] != '':
+            self.db_con.set_compilation_tag(fid, file_info)
+        return fid
 
     #
     # custom inotify actions
     #
-    def _inotify_add_info(self, path, file):
-        if file in self.cover_name:
+    @inotify_action
+    def add_file(self, path, file):
+        file_path = os.path.join(path, file)
+        file_info = self._get_file_info(file_path)
+        if not file_info and file in self.cover_name: # it is a cover
             files = self.db_con.get_dircontent_id(path, self.type)
             if len(files) > 0:
                 file_path = os.path.join(path, file)
@@ -552,10 +639,22 @@ class AudioLibrary(_Library):
                 if image:
                     cover = self.db_con.add_cover(file_path, image)
                     for (id,) in files:
-                        self.db_con.set_media_infos(id, {"cover":cover})
-                        self.emit_changes("update", id)
+                        if self.__update_cover(id, cover):
+                            self.emit_changes("update", id)
                     return True
-        return False
+            return False
+
+        try: dir_id, file_id = self.db_con.is_file_exist(path, file, self.type)
+        except TypeError:
+            dir_id = self.db_con.is_dir_exist(path, self.type) or\
+                     self.db_con.insert_dir(path, self.type)
+            file_id = None
+
+        fid = self.set_media(dir_id, file_path, file_info, file_id)
+        if fid:
+            self._add_missing_dir(path)
+            self.emit_changes("add", fid)
+        return True
 
     def _inotify_remove_info(self, path, file):
         rs = self.db_con.is_cover_exist(os.path.join(path, file))

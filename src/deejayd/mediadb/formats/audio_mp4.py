@@ -54,6 +54,16 @@ class Mp4File(_AudioFile):
                 else: infos[name] = "%02d" % cur
             except: infos[name] = '';
 
+        # extract cover
+        try: cover = mp4_info["covr"][0]
+        except (KeyError, ValueError):
+            pass
+        else:
+            mime = "image/jpeg"
+            if cover.format == cover.FORMAT_PNG:
+                mime = "image/png"
+            infos["cover"] = {"mime": mime, "data": cover}
+
         return infos
 
 object = Mp4File

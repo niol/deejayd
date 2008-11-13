@@ -86,7 +86,7 @@ class TestSong(TestData):
         filename = os.path.join(path, self.name)
         shutil.copy(self.testFile, filename)
         self.tags["filename"] = filename
-        self.tags["uri"] = "file:/%s" % urllib.quote(filename)
+        self.tags["uri"] = "file://%s" % urllib.quote(filename)
 
         self.setRandomTag()
 
@@ -138,7 +138,7 @@ class TestVideo(TestSong):
 
     def set_subtitle(self, sub):
         if sub != "":
-            self.tags["external_subtitle"] = "file:/"+sub
+            self.tags["external_subtitle"] = "file://"+sub
         else:
             self.tags["external_subtitle"] = ""
 
@@ -302,7 +302,7 @@ class TestVideoDir(_TestDir):
     def remove_subtitle(self):
         for item in self.items:
             if item["external_subtitle"]:
-                os.unlink(item["external_subtitle"].replace("file:/", ""))
+                os.unlink(item["external_subtitle"].replace("file://", ""))
                 item.set_subtitle("")
         self.has_sub = False
 

@@ -51,7 +51,7 @@ class Index(object):
         self.columns = columns
 
 
-db_schema_version=8
+db_schema_version=9
 db_schema = [
     Table('library_dir', key='id')[
         Column('id', auto_increment=True),
@@ -72,7 +72,10 @@ db_schema = [
         Column('value')],
     Table('cover', key='id')[
         Column('id', auto_increment=True),
-        Column('source'), # path to the cover file or audio file (internal)
+        # path to the cover file or
+        # hash of the picture for cover inside audio file
+        Column('source'),
+        Column('mime_type'), # mime type of the cover, ex image/jpeg
         Column('lmod', type="int"), # last modified
         Column('image', type="blob"),
         Index(('source',))],
@@ -156,7 +159,7 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('videoid','1');",
     "INSERT INTO variables VALUES('panel-type','panel');",
     "INSERT INTO variables VALUES('panel-value','');",
-    "INSERT INTO variables VALUES('database_version','8');",
+    "INSERT INTO variables VALUES('database_version','9');",
     ]
 
 # vim: ts=4 sw=4 expandtab

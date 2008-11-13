@@ -19,7 +19,6 @@
 import os, datetime
 # hachoir
 from hachoir_core.error import HachoirError
-from hachoir_core.cmd_line import unicodeFilename
 from hachoir_parser import createParser
 from hachoir_metadata import extractMetadata
 

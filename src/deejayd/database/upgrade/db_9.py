@@ -16,22 +16,31 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.mediadb.formats._base import _AudioFile
+from deejayd.database import schema
 
-extensions = [".flac"]
-try: from mutagen.flac import FLAC
-except ImportError:
-    extensions = []
+def upgrade(cursor, backend, config):
+    # get covers
+    cursor.execute("SELECT * FROM cover;")
+    covers = cursor.fetchall()
 
-class FlacFile(_AudioFile):
-    _tagclass_ = FLAC
+    # drop old table
+    cursor.execute("DROP TABLE cover")
+    # create new table
+    for table in schema.db_schema:
+        if table.name != "cover": continue
+        for stmt in backend.to_sql(table):
+            cursor.execute(stmt)
 
-    def get_cover(self, tag_info):
-        for picture in tag_info.pictures:
-            if picture.type == 3: # album front cover
-                return {"data": picture.data, "mime": picture.mime}
-        return None
+    query = "INSERT INTO cover (id,source,mime_type,lmod,image)\
+            VALUES(%s,%s,%s,%s,%s)"
+    for (id, source, lmod, img) in covers:
+        mime = "image/jpeg"
+        cursor.execute(query, (id, source, mime, lmod, img))
 
-object = FlacFile
+    sql = [
+        "UPDATE variables SET value = '9' WHERE name = 'database_version';",
+        ]
+    for s in sql:
+        cursor.execute(s)
 
 # vim: ts=4 sw=4 expandtab

@@ -26,6 +26,16 @@ except ImportError:
 class OggFile(_AudioFile):
     _tagclass_ = OggVorbis
 
+    def get_cover(self, tag_info):
+        if 'coverarttype' in tag_info.keys() and\
+                int(tag_info['coverarttype'][0])==3:
+            try:
+                return {"data": tag_info['coverart'][0],\
+                        "mime": tag_info['coverartmime'][0]}
+            except KeyError:
+                return None
+        return None
+
 object = OggFile
 
 # vim: ts=4 sw=4 expandtab

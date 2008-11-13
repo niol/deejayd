@@ -64,6 +64,9 @@ class _AudioFile(_MediaFile):
                 if t == "tracknumber":
                     info = self._format_tracknumber(info)
                 infos[t] = info
+            # get front cover album if available
+            cover = self.get_cover(tag_info)
+            if cover: infos["cover"] = cover
 
         return infos
 

@@ -63,7 +63,7 @@ class Mp3File(_AudioFile):
                     infos[frame.desc] = frame.text[0]
                     self.replaygain_process = True
                 else: continue
-            elif frame.FrameID == "RVA2":
+            elif frame.FrameID == "RVA2": # replaygain
                 self.__process_rg(frame, infos)
                 continue
             elif frame.FrameID == "TCON": # genre
@@ -77,6 +77,9 @@ class Mp3File(_AudioFile):
                 infos["tracknumber"] = self._format_tracknumber(frame.text[0])
             elif frame.FrameID in self.IDS.keys():
                 infos[self.IDS[frame.FrameID]] = frame.text[0]
+            elif frame.FrameID == "APIC": # picture
+                if frame.type == 3: # album front cover
+                    infos["cover"] = {"data": frame.data, "mime": frame.mime}
             else: continue
 
         return infos
