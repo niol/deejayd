@@ -16,7 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, urllib
+import os
+from deejayd.utils import quote_uri
 from deejayd.database import schema
 
 def format_tracknumber(tckn):
@@ -99,7 +100,7 @@ def upgrade(cursor, backend, config):
             infos = {
                 "type": "song",
                 "filename": fn,
-                "uri": "file:/%s" % urllib.quote(file_path),
+                "uri": quote_uri(file_path),
                 "rating": "2",
                 "lastplayed": "0",
                 "skipcount": "0",
@@ -135,7 +136,7 @@ def upgrade(cursor, backend, config):
             infos = {
                 "type": "video",
                 "filename": fn,
-                "uri": "file:/%s" % urllib.quote(file_path),
+                "uri": quote_uri(file_path),
                 "rating": "2",
                 "lastplayed": "0",
                 "skipcount": "0",
