@@ -20,6 +20,7 @@ import os,re, StringIO
 from genshi.template import TemplateLoader
 from genshi.filters import HTMLFormFiller
 
+from deejayd.interfaces import DeejaydError
 from deejayd.xmlobject import DeejaydXMLObject, ET
 from deejayd.webui.utils import format_time
 
@@ -138,6 +139,44 @@ class DeejaydWebAnswer(DeejaydXMLObject):
         ET.SubElement(self.xmlroot, "extra_page",\
                 title=self._to_xml_string(title))
 
+    def set_cover(self, current):
+        # default cover
+        cover = 'static/themes/mobile/images/missing-cover.png'
+
+        try: cover = self._deejayd.get_audio_cover(current["media_id"])
+        except (TypeError, DeejaydError):
+            return cover
+        # save cover in the tmp dir if not already exists
+        cover_ids = self.__find_cover_ids()
+        ext = cover["mime"] == "image/jpeg" and "jpg" or "png"
+        filename = "cover-%s.%s" % (str(cover["id"]), ext)
+        if cover["id"] not in cover_ids:
+            file_path = os.path.join(self._tmp_dir,filename)
+            fd = open(file_path, "w")
+            fd.write(cover["cover"])
+            fd.close()
+            os.chmod(file_path,0644)
+            # erase unused cover files
+            for id in cover_ids:
+                try:
+                    os.unlink(os.path.join(self._tmp_dir,\
+                            "cover-%s.jpg" % id))
+                    os.unlink(os.path.join(self._tmp_dir,\
+                            "cover-%s.png" % id))
+                except OSError:
+                    pass
+        return os.path.join('tmp', filename)
+
+    def __find_cover_ids(self):
+        ids = []
+        for file in os.listdir(self._tmp_dir):
+            if re.compile("^cover-[0-9]+").search(file):
+                t = file.split("-")[1] # id.ext
+                t = t.split(".")
+                try : ids.append(int(t[0]))
+                except ValueError: pass
+        return ids
+
 #
 # Now playing page
 #
@@ -149,7 +188,7 @@ class NowPlaying:
     right_btn = {"title": "", "link": ""}
 
     def _get_current(self, status, deejayd):
-        m = False
+        m = None
         if status["state"] != "stop":
             m = deejayd.get_current().get_medias()[0]
         return m
@@ -157,18 +196,22 @@ class NowPlaying:
     def refresh(self, ans, deejayd):
         ans.load_templates()
         status = deejayd.get_status().get_contents()
+        current = self._get_current(status, deejayd)
+        cover = ans.set_cover(current)
         tmpl = ans.get_template("playing_title.thtml").generate(\
-                current = self._get_current(status, deejayd),\
+                current = current, cover = cover,\
                 f=ans._to_xml_string, format_time=format_time)
-        ans.set_block("playing-text", tmpl.render("xhtml"))
+        ans.set_block("playing-block", tmpl.render("xhtml"))
         ans.set_player_infos(status)
 
     def build(self, ans, deejayd):
         tmpl = ans.get_template("now_playing.thtml")
         status = deejayd.get_status().get_contents()
+        current = self._get_current(status, deejayd)
+        cover = ans.set_cover(current)
         ans.set_block("main", tmpl.generate(state=status["state"],\
-                current=self._get_current(status, deejayd),\
                 f=ans._to_xml_string,\
+                current = current, cover = cover,\
                 format_time=format_time).render('xhtml'))
         ans.set_player_infos(status, state = False)
 
