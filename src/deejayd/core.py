@@ -570,6 +570,13 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         return dir, contents['dirs'], contents['files']
 
+    @returns_deejaydanswer(DeejaydKeyValue)
+    def get_audio_cover(self,media_id):
+        try: cover = self.audio_library.get_cover(media_id)
+        except deejayd.mediadb.library.NotFoundException:
+            raise DeejaydError(_('Cover not found'))
+        return cover
+
     @returns_deejaydanswer(DeejaydMediaList)
     def audio_search(self, pattern, type = 'all'):
         if type not in ('all','title','genre','filename','artist','album'):

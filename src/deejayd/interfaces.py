@@ -435,6 +435,9 @@ class DeejaydCore(object):
     def get_audio_dir(self, dir=None):
         raise NotImplementedError
 
+    def get_audio_cover(self, media_id):
+        raise NotImplementedError
+
     def audio_search(self, search_txt, type = 'all'):
         raise NotImplementedError
 
