@@ -26,8 +26,9 @@ from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
 
 def log_event(func):
     def log_event_func(self, event):
-        log.info(_("Inotify event %s: %s") % \
-                 (event.event_name,os.path.join(event.path, event.name)))
+        path = os.path.join(event.path.decode("utf-8"),\
+                event.name.decode("utf-8"))
+        log.info(_("Inotify event %s: %s") % (event.event_name, path))
         func(self,event)
 
     return log_event_func
