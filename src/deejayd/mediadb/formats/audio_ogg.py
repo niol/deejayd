@@ -27,14 +27,17 @@ class OggFile(_AudioFile):
     _tagclass_ = OggVorbis
 
     def get_cover(self, tag_info):
-        if 'coverarttype' in tag_info.keys() and\
-                int(tag_info['coverarttype'][0])==3:
-            try:
-                return {"data": tag_info['coverart'][0],\
-                        "mime": tag_info['coverartmime'][0]}
-            except KeyError:
-                return None
         return None
+        # disable for now
+        # not work correctly
+        #if 'coverarttype' in tag_info.keys() and\
+        #        int(tag_info['coverarttype'][0])==3:
+        #    try:
+        #        return {"data": tag_info['coverart'][0],\
+        #                "mime": tag_info['coverartmime'][0]}
+        #    except KeyError:
+        #        return None
+        #return None
 
 object = OggFile
 
