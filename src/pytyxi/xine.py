@@ -267,6 +267,7 @@ class Stream(object):
     def __init__(self, xine, audio_port=None, video_port=None):
         self.__xine = xine
         self.__event_queue = None
+        self.__software_mixer = False
         self.__audio_port = audio_port or AudioDriver(xine)
         self.__video_port = video_port
         if self.__video_port:
@@ -429,8 +430,14 @@ class Stream(object):
     def get_param(self, param):
         return xinelib.xine_get_param(self.__stream_p, param)
 
+    def set_software_mixer(self, software_mixer):
+        self.__software_mixer = software_mixer
+
     def set_volume(self, volume):
-        self.set_param(Stream.XINE_PARAM_AUDIO_VOLUME, volume)
+        param = Stream.XINE_PARAM_AUDIO_VOLUME
+        if self.__software_mixer:
+            param = Stream.XINE_PARAM_AUDIO_AMP_LEVEL
+        self.set_param(param, volume)
 
     XINE_META_INFO_TITLE             = 0
     XINE_META_INFO_COMMENT           = 1

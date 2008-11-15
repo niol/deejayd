@@ -38,6 +38,7 @@ class XinePlayer(UnknownPlayer):
             "display" : self.config.get("xine", "video_display"),
             "osd_support" : self.config.getboolean("xine", "osd_support"),
             "osd_font_size" : self.config.getint("xine", "osd_font_size"),
+            "software_mixer": self.config.getboolean("xine", "software_mixer"),
             }
 
         # init main instance
@@ -185,9 +186,9 @@ class XinePlayer(UnknownPlayer):
                 vol = max(0.0, min(4.0, float(vol)/100.0 * scale))
                 vol = min(100, int(vol * 100))
         if self.__stream:
-            self.__stream.set_param(xine.Stream.XINE_PARAM_AUDIO_VOLUME, vol)
+            self.__stream.set_volume(vol)
         if sig:
-            self._osd_set("Volume: %s" % int(vol))
+            self._osd_set("Volume: %d" % self.__volume)
             self.dispatch_signame('player.status')
 
     def get_position(self):
@@ -261,6 +262,7 @@ class XinePlayer(UnknownPlayer):
 
         # create stream
         self.__stream = self.__xine.stream_new(audio_port, video_port)
+        self.__stream.set_software_mixer(self.__xine_options["software_mixer"])
 
         if video_port and self.__xine_options["osd_support"]:
             self.__osd = self.__stream.osd_new(\

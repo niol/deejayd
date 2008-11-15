@@ -444,6 +444,16 @@ bind_addresses = 192.168.51.2, 10.0.0.3
       </varlistentry>
 
       <varlistentry>
+        <term>software_mixer</term>
+        <listitem>
+          <para>Set to true to use xine software mixer
+            <parameter>yes</parameter> or
+            <parameter>no</parameter>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>video_output</term>
         <listitem>
           <para>The video driver to use. This is usually one among
