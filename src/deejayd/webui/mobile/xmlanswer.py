@@ -143,7 +143,8 @@ class DeejaydWebAnswer(DeejaydXMLObject):
         # default cover
         cover = 'static/themes/mobile/images/missing-cover.png'
 
-        try: cover = self._deejayd.get_audio_cover(current["media_id"])
+        try: cover = self._deejayd.get_audio_cover(current["media_id"]).\
+                get_contents()
         except (TypeError, DeejaydError, KeyError):
             return cover
         # save cover in the tmp dir if not already exists
