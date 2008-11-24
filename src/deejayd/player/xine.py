@@ -284,10 +284,14 @@ class XinePlayer(UnknownPlayer):
     def _osd_set(self, text):
         if not self.__osd: return
         self.__osd.clear()
-        self.__osd.draw_text(60, 20, text)
+        self.__osd.draw_text(60, 20, text.encode("utf-8"))
         self.__osd.show()
 
-        reactor.callLater(2, self.__osd.hide, text)
+        reactor.callLater(2, self._osd_hide, text)
+
+    def _osd_hide(self, text):
+        if self.__osd:
+            self.__osd.hide(text)
 
     #
     # callbacks
