@@ -24,7 +24,7 @@ from deejayd.interfaces import DeejaydError
 from deejayd.ui.log import LogFile
 
 # xul parts
-from deejayd.webui.xul import templates as xul_templates
+from deejayd.webui.xul import build as xul_build
 from deejayd.webui.xul import xmlanswer as xul_xmlanswer
 from deejayd.webui.xul import commands as xul_commands
 
@@ -48,10 +48,7 @@ class DeejaydXulHandler(Resource):
 
     def render_GET(self, request):
         request.setHeader("Content-Type", "application/vnd.mozilla.xul+xml")
-        try: rs = xul_templates.build_template(self.__deejayd, self.__config)
-        except IOError, err:
-            raise DeejaydWebError(err)
-        return rs
+        return xul_build(self.__config)
 
 
 class DeejaydMobileHandler(Resource):

@@ -1,0 +1,13 @@
+<overlay id="deejaydOverlay"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:nc="http://home.netscape.com/NC-rdf#"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <stringbundleset id="stringbundleset">
+        <stringbundle id="webui_strings"
+            src="chrome://deejayd-webui/locale/deejayd-webui.properties"/>
+    </stringbundleset>
+
+    <script type="application/x-javascript"
+        src="chrome://deejayd-webui/content/overlay.js"/>
+</overlay>

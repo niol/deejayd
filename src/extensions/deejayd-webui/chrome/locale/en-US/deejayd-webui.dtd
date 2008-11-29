@@ -1,0 +1,75 @@
+
+<!ENTITY load "Load">
+<!ENTITY rating "Rating">
+<!ENTITY all "All">
+<!ENTITY updateVideoDB "update video library">
+<!ENTITY shuffle "Shuffle">
+<!ENTITY subtitle_channel "Subtitle Channel:">
+<!ENTITY chooseAll "Choose All">
+<!ENTITY random "Random">
+<!ENTITY enterPlsName "Enter Playlist Name">
+<!ENTITY height "Height">
+<!ENTITY randomWeighted "Weighted">
+<!ENTITY video "Video">
+<!ENTITY playorder "Play Order">
+
+<!ENTITY cancel "Cancel">
+<!ENTITY subtitle "Subtitle">
+<!ENTITY magicPlaylist "Magic Playlist">
+<!ENTITY action "Actions">
+<!ENTITY album "Album">
+<!ENTITY playlist "Playlist">
+<!ENTITY loadQueue "Load in the queue">
+<!ENTITY showDebug "Show debug zone">
+<!ENTITY title "Title">
+<!ENTITY wbAdd "Add a Webradio">
+<!ENTITY create "Create">
+<!ENTITY sub_offset "Subtitle Offset:">
+<!ENTITY onemedia "One Media">
+<!ENTITY width "Width">
+<!ENTITY add "Add">
+<!ENTITY save "Save">
+<!ENTITY inorder "In Order">
+
+<!ENTITY staticPlaylist "Static Playlist">
+<!ENTITY play "Play">
+<!ENTITY repeat "Repeat">
+<!ENTITY time "Time">
+<!ENTITY plAdd "Add to playlist">
+<!ENTITY directory "Directory">
+<!ENTITY plName "Playlist name">
+<!ENTITY genre "Genre">
+<!ENTITY bitrate "Bitrate">
+<!ENTITY panel "Navigation Panel">
+<!ENTITY search "Search">
+<!ENTITY advancedOption "Advanced Option">
+<!ENTITY ok "Ok">
+<!ENTITY name "Name">
+<!ENTITY artist "Artist">
+<!ENTITY url "URL">
+<!ENTITY dvd "Dvd">
+
+<!ENTITY clear "Clear">
+<!ENTITY audio_channel "Audio Channel:">
+<!ENTITY zoom "Zoom:">
+<!ENTITY remove "Remove">
+<!ENTITY queue "Song Queue">
+<!ENTITY reload "Reload">
+<!ENTITY length "Length">
+<!ENTITY mode "Mode">
+<!ENTITY webradio "Webradio">
+<!ENTITY av_offset "Audio/Video Offset:">
+<!ENTITY videoInfo "Video Informations">
+<!ENTITY updateAudioDB "update audio library">
+<!ENTITY curSong "Go to current song">
+<!ENTITY wbUrl "URL (.pls and .m3u are supported)">
+
+<!ENTITY pTitle.label "Deejayd Webui Preferences">
+<!ENTITY serverPrefs.label "Options to connect at the webui server">
+<!ENTITY serverHost.label "Host Adrress">
+<!ENTITY serverPort.label "Port Number">
+<!ENTITY uiPrefs.label "UI Options">
+<!ENTITY refreshUseDefault.label "Use default refresh time send by server">
+<!ENTITY refreshTime.label "Refresh time">
+<!ENTITY refreshTimeDesc.label "Set to 0 to disable automatic refresh">
+

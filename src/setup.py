@@ -24,8 +24,40 @@ from distutils.core import setup,Command
 from distutils.errors import DistutilsFileError
 from distutils.dep_util import newer
 from distutils.spawn import find_executable
+from zipfile import ZipFile
 
 import deejayd
+
+
+class build_extension(Command):
+    ext_directory = None
+    extension = None
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        self.ext_directory = "extensions"
+        self.extension = "deejayd-webui"
+
+    def run(self):
+        data_files = self.distribution.data_files
+
+        ext_dir = os.path.join(self.ext_directory, self.extension)
+        ext_path = "%s.xpi" % ext_dir
+        # first remove old zip file
+        try: os.unlink(ext_path)
+        except OSError:
+            pass
+        ext_file = ZipFile(ext_path, 'w')
+        for root, dirs, files in os.walk(ext_dir):
+            for f in files:
+                path = os.path.join(root, f)
+                ext_file.write(path, path[len(ext_dir):])
+        ext_file.close()
+
+        target_path = os.path.join('share', 'deejayd', 'htdocs')
+        data_files.append((target_path, (ext_path, ), ))
 
 
 class build_manpages(Command):
@@ -111,12 +143,16 @@ class deejayd_build(distutils_build):
 
     def __has_i18n(self, command):
         return self.distribution.cmdclass.has_key("build_i18n")\
-        and build_i18n.executable != None
+            and build_i18n.executable != None
+
+    def __has_extension(self, command):
+        return self.distribution.cmdclass.has_key("build_extension")
 
     def finalize_options(self):
         distutils_build.finalize_options(self)
         self.sub_commands.append(("build_i18n", self.__has_i18n))
         self.sub_commands.append(("build_manpages", self.__has_manpages))
+        self.sub_commands.append(("build_extension", self.__has_extension))
 
 #
 # data files
@@ -151,8 +187,7 @@ if __name__ == "__main__":
                      "deejayd.database","deejayd.database.upgrade",\
                      "deejayd.database.backends",\
                      "deejayd.webui","deejayd.webui.mobile",\
-                     "deejayd.webui.xul","deejayd.webui.xul.templates",\
-                     "pytyxi"],
+                     "deejayd.webui.xul", "pytyxi"],
            package_data={'deejayd.ui': ['defaults.conf'],
                          'deejayd.webui.xul.templates': ['*.xml'],
                          'deejayd.webui.mobile': ["templates/*thtml",\
@@ -160,6 +195,7 @@ if __name__ == "__main__":
            data_files= build_data_files_list(),
            cmdclass={"build": deejayd_build,
                      "build_i18n": build_i18n,
+                     "build_extension": build_extension,
                      "build_manpages": build_manpages,}
         )
 

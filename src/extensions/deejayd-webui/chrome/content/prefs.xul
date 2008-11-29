@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://deejayd-webui/skin/prefs.css" type="text/css"?>
+
+<!DOCTYPE window SYSTEM "chrome://deejayd-webui/locale/deejayd-webui.dtd">
+
+<window id="webuiprefs" windowtype="deejayd-webui:options"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    persist="screenX screenY"
+    title="&pTitle.label;" onload="load();">
+
+<script src="chrome://deejayd-webui/content/js/prefs.js"/>
+
+    <vbox>
+        <groupbox>
+            <caption label="&serverPrefs.label;"/>
+            <hbox>
+                <vbox>
+                    <listbox seltype="single" id="server-list"/>
+                    <hbox align="center">
+                        <textbox
+                            maxlength="20"
+                            empty="true" emptytext="Enter Host"
+                            id="server-host"/>
+                        <label value=":"/>
+                        <textbox
+                            type="number" min="1" max="65000"
+                            value="6880"
+                            id="server-port"/>
+                        <button oncommand="serverHost.add();" label="&add;"/>
+                    </hbox>
+                </vbox>
+                <vbox>
+                    <button oncommand="serverHost.remove()" label="&remove;"/>
+                    <spacer flex="1"/>
+                </vbox>
+            </hbox>
+        </groupbox>
+
+        <separator orient="vertical" class="groove-thin"/>
+
+        <groupbox>
+            <caption label="&uiPrefs.label;"/>
+
+            <checkbox id="ref-check"
+                onclick='$("refresh-time").disabled = !$("ref-check").checked;'
+                label="&refreshUseDefault.label;"/>
+            <hbox align="center">
+                <label value="&refreshTime.label;"/>
+                <textbox id="refresh-time"/>
+            </hbox>
+            <description class="option-desc" value="&refreshTimeDesc.label;"/>
+        </groupbox>
+
+        <separator orient="vertical" class="groove-thin"/>
+
+        <hbox align="center">
+            <spacer flex="1"/>
+            <button oncommand="save()" label="&save;"/>
+            <button oncommand="window.close();" label="&cancel;"/>
+        </hbox>
+    </vbox>
+
+</window>
