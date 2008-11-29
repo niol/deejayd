@@ -26,7 +26,7 @@ class IphoneBrowser(object):
     def header(self):
         return """
      <meta name="viewport" content="user-scalable=no, width=device-width">
-     <link rel="apple-touch-icon" href="./static/themes/mobile/deejayd.png"/>
+     <link rel="apple-touch-icon" href="./static/themes/mobile/deejayd.jpg"/>
      <link href="./static/themes/mobile/iphone.css" type= "text/css"
         rel="stylesheet"/>
 """
