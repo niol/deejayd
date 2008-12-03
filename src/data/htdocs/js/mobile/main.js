@@ -63,10 +63,10 @@ function mobileUI()
                 if (typeof parm[i] == 'object') {
                     var obj = parm[i];
                     for (var j in obj)
-                        toSend += (toSend?'&':'') + i + '=' + urlencode(obj[j]);
+                      toSend += (toSend?'&':'') + i + '=' + urlencode(obj[j]);
                     }
                 else
-                    toSend += (toSend? '&' : '') + i + '=' + urlencode(parm[i]);
+                  toSend += (toSend? '&' : '') + i + '=' + urlencode(parm[i]);
                 }
             }
         else
@@ -183,6 +183,12 @@ function mobileUI()
             var left = parseInt(volume.getAttribute("value"))*2 - 12;
             $("#volume-handle").attr("value", volume.getAttribute("value"));
             $("#volume-handle").css("left", left+"px");
+            // update cover
+            var cover = rs.getElementsByTagName("cover").item(0);
+            if (cover &&
+            cover.getAttribute("value") != $("#playing-cover").attr("src")) {
+                $("#playing-cover").attr("src", cover.getAttribute("value"));
+                }
             }
 
         rs = xmldoc.getElementsByTagName("extra_page").item(0);

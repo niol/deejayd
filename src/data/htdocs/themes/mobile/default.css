@@ -20,18 +20,18 @@ input { padding: 2px; }
     height: 25px; width: 100%;
 }
 #notification div {
-    opacity: 0.8;
+    opacity: 0.9;
     padding: 2px;
+    z-index: 5;
+    color: #000;
 }
 #notification div.error {
     background-color: #EF9398;
     border: 1px solid #DC5757;
-    color: #f00;
 }
 #notification div.confirmation {
     background-color: #A6EF7B;
     border: 1px solid #76C83F;
-    color: #fff;
 }
 #notification div input {
     float: right;
@@ -46,23 +46,38 @@ input { padding: 2px; }
     margin: 0px; padding: 0px;
     background-image: url(images/control-bg.png);
     background-repeat: repeat-x;
-    height: 30px;
+    height: 45px;
     text-align: center;
 }
 #header div {
     display: inline-block;
     text-align: center;
 }
+#header #main_title {
+    padding-top: 4px;
+    font-size: 14px; font-weight: bold;
+}
+#main_title #playing-text div {
+    display: block;
+    text-align: center;
+}
+#main_title #playing-text div.title {
+    font-size: 13px; font-weight: bold;
+}
+#main_title #playing-text div.artist, #main_title #playing-text div.url {
+    font-size: 12px; font-style: italic;
+}
 #header div.button {
-    height: 25px;
-    font-size: 15px;
-    background: #cdcdcd;
+    position: fixed; top: 3px;
+    height: 35px; width: 50px;
+    font-size: 12px;
+    background-image: url(images/headerbtn-bg.png);
+    background-repeat: repeat-x;
+    border: 1px solid #ababab;
     padding: 2px 8px 0px 8px;
 }
-#header #main_title {
-    padding-top: 2px;
-    font-size: 18px; font-weight: bold;
-}
+#left_button { left: 4px; }
+#right_button { right: 4px; }
 #header #loading {
     width: 30px; height: 30px;
     position: fixed; top: 0px; right: 2px;
@@ -71,13 +86,24 @@ input { padding: 2px; }
     background-repeat: no-repeat;
 }
 
-
 /*
- * control command
+ * playing info / control
  */
-#playing-control {
+#playing-block {
     width: 100%;
-    height: 55px;
+    height:306px;
+    background-color: #121212;
+    text-align: center;
+}
+#playing-block #playing-cover {
+    z-index: 0;
+    height: 311px;
+    width: 311px;
+}
+#playing-control {
+    position: fixed; left: 0px; top: 301px;
+    z-index: 1; opacity: 0.8;
+    width: 100%; height: 55px;
     text-align: center;
     background-image: url(images/control-bg.png);
     background-repeat: repeat-x;
@@ -98,67 +124,30 @@ div.play { background-image: url('images/pause.png'); }
 div.pause, div.stop { background-image: url('images/play.png'); }
 
 /*
- * playing info
- */
-#playing-info {
-    width: 100%;
-    height:291px;
-    background-color: #121212;
-    text-align: center;
-}
-#playing-info #playing-cover {
-    z-index: 0;
-    height: 291px;
-}
-#playing-info #playing-text {
-    position: fixed; top: 30px; left: 0px;
-    opacity: 0.5;
-    background-color: #000;
-    text-align: center;
-    z-index: 2;
-    width: 100%;
-    height: 100px;
-}
-#playing-info #playing-text div {
-    width: 100%;
-    z-index: 3;
-}
-#playing-info #playing-text div.title {
-    padding-top: 10px;
-    font-size: 16px; font-weight: bold;
-}
-#playing-info #playing-text div.artist, #playing-info #playing-text div.url {
-    font-size: 14px; font-style: italic;
-}
-
-/*
  * volume widget
  */
 #volume-widget {
-    width: 100%;
-    height: 40px;
+    width: 100%; height: 60px;
     background-image: url(images/volume-bg.png);
     background-repeat: repeat-x;
 }
 #volume-widget div { display: inline-block; }
 #volume-slider {
-    position: relative;
-    top: 5px;
+    position: relative; top: 2px;
     width: 200px; height: 15px;
     background-color: #fff;
 }
 #volume-handle {
-    position: relative;
-    top: -5px;
+    position: relative; top: -5px;
     width: 25px; height: 25px;
     background-image: url(images/vol-handle.png);
 }
 .volume-button {
-    position: relative; top: 6px;
-    width: 24px; height: 24px;
+    position: relative; top: 2px;
+    width: 40px; height: 40px;
 }
-#volume-up { background-image: url(images/add.png); }
-#volume-down { background-image: url('images/remove.png'); }
+#volume-up { background-image: url(images/vol-up.png); }
+#volume-down { background-image: url('images/vol-down.png'); }
 
 /*
  * Mode List
@@ -263,7 +252,7 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 }
 #mode-extra-title { height: 30px; font-style: italic; line-height: 30px;}
 #mode-extra-close {
-    height: 25px; position: fixed; right: 5px; top: 30px;
+    height: 25px; position: fixed; right: 5px; top: 45px;
     padding: 2px;
     background-color: #565656;
 }
@@ -296,7 +285,7 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 #mode-extra-content div div.library-item div.directory,
 #mode-extra-content div div.library-item div.file {
     font-size: 15px; line-height: 40px;
-    overflow:hidden;
+    overflow: hidden;
     white-space: nowrap;
 }
 #mode-extra-content div.pager { text-align: center; vertical-align: middle; }
@@ -304,6 +293,9 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 /* current mode - option */
 #playorder-option, #repeat-option {
     padding: 10px 10px 10px 100px;
+}
+#mode-extra-content .form-submit {
+    padding: 15px 10px;
 }
 
 /* current mode - webradio form */

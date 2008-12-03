@@ -65,11 +65,13 @@ class DeejaydWebAnswer(DeejaydXMLObject):
     def set_error(self, error):
         self.set_msg(error,"error")
 
-    def set_player_infos(self, status, state = True):
+    def set_player_infos(self, status, state = True, cover = None):
         player = ET.SubElement(self.xmlroot, "player")
         ET.SubElement(player, "volume", value = str(status['volume']))
         if state:
             ET.SubElement(player, "state", value = status['state'])
+        if cover is not None:
+            ET.SubElement(player, "cover", value=self._to_xml_string(cover))
 
     def set_page(self, page_name):
         self.load_templates()
@@ -184,7 +186,6 @@ class DeejaydWebAnswer(DeejaydXMLObject):
 class NowPlaying:
     commands = ('goto',)
     name = "now_playing"
-    title = _("Now Playing")
     left_btn = {"title": _("Current Mode"), "link": "current_mode"}
     right_btn = {"title": "", "link": ""}
 
@@ -194,27 +195,32 @@ class NowPlaying:
             m = deejayd.get_current().get_medias()[0]
         return m
 
+    def _build_title(self, ans, current):
+        tmpl = ans.get_template("playing_title.thtml").generate(\
+                current = current,
+                f=ans._to_xml_string, format_time=format_time)
+        return tmpl.render("xhtml")
+
     def refresh(self, ans, deejayd):
         ans.load_templates()
         status = deejayd.get_status().get_contents()
         current = self._get_current(status, deejayd)
-        cover = ans.set_cover(current)
-        tmpl = ans.get_template("playing_title.thtml").generate(\
-                current = current, cover = cover,\
-                f=ans._to_xml_string, format_time=format_time)
-        ans.set_block("playing-block", tmpl.render("xhtml"))
-        ans.set_player_infos(status)
+
+        # update title
+        ans.set_block("main_title", self._build_title(ans, current))
+        ans.set_player_infos(status, cover = ans.set_cover(current))
 
     def build(self, ans, deejayd):
         tmpl = ans.get_template("now_playing.thtml")
         status = deejayd.get_status().get_contents()
         current = self._get_current(status, deejayd)
-        cover = ans.set_cover(current)
+
+        self.title = self._build_title(ans, current)
         ans.set_block("main", tmpl.generate(state=status["state"],\
                 f=ans._to_xml_string,\
-                current = current, cover = cover,\
+                current = current, cover = ans.set_cover(current),\
                 format_time=format_time).render('xhtml'))
-        ans.set_player_infos(status, state = False)
+        ans.set_player_infos(status, state = False, cover = None)
 
 #
 # mode list page

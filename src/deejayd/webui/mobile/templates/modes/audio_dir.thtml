@@ -47,7 +47,7 @@
     <pager py:if="page_total > 1"/>
 
     <div class="center">
-        <input class="add-submit" type="submit" value="${_('Load Files')}"
+        <input class="form-submit" type="submit" value="${_('Load Files')}"
             onclick="playlist_ref.load_files(); return false;"/>
     </div>
 </div>

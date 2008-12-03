@@ -1,17 +1,17 @@
 <div xmlns:py="http://genshi.edgewall.org/"
   xmlns:xi="http://www.w3.org/2001/XInclude">
     <div id="playing-block">
-        <xi:include href="playing_title.thtml"/>
-    </div>
-    <div id="playing-control">
-        <div class="control-button" id="previous_button"
-            onclick="mobileui_ref.send_command('previous',null,true)"></div>
-        <div class="control-button ${state}" id="playpause_button"
-            onclick="mobileui_ref.send_command('play_toggle',null,true)"></div>
-        <div class="control-button" id="stop_button"
-            onclick="mobileui_ref.send_command('stop',null,true)"></div>
-        <div class="control-button" id="next_button"
-            onclick="mobileui_ref.send_command('next',null,true)"></div>
+        <image id="playing-cover" src="${cover}"/>
+        <div id="playing-control">
+            <div class="control-button" id="previous_button"
+              onclick="mobileui_ref.send_command('previous',null,true)"/>
+            <div class="control-button ${state}" id="playpause_button"
+              onclick="mobileui_ref.send_command('play_toggle',null,true)"/>
+            <div class="control-button" id="stop_button"
+              onclick="mobileui_ref.send_command('stop',null,true)"/>
+            <div class="control-button" id="next_button"
+              onclick="mobileui_ref.send_command('next',null,true)"/>
+        </div>
     </div>
     <div id="volume-widget">
         <div class="volume-button" id="volume-down"
