@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.7.2
+Actual version : 0.7.99 (not released yet)
 ----------------------
 
 Description:
@@ -24,7 +24,16 @@ Clients:
     --------
       It is a web based client written in XUL. It is replace ajaxdj and
       it is included in deejayd. It can be configured in webui section of
-      deejayd configuration file.
+      deejayd configuration file. The first time you try to use this ui,
+      you need to download and install a firefox extension. This is needed
+      to allow extended feature (like drag and drop) without change
+      firefox configuration.
+      url to use this interface : http://host:webuiport/
+  * mobile-webui :
+    --------
+      It is a web based client optimized for mobile device
+      You need to set "mobile_webui" to "yes" in order to use this ui
+      url to use this interface : http://host:webuiport/m/
 
 Requirements:
 -------------
@@ -36,12 +45,14 @@ Requirements:
        for mysql database support
     * mutagen >= 1.6
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
+    * hachoir-metadata >= 1.2 (http://hachoir.org/wiki/hachoir-metadata)
     * cElementTree (http://effbot.org/zone/celementtree.htm) module.
       It is include in python 2.5
         OR
       lxml (http://codespeak.net/lxml/), this library is recommended because it
       really improves deejayd performance
     * twisted-web >= 0.6.0 if you want to use deejayd-webui
+    * genshi (http://genshi.edgewall.org/) if you want to use mobile webui
     * if you want to use gstreamer backend
         * (2.9 > pygtk >= 2.8) or pygobject >= 2.12 (http://www.pygtk.org/)
         * gstreamer >= 0.10 (http://gstreamer.freedesktop.org)
