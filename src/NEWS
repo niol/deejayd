@@ -10,6 +10,10 @@ New features and significant updates in version...
   * add new playorder mode
     * weigthed random
     * one media
+  * set xine binding as an independant module (pytyxi)
+  * add a html interface optimized for mobile device (http://host:port/m/)
+  * add full support of cover album
+  * set xul webui as an firefox extension
 
 0.7.2 (2008-05-15)
 --------------------
