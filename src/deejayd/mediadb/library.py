@@ -606,7 +606,8 @@ class AudioLibrary(_Library):
             if need_update and fid: self.emit_changes(changes_type, fid)
 
     def set_media(self, dir_id, file_path, file_info, file_id, cover = None):
-        if "cover" in file_info: # find a cover in the file
+        if file_info is not None and "cover" in file_info:
+            # find a cover in the file
             image = base64.b64encode(file_info["cover"]["data"])
             mime = file_info["cover"]["mime"]
             # use hash to identify cover in the db and avoid duplication
