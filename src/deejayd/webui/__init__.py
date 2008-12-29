@@ -33,7 +33,7 @@ from deejayd.webui import mobile
 from deejayd.webui.mobile import xmlanswer as mobile_xmlanswer
 from deejayd.webui.mobile import commands as mobile_commands
 
-class DeejaydWebError(Exception): pass
+class DeejaydWebError(DeejaydError): pass
 
 class DeejaydXulHandler(Resource):
 
