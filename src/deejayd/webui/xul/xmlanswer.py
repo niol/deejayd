@@ -19,6 +19,7 @@
 import os,re
 from deejayd.xmlobject import DeejaydXMLObject, ET
 from deejayd.webui.xul import rdfbuilder
+from deejayd.mediafilters import *
 
 class DeejaydWebAnswer(DeejaydXMLObject):
 
@@ -96,6 +97,73 @@ class DeejaydWebAnswer(DeejaydXMLObject):
                 id=self._to_xml_string(pls["id"]), type="playlist",\
                 playlist_type=self._to_xml_string(pls["type"]))
             it.text = self._to_xml_string(pls["name"])
+
+    def set_panel(self, deejayd, updated_tag = None):
+        panel = deejayd.get_panel()
+        mode = panel.get_active_list()
+
+        # build panel if needed
+        if mode["type"] == "panel":
+            filters = panel.get().get_filter()
+            try: filter_list = filters.filterlist
+            except (TypeError, AttributeError):
+                filter_list = []
+
+            panel_filter = And()
+            # find search filter
+            for ft in filter_list:
+                if ft.type == "basic" and ft.get_name() == "contains":
+                    panel_filter.combine(ft)
+                    break
+                elif ft.type == "complex" and ft.get_name() == "or":
+                    panel_filter.combine(ft)
+                    break
+
+            # find panel filter list
+            for ft in filter_list:
+                if ft.type == "complex" and ft.get_name() == "and":
+                    filter_list = ft
+                    break
+
+            tag_list = ["genre", "artist", "album"]
+            try: idx = tag_list.index(updated_tag)
+            except ValueError:
+                pass
+            else:
+                tag_list = tag_list[idx+1:]
+            for t in ("genre", "artist", "album"):
+                selected = []
+
+                for ft in filter_list: # OR filter
+                    try: tag = ft[0].tag
+                    except IndexError:
+                        continue
+                    if tag == t:
+                        selected = [t_ft.pattern for t_ft in ft]
+                        tag_filter = ft
+                        break
+
+                if t in tag_list:
+                    list = deejayd.mediadb_list(t, panel_filter)
+                    items = [{"name": _("All"), "value":"__all__", \
+                        "class":"list-all", "sel":str(selected==[]).lower()}]
+                    items.extend([{"name": l,"value":l,\
+                        "sel":str(l in selected).lower(), "class":""}\
+                        for l in list if l != ""])
+                    if "" in list:
+                        items.append({"name": _("Unknown"), "value":"",\
+                            "class":"list-unknown",\
+                            "sel":str("" in selected).lower()})
+                    self.__build_tag_list(t, items)
+                # add filter for next panel
+                if len(selected) > 0:
+                    panel_filter.combine(tag_filter)
+
+    def __build_tag_list(self, tag, items):
+        list = ET.SubElement(self.xmlroot,"panel-list", tag = tag)
+        for item in items:
+            listitem = ET.SubElement(list,"item", label = item["name"],\
+                    value = item["value"], selected = item["sel"])
 
     def set_player(self, status, cur_media):
         # Update player informations

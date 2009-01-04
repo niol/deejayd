@@ -76,6 +76,9 @@ class Init(_UnknownCommand):
             pls_list = self._deejayd.get_playlist_list()
             self._answer.set_playlist_list(pls_list.get_medias())
 
+        if "panel" in status.keys(): # set panel
+            self._answer.set_panel(self._deejayd)
+
 class Refresh(_UnknownCommand):
     name = "refresh"
     def execute(self): pass
@@ -429,6 +432,10 @@ class PanelSet(_UnknownCommand):
         {"name":"type","type":"enum_str","values": ('panel','playlist'),\
          "req":True}]
 
+    def default_result(self):
+        self._answer.set_panel(self._deejayd)
+        super(PanelSet, self).default_result()
+
     def execute(self):
         panel = self._deejayd.get_panel()
         panel.set_active_list(self._args["type"], self._args["value"])
@@ -437,39 +444,59 @@ class PanelSet(_UnknownCommand):
 class PanelUpdateFilter(_UnknownCommand):
     name = "panelUpdateFilter"
     method = "post"
-    command_args = [{"name":"value","type":"string","req":True},\
+    command_args = [{"name":"values","type":"string","req":True,"mult":True},\
         {"name":"tag","type":"enum_str",\
-         "values":("genre","artist","album","title","all"),"req":True},\
-        {"name":"type","type":"enum_str","values": ('equals','contains'),\
-         "req":True}]
+         "values":("genre","artist","album"),"req":True},]
+
+    def default_result(self):
+        tag = self._args["tag"]
+        if "__all__" in self._args["values"]:
+            # we maybe remove old filter for this tag, so update all panel
+            tag = None
+        self._answer.set_panel(self._deejayd, tag)
+        super(PanelUpdateFilter, self).default_result()
 
     def execute(self):
         panel = self._deejayd.get_panel()
-        if self._args["value"] == "__all__":
-            panel.remove_panel_filters(self._args["type"], self._args["tag"])
-        elif self._args["value"] == "__compilation__":
-            panel.remove_panel_filters(self._args["type"], self._args["tag"])
-            panel.update_panel_filters("compilation", "equals", "1")
+        if "__all__" in self._args["values"]:
+            panel.remove_panel_filters(self._args["tag"])
         else:
-            if self._args["tag"] in ("artist", "genre"):
-                panel.remove_panel_filters("equals", "compilation")
-            panel.update_panel_filters(self._args["tag"],\
-                self._args["type"], self._args["value"])
+            panel.set_panel_filters(self._args["tag"], self._args["values"])
 
             # remove filter for panels at the right of this tag
-            if self._args["type"] == "equals":
-                for tg in ('album','artist','album'):
-                    if tg == self._args["tag"]:
-                        break
-                    panel.remove_panel_filters(self._args["type"], tg)
+            for tg in ('album','artist','genre'):
+                if tg == self._args["tag"]: break
+                panel.remove_panel_filters(tg)
 
+class PanelUpdateSearch(_UnknownCommand):
+    name = "panelUpdateSearch"
+    method = "post"
+    command_args = [{"name":"value","type":"string","req":True},\
+        {"name":"tag","type":"enum_str",\
+         "values":("genre","artist","album","title","all"),"req":True},]
 
-class PanelClearFilter(_UnknownCommand):
-    name = "panelClearFilter"
+    def default_result(self):
+        self._answer.set_panel(self._deejayd)
+        super(PanelUpdateSearch, self).default_result()
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        if self._args["value"] == "":
+            panel.clear_search_filter()
+        else:
+            panel.set_search_filter(self._args["tag"], self._args["value"])
+
+class PanelClear(_UnknownCommand):
+    name = "panelClear"
+
+    def default_result(self):
+        self._answer.set_panel(self._deejayd)
+        super(PanelClear, self).default_result()
 
     def execute(self):
         panel = self._deejayd.get_panel()
         panel.clear_panel_filters()
+        panel.clear_search_filter()
 
 #
 # Queue commands
@@ -588,6 +615,7 @@ class DvdLoad(_UnknownCommand):
         self._deejayd.dvd_reload().get_contents()
 
 ###########################################################################
+# Build the list of available commands
 commands = {}
 
 import sys
@@ -598,4 +626,5 @@ for itemName in dir(thismodule):
         commands[item.name] = item
     except AttributeError:
         pass
-# Build the list of available commands
+
+# vim: ts=4 sw=4 expandtab

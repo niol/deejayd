@@ -23,41 +23,55 @@ class PanelSource(_BaseLibrarySource):
     base_medialist = "__panelcurrent__"
     name = "panel"
     source_signal = 'panel.update'
-    equals_tags = ('genre','artist','album','compilation')
+    equals_tags = ('genre','artist','album')
     contains_tags = ('genre','artist','album','title','all')
-    orders = ["album", "tracknumber"]
+    #default_orders = [("album", "ascending"), ("tracknumber", "ascending")]
+    default_orders = ["album", "tracknumber"]
 
     def __init__(self, db, library):
         super(PanelSource, self).__init__(db, library)
+
+        # get recorded panel medialist
+        filter = And()
         try: ml_id = self.db.get_medialist_id(self.base_medialist, 'magic')
         except ValueError: # medialist does not exist
-            self.__panel_filters = None
+            pass
         else:
-            recorded_filters = self.db.get_magic_medialist_filters(ml_id)
-            self.__panel_filters = And()
-            self.__panel_filters.filterlist = recorded_filters
+            filter.filterlist = self.db.get_magic_medialist_filters(ml_id)
+        self.__filters_to_parms(filter)
+
         # custom attributes
         self.__selected_mode = {
             "type": self.db.get_state("panel-type"),
             "value": self.db.get_state("panel-value")}
+        self.__orders = self.__class__.default_orders
         self.__update_active_list(self.__selected_mode["type"],\
             self.__selected_mode["value"])
 
-    def __find_contains_filter(self):
-        try: filter_list = self.__panel_filters.filterlist
-        except (TypeError, AttributeError):
-            return None
-        for ft in filter_list:
-            if ft.type == "basic" and ft.get_name() == "contains":
-                return ft
-            elif ft.type == "complex" and ft.get_name() == "or":
-                return ft
-        return None
+    def __filters_to_parms(self, filter = None):
+        # filter as AND(Search, Panel) with
+        #  * Panel : And(OR(genre=value1, genre=value2), OR(artist=value1)...)
+        #  * Search : OR(tag1 CONTAINS value, )
+        self.__search, self.__panel, self.__filter = None, {}, filter
+        if filter != None:
+            for ft in filter.filterlist:
+                if ft.get_name() == "and": # panel
+                    for panel_ft in ft.filterlist:
+                        tag = panel_ft.filterlist[0].tag
+                        self.__panel[tag] = panel_ft
+                elif ft.get_name() == "or" or ft.type == "basic": # search
+                    self.__search = ft
 
-    def __set_panel_filters(self, filters):
-        self.__panel_filters = filters
-        medias = self.library.search(self.__panel_filters,\
-                self.__class__.orders)
+    def __update_panel_filters(self):
+        # rebuild filter
+        self.__filter = And()
+        if self.__search:
+            self.__filter.filterlist.append(self.__search)
+        panel_filter = And()
+        panel_filter.filterlist = self.__panel.values()
+        self.__filter.filterlist.append(panel_filter)
+
+        medias = self.library.search(self.__filter, self.__orders)
         self._media_list.set(medias)
         self.dispatch_signame(self.__class__.source_signal)
 
@@ -66,69 +80,55 @@ class PanelSource(_BaseLibrarySource):
             try: medias = self._get_playlist_content(pl_id)
             except SourceError: # playlist does not exist, set to panel
                 self.__selected_mode["type"] = "panel";
-                medias = self.library.search(self.__panel_filters,\
-                        self.__class__.orders)
+                medias = self.library.search(self.__filter, self.__orders)
         elif type == "panel":
-            medias = self.library.search(self.__panel_filters,\
-                    self.__class__.orders)
-        else: raise TypeError
+            medias = self.library.search(self.__filter, self.__orders)
+        else:
+            raise TypeError
         self._media_list.set(medias)
 
-    def update_panel_filters(self, tag, type, value):
-        try: filter_list = self.__panel_filters.filterlist
-        except (TypeError, AttributeError):
-            self.__panel_filters = And()
-            filter_list = []
+    def set_panel_filters(self, tag, values):
+        if tag not in self.__class__.equals_tags:
+            raise SourceError(_("Tag %s not supported") % tag)
+        if not values:
+            self.remove_panel_filters(tag)
+            return
+        filter = Or()
+        for value in values:
+            filter.combine(Equals(tag, value))
+        self.__panel[tag] = filter
+        self.__update_panel_filters()
 
-        if type == "equals": # panel
-            if tag not in self.__class__.equals_tags:
-                raise SourceError(_("Tag %s not supported") % tag)
-            found = False
-            for ft in filter_list:
-                if ft.get_name() == "equals" and ft.tag == tag:
-                    ft.pattern = value
-                    found = True
-                    break
-            if not found: self.__panel_filters.combine(Equals(tag, value))
-
-        elif type == "contains":
-            if tag not in self.__class__.contains_tags:
-                raise SourceError(_("Tag %s not supported") % tag)
-            self.__panel_filters = And()
-            if tag == "all":
-                new_filter = Or()
-                for tg in ('title','genre','artist','album'):
-                    new_filter.combine(Contains(tg, value))
-            else:
-                new_filter = Contains(tag, value)
-            self.__panel_filters.combine(new_filter)
-
-        elif type == "order":
-            pass # TODO
-        else:
-            raise SourceError(_("Unknown filter type"))
-        self.__set_panel_filters(self.__panel_filters)
-
-    def remove_panel_filters(self, type, tag):
-        if not self.__panel_filters: return
-
-        if type == "equals":
-            for ft in self.__panel_filters.filterlist:
-                if ft.get_name() == "equals" and ft.tag == tag:
-                    self.__panel_filters.filterlist.remove(ft)
-                    self.__set_panel_filters(self.__panel_filters)
-                    return
-
-        elif type == "contains":
-            try: self.__panel_filters.filterlist.\
-                remove(self.__find_contains_filter())
-            except (TypeError, ValueError, AttributeError):
-                return
-
-        self.__set_panel_filters(self.__panel_filters)
+    def remove_panel_filters(self, tag):
+        try: del self.__panel[tag]
+        except KeyError:
+            pass
+        self.__update_panel_filters()
 
     def clear_panel_filters(self):
-        self.__set_panel_filters(None)
+        self.__panel = {}
+        self.__update_panel_filters()
+
+    def set_search_filter(self, tag, value):
+        if tag not in self.__class__.contains_tags:
+            raise SourceError(_("Tag %s not supported") % tag)
+        if tag == "all":
+            new_filter = Or()
+            for tg in ('title','genre','artist','album'):
+                new_filter.combine(Contains(tg, value))
+        else:
+            new_filter = Contains(tag, value)
+        self.__search = new_filter
+        self.__panel = {} # remove old panel filter
+        self.__update_panel_filters()
+
+    def clear_search_filter(self):
+        if self.__search:
+            self.__search = None
+            self.__update_panel_filters()
+
+    def set_orders(self, orders):
+        pass
 
     def get_active_list(self):
         return self.__selected_mode
@@ -143,9 +143,10 @@ class PanelSource(_BaseLibrarySource):
 
     def get_content(self, start = 0, stop = None):
         if self.__selected_mode["type"] == "panel":
-            return self._media_list.get(start, stop), self.__panel_filters
+            return self._media_list.get(start, stop), self.__filter,\
+                    self.__orders
         elif self.__selected_mode["type"] == "playlist":
-            return self._media_list.get(start, stop), None
+            return self._media_list.get(start, stop), None, None
 
     def close(self):
         states = [
@@ -158,9 +159,7 @@ class PanelSource(_BaseLibrarySource):
             states.append((self._media_list.repeat, self.name+"-repeat"))
         self.db.set_state(states)
         # save panel filters
-        filter_list = []
-        if self.__panel_filters is not None:
-            filter_list = self.__panel_filters.filterlist
+        filter_list = self.__filter.filterlist
         self.db.set_magic_medialist_filters(self.base_medialist, filter_list)
 
 # vim: ts=4 sw=4 expandtab

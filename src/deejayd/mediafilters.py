@@ -107,6 +107,12 @@ class ComplexFilter(MediaFilter):
             raise ValueError
         for ft in filters: self.filterlist.remove(ft)
 
+    def __iter__(self):
+        return iter(self.filterlist)
+
+    def __getitem__(self, idx):
+        return self.filterlist[idx]
+
     def __len__(self):
         return len(self.filterlist)
 

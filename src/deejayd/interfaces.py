@@ -118,6 +118,7 @@ class DeejaydMediaList(DeejaydAnswer):
         self.medias = []
         self.total_length = None
         self.filter = None
+        self.order = None
 
     def set_total_length(self, length):
         self.total_length = length
@@ -143,6 +144,12 @@ class DeejaydMediaList(DeejaydAnswer):
 
     def get_filter(self):
         return self.filter
+
+    def set_order(self, order):
+        self.order = order
+
+    def get_order(self):
+        return self.order
 
 
 class DeejaydDvdInfo(DeejaydAnswer):
@@ -248,19 +255,28 @@ class DeejaydPanel(object):
     def get(self, first = 0, length = None):
         raise NotImplementedError
 
-    def update_panel_filters(self, tag, type, value):
+    def get_active_list(self):
         raise NotImplementedError
 
-    def remove_panel_filters(self, type, tag):
+    def set_active_list(self, type, pl_id=""):
+        raise NotImplementedError
+
+    def set_panel_filters(self, tag, values):
+        raise NotImplementedError
+
+    def remove_panel_filters(self, tag):
         raise NotImplementedError
 
     def clear_panel_filters(self):
         raise NotImplementedError
 
-    def get_active_list(self):
+    def set_search_filter(self):
         raise NotImplementedError
 
-    def set_active_list(self, type, pl_id=""):
+    def clear_search_filter(self):
+        raise NotImplementedError
+
+    def set_orders(self):
         raise NotImplementedError
 
 

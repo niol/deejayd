@@ -75,6 +75,7 @@ def returns_deejaydanswer(answer_class):
                     elif answer_class == DeejaydMediaList:
                         if isinstance(res, tuple):
                             ans.set_filter(res[1])
+                            ans.set_order(res[2])
                             res = res[0]
                         ans.set_medias(res)
                     elif answer_class == DeejaydFileList:
@@ -289,9 +290,9 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first=0, length=-1):
-        songs, filters = self.source.get_content()
+        songs, filters, orders = self.source.get_content()
         last = length == -1 and len(songs) or int(first) + int(length)
-        return (songs[int(first):last], filters)
+        return (songs[int(first):last], filters, orders)
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_active_list(self):
@@ -306,14 +307,14 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def update_panel_filters(self, tag, type, value):
-        try: self.source.update_panel_filters(tag, type, value)
+    def set_panel_filters(self, tag, values):
+        try: self.source.set_panel_filters(tag, values)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def remove_panel_filters(self, type, tag):
-        try: self.source.remove_panel_filters(type, tag)
+    def remove_panel_filters(self, tag):
+        try: self.source.remove_panel_filters(tag)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
@@ -321,6 +322,17 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
     def clear_panel_filters(self):
         self.source.clear_panel_filters()
 
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set_search_filter(self, tag, value):
+        self.source.set_search_filter(tag, value)
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def clear_search_filter(self):
+        self.source.clear_search_filter()
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set_orders(self):
+        self.source.set_orders()
 
 class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
     """Video mode."""

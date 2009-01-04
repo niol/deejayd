@@ -93,7 +93,6 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
             return # this mode is not active
         new_id = int(new_id) % 10000
         if current_id != new_id:
-            self._clean_rdfdir()
             self._build_rdf_file(new_id)
 
         # set xml
@@ -125,20 +124,21 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
 
         self._save_rdf(rdf_builder, new_id)
 
-    def _save_rdf(self, rdf_builder, new_id):
-        filename = "%s-%d.rdf" % (self.__class__.name, new_id);
+    def _save_rdf(self, rdf_builder, new_id, name = None):
+        name = name or self.__class__.name
+        # first clean rdf dir
+        for file in os.listdir(self._rdf_dir):
+            path = os.path.join(self._rdf_dir,file)
+            if os.path.isfile(path) and file.startswith(name+"-"):
+                os.unlink(path)
+
+        filename = "%s-%d.rdf" % (name, new_id);
         file_path = os.path.join(self._rdf_dir,filename)
 
         fd = open(file_path, "w")
         fd.write(rdf_builder.to_xml())
         fd.close()
         os.chmod(file_path,0644)
-
-    def _clean_rdfdir(self):
-        for file in os.listdir(self._rdf_dir):
-            path = os.path.join(self._rdf_dir,file)
-            if os.path.isfile(path) and file.startswith(self.name+"-"):
-                os.unlink(path)
 
     def _get_current_id(self):
         ids = []
@@ -197,90 +197,10 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
         media_list = panel.get().get_medias()
 
         rdf_builder = RdfBuilder(self.__class__.name)
-        # build panel if needed
-        if mode["type"] == "panel":
+        if mode["type"] == "playlist":
             filters = panel.get().get_filter()
-            try: filter_list = filters.filterlist
-            except (TypeError, AttributeError):
-                filter_list = []
-
-            panel_filter = And()
-            for ft in filter_list:
-                if ft.type == "basic" and ft.get_name() == "contains":
-                    panel_filter.combine(ft)
-                    break
-                elif ft.type == "complex" and ft.get_name() == "or":
-                    panel_filter.combine(ft)
-                    break
-
-            for t in ("genre", "artist", "album"):
-                selected = None
-
-                if t == "artist" and self._compilation:
-                    list = []
-                    # find compilation
-                    for ft in filter_list:
-                        if ft.get_name() == "equals" \
-                                and ft.tag == "compilation"\
-                                and ft.pattern == "1":
-                            selected = "__compilation__"
-                            break
-                        elif ft.get_name() == "equals" and ft.tag == t:
-                            selected = ft.pattern
-                            break
-                    tag_filter = And()
-                    tag_filter.combine(panel_filter)
-                    tag_filter.combine(Equals("compilation", "0"))
-                    list = self._deejayd.mediadb_list(t, tag_filter)
-
-                    # add filter for next panel
-                    if selected is not None:
-                        if selected == "__compilation__":
-                            panel_filter.combine(Equals("compilation", "1"))
-                        else:
-                            panel_filter.combine(Equals(t, selected))
-
-                    items = [{"name": _("All"), "value":"__all__", \
-                              "class":"list-all", \
-                              "sel":str(selected==None).lower()}]
-                    # set various artist tag only if needed
-                    tag_filter = And()
-                    tag_filter.combine(panel_filter)
-                    tag_filter.combine(Equals("compilation", "1"))
-                    if len(self._deejayd.mediadb_list("album", tag_filter)):
-                        items.append({"name": _("Various Artists"),\
-                              "value":"__compilation__", "class":"", \
-                              "sel":str(selected=="__compilation__").lower()})
-                    items.extend([{"name": l,"value":l,\
-                            "sel":str(selected==l).lower(), "class":""}\
-                            for l in list if l != ""])
-                    if "" in list:
-                        items.append({"name": _("Unknown"), "value":"",\
-                            "class":"list-unknown",\
-                            "sel":str(selected=="").lower()})
-
-                else:
-                    for ft in filter_list:
-                        if ft.get_name() == "equals" and ft.tag == t:
-                            selected = ft.pattern
-                            break
-                    list = self._deejayd.mediadb_list(t, panel_filter)
-                    # add filter for next panel
-                    if selected is not None:
-                        panel_filter.combine(Equals(t, selected))
-
-                    items = [{"name": _("All"), "value":"__all__", \
-                            "class":"list-all", \
-                            "sel":str(selected==None).lower()}]
-                    items.extend([{"name": l,"value":l,\
-                            "sel":str(selected==l).lower(), "class":""}\
-                            for l in list if l != ""])
-                    if "" in list:
-                        items.append({"name": _("Unknown"), "value":"",\
-                            "class":"list-unknown",\
-                            "sel":str(selected=="").lower()})
-
-                self.__build_tag_list(rdf_builder, t, items, selected)
+            if filters:
+                self.__build_filter(filters)
 
         # build medialist
         seq = rdf_builder.build_seq("http://%s/all-content" % self.name)
@@ -290,14 +210,6 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
                 "http://%s/%s" % (self.name, media["id"]))
 
         self._save_rdf(rdf_builder, new_id)
-
-    def __build_tag_list(self, rdf_builder, type, items, selected = None):
-        seq = rdf_builder.build_seq("http://panel/all-%s" % type)
-
-        for idx, item in enumerate(items):
-            li = rdf_builder.build_li(seq)
-            rdf_builder.build_item_desc(item, li,\
-                "http://panel/%s-%d" % (type, idx))
 
     def __build_filter(self, filter):
         pass
@@ -324,7 +236,6 @@ class DeejaydVideoDirRdf(_DeejaydSourceRdf):
         current_id = self._get_current_id()
         new_id = int(new_id) % 10000
         if current_id != new_id:
-            self._clean_rdfdir()
             self._build_rdf_file(new_id)
         return new_id
 
@@ -412,3 +323,4 @@ modes = (
     "DeejaydDvdRdf",
     )
 
+# vim: ts=4 sw=4 expandtab

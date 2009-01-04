@@ -75,6 +75,7 @@ function replaceNodeText(node,content)
 /****************************************************************************/
 /****************************************************************************/
 
+var ajaxdj_ref = "";
 function ajaxdj()
 {
     this.url = null;
@@ -358,6 +359,10 @@ function ajaxdj()
             if (rs)
                 this.videoLib.updateDir(rs);
 
+            rs = xmldoc.getElementsByTagName("panel-list");
+            for (var i=0; obj = rs.item(i); i++)
+                this.panelObj.updatePanel(obj);
+
             rs = xmldoc.getElementsByTagName("player").item(0);
             if (rs)
                 this.playerObj.updatePlayerInfo(rs);
@@ -433,3 +438,5 @@ window.onload = function(e)
 {
     _ajaxdj.init();
 }
+
+// vim: ts=4 sw=4 expandtab

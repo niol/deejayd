@@ -26,6 +26,45 @@ var Panel = function()
         this.selected_mode = panel ? "panel" : "panel-playlist";
     };
 
+    this.updatePanel = function(obj)
+    {
+        var list = obj.getElementsByTagName("item");
+        var tag = obj.getAttribute("tag");
+        var pn = $(tag+"-panel");
+        // remove listener
+        try { pn.removeEventListener("select", panelSelectObserver, false); }
+        catch (ex) {}
+        // remove old item
+        while(pn.getRowCount() > 0) { pn.removeItemAt(0); }
+
+        var idx = 0;
+        for (var i=0; item = list[i]; i++) {
+            var listitem = pn.appendItem(item.getAttribute("label"),
+                    item.getAttribute("value"));
+            if (item.getAttribute("selected") == "true") {
+                var listitem = pn.getItemAtIndex(i);
+                pn.addItemToSelection(listitem);
+                if (idx == 0) { idx = i; }
+                }
+            }
+        idx = Math.min(idx+1, pn.getRowCount()-1);
+        pn.ensureIndexIsVisible(idx);
+
+        // add listener
+        pn.addEventListener("select", panelSelectObserver, false);
+    };
+
+    // try to update panel in another thread do not work for now
+    /*this.updatePanel = function(obj)
+    {
+        var main = Components.classes["@mozilla.org/thread-manager;1"].
+            getService().mainThread;
+        var background = Components.classes["@mozilla.org/thread-manager;1"].
+            getService().newThread(0);
+        background.dispatch(new panelBuild(main, obj),
+                background.DISPATCH_NORMAL);
+    };*/
+
     this.update = function(obj)
     {
         var id = parseInt(obj.getAttribute("id"));
@@ -64,28 +103,6 @@ var Panel = function()
                     obj.getAttribute("filtertext_text");
                 $('panel-filter-type').value=
                     obj.getAttribute("filtertext_type");
-                // update panels
-                var panels = Array("genre", "artist", "album");
-                var selections = Array();
-                for (t in panels) {
-                    var pn = $(panels[t]+"-panel");
-
-                    // remove old child
-                    pn.clearSelection();
-
-                    netscape.security.PrivilegeManager.
-                        enablePrivilege("UniversalXPConnect");
-                    // Update datasources
-
-                    var currentSources = pn.database.GetDataSources();
-                    while (currentSources.hasMoreElements()) {
-                        var src = currentSources.getNext();
-                        pn.database.RemoveDataSource(src);
-                        }
-                    pn.database.AddDataSource(ds);
-                    pn.builder.rebuild();
-                    this.showSelectedPanel(panels[t]);
-                    }
                 }
 
             var currentSources = this.tree.database.GetDataSources();
@@ -143,27 +160,37 @@ var Panel = function()
         if (selected_index != -1) {tree.view.selection.select(selected_index);}
     };
 
-    this.updatePanelFilter = function(elt, tag)
+    this.updatePanelFilter = function(tag)
     {
-        var value = elt.getAttribute("value");
-        ajaxdj_ref.send_post_command('panelUpdateFilter',{"type": "equals",
-            "tag": tag, "value": value});
+        var listbox = $(tag+"-panel");
+        var values = new Array();
+        for (var i=0; item = listbox.getSelectedItem(i); i++)
+            values.push(item.getAttribute("value"))
+        ajaxdj_ref.send_post_command('panelUpdateFilter',
+                {"tag": tag, "values": values});
     };
 
     this.updatePanelFilterText = function()
     {
         var tag = $("panel-filter-type").value;
         var value = $("panel-filter-text").value;
-        if (value == "")
-            value = "__all__";
-        ajaxdj_ref.send_post_command('panelUpdateFilter',
-            {"type": "contains", "tag": tag, "value": value});
+        ajaxdj_ref.send_post_command('panelUpdateSearch',
+            {"tag": tag, "value": value});
     };
 
     this.clearPanelFilterText = function()
     {
         $("panel-filter-text").value = "";
         this.updatePanelFilterText();
+    };
+
+    this.updateSort = function(tag)
+    {
+        var pn_col = $('panel-'+tag);
+        var order = "descending";
+        if (pn_col.sortActive)
+        ajaxdj_ref.send_post_command('panelUpdateSearch',
+            {"tag": tag, "value": value});
     };
 
     this.loadInQueue = function(pos)
@@ -182,27 +209,6 @@ var Panel = function()
             type: pl_type});
         // hide panel
         $('newplaylist-panel').hidePopup();
-    };
-
-    this.showSelectedPanel = function(panel_type)
-    {
-        var pn = $(panel_type+"-panel");
-        if (!pn.getRowCount()) { // panel not ready
-            var cmd = this.ref+".showSelectedPanel('"+panel_type+"')";
-            setTimeout(cmd,300);
-            }
-        else {
-            // panel is now built
-            // scroll to the selected item
-            var idx = 0;
-            while (idx < pn.getRowCount()) {
-                var item = pn.getItemAtIndex(idx);
-                if (item.getAttribute("selected") == "true") { break; }
-                idx += 1;
-                }
-            idx = Math.min(idx+1, pn.getRowCount()-1);
-            pn.ensureIndexIsVisible(idx);
-            }
     };
 
     // drop support for pls list
@@ -262,5 +268,77 @@ var PlsPanelObserver = {
             else { this.selectPlaylist(item); }
         },
 };
+
+
+function panelSelectObserver(evt) {
+    var target_id = evt.target.id;
+    var tag = target_id.replace("-panel", "");
+    panel_ref.updatePanelFilter(tag);
+};
+
+
+// try to update panel in another thread do not work for now
+/*
+ * function to update panel in another thread
+ */
+/*var panelBuild = function(main, obj)
+{
+    this.obj = obj;
+    this.main = main;
+
+    this.run = function() {
+        var list = this.obj.getElementsByTagName("item");
+        var tag = this.obj.getAttribute("tag");
+        this.main.dispatch(new panelUpdateUI(tag, list),
+                this.main.DISPATCH_NORMAL);
+    };
+
+    this.QueryInterface = function(iid) {
+        if (iid.equals(Components.interfaces.nsIRunnable) ||
+            iid.equals(Components.interfaces.nsISupports)) {
+                return this;
+        }
+        throw Components.results.NS_ERROR_NO_INTERFACE;
+    }
+};
+
+var panelUpdateUI = function(obj)
+{
+    this.tag = tag;
+    this.list = list;
+
+    this.run = function() {
+        var pn = $(this.tag+"-panel");
+        // remove listener
+        try { pn.removeEventListener("select", panelSelectObserver, false); }
+        catch (ex) {}
+        // remove old item
+        while(pn.getRowCount() > 0) { pn.removeItemAt(0); }
+
+        var idx = 0;
+        for (var i=0; item = this.list[i]; i++) {
+            var listitem = pn.appendItem(item.getAttribute("label"),
+                    item.getAttribute("value"));
+            if (item.getAttribute("selected") == "true") {
+                var listitem = pn.getItemAtIndex(i);
+                pn.addItemToSelection(listitem);
+                if (idx == 0) { idx = i; }
+                }
+            }
+        idx = Math.min(idx+1, pn.getRowCount()-1);
+        pn.ensureIndexIsVisible(idx);
+
+        // add listener
+        pn.addEventListener("select", panelSelectObserver, false);
+    };
+
+    this.QueryInterface = function(iid) {
+        if (iid.equals(Components.interfaces.nsIRunnable) ||
+            iid.equals(Components.interfaces.nsISupports)) {
+                return this;
+        }
+        throw Components.results.NS_ERROR_NO_INTERFACE;
+    }
+};*/
 
 // vim: ts=4 sw=4 expandtab

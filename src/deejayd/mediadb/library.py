@@ -156,15 +156,12 @@ class _Library(SignalingComponent):
         return files_rsp
 
     def search(self, filter, ords = []):
-        type_filter = mediafilters.Equals("type", self.__class__.search_type)
-        if not filter: filter = type_filter
-        elif filter.get_name() == "and" \
-                and not filter.find_filter(type_filter):
-            filter.combine(type_filter)
-        else:
-            filter = mediafilters.And(filter, type_filter)
+        ft = mediafilters.And()
+        ft.combine(mediafilters.Equals("type", self.__class__.search_type))
+        if filter is not None:
+            ft.combine(filter)
 
-        rs = self.db_con.search(filter, infos = self.media_attr, orders=ords)
+        rs = self.db_con.search(ft, infos = self.media_attr, orders=ords)
         return rs
 
     def get_root_path(self):
