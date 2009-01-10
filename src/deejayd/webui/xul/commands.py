@@ -498,6 +498,22 @@ class PanelClear(_UnknownCommand):
         panel.clear_panel_filters()
         panel.clear_search_filter()
 
+class PanelSort(_UnknownCommand):
+    name = "panelSort"
+    method = "post"
+    command_args = [
+        {"name":"direction","type":"enum_str",\
+         "values":("ascending","descending", "none"),"req":True},\
+        {"name":"tag","type":"enum_str",\
+         "values":("genre","artist","album","title","rating"),"req":True},]
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        if self._args["direction"] != "none":
+            panel.set_sorts([(self._args["tag"], self._args["direction"])])
+        else:
+            panel.set_sorts([])
+
 #
 # Queue commands
 #

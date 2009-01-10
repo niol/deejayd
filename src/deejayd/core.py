@@ -75,7 +75,7 @@ def returns_deejaydanswer(answer_class):
                     elif answer_class == DeejaydMediaList:
                         if isinstance(res, tuple):
                             ans.set_filter(res[1])
-                            ans.set_order(res[2])
+                            ans.set_sort(res[2])
                             res = res[0]
                         ans.set_medias(res)
                     elif answer_class == DeejaydFileList:
@@ -290,9 +290,9 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first=0, length=-1):
-        songs, filters, orders = self.source.get_content()
+        songs, filters, sort = self.source.get_content()
         last = length == -1 and len(songs) or int(first) + int(length)
-        return (songs[int(first):last], filters, orders)
+        return (songs[int(first):last], filters, sort)
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_active_list(self):
@@ -331,8 +331,8 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
         self.source.clear_search_filter()
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def set_orders(self):
-        self.source.set_orders()
+    def set_sorts(self, sorts):
+        self.source.set_sorts(sorts)
 
 class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
     """Video mode."""

@@ -25,8 +25,7 @@ class PanelSource(_BaseLibrarySource):
     source_signal = 'panel.update'
     equals_tags = ('genre','artist','album')
     contains_tags = ('genre','artist','album','title','all')
-    #default_orders = [("album", "ascending"), ("tracknumber", "ascending")]
-    default_orders = ["album", "tracknumber"]
+    default_sorts = [("album", "ascending"), ("tracknumber", "ascending")]
 
     def __init__(self, db, library):
         super(PanelSource, self).__init__(db, library)
@@ -35,16 +34,18 @@ class PanelSource(_BaseLibrarySource):
         filter = And()
         try: ml_id = self.db.get_medialist_id(self.base_medialist, 'magic')
         except ValueError: # medialist does not exist
-            pass
+            self.__sorts = []
         else:
+            # get filters
             filter.filterlist = self.db.get_magic_medialist_filters(ml_id)
+            # get recorded sorts
+            self.__sorts = self.db.get_magic_medialist_sorts(ml_id) or []
         self.__filters_to_parms(filter)
 
         # custom attributes
         self.__selected_mode = {
             "type": self.db.get_state("panel-type"),
             "value": self.db.get_state("panel-value")}
-        self.__orders = self.__class__.default_orders
         self.__update_active_list(self.__selected_mode["type"],\
             self.__selected_mode["value"])
 
@@ -71,18 +72,21 @@ class PanelSource(_BaseLibrarySource):
         panel_filter.filterlist = self.__panel.values()
         self.__filter.filterlist.append(panel_filter)
 
-        medias = self.library.search(self.__filter, self.__orders)
-        self._media_list.set(medias)
-        self.dispatch_signame(self.__class__.source_signal)
+        if self.__selected_mode["type"] == "panel":
+            sorts = self.__sorts + self.__class__.default_sorts
+            medias = self.library.search(self.__filter, sorts)
+            self._media_list.set(medias)
+            self.dispatch_signame(self.__class__.source_signal)
 
     def __update_active_list(self, type, pl_id):
         if type == "playlist":
             try: medias = self._get_playlist_content(pl_id)
             except SourceError: # playlist does not exist, set to panel
                 self.__selected_mode["type"] = "panel";
-                medias = self.library.search(self.__filter, self.__orders)
+                medias = self.library.search(self.__filter, self.__sorts)
         elif type == "panel":
-            medias = self.library.search(self.__filter, self.__orders)
+            sorts = self.__sorts + self.__class__.default_sorts
+            medias = self.library.search(self.__filter, sorts)
         else:
             raise TypeError
         self._media_list.set(medias)
@@ -127,8 +131,9 @@ class PanelSource(_BaseLibrarySource):
             self.__search = None
             self.__update_panel_filters()
 
-    def set_orders(self, orders):
-        pass
+    def set_sorts(self, sorts):
+        self.__sorts = sorts
+        self.__update_panel_filters()
 
     def get_active_list(self):
         return self.__selected_mode
@@ -144,7 +149,7 @@ class PanelSource(_BaseLibrarySource):
     def get_content(self, start = 0, stop = None):
         if self.__selected_mode["type"] == "panel":
             return self._media_list.get(start, stop), self.__filter,\
-                    self.__orders
+                    self.__sorts
         elif self.__selected_mode["type"] == "playlist":
             return self._media_list.get(start, stop), None, None
 
@@ -160,6 +165,9 @@ class PanelSource(_BaseLibrarySource):
         self.db.set_state(states)
         # save panel filters
         filter_list = self.__filter.filterlist
-        self.db.set_magic_medialist_filters(self.base_medialist, filter_list)
+        ml_id = self.db.set_magic_medialist_filters(self.base_medialist,\
+                filter_list)
+        # save panel sorts
+        self.db.set_magic_medialist_sorts(ml_id, self.__sorts)
 
 # vim: ts=4 sw=4 expandtab

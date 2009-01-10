@@ -78,8 +78,10 @@ class MediaSelectQuery(SimpleSelect):
         self.select_column('value', tagname)
         self.join_on_tag(tagname)
 
-    def order_by_tag(self, tagname):
-        self.orders.append("%s.value" % tagname)
+    def order_by_tag(self, tagname, desc = False):
+        order = "%s.value" % tagname
+        if desc: order = "%s DESC" % order
+        self.orders.append(order)
         self.join_on_tag(tagname)
 
     def join_on_tag(self, tagname):

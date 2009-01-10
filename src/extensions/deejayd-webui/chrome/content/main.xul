@@ -806,7 +806,7 @@
                     label=""/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-track"
-                    sort="rdf:http://panel/rdf#tracknumber"
+                    onclick="panel_ref.updateSort('tracknumber');"
                     flex="1" label="#"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-title"

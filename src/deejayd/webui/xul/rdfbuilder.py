@@ -191,6 +191,14 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
                     panel_filter.combine(ft)
                     break
 
+            sorts = panel.get().get_sort()
+            if sorts is not None:
+                sort_elt = ET.SubElement(elt, "sorts")
+                for (tag, direction) in sorts:
+                    tag_elt = ET.SubElement(sort_elt, "item")
+                    tag_elt.attrib["tag"] = self._to_xml_string(tag)
+                    tag_elt.attrib["direction"] = self._to_xml_string(direction)
+
     def _build_rdf_file(self, new_id):
         panel = self._deejayd.get_panel()
         mode = panel.get_active_list()

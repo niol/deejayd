@@ -103,6 +103,23 @@ var Panel = function()
                     obj.getAttribute("filtertext_text");
                 $('panel-filter-type').value=
                     obj.getAttribute("filtertext_type");
+
+                // update sort
+                var cols = this.tree.getElementsByTagName("treecol");
+                for (var i=0; col = cols.item(i); i++) {
+                    col.setAttribute("sortActive", "false");
+                    col.setAttribute("sortDirection", "");
+                    }
+                var sorts = obj.getElementsByTagName("sorts").item(0);
+                if (sorts) {
+                    var sort_items = sorts.getElementsByTagName("item")
+                    for (var i=0; item = sort_items.item(i); i++) {
+                        var col = $("panel-"+item.getAttribute("tag"));
+                        col.setAttribute("sortActive", "true");
+                        col.setAttribute("sortDirection",
+                                item.getAttribute("direction"));
+                        }
+                    }
                 }
 
             var currentSources = this.tree.database.GetDataSources();
@@ -187,10 +204,15 @@ var Panel = function()
     this.updateSort = function(tag)
     {
         var pn_col = $('panel-'+tag);
-        var order = "descending";
-        if (pn_col.sortActive)
-        ajaxdj_ref.send_post_command('panelUpdateSearch',
-            {"tag": tag, "value": value});
+        var direction = "ascending";
+        if (pn_col.getAttribute("sortActive") == "true"
+                && pn_col.getAttribute("sortDirection") == "ascending")
+            direction = "descending";
+        else if (pn_col.getAttribute("sortActive") == "true"
+                && pn_col.getAttribute("sortDirection") == "descending")
+            direction = "none";
+        ajaxdj_ref.send_post_command('panelSort',
+            {"tag": tag, "direction": direction});
     };
 
     this.loadInQueue = function(pos)

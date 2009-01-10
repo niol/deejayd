@@ -265,8 +265,8 @@ class DatabaseQueries(object):
         for tag in infos:
             query.select_tag(tag)
         filter.restrict(query)
-        for order in orders:
-            query.order_by_tag(order)
+        for (tag, direction) in orders:
+            query.order_by_tag(tag, direction == "descending")
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("fetchall")
@@ -537,6 +537,22 @@ class DatabaseQueries(object):
             (medialist_id,filter_id)VALUES(%s,%s)", filter_ids)
         self.connection.commit()
         return id
+
+    @query_decorator("fetchall")
+    def get_magic_medialist_sorts(self, cursor, ml_id):
+        query = "SELECT tag,direction FROM medialist_sorts\
+                WHERE medialist_id = %s"
+        cursor.execute(query, (ml_id,))
+
+    @query_decorator("none")
+    def set_magic_medialist_sorts(self, cursor, ml_id, sorts):
+        # first, delete all previous sort for this medialist
+        cursor.execute("DELETE FROM medialist_sorts WHERE medialist_id=%s",\
+                (ml_id,))
+        cursor.executemany("INSERT INTO medialist_sorts\
+            (medialist_id,tag,direction)VALUES(%s,%s,%s)",\
+            [ (ml_id, tag, direction) for (tag, direction) in sorts])
+        self.connection.commit()
 
     @query_decorator("none")
     def add_to_static_medialist(self, cursor, ml_id, media_ids):
