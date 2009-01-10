@@ -74,17 +74,17 @@
                     label=" 0 "
                     oncommand="queue_ref.setRating(0);"/>
                 <menuitem
-                    label="1 â™ª"
+                    label="1 &#9834;"
                     oncommand="queue_ref.setRating(1);"/>
 
                 <menuitem
-                    label="2 â™ªâ™ª"
+                    label="2 &#9834;&#9834;"
                     oncommand="queue_ref.setRating(2);"/>
                 <menuitem
-                    label="3 â™ªâ™ªâ™ª"
+                    label="3 &#9834;&#9834;&#9834;"
                     oncommand="queue_ref.setRating(3);"/>
                 <menuitem
-                    label="4 â™ªâ™ªâ™ªâ™ª"
+                    label="4 &#9834;&#9834;&#9834;&#9834;"
                     oncommand="queue_ref.setRating(4);"/>
             </menupopup>
         </menu>
@@ -321,16 +321,16 @@
                     label=" 0 "
                     oncommand="playlist_ref.setRating(0);"/>
                 <menuitem
-                    label="1 â™ª"
+                    label="1 &#9834;"
                     oncommand="playlist_ref.setRating(1);"/>
                 <menuitem
-                    label="2 â™ªâ™ª"
+                    label="2 &#9834;&#9834;"
                     oncommand="playlist_ref.setRating(2);"/>
                 <menuitem
-                    label="3 â™ªâ™ªâ™ª"
+                    label="3 &#9834;&#9834;&#9834;"
                     oncommand="playlist_ref.setRating(3);"/>
                 <menuitem
-                    label="4 â™ªâ™ªâ™ªâ™ª"
+                    label="4 &#9834;&#9834;&#9834;&#9834;"
                     oncommand="playlist_ref.setRating(4);"/>
             </menupopup>
         </menu>
@@ -643,16 +643,16 @@
                         label=" 0 "
                         oncommand="panel_ref.setRating(0);"/>
                     <menuitem
-                        label="1 â™ª"
+                        label="1 &#9834;"
                         oncommand="panel_ref.setRating(1);"/>
                     <menuitem
-                        label="2 â™ªâ™ª"
+                        label="2 &#9834;&#9834;"
                         oncommand="panel_ref.setRating(2);"/>
                     <menuitem
-                        label="3 â™ªâ™ªâ™ª"
+                        label="3 &#9834;&#9834;&#9834;"
                         oncommand="panel_ref.setRating(3);"/>
                     <menuitem
-                        label="4 â™ªâ™ªâ™ªâ™ª"
+                        label="4 &#9834;&#9834;&#9834;&#9834;"
                         oncommand="panel_ref.setRating(4);"/>
                 </menupopup>
             </menu>
@@ -999,16 +999,16 @@
                     label=" 0 "
                     oncommand="videolist_ref.setRating(0);"/>
                 <menuitem
-                    label="1 â™ª"
+                    label="1 &#9834;"
                     oncommand="videolist_ref.setRating(1);"/>
                 <menuitem
-                    label="2 â™ªâ™ª"
+                    label="2 &#9834;&#9834;"
                     oncommand="videolist_ref.setRating(2);"/>
                 <menuitem
-                    label="3 â™ªâ™ªâ™ª"
+                    label="3 &#9834;&#9834;&#9834;"
                     oncommand="videolist_ref.setRating(3);"/>
                 <menuitem
-                    label="4 â™ªâ™ªâ™ªâ™ª"
+                    label="4 &#9834;&#9834;&#9834;&#9834;"
                     oncommand="videolist_ref.setRating(4);"/>
             </menupopup>
         </menu>
