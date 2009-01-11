@@ -500,7 +500,7 @@ class AudioLibrary(_Library):
     update_signal_name = 'mediadb.aupdate'
     custom_attr = ("artist","album","genre","tracknumber","date","bitrate",\
                    "replaygain_track_gain","replaygain_track_peak",\
-                   "compilation")
+                   "various_artist")
     cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg",\
                   "cover.png", "folder.png", ".folder.png")
 
@@ -619,7 +619,7 @@ class AudioLibrary(_Library):
                 file_info, file_id)
         # update compilation tag if necessary
         if fid and "album" in file_info.keys() and file_info["album"] != '':
-            self.db_con.set_compilation_tag(fid, file_info)
+            self.db_con.set_variousartist_tag(fid, file_info)
         return fid
 
     #

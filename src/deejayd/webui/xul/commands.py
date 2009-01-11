@@ -77,6 +77,7 @@ class Init(_UnknownCommand):
             self._answer.set_playlist_list(pls_list.get_medias())
 
         if "panel" in status.keys(): # set panel
+            self._answer.init_panel_tags(self._deejayd)
             self._answer.set_panel(self._deejayd)
 
 class Refresh(_UnknownCommand):
@@ -446,7 +447,7 @@ class PanelUpdateFilter(_UnknownCommand):
     method = "post"
     command_args = [{"name":"values","type":"string","req":True,"mult":True},\
         {"name":"tag","type":"enum_str",\
-         "values":("genre","artist","album"),"req":True},]
+         "values":("genre","various_artist","artist","album"),"req":True},]
 
     def default_result(self):
         tag = self._args["tag"]
@@ -464,7 +465,7 @@ class PanelUpdateFilter(_UnknownCommand):
             panel.set_panel_filters(self._args["tag"], self._args["values"])
 
             # remove filter for panels at the right of this tag
-            for tg in ('album','artist','genre'):
+            for tg in reversed(panel.get_panel_tags().get_contents()):
                 if tg == self._args["tag"]: break
                 panel.remove_panel_filters(tg)
 

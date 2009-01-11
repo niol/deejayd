@@ -57,7 +57,7 @@ def upgrade(cursor, backend, config):
 
     # create new table/indexes
     for table in schema.db_schema:
-        if table.name in ("webradio", "stats", "variables"):
+        if table.name in ("webradio", "stats", "variables","medialist_sorts"):
             continue
         for stmt in backend.to_sql(table):
             cursor.execute(stmt)

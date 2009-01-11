@@ -23,9 +23,8 @@ from deejayd.mediafilters import *
 
 class DeejaydWebAnswer(DeejaydXMLObject):
 
-    def __init__(self,rdf_dir,compilation):
+    def __init__(self,rdf_dir):
         self.__rdf_dir = rdf_dir
-        self.__compilation = compilation
         self.xmlroot = ET.Element('deejayd')
 
     def set_config(self, config_parms):
@@ -59,7 +58,7 @@ class DeejaydWebAnswer(DeejaydXMLObject):
     def set_mode(self, status, deejayd):
         for builder in rdfbuilder.modes:
             getattr(rdfbuilder, builder)\
-              (deejayd,self.__rdf_dir,self.__compilation).update(self, status)
+              (deejayd,self.__rdf_dir).update(self, status)
 
     def set_videodir(self, new_id, deejayd):
         nid = rdfbuilder.DeejaydVideoDirRdf(deejayd,self.__rdf_dir).\
@@ -98,6 +97,14 @@ class DeejaydWebAnswer(DeejaydXMLObject):
                 playlist_type=self._to_xml_string(pls["type"]))
             it.text = self._to_xml_string(pls["name"])
 
+    def init_panel_tags(self, deejayd):
+        panel = deejayd.get_panel()
+        tags = panel.get_panel_tags().get_contents()
+        tags_elt = ET.SubElement(self.xmlroot, "panelTags")
+        for tag in tags:
+            tag_elt = ET.SubElement(tags_elt, "tag")
+            tag_elt.text = self._to_xml_string(tag)
+
     def set_panel(self, deejayd, updated_tag = None):
         panel = deejayd.get_panel()
         mode = panel.get_active_list()
@@ -125,13 +132,13 @@ class DeejaydWebAnswer(DeejaydXMLObject):
                     filter_list = ft
                     break
 
-            tag_list = ["genre", "artist", "album"]
+            tag_list = panel.get_panel_tags().get_contents()
             try: idx = tag_list.index(updated_tag)
             except ValueError:
                 pass
             else:
                 tag_list = tag_list[idx+1:]
-            for t in ("genre", "artist", "album"):
+            for t in panel.get_panel_tags().get_contents():
                 selected = []
 
                 for ft in filter_list: # OR filter
@@ -147,9 +154,14 @@ class DeejaydWebAnswer(DeejaydXMLObject):
                     list = deejayd.mediadb_list(t, panel_filter)
                     items = [{"name": _("All"), "value":"__all__", \
                         "class":"list-all", "sel":str(selected==[]).lower()}]
+                    if t == "various_artist" and "__various__" in list:
+                        items.append({"name": _("Various Artist"),\
+                            "value":"__various__",\
+                            "class":"list-unknown",\
+                            "sel":str("__various__" in selected).lower()})
                     items.extend([{"name": l,"value":l,\
                         "sel":str(l in selected).lower(), "class":""}\
-                        for l in list if l != ""])
+                        for l in list if l != "" and l != "__various__"])
                     if "" in list:
                         items.append({"name": _("Unknown"), "value":"",\
                             "class":"list-unknown",\

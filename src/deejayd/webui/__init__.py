@@ -72,11 +72,10 @@ class DeejaydMobileHandler(Resource):
 class _DeejaydCommandHandler(Resource):
     isLeaf = True
 
-    def __init__(self, deejayd, tmp_dir, compilation):
+    def __init__(self, deejayd, tmp_dir):
         Resource.__init__(self)
         self._deejayd = deejayd
         self._tmp_dir = tmp_dir
-        self._compilation = compilation
 
     def render_GET(self,request):
         return self._render(request,"get")
@@ -93,7 +92,7 @@ class DeejaydXulCommandHandler(_DeejaydCommandHandler):
     def _render(self, request, type):
         # init xml answer
         request.setHeader("Content-type","text/xml")
-        ans = xul_xmlanswer.DeejaydWebAnswer(self._tmp_dir, self._compilation)
+        ans = xul_xmlanswer.DeejaydWebAnswer(self._tmp_dir)
 
         try: action = request.args["action"]
         except KeyError:
@@ -124,8 +123,7 @@ class DeejaydMobileCommandHandler(_DeejaydCommandHandler):
 
     def _render(self, request, type):
         request.setHeader("Content-type","text/xml")
-        ans = mobile_xmlanswer.DeejaydWebAnswer(self._deejayd, \
-                self._tmp_dir, self._compilation)
+        ans = mobile_xmlanswer.DeejaydWebAnswer(self._deejayd, self._tmp_dir)
 
         try: action = request.args["action"]
         except KeyError:
@@ -167,7 +165,6 @@ class SiteWithCustomLogging(server.Site):
 
 
 def init(deejayd_core, config, webui_logfile):
-    compilation = config.getboolean("webui","compilation")
     # create tmp directory
     tmp_dir = config.get("webui","tmp_dir")
     if os.path.isdir(tmp_dir):
@@ -187,7 +184,7 @@ def init(deejayd_core, config, webui_logfile):
     # main (xul) part
     xul_handler = DeejaydXulHandler(deejayd_core, config)
     xul_handler.putChild("commands",DeejaydXulCommandHandler(deejayd_core,\
-            tmp_dir, compilation))
+            tmp_dir))
     xul_handler.putChild("static",static.File(htdocs_dir))
     xul_handler.putChild("rdf",static.File(tmp_dir))
 
@@ -195,7 +192,7 @@ def init(deejayd_core, config, webui_logfile):
     if config.getboolean("webui","mobile_ui"):
         mobile_handler = DeejaydMobileHandler(deejayd_core, config)
         mobile_handler.putChild("commands",DeejaydMobileCommandHandler(\
-                deejayd_core, tmp_dir, compilation))
+                deejayd_core, tmp_dir))
         mobile_handler.putChild("static",static.File(htdocs_dir))
         mobile_handler.putChild("tmp",static.File(tmp_dir))
         xul_handler.putChild("m", mobile_handler)

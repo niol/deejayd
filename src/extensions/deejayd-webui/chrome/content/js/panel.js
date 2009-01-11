@@ -16,12 +16,26 @@ var Panel = function()
 
     this.treeController = false;
 
+    this.initPanelTags = function(obj)
+    {
+        var av_tags = new Array("genre","artist","various_artist","album");
+        var tags = obj.getElementsByTagName("tag");
+        for (var i=0; tag = tags.item(i); i++) {
+            for(j=0;j<av_tags.length;j++)
+                if(tag.firstChild.data==av_tags[j]) av_tags.splice(j, 1);
+            }
+        // hide not used panel
+        for (idx in av_tags) {
+            var tag_list = $(av_tags[idx] + "-panel");
+            tag_list.hidden = true;
+            }
+    };
+
     this.__setPanel = function(panel)
     {
-        var state = panel ? "visible" : "collapse";
         $('panel-select-button').checked = false;
-        $('filter-box').style.visibility = state;
-        $('panel-box').style.visibility = state;
+        $('filter-box').hidden = !panel;
+        $('panel-box').hidden = !panel;
         this.selected_playlist = null;
         this.selected_mode = panel ? "panel" : "panel-playlist";
     };
@@ -35,20 +49,25 @@ var Panel = function()
         try { pn.removeEventListener("select", panelSelectObserver, false); }
         catch (ex) {}
         // remove old item
+        pn.clearSelection();
         while(pn.getRowCount() > 0) { pn.removeItemAt(0); }
 
         var idx = 0;
+        var selectedIdx = new Array();
         for (var i=0; item = list[i]; i++) {
             var listitem = pn.appendItem(item.getAttribute("label"),
                     item.getAttribute("value"));
             if (item.getAttribute("selected") == "true") {
-                var listitem = pn.getItemAtIndex(i);
-                pn.addItemToSelection(listitem);
                 if (idx == 0) { idx = i; }
+                selectedIdx.push(i);
                 }
             }
         idx = Math.min(idx+1, pn.getRowCount()-1);
         pn.ensureIndexIsVisible(idx);
+        for (j in selectedIdx) {
+            var listitem = pn.getItemAtIndex(selectedIdx[j]);
+            pn.addItemToSelection(listitem);
+            }
 
         // add listener
         pn.addEventListener("select", panelSelectObserver, false);

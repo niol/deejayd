@@ -50,7 +50,6 @@ class _AudioFile(_MediaFile):
 
     def parse(self, file):
         infos = _MediaFile.parse(self, file)
-        infos["compilation"] = "0"
         if self._tagclass_:
             tag_info = self._tagclass_(file)
             for i in ("bitrate", "length"):
@@ -65,6 +64,7 @@ class _AudioFile(_MediaFile):
                     info = self._format_tracknumber(info)
                 infos[t] = info
             # get front cover album if available
+            infos["various_artist"] = infos["artist"]
             cover = self.get_cover(tag_info)
             if cover: infos["cover"] = cover
 

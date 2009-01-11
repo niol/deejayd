@@ -258,6 +258,9 @@ class DeejaydPanel(object):
     def get_active_list(self):
         raise NotImplementedError
 
+    def get_panel_tags(self):
+        raise NotImplementedError
+
     def set_active_list(self, type, pl_id=""):
         raise NotImplementedError
 

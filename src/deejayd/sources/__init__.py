@@ -58,7 +58,8 @@ class SourceFactory(SignalingComponent):
         # panel
         if "panel" in activated_sources:
             from deejayd.sources import panel
-            self.sources_obj["panel"] = panel.PanelSource(db, audio_library)
+            self.sources_obj["panel"] = panel.PanelSource(db, audio_library,\
+                    config)
         else:
             log.info(_("Panel support disabled"))
 

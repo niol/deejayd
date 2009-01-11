@@ -18,17 +18,29 @@
 
 from deejayd.mediafilters import *
 from deejayd.sources._base import _BaseLibrarySource, SourceError
+from deejayd.ui import log
 
 class PanelSource(_BaseLibrarySource):
     base_medialist = "__panelcurrent__"
     name = "panel"
     source_signal = 'panel.update'
-    equals_tags = ('genre','artist','album')
+    supported_panel_tags = [\
+            ['genre','artist','album'],\
+            ['genre','various_artist','album'],\
+            ['artist','album'],\
+            ['various_artist','album'],\
+            ]
     contains_tags = ('genre','artist','album','title','all')
     default_sorts = [("album", "ascending"), ("tracknumber", "ascending")]
 
-    def __init__(self, db, library):
+    def __init__(self, db, library, config):
         super(PanelSource, self).__init__(db, library)
+
+        # get panel tags
+        self.__panel_tags = config.getlist("panel", "panel_tags")
+        if self.__panel_tags not in self.supported_panel_tags:
+            log.err(_("You choose wrong panel tags, fallback to default"))
+            self.__panel_tags = ['genre','artist','album']
 
         # get recorded panel medialist
         filter = And()
@@ -59,7 +71,8 @@ class PanelSource(_BaseLibrarySource):
                 if ft.get_name() == "and": # panel
                     for panel_ft in ft.filterlist:
                         tag = panel_ft.filterlist[0].tag
-                        self.__panel[tag] = panel_ft
+                        if tag in self.__panel_tags:
+                            self.__panel[tag] = panel_ft
                 elif ft.get_name() == "or" or ft.type == "basic": # search
                     self.__search = ft
 
@@ -91,8 +104,11 @@ class PanelSource(_BaseLibrarySource):
             raise TypeError
         self._media_list.set(medias)
 
+    def get_panel_tags(self):
+        return self.__panel_tags
+
     def set_panel_filters(self, tag, values):
-        if tag not in self.__class__.equals_tags:
+        if tag not in self.__panel_tags:
             raise SourceError(_("Tag %s not supported") % tag)
         if not values:
             self.remove_panel_filters(tag)

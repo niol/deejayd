@@ -719,7 +719,7 @@
     </splitter>
 
     <vbox persist="width" id="panel-songlist-box" flex="5">
-        <hbox persist="height" align="center" id="filter-box">
+        <hbox persist="height" minheight="40px" align="center" id="filter-box">
             <textbox
                 flex="1"
                 onfocus="this.select();"
@@ -762,13 +762,25 @@
                 </listhead>
                 <listcols>
                     <listcol flex="1"/>
-	        </listcols>
+                </listcols>
             </listbox>
 
             <listbox
                 seltype="multiple"
                 flex="1"
                 id="artist-panel">
+                <listhead>
+                    <listheader label="&artist;"/>
+                </listhead>
+                <listcols>
+                    <listcol flex="1"/>
+                </listcols>
+            </listbox>
+
+            <listbox
+                seltype="multiple"
+                flex="1"
+                id="various_artist-panel">
                 <listhead>
                     <listheader label="&artist;"/>
                 </listhead>

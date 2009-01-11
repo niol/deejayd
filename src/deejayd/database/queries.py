@@ -282,19 +282,19 @@ class DatabaseQueries(object):
 # Post update action
 #
     @query_decorator("none")
-    def set_compilation_tag(self, cursor, fid, file_info):
+    def set_variousartist_tag(self, cursor, fid, file_info):
         query = "SELECT DISTINCT m.id,m.value,m3.value FROM media_info m\
                 JOIN media_info m2 ON m.id = m2.id\
                 JOIN media_info m3 ON m.id = m3.id\
-                WHERE m.ikey='compilation' AND m2.ikey='album'\
+                WHERE m.ikey='various_artist' AND m2.ikey='album'\
                 AND m2.value=%s AND m3.ikey='artist'"
         cursor.execute(query, (file_info["album"],))
-        try: (id, compilation, artist) = cursor.fetchone()
+        try: (id, various_artist, artist) = cursor.fetchone()
         except TypeError: # first song of this album
             return
         else:
             need_update = False
-            if int(compilation) == 1:
+            if various_artist == "__various__":
                 need_update, ids = True, [(fid,)]
             elif artist != file_info["artist"]:
                 need_update = True
@@ -303,8 +303,8 @@ class DatabaseQueries(object):
                 ids = cursor.fetchall()
 
         if need_update:
-            cursor.executemany("UPDATE media_info SET value = '1'\
-                    WHERE ikey='compilation' AND id = %s", ids)
+            cursor.executemany("UPDATE media_info SET value = '__various__'\
+                    WHERE ikey='various_artist' AND id = %s", ids)
 
     @query_decorator("none")
     def erase_empty_dir(self, cursor, type = "audio"):

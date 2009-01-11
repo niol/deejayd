@@ -64,6 +64,7 @@ class Mp4File(_AudioFile):
                 mime = "image/png"
             infos["cover"] = {"mime": mime, "data": cover}
 
+        infos["various_artist"] = infos["artist"]
         return infos
 
 object = Mp4File

@@ -81,10 +81,9 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
     name = "unknown"
     locale_strings = None
 
-    def __init__(self, deejayd, rdf_dir, compilation = False):
+    def __init__(self, deejayd, rdf_dir):
         self._deejayd = deejayd
         self._rdf_dir = rdf_dir
-        self._compilation = compilation
 
     def update(self, xml_ans, status):
         current_id = self._get_current_id()

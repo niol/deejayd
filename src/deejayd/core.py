@@ -294,6 +294,10 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
         last = length == -1 and len(songs) or int(first) + int(length)
         return (songs[int(first):last], filters, sort)
 
+    @returns_deejaydanswer(DeejaydList)
+    def get_panel_tags(self):
+        return self.source.get_panel_tags()
+
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_active_list(self):
         return self.source.get_active_list()

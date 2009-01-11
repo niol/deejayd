@@ -26,10 +26,9 @@ from deejayd.webui.utils import format_time
 
 class DeejaydWebAnswer(DeejaydXMLObject):
 
-    def __init__(self, deejayd, tmp_dir = "", compilation = True):
+    def __init__(self, deejayd, tmp_dir = ""):
         self._deejayd = deejayd
         self._tmp_dir = tmp_dir
-        self._compilation = compilation
         self.xmlroot = ET.Element('deejayd')
 
     def set_config(self, config_parms = {}):

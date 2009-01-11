@@ -5,7 +5,6 @@
 /****************************************************************************/
 /* Common functions
 /****************************************************************************/
-
 function $(id) {
   return document.getElementById(id);
 }
@@ -264,6 +263,9 @@ function ajaxdj()
                             case "panel":
                             this.panelObj = new Panel();
                             this.panelObj.init();
+                            rs=xmldoc.getElementsByTagName("panelTags").item(0);
+                            if (rs) { this.panelObj.initPanelTags(rs); }
+
                             break;
 
                             case "webradio":

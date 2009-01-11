@@ -82,6 +82,7 @@ class Mp3File(_AudioFile):
                     infos["cover"] = {"data": frame.data, "mime": frame.mime}
             else: continue
 
+        infos["various_artist"] = infos["artist"]
         return infos
 
     def __process_rg(self, frame, infos):
