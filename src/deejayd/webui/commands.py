@@ -138,6 +138,15 @@ class GoTo(_Command):
         self._deejayd.go_to(self._args["id"], self._args["id_type"], \
             self._args["source"]).get_contents()
 
+class Seek(_Command):
+    name = "setTime"
+    command_args = [{"name": "time", "type": "int", "req": True}]
+
+    def execute(self):
+        status = self._deejayd.get_status()
+        if status["state"] != "stop":
+            self._deejayd.seek(self._args["time"])
+
 class Repeat(_Command):
     name = "repeat"
     command_args = [{"name":"source","type":"enum_str","req":True,\
@@ -167,6 +176,42 @@ class PlayOrder(_Command):
         self._deejayd.set_option(self._args["source"],\
             "playorder",self._args["value"]).get_contents()
 
+class PlayerOption(_Command):
+    name = "setPlayerOption"
+    command_args = [{"name": "option_name", "type": "str", "req": True},
+        {"name": "set_type", "type": "enum_str",\
+         "values": ("up", "down", "value"), "req": False, "default": "value"},
+        {"name": "option_value", "type": "int", "req": True}]
+
+    def execute(self):
+        if self._args["set_type"] == "value":
+            val = int(self._args["option_value"])
+        else:
+            current = self._deejayd.get_current().get_medias()
+            try: current = current[0]
+            except (IndexError, TypeError): return
+            if self._args["option_name"] not in current.keys():
+                return
+            val = current[self._args["option_name"]]
+            if self._args["set_type"] == "up":
+                val += int(self._args["option_value"])
+            else: val -= int(self._args["option_value"])
+
+        self._deejayd.set_player_option(self._args["option_name"], val).\
+            get_contents()
+
+class MediaRating(_Command):
+    name = 'setMediaRating'
+    method = "post"
+    command_args = [{"name":"type", "type":"string", "req":True},
+                    {"name": "value", "type": "enum_int",\
+                     "values":range(0, 5), "req": True},
+                    {"name":"ids", "type":"int", "mult":True, "req": True}]
+
+    def execute(self):
+        self._deejayd.set_media_rating(self._args["ids"],\
+            self._args["value"], self._args["type"]).get_contents()
+
 ########################################################################
 ########################################################################
 class GetLibraryDir(_Command):
@@ -176,6 +221,36 @@ class GetLibraryDir(_Command):
         {"name":"type","type":"enum_str","values":("video","audio"),\
             "req":False,"default":"audio"},\
         {"name":"page", "type":"int", "req":False, "default":1}]
+
+########################################################################
+########################################################################
+class PlaylistCreate(_Command):
+    name = "playlistCreate"
+    method = "post"
+    command_args = [{"name":"name","type":"string","req":True},\
+      {"name":"type","type":"enum_str","values":("static","magic"),"req":True}]
+
+    def execute(self):
+        self._deejayd.create_recorded_playlist(self._args["name"],\
+            self._args["type"])
+
+class StaticPlaylistAdd(_Command):
+    name = "staticPlaylistAdd"
+    method = "post"
+    command_args = [{"name":"values","type":"string","req":True,"mult": True},\
+                    {"name":"pl_id","type":"int","req":True},
+                    {"name":"type","type":"enum_str",\
+                     "values": ('path','id'),"req":False, "default": "path"}]
+
+    def execute(self):
+        pls = self._deejayd.get_recorded_playlist(self._args["pl_id"])
+        if self._args["type"] == "id":
+            try: values = map(int, self._args["values"])
+            except (TypeError, ValueError):
+                raise ArgError(_("Ids arg must be integer"))
+            pls.add_songs(values).get_contents()
+        else:
+            pls.add_paths(self._args["values"]).get_contents()
 
 ########################################################################
 ########################################################################
@@ -200,6 +275,56 @@ class PlaylistAdd(_Command):
         else:
             pls.add_paths(self._args["values"], pos).get_contents()
 
+class PlaylistRemove(_Command):
+    name = "playlistRemove"
+    method = "post"
+    command_args = [{"name":"ids","type":"int","req":True,"mult":True},]
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.del_songs(self._args["ids"]).get_contents()
+
+class PlaylistLoad(_Command):
+    name = "playlistLoad"
+    method = "post"
+    command_args = [{"name":"pls_ids","type":"int","req":True,"mult":True},\
+        {"name":"pos","type":"int","req":True}]
+
+    def execute(self):
+        pos = int(self._args["pos"])
+        if pos == -1: pos = None
+
+        pls = self._deejayd.get_playlist()
+        pls.loads(self._args["pls_ids"],pos).get_contents()
+
+class PlaylistMove(_Command):
+    name = "playlistMove"
+    method = "post"
+    command_args = [{"name":"ids","type":"int","req":True,"mult": True},
+                    {"name":"new_pos","type":"int","req":True}]
+
+    def execute(self):
+        ids = [int(id) for id in self._args["ids"]]
+        pls = self._deejayd.get_playlist()
+        pls.move(ids, int(self._args["new_pos"])).get_contents()
+
+class PlaylistSave(_Command):
+    name = "playlistSave"
+    method = "post"
+    command_args = [{"name":"name","type":"string","req":True}]
+
+    def execute(self):
+        pls = self._deejayd.get_playlist()
+        pls.save(self._args["name"]).get_contents()
+
+class PlaylistErase(_Command):
+    name = "playlistErase"
+    method = "post"
+    command_args = [{"name":"pl_ids","type":"int","req":True,"mult":True}]
+
+    def execute(self):
+        self._deejayd.erase_playlist(self._args["pl_ids"]).get_contents()
+
 class PlaylistShuffle(_Command):
     name = "playlistShuffle"
 
@@ -214,14 +339,138 @@ class PlaylistClear(_Command):
         pls = self._deejayd.get_playlist()
         pls.clear().get_contents()
 
-class PlaylistRemove(_Command):
-    name = "playlistRemove"
+########################################################################
+########################################################################
+class PanelSet(_Command):
+    name = "panelSet"
+    method = "post"
+    command_args = [{"name":"value","type":"string","req":False,"default":""},\
+        {"name":"type","type":"enum_str","values": ('panel','playlist'),\
+         "req":True}]
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        panel.set_active_list(self._args["type"], self._args["value"])
+
+class PanelUpdateFilter(_Command):
+    name = "panelUpdateFilter"
+    method = "post"
+    command_args = [{"name":"values","type":"string","req":True,"mult":True},\
+        {"name":"tag","type":"enum_str",\
+         "values":("genre","various_artist","artist","album"),"req":True},]
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        if "__all__" in self._args["values"]:
+            panel.remove_panel_filters(self._args["tag"])
+        else:
+            panel.set_panel_filters(self._args["tag"], self._args["values"])
+
+            # remove filter for panels at the right of this tag
+            for tg in reversed(panel.get_panel_tags().get_contents()):
+                if tg == self._args["tag"]: break
+                panel.remove_panel_filters(tg)
+
+class PanelUpdateSearch(_Command):
+    name = "panelUpdateSearch"
+    method = "post"
+    command_args = [{"name":"value","type":"string","req":True},\
+        {"name":"tag","type":"enum_str",\
+         "values":("genre","artist","album","title","all"),"req":True},]
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        if self._args["value"] == "":
+            panel.clear_search_filter()
+        else:
+            panel.set_search_filter(self._args["tag"], self._args["value"])
+
+class PanelClear(_Command):
+    name = "panelClear"
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        panel.clear_panel_filters()
+        panel.clear_search_filter()
+
+class PanelSort(_Command):
+    name = "panelSort"
+    method = "post"
+    command_args = [
+        {"name":"direction","type":"enum_str",\
+         "values":("ascending","descending", "none"),"req":True},\
+        {"name":"tag","type":"enum_str",\
+         "values":("genre","artist","album","title","rating"),"req":True},]
+
+    def execute(self):
+        panel = self._deejayd.get_panel()
+        if self._args["direction"] != "none":
+            panel.set_sorts([(self._args["tag"], self._args["direction"])])
+        else:
+            panel.set_sorts([])
+
+########################################################################
+########################################################################
+class QueueAdd(_Command):
+    name = "queueAdd"
+    method = "post"
+    command_args = [{"name":"values","type":"string","req":True,"mult":True},\
+        {"name":"pos","type":"int","req":True},\
+        {"name":"type","type":"enum_str",\
+         "values": ('path','id'),"req":False, "default": "path"}]
+
+    def execute(self):
+        pos = int(self._args["pos"])
+        if pos == -1: pos = None
+
+        queue = self._deejayd.get_queue()
+        if self._args["type"] == "id":
+            try: values = map(int, self._args["values"])
+            except (TypeError, ValueError):
+                raise ArgError(_("Ids arg must be integer"))
+            queue.add_songs(values, pos).get_contents()
+        else:
+            queue.add_paths(self._args["values"], pos).get_contents()
+
+class QueueLoad(_Command):
+    name = "queueLoad"
+    method = "post"
+    command_args = [{"name":"pls_ids","type":"int","req":True,"mult":True},\
+                    {"name":"pos","type":"int","req":True}]
+
+    def execute(self):
+        pos = int(self._args["pos"])
+        if pos == -1: pos = None
+
+        queue = self._deejayd.get_queue()
+        queue.load_playlists(self._args["pls_ids"],pos).get_contents()
+
+class QueueMove(_Command):
+    name = "queueMove"
+    method = "post"
+    command_args = [{"name":"ids","type":"int","req":True,"mult": True},
+                    {"name":"new_pos","type":"int","req":True}]
+
+    def execute(self):
+        ids = [int(id) for id in self._args["ids"]]
+        queue = self._deejayd.get_queue()
+        queue.move(ids, int(self._args["new_pos"])).get_contents()
+
+class QueueRemove(_Command):
+    name = "queueRemove"
     method = "post"
     command_args = [{"name":"ids","type":"int","req":True,"mult":True},]
 
     def execute(self):
-        pls = self._deejayd.get_playlist()
-        pls.del_songs(self._args["ids"]).get_contents()
+        queue = self._deejayd.get_queue()
+        queue.del_songs(self._args["ids"]).get_contents()
+
+class QueueClear(_Command):
+    name = "queueClear"
+
+    def execute(self):
+        queue = self._deejayd.get_queue()
+        queue.clear().get_contents()
 
 ########################################################################
 ########################################################################

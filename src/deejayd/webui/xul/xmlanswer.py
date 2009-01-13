@@ -33,12 +33,6 @@ class DeejaydWebAnswer(DeejaydXMLObject):
             elt = ET.SubElement(conf,"arg",name=parm,\
                 value=self._to_xml_string(config_parms[parm]))
 
-    def set_locale_strings(self, strings):
-        elt =  ET.SubElement(self.xmlroot, "locale")
-        for s in strings.keys():
-            s_elt = ET.SubElement(elt, "strings", name=s,\
-                value=self._to_xml_string(strings[s]))
-
     def set_update_library(self, id, type, first = "1"):
         el = ET.SubElement(self.xmlroot, type+"_update", \
                 p = self._to_xml_string(first))

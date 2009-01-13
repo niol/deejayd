@@ -110,7 +110,7 @@ class DeejaydXulCommandHandler(_DeejaydCommandHandler):
             try:
                 cmd.argument_validation(request.args)
                 cmd.execute()
-                cmd.default_result()
+                cmd.set_answer()
             except DeejaydError, err:
                 ans.set_error("%s" % err)
             except commands.ArgError, err:
