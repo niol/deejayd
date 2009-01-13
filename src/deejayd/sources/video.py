@@ -42,7 +42,7 @@ class VideoSource(_BaseLibrarySource):
                 raise SourceError(_("Directory %s not found") % value)
         elif type == "search":
             video_list = self.library.search(\
-                mediafilters.Contains("title",value), ("title",))
+                mediafilters.Contains("title",value), [("title","ascendong")])
         else:
             raise SourceError(_("type %s not supported") % type)
 
