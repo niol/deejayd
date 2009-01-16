@@ -107,7 +107,7 @@ function ajaxdj()
                     "extensions.deejayd-webui.current_server");
             }
         catch (ex) {
-            this.display_message(this.str.getString("prefError"), 'error');
+            this.display_message(this.getString("prefError"), 'error');
             return;
             }
 
@@ -117,7 +117,12 @@ function ajaxdj()
             this.send_command('init',null,true);
             }
         else
-            this.display_message(this.str.getString("prefError2"), 'error');
+            this.display_message(this.getString("prefError2"), 'error');
+    };
+
+    this.getString = function(str)
+    {
+        return this.str.getString(str);
     };
 
     this.set_busy = function(a)
@@ -186,8 +191,7 @@ function ajaxdj()
     this.send_command = function(command, args, lock)
     {
         if (!this.url) {
-            this.display_message("host not known, can not send command",
-                    "error");
+            this.display_message(this.getString("unknownHost"), "error");
             return false;
             }
         var cmd = command;
@@ -203,8 +207,7 @@ function ajaxdj()
     this.send_post_command = function(command,args)
     {
         if (!this.url) {
-            this.display_message("host not known, can not send command",
-                    "error");
+            this.display_message(this.getString("unknownHost"), "error");
             return false;
             }
         this.send_http_request('POST',
