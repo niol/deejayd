@@ -13,6 +13,7 @@ var Panel = function()
     this.selected_mode = null;
     // Activate this mode
     $("panel-source").hidden = false;
+    this.selectedIdx = {};
 
     this.treeController = false;
 
@@ -52,20 +53,23 @@ var Panel = function()
         pn.clearSelection();
         while(pn.getRowCount() > 0) { pn.removeItemAt(0); }
 
-        var idx = 0;
-        var selectedIdx = new Array();
+        this.selectedIdx[tag] = new Array();
         for (var i=0; item = list[i]; i++) {
             var listitem = pn.appendItem(item.getAttribute("label"),
                     item.getAttribute("value"));
             if (item.getAttribute("selected") == "true") {
-                if (idx == 0) { idx = i; }
-                selectedIdx.push(i);
+                this.selectedIdx[tag].push(i);
                 }
             }
-        idx = Math.min(idx+1, pn.getRowCount()-1);
-        pn.ensureIndexIsVisible(idx);
-        for (j in selectedIdx) {
-            var listitem = pn.getItemAtIndex(selectedIdx[j]);
+        setTimeout("panel_ref.setPanelSelection('"+tag+"');",100);
+    }
+
+    this.setPanelSelection = function(tag)
+    {
+        var pn = $(tag+"-panel");
+        for (j in this.selectedIdx[tag]) {
+            pn.ensureIndexIsVisible(this.selectedIdx[tag][j]);
+            var listitem = pn.getItemAtIndex(this.selectedIdx[tag][j]);
             pn.addItemToSelection(listitem);
             }
 

@@ -349,6 +349,10 @@ function ajaxdj()
             if (rs)
                 this.panelObj.update(rs);
 
+            rs = xmldoc.getElementsByTagName("panel-list");
+            for (var i=0; obj = rs.item(i); i++)
+                this.panelObj.updatePanel(obj);
+
             rs = xmldoc.getElementsByTagName("dvd").item(0);
             if (rs)
                 this.dvdObj.update(rs);
@@ -360,10 +364,6 @@ function ajaxdj()
             rs = xmldoc.getElementsByTagName("videodir").item(0);
             if (rs)
                 this.videoLib.updateDir(rs);
-
-            rs = xmldoc.getElementsByTagName("panel-list");
-            for (var i=0; obj = rs.item(i); i++)
-                this.panelObj.updatePanel(obj);
 
             rs = xmldoc.getElementsByTagName("player").item(0);
             if (rs)
