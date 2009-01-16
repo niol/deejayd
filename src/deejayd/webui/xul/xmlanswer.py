@@ -137,7 +137,7 @@ class DeejaydWebAnswer(DeejaydXMLObject):
 
                 for ft in filter_list: # OR filter
                     try: tag = ft[0].tag
-                    except IndexError:
+                    except (IndexError, TypeError): # bad filter
                         continue
                     if tag == t:
                         selected = [t_ft.pattern for t_ft in ft]
