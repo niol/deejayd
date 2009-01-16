@@ -44,15 +44,7 @@ def inotify_action(func):
         except UnicodeError:
             return
 
-        self.mutex.acquire()
-
-        rs = func(*__args, **__kw)
-        if rs: # commit change
-            self.db_con.update_stats(self.type)
-            self.db_con.connection.commit()
-            self.dispatch_signame(self.update_signal_name)
-
-        self.mutex.release()
+        return func(*__args, **__kw)
 
     return inotify_action_func
 
@@ -476,6 +468,13 @@ class _Library(SignalingComponent):
         for id in ids: self.emit_changes("remove", id)
         self._remove_empty_dir(path)
         return True
+
+    def inotify_record_changes(self):
+        self.mutex.acquire()
+        self.db_con.update_stats(self.type)
+        self.db_con.connection.commit()
+        self.dispatch_signame(self.update_signal_name)
+        self.mutex.release()
 
     def _remove_empty_dir(self, path):
         while path != "":

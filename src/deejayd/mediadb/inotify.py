@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, threading
+import os, threading, Queue
 from deejayd.ui import log
 from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
 
@@ -33,13 +33,60 @@ def log_event(func):
 
     return log_event_func
 
-class LibraryWatcher(ProcessEvent):
+class InotifyWatcher(ProcessEvent):
 
-    def __init__(self,library):
+    def __init__(self, library, queue):
         self.__library = library
-        self.__created_files = []
+        self.__queue = queue
 
-    def __occured_on_dirlink(self, event):
+    @log_event
+    def process_IN_CREATE(self, event):
+        self.__queue.put(("create", self.__library, event))
+
+    @log_event
+    def process_IN_DELETE(self, event):
+        self.__queue.put(("delete", self.__library, event))
+
+    @log_event
+    def process_IN_MOVED_FROM(self, event):
+        self.__queue.put(("move_from", self.__library, event))
+
+    @log_event
+    def process_IN_MOVED_TO(self, event):
+        self.__queue.put(("move_to", self.__library, event))
+
+    @log_event
+    def process_IN_CLOSE_WRITE(self, event):
+        self.__queue.put(("close_write", self.__library, event))
+
+    def process_IN_IGNORED(self, event):
+        # This is said to be useless in the documentation, and is
+        # effectively useless for us except for adding extreme verbosity
+        # to the tests. Farewell, IN_IGNORED!
+        pass
+
+
+class LibraryWatcher(threading.Thread):
+
+    def __init__(self, db, queue):
+        threading.Thread.__init__(self)
+        self.should_stop = threading.Event()
+        self.__db = db
+        self.__queue = queue
+        self.__created_files = []
+        self.__record = False
+
+    def run(self):
+        while not self.should_stop.isSet():
+            try: type, library, event = self.__queue.get(True, 0.1)
+            except Queue.Empty:
+                continue
+            self.__record = self.__execute(type,library,event) or self.__record
+            if self.__record and self.__queue.empty(): # record changes
+                library.inotify_record_changes()
+        self.__db.close()
+
+    def __occured_on_dirlink(self, library, event):
         if not event.name:
             return False
         file_path = os.path.join(event.path, event.name)
@@ -48,51 +95,42 @@ class LibraryWatcher(ProcessEvent):
         else:
             # File seems to have been deleted, so we lookup for a dirlink
             # in the library.
-            return file_path in self.__library.get_root_paths()
+            return file_path in library.get_root_paths()
 
-    @log_event
-    def process_IN_CREATE(self, event):
-        if self.__occured_on_dirlink(event):
-            self.__library.add_directory(event.path, event.name, True)
-        elif not event.is_dir:
-            self.__created_files.append((event.path, event.name))
-
-    @log_event
-    def process_IN_DELETE(self, event):
-        if self.__occured_on_dirlink(event):
-            self.__library.remove_directory(event.path, event.name, True)
-        elif not event.is_dir:
-            self.__library.remove_file(event.path, event.name)
-
-    @log_event
-    def process_IN_MOVED_FROM(self, event):
-        if not event.is_dir:
-            self.__library.remove_file(event.path, event.name)
-        else:
-            self.__library.remove_directory(event.path, event.name)
-
-    @log_event
-    def process_IN_MOVED_TO(self, event):
-        if not event.is_dir:
-            self.__library.add_file(event.path, event.name)
-        else:
-            self.__library.add_directory(event.path, event.name)
-
-    @log_event
-    def process_IN_CLOSE_WRITE(self, event):
-        if (event.path, event.name) in self.__created_files:
-            self.__library.add_file(event.path, event.name)
-            del self.__created_files[\
+    def __execute(self, type, library, event):
+        if type == "create":
+            if self.__occured_on_dirlink(library, event):
+                return library.add_directory(event.path, event.name, True)
+            elif not event.is_dir:
+                self.__created_files.append((event.path, event.name))
+        elif type == "delete":
+            if self.__occured_on_dirlink(library, event):
+                return library.remove_directory(event.path, event.name, True)
+            elif not event.is_dir:
+                library.remove_file(event.path, event.name)
+        elif type == "move_from":
+            if not event.is_dir:
+                return library.remove_file(event.path, event.name)
+            else:
+                return library.remove_directory(event.path, event.name)
+        elif type == "move_to":
+            if not event.is_dir:
+                return library.add_file(event.path, event.name)
+            else:
+                return library.add_directory(event.path, event.name)
+        elif type == "close_write":
+            if (event.path, event.name) in self.__created_files:
+                del self.__created_files[\
                         self.__created_files.index((event.path, event.name))]
-        else:
-            self.__library.update_file(event.path, event.name)
+                return library.add_file(event.path, event.name)
+            else:
+                return library.update_file(event.path, event.name)
 
-    def process_IN_IGNORED(self, event):
-        # This is said to be useless in the documentation, and is
-        # effectively useless for us except for adding extreme verbosity
-        # to the tests. Farewell, IN_IGNORED!
-        pass
+        return False
 
+    def close(self):
+        self.should_stop.set()
+        threading.Thread.join(self)
 
 #############################################################################
 
@@ -110,6 +148,7 @@ class DeejaydInotify(threading.Thread):
         self.__audio_library = audio_library
         self.__video_library = video_library
         self.__db = db
+        self.__queue = Queue.Queue(1000)
 
         self.__wm = WatchManager()
         self.__watched_dirs = {}
@@ -121,8 +160,8 @@ class DeejaydInotify(threading.Thread):
         if self.is_watched(dir_path):
             raise ValueError('dir %s is already watched' % dir_path)
         wdd = self.__wm.add_watch(dir_path, DeejaydInotify.EVENT_MASK,
-                                  proc_fun=LibraryWatcher(library), rec=True,
-                                  auto_add=True)
+                      proc_fun=InotifyWatcher(library,self.__queue), rec=True,
+                      auto_add=True)
         self.__watched_dirs[dir_path] = wdd
 
     def stop_watching_dir(self, dir_path):
@@ -140,14 +179,17 @@ class DeejaydInotify(threading.Thread):
                 for dir_path in library.get_root_paths():
                     self.watch_dir(dir_path, library)
 
+        # start library watcher thread
+        lib_watcher = LibraryWatcher(self.__db, self.__queue)
+        lib_watcher.start()
         while not self.should_stop.isSet():
             # process the queue of events as explained above
             notifier.process_events()
             if notifier.check_events():
                 # read notified events and enqeue them
                 notifier.read_events()
+        lib_watcher.close()
         notifier.stop()
-        self.__db.close()
 
     def close(self):
         self.should_stop.set()
