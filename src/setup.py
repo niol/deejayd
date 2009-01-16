@@ -96,7 +96,7 @@ class build_manpages(Command):
                        xmlmanpage)
                 self.spawn(cmd)
 
-            targetpath = os.path.join("share", "man")
+            targetpath = os.path.join("share", "man","man%s" % manpage[-1])
             data_files.append((targetpath, (manpage, ), ))
 
 
