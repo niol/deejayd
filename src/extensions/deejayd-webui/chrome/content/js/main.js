@@ -116,8 +116,19 @@ function ajaxdj()
             // Send Init request
             this.send_command('init',null,true);
             }
-        else
+        else {
             this.display_message(this.getString("prefError2"), 'error');
+            return;
+            }
+
+        // set refresh if needed
+        var use_default = prefManager.getBoolPref(
+                    "extensions.deejayd-webui.use_default_refresh");
+        if (!use_default) {
+            var refresh = prefManager.getIntPref(
+                    "extensions.deejayd-webui.refresh");
+            this.setRefresh(refresh);
+            }
     };
 
     this.getString = function(str)
@@ -389,15 +400,25 @@ function ajaxdj()
         for (var i=0;arg = args.item(i);i++)
             this.config[arg.getAttribute("name")] = arg.getAttribute("value");
 
-        // Reload refresh
+        // set refresh
+        var prefManager =
+            Components.classes["@mozilla.org/preferences-service;1"]
+            .getService(Components.interfaces.nsIPrefBranch);
+        var use_default = prefManager.getBoolPref(
+                    "extensions.deejayd-webui.use_default_refresh");
+        if (use_default)
+            this.setRefresh(this.config["refresh"]);
+    };
+
+    this.setRefresh = function(refresh)
+    {
         if (this.refreshEvent) {
             clearInterval(this.refreshEvent);
             this.refreshEvent = null;
             }
-        if (this.config["refresh"] != "0")
+        if (refresh != "0")
             this.refreshEvent = setInterval(
-                "ajaxdj_ref.send_command('refresh','',false)",
-                this.config["refresh"]*'1000');
+                "ajaxdj_ref.send_command('refresh','',false)", refresh*'1000');
     };
 
     this.set_debug = function(msg)
