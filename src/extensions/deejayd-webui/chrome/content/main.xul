@@ -28,7 +28,7 @@
 
 <keyset>
     <key id="playpause-key" key="x"
-        oncommand="ajaxdj_ref.send_command('playtoggle','',true);"/>
+        oncommand="ajaxdj_ref.send_command('play_toggle','',true);"/>
 
     <key id="stop-key" key="v"
         oncommand="ajaxdj_ref.send_command('stop','',true);"/>
@@ -112,7 +112,7 @@
                  id="previous-button"/>
                 <toolbarbutton
                  oncommand=
-                        "return ajaxdj_ref.send_command('playtoggle','',true);"
+                        "return ajaxdj_ref.send_command('play_toggle','',true);"
                  class="play-button"
                  id="playtoggle-button"/>
 
