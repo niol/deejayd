@@ -336,7 +336,9 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_sorts(self, sorts):
-        self.source.set_sorts(sorts)
+        try: self.source.set_sorts(sorts)
+        except deejayd.sources._base.SourceError, ex:
+            raise DeejaydError(str(ex))
 
 class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
     """Video mode."""
