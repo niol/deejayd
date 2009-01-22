@@ -330,6 +330,132 @@ class AvailableCommands:
             raise DjcError("song_id has to be an integer")
         DeejaydPlaylistMode(self.server).del_songs(ids).get_contents()
 
+# Panel commands
+    def panel_info(self, args):
+        """ Get current panel's content
+            ex: djc panel_info"""
+        panel = self.server.get_panel()
+        ans = panel.get()
+        if ans.get_filter() is not None:
+            print "############ Filter ############"
+            search, panels = None, []
+            for ft in ans.get_filter():
+                if ft.type == "basic" and ft.get_name() == "contains":
+                    search = "%s contains '%s'" % (ft.tag, ft.pattern)
+                elif ft.type == "complex" and ft.get_name() == "or":
+                    search = "%s equals to '%s'" % ("all", ft[0].pattern)
+                elif ft.type == "complex" and ft.get_name() == "and":
+                    for panel_ft in ft:
+                        tag = panel_ft[0].tag
+                        values = [value_ft.pattern for value_ft in panel_ft]
+                        panels.append({"tag":tag, "values": ",".join(values)})
+            if search is not None:
+                print "  * search filter : %s" % search
+            for pn in panels:
+                print "  * panel filter : %s in (%s)"%(pn["tag"], pn["values"])
+        if ans.get_sort() is not None:
+            print "############ Sort ############"
+            sorts = ans.get_sort()
+            for s in sorts:
+                print "  * %s - %s" % s
+        print "############ Song List ############"
+        for media in ans.get_medias():
+            print media["pos"], '|', media["title"], '|', media["artist"], '|',\
+                  media["album"], '|', media["id"]
+
+    def panel_tags(self, args):
+        """ List tags used in panel mode
+            ex: djc panel_tags"""
+        panel = self.server.get_panel()
+        tag_list = panel.get_panel_tags().get_contents()
+        print "############ Tag List ############"
+        print " | ".join(tag_list)
+
+    def panel_get_active(self, args):
+        """ Return panel active list
+            ex: djc panel_get_active"""
+        panel = self.server.get_panel()
+        active = panel.get_active_list().get_contents()
+        value = "panel"
+        if active["type"] == "playlist":
+            value = "playlist '%s'" % active["value"]
+        print "Active panel list : %s" % value
+
+    def panel_set_active(self, args):
+        """ Set panel active list
+            ex: djc panel_set_active panel
+            ex: djc panel_set_active playlist pls_name"""
+        panel = self.server.get_panel()
+        try:
+            type = args[0]
+            if type not in ('playlist', 'panel'):
+                raise DjcError('Bad command line')
+        except IndexError:
+            raise DjcError('Bad command line')
+        value = "0"
+        if type == 'playlist':
+            try: value = int(args[1])
+            except (IndexError, ValueError, TypeError):
+                raise DjcError('Bad command line')
+        panel.set_active_list(type, value).get_contents()
+
+    def panel_set_filter(self, args):
+        """ Set a panel filter
+            ex: djc panel_set_filter genre rock
+            ex: djc panel_set_filter artist artist1,artist2"""
+        panel = self.server.get_panel()
+        try:
+            tag = args[0]
+            values = args[1].split(",")
+        except IndexError:
+            raise DjcError('Bad command line')
+        panel.set_panel_filters(tag, values).get_contents()
+
+    def panel_remove_filter(self, args):
+        """ Remove a panel filter
+            ex: djc panel_remove_filter artist"""
+        panel = self.server.get_panel()
+        try: tag = args[0]
+        except IndexError:
+            raise DjcError('Bad command line')
+        panel.remove_panel_filters(tag).get_contents()
+
+    def panel_clear_filter(self, args):
+        """ Clear panel filters
+            ex: djc panel_clear_filter"""
+        panel = self.server.get_panel()
+        panel.clear_panel_filters().get_contents()
+
+    def panel_set_search(self, args):
+        """ Set search filter
+            ex: djc panel_set_search genre rock
+            ex: djc panel_set_search artist ben"""
+        panel = self.server.get_panel()
+        try:
+            tag = args[0]
+            value = args[1]
+        except IndexError:
+            raise DjcError('Bad command line')
+        panel.set_search_filter(tag, value).get_contents()
+
+    def panel_clear_search(self, args):
+        """ Clear panel search filter
+            ex: djc panel_clear_search"""
+        panel = self.server.get_panel()
+        panel.clear_search_filter().get_contents()
+
+    def panel_sort(self, args):
+        """ Sort Panel Medialist
+            ex: djc panel_sort artist descending
+            ex: djc panel_sort title ascending"""
+        panel = self.server.get_panel()
+        try:
+            tag = args[0]
+            direction = args[1]
+        except IndexError:
+            raise DjcError('Bad command line')
+        panel.set_sorts([(tag, direction)]).get_contents()
+
 # Webradio commands
     def webradio_list(self, args):
         """ List webradios """
