@@ -31,6 +31,7 @@ class PanelSource(_BaseLibrarySource):
             ['various_artist','album'],\
             ]
     contains_tags = ('genre','artist','album','title','all')
+    sort_tags = ('genre','artist','album','title','rating','tracknumber')
     default_sorts = [("album", "ascending"), ("tracknumber", "ascending")]
 
     def __init__(self, db, library, config):
@@ -109,7 +110,7 @@ class PanelSource(_BaseLibrarySource):
 
     def set_panel_filters(self, tag, values):
         if tag not in self.__panel_tags:
-            raise SourceError(_("Tag %s not supported") % tag)
+            raise SourceError(_("Tag '%s' not supported") % tag)
         if not values:
             self.remove_panel_filters(tag)
             return
@@ -131,7 +132,7 @@ class PanelSource(_BaseLibrarySource):
 
     def set_search_filter(self, tag, value):
         if tag not in self.__class__.contains_tags:
-            raise SourceError(_("Tag %s not supported") % tag)
+            raise SourceError(_("Tag '%s' not supported") % tag)
         if tag == "all":
             new_filter = Or()
             for tg in ('title','genre','artist','album'):
@@ -148,6 +149,11 @@ class PanelSource(_BaseLibrarySource):
             self.__update_panel_filters()
 
     def set_sorts(self, sorts):
+        for (tag, direction) in sorts:
+            if tag not in self.__class__.sort_tags:
+                raise SourceError(_("Tag '%s' not supported for sort") % tag)
+            if direction not in ('ascending', 'descending'):
+                raise SourceError(_("Bad sort direction for panel") % tag)
         self.__sorts = sorts
         self.__update_panel_filters()
 
