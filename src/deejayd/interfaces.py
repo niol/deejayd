@@ -273,13 +273,13 @@ class DeejaydPanel(object):
     def clear_panel_filters(self):
         raise NotImplementedError
 
-    def set_search_filter(self):
+    def set_search_filter(self, tag, value):
         raise NotImplementedError
 
     def clear_search_filter(self):
         raise NotImplementedError
 
-    def set_sorts(self):
+    def set_sorts(self, sort):
         raise NotImplementedError
 
 
