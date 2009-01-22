@@ -324,32 +324,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         self.connected = False
 
     def connect(self, host, port):
-        if self.connected:
-            self.disconnect()
-
-        self.host = host
-        self.port = port
-
-        try: self.socket_to_server.connect((self.host, self.port))
-        except socket.timeout, msg:
-            # reset connection
-            self._reset_socket()
-            raise ConnectError('Connection timeout')
-        except socket.error, msg:
-            raise ConnectError('Connection with server failed : %s' % msg)
-
-        self.socket_to_server.settimeout(None)
-        socketFile = self.socket_to_server.makefile()
-
-        # Catch version
-        self.version = socketFile.readline()
-        self.connected = True
-        if self.version.startswith("OK DEEJAYD"):
-            # FIXME extract version number
-            self.connected = True
-        else:
-            self.disconnect()
-            raise ConnectError('Connection with server failed')
+        raise NotImplementedError
 
     def is_connected(self):
         return self.connected
@@ -562,6 +537,34 @@ class DeejayDaemonSync(_DeejayDaemon):
 
     def __init__(self):
         _DeejayDaemon.__init__(self)
+
+    def connect(self, host, port):
+        if self.connected:
+            self.disconnect()
+
+        self.host = host
+        self.port = port
+
+        try: self.socket_to_server.connect((self.host, self.port))
+        except socket.timeout, msg:
+            # reset connection
+            self._reset_socket()
+            raise ConnectError('Connection timeout')
+        except socket.error, msg:
+            raise ConnectError('Connection with server failed : %s' % msg)
+
+        self.socket_to_server.settimeout(None)
+        socketFile = self.socket_to_server.makefile()
+
+        # Catch version
+        self.version = socketFile.readline()
+        self.connected = True
+        if self.version.startswith("OK DEEJAYD"):
+            # FIXME extract version number
+            self.connected = True
+        else:
+            self.disconnect()
+            raise ConnectError('Connection with server failed')
 
     def _send_command(self, cmd, expected_answer = None):
         # Set a default answer by default
