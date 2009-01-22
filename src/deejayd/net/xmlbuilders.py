@@ -79,6 +79,9 @@ class DeejaydXMLCommand(_DeejaydXML):
     def add_filter_arg(self, name, filter):
         self.args[name] = ('filter', filter)
 
+    def add_sort_arg(self, name, sort):
+        self.args[name] = ('sort', sort)
+
     def build_xml(self):
         # Add command
         self.xmlcontent = ET.Element('command', name = self.name)
@@ -96,8 +99,9 @@ class DeejaydXMLCommand(_DeejaydXML):
                     xmlval.text = self._to_xml_string(arg_param_value)
             elif arg_type == 'filter':
                 Get_xml_filter(arg_param).element(xmlarg)
+            elif arg_type == 'sort':
+                XMLSort(arg_param).element(xmlarg)
             elif arg_type == 'simple':
-                xmlarg.attrib['type'] = 'simple'
                 xmlarg.text = self._to_xml_string(arg_param)
 
 
@@ -272,7 +276,9 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
     """A list of media (song, webradio,playlist or video) with information for each media :
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
-    * title, id, length, subtitle, audio, etc. if it is a video"""
+    * title, id, length, subtitle, audio, etc. if it is a video
+For magic playlist and panel, MediaList object return filters and sorts used
+to build the medialist"""
 
     response_type = 'MediaList'
 
@@ -281,6 +287,7 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
         self.media_items = []
         self.total_length = None
         self.filter = None
+        self.sort = None
 
     def set_total_length(self, length):
         self.total_length = length
@@ -297,6 +304,9 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
     def set_filter(self, filter):
         self.filter = filter
 
+    def set_sort(self, sort):
+        self.sort = sort
+
     def build_xml(self):
         DeejaydXMLAck.build_xml(self)
         if self.total_length:
@@ -310,6 +320,9 @@ class DeejaydXMLMediaList(DeejaydXMLAck):
             xmlfilter_element = ET.SubElement(self.xmlcontent,'filter')
             xmlfilter = Get_xml_filter(self.filter)
             xmlfilter.element(xmlfilter_element)
+        if self.sort:
+            sort_element = ET.SubElement(self.xmlcontent,'sort')
+            XMLSort(self.sort).element(sort_element)
 
 
 class DeejaydXMLDvdInfo(DeejaydXMLAck):
@@ -423,5 +436,17 @@ def Get_xml_filter(filter):
         xml_filter_class = XMLComplexFilter
     return xml_filter_class(filter)
 
+
+class XMLSort(DeejaydXMLObject):
+
+    def __init__(self, sort):
+        self.sort = sort
+
+    def element(self, parent_element):
+        for tag, direction in self.sort:
+            sort_elt = ET.SubElement(parent_element, "sortitem")
+            sort_elt.attrib["tag"] = self._to_xml_string(tag)
+            sort_elt.attrib["direction"] = self._to_xml_string(direction)
+        return parent_element
 
 # vim: ts=4 sw=4 expandtab

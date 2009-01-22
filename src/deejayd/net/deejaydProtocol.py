@@ -197,6 +197,15 @@ class CommandFactory:
                     value = self.__parse_filter(arg[0])
                 except ValueError, ex:
                     return (str(ex), commandsXML.UnknownCommand, {})
+            elif type == "sort":
+                value = []
+                for val in arg.findall("sortitem"):
+                    try:
+                        tag = self.__encode_arg(val.attrib["tag"])
+                        direction = self.__encode_arg(val.attrib["direction"])
+                        value.append((tag, direction))
+                    except UnicodeError:
+                        continue
             args[name] = value
 
         if cmdName in commandsXML.commands.keys():

@@ -103,7 +103,8 @@ class UnknownCommand:
         for arg in self.__class__.command_args:
             if arg['name'] in self.args:
                 value = self.args[arg['name']]
-                if isinstance(value,list) and "mult" not in arg:
+                if isinstance(value,list) and "mult" not in arg\
+                        and arg['type'] != "sort":
                     return self.get_error_answer(\
                         _("Arg %s can not be a list") % arg['name'])
                 elif not isinstance(value,list):
@@ -576,6 +577,135 @@ class PlaylistMove(UnknownCommand):
         pls = self.deejayd_core.get_playlist()
         pls.move(self.args['ids'], self.args['new_pos'], objanswer=False)
 
+
+###################################################
+#  Panel Commands                                 #
+###################################################
+class PanelInfo(UnknownCommand):
+    """Return the content of the current playlist."""
+    command_name = 'panelInfo'
+    command_args = [{"name":"first","type":"int","req":False,"default":0},\
+                    {"name":"length","type":"int","req":False,"default":-1}]
+    command_rvalue = 'MediaList'
+
+    def _execute(self):
+        panel = self.deejayd_core.get_panel()
+        songs, filter, sort = panel.get(self.args["first"],\
+                self.args["length"], objanswer=False)
+
+        rsp = self.get_answer('MediaList')
+        rsp.set_mediatype("song")
+        rsp.set_medias(songs)
+        if self.args["length"] != -1:
+            status = self.deejayd_core.get_status(objanswer=False)
+            rsp.set_total_length(status["panellength"])
+        rsp.set_filter(filter)
+        rsp.set_sort(sort)
+        return rsp
+
+
+class PanelTags(UnknownCommand):
+    """Return tag list used in panel mode."""
+    command_name = 'panelTags'
+    command_rvalue = 'List'
+
+    def _execute(self):
+        panel = self.deejayd_core.get_panel()
+        panel_list = panel.get_panel_tags(objanswer=False)
+        ans = self.get_answer('List')
+        ans.contents = panel_list
+        return ans
+
+
+class PanelActiveList(UnknownCommand):
+    """Return active list in panel mode
+     * type : 'playlist' if playlist is choosen as active medialist
+              'panel' if panel navigation is active
+     * value : if 'playlist' is selected, return used playlist id"""
+    command_name = 'panelActiveList'
+    command_rvalue = 'KeyValue'
+
+    def _execute(self):
+        panel = self.deejayd_core.get_panel()
+        return self.get_keyvalue_answer(panel.get_active_list(objanswer=False))
+
+
+class PanelSetActiveList(UnknownCommand):
+    """Set the active list in panel mode"""
+    command_name = 'panelSetActiveList'
+    command_args = [{"name":"type", "type":"enum_str", \
+            "values":('playlist', 'panel'),"req":True},
+            {"name":"value", "type":"int", "req":False, "default": ""}]
+
+    def _execute(self):
+        if self.args["type"] == "playlist" and self.args["value"] == "":
+            raise DeejaydError(_("Set value arg to choose a playlist"))
+        panel = self.deejayd_core.get_panel()
+        panel.set_active_list(self.args["type"], self.args["value"],\
+                objanswer=False)
+
+
+class PanelSetFilter(UnknownCommand):
+    """Set a filter for panel mode"""
+    command_name = 'panelSetFilter'
+    command_args = [{"name":"tag", "type":"enum_str", \
+          "values":('genre', 'album', 'artist', 'various_artist'),"req":True},
+          {"name":"values", "type":"str", "req":True, "mult": True}]
+
+    def _execute(self):
+        panel = self.deejayd_core.get_panel()
+        panel.set_panel_filters(self.args["tag"], self.args["values"],\
+                objanswer=False)
+
+
+class PanelRemoveFilter(UnknownCommand):
+    """Remove a filter for panel mode"""
+    command_name = 'panelRemoveFilter'
+    command_args = [{"name":"tag", "type":"enum_str", \
+          "values":('genre', 'album', 'artist', 'various_artist'),"req":True},]
+
+    def _execute(self):
+        panel = self.deejayd_core.get_panel()
+        panel.remove_panel_filters(self.args["tag"], objanswer=False)
+
+
+class PanelClearFilter(UnknownCommand):
+    """Clear filters for panel mode"""
+    command_name = 'panelClearFilter'
+
+    def _execute(self):
+        self.deejayd_core.get_panel().clear_panel_filters(objanswer=False)
+
+
+class PanelSetSearch(UnknownCommand):
+    """Set search filter in panel mode"""
+    command_name = 'panelSetSearch'
+    command_args = [{"name":"tag", "type":"enum_str", \
+          "values":('genre', 'album', 'artist', 'title', 'all'),"req":True},
+          {"name":"value", "type":"str", "req":True}]
+
+    def _execute(self):
+        panel = self.deejayd_core.get_panel()
+        panel.set_search_filter(self.args["tag"], self.args["value"],\
+                objanswer=False)
+
+
+class PanelClearSearch(UnknownCommand):
+    """Clear search filter in panel mode"""
+    command_name = 'panelClearSearch'
+
+    def _execute(self):
+        self.deejayd_core.get_panel().clear_search_filter(objanswer=False)
+
+
+class PanelSetSort(UnknownCommand):
+    """Sort active medialist in panel mode"""
+    command_name = 'panelSort'
+    command_args = [{"name":"sort","type":"sort","req":True},]
+
+    def _execute(self):
+        self.deejayd_core.get_panel().set_sorts(self.args['sort'],\
+                objanswer=False)
 
 ###################################################
 #  Webradios Commands                             #

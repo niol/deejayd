@@ -52,6 +52,8 @@ class DeejaydXMLParser(object):
                     dict_parms = {}
                 elif elem.tag == 'filter':
                     filter_stack = []
+                elif elem.tag == 'sort':
+                    sort = []
                 elif elem.tag in NAME2COMPLEX.keys():
                     filter_class = NAME2COMPLEX[elem.tag]
                     filter_stack.append(filter_class())
@@ -116,6 +118,11 @@ class DeejaydXMLParser(object):
                     infos = {"title": elem.attrib['title'], \
                              "longest_track": elem.attrib['longest_track']}
                     expected_answer.set_dvd_content(infos)
+                elif elem.tag == 'sort':
+                    expected_answer.set_sort(sort)
+                    del sort
+                elif elem.tag == 'sortitem':
+                    sort.append((elem.attrib["tag"], elem.attrib["direction"]))
                 elif elem.tag == 'filter':
                     expected_answer.set_filter(filter)
                     del filter
