@@ -280,6 +280,65 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
         return self.server._send_command(cmd)
 
 
+class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
+
+    def __init__(self, server):
+        self.server = server
+
+    def get(self, first = 0, length = None):
+        cmd = DeejaydXMLCommand('panelInfo')
+        cmd.add_simple_arg('first', first)
+        if length != None:
+            cmd.add_simple_arg('length', length)
+        ans = DeejaydMediaList(self.server)
+        return self.server._send_command(cmd, ans)
+
+    def get_active_list(self):
+        cmd = DeejaydXMLCommand('panelActiveList')
+        ans = DeejaydList(self.server)
+        return self.server._send_command(cmd, ans)
+
+    def get_panel_tags(self):
+        cmd = DeejaydXMLCommand('panelTags')
+        return self.server._send_command(cmd, DeejaydList())
+
+    def set_active_list(self, type, pl_id=""):
+        cmd = DeejaydXMLCommand('panelSetActiveList')
+        cmd.add_simple_arg('type', type)
+        cmd.add_simple_arg('value', pl_id)
+        return self.server._send_command(cmd)
+
+    def set_panel_filters(self, tag, values):
+        cmd = DeejaydXMLCommand('panelSetFilter')
+        cmd.add_simple_arg('tag', tag)
+        cmd.add_multiple_arg('values', values)
+        return self.server._send_command(cmd)
+
+    def remove_panel_filters(self, tag):
+        cmd = DeejaydXMLCommand('panelRemoveFilter')
+        cmd.add_simple_arg('tag', tag)
+        return self.server._send_command(cmd)
+
+    def clear_panel_filters(self):
+        cmd = DeejaydXMLCommand('panelClearFilter')
+        return self.server._send_command(cmd)
+
+    def set_search_filter(self, tag, value):
+        cmd = DeejaydXMLCommand('panelSetSearch')
+        cmd.add_simple_arg('tag', tag)
+        cmd.add_simple_arg('value', value)
+        return self.server._send_command(cmd)
+
+    def clear_search_filter(self):
+        cmd = DeejaydXMLCommand('panelClearSearch')
+        return self.server._send_command(cmd)
+
+    def set_sorts(self, sort):
+        cmd = DeejaydXMLCommand('panelSort')
+        cmd.add_sort_arg('sort', sort)
+        return self.server._send_command(cmd)
+
+
 class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
 
     def __init__(self, server):
@@ -389,6 +448,9 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
 
     def get_playlist(self):
         return DeejaydPlaylistMode(self)
+
+    def get_panel(self):
+        return DeejaydPanel(self)
 
     def get_webradios(self):
         return DeejaydWebradioList(self)
