@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, threading, Queue
+import os, threading, traceback, Queue
 from deejayd.ui import log
 from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
 
@@ -81,7 +81,14 @@ class LibraryWatcher(threading.Thread):
             try: type, library, event = self.__queue.get(True, 0.1)
             except Queue.Empty:
                 continue
-            self.__record = self.__execute(type,library,event) or self.__record
+            try: self.__record = self.__execute(type,library,event)\
+                    or self.__record
+            except Exception, ex:
+                path = os.path.join(event.path, event.name)
+                log.err(_("Inotify problem for '%s', see traceback") % path)
+                log.err("------------------Traceback lines--------------------")
+                log.err(traceback.format_exc())
+                log.err("-----------------------------------------------------")
             if self.__record and self.__queue.empty(): # record changes
                 library.inotify_record_changes()
         self.__db.close()

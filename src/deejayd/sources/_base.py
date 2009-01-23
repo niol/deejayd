@@ -129,11 +129,14 @@ class _BaseLibrarySource(_BaseSource):
             reactor.callFromThread(self._remove_media, file_id)
         elif action == "add": pass # not used for now
         elif action == "update":
-            if threaded: reactor.callFromThread(self._update_media, file_id)
-            else: self._update_media(file_id)
+            # TODO : see if we have pb with this
+            #if threaded: reactor.callFromThread(self._update_media, file_id)
+            self._update_media(file_id)
 
     def _update_media(self, media_id):
-        media = self.library.get_file_withids([media_id])
+        try: media = self.library.get_file_withids([media_id])
+        except NotFoundException:
+            return
         if self._media_list.update_media(media[0]):
             self.dispatch_signame(self.source_signal)
 

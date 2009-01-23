@@ -351,6 +351,7 @@ class _Library(SignalingComponent):
             if need_update and fid: self.emit_changes(changes_type, fid)
 
     def set_media(self, dir_id, file_path, file_info, file_id):
+        if file_info is None: return file_id # not supported
         lastmodified = os.stat(file_path).st_mtime
         if file_id: # do not update persistent attribute
             for attr in self.__class__.persistent_attr: del file_info[attr]
@@ -367,9 +368,8 @@ class _Library(SignalingComponent):
 
     def _get_file_info(self, file_path):
         (base, ext) = os.path.splitext(file_path)
-        ext = ext.lower()
         # try to get infos from this file
-        try: file_info = self.ext_dict[ext].parse(file_path)
+        try: file_info = self.ext_dict[ext.lower()].parse(file_path)
         except KeyError:
             log.info(_("File %s not supported") % file_path)
             return None
@@ -412,7 +412,7 @@ class _Library(SignalingComponent):
         fid = self.set_media(dir_id, file_path, file_info, file_id)
         if fid:
             self.set_extra_infos(path, file, fid)
-            self._add_missing_dir(path)
+            self._add_missing_dir(os.path.dirname(path))
             self.emit_changes("add", fid)
         return True
 
@@ -632,9 +632,11 @@ class AudioLibrary(_Library):
             files = self.db_con.get_dircontent_id(path, self.type)
             if len(files) > 0:
                 file_path = os.path.join(path, file)
-                image = self.__extract_cover(file_path)
+                try: mime, image = self.__extract_cover(file_path)
+                except TypeError: # image not supported
+                    return False
                 if image:
-                    cover = self.db_con.add_cover(file_path, image)
+                    cover = self.db_con.add_cover(file_path, mime, image)
                     for (id,) in files:
                         if self.__update_cover(id, cover):
                             self.emit_changes("update", id)
@@ -649,7 +651,7 @@ class AudioLibrary(_Library):
 
         fid = self.set_media(dir_id, file_path, file_info, file_id)
         if fid:
-            self._add_missing_dir(path)
+            self._add_missing_dir(os.path.dirname(path))
             self.emit_changes("add", fid)
         return True
 
