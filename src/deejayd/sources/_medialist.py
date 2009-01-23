@@ -177,30 +177,4 @@ class MediaList(SimpleMediaList):
         if ans: self.list_id += 1
         return ans
 
-
-class ExtendedMediaList(MediaList):
-
-    def __init__(self, list_id = 0):
-        super(ExtendedMediaList, self).__init__(list_id)
-        self.sorted = None
-        self.filter_ = None
-        self._filter = []
-
-    def sort(self, key):
-        def compare(a, b):
-            return cmp(self._content[a][key], self._content[a][key])
-
-        if self.sorted: self._order.reverse()
-        try:
-            self._order.sort(compare)
-            self.sorted = key
-        except KeyError:
-            self.sorted = None
-        self.list_id += 1
-
-    def revert_sort(self):
-        if self.sorted:
-            self._order.reverse()
-            self.list_id += 1
-
 # vim: ts=4 sw=4 expandtab
