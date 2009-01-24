@@ -369,17 +369,11 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     def __init__(self):
         deejayd.interfaces.DeejaydCore.__init__(self)
 
-        self.__timeout = 2
         self.expected_answers_queue = Queue()
         self.answer_parser = DeejaydXMLAnswerParser(\
                                               self.expected_answers_queue.get,
                                               self._dispatch_signal)
-        self.next_msg = ""
 
-        # Socket setup
-        self.socket_to_server = socket.socket(socket.AF_INET,
-                                              socket.SOCK_STREAM)
-        self.socket_to_server.settimeout(self.__timeout)
         self.connected = False
 
     def connect(self, host, port):
@@ -389,55 +383,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         return self.connected
 
     def disconnect(self):
-        if not self.connected:
-            return
-
-        self.socket_to_server.settimeout(self.__timeout)
-        try: self._send_simple_command('close').get_contents()
-        except socket.timeout: pass
-
-        self._reset_socket()
-        self.connected = False
-        self.host = None
-        self.port = None
-
-    def _reset_socket(self):
-        self.socket_to_server.close()
-        # New Socket setup
-        self.socket_to_server = socket.socket(socket.AF_INET,
-                                              socket.SOCK_STREAM)
-        self.socket_to_server.settimeout(self.__timeout)
-
-    def _sendmsg(self, buf):
-        self.socket_to_server.send(buf + MSG_DELIMITER)
-
-    def _readmsg(self):
-        msg_chunks = ''
-        msg_chunk = ''
-        def split_msg(msg,index):
-            return (msg[0:index], msg[index+len(MSG_DELIMITER):len(msg)])
-
-        while 1:
-            try: index = self.next_msg.index(MSG_DELIMITER)
-            except ValueError: pass
-            else:
-                (rs,self.next_msg) = split_msg(self.next_msg, index)
-                break
-
-            msg_chunk = self.socket_to_server.recv(4096)
-            # socket.recv returns an empty string if the socket is closed, so
-            # catch this.
-            if msg_chunk == '':
-                raise socket.error()
-
-            msg_chunks += msg_chunk
-            try: index = msg_chunks.index(MSG_DELIMITER)
-            except ValueError: pass
-            else:
-                (rs,self.next_msg) = split_msg(msg_chunks, index)
-                break
-
-        return rs
+        raise NotImplementedError
 
     def _send_simple_command(self, cmd_name):
         cmd = DeejaydXMLCommand(cmd_name)
@@ -600,6 +546,12 @@ class DeejayDaemonSync(_DeejayDaemon):
     def __init__(self):
         _DeejayDaemon.__init__(self)
 
+        self.socket_to_server = socket.socket(socket.AF_INET,
+                                              socket.SOCK_STREAM)
+        self.__timeout = 2
+        self.socket_to_server.settimeout(self.__timeout)
+        self.next_msg = ""
+
     def connect(self, host, port):
         if self.connected:
             self.disconnect()
@@ -641,6 +593,57 @@ class DeejayDaemonSync(_DeejayDaemon):
         except SyntaxError:
             raise DeejaydError("Unable to parse server answer : %s" % rawmsg)
         return expected_answer
+
+    def disconnect(self):
+        if not self.connected:
+            return
+
+        self.socket_to_server.settimeout(self.__timeout)
+        try: self._send_simple_command('close').get_contents()
+        except socket.timeout: pass
+
+        self._reset_socket()
+        self.connected = False
+        self.host = None
+        self.port = None
+
+    def _reset_socket(self):
+        self.socket_to_server.close()
+        # New Socket setup
+        self.socket_to_server = socket.socket(socket.AF_INET,
+                                              socket.SOCK_STREAM)
+        self.socket_to_server.settimeout(self.__timeout)
+
+    def _sendmsg(self, buf):
+        self.socket_to_server.send(buf + MSG_DELIMITER)
+
+    def _readmsg(self):
+        msg_chunks = ''
+        msg_chunk = ''
+        def split_msg(msg,index):
+            return (msg[0:index], msg[index+len(MSG_DELIMITER):len(msg)])
+
+        while 1:
+            try: index = self.next_msg.index(MSG_DELIMITER)
+            except ValueError: pass
+            else:
+                (rs,self.next_msg) = split_msg(self.next_msg, index)
+                break
+
+            msg_chunk = self.socket_to_server.recv(4096)
+            # socket.recv returns an empty string if the socket is closed, so
+            # catch this.
+            if msg_chunk == '':
+                raise socket.error()
+
+            msg_chunks += msg_chunk
+            try: index = msg_chunks.index(MSG_DELIMITER)
+            except ValueError: pass
+            else:
+                (rs,self.next_msg) = split_msg(msg_chunks, index)
+                break
+
+        return rs
 
     # No subscription for the sync client
     def subscribe(self, signal_name, callback): raise NotImplementedError
