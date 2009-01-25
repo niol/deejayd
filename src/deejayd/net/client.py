@@ -28,9 +28,11 @@ import deejayd.interfaces
 from deejayd.interfaces import DeejaydError, DeejaydKeyValue
 from deejayd.net.xmlbuilders import DeejaydXMLCommand
 from deejayd.net.xmlparsers import DeejaydXMLAnswerParser
+from __init__ import DEEJAYD_PROTOCOL_VERSION
 
 
 MSG_DELIMITER = 'ENDXML\n'
+MAX_BANNER_LENGTH = 50
 
 
 class DeejaydAnswer(deejayd.interfaces.DeejaydAnswer):
@@ -376,7 +378,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
 
         self.connected = False
 
-    def connect(self, host, port):
+    def connect(self, host, port, ignore_version=False):
         raise NotImplementedError
 
     def is_connected(self):
@@ -384,6 +386,31 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
 
     def disconnect(self):
         raise NotImplementedError
+
+    def _version_from_banner(self, banner_line):
+        tokenized_banner = banner_line.split(' ')
+        try:
+            version = tokenized_banner[2]
+        except IndexError:
+            raise ValueError
+        else:
+            numerical_version = map(int, version.split('.'))
+            try:
+                if tokenized_banner[3] == 'protocol':
+                    protocol_version = tokenized_banner[4]
+                else:
+                    raise IndexError
+            except IndexError:
+                # Assume protocol is first one
+                protocol_version = 1
+            else:
+                protocol_version = int(protocol_version)
+            return numerical_version, protocol_version
+
+    def _version_is_supported(self, versions):
+        numerical_version = versions[0]
+        protocol_version = versions[1]
+        return protocol_version == DEEJAYD_PROTOCOL_VERSION
 
     def _send_simple_command(self, cmd_name):
         cmd = DeejaydXMLCommand(cmd_name)
@@ -552,7 +579,7 @@ class DeejayDaemonSync(_DeejayDaemon):
         self.socket_to_server.settimeout(self.__timeout)
         self.next_msg = ""
 
-    def connect(self, host, port):
+    def connect(self, host, port, ignore_version=False):
         if self.connected:
             self.disconnect()
 
@@ -571,14 +598,20 @@ class DeejayDaemonSync(_DeejayDaemon):
         socketFile = self.socket_to_server.makefile()
 
         # Catch version
-        self.version = socketFile.readline()
+        banner_line = socketFile.readline()
         self.connected = True
-        if self.version.startswith("OK DEEJAYD"):
-            # FIXME extract version number
-            self.connected = True
-        else:
+        if not banner_line.startswith("OK DEEJAYD")\
+        or len(banner_line) > MAX_BANNER_LENGTH:
             self.disconnect()
             raise ConnectError('Connection with server failed')
+        try:
+            versions = self._version_from_banner(banner_line)
+        except ValueError:
+            self.disconnect()
+            raise ConnectError('Initial version dialog with server failed')
+        if not ignore_version and not self._version_is_supported(versions):
+            self.disconnect()
+            raise ConnectError('This server version protocol is not handled by this client version')
 
     def _send_command(self, cmd, expected_answer = None):
         # Set a default answer by default
@@ -654,9 +687,11 @@ class _DeejaydSocket(asyncore.dispatcher):
     ac_in_buffer_size = 256
     ac_out_buffer_size = 256
 
-    def __init__(self, socket_map, deejayd):
+    def __init__(self, socket_map, deejayd, ignore_version=False):
         asyncore.dispatcher.__init__(self, map=socket_map)
         self.deejayd = deejayd
+        self.ignore_version = ignore_version
+
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.socket_die_callback = []
@@ -698,13 +733,25 @@ class _DeejaydSocket(asyncore.dispatcher):
             return (msg[0:index], msg[index+len(MSG_DELIMITER):len(msg)])
 
         if self.state == "connected":
-            # Catch version 17 character exactly
-            self.version = self.recv(17)
-            if self.version.startswith("OK DEEJAYD"):
-                self.state = 'xml_protocol'
-                # now we are sure to be connected
-                for cb in self.__connect_callback:
-                    cb(True,"")
+            # Catch banner until first newline char
+            banner_line = ''
+            newchar = ''
+            while newchar != '\n' and len(banner_line) < MAX_BANNER_LENGTH:
+                banner_line += newchar
+                newchar = self.recv(1)
+            if banner_line.startswith("OK DEEJAYD"):
+                try:
+                    versions = self.deejayd._version_from_banner(banner_line)
+                except ValueError:
+                    cb(False, 'Initial version dialog with server failed')
+                if self.ignore_version\
+                or self.deejayd._version_is_supported(versions):
+                    self.state = 'xml_protocol'
+                    # now we are sure to be connected
+                    for cb in self.__connect_callback:
+                        cb(True,"")
+                else:
+                    cb(False, 'This server version protocol is not handled by this client version')
 
         elif self.state == "xml_protocol":
             msg_chunk = self.recv(256)
@@ -785,9 +832,9 @@ class DeejayDaemonAsync(_DeejayDaemon):
         self.__err_cb = []
         self.socket_to_server = None
 
-    def __create_socket(self):
+    def __create_socket(self, ignore_version=False):
         self.socket_to_server = _DeejaydSocket(self.socket_thread.socket_map,
-                                               self)
+                                               self, ignore_version)
         self.socket_to_server.add_socket_die_callback(\
             self.__make_answers_obsolete)
         self.socket_to_server.add_socket_die_callback(self.__disconnect)
@@ -826,11 +873,11 @@ class DeejayDaemonAsync(_DeejayDaemon):
     def add_error_callback(self,cb):
         self.__err_cb.append(cb)
 
-    def connect(self, host, port):
+    def connect(self, host, port, ignore_version=False):
         if self.connected:
             self.disconnect()
 
-        self.__create_socket()
+        self.__create_socket(ignore_version)
         try: self.socket_to_server.connect((host, port))
         except socket.connecterror, msg:
             raise ConnectError('Connection error %s' % str(msg))

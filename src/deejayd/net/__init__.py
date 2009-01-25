@@ -16,4 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+
+DEEJAYD_PROTOCOL_VERSION = 2
+
+
 # vim: ts=4 sw=4 expandtab

@@ -28,6 +28,7 @@ from deejayd.mediafilters import *
 from deejayd.ui import log
 from deejayd.utils import str_encode
 from deejayd.net import commandsXML, xmlbuilders
+from __init__ import DEEJAYD_PROTOCOL_VERSION
 
 class DeejaydProtocol(LineReceiver):
 
@@ -40,7 +41,9 @@ class DeejaydProtocol(LineReceiver):
     def connectionMade(self):
         from deejayd import __version__
         self.cmdFactory = CommandFactory(self.deejayd_core)
-        self.send_buffer("OK DEEJAYD %s\n" % (__version__,), xml=False)
+        self.send_buffer("OK DEEJAYD %s protocol %d\n" %
+                         (__version__, DEEJAYD_PROTOCOL_VERSION, ),
+                         xml=False)
 
     def connectionLost(self, reason=ConnectionDone):
         self.manager.close_signals(self)
