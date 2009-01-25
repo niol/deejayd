@@ -40,7 +40,7 @@ clean:
 	rm -rf $(CURDIR)/build/mo
 	rm -f $(CURDIR)/extensions/deejayd-webui.xpi
 	python setup.py clean --all
-	rm -f $(CURDIR)/deejayd/__init__.pyc
+	find $(CURDIR) -name '*pyc' -exec rm -f {} \;
 	rm -f $(CURDIR)/MANIFEST
 	rm -f $(CURDIR)/man/*.{1,5}
 
