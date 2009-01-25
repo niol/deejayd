@@ -5,8 +5,7 @@ include README
 include NEWS
 include docs.py
 include deejayd/ui/defaults.conf
-include deejayd/database/sql/*
-include deejayd/webui/templates/*
+recursive-include deejayd/webui/mobile/templates *thtml
 include gentoo/*
 include gentoo/files/*
 recursive-include data/htdocs *
@@ -19,3 +18,5 @@ include scripts/testserver
 include scripts/deejayd_rgscan
 recursive-include testdeejayd *
 include data/logo/*
+recursive-include extensions/deejayd-webui *
+include man/*
