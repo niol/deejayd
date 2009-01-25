@@ -19,7 +19,7 @@ Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, adduser,
          python-pysqlite2 | python-mysqldb,
          python-mutagen, python-hachoir-metadata (>= 1.1)
 Recommends: python-pyinotify (>= 0.6.0)
-Suggests: deejayd-webui, djc
+Suggests: deejayd-webui
 XB-Python-Version: ${python:Versions}
 Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
@@ -44,19 +44,15 @@ Description: Web interface for deejayd
 Package: deejayd-client
 Architecture: all
 Depends: ${python:Depends}, python-celementtree | python (>= 2.5)
+Conflicts: djc
 XB-Python-Version: ${python:Versions}
-Description: Client library to access the deejayd server
+Description: Client library and command line tool to access the deejayd server
  This package provides easy to use classes to manipulate the deejayd server,
  abstracting XML message processing and network operations. It fully implements
  the set of features exploitable from the server.
-
-Package: djc
-Architecture: all
-Depends: ${python:Depends}, deejayd-client (= ${binary:Version})
-XB-Python-Version: ${python:Versions}
-Description: Command line basic client to the deejayd server
- djc provides a subset of deejayd commands for your deejayd server to be
- reachable from the command line.
+ .
+ It also includes djc, which provides a subset of deejayd commands for your
+ deejayd server to be reachable from the command line.
 
 Package: deejayd-xine
 Architecture: all
