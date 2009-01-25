@@ -48,7 +48,7 @@ class UnknownPlayer(SignalingComponent):
             self._media_file = self._source.get(media_pos, "pos", source)
         # Update state
         state = self.db.get_state("state")
-        if state != PLAYER_STOP:
+        if state != PLAYER_STOP and source != 'webradio':
             try:
                 self.play()
             except PlayerError:
