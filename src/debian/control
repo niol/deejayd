@@ -17,7 +17,7 @@ Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, adduser,
          deejayd-xine (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
          python-twisted,
          python-pysqlite2 | python-mysqldb,
-         python-mutagen
+         python-mutagen, python-hachoir-metadata (>= 1.1)
 Recommends: python-pyinotify (>= 0.6.0)
 Suggests: deejayd-webui, djc
 XB-Python-Version: ${python:Versions}
@@ -30,11 +30,16 @@ Description: Network controllable media player daemon
 
 Package: deejayd-webui
 Architecture: all
-Depends: ${python:Depends}, deejayd (= ${binary:Version}), logrotate, python-twisted-web
+Depends: ${python:Depends}, deejayd (= ${binary:Version}), logrotate,
+         python-twisted-web, libjs-jquery
+Recommends: python-genshi
 XB-Python-Version: ${python:Versions}
 Description: Web interface for deejayd
- This package provides a XUL web interface to control your deejayd server. The
- required webserver is embedded in the deejayd daemon.
+ This package provides, in order to control your deejayd server:
+    - a XUL web interface and,
+    - a pure HTML and AJAX web interface optimized for small screens.
+ .
+ The required webserver is embedded in the deejayd daemon.
 
 Package: deejayd-client
 Architecture: all
@@ -70,3 +75,10 @@ Recommends: gstreamer0.10-gnomevfs, lsdvd
 XB-Python-Version: ${python:Versions}
 Description: Deejayd GStreamer backend
  The deejayd media backend using the GStreamer library.
+
+Package: deejayd-webui-extension
+Architecture: all
+Depends: iceweasel
+Description: Deejayd web user interface Iceweasel extension
+ The Deejayd Iceweasel browser extension provides a richer user interface to
+ use as a client to the Deejayd server.
