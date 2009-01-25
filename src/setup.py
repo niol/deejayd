@@ -157,6 +157,15 @@ class deejayd_build(distutils_build):
 #
 # data files
 #
+def get_data_files(walking_root, dest_dir):
+    data_files = []
+    for root, dirs, files in os.walk(walking_root):
+        paths = [os.path.join(root, f) for f in files]
+        root = root.replace(walking_root, '').strip('/')
+        dest_path = os.path.join(dest_dir, root)
+        data_files.append((dest_path, paths))
+    return data_files
+
 def build_data_files_list():
     data = [
         ('share/doc/deejayd', ("doc/deejayd_xml_protocol", )),
@@ -164,12 +173,8 @@ def build_data_files_list():
         ('share/doc/deejayd', ["scripts/deejayd_rgscan"]),
         ]
 
-    htdocs_root = 'data/htdocs'
-    for root, dirs, files in os.walk(htdocs_root):
-        paths = [os.path.join(root,f) for f in files]
-        root = root.replace(htdocs_root,'').strip("/")
-        root_path = os.path.join('share/deejayd/htdocs',root)
-        data.append((root_path,paths))
+    # htdocs
+    data.extend(get_data_files('data/htdocs', 'share/deejayd/htdocs'))
 
     return data
 
