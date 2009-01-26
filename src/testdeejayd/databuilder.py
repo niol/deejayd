@@ -125,7 +125,7 @@ class TestSong(TestData):
 class TestVideo(TestSong):
 
     def __init__(self):
-        self.testFile,self.ext = os.path.join(DATA_DIR, "mpg_test.mpg"), ".mpg"
+        self.testFile,self.ext = os.path.join(DATA_DIR,"video_test.avi"),".avi"
         super(TestVideo, self).__init__()
         # FIXME Shoudn't videowidth and videoheight be of type int?
         self.tags = {"length": 2, "videowidth": '640', "videoheight": '480',\
