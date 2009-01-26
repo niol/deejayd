@@ -564,9 +564,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_media_rating(self, media_ids, rating, type = "audio"):
-        try:
-            if int(rating) not in range(0, 5): raise TypeError
-        except TypeError:
+        if int(rating) not in range(0, 5):
             raise DeejaydError(_("Bad rating value"))
 
         try: library = getattr(self, type+"_library")

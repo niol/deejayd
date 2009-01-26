@@ -94,9 +94,13 @@ class DatabaseQueries(object):
         cursor.execute(query, (lastmodified, id))
 
     @query_decorator("rowcount")
-    def set_media_infos(self, cursor, file_id, infos):
-        query = "REPLACE INTO media_info (id,ikey,value)VALUES(%s,%s,%s)"
-        entries = [(file_id, k, v) for k, v in infos.items()]
+    def set_media_infos(self, cursor, file_id, infos, allow_create = True):
+        if allow_create:
+            query = "REPLACE INTO media_info (id,ikey,value)VALUES(%s,%s,%s)"
+            entries = [(file_id, k, v) for k, v in infos.items()]
+        else:
+            query = "UPDATE media_info SET value=%s WHERE id=%s and ikey=%s"
+            entries = [(v, file_id, k) for k, v in infos.items()]
         cursor.executemany(query, entries)
 
     @query_decorator("none")

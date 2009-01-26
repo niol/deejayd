@@ -93,8 +93,8 @@ class _Library(SignalingComponent):
     def _build_supported_extension(self, player):
         raise NotImplementedError
 
-    def set_file_info(self, file_id, key, value):
-        ans = self.db_con.set_media_infos(file_id, {key: value})
+    def set_file_info(self, file_id, key, value, allow_create = False):
+        ans = self.db_con.set_media_infos(file_id, {key: value}, allow_create)
         if not ans:
             raise NotFoundException
         self.emit_changes("update", file_id, threaded = False)
