@@ -23,7 +23,7 @@ from hachoir_parser import createParser
 from hachoir_metadata import extractMetadata
 
 from deejayd.mediadb.formats._base import _VideoFile
-extensions = (".avi", ".mpeg", ".mpg", ".mkv", ".asf", ".mp4")
+extensions = (".avi", ".mpeg", ".mpg", ".mkv", ".asf", ".ogm", "mp4", )
 
 class VideoFile(_VideoFile):
 
