@@ -230,6 +230,90 @@ class InterfaceTests:
         ddq = q.get()
         self.assertEqual(ddq.get_medias(), [])
 
+    def testPanel(self):
+        """ Test panel source actions """
+        panel = self.deejayd.get_panel()
+
+        # get panel tags
+        tags = panel.get_panel_tags().get_contents()
+        for tag in tags:
+            self.failUnless(tag in ['genre', 'artist',\
+                    'various_artist', 'album'])
+
+        # set filter
+        bad_tag = self.testdata.getRandomString()
+        random_str = self.testdata.getRandomString()
+        ans = panel.set_panel_filters(bad_tag, [random_str]) # random tags
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        tag = self.testdata.getRandomElement(tags)
+        panel.set_panel_filters(tag, [random_str]).get_contents()
+        ans = panel.get()
+        self.assertEqual([], ans.get_medias())
+
+        # remove bad filter
+        panel.remove_panel_filters(tag).get_contents()
+        ans = panel.get()
+        self.failUnless(len(ans.get_medias()) > 0)
+
+        # get correct value for a tag
+        result = self.deejayd.mediadb_list(tag, None).get_contents()
+        value = self.testdata.getRandomElement(result)
+        panel.set_panel_filters(tag, [value]).get_contents()
+        ans = panel.get()
+        self.failUnless(len(ans.get_medias()) > 0)
+
+        # clear tag
+        panel.clear_panel_filters().get_contents()
+        ans = panel.get()
+        self.failUnless(len(ans.get_medias()) > 0)
+
+        # set search
+        ans = panel.set_search_filter(bad_tag, random_str) # random tags
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        panel.set_search_filter(tag, random_str).get_contents()
+        ans = panel.get()
+        self.assertEqual([], ans.get_medias())
+
+        # clear search
+        panel.clear_search_filter().get_contents()
+        ans = panel.get()
+        self.failUnless(len(ans.get_medias()) > 0)
+
+        # test sort
+        result = panel.set_sorts([(bad_tag, 'ascending')])
+        self.assertRaises(DeejaydError, result.get_contents)
+
+        tag = self.testdata.getRandomElement(['title', 'rating', 'genre'])
+        media_list = [m[tag] for m in ans.get_medias()]
+        media_list.sort()
+        panel.set_sorts([(tag, 'ascending')]).get_contents()
+        ans = panel.get()
+        for idx, m in enumerate(ans.get_medias()):
+            self.assertEqual(m[tag], media_list[idx])
+
+        # save a playlist and update active list
+        djpl = self.deejayd.get_playlist()
+        ans = self.deejayd.get_audio_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+        djpl.add_paths([dir]).get_contents()
+        test_pl_name = self.testdata.getRandomString()
+        djpl.save(test_pl_name).get_contents()
+        pl_list = self.deejayd.get_playlist_list().get_medias()
+        if len(pl_list) != 1:
+            raise DeejaydError("playlist not saved")
+
+        # save a playlist and update active list
+        bad_plid = self.testdata.getRandomInt(2000, 1000)
+        ans = panel.set_active_list("playlist", bad_plid)
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+        panel.set_active_list("playlist", pl_list[0]["id"]).get_contents()
+        panel_list = panel.get_active_list().get_contents()
+        self.assertEqual(panel_list["type"], "playlist")
+        self.assertEqual(panel_list["value"], pl_list[0]["id"])
+
     def testVideo(self):
         """ Test video source actions """
         video_obj = self.deejayd.get_video()
@@ -536,6 +620,32 @@ class InterfaceSubscribeTests:
 
         for trig in trigger_list:
             self.generic_sub_bcast_test('playlist.update', trig[0], trig[1])
+
+    def test_sub_broadcast_panel_update(self):
+        """Checks that panel.update signals are broadcasted."""
+
+        # first save a playlist
+        djpl = self.deejayd.get_playlist()
+        ans = self.deejayd.get_audio_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+        djpl.add_paths([dir]).get_contents()
+        test_pl_name = self.testdata.getRandomString()
+        djpl.save(test_pl_name).get_contents()
+        pl_list = self.deejayd.get_playlist_list().get_medias()
+        if len(pl_list) != 1:
+            raise DeejaydError("playlist not saved")
+
+        djpn = self.deejayd.get_panel()
+
+        trigger_list = (
+                        (djpn.set_active_list, ("playlist", pl_list[0]["id"])),
+                        (djpn.set_active_list, ("panel", "0")),
+                        (djpn.set_panel_filters, ("genre", "zboub")),
+                        (djpn.clear_panel_filters, []),
+                       )
+
+        for trig in trigger_list:
+            self.generic_sub_bcast_test('panel.update', trig[0], trig[1])
 
     def test_sub_broadcast_webradio_listupdate(self):
         """Checks that webradio.listupdate signals are broadcasted."""
