@@ -328,7 +328,9 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_search_filter(self, tag, value):
-        self.source.set_search_filter(tag, value)
+        try: self.source.set_search_filter(tag, value)
+        except deejayd.sources._base.SourceError, ex:
+            raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def clear_search_filter(self):

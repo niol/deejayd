@@ -559,7 +559,8 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     def mediadb_list(self, tag, filter):
         cmd = DeejaydXMLCommand('mediadbList')
         cmd.add_simple_arg('tag', tag)
-        cmd.add_filter_arg('filter', filter)
+        if filter is not None:
+            cmd.add_filter_arg('filter', filter)
         ans = DeejaydList(self)
         return self._send_command(cmd, ans)
 

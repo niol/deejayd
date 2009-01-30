@@ -37,7 +37,7 @@ class NoneFilter(_DBObject):
     PRIMARY_KEY = 'filter_id'
     TYPE = 'none'
 
-    def __init__(self):
+    def __init__(self, none_filter = None):
         super(NoneFilter, self).__init__()
         self.id = None
 
