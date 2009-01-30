@@ -138,10 +138,11 @@ class TestAsyncClient(TestCaseWithAudioAndVideoData, InterfaceSubscribeTests):
         def cb_update_status(answer):
             self.deejayd.get_status().add_callback(tcb_status)
 
-        djpl.add_song(self.test_audiodata.getRandomSongPaths(1)[0]).\
+        djpl.add_path(self.test_audiodata.getRandomSongPaths(1)[0]).\
                 add_callback(cb_update_status)
 
-        cb_called.wait(4)
+        while not self.should_stop:
+            cb_called.wait(4)
 
         self.failUnless(cb_called.isSet(), 'Answer callback was not triggered.')
         self.assertEqual(self.status['playlistlength'], 1)
