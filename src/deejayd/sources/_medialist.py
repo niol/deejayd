@@ -115,7 +115,18 @@ class SimpleMediaList(object):
         try:
             idx = self._order.index(media["id"])
             id = self._order[idx+1]
-        except (ValueError, KeyError, IndexError):
+        except ValueError: # id not found, try to find by media_id
+            id = None
+            if media:
+                for list_id, m in self._content.items():
+                    if m["media_id"] == media["media_id"]:
+                        idx = self._order.index(m["id"])
+                        try: id = self._order[idx+1]
+                        except IndexError: # end of medialist
+                            return None
+                        break
+            if id is None: return None
+        except (IndexError, KeyError, TypeError):
             return None
         return self._set_media_ans(id, idx+1)
 
