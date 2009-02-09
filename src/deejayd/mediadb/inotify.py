@@ -114,7 +114,7 @@ class LibraryWatcher(threading.Thread):
             if self.__occured_on_dirlink(library, event):
                 return library.remove_directory(event.path, event.name, True)
             elif not event.is_dir:
-                library.remove_file(event.path, event.name)
+                return library.remove_file(event.path, event.name)
         elif type == "move_from":
             if not event.is_dir:
                 return library.remove_file(event.path, event.name)
