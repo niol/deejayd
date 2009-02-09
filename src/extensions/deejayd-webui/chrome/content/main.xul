@@ -245,42 +245,52 @@
 
     <spacer flex="1"/>
 
-    <hbox id="right-header" pack="center" align="center">
-        <description value="&mode; "/>
-        <menulist
-            id="mode-menu"
-            oncommand="ajaxdj_ref.updateMode();"
-            label="">
-            <menupopup>
-                <menuitem
-                    class="menuitem-iconic audio-item"
-                    hidden="true"
-                    id="playlist-source"
-                    value="playlist" label="&playlist;"/>
-                <menuitem
-                    class="menuitem-iconic panel-item"
-                    hidden="true"
-                    id="panel-source"
-                    value="panel" label="&panel;"/>
-                <menuitem
-                    class="menuitem-iconic webradio-item"
-                    hidden="true"
-                    id="webradio-source"
-                    value="webradio" label="&webradio;"/>
-                <menuitem
-                    class="menuitem-iconic video-item"
-                    hidden="true"
-                    id="video-source"
-                    value="video" label="&video;"/>
-                <menuitem
-                    class="menuitem-iconic dvd-item"
-                    hidden="true"
-                    id="dvd-source"
-                    value="dvd" label="&dvd;"/>
+    <vbox id="right-header">
+        <hbox id="modemenu-box" pack="center" align="center">
+            <description value="&mode; "/>
+            <menulist
+                id="mode-menu"
+                oncommand="ajaxdj_ref.updateMode();"
+                label="">
+                <menupopup>
+                    <menuitem
+                        class="menuitem-iconic audio-item"
+                        hidden="true"
+                        id="playlist-source"
+                        value="playlist" label="&playlist;"/>
+                    <menuitem
+                        class="menuitem-iconic panel-item"
+                        hidden="true"
+                        id="panel-source"
+                        value="panel" label="&panel;"/>
+                    <menuitem
+                        class="menuitem-iconic webradio-item"
+                        hidden="true"
+                        id="webradio-source"
+                        value="webradio" label="&webradio;"/>
+                    <menuitem
+                        class="menuitem-iconic video-item"
+                        hidden="true"
+                        id="video-source"
+                        value="video" label="&video;"/>
+                    <menuitem
+                        class="menuitem-iconic dvd-item"
+                        hidden="true"
+                        id="dvd-source"
+                        value="dvd" label="&dvd;"/>
 
-            </menupopup>
-        </menulist>
-    </hbox>
+                </menupopup>
+            </menulist>
+        </hbox>
+        <hbox>
+            <spacer flex="1"/>
+            <button
+                id="webui-refresh-button"
+                class="update-button"
+                oncommand="ajaxdj_ref.send_command('refresh',null,false);"
+                label="&refreshWebui;"/>
+        </hbox>
+    </vbox>
 </hbox>
 <!-- END HEADER -->
 
