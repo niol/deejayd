@@ -239,6 +239,7 @@ class _TestDir(TestData):
     def buildContent(self, destDir):
         self.dirPath = os.path.join(destDir,self.name)
         os.mkdir(self.dirPath)
+        time.sleep(0.1)
         for item in self.items:
             item.build(self.dirPath)
         self.build = True
