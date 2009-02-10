@@ -429,6 +429,24 @@ class _TestMediaCollection(TestProvidedMusicCollection):
         subdir.buildContent(subdir_path)
         self.dirs[subdir_path] = dir
 
+    def addSubSubdir(self):
+        dir = self.getRandomElement(self.dirs.values())
+        subdir, subsubdir = self.dir_class(), self.dir_class()
+        for media_class in self.__class__.supported_files_class:
+            media = media_class()
+            media_path = os.path.join(dir.name, subdir.name, subsubdir.name,\
+                    media.name)
+            self.medias[media_path] = media
+            subsubdir.addItem(media)
+
+        subdir_path = os.path.join(self.datadir, dir.name)
+        subdir.buildContent(subdir_path)
+        self.dirs[subdir_path] = dir
+
+        subsubdir_path = os.path.join(self.datadir, dir.name, subdir.name)
+        subsubdir.buildContent(subsubdir_path)
+        self.dirs[subsubdir_path] = subdir
+
     def renameDir(self):
         dir = self.getRandomElement(self.dirs.values())
         del self.dirs[dir.name]

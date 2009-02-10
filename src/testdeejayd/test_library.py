@@ -195,6 +195,11 @@ class TestAudioLibrary(TestCaseWithAudioData, _TestDeejayDBLibrary):
         self.testdata.addSubdir()
         self.verifyMediaDBContent()
 
+    def testAddSubSubdirectory(self):
+        """Add a subsubdirectory in audio library"""
+        self.testdata.addSubSubdir()
+        self.verifyMediaDBContent()
+
     def testRenameDirectory(self):
         """Rename a directory in audio library"""
         self.testdata.renameDir()
@@ -290,7 +295,11 @@ class TestInotifySupport(TestCaseWithAudioData, _TestDeejayDBLibrary):
     def testAddSubdirectory(self):
         """Inotify support : Add a subdirectory"""
         self.testdata.addSubdir()
-        time.sleep(3)
+        self.verifyMediaDBContent(do_update = False)
+
+    def testAddSubSubdirectory(self):
+        """Inotify support : Add a subsubdirectory"""
+        self.testdata.addSubSubdir()
         self.verifyMediaDBContent(do_update = False)
 
     def testRenameDirectory(self):
