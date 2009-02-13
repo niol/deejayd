@@ -19,8 +19,12 @@
 var mobileui_ref;
 
 function buttonClick(evt) {
-    mobileui_ref.send_command("setPage",
-            {page: evt.target.getAttribute('value')}, true);
+    if (evt.target.getAttribute('type') == "refresh")
+        mobileui_ref.send_command("refreshPage",
+                {page: evt.target.getAttribute('value')}, true);
+    else if (evt.target.getAttribute('type') == "set")
+        mobileui_ref.send_command("setPage",
+                {page: evt.target.getAttribute('value')}, true);
 }
 
 function mobileUI()
@@ -153,6 +157,8 @@ function mobileUI()
                     $("#"+btn.getAttribute('name')).show().html(content);
                     $("#"+btn.getAttribute('name')).attr("value",
                             btn.getAttribute('link'));
+                    $("#"+btn.getAttribute('name')).attr("type",
+                            btn.getAttribute('type'));
                     $("#"+btn.getAttribute('name')).
                         unbind("click",buttonClick).click(buttonClick);
                     }

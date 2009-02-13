@@ -38,6 +38,14 @@ class SetPage(default_commands._Command):
     def set_answer(self):
         self._answer.set_page(self._args["page"])
 
+class RefreshPage(default_commands._Command):
+    name = "refreshPage"
+    command_args = [{"name": "page", "type": "enum_str",\
+        "values": ("now_playing","current_mode"),"req": True}]
+
+    def set_answer(self):
+        self._answer.refresh_page(self._args["page"])
+
 class MediaList(default_commands._Command):
     name = "mediaList"
     command_args = [{"name": "page", "type": "int","req": True}]

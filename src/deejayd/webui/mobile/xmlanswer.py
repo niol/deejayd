@@ -81,10 +81,12 @@ class DeejaydWebAnswer(DeejaydXMLObject):
         # set top button
         button = ET.SubElement(self.xmlroot, "page_btn")
         lbtn_elt = ET.SubElement(button, "btn", name = "left_button",\
-                link = page.left_btn["link"])
+                link = page.left_btn["link"], type = "set")
         lbtn_elt.text = self._to_xml_string(page.left_btn["title"])
         rbtn_elt = ET.SubElement(button, "btn", name = "right_button",\
-                link = page.right_btn["link"])
+                link = page.right_btn["link"], type = "set")
+        if "type" in page.right_btn.keys():
+            rbtn_elt.attrib["type"] = page.right_btn["type"]
         rbtn_elt.text = self._to_xml_string(page.right_btn["title"])
 
     def refresh_page(self, page_name):
@@ -186,7 +188,7 @@ class NowPlaying:
     commands = ('goto',)
     name = "now_playing"
     left_btn = {"title": _("Current Mode"), "link": "current_mode"}
-    right_btn = {"title": "", "link": ""}
+    right_btn = {"title": _("Refresh"),"type": "refresh","link": "now_playing"}
 
     def _get_current(self, status, deejayd):
         m = None
