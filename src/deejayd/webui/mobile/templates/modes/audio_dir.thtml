@@ -29,7 +29,8 @@
             <div class="directory">..</div>
             <div class="media-play-btn"
                 onclick="mobileui_ref.send_post_command('getdir',
-                    {type:'audio',dir:'${f(root)}'},true);return false;"></div>
+                  {type:'audio',dir:'${escape(f(root))}'},true);
+                  return false;"></div>
         </div>
     </py:if>
 
@@ -40,7 +41,8 @@
         <div class="${item['type']}"> ${f(item['name'])} </div>
         <div py:if="item['type'] == 'directory'" class="media-play-btn"
             onclick="mobileui_ref.send_post_command('getdir',
-                {type:'audio',dir:'${f(item['path'])}'},true);return false;">
+                {type:'audio',dir:'${escape(f(item['path']))}'},true);
+                return false;">
         </div>
     </div>
 

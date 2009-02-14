@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os,re, StringIO
+import os, re, StringIO
 from genshi.template import TemplateLoader
 from genshi.filters import HTMLFormFiller
 
@@ -135,7 +135,7 @@ class DeejaydWebAnswer(DeejaydXMLObject):
         content = self.get_template(tpl_name).generate(\
             items=items[LIB_PG_LEN*(page-1):LIB_PG_LEN*page],\
             page_total=page_total,page=page,root=os.path.dirname(dir),\
-            dir=dir,f=self._to_xml_string).render('xhtml')
+            dir=dir,f=self._to_xml_string,escape=re.escape).render('xhtml')
         self.set_block("mode-extra-content", content)
 
     def extra_page(self, title):
