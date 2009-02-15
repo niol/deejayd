@@ -102,6 +102,8 @@ ENDXML
     * artist, album, title, id, etc. if it is a song
     * title, url, id, etc. if it is a webradio
     * title, id, length, subtitle, audio, etc. if it is a video
+For magic playlist and panel, MediaList object return filters and sorts used
+to build the medialist
 {{{
 <?xml version="1.0" encoding="utf-8"?>
 <deejayd>
@@ -680,6 +682,103 @@ Remove all songs from the queue.
 
 Arguments :
   * ''This command does not accept any argument.''
+
+Expected return value : ''`Ack`''
+
+=== `panelSetSearch` ===
+
+Set search filter in panel mode
+
+Arguments :
+  * {{{tag}}} (Simple and Mandatory) : enum_str
+  * {{{value}}} (Simple and Mandatory) : str
+
+Expected return value : ''`Ack`''
+
+=== `panelInfo` ===
+
+Return the content of the current playlist.
+
+Arguments :
+  * {{{first}}} (Simple and Optional) : int
+  * {{{length}}} (Simple and Optional) : int
+
+Expected return value : ''`MediaList`''
+
+=== `panelClearFilter` ===
+
+Clear filters for panel mode
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`Ack`''
+
+=== `panelSetActiveList` ===
+
+Set the active list in panel mode
+
+Arguments :
+  * {{{type}}} (Simple and Mandatory) : enum_str
+  * {{{value}}} (Simple and Optional) : int
+
+Expected return value : ''`Ack`''
+
+=== `panelActiveList` ===
+
+Return active list in panel mode
+     * type : 'playlist' if playlist is choosen as active medialist
+              'panel' if panel navigation is active
+     * value : if 'playlist' is selected, return used playlist id
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`KeyValue`''
+
+=== `panelTags` ===
+
+Return tag list used in panel mode.
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`List`''
+
+=== `panelRemoveFilter` ===
+
+Remove a filter for panel mode
+
+Arguments :
+  * {{{tag}}} (Simple and Mandatory) : enum_str
+
+Expected return value : ''`Ack`''
+
+=== `panelClearSearch` ===
+
+Clear search filter in panel mode
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`Ack`''
+
+=== `panelSort` ===
+
+Sort active medialist in panel mode
+
+Arguments :
+  * {{{sort}}} (Simple and Mandatory) : sort
+
+Expected return value : ''`Ack`''
+
+=== `panelSetFilter` ===
+
+Set a filter for panel mode
+
+Arguments :
+  * {{{tag}}} (Simple and Mandatory) : enum_str
+  * {{{values}}} (Multiple and Mandatory) : str
 
 Expected return value : ''`Ack`''
 

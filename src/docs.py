@@ -84,7 +84,10 @@ commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
                    "playlistLoad", "playlistSave", "webradioList",
                    "webradioAdd", "webradioRemove", "webradioClear",
                    "queueInfo", "queueAdd", "queueMove", "queueLoadPlaylist",
-                   "queueRemove", "queueClear", "setvideo","videoInfo",
+                   "queueRemove", "queueClear", "panelSetSearch", "panelInfo",
+                   "panelClearFilter", "panelSetActiveList", "panelActiveList",
+                   "panelTags", "panelRemoveFilter", "panelClearSearch",
+                   "panelSort", "panelSetFilter", "setvideo","videoInfo",
                    "dvdLoad","dvdInfo",
                    "setSubscription", "setMediaRating", "mediadbList")
 
