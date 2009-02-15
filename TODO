@@ -2,11 +2,6 @@
 
 * Improve webradios as commented in the tests.
 
-* Random with weight on notation.
-
-* Count playback start and playback stop in db. The difference between those is
-  the number of times skipped.
-
 * Work on webui from use cases (albumplayback, etc).
 
 * Signals to the webui exploiting the fact that XmlHttpRequest does not have a
