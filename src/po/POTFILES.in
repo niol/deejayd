@@ -1,3 +1,4 @@
+deejayd/interfaces.py
 deejayd/core.py
 deejayd/database/__init__.py
 deejayd/database/backends/_base.py
@@ -12,6 +13,15 @@ deejayd/player/__init__.py
 deejayd/player/xine.py
 deejayd/player/gstreamer.py
 deejayd/sources/__init__.py
+deejayd/sources/_base.py
+deejayd/sources/_medialist.py
+deejayd/sources/_playorder.py
+deejayd/sources/dvd.py
+deejayd/sources/panel.py
+deejayd/sources/playlist.py
+deejayd/sources/queue.py
+deejayd/sources/video.py
+deejayd/sources/webradio.py
 deejayd/ui/log.py
 deejayd/webui/__init__.py
 deejayd/webui/commands.py
