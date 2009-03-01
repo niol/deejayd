@@ -121,6 +121,24 @@ class Contains(mediafilters.Contains, _BasicFilter):
         return "(%s.value LIKE " % (self.tag,) + "%s)", "%%"+self.pattern+"%%"
 
 
+class NotContains(mediafilters.NotContains, _BasicFilter):
+
+    def _match_tag(self):
+        return "(%s.value NOT LIKE " % (self.tag,)+"%s)", "%%"+self.pattern+"%%"
+
+
+class Higher(mediafilters.Higher, _BasicFilter):
+
+    def _match_tag(self):
+        return "(%s.value >= " % (self.tag,)+"%s)", self.pattern
+
+
+class Lower(mediafilters.Lower, _BasicFilter):
+
+    def _match_tag(self):
+        return "(%s.value <= " % (self.tag,)+"%s)", self.pattern
+
+
 class Regexi(mediafilters.Regexi, _BasicFilter):
     # FIXME : to implement some day
     pass
@@ -195,7 +213,10 @@ class SQLizer(object):
                      mediafilters.Equals :    Equals,
                      mediafilters.NotEquals : NotEquals,
                      mediafilters.Contains :  Contains,
+                     mediafilters.NotContains :  NotContains,
                      mediafilters.Regexi :    Regexi,
+                     mediafilters.Higher :    Higher,
+                     mediafilters.Lower :    Lower,
                      mediafilters.And :       And,
                      mediafilters.Or :        Or,
                    }

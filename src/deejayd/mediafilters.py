@@ -19,7 +19,8 @@
 
 __all__ = (
             'BASIC_FILTERS', 'NAME2BASIC',
-            'Equals', 'NotEquals', 'Contains', 'Regexi',
+            'Equals', 'NotEquals', 'Contains', 'NotContains', 'Regexi',
+            'Higher', 'Lower',
             'COMPLEX_FILTERS', 'NAME2COMPLEX',
             'And', 'Or',
           )
@@ -57,14 +58,20 @@ class BasicFilter(MediaFilter):
 class Equals(BasicFilter):    repr_str = "(%s == '%s')"
 class NotEquals(BasicFilter): repr_str = "(%s != '%s')"
 class Contains(BasicFilter):  repr_str = "(%s == '%%%s%%')"
+class NotContains(BasicFilter):  repr_str = "(%s != '%%%s%%')"
 class Regexi(BasicFilter):    repr_str = "(%s ~ /%s/)"
+class Higher(BasicFilter):    repr_str = "(%s >= %s)"
+class Lower(BasicFilter):    repr_str = "(%s <= %s)"
 
 
 BASIC_FILTERS = (
                   Equals,
                   NotEquals,
                   Contains,
+                  NotContains,
                   Regexi,
+                  Higher,
+                  Lower,
                 )
 
 NAME2BASIC = dict([(x(None, None).get_identifier(), x) for x in BASIC_FILTERS])
