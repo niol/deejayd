@@ -94,6 +94,10 @@ var Panel = function()
         if (id != this.treeId) {
             this.treeId = id;
 
+            // first scroll to top
+            var boxobject = this.tree.treeBoxObject;
+            boxobject.ensureRowIsVisible(0);
+
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
             var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].
