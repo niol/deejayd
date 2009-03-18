@@ -31,6 +31,11 @@ class DeejaydError(Exception):
         else:
             return str(self.message)
 
+    def __unicode__(self):
+        if type(self.message) is unicode:
+            return self.message
+        else:
+            return unicode(self.message)
 
 class DeejaydAnswer(object):
     """General purpose core answer container."""

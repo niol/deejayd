@@ -23,14 +23,15 @@ from hachoir_parser import createParser
 from hachoir_metadata import extractMetadata
 from twisted.internet import threads
 
+from deejayd.interfaces import DeejaydError
 from deejayd.component import SignalingComponent
 from deejayd.mediadb import formats
 from deejayd.utils import quote_uri, str_encode
 from deejayd import database, mediafilters
 from deejayd.ui import log
 
-class NotFoundException(Exception):pass
-class NotSupportedFormat(Exception):pass
+class NotFoundException(DeejaydError):pass
+class NotSupportedFormat(DeejaydError):pass
 
 
 ##########################################################################
@@ -73,7 +74,7 @@ class _Library(SignalingComponent):
         self._path = os.path.abspath(path)
         # test library path
         if not os.path.isdir(self._path):
-            msg = _("Unable to find directory %s") % self._path
+            msg = _("Unable to find directory %s") % self._encode(self._path)
             raise NotFoundException(msg)
 
         # Connection to the database
