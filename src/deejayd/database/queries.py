@@ -262,7 +262,7 @@ class DatabaseQueries(object):
         cursor.execute(query,(key, value))
 
     @query_decorator("medialist")
-    def search(self, cursor, filter, infos = [], orders = []):
+    def search(self, cursor, filter, infos = [], orders = [], limit = None):
         filter = self.sqlizer.translate(filter)
         query = MediaSelectQuery()
         query.select_id()
@@ -271,6 +271,7 @@ class DatabaseQueries(object):
         filter.restrict(query)
         for (tag, direction) in orders:
             query.order_by_tag(tag, direction == "descending")
+        query.set_limit(limit)
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("fetchall")
@@ -418,7 +419,16 @@ class DatabaseQueries(object):
             query = "DELETE FROM medialist_libraryitem WHERE medialist_id = %s"
             cursor.execute(query, (ml_id,))
         elif type == "magic":
-            pass # TODO
+            for (filter_id,) in self.__get_medialist_filterids(cursor, ml_id):
+                self.delete_filter(cursor, filter_id)
+            cursor.execute(\
+              "DELETE FROM medialist_filters WHERE medialist_id=%s", (ml_id,))
+            # delete medialist properties
+            cursor.execute(\
+              "DELETE FROM medialist_property WHERE medialist_id=%s", (ml_id,))
+            # delete medialist sort
+            cursor.execute(\
+              "DELETE FROM medialist_sorts WHERE medialist_id=%s", (ml_id,))
         cursor.execute("DELETE FROM medialist WHERE id = %s", (ml_id,))
         self.connection.commit()
 
@@ -507,6 +517,14 @@ class DatabaseQueries(object):
 
         return cursor.fetchall()
 
+    def __add_medialist_filters(self, cursor, pl_id, filters):
+        filter_ids = []
+        for filter in filters:
+            filter_id = self.sqlizer.translate(filter).save(self)
+            if filter_id: filter_ids.append((pl_id, filter_id))
+        cursor.executemany("INSERT INTO medialist_filters\
+            (medialist_id,filter_id)VALUES(%s,%s)", filter_ids)
+
     @query_decorator("custom")
     def get_magic_medialist_filters(self, cursor, ml_id):
         rs = self.__get_medialist_filterids(cursor, ml_id)
@@ -533,14 +551,14 @@ class DatabaseQueries(object):
         cursor.execute(\
           "DELETE FROM medialist_filters WHERE medialist_id=%s", (id,))
 
-        filter_ids = []
-        for filter in filters:
-            filter_id = self.sqlizer.translate(filter).save(self)
-            if filter_id: filter_ids.append((id, filter_id))
-        cursor.executemany("INSERT INTO medialist_filters\
-            (medialist_id,filter_id)VALUES(%s,%s)", filter_ids)
+        self.__add_medialist_filters(cursor, id, filters)
         self.connection.commit()
         return id
+
+    @query_decorator("none")
+    def add_magic_medialist_filters(self, cursor, pl_id, filters):
+        self.__add_medialist_filters(cursor, pl_id, filters)
+        self.connection.commit()
 
     @query_decorator("fetchall")
     def get_magic_medialist_sorts(self, cursor, ml_id):
@@ -558,6 +576,21 @@ class DatabaseQueries(object):
             [ (ml_id, tag, direction) for (tag, direction) in sorts])
         self.connection.commit()
 
+    @query_decorator("fetchall")
+    def get_magic_medialist_properties(self, cursor, ml_id):
+        query = "SELECT ikey,value FROM medialist_property\
+                WHERE medialist_id = %s"
+        cursor.execute(query, (ml_id,))
+
+    @query_decorator("none")
+    def set_magic_medialist_property(self, cursor, ml_id, key, value):
+        cursor.execute("REPLACE INTO medialist_property\
+            (medialist_id,ikey,value)VALUES(%s,%s,%s)", (ml_id, key, value))
+        self.connection.commit()
+
+######################################
+###### Static medialist queries ######
+######################################
     @query_decorator("none")
     def add_to_static_medialist(self, cursor, ml_id, media_ids):
         query = "INSERT INTO medialist_libraryitem\

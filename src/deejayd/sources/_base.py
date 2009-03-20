@@ -19,6 +19,7 @@
 import os, locale
 
 from twisted.internet import reactor
+from deejayd import mediafilters
 from deejayd.component import SignalingComponent
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._medialist import SimpleMediaList, MediaList
@@ -148,13 +149,25 @@ class _BaseLibrarySource(_BaseSource):
         try:
             pl_id, name, type = self.db.is_medialist_exists(pl_id)
             if type == "static":
-                rs = self.db.get_static_medialist(pl_id,\
+                return self.db.get_static_medialist(pl_id,\
                     infos=self.library.media_attr)
             elif type == "magic":
-                pass # TODO
+                properties = dict(self.db.get_magic_medialist_properties(pl_id))
+                if properties["use-or-filter"] == "1":
+                    filter = mediafilters.Or()
+                else:
+                    filter = mediafilters.And()
+                sorts = [("album", "ascending"), ("tracknumber", "ascending")]
+                if properties["use-limit"] == "1":
+                    sorts = [(properties["limit-sort-value"],\
+                             properties["limit-sort-direction"])] + sorts
+                    limit = int(properties["limit-value"])
+                else:
+                    limit = None
+                filter.filterlist = self.db.get_magic_medialist_filters(pl_id)
+                return self.library.search(filter, sorts, limit)
         except TypeError:
             raise SourceError(_("Playlist %s does not exist.") % str(pl_id))
-        return rs
 
     def get_status(self):
         status = super(_BaseLibrarySource, self).get_status()

@@ -199,6 +199,28 @@ class DeejaydStaticPlaylist(object):
         raise NotImplementedError
 
 
+class DeejaydMagicPlaylist(object):
+    """ Magic playlist object """
+
+    def get(self, first=0, length=-1):
+        raise NotImplementedError
+
+    def add_filter(self, filter):
+        raise NotImplementedError
+
+    def remove_filter(self, filter):
+        raise NotImplementedError
+
+    def clear_filters(self):
+        raise NotImplementedError
+
+    def get_properties(self):
+        raise NotImplementedError
+
+    def set_property(self, key, value):
+        raise NotImplementedError
+
+
 class DeejaydWebradioList(object):
     """Webradio list management."""
 

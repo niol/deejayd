@@ -63,6 +63,7 @@ class MediaSelectQuery(SimpleSelect):
     def __init__(self):
         super(MediaSelectQuery, self).__init__('library')
         self.joins = []
+        self.limit = None
         self.__joined_tags = []
         self.id = False
 
@@ -92,18 +93,25 @@ class MediaSelectQuery(SimpleSelect):
                    % { 'tag' : tagname }
             self.joins.append(j_st)
 
+    def set_limit(self, limit):
+        self.limit = limit
+
     def __str__(self):
-        orders = None
+        orders, limit = None, None
         if len(self.orders) >= 1:
             orders = 'ORDER BY ' + ', '.join(self.orders)
+        if self.limit is not None:
+            limit = "LIMIT %s" % str(self.limit)
 
-        return "SELECT DISTINCT %s %s FROM %s %s WHERE %s %s"\
+
+        return "SELECT DISTINCT %s %s FROM %s %s WHERE %s %s %s"\
                % (self.id and 'library.id,' or '',
                   ', '.join(self.selects),
                   self.table_name,
                   ' '.join(self.joins),
                   ' AND '.join(self.wheres) or 1,
-                  orders or '')
+                  orders or '',
+                  limit or '')
 
 
 class EditRecordQuery(_DBQuery):
