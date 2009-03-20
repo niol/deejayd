@@ -105,17 +105,11 @@ var FileList = function()
             navMenu.removeChild(navMenu.firstChild);
     };
 
-    this.updateDatabase = function(upObj)
+    this.updateDatabase = function(progress)
     {
-        var progress = upObj.getAttribute("p");
-        var upId = upObj.firstChild.data;
         if (progress == "1") {
             $("audio-update").selectedIndex = 1
             $('audio-update-progressbar').mode = "undetermined";
-            setTimeout(
-                "ajaxdj_ref.send_command('"+this.listType+
-                "_update_check',{id:"+upId+
-                "},false)",1000);
             }
         else {
             $("audio-update").selectedIndex = 0

@@ -165,6 +165,18 @@ var Panel = function()
             }
     };
 
+    this.updateDatabase = function(progress)
+    {
+        if (progress == "1") {
+            $("panel-audio-update").selectedIndex = 1
+            $('panel-audio-update-progressbar').mode = "undetermined";
+            }
+        else {
+            $("panel-audio-update").selectedIndex = 0
+            $('panel-audio-update-progressbar').mode = "determined";
+            }
+    };
+
     this.updatePlaylistList = function(playlistList)
     {
         updatePlaylistMenu(this.module+"-pls-menu", playlistList, this.ref);

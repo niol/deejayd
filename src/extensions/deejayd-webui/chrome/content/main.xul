@@ -703,6 +703,18 @@
                 contextmenu="panel-pls-action-menu"
                 id="panel-pls-list-children"/>
         </tree>
+        <hbox>
+            <deck id="panel-audio-update" flex="1">
+                <button
+                  id="panel-audio-update-button"
+                  class="update-button"
+                  oncommand="ajaxdj_ref.send_command('audioUpdate',null,false);"
+                  label="&updateAudioDB;"/>
+                <progressmeter
+                  id="panel-audio-update-progressbar"
+                  mode="determined"/>
+            </deck>
+        </hbox>
     </vbox>
 
     <splitter persist="position" collapse="before" resizeafter="farthest">

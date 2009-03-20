@@ -166,7 +166,8 @@ function ajaxdj()
     this.hide_message = function()
     {
         if (this.current_msg != null) {
-            $("notification-box").removeNotification(this.current_msg);
+            try { $("notification-box").removeNotification(this.current_msg); }
+            catch (ex) { }
             this.current_msg = null;
             }
     };
@@ -326,8 +327,20 @@ function ajaxdj()
             }
 
             rs = xmldoc.getElementsByTagName("audio_update").item(0);
-            if (rs)
-                this.fileListObj.updateDatabase(rs);
+            if (rs) {
+                var progress = rs.getAttribute("p");
+                var upId = rs.firstChild.data;
+                if (progress == "1") {
+                    setTimeout(
+                            "ajaxdj_ref.send_command('"+"audio"+
+                            "_update_check',{id:"+upId+
+                            "},false)",1000);
+                    }
+                if (this.fileListObj)
+                    this.fileListObj.updateDatabase(progress);
+                if (this.panelObj)
+                    this.panelObj.updateDatabase(progress);
+                }
             rs = xmldoc.getElementsByTagName("video_update").item(0);
             if (rs)
                 this.videoLib.updateDatabase(rs);
