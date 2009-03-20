@@ -72,5 +72,4 @@ class DeejaydXMLObject(object):
         return '<?xml version="1.0" encoding="utf-8"?>' + "\n" +\
             self.to_string() + "\n"
 
-
 # vim: ts=4 sw=4 expandtab

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://deejayd-webui/skin/prefs.css" type="text/css"?>
+
+<!DOCTYPE window SYSTEM "chrome://deejayd-webui/locale/deejayd-webui.dtd">
+
+<dialog id="playlist-dialog"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    title="&plsTitle.label;"
+    persist="screenX screenY width height" minheight="200px"
+    ondialogaccept="return magic_pls.record();"
+    onload="magic_pls.init();">
+
+    <script src="chrome://deejayd-webui/content/js/playlist-dialog.js"/>
+
+    <stringbundleset id="dialog-stringbundleset">
+        <stringbundle
+            id="dialog_strings"
+            src="chrome://deejayd-webui/locale/deejayd-webui.properties"/>
+    </stringbundleset>
+
+    <groupbox pack="center">
+    <caption label="&rules;"/>
+
+        <vbox flex="1" id="filters-box">
+        </vbox>
+
+        <hbox>
+            <spacer flex="1"/>
+            <button id="filter-add"
+                oncommand="magic_pls.add_filter(null);"
+                label="&add;"/>
+        </hbox>
+    </groupbox>
+
+    <separator orient="vertical" class="groove-thin"/>
+
+    <checkbox id="use-or-filter" label="&useOrFIlter.label;"/>
+    <command
+        oncommand="magic_pls.update_limit_activation();"
+        id="limit-command"/>
+    <hbox align="center" id="limit-box">
+        <checkbox
+            id="limit-checkbox"
+            command="limit-command" label="&limitMagicPls.label;"/>
+        <textbox
+            disabled="true"
+            increment="1"
+            min="0"
+            type="number"
+            id="limit-value"/>
+        <label disabled="true" id="limit-label" value="&songs;"/>
+    </hbox>
+    <hbox align="center" id="limit-sort-box">
+        <label
+            id="limit-sort-label"
+            disabled="true"
+            value="&limitSortMagicPls.label;"/>
+        <menulist
+            disabled="true"
+            id="limit-sort-value"
+            label="">
+            <menupopup>
+                <menuitem value="album" label="&album;"/>
+                <menuitem value="artist" label="&artist;"/>
+                <menuitem value="title" label="&title;"/>
+                <menuitem value="genre" label="&genre;"/>
+            </menupopup>
+        </menulist>
+        <checkbox
+            disabled="true"
+            id="limit-sort-direction"
+            label="&limitSortDirectionMagicPls.label;"/>
+    </hbox>
+
+</dialog>

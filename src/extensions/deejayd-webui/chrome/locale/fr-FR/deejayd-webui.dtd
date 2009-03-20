@@ -74,3 +74,10 @@
 <!ENTITY refreshTime.label "Période de rafraichissement">
 <!ENTITY refreshTimeDesc.label "Mettre à 0 pour désactiver le rafraichissement automatique">
 
+<!ENTITY plsTitle.label "Création d'une playlist intelligente">
+<!ENTITY useOrFIlter.label "Ajouter si au moins un des critères correspond">
+<!ENTITY limitMagicPls.label "Limiter à ">
+<!ENTITY limitSortMagicPls.label "Lorsque classer par ">
+<!ENTITY limitSortDirectionMagicPls.label "Dans l'ordre inverse">
+<!ENTITY songs "Morceaux">
+<!ENTITY rules "Règles">

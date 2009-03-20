@@ -88,8 +88,28 @@ class DeejaydWebAnswer(DeejaydXMLObject):
         for pls in playlist_list:
             it = ET.SubElement(list_elm,"item",\
                 id=self._to_xml_string(pls["id"]), type="playlist",\
-                playlist_type=self._to_xml_string(pls["type"]))
+                pls_type=self._to_xml_string(pls["type"]))
             it.text = self._to_xml_string(pls["name"])
+
+    def set_magic_playlist_infos(self, id, filters, properties):
+        magic_playlist = ET.SubElement(self.xmlroot, "magic-playlist", \
+                id = self._to_xml_string(id))
+
+        root_filter = ET.SubElement(magic_playlist, "filters")
+        for filter in filters:
+            if filter.type != 'basic': continue
+            filter_elt = ET.SubElement(root_filter, "filter")
+            attrs = {'tag': filter.tag, 'operator': filter.get_name(),\
+                    'value': filter.pattern}
+            for k, v in attrs.items():
+                attr_elt = ET.SubElement(filter_elt, k)
+                attr_elt.text = self._to_xml_string(v)
+
+        root_properties = ET.SubElement(magic_playlist, "properties")
+        for k, v in properties.items():
+            prop_elt = ET.SubElement(root_properties, "property")
+            prop_elt.attrib['id'] = k
+            prop_elt.text = self._to_xml_string(v)
 
     def init_panel_tags(self, deejayd):
         panel = deejayd.get_panel()

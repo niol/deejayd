@@ -191,12 +191,24 @@ class PlaylistCreate(default_commands.PlaylistCreate):
         pls_list = self._deejayd.get_playlist_list()
         self._answer.set_playlist_list(pls_list.get_medias())
 
+class MagicPlaylistEdit(default_commands.MagicPlaylistEdit):
+
+    def set_answer(self):
+        pl = self._deejayd.get_recorded_playlist(self._args["pl_id"])
+        filter = pl.get().get_filter()
+        properties = pl.get_properties().get_contents()
+        self._answer.set_magic_playlist_infos(self._args["pl_id"],\
+                filter.filterlist, properties)
+
+class MagicPlaylistUpdate(default_commands.MagicPlaylistUpdate):
+
+    def set_answer(self):
+        self._answer.set_msg(_("The magic playlist has been updated"))
 
 class StaticPlaylistAdd(default_commands.StaticPlaylistAdd):
 
     def set_answer(self):
-        pls_list = self._deejayd.get_playlist_list()
-        self._answer.set_playlist_list(pls_list.get_medias())
+        pass
 
 #
 # Playlist Mode commands

@@ -182,16 +182,15 @@ var Panel = function()
         for (var i=0;playlist=Items[i];i++) {
             var plsItem = document.createElement("treeitem");
             plsItem.setAttribute("value",playlist.getAttribute("id"));
+            plsItem.setAttribute("pls-type",playlist.getAttribute("pls_type"));
             var plsRow = document.createElement("treerow");
             plsRow.setAttribute("value",playlist.getAttribute("id"));
+            plsRow.setAttribute("pls-type",playlist.getAttribute("pls_type"));
 
             var cell = document.createElement("treecell");
             cell.setAttribute("label",playlist.firstChild.data);
-            cell.setAttribute("properties","playlist-item");
-            plsRow.appendChild(cell);
-
-            var cell = document.createElement("treecell");
-            cell.setAttribute("properties","remove-action");
+            cell.setAttribute("properties",
+                    playlist.getAttribute("pls_type")+"-playlist-item");
             plsRow.appendChild(cell);
 
             plsItem.appendChild(plsRow);
@@ -249,15 +248,60 @@ var Panel = function()
                                                   "pos": pos});
     };
 
-    this.createPlaylist = function()
+    this.__playlistPrompt = function(string1, string2)
     {
-        var pl_type = "static"; // TODO magic pls support
-        var pl_name = $('newplaylist-entry').value;
-        if (pl_name == "") { return; }
-        ajaxdj_ref.send_post_command("playlistCreate", {"name": pl_name,
-            type: pl_type});
-        // hide panel
-        $('newplaylist-panel').hidePopup();
+        var prompts =
+            Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+            .getService(Components.interfaces.nsIPromptService);
+        var input = {value: ""};
+        var check = {value: ""};
+        var result = prompts.prompt(window,
+                ajaxdj_ref.getString(string1),
+                ajaxdj_ref.getString(string2), input, null, check);
+        if (result && input.value != "") { return input.value; }
+        return null;
+    };
+
+    this.createStaticPlaylist = function()
+    {
+        var pls_name = this.__playlistPrompt("newStaticPls", "enterPlsName");
+        if (pls_name) {
+            ajaxdj_ref.send_post_command("playlistCreate",
+                    {"name": pls_name, type: "static"});
+            }
+    };
+
+    this.createMagicPlaylist = function()
+    {
+        var pls_name = this.__playlistPrompt("newMagicPls", "enterPlsName");
+        if (pls_name) {
+            var params = {input: null, output: null,
+                title: ajaxdj_ref.getFormattedString("magicPlsFilters",
+                        [pls_name])};
+            window.openDialog(
+                    'chrome://deejayd-webui/content/playlist-dialog.xul',
+                    'playlist-dialog', 'chrome, dialog, modal, resizable=yes',
+                    params).focus();
+            if (params.output) {
+                // record magic playlist
+                ajaxdj_ref.send_post_command("playlistCreate",
+                    {"name": pls_name, type: "magic", infos: params.output});
+                }
+            }
+    };
+
+    this.editMagicPlaylist = function(pls_id, filters)
+    {
+        var params = {input: filters, output: null, title: null};
+        window.openDialog(
+                'chrome://deejayd-webui/content/playlist-dialog.xul',
+                'playlist-dialog', 'chrome, dialog, modal, resizable=yes',
+                params).focus();
+        if (params.output) {
+            // record magic playlist
+            ajaxdj_ref.send_post_command("magicPlaylistUpdate",
+                {"pl_id": pls_id, infos: params.output});
+            }
     };
 
     // drop support for pls list
@@ -266,7 +310,8 @@ var Panel = function()
             if (pos == -1) { return; } // no playlist selected
 
             var pls = $('panel-pls-list').contentView.getItemAtIndex(pos);
-            if (panel_ref.selected_playlist == pls.getAttribute("value"))
+            if (pls.getAttribute("pls-type") == 'magic' ||
+                panel_ref.selected_playlist == pls.getAttribute("value"))
                 return;
 
             if (data == 'panel') {
@@ -284,6 +329,49 @@ var Panel = function()
 Panel.prototype = new _Source;
 
 var PlsPanelObserver = {
+    __clearMenu: function() {
+         var menu = $("panel-pls-action-menu");
+         while(menu.hasChildNodes())
+             menu.removeChild(menu.firstChild);
+         },
+    __buildMenuItem: function(menu)
+         {
+             var obj = document.createElement("menuitem");
+             obj.setAttribute("class", "menuitem-iconic " + menu.cls);
+             obj.setAttribute("label", ajaxdj_ref.getString(menu.label));
+             obj.setAttribute("oncommand", menu.command);
+
+             $("panel-pls-action-menu").appendChild(obj);
+         },
+    updateMenu: function (evt)
+        {
+            // first remove old menuitem
+            this.__clearMenu();
+            var tree = $('panel-pls-list');
+            var childElement = {}, rowObject = {}, columnObject = {};
+            tree.treeBoxObject.getCellAt(evt.clientX, evt.clientY, rowObject,
+                columnObject, childElement);
+
+            if (columnObject.value && rowObject.value != -1) {
+                var item = tree.contentView.getItemAtIndex(rowObject.value);
+                if (item.getAttribute("pls-type") == "magic")
+                    this.__buildMenuItem({label: "edit", cls: "edit-action",
+                        command: "ajaxdj_ref.send_post_command("+
+                            "'magicPlaylistEdit',{pl_id: "+
+                            item.getAttribute("value")+"}, true);"});
+                this.__buildMenuItem({label: "remove", cls: "remove-action",
+                    command: "PlsPanelObserver.removePlaylist('"+
+                    item.getAttribute("value")+"');"});
+                }
+            else {
+                this.__buildMenuItem({label: "newStaticPls",
+                    cls: "playlist-new",
+                    command: "panel_ref.createStaticPlaylist();"});
+                this.__buildMenuItem({label: "newMagicPls",
+                    cls: "playlist-new",
+                    command: "panel_ref.createMagicPlaylist();"});
+                }
+        },
     setPlaylist: function (evt)
         {
             var tree = $('panel-pls-list');
@@ -293,28 +381,19 @@ var PlsPanelObserver = {
 
             if (columnObject.value && rowObject.value != -1) {
                 var item = tree.contentView.getItemAtIndex(rowObject.value);
-                if (columnObject.value.index == 0)
-                    this.selectPlaylist(item);
-                else if (columnObject.value.index == 1)
-                    this.removePlaylist(item);
+                var pls = item.getAttribute("value");
+                ajaxdj_ref.send_post_command('panelSet',
+                    {type: "playlist", value:pls});
                 }
             return true;
         },
-    selectPlaylist: function (item)
-        {
-            var pls = item.getAttribute("value");
-            ajaxdj_ref.send_post_command('panelSet',
-                {type: "playlist", value:pls});
-        },
-    removePlaylist: function(item)
+    removePlaylist: function(value)
         {
             var rs = window.confirm(ajaxdj_ref.getString("confirm"));
             if (rs) {
-                var pls = item.getAttribute("value");
-                var list = new Array(pls);
+                var list = new Array(value);
                 ajaxdj_ref.send_post_command('playlistErase', {pl_ids: list});
                 }
-            else { this.selectPlaylist(item); }
         },
 };
 

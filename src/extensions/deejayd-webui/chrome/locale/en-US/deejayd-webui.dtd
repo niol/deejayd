@@ -74,3 +74,10 @@
 <!ENTITY refreshTime.label "Refresh time">
 <!ENTITY refreshTimeDesc.label "Set to 0 to disable automatic refresh">
 
+<!ENTITY plsTitle.label "Magic Playlist Creation">
+<!ENTITY useOrFIlter.label "Add song if at least one filter match">
+<!ENTITY limitMagicPls.label "Limit to ">
+<!ENTITY limitSortMagicPls.label "When sort by ">
+<!ENTITY limitSortDirectionMagicPls.label "Revert sort direction">
+<!ENTITY songs "Songs">
+<!ENTITY rules "Rules">

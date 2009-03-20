@@ -136,6 +136,11 @@ function ajaxdj()
         return this.str.getString(str);
     };
 
+    this.getFormattedString = function(str, values)
+    {
+        return this.str.getFormattedString(str, values);
+    };
+
     this.set_busy = function(a)
     {
         if (a)
@@ -355,6 +360,10 @@ function ajaxdj()
                 this.quObj.updatePlaylistList(rs);
                 }
 
+            rs = xmldoc.getElementsByTagName("magic-playlist").item(0);
+            if (rs)
+                panel_ref.editMagicPlaylist(rs.getAttribute("id"), rs);
+
             rs = xmldoc.getElementsByTagName("queue").item(0);
             if (rs)
                 this.quObj.update(rs);
@@ -448,13 +457,15 @@ function updatePlaylistMenu(menu_id, playlistList, command_ref)
 
     var playlists = playlistList.getElementsByTagName("item");
     for (var i=0;pls=playlists[i];i++) {
-        var item = document.createElement("menuitem");
-        item.setAttribute("label",pls.firstChild.data);
-        if (command_ref) {
-            item.setAttribute("oncommand",
-                command_ref+".addToPlaylist('"+pls.getAttribute("id")+"');");
+        if (pls.getAttribute("pls_type") == 'static') {
+            var item = document.createElement("menuitem");
+            item.setAttribute("label",pls.firstChild.data);
+            if (command_ref) {
+                item.setAttribute("oncommand",
+                  command_ref+".addToPlaylist('"+pls.getAttribute("id")+"');");
+                }
+            menu.appendChild(item);
             }
-        menu.appendChild(item);
         }
 };
 

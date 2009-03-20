@@ -90,6 +90,25 @@ class _Command(object):
                             _("Arg %s (%s) not match to the regular exp (%s)") %
                                 (arg['name'],str(v),arg['value']))
 
+                    elif arg['type'] == "magic_pls_infos":
+                        from deejayd.xmlobject import ET
+                        from deejayd import mediafilters
+                        try: tree = ET.XML(v)
+                        except:
+                            raise ArgError(_("bad 'magic_pls_infos' arg"))
+                        value = {"filters": [], "properties": {}}
+                        for item in tree.getiterator(tag = 'filter'):
+                            filter_name = item.find('operator').text
+                            try: ft_cls = mediafilters.NAME2BASIC[filter_name]
+                            except KeyError:
+                                raise ArgError(_("basic filter not found"))
+                            value["filters"].append(\
+                                    ft_cls(item.find('tag').text,\
+                                    item.find('value').text))
+                        for item in tree.getiterator(tag = 'property'):
+                            value["properties"][item.attrib['id']] = item.text
+                        self._args[arg['name']] = value
+
             elif arg['req']:
                 raise ArgError(_("Arg %s is mising") % arg['name'])
             else:
@@ -228,11 +247,43 @@ class PlaylistCreate(_Command):
     name = "playlistCreate"
     method = "post"
     command_args = [{"name":"name","type":"string","req":True},\
-      {"name":"type","type":"enum_str","values":("static","magic"),"req":True}]
+      {"name":"type","type":"enum_str","values":("static","magic"),"req":True},\
+      {"name": "infos","type":"magic_pls_infos","req":False,"default":None}]
 
     def execute(self):
-        self._deejayd.create_recorded_playlist(self._args["name"],\
-            self._args["type"])
+        pl = self._deejayd.create_recorded_playlist(self._args["name"],\
+                self._args["type"])
+        if self._args["type"] == 'magic':
+            if self._args["infos"] == None:
+                raise ArgError(_("infos argument needed for magic playlist"))
+            for filter in self._args["infos"]["filters"]:
+                pl.add_filter(filter).get_contents()
+            for k, v in self._args["infos"]["properties"].items():
+                pl.set_property(k, v).get_contents()
+
+class MagicPlaylistEdit(_Command):
+    name = "magicPlaylistEdit"
+    method = "post"
+    command_args = [{"name":"pl_id","type":"int","req":True}]
+
+    def execute(self):
+        pass
+
+class MagicPlaylistUpdate(_Command):
+    name = "magicPlaylistUpdate"
+    method = "post"
+    command_args = [{"name":"pl_id","type":"int","req":True},\
+            {"name": "infos","type":"magic_pls_infos","req":True}]
+
+    def execute(self):
+        pl = self._deejayd.get_recorded_playlist(self._args["pl_id"])
+        try: pl.clear_filters().get_contents()
+        except AttributeError: # not a magic playlist
+            raise ArgError(_("Not a magic playlist"))
+        for filter in self._args["infos"]["filters"]:
+            pl.add_filter(filter).get_contents()
+        for k, v in self._args["infos"]["properties"].items():
+            pl.set_property(k, v).get_contents()
 
 class StaticPlaylistAdd(_Command):
     name = "staticPlaylistAdd"

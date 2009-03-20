@@ -33,6 +33,7 @@ caption{font-weight: bold;}
 .remove-action{list-style-image: url("./images/remove.png");}
 .play-action{list-style-image: url("./images/play-low.png");}
 .search-action{list-style-image: url("./images/search.png");}
+.edit-action{list-style-image: url("./images/edit.png");}
 
 .shuffle-button{list-style-image: url("./images/update.png");}
 .save-button{list-style-image: url("./images/save.png");}
@@ -159,11 +160,11 @@ max-height:30px;
 #panel-select-box .listitem-title { font-weight: bold; }
 .list-all, .list-unknown { font-weight: bold; }
 
-treechildren::-moz-tree-image(playlist-item) {
+treechildren::-moz-tree-image(static-playlist-item) {
 list-style-image: url("./images/playlist.png");
 }
-treechildren::-moz-tree-image(remove-action) {
-list-style-image: url("./images/clear.png");
+treechildren::-moz-tree-image(magic-playlist-item) {
+list-style-image: url("./images/magic-playlist.png");
 }
 .playlist-new {list-style-image: url("./images/playlist-new.png");}
 

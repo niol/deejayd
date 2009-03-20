@@ -633,7 +633,7 @@
 
 </hbox>
 
-            <hbox flex="1">
+    <hbox flex="1">
 
     <popupset>
         <popup id="panel-menu" onpopupshowing="javascript:;">
@@ -667,11 +667,15 @@
                 </menupopup>
             </menu>
 
-        <menu
-            label="&plAdd;">
-            <menupopup id="panel-pls-menu">
-            </menupopup>
-        </menu>
+            <menu
+                label="&plAdd;">
+                <menupopup id="panel-pls-menu">
+                </menupopup>
+            </menu>
+        </popup>
+
+        <popup id="panel-pls-action-menu"
+            onpopupshowing="PlsPanelObserver.updateMenu(event);">
         </popup>
     </popupset>
 
@@ -694,34 +698,11 @@
             flex="1">
             <treecols>
                 <treecol flex="1" label="Playlist"/>
-                <treecol width="30px" id="panel-action"/>
             </treecols>
-            <treechildren id="panel-pls-list-children"/>
+            <treechildren
+                contextmenu="panel-pls-action-menu"
+                id="panel-pls-list-children"/>
         </tree>
-        <button class="playlist-new" label="new" popup="newplaylist-panel"/>
-
-        <panel position="before_start" id="newplaylist-panel"><grid>
-            <columns>
-                <column flex="1"/>
-                <column flex="1"/>
-            </columns>
-
-            <rows>
-                <row align="center">
-                    <label value="&enterPlsName;"/>
-
-                    <textbox
-                        flex="1"
-                        id="newplaylist-entry"/>
-                </row>
-                <row align="center">
-                    <label value=""/>
-                    <button
-                        label="&create;"
-                        oncommand="panel_ref.createPlaylist();"/>
-                </row>
-            </rows>
-        </grid></panel>
     </vbox>
 
     <splitter persist="position" collapse="before" resizeafter="farthest">
