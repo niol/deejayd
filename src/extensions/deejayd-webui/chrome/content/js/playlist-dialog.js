@@ -196,6 +196,8 @@ function MagicPlaylist()
         var output_prop = "";
         if ($('use-or-filter').checked)
             output_prop += "<property id='use-or-filter'>1</property>";
+        else
+            output_prop += "<property id='use-or-filter'>0</property>"
         if ($('limit-checkbox').checked) {
             output_prop += "<property id='use-limit'>1</property>"
             output_prop += "<property id='limit-value'>" +
