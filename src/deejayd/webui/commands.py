@@ -277,13 +277,27 @@ class MagicPlaylistUpdate(_Command):
 
     def execute(self):
         pl = self._deejayd.get_recorded_playlist(self._args["pl_id"])
-        try: pl.clear_filters().get_contents()
-        except AttributeError: # not a magic playlist
+        if pl.type != "magic":
             raise ArgError(_("Not a magic playlist"))
+
+        # get current filters and properties
+        properties = pl.get_properties()
+        rec_filters = pl.get().get_filter().filterlist
+
         for filter in self._args["infos"]["filters"]:
-            pl.add_filter(filter).get_contents()
+            found = False
+            for rec_filter in rec_filters:
+                if rec_filter.equals(filter):
+                    found = True
+                    rec_filters.remove(rec_filter)
+                    break
+            if not found: pl.add_filter(filter).get_contents()
+        for rec_filter in rec_filters:
+            pl.remove_filter(rec_filter).get_contents()
+
         for k, v in self._args["infos"]["properties"].items():
-            pl.set_property(k, v).get_contents()
+            if properties[k] != v:
+                pl.set_property(k, v).get_contents()
 
 class StaticPlaylistAdd(_Command):
     name = "staticPlaylistAdd"
