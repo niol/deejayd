@@ -182,6 +182,7 @@ class DeejaydDvdInfo(DeejaydAnswer):
 
 class DeejaydStaticPlaylist(object):
     """ Static playlist object """
+    type = "static"
 
     def get(self, first=0, length=-1):
         raise NotImplementedError
@@ -201,6 +202,7 @@ class DeejaydStaticPlaylist(object):
 
 class DeejaydMagicPlaylist(object):
     """ Magic playlist object """
+    type = "magic"
 
     def get(self, first=0, length=-1):
         raise NotImplementedError
