@@ -1,7 +1,7 @@
 
 New features and significant updates in version...
 
-0.8.0 (2008-XX-XX)
+0.8.0 (2009-XX-XX)
 --------------------
   * update database schema to be more evolutive
   * add new mode : navigation panel (like rhythmbox panel mode)
@@ -14,6 +14,7 @@ New features and significant updates in version...
   * add a html interface optimized for mobile device (http://host:port/m/)
   * add full support of cover album
   * set xul webui as an firefox extension
+  * add intelligent playlist support
 
 0.7.2 (2008-05-15)
 --------------------
