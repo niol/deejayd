@@ -18,6 +18,7 @@
 
 import os, threading, traceback, Queue
 from deejayd.ui import log
+from deejayd.utils import str_encode
 from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
 
 #############################################################################
@@ -84,7 +85,7 @@ class LibraryWatcher(threading.Thread):
             try: self.__record = self.__execute(type,library,event)\
                     or self.__record
             except Exception, ex:
-                path = os.path.join(event.path, event.name)
+                path = str_encode(os.path.join(event.path, event.name))
                 log.err(_("Inotify problem for '%s', see traceback") % path)
                 log.err("------------------Traceback lines--------------------")
                 log.err(traceback.format_exc())
@@ -105,33 +106,40 @@ class LibraryWatcher(threading.Thread):
             return file_path in library.get_root_paths()
 
     def __execute(self, type, library, event):
+        # first be sure that path are correct
+        try:
+            path = library._encode(event.path)
+            name = library._encode(event.name)
+        except UnicodeError: # skip this event
+            return False
+
         if type == "create":
             if self.__occured_on_dirlink(library, event):
-                return library.add_directory(event.path, event.name, True)
+                return library.add_directory(path, name, True)
             elif not event.is_dir:
-                self.__created_files.append((event.path, event.name))
+                self.__created_files.append((path, name))
         elif type == "delete":
             if self.__occured_on_dirlink(library, event):
-                return library.remove_directory(event.path, event.name, True)
+                return library.remove_directory(path, name, True)
             elif not event.is_dir:
-                return library.remove_file(event.path, event.name)
+                return library.remove_file(path, name)
         elif type == "move_from":
             if not event.is_dir:
-                return library.remove_file(event.path, event.name)
+                return library.remove_file(path, name)
             else:
-                return library.remove_directory(event.path, event.name)
+                return library.remove_directory(path, name)
         elif type == "move_to":
             if not event.is_dir:
-                return library.add_file(event.path, event.name)
+                return library.add_file(path, name)
             else:
-                return library.add_directory(event.path, event.name)
+                return library.add_directory(path, name)
         elif type == "close_write":
-            if (event.path, event.name) in self.__created_files:
+            if (path, name) in self.__created_files:
                 del self.__created_files[\
-                        self.__created_files.index((event.path, event.name))]
-                return library.add_file(event.path, event.name)
+                        self.__created_files.index((path, name))]
+                return library.add_file(path, name)
             else:
-                return library.update_file(event.path, event.name)
+                return library.update_file(path, name)
 
         return False
 
