@@ -19,6 +19,9 @@
 from deejayd.sources._base import _BaseAudioLibSource
 
 class PlaylistSource(_BaseAudioLibSource):
+    SUBSCRIPTIONS = {
+            "mediadb.mupdate": "cb_library_changes",
+            }
     base_medialist = "__djcurrent__"
     name = "playlist"
     source_signal = 'player.plupdate'
@@ -30,7 +33,7 @@ class PlaylistSource(_BaseAudioLibSource):
 
     def save(self, playlist_name):
         id = self.db.set_static_medialist(playlist_name, self._media_list.get())
-        self.dispatch_signame('playlist.update')
+        self.dispatch_signame('playlist.listupdate')
         return {"playlist_id": id}
 
 # vim: ts=4 sw=4 expandtab

@@ -22,6 +22,9 @@ from deejayd.sources._base import _BaseLibrarySource, SourceError
 from deejayd import mediafilters
 
 class VideoSource(_BaseLibrarySource):
+    SUBSCRIPTIONS = {
+            "mediadb.mupdate": "cb_library_changes",
+            }
     name = "video"
     base_medialist = "__videocurrent__"
     source_signal = 'video.update'

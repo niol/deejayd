@@ -18,20 +18,24 @@
 
 
 class SignalingComponent(object):
+    SUBSCRIPTIONS = {}
 
     def __init__(self):
         self.__dispatcher = None
 
     def register_dispatcher(self, dispatcher):
         self.__dispatcher = dispatcher
+        # set internal subscription
+        for signame in self.SUBSCRIPTIONS.keys():
+            self.__dispatcher.subscribe(signame,\
+                    getattr(self, self.SUBSCRIPTIONS[signame]))
 
     def dispatch_signal(self, signal):
         if self.__dispatcher:
             self.__dispatcher._dispatch_signal(signal)
 
-    def dispatch_signame(self, signal_name):
+    def dispatch_signame(self, signal_name, attrs = {}):
         if self.__dispatcher:
-            self.__dispatcher._dispatch_signame(signal_name)
-
+            self.__dispatcher._dispatch_signame(signal_name, attrs)
 
 # vim: ts=4 sw=4 expandtab

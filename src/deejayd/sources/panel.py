@@ -21,6 +21,11 @@ from deejayd.sources._base import _BaseLibrarySource, SourceError
 from deejayd.ui import log
 
 class PanelSource(_BaseLibrarySource):
+    SUBSCRIPTIONS = {
+            "playlist.update": "cb_playlist_update",
+            "playlist.listupdate": "cb_playlist_listupdate",
+            "mediadb.mupdate": "cb_library_changes",
+            }
     base_medialist = "__panelcurrent__"
     name = "panel"
     source_signal = 'panel.update'
@@ -194,5 +199,26 @@ class PanelSource(_BaseLibrarySource):
                 filter_list)
         # save panel sorts
         self.db.set_magic_medialist_sorts(ml_id, self.__sorts)
+
+    #
+    # callback for deejayd signal
+    #
+    def cb_playlist_update(self, signal):
+        pl_id = int(signal.get_attr('pl_id'))
+        if self.__selected_mode["type"] == "playlist"\
+                and pl_id == int(self.__selected_mode["value"]):
+            self.__update_active_list("playlist", pl_id, raise_ex = True)
+            self.dispatch_signame(self.__class__.source_signal)
+
+    def cb_playlist_listupdate(self, signal):
+        if self.__selected_mode["type"] == "playlist":
+            pl_id = int(self.__selected_mode["value"])
+            list = [int(id) \
+                    for (id, pl, type) in self.db.get_medialist_list() if not \
+                    pl.startswith("__") or not pl.endswith("__")]
+            if pl_id not in list: # fall back to panel
+                self.__update_active_list("panel", "", raise_ex = True)
+                self.__selected_mode = {"type": "panel", "value": ""}
+                self.dispatch_signame(self.__class__.source_signal)
 
 # vim: ts=4 sw=4 expandtab

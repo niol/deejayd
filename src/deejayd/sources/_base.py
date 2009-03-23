@@ -108,7 +108,6 @@ class _BaseLibrarySource(_BaseSource):
         super(_BaseLibrarySource, self).__init__(db)
         self._media_list = MediaList(self.get_recorded_id() + 1)
         self.library = library
-        self.library.connect_to_changes(self.cb_library_changes)
 
         if self.has_repeat:
             self._media_list.repeat = int(db.get_state(self.name+"-repeat"))
@@ -124,26 +123,6 @@ class _BaseLibrarySource(_BaseSource):
         elif name == "repeat" and self.has_repeat:
             self._media_list.repeat = int(value)
         else: raise NotImplementedError
-
-    def cb_library_changes(self, action, file_id, threaded = True):
-        if action == "remove":
-            reactor.callFromThread(self._remove_media, file_id)
-        elif action == "add": pass # not used for now
-        elif action == "update":
-            # TODO : see if we have pb with this
-            #if threaded: reactor.callFromThread(self._update_media, file_id)
-            self._update_media(file_id)
-
-    def _update_media(self, media_id):
-        try: media = self.library.get_file_withids([media_id])
-        except NotFoundException:
-            return
-        if self._media_list.update_media(media[0]):
-            self.dispatch_signame(self.source_signal)
-
-    def _remove_media(self, media_id):
-        if self._media_list.remove_media(media_id):
-            self.dispatch_signame(self.source_signal)
 
     def _get_playlist_content(self, pl_id):
         try:
@@ -183,6 +162,24 @@ class _BaseLibrarySource(_BaseSource):
         if self.has_repeat:
             states.append((self._media_list.repeat, self.name+"-repeat"))
         self.db.set_state(states)
+
+    def cb_library_changes(self, signal):
+        file_id = signal.get_attr("id")
+        getattr(self, "_%s_media" % signal.get_attr("type"))(file_id)
+
+    def _add_media(self, media_id):
+        pass
+
+    def _update_media(self, media_id):
+        try: media = self.library.get_file_withids([media_id])
+        except NotFoundException:
+            return
+        if self._media_list.update_media(media[0]):
+            self.dispatch_signame(self.source_signal)
+
+    def _remove_media(self, media_id):
+        if self._media_list.remove_media(media_id):
+            self.dispatch_signame(self.source_signal)
 
 
 class _BaseAudioLibSource(_BaseLibrarySource):

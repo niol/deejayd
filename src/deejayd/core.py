@@ -129,7 +129,8 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
     def add_songs(self, song_ids):
         self.db.add_to_static_medialist(self.pl_id, song_ids)
         self.db.connection.commit()
-        self.deejaydcore._dispatch_signame('playlist.update')
+        self.deejaydcore._dispatch_signame('playlist.update',\
+                {"pl_id": self.pl_id})
 
 
 class DeejaydMagicPlaylist(deejayd.interfaces.DeejaydMagicPlaylist):
@@ -165,6 +166,8 @@ class DeejaydMagicPlaylist(deejayd.interfaces.DeejaydMagicPlaylist):
             raise DeejaydError(\
                     _("Only basic filters are allowed for magic playlist"))
         self.db.add_magic_medialist_filters(self.pl_id, [filter])
+        self.deejaydcore._dispatch_signame('playlist.update',\
+                {"pl_id": self.pl_id})
 
     @returns_deejaydanswer(DeejaydAnswer)
     def remove_filter(self, filter):
@@ -174,10 +177,14 @@ class DeejaydMagicPlaylist(deejayd.interfaces.DeejaydMagicPlaylist):
             if not filter.equals(record_filter):
                 new_filters.append(record_filter)
         self.db.set_magic_medialist_filters(self.name, new_filters)
+        self.deejaydcore._dispatch_signame('playlist.update',\
+                {"pl_id": self.pl_id})
 
     @returns_deejaydanswer(DeejaydAnswer)
     def clear_filters(self):
         self.db.set_magic_medialist_filters(self.name, [])
+        self.deejaydcore._dispatch_signame('playlist.update',\
+                {"pl_id": self.pl_id})
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def get_properties(self):
@@ -186,6 +193,8 @@ class DeejaydMagicPlaylist(deejayd.interfaces.DeejaydMagicPlaylist):
     @returns_deejaydanswer(DeejaydAnswer)
     def set_property(self, key, value):
         self.db.set_magic_medialist_property(self.pl_id, key, value)
+        self.deejaydcore._dispatch_signame('playlist.update',\
+                {"pl_id": self.pl_id})
 
 
 class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
@@ -595,6 +604,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         if type == "static":
             pl_id = self.db.set_static_medialist(name, [])
+            self._dispatch_signame('playlist.listupdate')
             return DeejaydStaticPlaylist(self, pl_id, name)
         elif type == "magic":
             pl_id = self.db.set_magic_medialist_filters(name, [])
@@ -609,6 +619,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
                     }
             for (k, v) in default.items():
                 pl.set_property(k, v)
+            self._dispatch_signame('playlist.listupdate')
             return pl
 
     def get_recorded_playlist(self, id):
@@ -624,7 +635,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def erase_playlist(self, ids):
         for id in ids:
             self.db.delete_medialist(id)
-            self._dispatch_signame('playlist.update')
+            self._dispatch_signame('playlist.listupdate')
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get_playlist_list(self):

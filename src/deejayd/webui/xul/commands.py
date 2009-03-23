@@ -203,6 +203,10 @@ class MagicPlaylistEdit(default_commands.MagicPlaylistEdit):
 class MagicPlaylistUpdate(default_commands.MagicPlaylistUpdate):
 
     def set_answer(self):
+        # source update
+        status = self._deejayd.get_status()
+        self._answer.set_mode(status, self._deejayd)
+
         self._answer.set_msg(_("The magic playlist has been updated"))
 
 class StaticPlaylistAdd(default_commands.StaticPlaylistAdd):
@@ -232,6 +236,10 @@ class PlaylistErase(default_commands.PlaylistErase):
     def set_answer(self):
         pls_list = self._deejayd.get_playlist_list()
         self._answer.set_playlist_list(pls_list.get_medias())
+
+        # source update
+        status = self._deejayd.get_status()
+        self._answer.set_mode(status, self._deejayd)
 
 #
 # Panel commands

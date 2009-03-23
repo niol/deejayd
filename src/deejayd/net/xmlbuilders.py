@@ -107,15 +107,19 @@ class DeejaydXMLCommand(_DeejaydXML):
 
 class DeejaydXMLSignal(_DeejaydXML):
 
-    def __init__(self, name=None, mother_xml_object=None):
+    def __init__(self, signal=None, mother_xml_object=None):
         _DeejaydXML.__init__(self, mother_xml_object)
-        self.name = name
+        self.name = signal is not None and signal.get_name() or ""
+        self.attrs = signal is not None and signal.get_attrs() or {}
 
     def set_name(self, name):
         self.name = name
 
     def build_xml(self):
         self.xmlcontent = ET.Element('signal', name=self.name)
+        for k in self.attrs.keys():
+            attr = ET.SubElement(self.xmlcontent, "signal_attr", key=k)
+            attr.text = self._to_xml_string(self.attrs[k])
 
 
 class _DeejaydXMLAnswer(_DeejaydXML):

@@ -38,6 +38,8 @@ class DeejaydXMLParser(object):
                         expected_answer = self.get_next_expected_answer()
                     elif elem.tag == 'signal':
                         signal = DeejaydSignal()
+                elif elem.tag == 'signal_attr':
+                    assert xmlpath == ['deejayd', 'signal', elem.tag]
                 elif elem.tag in ("directory","file","media"):
                     assert xmlpath == ['deejayd', 'response', elem.tag]
                 elif elem.tag == "track":
@@ -66,7 +68,8 @@ class DeejaydXMLParser(object):
                     signal.set_name(elem.attrib['name'])
                     self.dispatch_signal(signal)
                     signal = None
-
+                elif elem.tag == 'signal_attr':
+                    signal.set_attr(elem.attrib['key'], elem.text)
                 if elem.tag == "error":
                     expected_answer.set_error(elem.text)
                 elif elem.tag == "response":

@@ -21,7 +21,7 @@ import os, sys, threading, traceback, base64, locale, hashlib
 from hachoir_core.error import HachoirError
 from hachoir_parser import createParser
 from hachoir_metadata import extractMetadata
-from twisted.internet import threads
+from twisted.internet import threads, reactor
 
 from deejayd.interfaces import DeejaydError
 from deejayd.component import SignalingComponent
@@ -98,7 +98,8 @@ class _Library(SignalingComponent):
         ans = self.db_con.set_media_infos(file_id, {key: value}, allow_create)
         if not ans:
             raise NotFoundException
-        self.emit_changes("update", file_id, threaded = False)
+        self.dispatch_signame('mediadb.mupdate',\
+                attrs = {"type": "update", "id": file_id})
         self.db_con.connection.commit()
 
     def get_dir_content(self, dir):
@@ -251,7 +252,8 @@ class _Library(SignalingComponent):
         # Remove unexistent files and directories from library
         for (id, lastmodified) in library_files.values():
             self.db_con.remove_file(id)
-            self.emit_changes("remove", id)
+            reactor.callFromThread(self.dispatch_signame,'mediadb.mupdate',\
+                    attrs = {"type": "remove", "id": id})
         for id in library_dirs.values(): self.db_con.remove_dir(id)
         for dirlinkname in library_dirlinks:
             self.db_con.remove_dirlink(dirlinkname, self.type)
@@ -349,7 +351,9 @@ class _Library(SignalingComponent):
                 if file_info is not None: # file supported
                     fid = self.set_media(dir_id, file_path, file_info, fid)
             if fid: self.set_extra_infos(root, file, fid)
-            if need_update and fid: self.emit_changes(changes_type, fid)
+            if need_update and fid:
+                reactor.callFromThread(self.dispatch_signame,'mediadb.mupdate',\
+                        attrs = {"type": changes_type, "id": fid})
 
     def set_media(self, dir_id, file_path, file_info, file_id):
         if file_info is None: return file_id # not supported
@@ -382,19 +386,6 @@ class _Library(SignalingComponent):
             return None
         return file_info
 
-    def disconnect_to_changes(self, id):
-        if id in self._changes_cb.keys():
-            del self._changes_cb[id]
-
-    def connect_to_changes(self, cb):
-        self._changes_cb_id += 1
-        self._changes_cb[self._changes_cb_id] = cb
-        return self._changes_cb_id
-
-    def emit_changes(self, type, file_id, threaded = True):
-        log.debug(_("library: emit %s change for file %d") % (type, file_id))
-        for cb in self._changes_cb.itervalues(): cb(type, file_id, threaded)
-
     #######################################################################
     ## Inotify actions
     #######################################################################
@@ -414,7 +405,8 @@ class _Library(SignalingComponent):
         if fid:
             self.set_extra_infos(path, file, fid)
             self._add_missing_dir(os.path.dirname(path))
-            self.emit_changes("add", fid)
+            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
+                    attrs = {"type": "add", "id": fid})
         return True
 
     @inotify_action
@@ -428,7 +420,8 @@ class _Library(SignalingComponent):
             if not file_info:
                 return self._inotify_update_info(path, name)
             self.set_media(dir_id, file_path, file_info, file_id)
-            self.emit_changes("update", file_id)
+            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
+                    attrs = {"type": "update", "id": file_id})
             return True
 
     @inotify_action
@@ -438,14 +431,14 @@ class _Library(SignalingComponent):
             dir_id, file_id = file
             self.db_con.remove_file(file_id)
             self._remove_empty_dir(path)
-            self.emit_changes("remove", file_id)
+            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
+                    attrs = {"type": "remove", "id": file_id})
             return True
         else: return self._inotify_remove_info(path, name)
 
     @inotify_action
     def add_directory(self, path, name, dirlink=False):
         dir_path = os.path.join(path, name)
-
         if dirlink:
             self.db_con.insert_dirlink(dir_path, self.type)
             self.watcher.watch_dir(dir_path, self)
@@ -457,7 +450,7 @@ class _Library(SignalingComponent):
 
     @inotify_action
     def remove_directory(self, path, name, dirlink=False):
-        dir_path = os.path.join(path,name)
+        dir_path = os.path.join(path, name)
         dir_id = self.db_con.is_dir_exist(dir_path, self.type)
         if not dir_id: return False
 
@@ -466,7 +459,9 @@ class _Library(SignalingComponent):
             self.watcher.stop_watching_dir(dir_path)
 
         ids = self.db_con.remove_recursive_dir(dir_path)
-        for id in ids: self.emit_changes("remove", id)
+        for id in ids:
+            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
+                    attrs = {"type": "remove", "id": id})
         self._remove_empty_dir(path)
         return True
 
@@ -600,7 +595,9 @@ class AudioLibrary(_Library):
                     fid = self.set_media(dir_id,file_path,file_info,fid,cover)
             elif fid and cover:
                 self.__update_cover(fid, cover)
-            if need_update and fid: self.emit_changes(changes_type, fid)
+            if need_update and fid:
+                reactor.callFromThread(self.dispatch_signame,'mediadb.mupdate',\
+                        attrs = {"type": changes_type, "id": fid})
 
     def set_media(self, dir_id, file_path, file_info, file_id, cover = None):
         if file_info is not None and "cover" in file_info:
@@ -640,7 +637,9 @@ class AudioLibrary(_Library):
                     cover = self.db_con.add_cover(file_path, mime, image)
                     for (id,) in files:
                         if self.__update_cover(id, cover):
-                            self.emit_changes("update", id)
+                            reactor.callFromThread(self.dispatch_signame,\
+                                    'mediadb.mupdate',\
+                                    attrs = {"type": "update", "id": id})
                     return True
             return False
 
@@ -653,7 +652,8 @@ class AudioLibrary(_Library):
         fid = self.set_media(dir_id, file_path, file_info, file_id)
         if fid:
             self._add_missing_dir(os.path.dirname(path))
-            self.emit_changes("add", fid)
+            reactor.callFromThread(self.dispatch_signame,\
+                    'mediadb.mupdate', attrs = {"type": "add", "id": fid})
         return True
 
     def _inotify_remove_info(self, path, file):
@@ -664,7 +664,8 @@ class AudioLibrary(_Library):
         ids = self.db_con.search_id("cover", cover)
         for (id,) in ids:
             self.db_con.set_media_infos(id, {"cover": ""})
-            self.emit_changes("update", id)
+            reactor.callFromThread(self.dispatch_signame,\
+                    'mediadb.mupdate', attrs = {"type": "update", "id": id})
         self.db_con.remove_cover(cover)
         return True
 
@@ -715,7 +716,9 @@ class VideoLibrary(_Library):
                 else:
                     uri = quote_uri(os.path.join(path, file))
                     self.db_con.set_media_infos(fid, {"external_subtitle": uri})
-                    self.emit_changes("update", fid)
+                    reactor.callFromThread(self.dispatch_signame,\
+                        'mediadb.mupdate',\
+                        attrs = {"type": "update", "id": fid})
                     return True
         return False
 
@@ -726,7 +729,8 @@ class VideoLibrary(_Library):
                     quote_uri(os.path.join(path, file)))
             for (id,) in ids:
                 self.db_con.set_media_infos(id, {"external_subtitle": ""})
-                self.emit_changes("update", id)
+                reactor.callFromThread(self.dispatch_signame,\
+                    'mediadb.mupdate', attrs = {"type": "update", "id": id})
             return True
         return False
 
