@@ -262,17 +262,6 @@ bind_addresses = 192.168.51.2, 10.0.0.3
         </listitem>
       </varlistentry>
 
-      <varlistentry>
-        <term>compilation</term>
-        <listitem>
-          <para>set to true to use compilation tag in panel mode
-          (compilations's artist under "Various Artist" name)
-          <parameter>true</parameter> to enable use of compilation tag
-          <parameter>false</parameter> to disable use of compilation tag
-          </para>
-        </listitem>
-      </varlistentry>
-
     </variablelist>
   </refsect1>
 
@@ -366,6 +355,38 @@ bind_addresses = 192.168.51.2, 10.0.0.3
         <listitem>
           <para>The character set to use to decode your filenames. This should
           probably be autodetected.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>panel section</title>
+
+    <para>This section defines the <parameter>panel</parameter> section
+    configuration values. Those options configure the behaviour of the
+    <parameter>panel</parameter> mode.</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>panel_tags</term>
+        <listitem>
+          <para>Music tags that are avilable for filtering in the
+          <parameter>panel</parameter> mode. Available possibilities are :
+            <parameter>genre,artist,album</parameter> which is the default,
+            <parameter>artist,album</parameter>,
+            <parameter>genre,various_artist,album</parameter>,
+            <parameter>various_artist,album</parameter>.
+            <parameter>various_artist</parameter> here is the same as artist,
+            except compilation albums are grouped into a special
+            "Various Artists" label.</para>
+
+            <para>As an example :</para>
+<informalexample><programlisting>
+panel_tags = genre,artist,album
+</programlisting></informalexample>
         </listitem>
       </varlistentry>
 
