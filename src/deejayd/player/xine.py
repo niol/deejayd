@@ -72,9 +72,16 @@ class XinePlayer(UnknownPlayer):
                                             {"lang": "auto", "ix": -1},\
                                             {"lang": "external", "ix":0}]
 
-        if not self.__stream:
-            has_video = self._media_file["type"] == "video"
-            self._create_stream(has_video)
+        needs_video = self._media_file["type"] == "video"
+        if self.__stream:
+            stream_should_change = (needs_video and\
+                                    not self.__stream.has_video())\
+                                or (not needs_video and
+                                    self.__stream.has_video())
+        else:
+            stream_should_change = True
+        if stream_should_change:
+            self._create_stream(needs_video)
 
         try:
             self.__stream.open(uri)
@@ -89,7 +96,7 @@ class XinePlayer(UnknownPlayer):
             self.__window.show(isvideo)
 
         # init video information
-        if self._media_file["type"] == "video":
+        if needs_video:
             self._media_file["av_offset"] = 0
             self._media_file["zoom"] = 100
             if "audio" in self._media_file:

@@ -294,6 +294,12 @@ class Stream(object):
 
         self.__osd = None
 
+    def has_video(self):
+        if self.__video_port:
+            return True
+        else:
+            return False
+
     def stream_p(self):
         return self.__stream_p
 
