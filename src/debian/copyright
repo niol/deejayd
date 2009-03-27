@@ -9,7 +9,7 @@ Upstream Authors:
 
 Copyright:
 
-    Copyright (C) 2006-2008 Mickaël Royer
+    Copyright © 2006-2009 Mickaël Royer
 
 License:
 
@@ -30,7 +30,7 @@ License:
 On Debian systems, the complete text of the GNU General
 Public License can be found in `/usr/share/common-licenses/GPL'.
 
-The Debian packaging is (C) 2007-2008,
+The Debian packaging is © 2007-2009,
 Alexandre Rossi <alexandre.rossi@gmail.com> and is licensed under the GPL,
 see above.
 
