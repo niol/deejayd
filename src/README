@@ -45,7 +45,7 @@ Requirements:
        for mysql database support
     * mutagen >= 1.6
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
-    * hachoir-metadata >= 1.2 (http://hachoir.org/wiki/hachoir-metadata)
+    * hachoir-metadata >= 1.1 (http://hachoir.org/wiki/hachoir-metadata)
     * cElementTree (http://effbot.org/zone/celementtree.htm) module.
       It is include in python 2.5
         OR
