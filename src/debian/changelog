@@ -5,6 +5,9 @@ deejayd (0.8.0~pre-1~darcsoftheday+20090125+1) UNRELEASED; urgency=low
   * Remove the djc binary package and include djc into the deejayd-client
     binary package.
   * Improve debian/rules clean target by making it remove all .pyc files.
+  * Bump standards version to 3.8.1 :
+    - Ensure the start action of the init script does not start the daemon
+      again.
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 25 Jan 2009 14:51:09 +0100
 
