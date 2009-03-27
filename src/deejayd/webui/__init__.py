@@ -21,7 +21,7 @@ from twisted.web import static,server
 from twisted.web.resource import Resource
 
 from deejayd.interfaces import DeejaydError
-from deejayd.ui.log import LogFile
+from deejayd.ui import log
 
 # xul parts
 from deejayd.webui.xul import build as xul_build
@@ -29,9 +29,13 @@ from deejayd.webui.xul import xmlanswer as xul_xmlanswer
 from deejayd.webui.xul import commands as xul_commands
 
 # mobile parts
-from deejayd.webui import mobile
-from deejayd.webui.mobile import xmlanswer as mobile_xmlanswer
-from deejayd.webui.mobile import commands as mobile_commands
+try:
+    from deejayd.webui import mobile
+    from deejayd.webui.mobile import xmlanswer as mobile_xmlanswer
+    from deejayd.webui.mobile import commands as mobile_commands
+except ImportError:
+    mobile = False
+
 
 class DeejaydWebError(DeejaydError): pass
 
@@ -154,7 +158,7 @@ class DeejaydMobileCommandHandler(_DeejaydCommandHandler):
 class SiteWithCustomLogging(server.Site):
 
     def _openLogFile(self, path):
-        self.log_file = LogFile(path, False)
+        self.log_file = log.LogFile(path, False)
         self.log_file.set_reopen_signal(callback=self.__reopen_cb)
         return self.log_file.fd
 
@@ -189,7 +193,10 @@ def init(deejayd_core, config, webui_logfile):
     xul_handler.putChild("rdf",static.File(tmp_dir))
 
     # mobile part
-    if config.getboolean("webui","mobile_ui"):
+    mobile_webui = config.getboolean("webui","mobile_ui")
+    if mobile_webui and not mobile:
+        log.err(_("Mobile Web UI disabled because genshi seems absent."))
+    elif mobile_webui:
         mobile_handler = DeejaydMobileHandler(deejayd_core, config)
         mobile_handler.putChild("commands",DeejaydMobileCommandHandler(\
                 deejayd_core, tmp_dir))
