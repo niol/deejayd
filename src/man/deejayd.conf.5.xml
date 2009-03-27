@@ -255,7 +255,7 @@ bind_addresses = 192.168.51.2, 10.0.0.3
       <varlistentry>
         <term>mobile_ui</term>
         <listitem>
-          <para>set to
+          <para>Set to
           <parameter>true</parameter> to enable web ui for mobile device
           <parameter>false</parameter> to disable web ui for mobile device
           </para>
