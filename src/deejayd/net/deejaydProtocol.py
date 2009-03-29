@@ -128,7 +128,7 @@ class DeejaydFactory(protocol.ServerFactory):
     def sig_bcast_to_clients(self, signal):
         interested_clients = self.signaled_clients[signal.get_name()]
         if len(interested_clients) > 0:
-            xml_sig = xmlbuilders.DeejaydXMLSignal(signal.get_name())
+            xml_sig = xmlbuilders.DeejaydXMLSignal(signal)
             for client in interested_clients:
                 # http://twistedmatrix.com/pipermail/twisted-python/2007-August/015905.html
                 # says : "Don't call reactor methods from any thread except the
