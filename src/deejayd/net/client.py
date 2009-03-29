@@ -114,12 +114,13 @@ class DeejaydDvdInfo(DeejaydAnswer, deejayd.interfaces.DeejaydDvdInfo):
 
 class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
 
-    def __init__(self, server, pl_id):
+    def __init__(self, server, pl_id, name):
         self.server = server
         self.__pl_id = pl_id
+        self.__name = name
 
     def get(self, first=0, length=-1):
-        cmd = DeejaydXMLCommand('staticPlaylistInfo')
+        cmd = DeejaydXMLCommand('recordedPlaylistInfo')
         cmd.add_simple_arg('playlist_id', self.__pl_id)
         cmd.add_simple_arg('first', first)
         if length != -1:
@@ -139,6 +140,52 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
 
     def add_paths(self, paths):
         return self.__add(paths, "path")
+
+
+class DeejaydMagicPlaylist(deejayd.interfaces.DeejaydMagicPlaylist):
+
+    def __init__(self, server, pl_id, name):
+        self.server = server
+        self.__pl_id = pl_id
+        self.__name = name
+
+    def get(self, first=0, length=-1):
+        cmd = DeejaydXMLCommand('recordedPlaylistInfo')
+        cmd.add_simple_arg('playlist_id', self.__pl_id)
+        cmd.add_simple_arg('first', first)
+        if length != -1:
+            cmd.add_simple_arg('length', length)
+        ans = DeejaydMediaList(self)
+        return self.server._send_command(cmd, ans)
+
+    def add_filter(self, filter):
+        cmd = DeejaydXMLCommand('magicPlaylistAddFilter')
+        cmd.add_simple_arg('playlist_id', self.__pl_id)
+        cmd.add_filter_arg('filter', filter)
+        return self.server._send_command(cmd)
+
+    def remove_filter(self, filter):
+        cmd = DeejaydXMLCommand('magicPlaylistRemoveFilter')
+        cmd.add_simple_arg('playlist_id', self.__pl_id)
+        cmd.add_filter_arg('filter', filter)
+        return self.server._send_command(cmd)
+
+    def clear_filters(self):
+        cmd = DeejaydXMLCommand('magicPlaylistClearFilter')
+        cmd.add_simple_arg('playlist_id', self.__pl_id)
+        return self.server._send_command(cmd)
+
+    def get_properties(self):
+        cmd = DeejaydXMLCommand('magicPlaylistGetProperties')
+        cmd.add_simple_arg('playlist_id', self.__pl_id)
+        return self.server._send_command(cmd, DeejaydKeyValue())
+
+    def set_property(self, key, value):
+        cmd = DeejaydXMLCommand('magicPlaylistSetProperty')
+        cmd.add_simple_arg('playlist_id', self.__pl_id)
+        cmd.add_simple_arg('key', key)
+        cmd.add_simple_arg('value', value)
+        return self.server._send_command(cmd)
 
 
 class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
@@ -509,6 +556,18 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     def update_video_library(self):
         cmd = DeejaydXMLCommand('videoUpdate')
         return self._send_command(cmd, DeejaydKeyValue())
+
+    def create_recorded_playlist(self, name, type):
+        cmd = DeejaydXMLCommand('playlistCreate')
+        cmd.add_simple_arg('name', name)
+        cmd.add_simple_arg('type', type)
+        return self._send_command(cmd, DeejaydKeyValue())
+
+    def get_recorded_playlist(self, pl_id, name, type):
+        if type == "static":
+            return DeejaydStaticPlaylist(self, pl_id, name)
+        elif type == "magic":
+            return DeejaydMagicPlaylist(self, pl_id, name)
 
     def erase_playlist(self, pl_ids):
         cmd = DeejaydXMLCommand('playlistErase')

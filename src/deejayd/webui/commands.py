@@ -251,11 +251,13 @@ class PlaylistCreate(_Command):
       {"name": "infos","type":"magic_pls_infos","req":False,"default":None}]
 
     def execute(self):
-        pl = self._deejayd.create_recorded_playlist(self._args["name"],\
-                self._args["type"])
+        pl_infos = self._deejayd.create_recorded_playlist(self._args["name"],\
+                self._args["type"]).get_contents()
         if self._args["type"] == 'magic':
             if self._args["infos"] == None:
                 raise ArgError(_("infos argument needed for magic playlist"))
+            pl = self._deejayd.get_recorded_playlist(pl_infos["pl_id"],\
+                    pl_infos["name"], pl_infos["type"])
             for filter in self._args["infos"]["filters"]:
                 pl.add_filter(filter).get_contents()
             for k, v in self._args["infos"]["properties"].items():

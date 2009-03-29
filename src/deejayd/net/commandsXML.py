@@ -406,9 +406,9 @@ class VideoInfo(UnknownCommand):
 #  Static Playlist Commands                       #
 ###################################################
 
-class StaticPlaylistInfo(UnknownCommand):
+class RecordedPlaylistInfo(UnknownCommand):
     """Return the content of a recorded static playlists."""
-    command_name = 'staticPlaylistInfo'
+    command_name = 'recordedPlaylistInfo'
     command_rvalue = 'MediaList'
     command_args = [{"name":"playlist_id", "type":"int", "req":True},\
         {"name":"first","type":"int","req":False,"default":0},\
@@ -416,18 +416,23 @@ class StaticPlaylistInfo(UnknownCommand):
 
     def _execute(self):
         pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
-        songs = pls.get(self.args["first"], self.args["length"], \
-                        objanswer=False)
-
         rsp = self.get_answer('MediaList')
         rsp.set_mediatype("song")
+        if pls.type == "static":
+            songs = pls.get(self.args["first"], self.args["length"], \
+                            objanswer=False)
+        elif pls.type == "magic":
+            songs, filter, sort = pls.get(self.args["first"],\
+                    self.args["length"], objanswer=False)
+            rsp.set_filter(filter)
+
         rsp.set_medias(songs)
         if self.args["length"] != -1: rsp.set_total_length(len(songs))
         return rsp
 
 
 class StaticPlaylistAdd(UnknownCommand):
-    """Add songs in a recorded static playlists."""
+    """Add songs in a recorded static playlist."""
     command_name = 'staticPlaylistAdd'
     command_args = [{"mult":True,"name":"values", "type":"string", "req":True},
         {"name":"playlist_id", "type":"int", "req":True},\
@@ -436,6 +441,8 @@ class StaticPlaylistAdd(UnknownCommand):
 
     def _execute(self):
         pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
+        if pls.type != "static":
+            raise DeejaydError(_("Selected playlist is not static."))
         if self.args["type"] == "id":
             try: values = map(int, self.args["values"])
             except (TypeError, ValueError):
@@ -443,6 +450,80 @@ class StaticPlaylistAdd(UnknownCommand):
             pls.add_songs(values, objanswer=False)
         else:
             pls.add_paths(self.args["values"], objanswer=False)
+
+
+class MagicPlaylistAddFilter(UnknownCommand):
+    """Add a filter in recorded magic playlist."""
+    command_name = 'magicPlaylistAddFilter'
+    command_args = [{"name":"playlist_id", "type":"int", "req":True},\
+        {"name":"filter", "type":"filter", "req":True}]
+
+    def _execute(self):
+        pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
+        if pls.type != "magic":
+            raise DeejaydError(_("Selected playlist is not magic."))
+        pls.add_filter(self.args["filter"], objanswer=False)
+
+
+class MagicPlaylistRemoveFilter(UnknownCommand):
+    """Remove a filter from recorded magic playlist."""
+    command_name = 'magicPlaylistRemoveFilter'
+    command_args = [{"name":"playlist_id", "type":"int", "req":True},\
+        {"name":"filter", "type":"filter", "req":True}]
+
+    def _execute(self):
+        pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
+        if pls.type != "magic":
+            raise DeejaydError(_("Selected playlist is not magic."))
+        pls.remove_filter(self.args["filter"], objanswer=False)
+
+
+class MagicPlaylistClearFilter(UnknownCommand):
+    """Remove all filter from recorded magic playlist."""
+    command_name = 'magicPlaylistClearFilter'
+    command_args = [{"name":"playlist_id", "type":"int", "req":True}]
+
+    def _execute(self):
+        pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
+        if pls.type != "magic":
+            raise DeejaydError(_("Selected playlist is not magic."))
+        pls.clear_filters(objanswer=False)
+
+
+class MagicPlaylistGetProperties(UnknownCommand):
+    """Get properties of a magic playlist
+      * use-or-filter: if equal to 1, use "Or" filter instead of "And" (0 or 1)
+      * use-limit: limit or not number of songs in the playlist (0 or 1)
+      * limit-value: number of songs for this playlist (integer)
+      * limit-sort-value: when limit is active sort playlist with this tag
+      * limit-sort-direction: sort direction for limit (ascending or descending)
+      """
+    command_name = 'magicPlaylistGetProperties'
+    command_args = [{"name":"playlist_id", "type":"int", "req":True}]
+    command_rvalue = 'KeyValue'
+
+    def _execute(self):
+        pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
+        if pls.type != "magic":
+            raise DeejaydError(_("Selected playlist is not magic."))
+        return self.get_keyvalue_answer(pls.get_properties(objanswer=False))
+
+
+class MagicPlaylistSetProperty(UnknownCommand):
+    """Remove all filter from recorded magic playlist."""
+    command_name = 'magicPlaylistSetProperty'
+    command_args = [{"name":"playlist_id", "type":"int", "req":True},\
+            {"name":"key", "type":"enum_str",\
+             "values": ("use-or-filter","use-limit","limit-value",\
+                        "limit-sort-value","limit-sort-direction"),\
+                        "req":True},\
+            {"name":"value", "type":"string", "req":True}]
+
+    def _execute(self):
+        pls = self.deejayd_core.get_recorded_playlist(self.args["playlist_id"])
+        if pls.type != "magic":
+            raise DeejaydError(_("Selected playlist is not magic."))
+        pls.set_property(self.args["key"], self.args["value"], objanswer=False)
 
 
 class PlaylistList(UnknownCommand):
@@ -456,6 +537,24 @@ class PlaylistList(UnknownCommand):
         rsp.set_mediatype('playlist')
         rsp.set_medias(pls)
         return rsp
+
+
+class PlaylistCreate(UnknownCommand):
+    """Create recorded playlist. The answer consist on
+      * pl_id : id of the created playlist
+      * name : name of the created playlist
+      * type : type of the created playlist
+      """
+    command_name = 'playlistCreate'
+    command_args = [{"name":"name", "type":"string", "req":True},\
+            {"name": "type", "type": "enum_str",\
+             "values": ("magic", "static"), "req":True}]
+    command_rvalue = 'KeyValue'
+
+    def _execute(self):
+        pl_infos = self.deejayd_core.create_recorded_playlist(\
+                self.args["name"], self.args["type"], objanswer=False)
+        return self.get_keyvalue_answer(pl_infos)
 
 
 class PlaylistErase(UnknownCommand):

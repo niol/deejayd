@@ -595,6 +595,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             raise DeejaydError(_("Video mode disabled"))
         return {'video_updating_db': self.video_library.update(sync)}
 
+    @returns_deejaydanswer(DeejaydKeyValue)
     def create_recorded_playlist(self, name, type):
         # first search if this pls already exist
         try: self.db.get_medialist_id(name, type)
@@ -604,8 +605,6 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         if type == "static":
             pl_id = self.db.set_static_medialist(name, [])
-            self._dispatch_signame('playlist.listupdate')
-            return DeejaydStaticPlaylist(self, pl_id, name)
         elif type == "magic":
             pl_id = self.db.set_magic_medialist_filters(name, [])
             pl = DeejaydMagicPlaylist(self, pl_id, name)
@@ -619,10 +618,10 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
                     }
             for (k, v) in default.items():
                 pl.set_property(k, v)
-            self._dispatch_signame('playlist.listupdate')
-            return pl
+        self._dispatch_signame('playlist.listupdate')
+        return {"pl_id": pl_id, "name": name, "type": type}
 
-    def get_recorded_playlist(self, id):
+    def get_recorded_playlist(self, id, name = "", type = "static"):
         try: pl_id, name, type = self.db.is_medialist_exists(id)
         except TypeError:
             raise DeejaydError(_("Playlist with id %s not found.") % str(id))
