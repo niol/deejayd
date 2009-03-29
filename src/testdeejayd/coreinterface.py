@@ -118,8 +118,8 @@ class InterfaceTests:
         content = djpl.get().get_medias()
         self.assertEqual(len(content), howManySongs-1)
 
-    def testSavedPlaylistActions(self):
-        """Test action on saved playlist"""
+    def testSavedStaticPlaylistActions(self):
+        """Test action on saved static playlist"""
         djplname = self.testdata.getRandomString()
         djpl = self.deejayd.get_playlist()
         howManySongs = 3
@@ -133,7 +133,8 @@ class InterfaceTests:
         djpl_id = ans["playlist_id"]
 
         # add songs in the saved playlist
-        savedpl = self.deejayd.get_recorded_playlist(djpl_id)
+        savedpl = self.deejayd.get_recorded_playlist(djpl_id, djplname,\
+                "static")
         for songPath in self.test_audiodata.getRandomSongPaths(howManySongs):
             # add twice the same song
             ans = savedpl.add_path(songPath)
@@ -142,6 +143,44 @@ class InterfaceTests:
             self.failUnless(ans.get_contents())
         content = savedpl.get().get_medias()
         self.assertEqual(len(content), howManySongs*3)
+
+    def testSavedMagicPlaylistActions(self):
+        """Test action on saved magic playlist"""
+        djplname = self.testdata.getRandomString()
+        djpl_infos = self.deejayd.create_recorded_playlist(djplname,\
+                "magic").get_contents()
+        djpl = self.deejayd.get_recorded_playlist(djpl_infos["pl_id"],\
+                djplname, "magic")
+        filter = Equals('genre', self.test_audiodata.getRandomGenre())
+        rnd_filter = Equals('genre', self.testdata.getRandomString())
+
+        # add filter
+        djpl.add_filter(filter).get_contents()
+        # verify playlist
+        ans = djpl.get()
+        self.assertEqual(len(ans.get_filter()), 1)
+        self.failUnless(len(ans.get_medias()) > 0)
+        self.failUnless(filter.equals(ans.get_filter()[0]))
+
+        # add random filter
+        djpl.remove_filter(filter).get_contents()
+        djpl.add_filter(rnd_filter).get_contents()
+        # verify playlist
+        ans = djpl.get()
+        self.assertEqual(len(ans.get_filter()), 1)
+        self.assertEqual(len(ans.get_medias()), 0)
+        self.failUnless(rnd_filter.equals(ans.get_filter()[0]))
+
+        # add filter and set property
+        djpl.clear_filters().get_contents()
+        djpl.add_filter(filter).get_contents()
+        djpl.set_property("use-limit", "1").get_contents()
+        djpl.set_property("limit-value", "1").get_contents()
+        # verify playlist
+        ans = djpl.get()
+        self.assertEqual(len(ans.get_filter()), 1)
+        self.assertEqual(len(ans.get_medias()), 1)
+        self.failUnless(filter.equals(ans.get_filter()[0]))
 
     def testWebradioAddRetrieve(self):
         """Save a webradio and check it is in the list, then delete it."""
@@ -591,8 +630,8 @@ class InterfaceSubscribeTests:
         for trig in trigger_list:
             self.generic_sub_bcast_test('player.plupdate', trig[0], trig[1])
 
-    def test_sub_broadcast_playlist_update(self):
-        """Checks that playlist.update signals are broadcasted."""
+    def test_sub_broadcast_playlist_listupdate(self):
+        """Checks that playlist.listupdate signals are broadcasted."""
 
         djpl = self.deejayd.get_playlist()
         ans = self.deejayd.get_audio_dir()
@@ -602,7 +641,7 @@ class InterfaceSubscribeTests:
         test_pl_name = self.testdata.getRandomString()
         test_pl_name2 = self.testdata.getRandomString()
 
-        self.generic_sub_bcast_test('playlist.update',
+        self.generic_sub_bcast_test('playlist.listupdate',
                                     djpl.save, (test_pl_name, ))
 
         retrievedPls = self.deejayd.get_playlist_list().get_medias()
@@ -610,14 +649,39 @@ class InterfaceSubscribeTests:
             if pls["name"] == test_pl_name:
                 djpl_id = pls["id"]
                 break
-        saved_djpl = self.deejayd.get_recorded_playlist(djpl_id)
-
         trigger_list = (
-                        (saved_djpl.add_path, (dir,)),
                         (self.deejayd.erase_playlist, ([djpl_id], )),
                         (djpl.save, (test_pl_name2,)),
                        )
 
+        for trig in trigger_list:
+            self.generic_sub_bcast_test('playlist.listupdate', trig[0], trig[1])
+
+    def test_sub_broadcast_playlist_update(self):
+        """Checks that playlist.update signals are broadcasted."""
+        ans = self.deejayd.get_audio_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+        filter = Equals('genre', self.test_audiodata.getRandomGenre())
+
+        st_pl_name = self.testdata.getRandomString()
+        mg_pl_name = self.testdata.getRandomString()
+
+        st_pl_infos = self.deejayd.create_recorded_playlist(st_pl_name,\
+                'static').get_contents()
+        mg_pl_infos = self.deejayd.create_recorded_playlist(mg_pl_name,\
+                'magic').get_contents()
+
+        st_djpl = self.deejayd.get_recorded_playlist(st_pl_infos["pl_id"],\
+                st_pl_name, 'static')
+        mg_djpl = self.deejayd.get_recorded_playlist(mg_pl_infos["pl_id"],\
+                mg_pl_name, 'magic')
+
+        trigger_list = (
+                        (st_djpl.add_path, (dir,)),
+                        (mg_djpl.add_filter, (filter,)),
+                        (mg_djpl.remove_filter, (filter,)),
+                        (mg_djpl.set_property, ('use-limit', '1')),
+                       )
         for trig in trigger_list:
             self.generic_sub_bcast_test('playlist.update', trig[0], trig[1])
 
