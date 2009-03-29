@@ -248,11 +248,30 @@ class AvailableCommands:
 # Recorded Playlist commands
     def recorded_playlist_info(self, args):
         """ get content of a recorded playlist
-            usage : djc static_playlist_info pl_id"""
-        try: pl_id = args[0]
-        except IndexError:
-            raise DjcError('You have to enter a playlist name')
-        pls = self.server.get_recorded_playlist(pl_id)
+            usage : djc recorded_playlist_info pl_id"""
+        try: pl_id = int(args[0])
+        except (IndexError, TypeError):
+            raise DjcError('You have to enter a playlist id')
+        pls_list = self.server.get_playlist_list()
+        pls_infos = None
+        for pls in pls_list.get_medias():
+            if int(pls["id"]) == pl_id:
+                pls_infos = pls
+                break
+        if pls_infos is None:
+            raise DjcError('Playlist with id %s not found' % str(pl_id))
+        pls = self.server.get_recorded_playlist(pls_infos["id"],\
+                pls_infos["name"], pls_infos["type"])
+        ans = pls.get()
+        if pls.type == 'magic':
+            print "############ Properties ############"
+            props = pls.get_properties().get_contents()
+            for k, v in props.items(): print "%s: %s" % (k, v)
+        if ans.get_filter() is not None:
+            print "############ Filters ############"
+            for ft in ans.get_filter():
+                print str(ft)
+        print "############ Songs ############"
         for media in pls.get().get_medias():
             print media["title"], '|', media["artist"], '|', media["album"]
 
