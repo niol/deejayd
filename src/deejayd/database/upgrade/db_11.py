@@ -19,9 +19,9 @@
 from deejayd.database import schema
 
 def upgrade(cursor, backend, config):
-    # create new table medialist_sorts
+    # create new table medialist_property
     for table in schema.db_schema:
-        if table.name != "medialist_sorts": continue
+        if table.name != "medialist_property": continue
         for stmt in backend.to_sql(table):
             cursor.execute(stmt)
 
