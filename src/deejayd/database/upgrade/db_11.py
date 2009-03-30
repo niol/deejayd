@@ -21,9 +21,10 @@ from deejayd.database import schema
 def upgrade(cursor, backend, config):
     # create new table medialist_property
     for table in schema.db_schema:
-        if table.name != "medialist_property": continue
-        for stmt in backend.to_sql(table):
-            cursor.execute(stmt)
+        if table.name == "medialist_property":
+            for stmt in backend.to_sql(table):
+                cursor.execute(stmt)
+            break
 
     # update db version
     sql = [

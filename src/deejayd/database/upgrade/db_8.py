@@ -56,11 +56,23 @@ def upgrade(cursor, backend, config):
     cursor.execute("DROP TABLE medialist")
 
     # create new table/indexes
+    new_tables = (
+            "library_dir",
+            "library",
+            "media_info",
+            "cover",
+            "medialist",
+            "medialist_libraryitem",
+            "medialist_filters",
+            "filters",
+            "filters_basicfilters",
+            "filters_complexfilters",
+            "filters_complexfilters_subfilters",
+            )
     for table in schema.db_schema:
-        if table.name in ("webradio", "stats", "variables","medialist_sorts"):
-            continue
-        for stmt in backend.to_sql(table):
-            cursor.execute(stmt)
+        if table.name in new_tables:
+            for stmt in backend.to_sql(table):
+                cursor.execute(stmt)
     for query in backend.custom_queries:
         cursor.execute(query)
 
