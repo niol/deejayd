@@ -92,7 +92,7 @@ class InterfaceTests:
         self.failUnless(djplname in [p["name"] for p in retrievedPls])
 
         # Retrieve the saved playlist
-        djpl = self.deejayd.get_recorded_playlist(djpl_id)
+        djpl = self.deejayd.get_recorded_playlist(djpl_id, djplname, 'static')
         retrievedPl = djpl.get().get_medias()
         for song_nb in range(len(pl)):
             self.assertEqual(pl[song_nb], retrievedPl[song_nb]['uri'])
@@ -311,7 +311,9 @@ class InterfaceTests:
         ans = panel.set_search_filter(bad_tag, random_str) # random tags
         self.assertRaises(DeejaydError, ans.get_contents)
 
-        panel.set_search_filter(tag, random_str).get_contents()
+        search_tag = self.testdata.getRandomElement(['title', 'album',\
+                'genre', 'artist'])
+        panel.set_search_filter(search_tag, random_str).get_contents()
         ans = panel.get()
         self.assertEqual([], ans.get_medias())
 
@@ -563,15 +565,14 @@ class InterfaceSubscribeTests:
         """Checks that signals subscriptions get in and out."""
         server_notification = threading.Event()
 
-        self.assertEqual(self.deejayd.get_subscriptions(), {})
-
         sub_id = self.deejayd.subscribe('player.status',
                                         lambda x: server_notification.set())
         self.failUnless((sub_id, 'player.status')\
                         in self.deejayd.get_subscriptions().items())
 
         self.deejayd.unsubscribe(sub_id)
-        self.assertEqual(self.deejayd.get_subscriptions(), {})
+        self.failUnless((sub_id, 'player.status')\
+                        not in self.deejayd.get_subscriptions().items())
 
     def generic_sub_bcast_test(self, signal_name, trigger, trigger_args=()):
         """Checks that signal_name signal is broadcast when one of the trigger is involved."""

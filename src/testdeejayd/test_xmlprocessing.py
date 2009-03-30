@@ -327,7 +327,7 @@ class TestAnswerBuilder(TestCaseWithData):
 
         expected_xml = """<?xml version="1.0" encoding="utf-8"?>
 <deejayd>
-    <signal name="%s" />
+    <signal name="%s"/>
 </deejayd>""" % sig_name
 
         self.assertEqual(trim_xml(sig.to_xml()),
