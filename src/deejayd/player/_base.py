@@ -184,11 +184,13 @@ class UnknownPlayer(SignalingComponent):
                     str(self._media_file["id"]), self._media_file["source"])))
 
         if self.get_state() != PLAYER_STOP:
+            position = self.get_position()
             if "length" not in self._media_file.keys() or \
                                               self._media_file["length"] == 0:
-                self._media_file["length"] = self.get_position()
-            status.extend([ ("time","%d:%d" % (self.get_position(),\
-                int(self._media_file["length"]))) ])
+                length = position
+            else:
+                length = int(self._media_file["length"])
+            status.extend([ ("time","%d:%d" % (position, length)) ])
 
         return status
 
