@@ -268,7 +268,13 @@ var Player = function()
                 playerStatus.current = st_obj["current"];
                 playerStatus.update_current(cur_song);
                 }
-            else { playerStatus.update_current_option(cur_song); }
+            else {
+                var song = cur_song.getElementsByTagName("song-title").item(0);
+                if (song && song.firstChild) // it is a webradio
+                    playerStatus.update_current(cur_song);
+                else
+                    playerStatus.update_current_option(cur_song);
+                }
             }
         else if (playerStatus.current != "") {
             playerStatus.reset_current();
