@@ -433,11 +433,6 @@ class PanelUpdateFilter(_Command):
         else:
             panel.set_panel_filters(self._args["tag"], self._args["values"])
 
-            # remove filter for panels at the right of this tag
-            for tg in reversed(panel.get_panel_tags().get_contents()):
-                if tg == self._args["tag"]: break
-                panel.remove_panel_filters(tg)
-
 class PanelUpdateSearch(_Command):
     name = "panelUpdateSearch"
     method = "post"

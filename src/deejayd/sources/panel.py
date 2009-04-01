@@ -134,7 +134,17 @@ class PanelSource(_BaseLibrarySource):
         filter = Or()
         for value in values:
             filter.combine(Equals(tag, value))
+        if tag in self.__panel and self.__panel[tag].equals(filter):
+            return # do not need update
         self.__panel[tag] = filter
+
+        # remove filter for panels at the right of this tag
+        for tg in reversed(self.get_panel_tags()):
+            if tg == tag: break
+            try: del self.__panel[tg]
+            except KeyError:
+                pass
+
         self.__update_panel_filters()
 
     def remove_panel_filters(self, tag):
