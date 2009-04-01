@@ -95,6 +95,7 @@ class PanelSource(_BaseLibrarySource):
             sorts = self.__sorts + self.__class__.default_sorts
             medias = self.library.search(self.__filter, sorts)
             self._media_list.set(medias)
+            self.__update_current()
             self.dispatch_signame(self.__class__.source_signal)
 
     def __update_active_list(self, type, pl_id, raise_ex = False):
@@ -112,6 +113,14 @@ class PanelSource(_BaseLibrarySource):
         else:
             raise TypeError
         self._media_list.set(medias)
+
+    def __update_current(self):
+        if self._current and self._current["id"] != -1: # update current id
+            media_id = self._current["media_id"]
+            try:
+                self._current["id"] = self._media_list.find_id(media_id)
+            except ValueError:
+                self._current["id"] = -1
 
     def get_panel_tags(self):
         return self.__panel_tags
@@ -174,6 +183,7 @@ class PanelSource(_BaseLibrarySource):
             return # we do not need to update panel
         self.__update_active_list(type, pl_id, raise_ex = True)
         self.__selected_mode = {"type": type, "value": pl_id}
+        self.__update_current()
         self.dispatch_signame(self.__class__.source_signal)
 
     def get_content(self, start = 0, stop = None):

@@ -138,6 +138,11 @@ class SimpleMediaList(object):
             return None
         return self._set_media_ans(id, idx-1)
 
+    def find_id(self, media_id):
+        for id, m in self._content.items():
+            if m["media_id"] == media_id:
+                return id
+        raise ValueError
 
 class MediaList(SimpleMediaList):
 
