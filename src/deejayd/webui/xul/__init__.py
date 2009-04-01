@@ -39,18 +39,26 @@ def build(config):
             };
     </script>
     <vbox>
-        <hbox id="deejayd-webui_install">
-            <description value="%(install)s"/>
-            <html:a href="static/deejayd-webui.xpi">
-                %(clickHere)s
-            </html:a>
-        </hbox>
-        <hbox id="deejayd-webui_upgrade" style="display:none">
-            <description value="%(upgrade)s"/>
-            <html:a href="static/deejayd-webui.xpi">
-                %(clickHere)s
-            </html:a>
-        </hbox>
+        <vbox id="deejayd-webui_install">
+            <box>
+                <description value="%(install)s"/>
+            </box>
+            <box>
+                <html:a href="static/deejayd-webui.xpi">
+                    %(clickHere)s
+                </html:a>
+            </box>
+        </vbox>
+        <vbox id="deejayd-webui_upgrade" style="display:none">
+            <box>
+                <description value="%(upgrade)s"/>
+            </box>
+            <box>
+                <html:a href="static/deejayd-webui.xpi">
+                    %(clickHere)s
+                </html:a>
+            </box>
+        </vbox>
         <description style="display:none;color:#f00"
             id="deejayd-webui_error" value="%(error)s"/>
     </vbox>
@@ -58,12 +66,12 @@ def build(config):
 """ % {
         "refresh": config.get('webui','refresh'),
         "version": "0.1.0",
-        "install": _("You need to install firefox extension to use deejayd").\
+        "install": _("You need to install a firefox extension in order to use the deejayd-webui XUL client. Please note that if you run a flavour of GNU/Linux, it should be available from your package manager.").\
                 encode("utf-8"),
-        "upgrade": _("You need to upgrade the firefox extension").\
+        "upgrade": _("You need to upgrade the firefox extension.").\
                 encode("utf-8"),
-        "clickHere": _("Click Here").encode("utf-8"),
-        "error": _("ERROR : Host is not allowed to use firefox extension").\
+        "clickHere": _("Install the deejayd-webui extension").encode("utf-8"),
+        "error": _("ERROR : Host is not allowed to use the firefox extension.").\
                 encode("utf-8"),
     }
 
