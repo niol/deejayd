@@ -19,7 +19,7 @@
 import os, threading, traceback, Queue
 from deejayd.ui import log
 from deejayd.utils import str_encode
-from pyinotify import WatchManager, Notifier, EventsCodes, ProcessEvent
+import pyinotify
 
 #############################################################################
 ##### Events Watcher
@@ -29,12 +29,16 @@ def log_event(func):
     def log_event_func(self, event):
         path = os.path.join(event.path.decode("utf-8"),\
                 event.name.decode("utf-8"))
-        log.info(_("Inotify event %s: %s") % (event.event_name, path))
+        try:
+            event.maskname
+        except AttributeError:
+            event.maskname = event.event_name
+        log.info(_("Inotify event %s: %s") % (event.maskname, path))
         func(self,event)
 
     return log_event_func
 
-class InotifyWatcher(ProcessEvent):
+class InotifyWatcher(pyinotify.ProcessEvent):
 
     def __init__(self, library, queue):
         self.__library = library
@@ -67,7 +71,7 @@ class InotifyWatcher(ProcessEvent):
         pass
 
 
-class LibraryWatcher(threading.Thread):
+class _LibraryWatcher(threading.Thread):
 
     def __init__(self, db, queue):
         threading.Thread.__init__(self)
@@ -116,20 +120,20 @@ class LibraryWatcher(threading.Thread):
         if type == "create":
             if self.__occured_on_dirlink(library, event):
                 return library.add_directory(path, name, True)
-            elif not event.is_dir:
+            elif not self.is_on_dir(event):
                 self.__created_files.append((path, name))
         elif type == "delete":
             if self.__occured_on_dirlink(library, event):
                 return library.remove_directory(path, name, True)
-            elif not event.is_dir:
+            elif not self.is_on_dir(event):
                 return library.remove_file(path, name)
         elif type == "move_from":
-            if not event.is_dir:
+            if not self.is_on_dir(event):
                 return library.remove_file(path, name)
             else:
                 return library.remove_directory(path, name)
         elif type == "move_to":
-            if not event.is_dir:
+            if not self.is_on_dir(event):
                 return library.add_file(path, name)
             else:
                 return library.add_directory(path, name)
@@ -147,14 +151,22 @@ class LibraryWatcher(threading.Thread):
         self.should_stop.set()
         threading.Thread.join(self)
 
+
+class LibraryWatcher(_LibraryWatcher):
+
+    def is_on_dir(self, event):
+        return event.dir
+
+
+class LibraryWatcherOLD(_LibraryWatcher):
+
+    def is_on_dir(self, event):
+        return event.is_dir
+
+
 #############################################################################
 
-class DeejaydInotify(threading.Thread):
-
-    # watched events
-    EVENT_MASK = EventsCodes.IN_DELETE | EventsCodes.IN_CREATE |\
-                 EventsCodes.IN_MOVED_FROM | EventsCodes.IN_MOVED_TO |\
-                 EventsCodes.IN_CLOSE_WRITE
+class _DeejaydInotify(threading.Thread):
 
     def __init__(self, db, audio_library, video_library):
         threading.Thread.__init__(self)
@@ -165,8 +177,9 @@ class DeejaydInotify(threading.Thread):
         self.__db = db
         self.__queue = Queue.Queue(1000)
 
-        self.__wm = WatchManager()
+        self.__wm = pyinotify.WatchManager()
         self.__watched_dirs = {}
+        self.EVENT_MASK = self.watched_events_mask()
 
     def is_watched (self, dir_path):
         return dir_path in self.__watched_dirs.keys()
@@ -174,7 +187,7 @@ class DeejaydInotify(threading.Thread):
     def watch_dir(self, dir_path, library):
         if self.is_watched(dir_path):
             raise ValueError('dir %s is already watched' % dir_path)
-        wdd = self.__wm.add_watch(dir_path, DeejaydInotify.EVENT_MASK,
+        wdd = self.__wm.add_watch(dir_path, self.EVENT_MASK,
                       proc_fun=InotifyWatcher(library,self.__queue), rec=True,
                       auto_add=True)
         self.__watched_dirs[dir_path] = wdd
@@ -186,7 +199,7 @@ class DeejaydInotify(threading.Thread):
             self.__wm.rm_watch(wdd[dir_path], rec=True)
 
     def run(self):
-        notifier = Notifier(self.__wm)
+        notifier = pyinotify.Notifier(self.__wm)
 
         for library in (self.__audio_library, self.__video_library):
             if library:
@@ -195,7 +208,7 @@ class DeejaydInotify(threading.Thread):
                     self.watch_dir(dir_path, library)
 
         # start library watcher thread
-        lib_watcher = LibraryWatcher(self.__db, self.__queue)
+        lib_watcher = self.watcher(self.__db, self.__queue)
         lib_watcher.start()
         while not self.should_stop.isSet():
             # process the queue of events as explained above
@@ -209,5 +222,45 @@ class DeejaydInotify(threading.Thread):
     def close(self):
         self.should_stop.set()
         threading.Thread.join(self)
+        print "thread joined"
+
+
+class DeejaydInotify(_DeejaydInotify):
+
+    def watched_events_mask(self):
+        return pyinotify.IN_DELETE |\
+               pyinotify.IN_CREATE |\
+               pyinotify.IN_MOVED_FROM |\
+               pyinotify.IN_MOVED_TO |\
+               pyinotify.IN_CLOSE_WRITE
+
+    def watcher(self, db, queue):
+        return LibraryWatcher(db, queue)
+
+
+class DeejaydInotifyOLD(_DeejaydInotify):
+
+    def watched_events_mask(self):
+        return pyinotify.EventsCodes.IN_DELETE |\
+               pyinotify.EventsCodes.IN_CREATE |\
+               pyinotify.EventsCodes.IN_MOVED_FROM |\
+               pyinotify.EventsCodes.IN_MOVED_TO |\
+               pyinotify.EventsCodes.IN_CLOSE_WRITE
+
+    def watcher(self, db, queue):
+        return LibraryWatcherOLD(db, queue)
+
+
+def get_watcher(db, audio_library, video_library):
+    try:
+        pyinotify_version = map(int, pyinotify.__version__.split('.'))
+    except AttributeError:
+        pyinotify_version = [0, 7]
+
+    if pyinotify_version >= [0, 8]:
+        return DeejaydInotify(db, audio_library, video_library)
+    else:
+        return DeejaydInotifyOLD(db, audio_library, video_library)
+
 
 # vim: ts=4 sw=4 expandtab

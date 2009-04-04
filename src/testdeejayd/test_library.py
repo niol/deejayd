@@ -277,7 +277,7 @@ class TestInotifySupport(TestCaseWithAudioData, _TestDeejayDBLibrary):
         _TestDeejayDBLibrary.setUp(self)
 
         # start inotify thread
-        self.watcher = inotify.DeejaydInotify(self.db, self.library, None)
+        self.watcher = inotify.get_watcher(self.db, self.library, None)
         self.watcher.start()
         time.sleep(5)
 
