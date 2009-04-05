@@ -222,7 +222,6 @@ class _DeejaydInotify(threading.Thread):
     def close(self):
         self.should_stop.set()
         threading.Thread.join(self)
-        print "thread joined"
 
 
 class DeejaydInotify(_DeejaydInotify):
