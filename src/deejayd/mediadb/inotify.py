@@ -199,7 +199,7 @@ class _DeejaydInotify(threading.Thread):
             self.__wm.rm_watch(wdd[dir_path], rec=True)
 
     def run(self):
-        notifier = pyinotify.Notifier(self.__wm)
+        notifier = self.notifier(self.__wm)
 
         for library in (self.__audio_library, self.__video_library):
             if library:
@@ -237,6 +237,9 @@ class DeejaydInotify(_DeejaydInotify):
     def watcher(self, db, queue):
         return LibraryWatcher(db, queue)
 
+    def notifier(self, watch_manager):
+        return pyinotify.Notifier(watch_manager, timeout=1000)
+
 
 class DeejaydInotifyOLD(_DeejaydInotify):
 
@@ -249,6 +252,9 @@ class DeejaydInotifyOLD(_DeejaydInotify):
 
     def watcher(self, db, queue):
         return LibraryWatcherOLD(db, queue)
+
+    def notifier(self, watch_manager):
+        return pyinotify.Notifier(watch_manager)
 
 
 def get_watcher(db, audio_library, video_library):
