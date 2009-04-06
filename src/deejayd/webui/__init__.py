@@ -67,6 +67,13 @@ class DeejaydMobileHandler(Resource):
         return Resource.getChild(self,name,request)
 
     def render_GET(self, request):
+        # Trailing slash is required for js script paths in the mobile webui,
+        # therefore we need to add it if it is missing, by issuing a redirect
+        # to the web browser.
+        if request.prepath[-1] != '':
+            request.redirect(request.path + '/')
+            return 'redirected'
+
         try: rs = mobile.build_template(request.getHeader("user-agent"))
         except IOError, err:
             raise DeejaydWebError(err)
