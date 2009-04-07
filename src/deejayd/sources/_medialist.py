@@ -18,6 +18,8 @@
 
 import random
 
+__all__ = ["SimpleMediaList", "SortedMediaList", "UnsortedMediaList"]
+
 class SimpleMediaList(object):
 
     def __init__(self, list_id = 0):
@@ -144,28 +146,8 @@ class SimpleMediaList(object):
                 return id
         raise ValueError
 
-class MediaList(SimpleMediaList):
 
-    def move(self, ids, new_pos, type = "id"):
-        if type == "pos": ids = [self._order[p] for p in ids]
-        missing_ids = [id for id in ids if id not in self._order]
-        if missing_ids: return False
-
-        s_list = [id for id in self._order[:new_pos] if id not in ids]
-        e_list = [id for id in self._order[new_pos:] if id not in ids]
-        self._order = s_list + ids + e_list
-        self.list_id += 1
-        return True
-
-    def shuffle(self, current = None):
-        if not self._order: return
-        random.shuffle(self._order)
-        if current and current["id"]:
-            try: self._order.remove(current["id"])
-            except ValueError: pass
-            else:
-                self._order = [current["id"]] + self._order
-        self.list_id += 1
+class _MediaList(SimpleMediaList):
 
     #
     # library changes action
@@ -192,5 +174,59 @@ class MediaList(SimpleMediaList):
                 ans = True
         if ans: self.list_id += 1
         return ans
+
+
+class UnsortedMediaList(_MediaList):
+
+    def move(self, ids, new_pos, type = "id"):
+        if type == "pos": ids = [self._order[p] for p in ids]
+        missing_ids = [id for id in ids if id not in self._order]
+        if missing_ids: return False
+
+        s_list = [id for id in self._order[:new_pos] if id not in ids]
+        e_list = [id for id in self._order[new_pos:] if id not in ids]
+        self._order = s_list + ids + e_list
+        self.list_id += 1
+        return True
+
+    def shuffle(self, current = None):
+        if not self._order: return
+        random.shuffle(self._order)
+        if current and current["id"]:
+            try: self._order.remove(current["id"])
+            except ValueError: pass
+            else:
+                self._order = [current["id"]] + self._order
+        self.list_id += 1
+
+
+class SortedMediaList(_MediaList):
+
+    def __init__(self, list_id = 0):
+        super(SortedMediaList, self).__init__(list_id)
+
+    #
+    # sort actions
+    #
+    def __compare_tag(self, id1, id2, tag, direction):
+        m1 = self._content[id1]
+        m2 = self._content[id2]
+        if m1[tag] < m2[tag]:
+            return direction == "ascending" and -1 or 1
+        elif m1[tag] == m2[tag]:
+            return 0
+        else:
+            return direction == "ascending" and 1 or -1
+
+    def sort(self, sorts):
+
+        def compare(id1, id2):
+            for (tag, direction) in sorts:
+                result = self.__compare_tag(id1, id2, tag, direction)
+                if result != 0: return result
+            return 0
+
+        self._order.sort(cmp=compare)
+        self.list_id += 1
 
 # vim: ts=4 sw=4 expandtab

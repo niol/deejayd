@@ -17,10 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd.mediafilters import *
-from deejayd.sources._base import _BaseLibrarySource, SourceError
+from deejayd.sources._base import _BaseSortedLibSource, SourceError
 from deejayd.ui import log
 
-class PanelSource(_BaseLibrarySource):
+class PanelSource(_BaseSortedLibSource):
     SUBSCRIPTIONS = {
             "playlist.update": "cb_playlist_update",
             "playlist.listupdate": "cb_playlist_listupdate",
@@ -52,12 +52,12 @@ class PanelSource(_BaseLibrarySource):
         filter = And()
         try: ml_id = self.db.get_medialist_id(self.base_medialist, 'magic')
         except ValueError: # medialist does not exist
-            self.__sorts = []
+            self._sorts = []
         else:
             # get filters
             filter.filterlist = self.db.get_magic_medialist_filters(ml_id)
             # get recorded sorts
-            self.__sorts = self.db.get_magic_medialist_sorts(ml_id) or []
+            self._sorts = self.db.get_magic_medialist_sorts(ml_id) or []
         self.__filters_to_parms(filter)
 
         # custom attributes
@@ -92,13 +92,14 @@ class PanelSource(_BaseLibrarySource):
         self.__filter.filterlist.append(panel_filter)
 
         if self.__selected_mode["type"] == "panel":
-            sorts = self.__sorts + self.__class__.default_sorts
+            sorts = self._sorts + self.__class__.default_sorts
             medias = self.library.search(self.__filter, sorts)
             self._media_list.set(medias)
             self.__update_current()
             self.dispatch_signame(self.__class__.source_signal)
 
     def __update_active_list(self, type, pl_id, raise_ex = False):
+        need_sort, sorts = False, self._sorts + self.__class__.default_sorts
         if type == "playlist":
             try: medias = self._get_playlist_content(pl_id)
             except SourceError: # playlist does not exist, set to panel
@@ -106,13 +107,15 @@ class PanelSource(_BaseLibrarySource):
                     raise SourceError(_("Playlist with id %s not found")\
                             % str(pl_id))
                 self.__selected_mode["type"] = "panel";
-                medias = self.library.search(self.__filter, self.__sorts)
+                medias = self.library.search(self.__filter, sorts)
+            else:
+                need_sort = True
         elif type == "panel":
-            sorts = self.__sorts + self.__class__.default_sorts
             medias = self.library.search(self.__filter, sorts)
         else:
             raise TypeError
         self._media_list.set(medias)
+        if need_sort: self._media_list.sort(self._sorts)
 
     def __update_current(self):
         if self._current and self._current["id"] != -1: # update current id
@@ -175,15 +178,6 @@ class PanelSource(_BaseLibrarySource):
             self.__search = None
             self.__update_panel_filters()
 
-    def set_sorts(self, sorts):
-        for (tag, direction) in sorts:
-            if tag not in self.__class__.sort_tags:
-                raise SourceError(_("Tag '%s' not supported for sort") % tag)
-            if direction not in ('ascending', 'descending'):
-                raise SourceError(_("Bad sort direction for panel") % tag)
-        self.__sorts = sorts
-        self.__update_panel_filters()
-
     def get_active_list(self):
         return self.__selected_mode
 
@@ -199,9 +193,9 @@ class PanelSource(_BaseLibrarySource):
     def get_content(self, start = 0, stop = None):
         if self.__selected_mode["type"] == "panel":
             return self._media_list.get(start, stop), self.__filter,\
-                    self.__sorts
+                    self._sorts
         elif self.__selected_mode["type"] == "playlist":
-            return self._media_list.get(start, stop), None, None
+            return self._media_list.get(start, stop), None, self._sorts
 
     def close(self):
         states = [
@@ -218,7 +212,7 @@ class PanelSource(_BaseLibrarySource):
         ml_id = self.db.set_magic_medialist_filters(self.base_medialist,\
                 filter_list)
         # save panel sorts
-        self.db.set_magic_medialist_sorts(ml_id, self.__sorts)
+        self.db.set_magic_medialist_sorts(ml_id, self._sorts)
 
     #
     # callback for deejayd signal

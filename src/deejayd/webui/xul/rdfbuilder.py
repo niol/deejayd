@@ -190,13 +190,13 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
                     panel_filter.combine(ft)
                     break
 
-            sorts = panel.get().get_sort()
-            if sorts is not None:
-                sort_elt = ET.SubElement(elt, "sorts")
-                for (tag, direction) in sorts:
-                    tag_elt = ET.SubElement(sort_elt, "item")
-                    tag_elt.attrib["tag"] = self._to_xml_string(tag)
-                    tag_elt.attrib["direction"] = self._to_xml_string(direction)
+        sorts = panel.get().get_sort()
+        if sorts is not None:
+            sort_elt = ET.SubElement(elt, "sorts")
+            for (tag, direction) in sorts:
+                tag_elt = ET.SubElement(sort_elt, "item")
+                tag_elt.attrib["tag"] = self._to_xml_string(tag)
+                tag_elt.attrib["direction"] = self._to_xml_string(direction)
 
     def _build_rdf_file(self, new_id):
         panel = self._deejayd.get_panel()
@@ -235,6 +235,17 @@ class DeejaydVideoRdf(_DeejaydSourceRdf):
     name = "video"
     locale_strings = ("%s Videos", "%s Videos")
     get_list_func = "get_video"
+
+    def update(self, xml_ans, status):
+        elt = super(DeejaydVideoRdf, self).update(xml_ans, status)
+        video = self._deejayd.get_video()
+        sorts = video.get().get_sort()
+        if sorts is not None:
+            sort_elt = ET.SubElement(elt, "sorts")
+            for (tag, direction) in sorts:
+                tag_elt = ET.SubElement(sort_elt, "item")
+                tag_elt.attrib["tag"] = self._to_xml_string(tag)
+                tag_elt.attrib["direction"] = self._to_xml_string(direction)
 
 class DeejaydVideoDirRdf(_DeejaydSourceRdf):
     name = "videodir"

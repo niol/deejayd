@@ -416,9 +416,9 @@ class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get(self, first = 0, length = -1):
-        videos = self.source.get_content()
+        videos, filters, sort = self.source.get_content()
         last = length == -1 and len(videos) or int(first) + int(length)
-        return videos[int(first):last]
+        return (videos[int(first):last], filters, sort)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set(self, value, type = "directory"):
@@ -426,6 +426,11 @@ class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set_sorts(self, sorts):
+        try: self.source.set_sorts(sorts)
+        except deejayd.sources._base.SourceError, ex:
+            raise DeejaydError(str(ex))
 
 class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 

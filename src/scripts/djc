@@ -181,6 +181,12 @@ class AvailableCommands:
     def video_info(self, args):
         """ Get video list's content """
         contents = self.server.get_video().get()
+        if contents.get_sort() is not None:
+            print "############ Sort ############"
+            sorts = contents.get_sort()
+            for s in sorts:
+                print "  * %s - %s" % s
+        print "############ Video List ############"
         for media in contents.get_medias():
             print media["pos"], '|', media["title"], '|',\
                   media["videowidth"], '|',\

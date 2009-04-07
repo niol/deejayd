@@ -284,8 +284,8 @@ class WebradioClear(_DefaultAnswer, default_commands.WebradioClear): pass
 #
 # Video commands
 #
-class SetVideo(_DefaultAnswer, default_commands.SetVideo):
-    pass
+class SetVideo(_DefaultAnswer, default_commands.SetVideo): pass
+class VideoSort(_DefaultAnswer, default_commands.VideoSort): pass
 
 #
 # Dvd commands

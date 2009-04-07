@@ -83,8 +83,41 @@ var VideoList = function()
     this.treeController = false;
     this.customUpdate = function(video)
     {
+        // reset sorts
+        var cols = this.tree.getElementsByTagName("treecol");
+        for (var i=0; col = cols.item(i); i++) {
+            col.setAttribute("sortActive", "false");
+            col.setAttribute("sortDirection", "");
+            }
+
+        // set new sort
+        var sorts = video.getElementsByTagName("sorts").item(0);
+        if (sorts) {
+            var sort_items = sorts.getElementsByTagName("item")
+            for (var i=0; item = sort_items.item(i); i++) {
+                var col = $("video-"+item.getAttribute("tag"));
+                col.setAttribute("sortActive", "true");
+                col.setAttribute("sortDirection",
+                        item.getAttribute("direction"));
+                }
+            }
+
         $("videolist-description").value = video.getAttribute("description");
         return true;
+    };
+
+    this.updateSort = function(tag)
+    {
+        var video_col = $('video-'+tag);
+        var direction = "ascending";
+        if (video_col.getAttribute("sortActive") == "true"
+                && video_col.getAttribute("sortDirection") == "ascending")
+            direction = "descending";
+        else if (video_col.getAttribute("sortActive") == "true"
+                && video_col.getAttribute("sortDirection") == "descending")
+            direction = "none";
+        ajaxdj_ref.send_post_command('videoSort',
+            {"tag": tag, "direction": direction});
     };
 };
 // heritage by prototype

@@ -18,38 +18,58 @@
 
 import os
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources._base import _BaseLibrarySource, SourceError
+from deejayd.sources._base import _BaseSortedLibSource, SourceError
 from deejayd import mediafilters
 
-class VideoSource(_BaseLibrarySource):
+class VideoSource(_BaseSortedLibSource):
     SUBSCRIPTIONS = {
             "mediadb.mupdate": "cb_library_changes",
             }
     name = "video"
     base_medialist = "__videocurrent__"
     source_signal = 'video.update'
+    sort_tags = ('title','rating','length')
+    default_sorts = [("title", "ascending")]
 
     def __init__(self, db, library):
         super(VideoSource, self).__init__(db, library)
         # load saved
         try: ml_id = self.db.get_medialist_id(self.base_medialist, 'static')
         except ValueError: # medialist does not exist
-            pass
+            self._sorts = []
         else:
+            self._sorts = self.db.get_magic_medialist_sorts(ml_id) or []
             self._media_list.set(self._get_playlist_content(ml_id))
+            self.set_sorts(self._sorts)
 
     def set(self, type, value):
+        need_sort = False
         if type == "directory":
             try: video_list = self.library.get_all_files(value)
             except NotFoundException:
                 raise SourceError(_("Directory %s not found") % value)
+            need_sort = True
         elif type == "search":
+            sorts = self._sorts + self.__class__.default_sorts
             video_list = self.library.search(\
-                mediafilters.Contains("title",value), [("title","ascending")])
+                mediafilters.Contains("title",value), sorts)
         else:
             raise SourceError(_("type %s not supported") % type)
 
         self._media_list.set(video_list)
+        if need_sort: self._media_list.sort(self._sorts)
         self.dispatch_signame(self.source_signal)
+
+    def get_content(self, start = 0, stop = None):
+        return self._media_list.get(start, stop), None, self._sorts
+
+    def close(self):
+        super(VideoSource, self).close()
+        # save panel sorts
+        try: ml_id = self.db.get_medialist_id(self.base_medialist, 'static')
+        except ValueError: # medialist does not exist
+            pass
+        else:
+            self.db.set_magic_medialist_sorts(ml_id, self._sorts)
 
 # vim: ts=4 sw=4 expandtab

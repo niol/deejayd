@@ -363,6 +363,9 @@ class DeejaydVideo(object):
     def set(self, value, type = "directory"):
         raise NotImplementedError
 
+    def set_sorts(self, sorts):
+        raise NotImplementedError
+
 
 class DeejaydSignal(object):
 

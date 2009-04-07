@@ -137,15 +137,17 @@ var Panel = function()
                     col.setAttribute("sortActive", "false");
                     col.setAttribute("sortDirection", "");
                     }
-                var sorts = obj.getElementsByTagName("sorts").item(0);
-                if (sorts) {
-                    var sort_items = sorts.getElementsByTagName("item")
-                    for (var i=0; item = sort_items.item(i); i++) {
-                        var col = $("panel-"+item.getAttribute("tag"));
-                        col.setAttribute("sortActive", "true");
-                        col.setAttribute("sortDirection",
-                                item.getAttribute("direction"));
-                        }
+                }
+
+            // update sorts
+            var sorts = obj.getElementsByTagName("sorts").item(0);
+            if (sorts) {
+                var sort_items = sorts.getElementsByTagName("item")
+                for (var i=0; item = sort_items.item(i); i++) {
+                    var col = $("panel-"+item.getAttribute("tag"));
+                    col.setAttribute("sortActive", "true");
+                    col.setAttribute("sortDirection",
+                            item.getAttribute("direction"));
                     }
                 }
 

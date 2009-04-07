@@ -1128,8 +1128,8 @@
                 label=""/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-title"
+                onclick="videolist_ref.updateSort('title');"
                 flex="4" label="&title;"/>
-
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-width"
                 flex="1" label="&width;"/>
@@ -1138,12 +1138,13 @@
                 flex="1" label="&height;"/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-length"
+                onclick="videolist_ref.updateSort('length');"
                 flex="1" label="&length;"/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-rating"
+                onclick="videolist_ref.updateSort('rating');"
                 flex="2" label="&rating;"/>
             <splitter class="tree-splitter"/>
-
             <treecol persist="width ordinal hidden" id="video-subtitle"
                 hidden="true" flex="4" label="&subtitle;"/>
         </treecols>

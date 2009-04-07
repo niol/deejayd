@@ -22,7 +22,7 @@ from twisted.internet import reactor
 from deejayd import mediafilters
 from deejayd.component import SignalingComponent
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources._medialist import SimpleMediaList, MediaList
+from deejayd.sources._medialist import *
 from deejayd.sources._playorder import orders
 
 class SourceError(Exception):
@@ -106,23 +106,15 @@ class _BaseLibrarySource(_BaseSource):
 
     def __init__(self, db, library):
         super(_BaseLibrarySource, self).__init__(db)
-        self._media_list = MediaList(self.get_recorded_id() + 1)
+        if self.medialist_type == "sorted":
+            self._media_list = SortedMediaList(self.get_recorded_id() + 1)
+        elif self.medialist_type == "unsorted":
+            self._media_list = UnsortedMediaList(self.get_recorded_id() + 1)
         self.library = library
 
         if self.has_repeat:
             self._media_list.repeat = int(db.get_state(self.name+"-repeat"))
         self._playorder = orders[db.get_state(self.name+"-playorder")]
-
-
-    def set_option(self, name, value):
-        if name == "playorder":
-            try: self._playorder = orders[value]
-            except KeyError:
-                raise SourceError(_("Unable to set %s order, not supported") %
-                    value)
-        elif name == "repeat" and self.has_repeat:
-            self._media_list.repeat = int(value)
-        else: raise NotImplementedError
 
     def _get_playlist_content(self, pl_id):
         try:
@@ -147,6 +139,16 @@ class _BaseLibrarySource(_BaseSource):
                 return self.library.search(filter, sorts, limit)
         except TypeError:
             raise SourceError(_("Playlist %s does not exist.") % str(pl_id))
+
+    def set_option(self, name, value):
+        if name == "playorder":
+            try: self._playorder = orders[value]
+            except KeyError:
+                raise SourceError(_("Unable to set %s order, not supported") %
+                    value)
+        elif name == "repeat" and self.has_repeat:
+            self._media_list.repeat = int(value)
+        else: raise NotImplementedError
 
     def get_status(self):
         status = super(_BaseLibrarySource, self).get_status()
@@ -182,8 +184,23 @@ class _BaseLibrarySource(_BaseSource):
             self.dispatch_signame(self.source_signal)
 
 
+class _BaseSortedLibSource(_BaseLibrarySource):
+    medialist_type = "sorted"
+
+    def set_sorts(self, sorts):
+        for (tag, direction) in sorts:
+            if tag not in self.sort_tags:
+                raise SourceError(_("Tag '%s' not supported for sort") % tag)
+            if direction not in ('ascending', 'descending'):
+                raise SourceError(_("Bad sort direction for panel") % tag)
+        self._sorts = sorts
+        self._media_list.sort(self._sorts + self.default_sorts)
+        self.dispatch_signame(self.source_signal)
+
+
 class _BaseAudioLibSource(_BaseLibrarySource):
     base_medialist = ''
+    medialist_type = "unsorted"
 
     def __init__(self, db, audio_library):
         super(_BaseAudioLibSource, self).__init__(db, audio_library)

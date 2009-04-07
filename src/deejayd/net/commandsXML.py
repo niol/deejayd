@@ -389,7 +389,7 @@ class VideoInfo(UnknownCommand):
                     {"name":"length","type":"int","req":False,"default":-1}]
 
     def _execute(self):
-        videos = self.deejayd_core.get_video().get(self.args["first"],\
+        videos, f, sort = self.deejayd_core.get_video().get(self.args["first"],\
             self.args["length"], objanswer=False)
 
         rsp = self.get_answer('MediaList')
@@ -398,8 +398,19 @@ class VideoInfo(UnknownCommand):
         if self.args["length"] != -1:
             status = self.deejayd_core.get_status(objanswer=False)
             rsp.set_total_length(status["videolength"])
+        rsp.set_sort(sort)
 
         return rsp
+
+
+class VideoSetSort(UnknownCommand):
+    """Sort active medialist in panel mode"""
+    command_name = 'videoSort'
+    command_args = [{"name":"sort","type":"sort","req":True},]
+
+    def _execute(self):
+        self.deejayd_core.get_video().set_sorts(self.args['sort'],\
+                objanswer=False)
 
 
 ###################################################

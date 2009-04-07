@@ -575,6 +575,22 @@ class SetVideo(_Command):
         video = self._deejayd.get_video()
         video.set(self._args["value"], self._args["type"]).get_contents()
 
+class VideoSort(_Command):
+    name = "videoSort"
+    method = "post"
+    command_args = [
+        {"name":"direction","type":"enum_str",\
+         "values":("ascending","descending", "none"),"req":True},\
+        {"name":"tag","type":"enum_str",\
+         "values":("title","rating","length"),"req":True},]
+
+    def execute(self):
+        video = self._deejayd.get_video()
+        if self._args["direction"] != "none":
+            video.set_sorts([(self._args["tag"], self._args["direction"])])
+        else:
+            video.set_sorts([])
+
 ########################################################################
 ########################################################################
 class DvdLoad(_Command):
