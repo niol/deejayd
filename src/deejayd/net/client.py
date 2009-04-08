@@ -407,6 +407,11 @@ class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
         cmd.add_simple_arg('type', type)
         return self.server._send_command(cmd)
 
+    def set_sorts(self, sort):
+        cmd = DeejaydXMLCommand('videoSort')
+        cmd.add_sort_arg('sort', sort)
+        return self.server._send_command(cmd)
+
 
 class ConnectError(Exception):
     pass
