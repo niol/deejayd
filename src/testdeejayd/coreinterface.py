@@ -370,7 +370,17 @@ class InterfaceTests:
 
         # test videolist content
         video_list = video_obj.get().get_medias()
+        ans = self.deejayd.get_video_dir(dir)
         self.assertEqual(len(video_list), len(ans.get_files()))
+        # sort videolist content
+        sort = [("rating", "ascending")]
+        video_obj.set_sorts(sort).get_contents()
+        video_list = video_obj.get()
+        self.assertEqual(video_list.get_sort(), sort)
+        # set bad sort
+        rnd_sort = [(self.testdata.getRandomString(), "ascending")]
+        ans = video_obj.set_sorts(rnd_sort)
+        self.assertRaises(DeejaydError, ans.get_contents)
 
         # search a wrong title
         rand = self.testdata.getRandomString()
@@ -707,10 +717,26 @@ class InterfaceSubscribeTests:
                         (djpn.set_active_list, ("panel", "0")),
                         (djpn.set_panel_filters, ("genre", "zboub")),
                         (djpn.clear_panel_filters, []),
+                        (djpn.set_sorts, ([("genre", "ascending")],)),
                        )
 
         for trig in trigger_list:
             self.generic_sub_bcast_test('panel.update', trig[0], trig[1])
+
+    def test_sub_broadcast_video_update(self):
+        """Checks that video.update signals are broadcasted."""
+
+        djvideo = self.deejayd.get_video()
+        ans = self.deejayd.get_video_dir()
+        dir = self.testdata.getRandomElement(ans.get_directories())
+
+        trigger_list = (
+                        (djvideo.set, (dir, "directory")),
+                        (djvideo.set_sorts, ([("title", "ascending")],)),
+                       )
+
+        for trig in trigger_list:
+            self.generic_sub_bcast_test('video.update', trig[0], trig[1])
 
     def test_sub_broadcast_webradio_listupdate(self):
         """Checks that webradio.listupdate signals are broadcasted."""
