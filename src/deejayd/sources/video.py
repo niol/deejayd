@@ -38,7 +38,7 @@ class VideoSource(_BaseSortedLibSource):
         except ValueError: # medialist does not exist
             self._sorts = []
         else:
-            self._sorts = self.db.get_magic_medialist_sorts(ml_id) or []
+            self._sorts = list(self.db.get_magic_medialist_sorts(ml_id)) or []
             self._media_list.set(self._get_playlist_content(ml_id))
             self.set_sorts(self._sorts)
 

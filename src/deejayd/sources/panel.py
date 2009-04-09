@@ -57,7 +57,7 @@ class PanelSource(_BaseSortedLibSource):
             # get filters
             filter.filterlist = self.db.get_magic_medialist_filters(ml_id)
             # get recorded sorts
-            self._sorts = self.db.get_magic_medialist_sorts(ml_id) or []
+            self._sorts = list(self.db.get_magic_medialist_sorts(ml_id)) or []
         self.__filters_to_parms(filter)
 
         # custom attributes
