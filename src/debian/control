@@ -43,7 +43,7 @@ Description: Web interface for deejayd
 
 Package: deejayd-client
 Architecture: all
-Depends: ${python:Depends}, python-celementtree | python (>= 2.5)
+Depends: ${python:Depends}, python-lxml
 Conflicts: djc
 XB-Python-Version: ${python:Versions}
 Description: Client library and command line tool to access the deejayd server
