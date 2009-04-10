@@ -20,19 +20,14 @@ import os, locale
 
 from twisted.internet import reactor
 from deejayd import mediafilters
+from deejayd.interfaces import DeejaydError
 from deejayd.component import SignalingComponent
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._medialist import *
 from deejayd.sources._playorder import orders
 
-class SourceError(Exception):
-    # Handle unicode messages, what Exceptions cannot. See Python issue at
-    # http://bugs.python.org/issue2517
-    def __str__(self):
-        if type(self.message) is unicode:
-            return str(self.message.encode(locale.getpreferredencoding()))
-        else:
-            return str(self.message)
+
+class SourceError(DeejaydError): pass
 
 
 class _BaseSource(SignalingComponent):
