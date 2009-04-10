@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.7.99 (not released yet)
+Actual version : 0.8.0 (not released yet)
 ----------------------
 
 Description:
@@ -72,10 +72,10 @@ Requirements:
 Installation:
 -------------
 Download deejayd and extract it:
-  $tar xzvf deejayd-0.7.2.tar.gz
+  $tar xzvf deejayd-0.8.0.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.7.2
+  $cd deejayd-0.8.0
   $python setup.py build
   $python setup.py install
 
