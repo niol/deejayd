@@ -464,7 +464,21 @@ Arguments :
 
 Expected return value : ''`Ack`''
 
-=== `staticPlaylistInfo` ===
+=== `playlistCreate` ===
+
+Create recorded playlist. The answer consist on
+      * pl_id : id of the created playlist
+      * name : name of the created playlist
+      * type : type of the created playlist
+      
+
+Arguments :
+  * {{{name}}} (Simple and Mandatory) : string
+  * {{{type}}} (Simple and Mandatory) : enum_str
+
+Expected return value : ''`KeyValue`''
+
+=== `recordedPlaylistInfo` ===
 
 Return the content of a recorded static playlists.
 
@@ -477,12 +491,67 @@ Expected return value : ''`MediaList`''
 
 === `staticPlaylistAdd` ===
 
-Add songs in a recorded static playlists.
+Add songs in a recorded static playlist.
 
 Arguments :
   * {{{values}}} (Multiple and Mandatory) : string
   * {{{playlist_id}}} (Simple and Mandatory) : int
   * {{{type}}} (Simple and Optional) : enum_str
+
+Expected return value : ''`Ack`''
+
+=== `magicPlaylistAddFilter` ===
+
+Add a filter in recorded magic playlist.
+
+Arguments :
+  * {{{playlist_id}}} (Simple and Mandatory) : int
+  * {{{filter}}} (Simple and Mandatory) : filter
+
+Expected return value : ''`Ack`''
+
+=== `magicPlaylistClearFilter` ===
+
+Remove all filter from recorded magic playlist.
+
+Arguments :
+  * {{{playlist_id}}} (Simple and Mandatory) : int
+
+Expected return value : ''`Ack`''
+
+=== `magicPlaylistRemoveFilter` ===
+
+Remove a filter from recorded magic playlist.
+
+Arguments :
+  * {{{playlist_id}}} (Simple and Mandatory) : int
+  * {{{filter}}} (Simple and Mandatory) : filter
+
+Expected return value : ''`Ack`''
+
+=== `magicPlaylistGetProperties` ===
+
+Get properties of a magic playlist
+      * use-or-filter: if equal to 1, use "Or" filter instead of "And" (0 or 1)
+      * use-limit: limit or not number of songs in the playlist (0 or 1)
+      * limit-value: number of songs for this playlist (integer)
+      * limit-sort-value: when limit is active sort playlist with this tag
+      * limit-sort-direction: sort direction for limit (ascending or descending)
+      
+
+Arguments :
+  * {{{playlist_id}}} (Simple and Mandatory) : int
+
+Expected return value : ''`KeyValue`''
+
+=== `magicPlaylistSetProperty` ===
+
+Remove all filter from recorded magic playlist.
+
+Arguments :
+  * {{{playlist_id}}} (Simple and Mandatory) : int
+  * {{{key}}} (Simple and Mandatory) : enum_str
+  * {{{value}}} (Simple and Mandatory) : string
 
 Expected return value : ''`Ack`''
 
@@ -801,6 +870,15 @@ Arguments :
   * {{{length}}} (Simple and Optional) : int
 
 Expected return value : ''`MediaList`''
+
+=== `videoSort` ===
+
+Sort active medialist in panel mode
+
+Arguments :
+  * {{{sort}}} (Simple and Mandatory) : sort
+
+Expected return value : ''`Ack`''
 
 === `dvdLoad` ===
 
