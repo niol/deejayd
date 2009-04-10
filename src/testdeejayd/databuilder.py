@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2008 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
