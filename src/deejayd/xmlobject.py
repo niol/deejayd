@@ -16,19 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-IS_LXML = False
-try: # use python-lxml if available
-    from lxml import etree as ET
-    IS_LXML = True
+# need python-lxml
+try: from lxml import etree as ET
 except ImportError:
-    # try to import cElementTree module
-    try: from xml.etree import cElementTree as ET # python 2.5
-    except ImportError: # python 2.4
-        try: import cElementTree as ET
-        except ImportError:
-            import sys
-            sys.exit(_("Unable to import module to build/parse xml"))
-
+    import sys
+    msg = "Unable to import module to build/parse xml, please install lxml"
+    sys.exit(_(msg))
 
 class DeejaydXMLObject(object):
 
@@ -60,9 +53,7 @@ class DeejaydXMLObject(object):
                 elem.tail = i
 
     def to_string(self):
-        if IS_LXML: return ET.tostring(self.xmlroot)
-        else:
-            return ET.tostring(self.xmlroot,'utf-8')
+        return ET.tostring(self.xmlroot)
 
     def to_xml(self):
         return '<?xml version="1.0" encoding="utf-8"?>' + self.to_string()
