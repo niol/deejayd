@@ -51,7 +51,6 @@ RDEPEND="
 			>=x11-libs/libXext-1.0.0
 			>=media-libs/xine-lib-1.1.0 )
 	dvd? ( >=media-video/lsdvd-0.16 )"
-S="${WORKDIR}/${P}/src"
 
 
 pkg_setup() {
