@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-14 23:12+0100\n"
+"POT-Creation-Date: 2009-04-12 23:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,76 +27,80 @@ msgstr ""
 msgid "Path %s not found in library"
 msgstr ""
 
-#: ../deejayd/core.py:152
+#: ../deejayd/core.py:167
+msgid "Only basic filters are allowed for magic playlist"
+msgstr ""
+
+#: ../deejayd/core.py:217
 msgid "Webradio URI not supported"
 msgstr ""
 
-#: ../deejayd/core.py:154
+#: ../deejayd/core.py:219
 msgid "Webradio info could not be retrieved"
 msgstr ""
 
-#: ../deejayd/core.py:309
+#: ../deejayd/core.py:374
 msgid "Not supported type"
 msgstr ""
 
-#: ../deejayd/core.py:465
+#: ../deejayd/core.py:535
 msgid "Bad value for id parm"
 msgstr ""
 
-#: ../deejayd/core.py:479 ../deejayd/core.py:487
+#: ../deejayd/core.py:549 ../deejayd/core.py:557
 #, python-format
 msgid "Mode %s not supported"
 msgstr ""
 
-#: ../deejayd/core.py:501
+#: ../deejayd/core.py:571
 #, python-format
 msgid "Option %s does not exist"
 msgstr ""
 
-#: ../deejayd/core.py:503
+#: ../deejayd/core.py:573
 #, python-format
 msgid "Option %s is not supported for this backend"
 msgstr ""
 
-#: ../deejayd/core.py:530 ../deejayd/core.py:617
+#: ../deejayd/core.py:600 ../deejayd/core.py:700
 msgid "Video mode disabled"
 msgstr ""
 
 #. pls already exists
-#: ../deejayd/core.py:538
+#: ../deejayd/core.py:609
 msgid "This playlist already exists"
 msgstr ""
 
-#: ../deejayd/core.py:549
+#: ../deejayd/core.py:632
 #, python-format
 msgid "Playlist with id %s not found."
 msgstr ""
 
-#: ../deejayd/core.py:570
+#: ../deejayd/core.py:653
 msgid "Bad rating value"
 msgstr ""
 
-#: ../deejayd/core.py:574 ../deejayd/core.py:601
+#: ../deejayd/core.py:657 ../deejayd/core.py:684
 #, python-format
 msgid "Type %s is not supported"
 msgstr ""
 
-#: ../deejayd/core.py:578
+#: ../deejayd/core.py:661
 #, python-format
 msgid "%s library not activated"
 msgstr ""
 
-#: ../deejayd/core.py:580
+#: ../deejayd/core.py:663
 #, python-format
 msgid "File with id %s not found"
 msgstr ""
 
-#: ../deejayd/core.py:587 ../deejayd/core.py:622
+#: ../deejayd/core.py:670 ../deejayd/core.py:705
 #, python-format
 msgid "Directory %s not found in database"
 msgstr ""
 
-#: ../deejayd/core.py:595
+#: ../deejayd/core.py:678
 msgid "Cover not found"
 msgstr ""
 
@@ -136,72 +140,67 @@ msgstr ""
 msgid "Could not connect to MySQL server %s."
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:39
+#: ../deejayd/mediadb/__init__.py:37
 #, python-format
 msgid "Unable to init audio library : %s"
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:46
+#: ../deejayd/mediadb/__init__.py:44
 #, python-format
 msgid "Unable to init video library : %s"
 msgstr ""
 
-#: ../deejayd/mediadb/__init__.py:50
+#: ../deejayd/mediadb/__init__.py:48
 msgid "Inotify support disabled"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:76
+#: ../deejayd/mediadb/library.py:77
 #, python-format
 msgid "Unable to find directory %s"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:324
+#: ../deejayd/mediadb/library.py:327
 #, python-format
 msgid "The %s library has been updated"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:326
+#: ../deejayd/mediadb/library.py:329
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:374
+#: ../deejayd/mediadb/library.py:379
 #, python-format
 msgid "File %s not supported"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:377
+#: ../deejayd/mediadb/library.py:382
 #, python-format
 msgid "Unable to get infos from %s, see traceback"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:394
-#, python-format
-msgid "library: emit %s change for file %d"
-msgstr ""
-
-#: ../deejayd/mediadb/library.py:518 ../deejayd/mediadb/library.py:522
-#: ../deejayd/mediadb/library.py:525
+#: ../deejayd/mediadb/library.py:514 ../deejayd/mediadb/library.py:518
+#: ../deejayd/mediadb/library.py:521
 #, python-format
 msgid "cover %s not supported"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:530
+#: ../deejayd/mediadb/library.py:526
 #, python-format
 msgid "cover %s : wrong mime type"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:535
+#: ../deejayd/mediadb/library.py:531
 #, python-format
 msgid "Unable to open cover file %s"
 msgstr ""
 
-#: ../deejayd/mediadb/inotify.py:31
+#: ../deejayd/mediadb/inotify.py:36
 #, python-format
 msgid "Inotify event %s: %s"
 msgstr ""
 
-#: ../deejayd/mediadb/inotify.py:88
+#: ../deejayd/mediadb/inotify.py:93
 #, python-format
 msgid "Inotify problem for '%s', see traceback"
 msgstr ""
@@ -246,18 +245,28 @@ msgstr ""
 msgid "Arg %s (%s) not match to the regular exp (%s)"
 msgstr ""
 
-#: ../deejayd/net/commandsXML.py:156 ../deejayd/webui/commands.py:94
+#: ../deejayd/net/commandsXML.py:156 ../deejayd/webui/commands.py:113
 #, python-format
 msgid "Arg %s is mising"
 msgstr ""
 
-#: ../deejayd/net/commandsXML.py:442 ../deejayd/net/commandsXML.py:532
-#: ../deejayd/net/commandsXML.py:781 ../deejayd/webui/commands.py:250
-#: ../deejayd/webui/commands.py:273 ../deejayd/webui/commands.py:430
+#: ../deejayd/net/commandsXML.py:456
+msgid "Selected playlist is not static."
+msgstr ""
+
+#: ../deejayd/net/commandsXML.py:460 ../deejayd/net/commandsXML.py:642
+#: ../deejayd/net/commandsXML.py:891 ../deejayd/webui/commands.py:317
+#: ../deejayd/webui/commands.py:340 ../deejayd/webui/commands.py:492
 msgid "Ids arg must be integer"
 msgstr ""
 
-#: ../deejayd/net/commandsXML.py:642
+#: ../deejayd/net/commandsXML.py:475 ../deejayd/net/commandsXML.py:488
+#: ../deejayd/net/commandsXML.py:500 ../deejayd/net/commandsXML.py:519
+#: ../deejayd/net/commandsXML.py:536
+msgid "Selected playlist is not magic."
+msgstr ""
+
+#: ../deejayd/net/commandsXML.py:752
 msgid "Set value arg to choose a playlist"
 msgstr ""
 
@@ -274,52 +283,52 @@ msgstr ""
 msgid "Invalid media backend"
 msgstr ""
 
-#: ../deejayd/player/xine.py:48 ../deejayd/player/xine.py:362
+#: ../deejayd/player/xine.py:48 ../deejayd/player/xine.py:369
 msgid "Unable to init a xine instance"
 msgstr ""
 
-#: ../deejayd/player/xine.py:84 ../deejayd/player/gstreamer.py:95
+#: ../deejayd/player/xine.py:91 ../deejayd/player/gstreamer.py:95
 #, python-format
 msgid "Unable to play file %s"
 msgstr ""
 
-#: ../deejayd/player/xine.py:143
+#: ../deejayd/player/xine.py:150
 msgid "Zoom value not accepted"
 msgstr ""
 
-#: ../deejayd/player/xine.py:147
+#: ../deejayd/player/xine.py:154
 #, python-format
 msgid "Zoom: %d percent"
 msgstr ""
 
-#: ../deejayd/player/xine.py:152
+#: ../deejayd/player/xine.py:159
 #, python-format
 msgid "Audio/Video offset: %d ms"
 msgstr ""
 
-#: ../deejayd/player/xine.py:159
+#: ../deejayd/player/xine.py:166
 #, python-format
 msgid "Subtitle offset: %d ms"
 msgstr ""
 
-#: ../deejayd/player/xine.py:244
+#: ../deejayd/player/xine.py:251
 msgid "Unable to open audio driver"
 msgstr ""
 
-#: ../deejayd/player/xine.py:255
+#: ../deejayd/player/xine.py:262
 msgid "Unable to open video driver"
 msgstr ""
 
-#: ../deejayd/player/xine.py:351
+#: ../deejayd/player/xine.py:358
 #, python-format
 msgid "Xine error %s"
 msgstr ""
 
-#: ../deejayd/player/xine.py:370
+#: ../deejayd/player/xine.py:377
 msgid "lsdvd not found, can't extract dvd info"
 msgstr ""
 
-#: ../deejayd/player/xine.py:386
+#: ../deejayd/player/xine.py:393
 msgid "error in lsdvd command"
 msgstr ""
 
@@ -378,63 +387,63 @@ msgstr ""
 msgid "option %s not supported for this mode"
 msgstr ""
 
-#: ../deejayd/sources/_base.py:65
+#: ../deejayd/sources/_base.py:61
 msgid "Unable to delete selected ids"
 msgstr ""
 
-#: ../deejayd/sources/_base.py:121
-#, python-format
-msgid "Unable to set %s order, not supported"
-msgstr ""
-
-#: ../deejayd/sources/_base.py:156
+#: ../deejayd/sources/_base.py:136
 #, python-format
 msgid "Playlist %s does not exist."
 msgstr ""
 
-#: ../deejayd/sources/_base.py:190
+#: ../deejayd/sources/_base.py:142
 #, python-format
-msgid "One of these ids %s not found"
+msgid "Unable to set %s order, not supported"
 msgstr ""
 
-#: ../deejayd/sources/_base.py:203
-#, python-format
-msgid "%s not found"
-msgstr ""
-
-#: ../deejayd/sources/_base.py:218
-msgid "Unable to move selected medias"
-msgstr ""
-
-#: ../deejayd/sources/panel.py:43
-msgid "You choose wrong panel tags, fallback to default"
-msgstr ""
-
-#: ../deejayd/sources/panel.py:100
-#, python-format
-msgid "Playlist with id %s not found"
-msgstr ""
-
-#: ../deejayd/sources/panel.py:116 ../deejayd/sources/panel.py:138
-#, python-format
-msgid "Tag '%s' not supported"
-msgstr ""
-
-#: ../deejayd/sources/panel.py:157
+#: ../deejayd/sources/_base.py:188
 #, python-format
 msgid "Tag '%s' not supported for sort"
 msgstr ""
 
-#: ../deejayd/sources/panel.py:159
+#: ../deejayd/sources/_base.py:190
 msgid "Bad sort direction for panel"
 msgstr ""
 
-#: ../deejayd/sources/video.py:42
+#: ../deejayd/sources/_base.py:212
+#, python-format
+msgid "One of these ids %s not found"
+msgstr ""
+
+#: ../deejayd/sources/_base.py:225
+#, python-format
+msgid "%s not found"
+msgstr ""
+
+#: ../deejayd/sources/_base.py:240
+msgid "Unable to move selected medias"
+msgstr ""
+
+#: ../deejayd/sources/panel.py:48
+msgid "You choose wrong panel tags, fallback to default"
+msgstr ""
+
+#: ../deejayd/sources/panel.py:107
+#, python-format
+msgid "Playlist with id %s not found"
+msgstr ""
+
+#: ../deejayd/sources/panel.py:133 ../deejayd/sources/panel.py:165
+#, python-format
+msgid "Tag '%s' not supported"
+msgstr ""
+
+#: ../deejayd/sources/video.py:50
 #, python-format
 msgid "Directory %s not found"
 msgstr ""
 
-#: ../deejayd/sources/video.py:47
+#: ../deejayd/sources/video.py:57
 #, python-format
 msgid "type %s not supported"
 msgstr ""
@@ -454,37 +463,57 @@ msgstr ""
 msgid "DEBUG - %s"
 msgstr ""
 
-#: ../deejayd/webui/__init__.py:99 ../deejayd/webui/__init__.py:130
+#: ../deejayd/webui/__init__.py:110 ../deejayd/webui/__init__.py:141
 msgid "You have to enter an action."
 msgstr ""
 
-#: ../deejayd/webui/__init__.py:103 ../deejayd/webui/__init__.py:136
+#: ../deejayd/webui/__init__.py:114 ../deejayd/webui/__init__.py:147
 #, python-format
 msgid "Command %s not found"
 msgstr ""
 
-#: ../deejayd/webui/__init__.py:107 ../deejayd/webui/__init__.py:140
+#: ../deejayd/webui/__init__.py:118 ../deejayd/webui/__init__.py:151
 msgid "Command send with invalid method"
 msgstr ""
 
-#: ../deejayd/webui/__init__.py:117 ../deejayd/webui/__init__.py:149
+#: ../deejayd/webui/__init__.py:128 ../deejayd/webui/__init__.py:160
 #, python-format
 msgid "Bad argument : %s"
 msgstr ""
 
-#: ../deejayd/webui/__init__.py:173
+#: ../deejayd/webui/__init__.py:184
 #, python-format
 msgid "Unable to remove tmp directory %s"
 msgstr ""
 
-#: ../deejayd/webui/__init__.py:177
+#: ../deejayd/webui/__init__.py:188
 #, python-format
 msgid "Unable to create tmp directory %s"
 msgstr ""
 
-#: ../deejayd/webui/__init__.py:181
+#: ../deejayd/webui/__init__.py:192
 #, python-format
 msgid "Htdocs directory %s does not exists"
+msgstr ""
+
+#: ../deejayd/webui/__init__.py:205
+msgid "Mobile Web UI disabled because genshi seems absent."
+msgstr ""
+
+#: ../deejayd/webui/commands.py:98
+msgid "bad 'magic_pls_infos' arg"
+msgstr ""
+
+#: ../deejayd/webui/commands.py:104
+msgid "basic filter not found"
+msgstr ""
+
+#: ../deejayd/webui/commands.py:258
+msgid "infos argument needed for magic playlist"
+msgstr ""
+
+#: ../deejayd/webui/commands.py:283
+msgid "Not a magic playlist"
 msgstr ""
 
 #: ../deejayd/webui/utils.py:30
@@ -534,19 +563,23 @@ msgstr ""
 msgid "The video library has been updated"
 msgstr ""
 
-#: ../deejayd/webui/xul/commands.py:216
+#: ../deejayd/webui/xul/commands.py:210
+msgid "The magic playlist has been updated"
+msgstr ""
+
+#: ../deejayd/webui/xul/commands.py:232
 msgid "Current playlist has been saved"
 msgstr ""
 
-#: ../deejayd/webui/xul/xmlanswer.py:149
+#: ../deejayd/webui/xul/xmlanswer.py:169
 msgid "All"
 msgstr ""
 
-#: ../deejayd/webui/xul/xmlanswer.py:152
+#: ../deejayd/webui/xul/xmlanswer.py:172
 msgid "Various Artist"
 msgstr ""
 
-#: ../deejayd/webui/xul/xmlanswer.py:160
+#: ../deejayd/webui/xul/xmlanswer.py:180
 msgid "Unknown"
 msgstr ""
 
@@ -558,27 +591,27 @@ msgstr ""
 msgid "Yes"
 msgstr ""
 
-#: ../deejayd/webui/xul/rdfbuilder.py:259
+#: ../deejayd/webui/xul/rdfbuilder.py:270
 msgid "Root Directory"
 msgstr ""
 
-#: ../deejayd/webui/xul/rdfbuilder.py:286
+#: ../deejayd/webui/xul/rdfbuilder.py:297
 #, python-format
 msgid "DVD Title : %s"
 msgstr ""
 
-#: ../deejayd/webui/xul/rdfbuilder.py:288
+#: ../deejayd/webui/xul/rdfbuilder.py:299
 #, python-format
 msgid "Longest Track : %s"
 msgstr ""
 
-#: ../deejayd/webui/xul/rdfbuilder.py:303
+#: ../deejayd/webui/xul/rdfbuilder.py:314
 #: ../deejayd/webui/mobile/xmlanswer.py:336
 #, python-format
 msgid "Title %s"
 msgstr ""
 
-#: ../deejayd/webui/xul/rdfbuilder.py:313
+#: ../deejayd/webui/xul/rdfbuilder.py:324
 #, python-format
 msgid "Chapter %s"
 msgstr ""
