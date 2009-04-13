@@ -33,7 +33,7 @@ is not launched using its initscript. On the contrary, if it is, the daemon
 must know both the display number (which does not change on most setups) and,
 and this is where the problems begin, the XAUTHORITY file, which is, on debian
 systems, generated whenever the X server is started with startx. When using a
-display manager, the same seams to happen.
+display manager, the same thing seems to happen.
 
 Some people use an initscript to launch the X server on a machine dedicated to
 deejayd. This method will be integrated in the deejayd packaging in the near
