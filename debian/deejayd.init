@@ -26,7 +26,6 @@ HOME=/var/lib/$DAEMON_USER
 PIDFILE=/var/run/$NAME.pid
 LOGFILE=/var/log/$NAME.log
 WEBUI_LOGFILE=/var/log/$NAME-webui.log
-DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom -p $PIDFILE -l $LOGFILE -w $WEBUI_LOGFILE $DAEMON_OPTS"
 SCRIPTNAME=/etc/init.d/$NAME
 
 
@@ -35,6 +34,8 @@ SCRIPTNAME=/etc/init.d/$NAME
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom -p $PIDFILE -l $LOGFILE -w $WEBUI_LOGFILE $DAEMON_OPTS"
 
 # Create logfiles if they do not exist
 for FILE in "$LOGFILE" "$WEBUI_LOGFILE"

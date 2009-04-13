@@ -8,6 +8,7 @@ deejayd (0.8.0~pre-1~darcsoftheday+20090125+1) UNRELEASED; urgency=low
   * Bump standards version to 3.8.1 :
     - Ensure the start action of the init script does not start the daemon
       again.
+  * Fixed default file (/etc/default/deejayd).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 25 Jan 2009 14:51:09 +0100
 
