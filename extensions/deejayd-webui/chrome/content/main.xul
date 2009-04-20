@@ -532,7 +532,7 @@
                     hidden="true" flex="3" label="&genre;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="pl-time"
-                    flex="2" label="&time;"/>
+                    flex="2" label="&length;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="pl-rating"
                     flex="2" label="&rating;"/>
@@ -683,7 +683,7 @@
         <button
           id="panel-select-button"
           oncommand="ajaxdj_ref.send_post_command('panelSet',{type: 'panel'})"
-          label="Panel"/>
+          label="&panelBtn;"/>
 
         <spacer height="10px"/>
         <tree
@@ -846,7 +846,7 @@
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-time"
                     onclick="panel_ref.updateSort('length');"
-                    flex="2" label="&time;"/>
+                    flex="2" label="&length;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-bitrate"
                     hidden="true" flex="2" label="&bitrate;"/>
@@ -1234,7 +1234,7 @@
                     flex="1" label="&title;" primary="true"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="dvd-length"
-                    flex="1" label="&time;"/>
+                    flex="1" label="&length;"/>
 
             </treecols>
 
@@ -1375,7 +1375,7 @@
                 hidden="true" flex="3" label="&genre;"/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="qu-time"
-                flex="2" label="&time;"/>
+                flex="2" label="&length;"/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="qu-rating"
                 flex="2" label="&rating;"/>

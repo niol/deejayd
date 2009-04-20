@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-12 23:39+0200\n"
+"POT-Creation-Date: 2009-04-20 19:50+0200\n"
 "PO-Revision-Date: 2008-04-12 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -29,6 +29,8 @@ msgstr "Le chemin %s n'a pas été trouvé dans la librairie"
 #: ../deejayd/core.py:167
 msgid "Only basic filters are allowed for magic playlist"
 msgstr ""
+"Seul les filtres basiques sont autorisés pour les listes de lecture "
+"intelligentes"
 
 #: ../deejayd/core.py:217
 msgid "Webradio URI not supported"
@@ -501,8 +503,8 @@ msgstr "Le répertoire %s n'existe pas"
 
 #: ../deejayd/webui/__init__.py:205
 msgid "Mobile Web UI disabled because genshi seems absent."
-msgstr "L'interface web pour les mobiles a été désactivée car genshi semble"
-" absent"
+msgstr ""
+"L'interface web pour les mobiles a été désactivée car genshi semble absent"
 
 #: ../deejayd/webui/commands.py:98
 msgid "bad 'magic_pls_infos' arg"
@@ -514,8 +516,8 @@ msgstr "Le filtre basique n'a pas été trouvé"
 
 #: ../deejayd/webui/commands.py:258
 msgid "infos argument needed for magic playlist"
-msgstr "L'argument 'infos' est nécessaire pour les listes de lecture"
-" intelligentes"
+msgstr ""
+"L'argument 'infos' est nécessaire pour les listes de lecture intelligentes"
 
 #: ../deejayd/webui/commands.py:283
 msgid "Not a magic playlist"
@@ -596,30 +598,58 @@ msgstr "Non"
 msgid "Yes"
 msgstr "Oui"
 
-#: ../deejayd/webui/xul/rdfbuilder.py:270
+#: ../deejayd/webui/xul/rdfbuilder.py:267
 msgid "Root Directory"
 msgstr "Répertoire Racine"
 
-#: ../deejayd/webui/xul/rdfbuilder.py:297
+#: ../deejayd/webui/xul/rdfbuilder.py:294
 #, python-format
 msgid "DVD Title : %s"
 msgstr "Titre du DVD : %s"
 
-#: ../deejayd/webui/xul/rdfbuilder.py:299
+#: ../deejayd/webui/xul/rdfbuilder.py:296
 #, python-format
 msgid "Longest Track : %s"
 msgstr "Piste la plus longue : %s"
 
-#: ../deejayd/webui/xul/rdfbuilder.py:314
+#: ../deejayd/webui/xul/rdfbuilder.py:311
 #: ../deejayd/webui/mobile/xmlanswer.py:336
 #, python-format
 msgid "Title %s"
 msgstr "Titre %s"
 
-#: ../deejayd/webui/xul/rdfbuilder.py:324
+#: ../deejayd/webui/xul/rdfbuilder.py:321
 #, python-format
 msgid "Chapter %s"
 msgstr "Chapitre %s"
+
+#: ../deejayd/webui/xul/rdfbuilder.py:332
+#, python-format
+msgid "%d Song"
+msgid_plural "%d Songs"
+msgstr[0] "%d Chanson"
+msgstr[1] "%d Chansons"
+
+#: ../deejayd/webui/xul/rdfbuilder.py:333
+#, python-format
+msgid "%d Video"
+msgid_plural "%d Videos"
+msgstr[0] "%d Vidéo"
+msgstr[1] "%d Vidéos"
+
+#: ../deejayd/webui/xul/rdfbuilder.py:334
+#, python-format
+msgid "%d Webradio"
+msgid_plural "%d Webradios"
+msgstr[0] "%d Radio Web"
+msgstr[1] "%d Radios Web"
+
+#: ../deejayd/webui/xul/rdfbuilder.py:335
+#, python-format
+msgid "%d Track"
+msgid_plural "%d Tracks"
+msgstr[0] "%d Titre"
+msgstr[1] "%d Titres"
 
 #: ../deejayd/webui/mobile/commands.py:65
 msgid "Options"
@@ -881,21 +911,6 @@ msgstr "Url de la Radio Web"
 
 #~ msgid "Subtitle"
 #~ msgstr "Sous-titre"
-
-#~ msgid "%s Song"
-#~ msgid_plural "%s Songs"
-#~ msgstr[0] "%s Chanson"
-#~ msgstr[1] "%s Chansons"
-
-#~ msgid "%s Webradio"
-#~ msgid_plural "%s Webradios"
-#~ msgstr[0] "%s Radio Web"
-#~ msgstr[1] "%s Radios Web"
-
-#~ msgid "%s Video"
-#~ msgid_plural "%s Videos"
-#~ msgstr[0] "%s Vidéo"
-#~ msgstr[1] "%s Vidéos"
 
 #~ msgid "Webradio support not available."
 #~ msgstr "Le support des radios web n'est pas disponible."

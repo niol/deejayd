@@ -79,7 +79,7 @@ class RdfBuilder(DeejaydXMLObject):
 
 class _DeejaydSourceRdf(DeejaydXMLObject):
     name = "unknown"
-    locale_strings = None
+    locale_strings = ("%d Song", "%d Songs")
 
     def __init__(self, deejayd, rdf_dir):
         self._deejayd = deejayd
@@ -99,7 +99,7 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
             id=xml_ans._to_xml_string(new_id))
         single, plural = self.__class__.locale_strings
         len = status[self.__class__.name + "length"]
-        desc = self._to_xml_string(ngettext(single,plural,int(len))%str(len))
+        desc = self._to_xml_string(ngettext(single,plural,int(len))%int(len))
         try: time = int(status[self.__class__.name + "timelength"])
         except KeyError:
             pass
@@ -153,12 +153,10 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
 
 class DeejaydPlaylistRdf(_DeejaydSourceRdf):
     name = "playlist"
-    locale_strings = ("%s Songs", "%s Songs")
     get_list_func = "get_playlist"
 
 class DeejaydPanelRdf(_DeejaydSourceRdf):
     name = "panel"
-    locale_strings = ("%s Songs", "%s Songs")
     get_list_func = "get_panel"
 
     def update(self, xml_ans, status):
@@ -223,17 +221,16 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
 
 class DeejaydQueueRdf(_DeejaydSourceRdf):
     name = "queue"
-    locale_strings = ("%s Songs", "%s Songs")
     get_list_func = "get_queue"
 
 class DeejaydWebradioRdf(_DeejaydSourceRdf):
     name = "webradio"
-    locale_strings = ("%s Webradios", "%s Webradios")
+    locale_strings = ("%d Webradio", "%d Webradios")
     get_list_func = "get_webradios"
 
 class DeejaydVideoRdf(_DeejaydSourceRdf):
     name = "video"
-    locale_strings = ("%s Videos", "%s Videos")
+    locale_strings = ("%d Video", "%d Videos")
     get_list_func = "get_video"
 
     def update(self, xml_ans, status):
@@ -282,7 +279,7 @@ class DeejaydVideoDirRdf(_DeejaydSourceRdf):
 
 class DeejaydDvdRdf(_DeejaydSourceRdf):
     name = "dvd"
-    locale_strings = ("%s Track", "%s Tracks")
+    locale_strings = ("%d Track", "%d Tracks")
     get_list_func = "get_dvd_content"
 
     def _build_rdf_file(self,new_id):
@@ -331,6 +328,11 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
     def _get_media_list(self):
         return self._deejayd.get_dvd_content().get_dvd_contents()
 
+
+ngettext("%d Song", "%d Songs", 0)
+ngettext("%d Video", "%d Videos", 0)
+ngettext("%d Webradio", "%d Webradios", 0)
+ngettext("%d Track", "%d Tracks", 0)
 
 modes = (
     "DeejaydPlaylistRdf",
