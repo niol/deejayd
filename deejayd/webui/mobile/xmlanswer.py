@@ -350,7 +350,7 @@ class CurrentMode:
     commands = ("setMode",)
     name = "current_mode"
     left_btn = {"title": _("Mode List"), "link": "mode_list"}
-    right_btn = {"title": "Now Playing", "link": "now_playing"}
+    right_btn = {"title": _("Now Playing"), "link": "now_playing"}
 
     def refresh(self, ans, deejayd):
         pass # TODO

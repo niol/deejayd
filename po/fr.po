@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-20 19:50+0200\n"
+"POT-Creation-Date: 2009-04-21 11:39+0200\n"
 "PO-Revision-Date: 2008-04-12 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -561,6 +561,29 @@ msgid "%d year"
 msgid_plural "%d years"
 msgstr[0] "%d année"
 msgstr[1] "%d années"
+
+#: ../deejayd/webui/xul/__init__.py:71
+msgid ""
+"You need to install a firefox extension in order to use the deejayd-webui "
+"XUL client. Please note that if you run a flavour of GNU/Linux, it should be "
+"available from your package manager."
+msgstr ""
+"Vous devez installer une extension firefox pour utiliser l'interface XUL de "
+"deejayd. Prière de noter que si vous utiliser une distribution GNU/Linux, "
+"il est possible que cette extension soit disponible par votre manageur de "
+"paquet."
+
+#: ../deejayd/webui/xul/__init__.py:73
+msgid "You need to upgrade the firefox extension."
+msgstr "Il est nécessaire de mettre à jour l'extension firefox"
+
+#: ../deejayd/webui/xul/__init__.py:75
+msgid "Install the deejayd-webui extension"
+msgstr "Installer l'extension firefox 'deejayd-webui'"
+
+#: ../deejayd/webui/xul/__init__.py:76
+msgid "ERROR : Host is not allowed to use the firefox extension."
+msgstr "Erreur : l'hôte n'est pas autorisé à utiliser l'extension firefox"
 
 #: ../deejayd/webui/xul/commands.py:139
 msgid "The audio library has been updated"

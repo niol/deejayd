@@ -26,6 +26,7 @@ deejayd/ui/log.py
 deejayd/webui/__init__.py
 deejayd/webui/commands.py
 deejayd/webui/utils.py
+deejayd/webui/xul/__init__.py
 deejayd/webui/xul/commands.py
 deejayd/webui/xul/xmlanswer.py
 deejayd/webui/xul/rdfbuilder.py

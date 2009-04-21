@@ -16,6 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+VERSION="0.1.0"
+
 def build(config):
     return """
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
@@ -40,24 +42,32 @@ def build(config):
     </script>
     <vbox>
         <vbox id="deejayd-webui_install">
-            <box>
-                <description value="%(install)s"/>
-            </box>
-            <box>
-                <html:a href="static/deejayd-webui.xpi">
-                    %(clickHere)s
-                </html:a>
-            </box>
+            <groupbox>
+                <vbox style="padding: 10px">
+                    <description>
+                        %(install)s
+                    </description>
+                </vbox>
+                <vbox align="center">
+                    <html:a href="static/deejayd-webui.xpi">
+                        %(clickHere)s
+                    </html:a>
+                </vbox>
+            </groupbox>
         </vbox>
         <vbox id="deejayd-webui_upgrade" style="display:none">
-            <box>
-                <description value="%(upgrade)s"/>
-            </box>
-            <box>
-                <html:a href="static/deejayd-webui.xpi">
-                    %(clickHere)s
-                </html:a>
-            </box>
+            <groupbox>
+                <vbox style="padding: 10px">
+                    <description>
+                        %(upgrade)s
+                    </description>
+                </vbox>
+                <vbox align="center">
+                    <html:a href="static/deejayd-webui.xpi">
+                        %(clickHere)s
+                    </html:a>
+                </vbox>
+            </groupbox>
         </vbox>
         <description style="display:none;color:#f00"
             id="deejayd-webui_error" value="%(error)s"/>
@@ -65,7 +75,7 @@ def build(config):
 </window>
 """ % {
         "refresh": config.get('webui','refresh'),
-        "version": "0.1.0",
+        "version": VERSION,
         "install": _("You need to install a firefox extension in order to use the deejayd-webui XUL client. Please note that if you run a flavour of GNU/Linux, it should be available from your package manager.").\
                 encode("utf-8"),
         "upgrade": _("You need to upgrade the firefox extension.").\

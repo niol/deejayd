@@ -19,6 +19,6 @@
         </py:if>
     </div>
     <div py:if="not current">
-        <div class='title'>No Playing Media</div>
+        <div class='title'>${_('No Playing Media')}</div>
     </div>
 </div>
