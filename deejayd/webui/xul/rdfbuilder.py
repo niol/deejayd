@@ -53,7 +53,7 @@ class RdfBuilder(DeejaydXMLObject):
                 if parms[p]:
                     value = format_time(int(parms[p]))
                 else:
-                    value = 0
+                    value = self._to_xml_string(0)
             elif p == "external_subtitle":
                 value = parms[p] == "" and _("No") or _("Yes")
             elif p == "rating":
