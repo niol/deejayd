@@ -677,6 +677,7 @@
         <popup id="panel-pls-action-menu"
             onpopupshowing="PlsPanelObserver.updateMenu(event);">
         </popup>
+
     </popupset>
 
     <vbox persist="width" id="panel-select-box" flex="1">
@@ -686,6 +687,16 @@
           label="&panelBtn;"/>
 
         <spacer height="10px"/>
+            <button label="&newPls;" type="menu">
+                <menupopup id="pls-action-menu">
+                    <menuitem label="&newStaticPls;"
+                        class="menuitem-iconic playlist-new"
+                        oncommand="panel_ref.createStaticPlaylist();"/>
+                    <menuitem label="&newMagicPls;"
+                        class="menuitem-iconic playlist-new"
+                        oncommand="panel_ref.createMagicPlaylist();"/>
+                </menupopup>
+            </button>
         <tree
             id="panel-pls-list"
             hidecolumnpicker="true"
@@ -697,7 +708,7 @@
             seltype="single"
             flex="1">
             <treecols>
-                <treecol flex="1" label="Playlist"/>
+                <treecol hideheader="true" flex="1"/>
             </treecols>
             <treechildren
                 contextmenu="panel-pls-action-menu"

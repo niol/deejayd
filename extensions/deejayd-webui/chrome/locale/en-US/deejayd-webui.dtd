@@ -82,3 +82,7 @@
 <!ENTITY limitSortDirectionMagicPls.label "Revert sort direction">
 <!ENTITY songs "Songs">
 <!ENTITY rules "Rules">
+<!ENTITY newPls "New Playlist">
+<!ENTITY newStaticPls "New Static Playlist">
+<!ENTITY newMagicPls "New Magic Playlist">
+

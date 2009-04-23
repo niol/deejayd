@@ -82,3 +82,7 @@
 <!ENTITY limitSortDirectionMagicPls.label "Dans l'ordre inverse">
 <!ENTITY songs "Morceaux">
 <!ENTITY rules "Règles">
+<!ENTITY newPls "Nouvelle liste de lecture">
+<!ENTITY newStaticPls "liste de lecture statique">
+<!ENTITY newMagicPls "liste de lecture intelligente">
+
