@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-21 11:39+0200\n"
+"POT-Creation-Date: 2009-04-23 19:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,68 +39,72 @@ msgstr ""
 msgid "Webradio info could not be retrieved"
 msgstr ""
 
-#: ../deejayd/core.py:374
+#: ../deejayd/core.py:301 ../deejayd/core.py:608
+msgid "Set a playlist name"
+msgstr ""
+
+#: ../deejayd/core.py:376
 msgid "Not supported type"
 msgstr ""
 
-#: ../deejayd/core.py:535
+#: ../deejayd/core.py:537
 msgid "Bad value for id parm"
 msgstr ""
 
-#: ../deejayd/core.py:549 ../deejayd/core.py:557
+#: ../deejayd/core.py:551 ../deejayd/core.py:559
 #, python-format
 msgid "Mode %s not supported"
 msgstr ""
 
-#: ../deejayd/core.py:571
+#: ../deejayd/core.py:573
 #, python-format
 msgid "Option %s does not exist"
 msgstr ""
 
-#: ../deejayd/core.py:573
+#: ../deejayd/core.py:575
 #, python-format
 msgid "Option %s is not supported for this backend"
 msgstr ""
 
-#: ../deejayd/core.py:600 ../deejayd/core.py:700
+#: ../deejayd/core.py:602 ../deejayd/core.py:704
 msgid "Video mode disabled"
 msgstr ""
 
 #. pls already exists
-#: ../deejayd/core.py:609
+#: ../deejayd/core.py:613
 msgid "This playlist already exists"
 msgstr ""
 
-#: ../deejayd/core.py:632
+#: ../deejayd/core.py:636
 #, python-format
 msgid "Playlist with id %s not found."
 msgstr ""
 
-#: ../deejayd/core.py:653
+#: ../deejayd/core.py:657
 msgid "Bad rating value"
 msgstr ""
 
-#: ../deejayd/core.py:657 ../deejayd/core.py:684
+#: ../deejayd/core.py:661 ../deejayd/core.py:688
 #, python-format
 msgid "Type %s is not supported"
 msgstr ""
 
-#: ../deejayd/core.py:661
+#: ../deejayd/core.py:665
 #, python-format
 msgid "%s library not activated"
 msgstr ""
 
-#: ../deejayd/core.py:663
+#: ../deejayd/core.py:667
 #, python-format
 msgid "File with id %s not found"
 msgstr ""
 
-#: ../deejayd/core.py:670 ../deejayd/core.py:705
+#: ../deejayd/core.py:674 ../deejayd/core.py:709
 #, python-format
 msgid "Directory %s not found in database"
 msgstr ""
 
-#: ../deejayd/core.py:678
+#: ../deejayd/core.py:682
 msgid "Cover not found"
 msgstr ""
 
@@ -555,22 +559,22 @@ msgid_plural "%d years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../deejayd/webui/xul/__init__.py:71
+#: ../deejayd/webui/xul/__init__.py:79
 msgid ""
 "You need to install a firefox extension in order to use the deejayd-webui "
 "XUL client. Please note that if you run a flavour of GNU/Linux, it should be "
 "available from your package manager."
 msgstr ""
 
-#: ../deejayd/webui/xul/__init__.py:73
+#: ../deejayd/webui/xul/__init__.py:81
 msgid "You need to upgrade the firefox extension."
 msgstr ""
 
-#: ../deejayd/webui/xul/__init__.py:75
+#: ../deejayd/webui/xul/__init__.py:83
 msgid "Install the deejayd-webui extension"
 msgstr ""
 
-#: ../deejayd/webui/xul/__init__.py:76
+#: ../deejayd/webui/xul/__init__.py:84
 msgid "ERROR : Host is not allowed to use the firefox extension."
 msgstr ""
 
@@ -590,15 +594,15 @@ msgstr ""
 msgid "Current playlist has been saved"
 msgstr ""
 
-#: ../deejayd/webui/xul/xmlanswer.py:169
+#: ../deejayd/webui/xul/xmlanswer.py:170
 msgid "All"
 msgstr ""
 
-#: ../deejayd/webui/xul/xmlanswer.py:172
+#: ../deejayd/webui/xul/xmlanswer.py:173
 msgid "Various Artist"
 msgstr ""
 
-#: ../deejayd/webui/xul/xmlanswer.py:180
+#: ../deejayd/webui/xul/xmlanswer.py:181
 msgid "Unknown"
 msgstr ""
 
@@ -738,8 +742,16 @@ msgstr ""
 msgid "Dvd Mode"
 msgstr ""
 
+#: ../deejayd/webui/mobile/xmlanswer.py:353
+msgid "Now Playing"
+msgstr ""
+
 #: ../deejayd/webui/mobile/templates/current_mode.thtml:8
 msgid "Close"
+msgstr ""
+
+#: ../deejayd/webui/mobile/templates/playing_title.thtml:22
+msgid "No Playing Media"
 msgstr ""
 
 #: ../deejayd/webui/mobile/templates/modes/options.thtml:4

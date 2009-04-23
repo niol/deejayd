@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-21 11:39+0200\n"
+"POT-Creation-Date: 2009-04-23 19:34+0200\n"
 "PO-Revision-Date: 2008-04-12 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -40,68 +40,72 @@ msgstr "L'URI proposée pour cette radio web n'est pas supportée"
 msgid "Webradio info could not be retrieved"
 msgstr "Les infos sur la radio web n'ont pas pu être récupérées"
 
-#: ../deejayd/core.py:374
+#: ../deejayd/core.py:301 ../deejayd/core.py:608
+msgid "Set a playlist name"
+msgstr "Indiquer un nom de playlist"
+
+#: ../deejayd/core.py:376
 msgid "Not supported type"
 msgstr "type non supporté"
 
-#: ../deejayd/core.py:535
+#: ../deejayd/core.py:537
 msgid "Bad value for id parm"
 msgstr "Mauvaise valeur pour le paramètre id"
 
-#: ../deejayd/core.py:549 ../deejayd/core.py:557
+#: ../deejayd/core.py:551 ../deejayd/core.py:559
 #, python-format
 msgid "Mode %s not supported"
 msgstr "Mode %s non supporté"
 
-#: ../deejayd/core.py:571
+#: ../deejayd/core.py:573
 #, python-format
 msgid "Option %s does not exist"
 msgstr "L'option %s n'existe pas"
 
-#: ../deejayd/core.py:573
+#: ../deejayd/core.py:575
 #, python-format
 msgid "Option %s is not supported for this backend"
 msgstr "L'option %s n'est pas supporté pour ce backend"
 
-#: ../deejayd/core.py:600 ../deejayd/core.py:700
+#: ../deejayd/core.py:602 ../deejayd/core.py:704
 msgid "Video mode disabled"
 msgstr "Mode vidéo désactivé"
 
 #. pls already exists
-#: ../deejayd/core.py:609
+#: ../deejayd/core.py:613
 msgid "This playlist already exists"
 msgstr "Cette liste de lecture existe déjà"
 
-#: ../deejayd/core.py:632
+#: ../deejayd/core.py:636
 #, python-format
 msgid "Playlist with id %s not found."
 msgstr "La liste de lecture avec l'identifiant %s n'a pas été trouvée"
 
-#: ../deejayd/core.py:653
+#: ../deejayd/core.py:657
 msgid "Bad rating value"
 msgstr "Valeur érronée pour la notation"
 
-#: ../deejayd/core.py:657 ../deejayd/core.py:684
+#: ../deejayd/core.py:661 ../deejayd/core.py:688
 #, python-format
 msgid "Type %s is not supported"
 msgstr "Le type %s n'est pas supporté"
 
-#: ../deejayd/core.py:661
+#: ../deejayd/core.py:665
 #, python-format
 msgid "%s library not activated"
 msgstr "la librairie %s n'est pas activé"
 
-#: ../deejayd/core.py:663
+#: ../deejayd/core.py:667
 #, python-format
 msgid "File with id %s not found"
 msgstr "Le fichier avec l'identifiant %s n'a pas été trouvé"
 
-#: ../deejayd/core.py:670 ../deejayd/core.py:705
+#: ../deejayd/core.py:674 ../deejayd/core.py:709
 #, python-format
 msgid "Directory %s not found in database"
 msgstr "Le répertoire %s n'a pas été trouvé dans la base de donnée"
 
-#: ../deejayd/core.py:678
+#: ../deejayd/core.py:682
 msgid "Cover not found"
 msgstr "Pochette d'album non trouvée"
 
@@ -562,26 +566,26 @@ msgid_plural "%d years"
 msgstr[0] "%d année"
 msgstr[1] "%d années"
 
-#: ../deejayd/webui/xul/__init__.py:71
+#: ../deejayd/webui/xul/__init__.py:79
 msgid ""
 "You need to install a firefox extension in order to use the deejayd-webui "
 "XUL client. Please note that if you run a flavour of GNU/Linux, it should be "
 "available from your package manager."
 msgstr ""
 "Vous devez installer une extension firefox pour utiliser l'interface XUL de "
-"deejayd. Prière de noter que si vous utiliser une distribution GNU/Linux, "
-"il est possible que cette extension soit disponible par votre manageur de "
+"deejayd. Prière de noter que si vous utiliser une distribution GNU/Linux, il "
+"est possible que cette extension soit disponible par votre manageur de "
 "paquet."
 
-#: ../deejayd/webui/xul/__init__.py:73
+#: ../deejayd/webui/xul/__init__.py:81
 msgid "You need to upgrade the firefox extension."
 msgstr "Il est nécessaire de mettre à jour l'extension firefox"
 
-#: ../deejayd/webui/xul/__init__.py:75
+#: ../deejayd/webui/xul/__init__.py:83
 msgid "Install the deejayd-webui extension"
 msgstr "Installer l'extension firefox 'deejayd-webui'"
 
-#: ../deejayd/webui/xul/__init__.py:76
+#: ../deejayd/webui/xul/__init__.py:84
 msgid "ERROR : Host is not allowed to use the firefox extension."
 msgstr "Erreur : l'hôte n'est pas autorisé à utiliser l'extension firefox"
 
@@ -601,15 +605,15 @@ msgstr "La liste de lecture intelligente a été mise à jour"
 msgid "Current playlist has been saved"
 msgstr "La playlist a été sauvegardée"
 
-#: ../deejayd/webui/xul/xmlanswer.py:169
+#: ../deejayd/webui/xul/xmlanswer.py:170
 msgid "All"
 msgstr "Tous"
 
-#: ../deejayd/webui/xul/xmlanswer.py:172
+#: ../deejayd/webui/xul/xmlanswer.py:173
 msgid "Various Artist"
 msgstr "Artiste Divers"
 
-#: ../deejayd/webui/xul/xmlanswer.py:180
+#: ../deejayd/webui/xul/xmlanswer.py:181
 msgid "Unknown"
 msgstr "Inconnu"
 
@@ -749,9 +753,17 @@ msgstr "Radio Web"
 msgid "Dvd Mode"
 msgstr "Mode Dvd"
 
+#: ../deejayd/webui/mobile/xmlanswer.py:353
+msgid "Now Playing"
+msgstr "En cours"
+
 #: ../deejayd/webui/mobile/templates/current_mode.thtml:8
 msgid "Close"
 msgstr "Fermer"
+
+#: ../deejayd/webui/mobile/templates/playing_title.thtml:22
+msgid "No Playing Media"
+msgstr "Pas de lecture en cours"
 
 #: ../deejayd/webui/mobile/templates/modes/options.thtml:4
 msgid "Play Order"
@@ -802,9 +814,6 @@ msgstr "Url de la Radio Web"
 
 #~ msgid "Do you want to replace this playlist ?"
 #~ msgstr "Voulez vous replacer cette liste de lecture ?"
-
-#~ msgid "Now Playing"
-#~ msgstr "En cours"
 
 #~ msgid "Webradio with id %d not found"
 #~ msgstr "La radio web avec l'identifiant %d n'a pas été trouvée"
