@@ -335,12 +335,12 @@ ngettext("%d Webradio", "%d Webradios", 0)
 ngettext("%d Track", "%d Tracks", 0)
 
 modes = (
-    "DeejaydPlaylistRdf",
-    "DeejaydQueueRdf",
-    "DeejaydPanelRdf",
-    "DeejaydWebradioRdf",
-    "DeejaydVideoRdf",
-    "DeejaydDvdRdf",
+    DeejaydPlaylistRdf,
+    DeejaydQueueRdf,
+    DeejaydPanelRdf,
+    DeejaydWebradioRdf,
+    DeejaydVideoRdf,
+    DeejaydDvdRdf,
     )
 
 # vim: ts=4 sw=4 expandtab

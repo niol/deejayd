@@ -51,8 +51,8 @@ class DeejaydWebAnswer(DeejaydXMLObject):
 
     def set_mode(self, status, deejayd):
         for builder in rdfbuilder.modes:
-            getattr(rdfbuilder, builder)\
-              (deejayd,self.__rdf_dir).update(self, status)
+            if builder.name in status.keys():
+                builder(deejayd,self.__rdf_dir).update(self, status)
 
     def set_videodir(self, new_id, deejayd):
         nid = rdfbuilder.DeejaydVideoDirRdf(deejayd,self.__rdf_dir).\
