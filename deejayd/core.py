@@ -297,6 +297,8 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def save(self, name):
+        if name == "":
+            raise DeejaydError(_("Set a playlist name"))
         return self.source.save(name)
 
     @returns_deejaydanswer(DeejaydAnswer)
@@ -602,6 +604,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def create_recorded_playlist(self, name, type):
+        if name == "":
+            raise DeejaydError(_("Set a playlist name"))
         # first search if this pls already exist
         try: self.db.get_medialist_id(name, type)
         except ValueError: pass
