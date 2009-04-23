@@ -26,6 +26,8 @@ caption{font-weight: bold;}
 .directory-item{list-style-image: url("./images/folder.png");}
 .video-item{list-style-image: url("./images/video.png");}
 .playlist-item{list-style-image: url("./images/playlist.png");}
+.static-playlist-item{list-style-image: url("./images/playlist.png");}
+.magic-playlist-item{list-style-image: url("./images/magic-playlist.png");}
 .webradio-item{list-style-image: url("./images/webradio.png");}
 .dvd-item{list-style-image: url("./images/dvd.png");}
 

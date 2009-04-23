@@ -282,7 +282,8 @@ var FileList = function()
                     var row = this.__constructRow({label: item.firstChild.data,
                         value: item.getAttribute("id"),type:"playlist",
                         context: "playlistList-menu"});
-                    row.className = "playlist-item listitem-iconic";
+                    row.className = item.getAttribute("pls_type")+
+                        "-playlist-item listitem-iconic";
                     break;
                 }
 
