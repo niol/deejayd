@@ -18,8 +18,11 @@
 
 import os
 from deejayd.utils import quote_uri
+# hachoir
+from hachoir_core.error import HachoirError
+from hachoir_parser import createParser
 
-class _MediaFile:
+class _MediaFile(object):
     type = "unknown"
 
     def parse(self, file_path):
@@ -72,5 +75,46 @@ class _AudioFile(_MediaFile):
 
 class _VideoFile(_MediaFile):
     type = "video"
+    mime_type = None
+
+    def _format_title(self, f):
+        (filename,ext) = os.path.splitext(f)
+        title = filename.replace(".", " ")
+        title = title.replace("_", " ")
+        return title.title()
+
+    def _format_duration(self, duration):
+        return str(duration.days*86400 + duration.seconds)
+
+    def parse(self, file):
+        infos = _MediaFile.parse(self, file)
+        infos.update({
+                "audio_channels": "0",
+                "subtitle_channels": "0",
+                "length": "0",
+                "videoheight": "0",
+                "videowidth": "0",
+                })
+        (path,filename) = os.path.split(file)
+        infos["title"] = self._format_title(filename)
+
+        # parse video file with hachoir
+        parser = createParser(unicode(file))
+        if not parser: # file not supported
+            raise TypeError(_("Video media not supported by hachoir parser"))
+        if parser.mime_type not in self.__class__.mime_type:
+            raise TypeError(_("Wrong file mime type for this extension"))
+
+        self.infos = infos
+        self.video, self.audio, self.sub = [], [], []
+        self.extract(parser)
+
+        if len(self.video) == 0:
+            raise TypeError(_("This file is not a video"))
+        self.infos["videowidth"] = self.video[0]["width"]
+        self.infos["videoheight"] = self.video[0]["height"]
+        self.infos["audio_channels"] = len(self.audio)
+        self.infos["subtitle_channels"] = len(self.sub)
+        return self.infos
 
 # vim: ts=4 sw=4 expandtab

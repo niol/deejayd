@@ -16,22 +16,4 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, glob
-
-def get_extensions(player, type = "audio"):
-    base = os.path.join(os.path.dirname(__file__), type)
-    base_import = "deejayd.mediadb.formats.%s" % type
-    ext_dict = {}
-
-    modules = [os.path.basename(f[:-3]) \
-                for f in glob.glob(os.path.join(base, "[!_]*.py"))]
-    for m in modules:
-        mod = __import__(base_import+"."+m, {}, {}, base)
-        inst = mod.object()
-        for ext in mod.extensions:
-            if player.is_supported_format(ext):
-                ext_dict[ext] = inst
-
-    return ext_dict
-
 # vim: ts=4 sw=4 expandtab
