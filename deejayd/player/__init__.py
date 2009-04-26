@@ -16,13 +16,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from deejayd.interfaces import DeejaydError
 from deejayd.ui import log
 
 
 AVAILABLE_BACKENDS = ('xine', 'gstreamer', )
 
 
-class PlayerError(Exception):pass
+class PlayerError(DeejaydError):pass
 
 def init(db,config):
     media_backend = config.get("general","media_backend")

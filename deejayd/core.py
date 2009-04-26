@@ -480,7 +480,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         else:
             try: self.player.play()
             except player.PlayerError, err:
-                raise DeejaydError(str(err))
+                raise DeejaydError(err)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def stop(self):
@@ -490,13 +490,13 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     def previous(self):
         try: self.player.previous()
         except player.PlayerError, err:
-            raise DeejaydError(str(err))
+            raise DeejaydError(err)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def next(self):
         try: self.player.next()
         except player.PlayerError, err:
-            raise DeejaydError(str(err))
+            raise DeejaydError(err)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def seek(self, pos):
@@ -538,7 +538,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         try: self.player.go_to(id, id_type, source)
         except player.PlayerError, err:
-            raise DeejaydError(str(err))
+            raise DeejaydError(err)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_volume(self, volume_value):
