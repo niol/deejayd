@@ -37,7 +37,8 @@ class PanelSource(_BaseSortedLibSource):
             ]
     contains_tags = ('genre','artist','album','title','all')
     sort_tags = ('genre','artist','album','title','rating','tracknumber')
-    default_sorts = [("album", "ascending"), ("tracknumber", "ascending")]
+    default_sorts = [("album", "ascending"), ("discnumber", "ascending"), \
+            ("tracknumber", "ascending")]
 
     def __init__(self, db, library, config):
         super(PanelSource, self).__init__(db, library)

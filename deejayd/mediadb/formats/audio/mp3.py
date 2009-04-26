@@ -41,6 +41,7 @@ class Mp3File(_AudioFile):
             ("artist", ""),
             ("album", ""),
             ("tracknumber", ""),
+            ("discnumber", ""),
             ("date", ""),
             ("genre", ""),
             ("replaygain_track_gain", ""),
@@ -74,7 +75,9 @@ class Mp3File(_AudioFile):
                 infos["date"] = list[0]
                 continue
             elif frame.FrameID == "TRCK": # tracknumber
-                infos["tracknumber"] = self._format_tracknumber(frame.text[0])
+                infos["tracknumber"] = self._format_number(frame.text[0])
+            elif frame.FrameID == "TPOS": # discnumber
+                infos["discnumber"] = self._format_number(frame.text[0])
             elif frame.FrameID in self.IDS.keys():
                 infos[self.IDS[frame.FrameID]] = frame.text[0]
             elif frame.FrameID == "APIC": # picture

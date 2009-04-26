@@ -35,6 +35,7 @@ class Mp4File(_AudioFile):
         }
     __tupletranslate = {
         "trkn": "tracknumber",
+        "disk": "discnumber",
         }
 
     def parse(self, file):

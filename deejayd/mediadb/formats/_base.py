@@ -40,14 +40,15 @@ class _MediaFile(object):
 class _AudioFile(_MediaFile):
     _tagclass_ = None
     type = "song"
-    supported_tag = ("tracknumber","title","genre","artist","album","date",\
-                     "replaygain_track_gain", "replaygain_track_peak")
+    supported_tag = ("tracknumber","title","genre","artist","album",\
+            "discnumber","date","replaygain_track_gain",\
+            "replaygain_track_peak")
 
-    def _format_tracknumber(self, tckn):
-        numbers = tckn.split("/")
+    def _format_number(self, nb):
+        numbers = nb.split("/")
         try: numbers = ["%02d" % int(num) for num in numbers]
         except (TypeError, ValueError):
-            return tckn
+            return nb
 
         return "/".join(numbers)
 
@@ -63,8 +64,8 @@ class _AudioFile(_MediaFile):
                 try: info = tag_info[t][0]
                 except:
                     info = ''
-                if t == "tracknumber":
-                    info = self._format_tracknumber(info)
+                if t in ("tracknumber", "discnumber"):
+                    info = self._format_number(info)
                 infos[t] = info
             # get front cover album if available
             infos["various_artist"] = infos["artist"]
@@ -87,6 +88,7 @@ class _VideoFile(_MediaFile):
         return str(duration.days*86400 + duration.seconds)
 
     def parse(self, file):
+        print "parse file", file
         infos = _MediaFile.parse(self, file)
         infos.update({
                 "audio_channels": "0",

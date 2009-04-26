@@ -495,7 +495,7 @@ class AudioLibrary(_Library):
     update_signal_name = 'mediadb.aupdate'
     custom_attr = ("artist","album","genre","tracknumber","date","bitrate",\
                    "replaygain_track_gain","replaygain_track_peak",\
-                   "various_artist")
+                   "various_artist","discnumber")
     cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg",\
                   "cover.png", "folder.png", ".folder.png")
 
