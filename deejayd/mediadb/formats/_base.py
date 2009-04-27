@@ -88,7 +88,6 @@ class _VideoFile(_MediaFile):
         return str(duration.days*86400 + duration.seconds)
 
     def parse(self, file):
-        print "parse file", file
         infos = _MediaFile.parse(self, file)
         infos.update({
                 "audio_channels": "0",
