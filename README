@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.8.0 (not released yet)
+Actual version : 0.8.0
 ----------------------
 
 Description:
@@ -20,6 +20,7 @@ Clients:
     --------
       djmote is a graphical deejayd client optimized for use on Maemo devices
       such as the Nokia N770 or Nokia N800.
+      For now, it does not work with deejayd >= 0.8.0
   * deejayd-webui :
     --------
       It is a web based client written in XUL. It is replace ajaxdj and
@@ -46,7 +47,7 @@ Requirements:
     * mutagen >= 1.6
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
     * hachoir-metadata >= 1.1 (http://hachoir.org/wiki/hachoir-metadata)
-    * lxml (http://codespeak.net/lxml/)
+    * lxml >= 2.0 (http://codespeak.net/lxml/)
     * twisted-web >= 0.6.0 if you want to use deejayd-webui
     * genshi (http://genshi.edgewall.org/) if you want to use mobile webui
     * if you want to use gstreamer backend

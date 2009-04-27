@@ -11,22 +11,31 @@ SRC_URI="http://mroy31.dyndns.org/~roy/archives/deejayd/${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
-IUSE="sqlite mysql dvd webradio xine gstreamer webui inotify logrotate"
+IUSE="sqlite mysql dvd webradio xine gstreamer webui inotify logrotate man"
 
-DEPEND=""
-RDEPEND="${DEPEND}
+DEPEND="
+	man? ( >=app-text/docbook-xsl-stylesheets-1.73
+	       >=dev-libs/libxslt-1.1.24 )"
+RDEPEND="
 	>=dev-python/twisted-2.0.0
-	sqlite? ( >=dev-python/pysqlite-2.2 )
+	sqlite? ( || ( >=dev-lang/python-2.5.0
+	             >=dev-python/pysqlite-2.2 ) )
 	mysql? ( >=dev-python/mysql-python-1.2.1 )
 	|| ( >=dev-lang/python-2.5.0
 		 >=dev-python/celementtree-1.0.2 )
 	>=media-libs/mutagen-1.9
+	>=app-misc/hachoir-metadata-1.1
+	>=dev-python/lxml-1.3.0
 	logrotate? ( app-admin/logrotate )
-	webui? ( >=dev-python/twisted-web-0.6.0 )
+	webui?
+        (
+            >=dev-python/twisted-web-0.6.0
+            >=dev-python/genshi-0.5.0
+        )
 	inotify? ( >=dev-python/pyinotify-0.6.0 )
 	gstreamer?
 		(
-			>=dev-python/pygtk-2.8
+			>=dev-python/pygobject-2.14
 			>=media-libs/gstreamer-0.10.2
 			>=media-libs/gst-plugins-base-0.10.2
 			>=media-libs/gst-plugins-good-0.10.2
@@ -60,7 +69,7 @@ src_install() {
 
 	# Conf
 	insinto /etc
-	newins doc/deejayd.conf.example deejayd.conf
+	newins deejayd/ui/defaults.conf deejayd.conf
 
 	# conf.d
 	newconfd "${FILESDIR}/deejayd.confd" deejayd
