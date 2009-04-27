@@ -63,14 +63,28 @@ class XinePlayer(UnknownPlayer):
         if "chapter" in self._media_file.keys() and \
                     self._media_file["chapter"] != -1:
             uri += ".%d" % self._media_file["chapter"]
-        # load external subtitle
+        # load subtitle
         if "external_subtitle" in self._media_file and \
                 self._media_file["external_subtitle"].startswith("file://"):
+            # external subtitle
             uri += "#subtitle:%s" \
                     % self._media_file["external_subtitle"].encode("utf-8")
             self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
                                             {"lang": "auto", "ix": -1},\
                                             {"lang": "external", "ix":0}]
+        elif int(self._media_file["subtitle_channels"]) > 0:
+            self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
+                    {"lang": "auto", "ix": -1}]
+            for i in range(int(self._media_file["subtitle_channels"])):
+                self._media_file["subtitle"].append(\
+                    {"lang": _("Sub channel %d") % (i+1,), "ix": i})
+        # audio channels
+        if int(self._media_file["audio_channels"]) > 1:
+            audio_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
+            for i in range(int(self._media_file["audio_channels"])):
+                audio_channels.append(\
+                        {"lang": _("Audio channel %d") % (i+1,), "ix": i})
+            self._media_file["audio"] = audio_channels
 
         needs_video = self._media_file["type"] == "video"
         if self.__stream:

@@ -685,7 +685,8 @@ class VideoLibrary(_Library):
     type = "video"
     search_type = "video"
     update_signal_name = 'mediadb.vupdate'
-    custom_attr = ("videoheight", "videowidth","external_subtitle")
+    custom_attr = ("videoheight", "videowidth","external_subtitle",\
+            "audio_channels", "subtitle_channels")
     subtitle_ext = (".srt",)
 
     def set_extra_infos(self, dir, file, file_id):
