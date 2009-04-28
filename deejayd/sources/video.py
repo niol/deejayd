@@ -57,7 +57,8 @@ class VideoSource(_BaseSortedLibSource):
             raise SourceError(_("type %s not supported") % type)
 
         self._media_list.set(video_list)
-        if need_sort: self._media_list.sort(self._sorts)
+        if need_sort:
+            self._media_list.sort(self._sorts + self.default_sorts)
         self.dispatch_signame(self.source_signal)
 
     def get_content(self, start = 0, stop = None):
