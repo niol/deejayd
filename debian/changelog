@@ -1,16 +1,16 @@
-deejayd (0.8.0~pre-1~darcsoftheday+20090125+1) UNRELEASED; urgency=low
+deejayd (0.8.0-1) unstable; urgency=low
 
-  * New upstream development snapshot.
+  * New upstream version.
   * Add new deejayd-webui-extension binary package.
-  * Remove the djc binary package and include djc into the deejayd-client
-    binary package.
+  * Remove the djc binary package and include the djc script in the
+    deejayd-client binary package.
   * Improve debian/rules clean target by making it remove all .pyc files.
   * Bump standards version to 3.8.1 :
     - Ensure the start action of the init script does not start the daemon
       again.
   * Fixed default file (/etc/default/deejayd).
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 25 Jan 2009 14:51:09 +0100
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 28 Apr 2009 19:55:20 +0200
 
 deejayd (0.7.2-2) unstable; urgency=low
 
