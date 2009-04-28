@@ -693,8 +693,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         else:
             filter = mediafilters.Contains(type, pattern)
         songs = self.audio_library.search(filter,\
-                [("album", "ascending"), ("discnumber", "ascending"),\
-                 ("tracknumber", "ascending")])
+                mediafilters.DEFAULT_AUDIO_SORT)
 
         return songs
 

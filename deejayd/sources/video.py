@@ -29,7 +29,7 @@ class VideoSource(_BaseSortedLibSource):
     base_medialist = "__videocurrent__"
     source_signal = 'video.update'
     sort_tags = ('title','rating','length')
-    default_sorts = [("title", "ascending")]
+    default_sorts = mediafilters.DEFAULT_VIDEO_SORT
 
     def __init__(self, db, library):
         super(VideoSource, self).__init__(db, library)

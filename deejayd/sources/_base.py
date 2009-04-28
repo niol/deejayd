@@ -123,8 +123,7 @@ class _BaseLibrarySource(_BaseSource):
                     filter = mediafilters.Or()
                 else:
                     filter = mediafilters.And()
-                sorts = [("album", "ascending"), ("discnumber", "ascending"),\
-                        ("tracknumber", "ascending")]
+                sorts = mediafilters.DEFAULT_AUDIO_SORT
                 if properties["use-limit"] == "1":
                     sorts = [(properties["limit-sort-value"],\
                              properties["limit-sort-direction"])] + sorts
