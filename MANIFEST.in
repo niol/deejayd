@@ -3,6 +3,8 @@ include doc/*
 include COPYING
 include README
 include NEWS
+include TODO
+include prepare.sh
 include docs.py
 include deejayd/ui/defaults.conf
 recursive-include deejayd/webui/mobile/templates *thtml
