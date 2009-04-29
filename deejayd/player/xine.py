@@ -72,14 +72,16 @@ class XinePlayer(UnknownPlayer):
             self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
                                             {"lang": "auto", "ix": -1},\
                                             {"lang": "external", "ix":0}]
-        elif int(self._media_file["subtitle_channels"]) > 0:
+        elif "subtitle_channels" in self._media_file.keys() and\
+                int(self._media_file["subtitle_channels"]) > 0:
             self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
                     {"lang": "auto", "ix": -1}]
             for i in range(int(self._media_file["subtitle_channels"])):
                 self._media_file["subtitle"].append(\
                     {"lang": _("Sub channel %d") % (i+1,), "ix": i})
         # audio channels
-        if int(self._media_file["audio_channels"]) > 1:
+        if "audio_channels" in self._media_file.keys() and \
+                int(self._media_file["audio_channels"]) > 1:
             audio_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
             for i in range(int(self._media_file["audio_channels"])):
                 audio_channels.append(\
