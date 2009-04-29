@@ -1281,14 +1281,10 @@
             oncommand="ajaxdj_ref.send_command('dvdLoad',null,true);"
             label="&reload;"/>
         <groupbox
-            datasources="rdf:null"
-            ref="http://dvd/infos"
             id="dvdinfo-box">
             <caption label="DVD Infos"/>
-            <template>
-
-                <label uri="rdf:*" value="rdf:http://dvd/rdf#value"/>
-            </template>
+                <label id="dvdinfo-title" value=""/>
+                <label id="dvdinfo-longest_track" value=""/>
         </groupbox>
         <spacer flex="1"/>
     </vbox>

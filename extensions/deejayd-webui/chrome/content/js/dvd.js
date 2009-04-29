@@ -17,8 +17,8 @@ var Dvd = function()
 
     this.customUpdate = function(dvd)
     {
-        $("dvdinfo-box").setAttribute("datasources",window.location.href+"rdf/"+
-            this.module+"-"+this.treeId+".rdf");
+        $("dvdinfo-title").value = dvd.getAttribute("title");
+        $("dvdinfo-longest_track").value = dvd.getAttribute("longest_track");
         $("dvd-description").value = dvd.getAttribute("description");
     };
 

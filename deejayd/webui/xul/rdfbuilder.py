@@ -282,23 +282,17 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
     locale_strings = ("%d Track", "%d Tracks")
     get_list_func = "get_dvd_content"
 
+    def update(self, xml_ans, status):
+        elt = super(DeejaydDvdRdf, self).update(xml_ans, status)
+        dvd_content = self._get_media_list()
+        elt.attrib["title"] = self._to_xml_string(_("DVD Title : %s")\
+                % dvd_content["title"])
+        elt.attrib["longest_track"] = self._to_xml_string(\
+                _("Longest Track : %s") % dvd_content["longest_track"])
+
     def _build_rdf_file(self,new_id):
         dvd_content = self._get_media_list()
         rdf_builder = RdfBuilder(self.__class__.name)
-
-        # general dvd infos
-        seq = rdf_builder.build_seq("http://dvd/infos")
-
-        i = 0
-        infos = [{"name": "title",\
-                  "value": _("DVD Title : %s") % dvd_content["title"]},\
-                 {"name": "longest_track",
-                  "value": _("Longest Track : %s")\
-                                % dvd_content["longest_track"]}]
-        for inf in infos:
-            li = rdf_builder.build_li(seq)
-            rdf_builder.build_item_desc(inf,li,"http://dvd/%d" % i)
-            i += 1
 
         # dvd structure
         seq = rdf_builder.build_seq("http://dvd/all-content")
