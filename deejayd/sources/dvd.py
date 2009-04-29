@@ -33,7 +33,7 @@ class DvdSource(SignalingComponent):
             raise DvdError(ex)
 
         self.db = db
-        self.current_id = int(self.db.get_state("dvdid"))
+        self.current_id = int(self.db.get_state("dvdid")) + 1
 
         self.dvd_info = None
         self.selected_track = None
