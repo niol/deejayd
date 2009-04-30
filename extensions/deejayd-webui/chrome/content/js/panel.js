@@ -34,7 +34,7 @@ var Panel = function()
 
     this.__setPanel = function(panel)
     {
-        $('panel-select-button').checked = false;
+        $('panel-select-button').checked = panel;
         $('filter-box').hidden = !panel;
         $('panel-box').hidden = !panel;
         this.selected_playlist = null;
