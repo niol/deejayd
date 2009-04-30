@@ -84,11 +84,7 @@ var VideoList = function()
     this.customUpdate = function(video)
     {
         // reset sorts
-        var cols = this.tree.getElementsByTagName("treecol");
-        for (var i=0; col = cols.item(i); i++) {
-            col.setAttribute("sortActive", "false");
-            col.setAttribute("sortDirection", "");
-            }
+        this.resetSort();
 
         // set new sort
         var sorts = video.getElementsByTagName("sorts").item(0);

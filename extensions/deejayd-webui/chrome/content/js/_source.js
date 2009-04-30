@@ -202,6 +202,19 @@ var _Source = function()
             {value:val,source:this.module});
     };
 
+    this.resetSort = function()
+    {
+        var cols = this.tree.getElementsByTagName("treecol");
+        for (var i=0; col = cols.item(i); i++) {
+            col.setAttribute("sortActive", "false");
+            col.setAttribute("sortDirection", "");
+            // workaround to force to update column state
+            col.blur();
+            col.focus();
+            col.blur();
+            }
+    };
+
     /**************************************************************/
     // drop support
     /**************************************************************/

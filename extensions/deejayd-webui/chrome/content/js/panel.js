@@ -98,6 +98,9 @@ var Panel = function()
             var boxobject = this.tree.treeBoxObject;
             boxobject.ensureRowIsVisible(0);
 
+            // reset sort
+            this.resetSort();
+
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
             var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].
@@ -131,12 +134,6 @@ var Panel = function()
                 $('panel-filter-type').value=
                     obj.getAttribute("filtertext_type");
 
-                // update sort
-                var cols = this.tree.getElementsByTagName("treecol");
-                for (var i=0; col = cols.item(i); i++) {
-                    col.setAttribute("sortActive", "false");
-                    col.setAttribute("sortDirection", "");
-                    }
                 }
 
             // update sorts
