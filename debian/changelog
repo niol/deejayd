@@ -1,3 +1,9 @@
+deejayd (0.8.0-2) UNRELEASED; urgency=low
+
+  * Do not process the deejayd-webui-extension packages with dh_pycentral.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sat, 02 May 2009 11:19:07 +0200
+
 deejayd (0.8.0-1) unstable; urgency=low
 
   * New upstream version.
