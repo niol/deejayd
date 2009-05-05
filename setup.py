@@ -77,10 +77,6 @@ class build_manpages(Command):
     def finalize_options(self):
         self.manpages = glob.glob(os.path.join(self.mandir, "*.xml"))
 
-    def __get_man_section(self, filename):
-        # filename should be file.mansection.xml
-        return filename.split('.')[-2]
-
     def run(self):
         data_files = self.distribution.data_files
         db2man = None
