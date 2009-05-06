@@ -79,7 +79,7 @@ function ajaxdj()
 {
     this.url = null;
     this.playerObj = new Player();
-    this.current_msg = null;
+    this.__msg_id = 0;
     // Activate Debug
     this.debug = false;
     // Initiate debug
@@ -150,25 +150,34 @@ function ajaxdj()
         this.busy = a;
     };
 
+    this.__get_message_id = function()
+    {
+        this.__msg_id += 1;
+        return this.__msg_id;
+    };
+
     this.display_message = function(msg,type)
     {
+        // first remove all notifications
+        $("notification-box").removeAllNotifications(true);
+
         var p = type == "error" ? 8 : 4;
         var image = "chrome://deejayd-webui/skin/images/";
         image += type == "error" ? "error.png" : "info.png";
-        var msg = $("notification-box").appendNotification(msg, 0, image, p);
-        this.current_msg = msg;
+        var msg_id = this.__get_message_id();
 
+        $("notification-box").appendNotification(msg, msg_id, image, p, null);
         if (type != 'error') {
-            setTimeout(this.ref+'.hide_message()', this.message_time);
+            setTimeout(this.ref+'.hide_message('+msg_id+')',this.message_time);
             }
     };
 
-    this.hide_message = function()
+    this.hide_message = function(msg_id)
     {
-        if (this.current_msg != null) {
-            try { $("notification-box").removeNotification(this.current_msg); }
+        var msg = $("notification-box").getNotificationWithValue(msg_id);
+        if (msg != null) {
+            try { $("notification-box").removeNotification(msg); }
             catch (ex) { }
-            this.current_msg = null;
             }
     };
 
