@@ -4,15 +4,12 @@ usr/lib/python*/site-packages/deejayd/component.py
 usr/lib/python*/site-packages/deejayd/utils.py
 usr/lib/python*/site-packages/deejayd/net/commandsXML.py
 usr/lib/python*/site-packages/deejayd/net/deejaydProtocol.py
-usr/lib/python*/site-packages/deejayd/mediadb/*.py
-usr/lib/python*/site-packages/deejayd/mediadb/formats/*.py
+usr/lib/python*/site-packages/deejayd/mediadb/*
 usr/lib/python*/site-packages/deejayd/player/__init__.py
 usr/lib/python*/site-packages/deejayd/player/_base.py
 usr/lib/python*/site-packages/deejayd/sources/*.py
 usr/lib/python*/site-packages/deejayd/ui/*
-usr/lib/python*/site-packages/deejayd/database/*.py
-usr/lib/python*/site-packages/deejayd/database/backends/*.py
-usr/lib/python*/site-packages/deejayd/database/upgrade/*.py
+usr/lib/python*/site-packages/deejayd/database/*
 usr/share/locale/*/LC_MESSAGES/deejayd.mo
 etc/deejayd.conf
 etc/deejayd.xinitrc
