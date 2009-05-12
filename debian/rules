@@ -24,7 +24,10 @@ install-python%:
 
 	# Fixing example conffile location
 	mkdir $(CURDIR)/debian/tmp/etc
-	cp $(CURDIR)/deejayd/ui/defaults.conf $(CURDIR)/debian/tmp/etc/deejayd.conf
+	cp -a $(CURDIR)/deejayd/ui/defaults.conf\
+	      $(CURDIR)/debian/tmp/etc/deejayd.conf
+	cp -a $(CURDIR)/debian/deejayd.xinitrc\
+	      $(CURDIR)/debian/tmp/etc/deejayd.xinitrc
 
 	# Removing jquery embedded copy, see debian/deejayd-webui.links
 	rm $(CURDIR)/debian/tmp/usr/share/deejayd/htdocs/js/lib/jquery.js
@@ -51,6 +54,8 @@ binary-indep: build install
 	dh_installlogrotate
 	# Inspired by mpd packaging, so that ALSA scripts can run first
 	dh_installinit -u"defaults 30 15"
+	# Inspired by gdm packaging
+	dh_installinit --name=deejayd-xserver -u"defaults 30 01"
 	dh_installman
 	dh_link
 	dh_compress

@@ -1,4 +1,40 @@
-# Defaults for deejayd initscript
+# Defaults for deejayd initscripts
 
 # Additional options that are passed to the Daemon.
-DAEMON_OPTS=""
+DEEJAYD_DAEMON_OPTS=""
+
+# Because Deejayd supports video, it makes sense for it to connect to an X
+# server, even when it runs as a daemon with the privileges of a dedicated
+# user. The following methods are available :
+#
+#   - "off" (default)
+#       Do not try to connect deejayd to a X server.
+#
+#   - "standalone"
+#       A dedicated X server is launched for the deejayd user.
+#
+#       Please note that in order to setup this mode, you :
+#       - can edit /etc/deejayd.xinitrc in order to setup X clients to hold
+#         the X session.
+#       - must allow users not logged into a console to start the X server. This
+#         is done using the following command :
+#
+#           # dpkg-reconfigure x11-common
+#
+#       Also note that in this mode, a X cookie is available for users that
+#       are in the 'video' group in $DEEJAYD_XAUTHORITY (see below for path).
+#       Therefore, accessing the Deejayd dedicated X server for other users
+#       than the deejayd user is just a matter of adding the following lines to
+#       your shell startup script (e.g. ~/.bashrc) :
+#
+#           XAUTHORITY=/var/lib/deejayd/Xauthority
+#           export XAUTHORITY
+#
+#DEEJAYD_XSERVER_METHOD=off
+#
+# "standalone" mode specific options
+#
+DEEJAYD_XAUTHORITY=/var/lib/deejayd/Xauthority
+DEEJAYD_DISPLAYNAME=:0
+DEEJAYD_XINITRC=/etc/deejayd.xinitrc
+DEEJAYD_XORG_DAEMON_OPTS="-nolisten tcp"

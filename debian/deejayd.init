@@ -35,7 +35,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
-DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom -p $PIDFILE -l $LOGFILE -w $WEBUI_LOGFILE $DAEMON_OPTS"
+DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom -p $PIDFILE -l $LOGFILE -w $WEBUI_LOGFILE $DEEJAYD_DAEMON_OPTS"
 
 # Create logfiles if they do not exist
 for FILE in "$LOGFILE" "$WEBUI_LOGFILE"

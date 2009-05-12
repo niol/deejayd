@@ -4,8 +4,14 @@ DEEJAYD_USER=deejayd
 if ! getent passwd $DEEJAYD_USER >/dev/null; then
     adduser --quiet --ingroup audio --system --no-create-home \
             --home /var/lib/deejayd $DEEJAYD_USER
-    adduser $DEEJAYD_USER cdrom
 fi
+
+# add deejayd to required groups
+for group in audio video cdrom; do
+    if groups $DEEJAYD_USER | grep -w -q -v $group; then
+        adduser $DEEJAYD_USER $group
+    fi
+done
 
 for i in /var/log/deejayd.log /var/lib/deejayd;
 do

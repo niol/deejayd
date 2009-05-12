@@ -15,3 +15,4 @@ usr/lib/python*/site-packages/deejayd/database/backends/*.py
 usr/lib/python*/site-packages/deejayd/database/upgrade/*.py
 usr/share/locale/*/LC_MESSAGES/deejayd.mo
 etc/deejayd.conf
+etc/deejayd.xinitrc
