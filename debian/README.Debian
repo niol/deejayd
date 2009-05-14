@@ -28,14 +28,10 @@ want to change the following items from their default value :
 Deejayd supports video. But it will not try to establish a connection to a
 X server until it is asked to play a video and if the 'video' mode is enabled.
 
-Connection to an existing user launched X server should be doable if deejayd
-is not launched using its initscript. On the contrary, if it is, the daemon
-must know both the display number (which does not change on most setups) and,
-and this is where the problems begin, the XAUTHORITY file, which is, on debian
-systems, generated whenever the X server is started with startx. When using a
-display manager, the same thing seems to happen.
+The Debian packaging provides two modes of operation in that regard:
+- 'standalone': Deejayd launches its own dedicated X server,
+- 'reuse':      Deejayd connects to an existing X session (e.g. launched by
+  (x|g|k)dm).
 
-Some people use an initscript to launch the X server on a machine dedicated to
-deejayd. This method will be integrated in the deejayd packaging in the near
-future. More info here :
-http://sousmonlit.dyndns.org/~niol/playa/oss:debhowto:display-server
+Configuration should be easy enough, and details are available in the comments
+in /etc/default/deejayd .
