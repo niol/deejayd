@@ -187,7 +187,7 @@ class _BaseSortedLibSource(_BaseLibrarySource):
             if tag not in self.sort_tags:
                 raise SourceError(_("Tag '%s' not supported for sort") % tag)
             if direction not in ('ascending', 'descending'):
-                raise SourceError(_("Bad sort direction for panel") % tag)
+                raise SourceError(_("Bad sort direction for source"))
         self._sorts = sorts
         self._media_list.sort(self._sorts + self.default_sorts)
         self.dispatch_signame(self.source_signal)
