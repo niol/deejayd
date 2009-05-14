@@ -35,7 +35,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
-DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom -p $PIDFILE -l $LOGFILE -w $WEBUI_LOGFILE $DEEJAYD_DAEMON_OPTS"
+DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom,video -p $PIDFILE -l $LOGFILE -w $WEBUI_LOGFILE $DEEJAYD_DAEMON_OPTS"
 
 # Create logfiles if they do not exist
 for FILE in "$LOGFILE" "$WEBUI_LOGFILE"
@@ -46,6 +46,12 @@ do
         chown deejayd:adm $FILE
     fi
 done
+
+# If X mode is "standalone", make the X authentification file path available to
+# the daemon.
+if [ "$DEEJAYD_XSERVER_METHOD" == "standalone" ]; then
+    export XAUTHORITY=$DEEJAYD_XAUTHORITY
+fi
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
