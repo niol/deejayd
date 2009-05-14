@@ -8,7 +8,7 @@ Standards-Version: 3.8.1
 XS-Python-Version: current, >= 2.4
 Homepage: http://mroy31.dyndns.org/~roy/projects/deejayd
 Vcs-Darcs: http://mroy31.dyndns.org/~roy/repository/deejayd
-Vcs-Browser: http://mroy31.dyndns.org/~roy/darcsweb/darcsweb.cgi?r=deejayd;a=tree;f=/src
+Vcs-Browser: http://mroy31.dyndns.org/~roy/darcsweb/darcsweb.cgi?r=deejayd;a=tree
 
 Package: deejayd
 Architecture: all
