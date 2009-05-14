@@ -30,11 +30,20 @@ DEEJAYD_DAEMON_OPTS=""
 #           XAUTHORITY=/var/lib/deejayd/Xauthority
 #           export XAUTHORITY
 #
+#   - "reuse"
+#       An existing X session is reused by making the X Cookie available to
+#       the Deejayd daemon at X session startup.  This is done in
+#       /etc/X11/Xsession.d/50deejayd_steal-session and therefore your session
+#       needs to be restarted for this setting to be taken into account.
+#
 #DEEJAYD_XSERVER_METHOD=off
+#
+# "standalone" and "reuse" mode specific options
+#
+DEEJAYD_DISPLAYNAME=:0
+DEEJAYD_XAUTHORITY=/var/lib/deejayd/Xauthority
 #
 # "standalone" mode specific options
 #
-DEEJAYD_XAUTHORITY=/var/lib/deejayd/Xauthority
-DEEJAYD_DISPLAYNAME=:0
 DEEJAYD_XINITRC=/etc/deejayd.xinitrc
 DEEJAYD_XORG_DAEMON_OPTS="-nolisten tcp"

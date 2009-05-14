@@ -47,10 +47,24 @@ do
     fi
 done
 
-# If X mode is "standalone", make the X authentification file path available to
-# the daemon.
-if [ "$DEEJAYD_XSERVER_METHOD" == "standalone" ]; then
+# If X method is managed by Deejayd scripts (not "off"), create, if it does not
+# exist, a dummy auth file with appropriate permissions:
+#   - for the user that starts X to be able to load auth cookies in it in
+#     "reuse" mode,
+#   - and for users in the 'video' group to be able to contact the X server
+#     in "standalone" mode.
+if [ ! -z "$DEEJAYD_XSERVER_METHOD" ] &&\
+   [ "$DEEJAYD_XSERVER_METHOD" != "off" ]; then
     export XAUTHORITY=$DEEJAYD_XAUTHORITY
+    if [ ! -e $DEEJAYD_XAUTHORITY ]; then
+        # Just create a dummy auth file to make it have to appropriate file
+        # permissions.
+        touch $DEEJAYD_XAUTHORITY
+        chgrp video $DEEJAYD_XAUTHORITY && chmod 640 $DEEJAYD_XAUTHORITY
+        if [ "$DEEJAYD_XSERVER_METHOD" == "reuse" ]; then
+            chmod g+w $DEEJAYD_XAUTHORITY
+        fi
+    fi
 fi
 
 # Load the VERBOSE setting and other rcS variables
