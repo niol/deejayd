@@ -11,7 +11,7 @@ The default configuration for deejayd is pretty minimal and you'll probably
 want to change the following items from their default value :
 - in the 'general' section, maybe enable more modes using the activated_modes
   variable. The default does not enable video related modes.
-  activated_modes =  playlist,webradio,video,dvd
+  activated_modes =  playlist,webradio,video,dvd,panel
   (this is new in version 0.7.0)
 - in the 'webui' section, enable it using the 'enabled' configuration variable.
 - you may want the daemon to be controllable from machines other than the one it
