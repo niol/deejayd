@@ -73,6 +73,10 @@ class DeejaydXMLCommand(_DeejaydXML):
     def add_simple_arg(self, name, value):
         self.args[name] = ('simple', value)
 
+    def add_boolean_arg(self, name, value):
+        arg_value = value and "1" or "0"
+        self.args[name] = ('simple', arg_value)
+
     def add_multiple_arg(self, name, valuelist):
         self.args[name] = ('multiple', valuelist)
 

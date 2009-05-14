@@ -133,7 +133,13 @@ class AvailableCommands:
 
     def audio_update(self, args):
         """Update audio library"""
-        for (key, value) in self.server.update_audio_library().items():
+        force = False
+        try:
+            force_value = args[0]
+            if force_value.lower() == "force": force = True
+        except IndexError:
+            pass
+        for (key, value) in self.server.update_audio_library(force).items():
             print key, ':', value
 
     def get_audio_dir(self, args):
@@ -164,7 +170,13 @@ class AvailableCommands:
 # Video commands
     def video_update(self, args):
         """Update video library"""
-        for (key, value) in self.server.update_video_library().items():
+        force = False
+        try:
+            force_value = args[0]
+            if force_value.lower() == "force": force = True
+        except IndexError:
+            pass
+        for (key, value) in self.server.update_video_library(force).items():
             print key, ':', value
 
     def get_video_dir(self, args):

@@ -316,7 +316,7 @@ Update the audio library.
     update are completed.
 
 Arguments :
-  * ''This command does not accept any argument.''
+  * {{{force}}} (Simple and Optional) : bool
 
 Expected return value : ''`KeyValue`''
 
@@ -327,7 +327,7 @@ Update the video library.
     update are completed.
 
 Arguments :
-  * ''This command does not accept any argument.''
+  * {{{force}}} (Simple and Optional) : bool
 
 Expected return value : ''`KeyValue`''
 

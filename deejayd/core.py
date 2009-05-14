@@ -592,15 +592,15 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         return dict(ans)
 
     @returns_deejaydanswer(DeejaydKeyValue)
-    def update_audio_library(self, sync = False):
-        return {'audio_updating_db': self.audio_library.update(sync)}
+    def update_audio_library(self, force = False, sync = False):
+        return {'audio_updating_db': self.audio_library.update(force, sync)}
 
     @require_mode("video")
     @returns_deejaydanswer(DeejaydKeyValue)
-    def update_video_library(self, sync = False):
+    def update_video_library(self, force = False, sync = False):
         if not self.video_library:
             raise DeejaydError(_("Video mode disabled"))
-        return {'video_updating_db': self.video_library.update(sync)}
+        return {'video_updating_db': self.video_library.update(force, sync)}
 
     @returns_deejaydanswer(DeejaydKeyValue)
     def create_recorded_playlist(self, name, type):

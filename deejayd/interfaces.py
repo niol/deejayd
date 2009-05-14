@@ -463,10 +463,10 @@ class DeejaydCore(object):
     def get_stats(self):
         raise NotImplementedError
 
-    def update_audio_library(self):
+    def update_audio_library(self, force = False, sync = False):
         raise NotImplementedError
 
-    def update_video_library(self):
+    def update_video_library(self, force = False, sync = False):
         raise NotImplementedError
 
     def create_recorded_playlist(self, name, type):

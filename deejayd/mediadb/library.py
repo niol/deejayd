@@ -184,14 +184,14 @@ class _Library(SignalingComponent):
     #
     # Update process
     #
-    def update(self, sync = False):
+    def update(self, force = False, sync = False):
         if self._update_end:
             self._update_id += 1
             if sync: # synchrone update
-                self._update()
+                self._update(force)
                 self._update_end = True
             else: # asynchrone update
-                self.defered = threads.deferToThread(self._update)
+                self.defered = threads.deferToThread(self._update, force)
                 self.defered.pause()
 
                 # Add callback functions
@@ -235,7 +235,7 @@ class _Library(SignalingComponent):
                 return True
         return False
 
-    def _update_dir(self, dir):
+    def _update_dir(self, dir, force = False):
         # dirname/filename : (id, lastmodified)
         library_files = dict([(os.path.join(it[1],it[3]), (it[2],it[4]))\
             for it in self.db_con.get_all_files(dir,self.type)])
@@ -247,7 +247,7 @@ class _Library(SignalingComponent):
                             in self.db_con.get_all_dirlinks(dir, self.type)]
 
         self.walk_directory(dir or self.get_root_path(),
-                            library_dirs, library_files, library_dirlinks)
+                library_dirs, library_files, library_dirlinks, force=force)
 
         # Remove unexistent files and directories from library
         for (id, lastmodified) in library_files.values():
@@ -261,11 +261,11 @@ class _Library(SignalingComponent):
                 self.watcher.stop_watching_dir(os.path.join(root,
                                                             dirlinkname))
 
-    def _update(self):
+    def _update(self, force = False):
         self._update_end = False
 
         try:
-            self._update_dir('')
+            self._update_dir('', force)
 
             self.mutex.acquire()
             self.db_con.erase_empty_dir(self.type)
@@ -279,7 +279,7 @@ class _Library(SignalingComponent):
 
     def walk_directory(self, walk_root,
                        library_dirs, library_files, library_dirlinks,
-                       forbidden_roots=None):
+                       force = False, forbidden_roots=None):
         """Walk a directory for files to update.
         Called recursively to carefully handle symlinks."""
         if not forbidden_roots:
@@ -317,10 +317,10 @@ class _Library(SignalingComponent):
                                 self.watcher.watch_dir(dir_path, self)
                         self.walk_directory(dir_path,
                                  library_dirs, library_files, library_dirlinks,
-                                 forbidden_roots)
+                                 force, forbidden_roots)
 
             # else update files
-            self.update_files(root, dir_id, files, library_files)
+            self.update_files(root, dir_id, files, library_files, force)
 
     def end_update(self, result = True):
         self._update_end = True
@@ -331,7 +331,7 @@ class _Library(SignalingComponent):
             self._update_error = msg
         return True
 
-    def update_files(self, root, dir_id, files, library_files):
+    def update_files(self, root, dir_id, files, library_files, force = False):
         for file in files:
             try: file = self._encode(file)
             except UnicodeError: # skip this file
@@ -340,7 +340,7 @@ class _Library(SignalingComponent):
             file_path = os.path.join(root, file)
             try:
                 fid, lastmodified = library_files[file_path]
-                need_update = os.stat(file_path).st_mtime > lastmodified
+                need_update = force or os.stat(file_path).st_mtime>lastmodified
                 changes_type = "update"
             except KeyError:
                 need_update, fid = True, None
@@ -568,12 +568,12 @@ class AudioLibrary(_Library):
     def __get_digest(self, data):
         return "hash_-_%s" % hashlib.md5(data).hexdigest()
 
-    def _update_dir(self, dir):
-        super(AudioLibrary, self)._update_dir(dir)
+    def _update_dir(self, dir, force=False):
+        super(AudioLibrary, self)._update_dir(dir, force)
         # remove unused cover
         self.db_con.remove_unused_cover()
 
-    def update_files(self, root, dir_id, files, library_files):
+    def update_files(self, root, dir_id, files, library_files, force=False):
         if len(files): cover = self.__find_cover(root)
         for file in files:
             try: file = self._encode(file)
@@ -583,7 +583,7 @@ class AudioLibrary(_Library):
             file_path = os.path.join(root, file)
             try:
                 fid, lastmodified = library_files[file_path]
-                need_update = os.stat(file_path).st_mtime > lastmodified
+                need_update = force or os.stat(file_path).st_mtime>lastmodified
                 changes_type = "update"
             except KeyError:
                 need_update, fid = True, None

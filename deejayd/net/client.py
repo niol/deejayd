@@ -554,12 +554,14 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         cmd = DeejaydXMLCommand('stats')
         return self._send_command(cmd, DeejaydKeyValue())
 
-    def update_audio_library(self):
+    def update_audio_library(self, force = False):
         cmd = DeejaydXMLCommand('audioUpdate')
+        cmd.add_boolean_arg('force', force)
         return self._send_command(cmd, DeejaydKeyValue())
 
-    def update_video_library(self):
+    def update_video_library(self, force = False):
         cmd = DeejaydXMLCommand('videoUpdate')
+        cmd.add_boolean_arg('force', force)
         return self._send_command(cmd, DeejaydKeyValue())
 
     def create_recorded_playlist(self, name, type):

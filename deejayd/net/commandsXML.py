@@ -127,6 +127,19 @@ class UnknownCommand:
                                 _("Arg %s (%s) is not a int") % (arg['name'],\
                                 str(v)))
 
+                    elif arg['type'] == "bool":
+                        try: v = int(v)
+                        except (ValueError,TypeError):
+                            return self.get_error_answer(\
+                                _("Arg %s (%s) is not a int") % (arg['name'],\
+                                str(v)))
+                        else:
+                            if v not in range(0, 2):
+                                return self.get_error_answer(\
+                                _("Arg %s (%s) is not in the possible list")\
+                                % (arg['name'],str(v)))
+                        self.args[arg['name']] = v and True or False
+
                     elif arg['type'] == "enum_str":
                         if str(v) not in arg['values']:
                             return self.get_error_answer(\
@@ -274,10 +287,13 @@ class UpdateAudioLibrary(UnknownCommand):
   * audio_updating_db : the id of this task. It appears in the status until the
     update are completed."""
     command_name = 'audioUpdate'
+    command_args = [{"name":"force", "type":"bool", "req":False,\
+            "default": False}]
     command_rvalue = 'KeyValue'
 
     def _execute(self):
-        rsp = self.deejayd_core.update_audio_library(objanswer=False)
+        rsp = self.deejayd_core.update_audio_library(force=self.args["force"],\
+                objanswer=False)
         return self.get_keyvalue_answer(rsp)
 
 
@@ -286,11 +302,14 @@ class UpdateVideoLibrary(UnknownCommand):
   * video_updating_db : the id of this task. It appears in the status until the
     update are completed."""
     command_name = 'videoUpdate'
+    command_args = [{"name":"force", "type":"bool", "req":False,\
+            "default": False}]
     command_rvalue = 'KeyValue'
 
 
     def _execute(self):
-        rsp = self.deejayd_core.update_video_library(objanswer=False)
+        rsp = self.deejayd_core.update_video_library(force=self.args["force"],\
+                objanswer=False)
         return self.get_keyvalue_answer(rsp)
 
 
