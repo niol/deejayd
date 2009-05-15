@@ -7,8 +7,6 @@
 * Signals to the webui exploiting the fact that XmlHttpRequest does not have a
   timeout.
 
-* debian package should make it easier to connect to Xorg
-
 * commonalize logrotate files
 
 * devscripts dir
