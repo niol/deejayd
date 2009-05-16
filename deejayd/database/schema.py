@@ -51,7 +51,7 @@ class Index(object):
         self.columns = columns
 
 
-db_schema_version=11
+db_schema_version=12
 db_schema = [
     Table('library_dir', key='id')[
         Column('id', auto_increment=True),
@@ -96,7 +96,7 @@ db_schema = [
         Column('position', auto_increment=True),
         Column('medialist_id', type='int'),
         Column('tag'),
-        Column('direction', type='int')],
+        Column('direction')],
     Table('medialist_filters', key=('medialist_id', 'filter_id'))[
         Column('medialist_id', type='int'),
         Column('filter_id', type='int')],
@@ -168,7 +168,7 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('videoid','1');",
     "INSERT INTO variables VALUES('panel-type','panel');",
     "INSERT INTO variables VALUES('panel-value','');",
-    "INSERT INTO variables VALUES('database_version','11');",
+    "INSERT INTO variables VALUES('database_version','12');",
     ]
 
 # vim: ts=4 sw=4 expandtab
