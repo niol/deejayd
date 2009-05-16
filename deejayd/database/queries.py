@@ -283,6 +283,12 @@ class DatabaseQueries(object):
         query.order_by_tag(tag)
         cursor.execute(query.to_sql(), query.get_args())
 
+    @query_decorator("fetchall")
+    def get_media_keys(self, cursor, type):
+        query = "SELECT DISTINCT m.ikey FROM media_info m\
+                JOIN media_info m2 ON m.id = m2.id\
+                WHERE m2.ikey='type' AND m2.value=%s"
+        cursor.execute(query, (type,))
 #
 # Post update action
 #

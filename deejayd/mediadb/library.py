@@ -265,6 +265,14 @@ class _Library(SignalingComponent):
         self._update_end = False
 
         try:
+            # compare keys recorded in the database with needed key
+            # if there is a difference, force update
+            keys = self.db_con.get_media_keys(self.search_type)
+            if len(keys) != len(self.media_attr):
+                log.msg(\
+                    _("%s library has to be updated, this can take a while.")%\
+                    (self.type,))
+                force = True
             self._update_dir('', force)
 
             self.mutex.acquire()
@@ -495,7 +503,7 @@ class AudioLibrary(_Library):
     update_signal_name = 'mediadb.aupdate'
     custom_attr = ("artist","album","genre","tracknumber","date","bitrate",\
                    "replaygain_track_gain","replaygain_track_peak",\
-                   "various_artist","discnumber")
+                   "various_artist","discnumber","cover")
     cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg",\
                   "cover.png", "folder.png", ".folder.png")
 
