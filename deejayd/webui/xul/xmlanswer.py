@@ -19,6 +19,7 @@
 import os,re
 from deejayd.xmlobject import DeejaydXMLObject, ET
 from deejayd.webui.xul import rdfbuilder
+from deejayd.ui import log
 from deejayd.mediafilters import *
 
 class DeejaydWebAnswer(DeejaydXMLObject):
@@ -223,7 +224,10 @@ class DeejaydWebAnswer(DeejaydXMLObject):
                             val_elt = ET.SubElement(elt,"listvalue")
                             val_elt.text = self._to_xml_string(it)
                 else:
-                    elt.text = self._to_xml_string(cur_media[k])
+                    try: elt.text = self._to_xml_string(cur_media[k])
+                    except TypeError: # someting strange happends
+                        log.err(_("Unable to get key %s value for current")%k)
+                        elt.text = ""
             # get cover if available
             try: cover = cur_media.get_cover()
             except AttributeError:
