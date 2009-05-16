@@ -2,6 +2,8 @@ function $(id) {
   return document.getElementById(id);
 }
 
+var VERSION="0.8.0";
+
 var deejaydWebuiTest = function(event) {
     // first hide install extension, not needed
     var doc = window.getBrowser().contentDocument;
@@ -10,7 +12,7 @@ var deejaydWebuiTest = function(event) {
 
     // see if we need to update extension
     var version = event.target.getAttribute("version");
-    if (version != "0.1.0") {
+    if (version != VERSION) {
         doc.getElementById("deejayd-webui_upgrade").style.display = "block";
         return;
         }
