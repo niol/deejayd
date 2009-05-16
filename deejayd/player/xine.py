@@ -223,8 +223,8 @@ class XinePlayer(UnknownPlayer):
         state = self.get_state()
         if state == PLAYER_PAUSE:
             self.__stream.play(0, pos)
-            self.__stream.set_param(Xine.Stream.XINE_PARAM_SPEED,
-                                    Xine.Stream.XINE_SPEED_PAUSE)
+            self.__stream.set_param(xine.Stream.XINE_PARAM_SPEED,
+                                    xine.Stream.XINE_SPEED_PAUSE)
         elif state == PLAYER_PLAY:
             self.__stream.play(0, pos)
         self.dispatch_signame('player.status')
