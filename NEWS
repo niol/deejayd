@@ -1,6 +1,12 @@
 
 New features and significant updates in version...
 
+0.8.1 (2009-05-19)
+--------------------
+  * add cdnumber info for audio media in database
+  * support multiple audio/video channels in video files
+  * fixes in xul webui
+
 0.8.0 (2009-04-27)
 --------------------
   * update database schema to be more evolutive

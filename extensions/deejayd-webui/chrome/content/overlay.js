@@ -2,7 +2,7 @@ function $(id) {
   return document.getElementById(id);
 }
 
-var VERSION="0.8.0";
+var VERSION="0.8.1";
 
 var deejaydWebuiTest = function(event) {
     // first hide install extension, not needed
