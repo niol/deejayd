@@ -7,10 +7,28 @@
 * Signals to the webui exploiting the fact that XmlHttpRequest does not have a
   timeout.
 
-* commonalize logrotate files
+* Devscripts dir
 
-* devscripts dir
+* Fix ratio using avi header, but this is difficult as the extended AVI header
+  is not parsed by Xine. Maybe in hachoir?
 
-* fix ratio using avi header
+* Build testing library once and for all tests for speedups.
 
-* build testing library once and for all tests for speedups
+* Interlude functionality : save state, play a media, retrieve state. This is
+  different from the Queue because it interupts the currently played media and
+  restores playback after.
+
+* Directory and subdirs mode, for people who like browsing their filesystem.
+
+* Replace the proprietary protocol with the DBus protocol. The fact is that we
+  probably do not want to make the the use of the DBus daemon mandatory, as it
+  does not listen to the network by default, and configuring it to do so would
+  probably be a security risk for the desktop user. Therefore, what is needed
+  is either an access to libdbus low level message marshalling functions, or to
+  rely on a pure python DBus implementation. Such implementation exists in Ruby:
+  http://trac.luon.net/ruby-dbus/browser/trunk/lib/dbus/bus.rb
+
+* Use nevow or athena for webui?
+  http://divmod.org/trac/wiki/DivmodNevow
+
+* Do not segfault when there is no xserver and video mode is activated.
