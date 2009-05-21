@@ -1,12 +1,4 @@
-deejayd (0.8.0-2) UNRELEASED; urgency=low
-
-  * Do not process the deejayd-webui-extension packages with dh_pycentral.
-  * Added NEWS to installed doc.
-  * Simplify clean rule thanks to upstream improvements.
-
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 05 May 2009 09:24:06 +0000
-
-deejayd (0.8.0-1) unstable; urgency=low
+deejayd (0.8.1-1) unstable; urgency=low
 
   * New upstream version.
   * Add new deejayd-webui-extension binary package.
@@ -17,8 +9,16 @@ deejayd (0.8.0-1) unstable; urgency=low
     - Ensure the start action of the init script does not start the daemon
       again.
   * Fixed default file (/etc/default/deejayd).
+  * Do not process the deejayd-webui-extension packages with dh_pycentral.
+  * Added NEWS to installed doc.
+  * Update Vcs-Browser field.
+  * Simplify clean rule thanks to upstream improvements.
+  * Add upstream tarball embbedded JQuery copy licence information to
+    debian/copyright.
+  * Fix build with Python 2.6 as distutils file locations change from
+    site-packages to dist-packages, for public modules.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 28 Apr 2009 19:55:20 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 21 May 2009 15:09:11 +0200
 
 deejayd (0.7.2-2) unstable; urgency=low
 
