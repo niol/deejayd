@@ -20,7 +20,8 @@ install-python%:
 	dh_clean -k -i
 	dh_clean -k -s
 	python$* setup.py install --no-compile\
-	         --root $(CURDIR)/debian/tmp
+			--root $(CURDIR)/debian/tmp\
+			--prefix usr
 
 	# Fixing example conffile location
 	mkdir -p $(CURDIR)/debian/tmp/etc/X11/Xsession.d
@@ -37,12 +38,14 @@ install-python%:
 	dh_install --sourcedir=$(CURDIR)/debian/tmp
 	dh_installdirs
 
-clean:
+clean: $(PYVERS:%=clean-python%)
+
+clean-python%:
 	dh_testdir
 	dh_testroot
 
 	rm -f build-python*
-	python setup.py clean --all
+	python$* setup.py clean --all
 	find $(CURDIR) -name '*pyc' -exec rm -f {} \;
 
 	dh_clean
