@@ -38,3 +38,6 @@ The Gentoo packaging, which is part of the upstream tarball, is licensed under
 the GPL v2. This consists of the files located under the gentoo/ directory.
 On Debian systems, the complete text of the GNU General Public
 License can be found in `/usr/share/common-licenses/GPL-2'.
+
+The upstream tarball contains an embedded copy of JQuery, which is © 2008 John
+Resig (jquery.com), and is dual licensed under the MIT and GPL v2 licenses.
