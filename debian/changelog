@@ -1,3 +1,9 @@
+deejayd (0.8.2-1) unstable; urgency=low
+
+  * New upstream version fixing playback of albums lacking album art.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 24 May 2009 10:30:52 +0200
+
 deejayd (0.8.1-1) unstable; urgency=low
 
   * New upstream version.
