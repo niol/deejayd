@@ -550,11 +550,13 @@ longest_track : %s
 
 
 def get_cmds():
+    import types
     cmds = []
     for cmd_name in dir(AvailableCommands):
         if cmd_name[0] != '_':
             cmd = getattr(AvailableCommands, cmd_name)
-            cmds.append(' : '.join([cmd_name, cmd.__doc__]))
+            if isinstance(cmd, types.UnboundMethodType):
+                cmds.append(' : '.join([cmd_name, cmd.__doc__]))
     return cmds
 
 
