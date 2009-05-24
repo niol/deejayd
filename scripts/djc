@@ -58,7 +58,7 @@ class AvailableCommands:
         self.server.seek(pos).get_contents()
 
     def current(self, args):
-        """Return the current playing media (if ti exists)"""
+        """Return the current playing media (if it exists)"""
         cur = self.server.get_current().get_medias()
         if len(cur) == 0:
             print "No current media"
