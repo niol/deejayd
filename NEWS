@@ -1,6 +1,10 @@
 
 New features and significant updates in version...
 
+0.8.2 (2009-05-24)
+--------------------
+  * fix a important bug in library
+
 0.8.1 (2009-05-19)
 --------------------
   * add cdnumber info for audio media in database
