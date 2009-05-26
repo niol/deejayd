@@ -49,12 +49,12 @@ export DISPLAY XAUTHORITY
 
 # check for GNU hostname
 if hostname --version > /dev/null 2>&1; then
-	if [ -z "`hostname --version 2>&1 | grep GNU`" ]; then
-		hostname=`hostname -f`
-	fi
+    if [ -z "`hostname --version 2>&1 | grep GNU`" ]; then
+        hostname=`hostname -f`
+    fi
 fi
 if [ -z "$hostname" ]; then
-	hostname=`hostname`
+    hostname=`hostname`
 fi
 authdisplay=${DEEJAYD_DISPLAYNAME:-:0}
 authdisplaynet=$hostname$authdisplay
@@ -63,134 +63,110 @@ authdisplaynet=$hostname$authdisplay
 # is stolen from /usr/bin/startx .
 gen_auth_cookie()
 {
-	# set up default Xauth info for this machine
+    # set up default Xauth info for this machine
 
-	mcookie=`/usr/bin/mcookie`
+    mcookie=`/usr/bin/mcookie`
 
-	if test x"$mcookie" = x; then
-		echo "Couldn't create cookie"
-		exit 1
-	fi
-	dummy=0
+    if test x"$mcookie" = x; then
+        echo "Couldn't create cookie"
+        exit 1
+    fi
+    dummy=0
 
-	# create a file with auth information for the server. ':0' is a dummy.
-	xserverauthfile=`mktemp -p /tmp serverauth.XXXXXXXXXX`
+    # create a file with auth information for the server. ':0' is a dummy.
+    xserverauthfile=`mktemp -p /tmp serverauth.XXXXXXXXXX`
 
-	xauth -q -f $xserverauthfile << EOF
+    xauth -q -f $xserverauthfile << EOF
 add :$dummy . $mcookie
 EOF
-	echo $xserverauthfile > $AUTHFILE
+    echo $xserverauthfile > $AUTHFILE
 
-	# now add the same credentials to the client authority file
-	# if '$displayname' already exists do not overwrite it as another
-	# server man need it. Add them to the '$xserverauthfile' instead.
-	for displayname in $authdisplay $authdisplaynet; do
-		authcookie=`xauth list "$displayname" 2> /dev/null\
-		| sed -n "s/.*$displayname[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
-		if [ "z${authcookie}" = "z" ] ; then
-			xauth -q 2> /dev/null << EOF
+    # now add the same credentials to the client authority file
+    # if '$displayname' already exists do not overwrite it as another
+    # server man need it. Add them to the '$xserverauthfile' instead.
+    for displayname in $authdisplay $authdisplaynet; do
+        authcookie=`xauth list "$displayname" 2> /dev/null\
+        | sed -n "s/.*$displayname[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
+        if [ "z${authcookie}" = "z" ] ; then
+            xauth -q 2> /dev/null << EOF
 add $displayname . $mcookie
 EOF
-		else
-			dummy=$(($dummy+1));
-			xauth -q -f $xserverauthfile 2> /dev/null << EOF
+        else
+            dummy=$(($dummy+1));
+            xauth -q -f $xserverauthfile 2> /dev/null << EOF
 add :$dummy . $authcookie
 EOF
-		fi
-	done
+        fi
+    done
 
-	for authfile in $DEEJAYD_XAUTHORITY $xserverauthfile; do
-		chgrp video $authfile && chmod g+r $authfile
-	done
+    for authfile in $DEEJAYD_XAUTHORITY $xserverauthfile; do
+        chgrp video $authfile && chmod g+r $authfile
+    done
 }
 
-
-#
-# Function that starts the daemon/service
-#
 do_start()
 {
-    	gen_auth_cookie
-    	DAEMON_ARGS="$DEEJAYD_DISPLAYNAME $DEEJAYD_XORG_DAEMON_OPTS -auth $xserverauthfile"
-	# Return
-	#   0 if daemon has been started
-	#   2 if daemon could not be started
-    	is_alive && return 0
-	start-stop-daemon --start --pidfile $PIDFILE --make-pidfile\
-                --exec $DAEMON\
-                -b -c $DAEMON_USER -- $DAEMON_ARGS \
-		|| return 2
+    gen_auth_cookie
+    DAEMON_ARGS="$DEEJAYD_DISPLAYNAME $DEEJAYD_XORG_DAEMON_OPTS -auth $xserverauthfile"
+    # Return
+    #   0 if daemon has been started
+    #   2 if daemon could not be started
+    is_alive && return 0
+    start-stop-daemon --start --pidfile $PIDFILE --make-pidfile\
+        --exec $DAEMON\
+        -b -c $DAEMON_USER -- $DAEMON_ARGS \
+        || return 2
 }
 
 do_start_xclients()
 {
-    	# Start the X init script also as a daemon.
-    	start-stop-daemon --start --pidfile $XCLIENTS_PIDFILE --make-pidfile\
-		--exec /bin/sh\
-        	-b -c $DAEMON_USER -- $DEEJAYD_XINITRC\
-        	|| return 2
+    # Start the X init script also as a daemon.
+    start-stop-daemon --start --pidfile $XCLIENTS_PIDFILE --make-pidfile\
+        --exec /bin/sh\
+        -b -c $DAEMON_USER -- $DEEJAYD_XINITRC\
+        || return 2
 }
 
-#
-# Function that stops the daemon/service
-#
 do_stop()
 {
-	# Return
-	#   0 if daemon has been stopped
-	#   1 if daemon was already stopped
-	#   2 if daemon could not be stopped
-	#   other if a failure occurred
-	# Xorg is suid so no user filter for start-stop-daemon
-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
-	RETVAL="$?"
-	[ "$RETVAL" = 2 ] && return 2
-	# Many daemons don't delete their pidfiles when they exit.
-	rm -f $PIDFILE
+    # Return
+    #   0 if daemon has been stopped
+    #   1 if daemon was already stopped
+    #   2 if daemon could not be stopped
+    #   other if a failure occurred
+    # Xorg is suid so no user filter for start-stop-daemon
+    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
+    RETVAL="$?"
+    [ "$RETVAL" = 2 ] && return 2
 
-	xauth remove $authdisplay $authdisplaynet
-	if [ -e $AUTHFILE ]; then 
-		xserverauthfile=`cat $AUTHFILE`
-		rm -f $xserverauthfile
-		rm -f $AUTHFILE
-	fi
+    rm -f $PIDFILE
 
-	return "$RETVAL"
+    xauth remove $authdisplay $authdisplaynet
+    if [ -e $AUTHFILE ]; then
+        xserverauthfile=`cat $AUTHFILE`
+        rm -f $xserverauthfile
+        rm -f $AUTHFILE
+    fi
+
+    return "$RETVAL"
 }
 
 do_stop_xclients()
 {
-	# Return
-	#   0 if daemon has been stopped
-	#   1 if daemon was already stopped
-	#   2 if daemon could not be stopped
-	#   other if a failure occurred
-	start-stop-daemon --user $DAEMON_USER --stop --quiet --retry=TERM/30/KILL/5 --pidfile $XCLIENTS_PIDFILE
-	RETVAL="$?"
-	[ "$RETVAL" = 2 ] && return 2
+    # Return
+    #   0 if daemon has been stopped
+    #   1 if daemon was already stopped
+    #   2 if daemon could not be stopped
+    #   other if a failure occurred
+    start-stop-daemon --user $DAEMON_USER --stop --quiet --retry=TERM/30/KILL/5 --pidfile $XCLIENTS_PIDFILE
+    RETVAL="$?"
+    [ "$RETVAL" = 2 ] && return 2
 
-	rm -f $XCLIENTS_PIDFILE
+    rm -f $XCLIENTS_PIDFILE
 
-	return "$RETVAL"
+    return "$RETVAL"
 }
 
-
-#
-# Function that sends a SIGHUP to the daemon/service
-#
-do_reload() {
-	#
-	# If the daemon can reload its configuration without
-	# restarting (for example, when it is sent a SIGHUP),
-	# then implement that here.
-	#
-	start-stop-daemon --user $DAEMON_USER --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
-	return 0
-}
-
-#
-# Function used to determine if the program is alive
-#
 is_alive () {
     ret=1
     if [ -r $PIDFILE ] ; then
@@ -204,71 +180,59 @@ is_alive () {
 }
 
 case "$1" in
-  start)
-	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
-	do_start
-	case "$?" in
-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-	esac
-	[ "$VERBOSE" != no ] && log_daemon_msg "xclients"
-    do_start_xclients
-	;;
-  stop)
-	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
-    	do_stop_xclients
-	do_stop
-	case "$?" in
-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-	esac
-	[ "$VERBOSE" != no ] && log_daemon_msg "xclients"
-	;;
-  #reload|force-reload)
-	#
-	# If do_reload() is not implemented then leave this commented out
-	# and leave 'force-reload' as an alias for 'restart'.
-	#
-	#log_daemon_msg "Reloading $DESC" "$NAME"
-	#do_reload
-	#log_end_msg $?
-	#;;
-  restart|force-reload)
-	#
-	# If the "reload" option is implemented then remove the
-	# 'force-reload' alias
-	#
-	log_daemon_msg "Restarting $DESC" "$NAME"
-	do_stop_xclients
-	do_stop
-	case "$?" in
-	  0|1)
-		do_start
-		case "$?" in
-			0) log_end_msg 0 ;;
-			1) log_end_msg 1 ;; # Old process is still running
-			*) log_end_msg 1 ;; # Failed to start
-		esac
-		;;
-	  *)
-	  	# Failed to stop
-		log_end_msg 1
-		;;
-	esac
-	do_start_xclients
-	;;
-  status)
-    echo -n "Status of $DESC: "
-    if is_alive ; then
-        echo "alive."
-    else
-        echo "dead."
-        exit 1
-    fi
-    ;;
-  *)
-	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}" >&2
-	exit 3
-	;;
+    start)
+        [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+        do_start
+        case "$?" in
+            0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+            2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+        esac
+        [ "$VERBOSE" != no ] && log_daemon_msg "xclients"
+        do_start_xclients
+        ;;
+    stop)
+        [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+        do_stop_xclients
+        do_stop
+        case "$?" in
+            0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+            2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+        esac
+        [ "$VERBOSE" != no ] && log_daemon_msg "xclients"
+        ;;
+    restart|force-reload)
+        log_daemon_msg "Restarting $DESC" "$NAME"
+        do_stop_xclients
+        do_stop
+        case "$?" in
+            0|1)
+                do_start
+                case "$?" in
+                    0) log_end_msg 0 ;;
+                    1) log_end_msg 1 ;; # Old process is still running
+                    *) log_end_msg 1 ;; # Failed to start
+                esac
+                ;;
+            *)
+                # Failed to stop
+                log_end_msg 1
+                ;;
+        esac
+        do_start_xclients
+        ;;
+    status)
+        echo -n "Status of $DESC: "
+        if is_alive ; then
+            echo "alive."
+        else
+            echo "dead."
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}" >&2
+        exit 3
+        ;;
 esac
+
+# vim: ts=4 sw=4 expandtab
