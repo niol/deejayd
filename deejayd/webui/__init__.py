@@ -175,7 +175,7 @@ class SiteWithCustomLogging(server.Site):
         self.logFile = self.log_file.fd
 
 
-def init(deejayd_core, config, webui_logfile):
+def init(deejayd_core, config, webui_logfile, htdocs_dir):
     # create tmp directory
     tmp_dir = config.get("webui","tmp_dir")
     if os.path.isdir(tmp_dir):
@@ -186,8 +186,7 @@ def init(deejayd_core, config, webui_logfile):
     try: os.mkdir(tmp_dir)
     except IOError:
         raise DeejaydWebError(_("Unable to create tmp directory %s") % tmp_dir)
-    # get htdocs directory
-    htdocs_dir = config.get("webui","htdocs_dir")
+
     if not os.path.isdir(htdocs_dir):
         raise DeejaydWebError(_("Htdocs directory %s does not exists") % \
                 htdocs_dir)

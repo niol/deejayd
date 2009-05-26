@@ -22,6 +22,19 @@
 This is the script used to launch deejayd
 """
 
+
+import sys, os
+
+
+INSTALL_BIN_DIR = os.path.dirname(__file__)
+binsuffix = os.path.basename(INSTALL_BIN_DIR)
+INSTALL_MODE = 'source'
+if binsuffix == 'bin':
+    # Deejayd is installed, and not in source tree
+    INSTALL_MODE = 'installed'
+    INSTALL_PREFIX = bindir[:-len(binsuffix)]
+
+
 ############ Parse Option ############################
 ######################################################
 from optparse import OptionParser
@@ -219,7 +232,17 @@ if __name__ == "__main__":
             config.set("webui", "enabled", False)
         else:
             service = True
-            try: site = webui.init(deejayd_core,config,options.webui_logfile)
+            htdocs_dir = None
+            if INSTALL_MODE == 'source':
+                htdocs_dir = os.path.abspath(os.path.join(INSTALL_BIN_DIR, '..',
+                                                          'data', 'htdocs'))
+            elif INSTALL_MODE == 'installed':
+                htdocs_dir = os.path.abspath(os.path.join(INSTALL_PREFIX,
+                                                          'share', 'deejayd',
+                                                          'htdocs'))
+            try:
+                site = webui.init(deejayd_core, config,
+                                  options.webui_logfile, htdocs_dir)
             except webui.DeejaydWebError, err:
                 log.err(err)
                 sys.exit(1)
