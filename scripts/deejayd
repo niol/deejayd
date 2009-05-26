@@ -22,8 +22,9 @@
 This is the script used to launch deejayd
 """
 
-
-import sys, os
+import errno, random, sys, os, pwd, grp
+from optparse import OptionParser
+from deejayd.ui.config import DeejaydConfig
 
 
 INSTALL_BIN_DIR = os.path.dirname(__file__)
@@ -37,7 +38,6 @@ if binsuffix == 'bin':
 
 ############ Parse Option ############################
 ######################################################
-from optparse import OptionParser
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 
@@ -67,8 +67,6 @@ parser.add_option("-d", "--debug",
 ######################################################
 
 # add custom config parms
-import errno,random,sys,os,pwd,grp
-from deejayd.ui.config import DeejaydConfig
 if options.conffile:
     if os.path.isfile(options.conffile):
         DeejaydConfig.custom_conf = options.conffile
