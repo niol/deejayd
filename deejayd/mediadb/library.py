@@ -258,8 +258,7 @@ class _Library(SignalingComponent):
         for dirlinkname in library_dirlinks:
             self.db_con.remove_dirlink(dirlinkname, self.type)
             if self.watcher:
-                self.watcher.stop_watching_dir(os.path.join(root,
-                                                            dirlinkname))
+                self.watcher.stop_watching_dir(dirlinkname)
 
     def _update(self, force = False):
         self._update_end = False
