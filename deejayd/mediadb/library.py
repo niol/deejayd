@@ -392,7 +392,7 @@ class _Library(SignalingComponent):
         except Exception, ex:
             log.err(_("Unable to get infos from %s, see traceback")%file_path)
             log.err("------------------Traceback lines--------------------")
-            log.err(traceback.format_exc())
+            log.err(self._encode(traceback.format_exc()))
             log.err("-----------------------------------------------------")
             return None
         return file_info
