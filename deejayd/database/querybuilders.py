@@ -162,7 +162,7 @@ def query_decorator(answer_type):
             elif answer_type == "rowcount":
                 rs = cursor.rowcount
             elif answer_type == "fetchall":
-                rs = cursor.fetchall()
+                rs = list(cursor.fetchall())
             elif answer_type == "fetchone":
                 rs = cursor.fetchone()
             elif answer_type == "medialist":
