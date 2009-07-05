@@ -1,6 +1,11 @@
 
 New features and significant updates in version...
 
+0.8.3 (2009-07-05)
+--------------------
+  * update extension to work with firefox 3.5
+  * several bug fixes
+
 0.8.2 (2009-05-24)
 --------------------
   * fix a important bug in library
