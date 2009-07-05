@@ -33,7 +33,7 @@ INSTALL_MODE = 'source'
 if binsuffix == 'bin':
     # Deejayd is installed, and not in source tree
     INSTALL_MODE = 'installed'
-    INSTALL_PREFIX = bindir[:-len(binsuffix)]
+    INSTALL_PREFIX = INSTALL_BIN_DIR[:-len(binsuffix)]
 
 
 ############ Parse Option ############################
