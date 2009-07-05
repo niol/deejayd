@@ -156,7 +156,6 @@ var TreeDropSupport = function(tree, drop_action, supportedDropData)
             enablePrivilege("UniversalXPConnect");
 
         if (this.row.obj) {
-            this.row.pos = -1;
             try{ this.row.obj.setAttribute("properties","");}
             catch(ex){}
             }
@@ -183,7 +182,7 @@ var TreeDropSupport = function(tree, drop_action, supportedDropData)
         if (dragService) {
             var dragSession = dragService.getCurrentSession();
             if (dragSession) { var data = this.getDragData(dragSession); }
-            if (!dragSession || !data) { return; }
+            if (!dragSession || !data) { return false; }
             }
         if (this.row.obj) {
             try{ this.row.obj.setAttribute("properties","");}
@@ -191,6 +190,7 @@ var TreeDropSupport = function(tree, drop_action, supportedDropData)
             }
 
         this.dropAction(this.row.pos, data);
+        return false;
     };
 }
 

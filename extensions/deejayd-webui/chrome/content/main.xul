@@ -510,7 +510,6 @@
             ondragover="playlist_ref.dragOver(event);"
             ondragenter="playlist_ref.dragEnter(event);"
             ondragexit="playlist_ref.dragExit(event);"
-            ondragdrop="playlist_ref.drop(event);"
             flex="4">
 
             <treecols>
@@ -706,7 +705,6 @@
             ondragover="panel_ref.plsDropSupport.dragOver(event);"
             ondragenter="panel_ref.plsDropSupport.dragEnter(event);"
             ondragexit="panel_ref.plsDropSupport.dragExit(event);"
-            ondragdrop="panel_ref.plsDropSupport.drop(event);"
             seltype="single"
             flex="1">
             <treecols>
@@ -1364,8 +1362,7 @@
         datasources="rdf:null"
         ondragover="queue_ref.dragOver(event);"
         ondragenter="queue_ref.dragEnter(event);"
-        ondragexit="queue_ref.dragExit(event);"
-        ondragdrop="queue_ref.drop(event);" >
+        ondragexit="queue_ref.dragExit(event);">
         <treecols>
             <treecol persist="width ordinal hidden" id="qu-track"
                 flex="1" label="#"/>

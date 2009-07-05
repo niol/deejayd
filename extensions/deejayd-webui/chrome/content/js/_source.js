@@ -30,11 +30,20 @@ var _Source = function()
             netscape.security.PrivilegeManager.
                 enablePrivilege("UniversalXPConnect");
             this.tree.controllers.appendController(this.treeController);
-            }
+        }
         if (this.dropSupport) {
             this.dropSupport = new TreeDropSupport(this.tree, this.dropAction,
                 this.supportedDropData);
+            // add drop event listener
+            // Specific for firefox 3.5
+            var user_agent = navigator.userAgent;
+            if (user_agent.indexOf("rv:1.9.0") != -1) {
+                this.tree.setAttribute("ondragdrop", this.ref+".drop(event);");
             }
+            else if (user_agent.indexOf("rv:1.9.1") != -1) {
+                this.tree.setAttribute("ondrop", this.ref+".drop(event);");
+            }
+        }
     };
 
     this.update = function(obj)
@@ -235,6 +244,7 @@ var _Source = function()
 
     this.drop = function(evt)
     {
+        evt.preventDefault();
         if (this.dropSupport) { this.dropSupport.drop(evt); }
     }
 };

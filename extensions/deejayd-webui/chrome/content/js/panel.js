@@ -14,8 +14,16 @@ var Panel = function()
     // Activate this mode
     $("panel-source").hidden = false;
     this.selectedIdx = {};
-
     this.treeController = false;
+
+    var tree = $("panel-pls-list");
+    var user_agent = navigator.userAgent;
+    if (user_agent.indexOf("rv:1.9.0") != -1) {
+        tree.setAttribute("ondragdrop",this.ref+".plsDropSupport.drop(event);");
+    }
+    else if (user_agent.indexOf("rv:1.9.1") != -1) {
+        tree.setAttribute("ondrop", this.ref+".plsDropSupport.drop(event);");
+    }
 
     this.initPanelTags = function(obj)
     {
