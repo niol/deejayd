@@ -1,10 +1,19 @@
-deejayd (0.8.2-1) unstable; urgency=low
+deejayd (0.8.3-1) unstable; urgency=low
+
+  * New upstream release ensuring compatility with Firefox/Iceweasel >= 3.5 .
+  * Improve how Deejayd can connect to Xorg, see README.Debian and comments
+    in /etc/default/deejayd .
+  * Update to policy 3.8.2 (nothing to do).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 06 Jul 2009 07:25:10 +0200
+
+deejayd (0.8.2-1) UNRELEASED; urgency=low
 
   * New upstream version fixing playback of albums lacking album art.
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 24 May 2009 10:30:52 +0200
 
-deejayd (0.8.1-1) unstable; urgency=low
+deejayd (0.8.1-1) UNRELEASED; urgency=low
 
   * New upstream version.
   * Add new deejayd-webui-extension binary package.
