@@ -248,9 +248,9 @@ class X11Display(object):
             screen_number = self.get_default_screen_number()
 
         res_h = float(self.get_width(screen_number) * 1000 /\
-                      libX11.XDisplayWidth(self.__display_p, screen_number))
+                      libX11.XDisplayWidthMM(self.__display_p, screen_number))
         res_v = float(self.get_height(screen_number) * 1000 /\
-                      libX11.XDisplayHeight(self.__display_p, screen_number))
+                      libX11.XDisplayHeightMM(self.__display_p, screen_number))
         return res_v / res_h
 
     def is_dpms_on(self):
