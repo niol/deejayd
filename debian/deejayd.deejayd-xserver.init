@@ -34,7 +34,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 [ -r /etc/default/deejayd ] && . /etc/default/deejayd
 
 # Exit if this method of starting Xorg for deejayd is disabled
-[ "$DEEJAYD_XSERVER_METHOD" == "standalone" ] || exit 0
+[ "$DEEJAYD_XSERVER_METHOD" = "standalone" ] || exit 0
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh

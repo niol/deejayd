@@ -4,7 +4,7 @@
 
 if [ -r /etc/default/deejayd ]; then
     . /etc/default/deejayd
-    if [ "$DEEJAYD_XSERVER_METHOD" == "reuse" ]; then
+    if [ "$DEEJAYD_XSERVER_METHOD" = "reuse" ]; then
         # If we have an auth cookie matching the Deejayd configured DISPLAY,
         # add it to the Deejayd auth cookie file. Also cleanup old auth cookies
         # matching the same display.
