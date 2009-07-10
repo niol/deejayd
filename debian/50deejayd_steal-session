@@ -16,7 +16,7 @@ if [ -r /etc/default/deejayd ]; then
                 # temporary file because xauth uses one of its own in the
                 # same directory, and we do not have write permission in this
                 # directory.
-                tmpauthfile=`mktemp -p /tmp deejayd-reuse.XXXXXX`
+                tmpauthfile=`mktemp deejayd-reuse.XXXXXX`
                 cp $DEEJAYD_XAUTHORITY $tmpauthfile
                 xauth -f $tmpauthfile remove $DEEJAYD_DISPLAYNAME
                 if [ "z${authcookie}" != "z" ]; then
