@@ -27,11 +27,11 @@ deejayd (0.8.1-1) UNRELEASED; urgency=low
   * Do not process the deejayd-webui-extension packages with dh_pycentral.
   * Added NEWS to installed doc.
   * Update Vcs-Browser field.
-  * Simplify clean rule thanks to upstream improvements.
+  * Simplify clean rule thanks to upstream improvements (Closes: #535374).
   * Add upstream tarball embbedded JQuery copy licence information to
     debian/copyright.
   * Fix build with Python 2.6 as distutils file locations change from
-    site-packages to dist-packages, for public modules.
+    site-packages to dist-packages, for public modules (LP: #351626).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 21 May 2009 15:09:11 +0200
 
