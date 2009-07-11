@@ -600,7 +600,7 @@ class DatabaseQueries(object):
     @query_decorator("none")
     def add_to_static_medialist(self, cursor, ml_id, media_ids):
         query = "INSERT INTO medialist_libraryitem\
-            ('medialist_id','libraryitem_id') VALUES(%s,%s)"
+            (medialist_id, libraryitem_id) VALUES(%s,%s)"
         cursor.executemany(query, [(ml_id, mid) for mid in media_ids])
 
     @query_decorator("medialist")
