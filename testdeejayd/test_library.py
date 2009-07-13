@@ -51,13 +51,15 @@ class _TestDeejayDBLibrary(object):
                                                     self.testdata.getRootDir())
         self.library._update()
 
+        self.do_update = True
+
     def tearDown(self):
         self.db.close()
         os.remove(self.dbfilename)
 
-    def verifyMediaDBContent(self, testTag = True, do_update = True):
+    def verifyMediaDBContent(self, testTag=True):
         time.sleep(0.2)
-        if do_update: # First update mediadb
+        if self.do_update: # First update mediadb
             self.library._update()
         else:
             time.sleep(1.5)
@@ -67,16 +69,25 @@ class _TestDeejayDBLibrary(object):
         self.assertRaises(NotFoundException,
                   self.library.get_file, self.testdata.getRandomString())
 
-        for root, dirs, files in os.walk(self.testdata.getRootDir()):
+        self.__verifyRoot(self.testdata.getRootDir(), testTag)
+
+    def __verifyRoot(self, requested_root, testTag=True, inlink_path=None):
+        for root, dirs, files in os.walk(requested_root):
             try: root = root.decode("utf-8", "strict").encode("utf-8")
             except UnicodeError:
                 continue
+
+            strip_root = self.testdata.stripRoot(root)
 
             new_dirs = []
             for d in dirs:
                 try: d = d.decode("utf-8", "strict").encode("utf-8")
                 except UnicodeError:
                     continue
+                dir_path = os.path.join(root, d)
+                if os.path.islink(dir_path):
+                    rel_path = os.path.join(strip_root, d)
+                    self.__verifyRoot(dir_path, testTag, rel_path)
                 new_dirs.append(d)
             dirs = new_dirs
 
@@ -89,7 +100,6 @@ class _TestDeejayDBLibrary(object):
                     new_files.append(f)
             files = new_files
 
-            strip_root = self.testdata.stripRoot(root)
             try: contents = self.library.get_dir_content(strip_root)
             except NotFoundException:
                 allContents = self.library.get_dir_content('')
@@ -113,9 +123,10 @@ class _TestDeejayDBLibrary(object):
                     "'%s' is a file in directory tree but was not found in DB"\
                     % file)
                     relPath = os.path.join(strip_root, file)
-                    if testTag: self.verifyTag(relPath)
+                    if testTag:
+                        self.verifyTag(relPath, inlink_path)
 
-    def verifyTag(self,filePath):
+    def verifyTag(self, filePath, inlink_path=None):
         try: inDBfile = self.library.get_file(filePath)
         except NotFoundException:
             self.assert_(False,
@@ -123,8 +134,29 @@ class _TestDeejayDBLibrary(object):
                 % filePath)
         else: inDBfile = inDBfile[0]
 
-        realFile = self.testdata.medias[filePath]
+        if inlink_path:
+            link_full_path = os.path.join(self.testdata.getRootDir(),
+                                          inlink_path)
+            abs_path = filePath[len(inlink_path)+1:]
+            realFile = self.testdata.dirlinks[link_full_path].medias[abs_path]
+        else:
+            realFile = self.testdata.medias[filePath]
         return (inDBfile, realFile)
+
+        for tag in ("title","artist","album","genre"):
+            self.assert_(realFile[tag] == inDBfile[tag],
+                "tag %s for %s different between DB and reality %s != %s" % \
+                (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
+
+    def testDirlinks(self):
+        self.testdata.addDirLink()
+        self.verifyMediaDBContent()
+
+        self.testdata.moveDirLink()
+        self.verifyMediaDBContent()
+
+        self.testdata.removeDirLink()
+        self.verifyMediaDBContent()
 
 
 class TestVideoLibrary(TestCaseWithVideoData, _TestDeejayDBLibrary):
@@ -163,8 +195,9 @@ class TestVideoLibrary(TestCaseWithVideoData, _TestDeejayDBLibrary):
         self.testdata.remove_subtitle()
         self.verifyMediaDBContent()
 
-    def verifyTag(self, filePath):
-        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath)
+    def verifyTag(self, filePath, inlink_path=None):
+        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self,
+                                                         filePath, inlink_path)
         for tag in ('length','videowidth','videoheight','external_subtitle'):
             self.assertEqual(str(realFile[tag]), str(inDBfile[tag]))
 
@@ -260,8 +293,9 @@ class TestAudioLibrary(TestCaseWithAudioData, _TestDeejayDBLibrary):
         matched_medias_uri.sort()
         self.assertEqual(found_items_uri, matched_medias_uri)
 
-    def verifyTag(self,filePath):
-        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath)
+    def verifyTag(self,filePath, inlink_path=None):
+        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath,
+                                                              inlink_path)
         for tag in ("title","artist","album","genre"):
             self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \
@@ -275,6 +309,8 @@ class TestInotifySupport(TestCaseWithAudioData, _TestDeejayDBLibrary):
     def setUp(self):
         TestCaseWithAudioData.setUp(self)
         _TestDeejayDBLibrary.setUp(self)
+
+        self.do_update = False
 
         # start inotify thread
         self.watcher = inotify.get_watcher(self.db, self.library, None)
@@ -290,35 +326,36 @@ class TestInotifySupport(TestCaseWithAudioData, _TestDeejayDBLibrary):
     def testAddMedia(self):
         """Inotify support : Add a media in audio library"""
         self.testdata.addMedia()
-        self.verifyMediaDBContent(do_update = False)
+        self.verifyMediaDBContent()
 
     def testAddSubdirectory(self):
         """Inotify support : Add a subdirectory"""
         self.testdata.addSubdir()
-        self.verifyMediaDBContent(do_update = False)
+        self.verifyMediaDBContent()
 
     def testAddSubSubdirectory(self):
         """Inotify support : Add a subsubdirectory"""
         self.testdata.addSubSubdir()
-        self.verifyMediaDBContent(do_update = False)
+        self.verifyMediaDBContent()
 
     def testRenameDirectory(self):
         """Inotify support : Rename a directory"""
         self.testdata.renameDir()
-        self.verifyMediaDBContent(False, do_update = False)
+        self.verifyMediaDBContent(False)
 
     def testRemoveDirectory(self):
         """Inotify support : Remove a directory"""
         self.testdata.removeDir()
-        self.verifyMediaDBContent(do_update = False)
+        self.verifyMediaDBContent()
 
     def testChangeTag(self):
         """Inotify support : Tag value change detected"""
         self.testdata.changeMediaTags()
-        self.verifyMediaDBContent(do_update = False)
+        self.verifyMediaDBContent()
 
-    def verifyTag(self,filePath):
-        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath)
+    def verifyTag(self, filePath, inlink_path=None):
+        (inDBfile, realFile) = _TestDeejayDBLibrary.verifyTag(self, filePath,
+                                                              inlink_path)
 
         for tag in ("title","artist","album","genre"):
             self.assert_(realFile[tag] == inDBfile[tag],

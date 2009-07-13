@@ -350,12 +350,15 @@ class _TestMediaCollection(TestProvidedMusicCollection):
         self.dir_struct_written = False
         self.clean_library = True
         self.dirs = {}
+        self.dirlinks = {}
         self.medias = {}
         self.supported_files_class = ()
 
     def cleanLibraryDirectoryTree(self):
         if self.dir_struct_written and self.clean_library:
             shutil.rmtree(self.datadir)
+            for dirlink in self.dirlinks.values():
+                shutil.rmtree(dirlink.datadir)
 
     def buildLibraryDirectoryTree(self, destDir = "/tmp"):
         # create test data directory in random subdirectory of destDir
@@ -383,7 +386,11 @@ class _TestMediaCollection(TestProvidedMusicCollection):
         self.dir_struct_written = True
 
     def get_song_paths(self):
-        return self.medias.keys()
+        song_paths = self.medias.keys()
+        for dirlink in self.dirlinks.values():
+            for song_path in dirlink.get_song_paths():
+                song_paths.append(song_path)
+        return song_paths
 
     def addMedia(self):
         dir = self.getRandomElement(self.dirs.values())
@@ -459,6 +466,35 @@ class _TestMediaCollection(TestProvidedMusicCollection):
         dir = self.getRandomElement(self.dirs.values())
         dir.remove()
         del self.dirs[dir.name]
+
+    def addDirLink(self):
+        where = self.getRandomElement(self.dirs.values())
+        dirlink = self.__class__()
+        linkname = self.getRandomString()
+        linkpath = os.path.join(self.datadir, where.name, linkname)
+        dirlink.buildLibraryDirectoryTree()
+        self.dirlinks[linkpath] = dirlink
+
+        os.symlink(dirlink.datadir, linkpath)
+
+    def moveDirLink(self):
+        dirlinkpath = self.getRandomElement(self.dirlinks.keys())
+        linkname = os.path.basename(dirlinkpath)
+
+        new_location = self.getRandomElement([d for d in self.dirs.keys()\
+                                              if d != linkname])
+        new_location = os.path.join(self.getRootDir(), new_location, linkname)
+        os.rename(dirlinkpath, new_location)
+
+        dirlink = self.dirlinks[dirlinkpath]
+        del self.dirlinks[dirlinkpath]
+        self.dirlinks[new_location] = dirlink
+
+    def removeDirLink(self):
+        dirlinkpath, dirlink = self.getRandomElement(self.dirlinks.items())
+        os.unlink(dirlinkpath)
+        dirlink.cleanLibraryDirectoryTree()
+        del self.dirlinks[dirlinkpath]
 
 
 class TestAudioCollection( _TestMediaCollection):
