@@ -8,6 +8,7 @@ if [ -r /etc/default/deejayd ]; then
         # If we have an auth cookie matching the Deejayd configured DISPLAY,
         # add it to the Deejayd auth cookie file. Also cleanup old auth cookies
         # matching the same display.
+        DEEJAYD_DISPLAYNAME=${DEEJAYD_DISPLAYNAME:=:0.0}
         if [ ! -z "$XAUTHORITY" ] && [ -r $XAUTHORITY ]; then
             authcookie=`xauth list "$DEEJAYD_DISPLAYNAME" 2> /dev/null\
             | sed -n "s/.*$DEEJAYD_DISPLAYNAME[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
