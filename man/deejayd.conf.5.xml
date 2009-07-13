@@ -218,18 +218,6 @@ bind_addresses = 192.168.51.2, 10.0.0.3
       </varlistentry>
 
       <varlistentry>
-        <term>htdocs_dir</term>
-        <listitem>
-          <para>The path to the directory which contains the static files
-          used by the webui. You obviously do not want to change this as those
-          files should have come with your distribution. But these should be
-          changed for a local (i.e. without appropriate packaging)
-          installation. This should probably be autodetected.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>tmp_dir</term>
         <listitem>
           <para>This is a temporary directory used by the deejayd webui for
