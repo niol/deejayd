@@ -217,6 +217,7 @@ if __name__ == "__main__":
         for bind_address in config.get_bind_addresses('net'):
             try: reactor.listenTCP(port, factory, interface=bind_address)
             except CannotListenError, err:
+                deejayd_core.close()
                 log.err(str(err))
                 sys.exit(1)
 
@@ -242,6 +243,7 @@ if __name__ == "__main__":
                 site = webui.init(deejayd_core, config,
                                   options.webui_logfile, htdocs_dir)
             except webui.DeejaydWebError, err:
+                deejayd_core.close()
                 log.err(err)
                 sys.exit(1)
 
@@ -249,11 +251,13 @@ if __name__ == "__main__":
             for bind_address in config.get_bind_addresses('webui'):
                 try: reactor.listenTCP(port, site, interface=bind_address)
                 except CannotListenError, err:
+                    deejayd_core.close()
                     log.err(str(err))
                     sys.exit(1)
 
     # launch reactor
     if not service:
+        deejayd_core.close()
         log.err("No service has been activated")
         sys.exit(1)
     reactor.addSystemEventTrigger('after','shutdown',deejayd_core.close)
