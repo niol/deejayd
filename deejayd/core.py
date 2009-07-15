@@ -484,7 +484,9 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def stop(self):
-        self.player.stop()
+        try: self.player.stop()
+        except player.PlayerError, err:
+            raise DeejaydError(err)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def previous(self):
