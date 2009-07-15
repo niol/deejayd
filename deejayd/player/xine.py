@@ -218,7 +218,7 @@ class XinePlayer(UnknownPlayer):
         if not self.__stream: return 0
         return self.__stream.get_pos()
 
-    def set_position(self,pos):
+    def _set_position(self,pos):
         pos = int(pos * 1000)
         state = self.get_state()
         if state == PLAYER_PAUSE:

@@ -102,7 +102,14 @@ class UnknownPlayer(SignalingComponent):
     def get_position(self):
         raise NotImplementedError
 
-    def set_position(self,pos):
+    def set_position(self, pos, relative = False):
+        if relative and self.get_state()!="stop"\
+                and self._media_file["type"]!="webradio":
+            cur_pos = self.get_position()
+            pos = int(pos) + cur_pos
+        self._set_position(pos)
+
+    def _set_position(self, pos):
         raise NotImplementedError
 
     def get_state(self):

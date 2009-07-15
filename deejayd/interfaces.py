@@ -433,7 +433,7 @@ class DeejaydCore(object):
     def next(self):
         raise NotImplementedError
 
-    def seek(self, pos):
+    def seek(self, pos, relative = False):
         raise NotImplementedError
 
     def get_current(self):

@@ -499,8 +499,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             raise DeejaydError(err)
 
     @returns_deejaydanswer(DeejaydAnswer)
-    def seek(self, pos):
-        self.player.set_position(int(pos))
+    def seek(self, pos, relative = False):
+        self.player.set_position(int(pos), relative)
 
     @returns_deejaydanswer(DeejaydMediaList)
     def get_current(self):

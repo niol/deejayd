@@ -148,7 +148,7 @@ class GstreamerPlayer(UnknownPlayer):
             return p
         return 0
 
-    def set_position(self,pos):
+    def _set_position(self,pos):
         if gst.STATE_NULL != self.__get_gst_state() and \
                 self.bin.get_property('uri'):
             pos = max(0, int(pos))
