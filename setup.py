@@ -234,15 +234,11 @@ if __name__ == "__main__":
                      "deejayd.mediadb.formats",
                      "deejayd.mediadb.formats.audio",\
                      "deejayd.mediadb.formats.video","deejayd.player",\
-                     "deejayd.sources","deejayd.ui",\
+                     "deejayd.sources","deejayd.ui","deejayd.rpc",\
                      "deejayd.database","deejayd.database.upgrade",\
                      "deejayd.database.backends",\
-                     "deejayd.webui","deejayd.webui.mobile",\
-                     "deejayd.webui.xul", "pytyxi"],
-           package_data={'deejayd.ui': ['defaults.conf'],
-                         'deejayd.webui.xul.templates': ['*.xml'],
-                         'deejayd.webui.mobile': ["templates/*thtml",\
-                                 "templates/modes/*thtml"],},
+                     "deejayd.webui","deejayd.webui.xul","pytyxi"],
+           package_data={'deejayd.ui': ['defaults.conf'],},
            data_files= build_data_files_list(),
            cmdclass={"build": deejayd_build,
                      "build_i18n": build_i18n,
