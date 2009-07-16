@@ -49,7 +49,6 @@ Requirements:
     * hachoir-metadata >= 1.1 (http://hachoir.org/wiki/hachoir-metadata)
     * lxml >= 2.0 (http://codespeak.net/lxml/)
     * twisted-web >= 0.6.0 if you want to use deejayd-webui
-    * genshi (http://genshi.edgewall.org/) if you want to use mobile webui
     * if you want to use gstreamer backend
         * (2.9 > pygtk >= 2.8) or pygobject >= 2.12 (http://www.pygtk.org/)
         * gstreamer >= 0.10 (http://gstreamer.freedesktop.org)

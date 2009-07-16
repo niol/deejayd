@@ -10,7 +10,7 @@ body {
 }
 input { padding: 2px; }
 
-#header, #main { width: 100%; }
+div.page, div.header { width: 100%; }
 
 /*
  * notification
@@ -42,32 +42,32 @@ input { padding: 2px; }
 /*
  * Header
  */
-#header {
+div.header {
     margin: 0px; padding: 0px;
     background-image: url(images/control-bg.png);
     background-repeat: repeat-x;
     height: 45px;
     text-align: center;
 }
-#header div {
+div.header div {
     display: inline-block;
     text-align: center;
 }
-#header #main_title {
+div.header div.title {
     padding-top: 4px;
     font-size: 14px; font-weight: bold;
 }
-#main_title #playing-text div {
+#playing-text div {
     display: block;
     text-align: center;
 }
-#main_title #playing-text div.title {
+#playing-text div.title {
     font-size: 13px; font-weight: bold;
 }
-#main_title #playing-text div.artist, #main_title #playing-text div.url {
+#playing-text div.desc{
     font-size: 12px; font-style: italic;
 }
-#header div.button {
+div.header div.button {
     position: fixed; top: 3px;
     height: 35px; width: 50px;
     font-size: 12px;
@@ -76,9 +76,9 @@ input { padding: 2px; }
     border: 1px solid #ababab;
     padding: 2px 8px 0px 8px;
 }
-#left_button { left: 4px; }
-#right_button { right: 4px; }
-#header #loading {
+div.left { left: 4px; }
+div.right { right: 4px; }
+#loading {
     width: 30px; height: 30px;
     position: fixed; top: 0px; right: 2px;
     z-index: 10;
@@ -108,7 +108,8 @@ input { padding: 2px; }
     background-image: url(images/control-bg.png);
     background-repeat: repeat-x;
 }
-#playing-control div.control-button {
+#playing-control div.control-button,
+#playing-time-control div.time-control-button {
     padding: 0px;
     width: 48px;
     height: 48px;
@@ -122,6 +123,23 @@ input { padding: 2px; }
 #stop_button { background-image: url('images/stop.png'); }
 div.play { background-image: url('images/pause.png'); }
 div.pause, div.stop { background-image: url('images/play.png'); }
+#playing-time-control {
+    position: fixed; left: 0px; top: 45px;
+    z-index: 1; opacity: 0.7;
+    width: 100%; height: 50px;
+    text-align: center; vertical-align: middle;
+    background-image: url(images/control-bg.png);
+    background-repeat: repeat-x;
+}
+#playing-time-control #time-control-position {
+    height: 50px;
+    text-align: center; vertical-align: middle;
+    display: inline-block;
+}
+#time-fast-back { background-image: url(images/go-first.png); }
+#time-back { background-image: url(images/go-previous.png); }
+#time-forward { background-image: url(images/go-next.png); }
+#time-fast-forward { background-image: url(images/go-last.png); }
 
 /*
  * volume widget
@@ -180,7 +198,9 @@ div.pause, div.stop { background-image: url('images/play.png'); }
     padding: 0px 5px;
     background-repeat: no-repeat;
 }
-#pl-add, #wb-add, #video-set { background-image: url(images/add-btn.png); }
+#pl-add, #wb-add, #video-set, #panel-set {
+    background-image: url(images/add-btn.png);
+}
 #pl-opt, #panel-opt, #video-opt { background-image: url(images/options.png); }
 #video-search { background-image: url(images/search-btn.png); }
 #pl-clear, #wb-clear { background-image: url(images/clear-btn.png); }
@@ -190,51 +210,53 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 /*
  * current mode - media list
  */
-#mode-content div div.media-item {
-    width: 100%; height: 45px;
+#mode-content div.media-item {
+    max-width: 100%; min-height: 40px;
     border-bottom: 1px solid #676767;
 }
-#mode-content div div.media-item div {
-    height: 45px;
+#mode-content div.media-item div {
+    min-height: 40px;
     display: inline-block;
 }
-#mode-content div div.media-item div.media-info div {
-    height: 45px;
+#mode-content div.media-item div.media-info div {
+    min-height: 40px;
     display: block;
 }
-#mode-content div div.media-item div.media-info .media-title,
-#mode-content div div.media-item div.media-info .media-desc {
-    height: 20px;
-    overflow:hidden;
-    white-space: nowrap;
+#mode-content div.media-item div.media-info .media-title,
+#mode-content div.media-item div.media-info .media-desc {
+    min-height: 16px;
+    overflow:visible;
+    white-space: normal;
 }
-#mode-content div div.media-item div.media-info .media-title {
+#mode-content div.media-item div.media-info .media-title {
     font-weight: bold; font-size: 15px;
 }
-#mode-content div div.media-item div.media-info .media-desc {
+#mode-content div.media-item div.media-info .media-desc {
     font-style: italic; font-size: 14px;
     padding-left: 15px;
 }
-#mode-content div div.media-item div.media-play-btn {
+#mode-content div.media-item div.media-play-btn {
     height: 40px; width: 40px;
     background-image: url(images/go-last.png);
     background-repeat: no-repeat;
 }
-#mode-content div div.media-item div.media-select {
+#mode-content div.media-item div.media-select {
     height: 40px; width: 40px;
     text-align: center; vertical-align: middle;
 }
 
 /*
- * current mode - medialist pager
+ * current mode - medialist and library pager
  */
-#mode-content div div.pager { text-align: center; vertical-align: middle; }
-.pager-btn{ height: 40px; width: 40px; }
+#mode-content div.content-list-pager,
+#mode-extra-content div.pager { text-align: center; vertical-align: middle; }
+#mode-extra-content div.pager div { min-height: 40px; display: inline-block;}
+.pager-btn{ height: 40px; width: 40px;}
 .pager-previous { background-image: url(images/go-previous.png); }
 .pager-next { background-image: url(images/go-next.png); }
 .pager-first { background-image: url(images/go-first.png); }
 .pager-last { background-image: url(images/go-last.png); }
-.pager-desc {
+.pager-desc, .extra-pager-desc {
     font-size: 30px; vertical-align: middle;
     line-height: 10px;
 }
@@ -260,35 +282,43 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 /*
  * current mode - library list
  */
-#mode-extra-content div div.library-item {
-    width: 100%; height: 40px;
+#mode-extra-content div.library-item {
+    max-width: 100%; height: 40px;
     border-bottom: 1px solid #676767;
 }
-#mode-extra-content div  div.library-item div {
+#mode-extra-content div.library-item div {
     height: 40px;
     display: inline-block;
 }
-#mode-extra-content div  div.library-item div.media-play-btn {
+#mode-extra-content div.library-item div.media-play-btn {
     height: 40px; width: 40px;
     background-image: url(images/go-last.png);
     background-repeat: no-repeat;
 }
-#mode-extra-content div  div.library-item div.library-select {
+#mode-extra-content div.library-item div.library-select {
     height: 40px; width: 40px;
     text-align: center; vertical-align: middle;
 }
-#mode-extra-content div div.library-apply div.apply-btn {
+#mode-extra-content div.library-apply div.apply-btn {
     height: 40px; width: 40px;
     background-image: url(images/apply.png);
     background-repeat: no-repeat;
 }
-#mode-extra-content div div.library-item div.directory,
-#mode-extra-content div div.library-item div.file {
+#mode-extra-content div.library-item div.directory,
+#mode-extra-content div.library-item div.file {
     font-size: 15px; line-height: 40px;
     overflow: hidden;
-    white-space: nowrap;
+    white-space: normal;
 }
-#mode-extra-content div.pager { text-align: center; vertical-align: middle; }
+
+/*
+ * current mode - tag list
+ */
+#mode-extra-content div.tag-item {
+    max-width: 100%; height: 40px;
+    border-bottom: 1px solid #676767;
+    padding-left: 10px;
+}
 
 /* current mode - option */
 #playorder-option, #repeat-option {

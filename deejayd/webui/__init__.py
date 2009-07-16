@@ -23,18 +23,16 @@ from twisted.web.resource import Resource
 from deejayd.interfaces import DeejaydError
 from deejayd.ui import log
 
+# jsonrpc import
+from deejayd.webui.jsonrpc import JSONRPC
+from deejayd.rpc.protocol import build_protocol, set_web_subhandler
 # xul parts
 from deejayd.webui.xul import build as xul_build
 from deejayd.webui.xul import xmlanswer as xul_xmlanswer
 from deejayd.webui.xul import commands as xul_commands
 
 # mobile parts
-try:
-    from deejayd.webui import mobile
-    from deejayd.webui.mobile import xmlanswer as mobile_xmlanswer
-    from deejayd.webui.mobile import commands as mobile_commands
-except ImportError:
-    mobile = False
+from deejayd.webui import mobile
 
 
 class DeejaydWebError(DeejaydError): pass
@@ -74,10 +72,8 @@ class DeejaydMobileHandler(Resource):
             request.redirect(request.path + '/')
             return 'redirected'
 
-        try: rs = mobile.build_template(request.getHeader("user-agent"))
-        except IOError, err:
-            raise DeejaydWebError(err)
-        return rs
+        user_agent = request.getHeader("user-agent");
+        return mobile.build_template(self.__deejayd, user_agent)
 
 
 class _DeejaydCommandHandler(Resource):
@@ -130,38 +126,6 @@ class DeejaydXulCommandHandler(_DeejaydCommandHandler):
         return ans.to_xml()
 
 
-class DeejaydMobileCommandHandler(_DeejaydCommandHandler):
-
-    def _render(self, request, type):
-        request.setHeader("Content-type","text/xml")
-        ans = mobile_xmlanswer.DeejaydWebAnswer(self._deejayd, self._tmp_dir)
-
-        try: action = request.args["action"]
-        except KeyError:
-            ans.set_error(_("You have to enter an action."))
-            return ans.to_xml()
-        try:
-            cmd_cls = mobile_commands.commands[action[0]]
-            cmd = cmd_cls(self._deejayd, ans)
-        except KeyError:
-            ans.set_error(_("Command %s not found") % action[0])
-            return ans.to_xml()
-
-        if cmd_cls.method != type:
-            ans.set_error(_("Command send with invalid method"))
-        else:
-            try:
-                cmd.argument_validation(request.args)
-                cmd.execute()
-                cmd.set_answer()
-            except DeejaydError, err:
-                ans.set_error("%s" % err)
-            except commands.ArgError, err:
-                ans.set_error(_("Bad argument : %s") % err)
-
-        return ans.to_xml()
-
-
 class SiteWithCustomLogging(server.Site):
 
     def _openLogFile(self, path):
@@ -191,23 +155,26 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
         raise DeejaydWebError(_("Htdocs directory %s does not exists") % \
                 htdocs_dir)
 
+    # json-rpc handler
+    rpc_handler = JSONRPC(deejayd_core)
+    rpc_handler = build_protocol(deejayd_core, rpc_handler)
+    rpc_handler = set_web_subhandler(deejayd_core, tmp_dir, rpc_handler)
+
     # main (xul) part
     xul_handler = DeejaydXulHandler(deejayd_core, config)
     xul_handler.putChild("commands",DeejaydXulCommandHandler(deejayd_core,\
             tmp_dir))
     xul_handler.putChild("static",static.File(htdocs_dir))
     xul_handler.putChild("rdf",static.File(tmp_dir))
+    xul_handler.putChild("rpc",rpc_handler)
 
     # mobile part
     mobile_webui = config.getboolean("webui","mobile_ui")
-    if mobile_webui and not mobile:
-        log.err(_("Mobile Web UI disabled because genshi seems absent."))
-    elif mobile_webui:
+    if mobile_webui:
         mobile_handler = DeejaydMobileHandler(deejayd_core, config)
-        mobile_handler.putChild("commands",DeejaydMobileCommandHandler(\
-                deejayd_core, tmp_dir))
         mobile_handler.putChild("static",static.File(htdocs_dir))
         mobile_handler.putChild("tmp",static.File(tmp_dir))
+        mobile_handler.putChild("rpc",rpc_handler)
         xul_handler.putChild("m", mobile_handler)
 
     return SiteWithCustomLogging(xul_handler, logPath=webui_logfile)

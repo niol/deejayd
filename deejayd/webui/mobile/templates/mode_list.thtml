@@ -1,8 +1,0 @@
-<div id='modelist-content' xmlns:py="http://genshi.edgewall.org/">
-    <py:for each="m in mode_list.keys()">
-        <div py:if="mode_list[m]" class="mode-button"
-             onclick="mobileui_ref.send_command('setMode',{mode:'${m}'},true);
-             return false;">${f(mode_names[m])}
-        </div>
-    </py:for>
-</div>
