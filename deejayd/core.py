@@ -533,6 +533,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def go_to(self, id, id_type = "id", source = None):
+        if id_type not in ("dvd_id","track","chapter","id","pos"):
+            raise DeejaydError(_("Bad value for id_type parm"))
         if id_type != "dvd_id":
             try: id = int(id)
             except ValueError:
