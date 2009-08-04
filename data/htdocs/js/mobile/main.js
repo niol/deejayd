@@ -25,8 +25,16 @@ function mobileUI()
 
     this.init = function()
     {
-        this.rpc = new RPC(this, 'rpc/');
+        // build ui
+        this.ui = new UI(this);
+
+        this.rpc = new RPC(this, './../rpc/');
         this.rpc.callbacks = {
+            updateMode: this.updateMode,
+            updateOption: function(data) {
+                mobileui_ref.updateMode(data);
+                mobileui_ref.ui.getCurrentMode().closeExtra();
+            },
             player: { def: this.updateStatus, },
             playlist: {
                 def: this.updateMode,
@@ -42,18 +50,17 @@ function mobileUI()
                 clearFilter: function(data) {},
                 clearSearch: function(data) {},
             },
-            dvd: { def: this.updateMode, },
+            dvd: this.updateMode,
         };
         this.rpc.onerror = function(request, error, exception){
             $("#fatal_error").html("Fatal Error " + error + " : "
                     + request.responseText).show();
         };
         this.rpc.onrequesterror = function(code, message){
-            alert("Resquest Error " + code + " - " + message);
+            mobileui_ref.ui.displayMessage("Resquest Error " + code + " - "
+                    + message, 'error');
         };
 
-        // build ui
-        this.ui = new UI(this);
         this.updateStatus(null);
     }
 

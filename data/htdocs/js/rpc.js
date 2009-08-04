@@ -33,7 +33,8 @@ function dump(arr,level) {
                 dumped_text += level_padding + "'" + item + "' ...\n";
                 dumped_text += dump(value,level+1);
             } else {
-                dumped_text += level_padding + "'" + item + "' => \"" + value + "\"\n";
+                dumped_text += level_padding + "'" + item +
+                    "' => \"" + value + "\"\n";
             }
         }
     } else { //Stings/Chars/Numbers etc.
@@ -95,8 +96,12 @@ RPC.prototype =
  * general requests
  */
     setMode: function(mode) {
-        var controller = this._controller;
-        this.send("setmode", [mode], controller.updateMode);
+        this.send("setmode", [mode], this.callbacks.updateMode);
+    },
+
+    setOption: function(source, name, value) {
+        this.send("setOption", [source, name, value],
+                this.callbacks.updateOption);
     },
 
 /*
@@ -124,6 +129,9 @@ RPC.prototype =
     },
     setVolume: function(vol) { this.__playerRequest("setVolume",[vol]); },
     seek: function(pos, rel) { this.__playerRequest("seek", [pos, rel]); },
+    setPlayerOption: function(opt_name, opt_value) {
+        this.__playerRequest("setPlayerOption",[opt_name, opt_value]);
+    },
 
 /*
  * playlist requests
@@ -162,6 +170,12 @@ RPC.prototype =
          this.__videoModeRequest("set",[val, type]);
      },
 
+/*
+ * dvd requests
+ */
+    dvdModeReload: function() {
+        this.send("dvd.reload", [], this.callbacks.dvd);
+    },
 /*
  * Webradio requests
  */

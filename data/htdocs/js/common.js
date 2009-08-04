@@ -18,7 +18,7 @@
 
 function formatTime(time)
 {
-    var sec = time % 60;
+    var sec = parseInt(time % 60);
     if (sec < 10)
         sec = "0" + sec;
     var min = parseInt(time/60);

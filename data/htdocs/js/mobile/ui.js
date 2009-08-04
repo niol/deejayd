@@ -20,7 +20,7 @@ var iPhone = RegExp("(iPhone|iPod)").test(navigator.userAgent);
 
 function UI(controller)
 {
-    this.def_cover = "static/themes/mobile/images/missing-cover.png";
+    this.def_cover = "./../static/themes/mobile/images/missing-cover.png";
     this.initialize(controller);
     return this;
 }
@@ -34,7 +34,8 @@ UI.prototype =
 
         // handler on ajax event
         $("#loading").ajaxStart(function(){
-            window.scrollTo(0, 1);
+            //window.scrollTo(0, 1);
+            setTimeout("window.scrollTo(0, 1);", 100);
             $(this).show();
         });
         $("#loading").ajaxStop(function(){ $(this).hide(); });
@@ -65,8 +66,8 @@ UI.prototype =
     displayMessage: function(msg, type) {
         var cont = msg;
         if (type == 'error')
-            cont = '<input type="submit" onclick="mobileui_ref.hide_message();'+
-                        ' return false;" value="Close"/>' + cont;
+          cont = '<input type="submit" onclick="mobileui_ref.ui.hideMessage();'
+              + ' return false;" value="Close"/>' + cont;
         cont = '<div class="'+type+'">'+cont+'</div>';
 
         $("#notification").html(cont).show();
@@ -119,6 +120,15 @@ UI.prototype =
         if (this.current_page.name == "current_mode")
             return this.current_page.obj;
         return null;
+    },
+
+    setOptions: function() {
+        var mode_name = this.getCurrentMode()._mode;
+        mobileui_ref.rpc.setOption(mode_name, "playorder",
+                $("#playorder-option").val());
+
+        var repeat = $("#repeat-option").get(0).checked ? "1" : "0";
+        mobileui_ref.rpc.setOption(mode_name, "repeat", repeat);
     },
 };
 
@@ -206,15 +216,21 @@ NowPlayingPage.prototype =
                         $("#playing-title").append(playing_text);
 
                         // get cover if available
-                        var cover_callback = function(data) {
-                            if (data.cover)
-                                $("#playing-cover").attr("src", data.cover);
-                            else
-                                $("#playing-cover").attr("src",
-                                        mobileui_ref.ui.def_cover);
-                        };
-                        mobileui_ref.rpc.send("web.writecover",
-                                [media.media_id], cover_callback);
+                        if (media.type == "song") {
+                            var cover_callback = function(data) {
+                                if (data.cover)
+                                    $("#playing-cover").attr("src",
+                                            "../"+data.cover);
+                                else
+                                    $("#playing-cover").attr("src",
+                                            mobileui_ref.ui.def_cover);
+                            };
+                            mobileui_ref.rpc.send("web.writecover",
+                                    [media.media_id], cover_callback);
+                        }
+                        else
+                            $("#playing-cover").attr("src",
+                                    mobileui_ref.ui.def_cover);
                     }
                     else {
                         var str = mobileui_ref.getString("no-media",
@@ -261,12 +277,6 @@ _ModePage.prototype =
 
         // build toolbar
         this.buildToolbar();
-        // update options
-        if (this.has_options) {
-            $("#playorder-option").val(st[st.mode+"playorder"]);
-            var ck = st[st.mode+"repeat"] == "1" ? true : false;
-            $("#repeat-option").attr("checked", ck);
-        }
         this.update(st);
         $("#current_mode_page").show();
     },
@@ -283,8 +293,12 @@ _ModePage.prototype =
     },
 
     update: function(st) {
-        if (parseInt(st[this._mode]) != this._id) {
-            //update medialist
+        if (this.has_options) { // update options
+            $("#playorder-option").val(st[st.mode+"playorder"]);
+            var ck = st[st.mode+"repeat"] == "1" ? true : false;
+            $("#repeat-option").attr("checked", ck);
+        }
+        if (parseInt(st[this._mode]) != this._id) { //update medialist
             this.updateMedialist(parseInt(st[this._mode+"length"]));
             this._id = parseInt(st[this._mode]);
         }
@@ -783,6 +797,58 @@ function DvdMode(st) {
 };
 DvdMode.prototype = new _ModePage;
 DvdMode.prototype.reload = function(evt) { mobileui_ref.rpc.dvdModeReload(); };
+DvdMode.prototype.updateMedialist = function(length, page) {
+    var callback = function(data) {
+        var mode = mobileui_ref.ui.getCurrentMode();
+        if (!mode) { return; } // page has change
+
+        // first remove loading information
+        $("#mode-content-list").empty();
+
+        // build new medialist
+        for (i in data.track) {
+            var infos = data.track[i];
+            var media = createElement("div", "media-item", {});
+
+            // set left padding
+            $(media).css("padding-left", "10px");
+
+            var media_info = createElement("div", "media-info", {});
+            var media_title = createElement("div", "media-title", {});
+            var media_desc = createElement("div", "media-desc", {});
+            var idx = parseInt(i)+1;
+            var title = "Track "+idx;
+            var desc = '';
+            $(media_title).html(title);
+            $(media_desc).html(desc);
+            $(media_info).append(media_title);
+            $(media_info).append(media_desc);
+            $(media).append(media_info);
+
+            var button = createElement("div", "media-play-btn",
+                    {value: infos.ix});
+            $(button).click(function(evt) {
+                var id = $(evt.target).attr("value");
+                mobileui_ref.rpc.goto(id, "dvd_id");
+                });
+            $(media).append(button);
+
+            $("#mode-content-list").append(media);
+        }
+
+        // set media info width
+        var win_width = $("#current_mode_page").width();
+        var width = mode.has_selection ? win_width-85 : win_width-55;
+        $(".media-info").css("width", width);
+    };
+
+    var loading = createElement("div", "list-loading", {});
+    var str = mobileui_ref.getString("loading","Loading ...");
+    $(loading).html(str);
+    $(".content-list-pager").hide();
+    $("#mode-content-list").empty().append(loading);
+    mobileui_ref.rpc.send("dvd.get", [], callback)
+};
 
 /*
  * Panel
