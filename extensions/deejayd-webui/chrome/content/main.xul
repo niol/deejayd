@@ -13,48 +13,34 @@
               src="chrome://deejayd-webui/locale/deejayd-webui.properties"/>
 </stringbundleset>
 
-<script src="chrome://deejayd-webui/content/js/_drag_and_drop.js"/>
-<script src="chrome://deejayd-webui/content/js/_source.js"/>
-<script src="chrome://deejayd-webui/content/js/fileList.js"/>
-<script src="chrome://deejayd-webui/content/js/player.js"/>
-<script src="chrome://deejayd-webui/content/js/playlist.js"/>
-<script src="chrome://deejayd-webui/content/js/panel.js"/>
-<script src="chrome://deejayd-webui/content/js/webradio.js"/>
-<script src="chrome://deejayd-webui/content/js/queue.js"/>
-<script src="chrome://deejayd-webui/content/js/video.js"/>
-<script src="chrome://deejayd-webui/content/js/dvd.js"/>
 <script src="chrome://deejayd-webui/content/js/ajax.js"/>
+<script src="chrome://deejayd-webui/content/js/rpc.js"/>
+<script src="chrome://deejayd-webui/content/js/libraries.js"/>
+<script src="chrome://deejayd-webui/content/js/rec_playlist.js"/>
+<script src="chrome://deejayd-webui/content/js/panel.js"/>
+<script src="chrome://deejayd-webui/content/js/modes.js"/>
+<script src="chrome://deejayd-webui/content/js/player.js"/>
+<script src="chrome://deejayd-webui/content/js/ui.js"/>
+<script src="chrome://deejayd-webui/content/js/drag_drop.js"/>
 <script src="chrome://deejayd-webui/content/js/main.js"/>
 
 <keyset>
-    <key id="playpause-key" key="x"
-        oncommand="ajaxdj_ref.send_command('play_toggle','',true);"/>
-
-    <key id="stop-key" key="v"
-        oncommand="ajaxdj_ref.send_command('stop','',true);"/>
-    <key id="previous-key" key="w"
-        oncommand="ajaxdj_ref.send_command('previous','',true);"/>
-    <key id="next-key" key="b"
-        oncommand="ajaxdj_ref.send_command('next','',true);"/>
+    <key id="playpause-key" key="x" oncommand="xului_ref.rpc.playToggle();"/>
+    <key id="stop-key" key="v" oncommand="xului_ref.rpc.stop();"/>
+    <key id="previous-key" key="w" oncommand="xului_ref.rpc.previous();"/>
+    <key id="next-key" key="b" oncommand="xului_ref.rpc.next();"/>
     <key id="suboffset_up-key" key="c"
-        oncommand="ajaxdj_ref.send_command('setPlayerOption',
-         {option_name:'sub_offset',option_value:'100',set_type:'up'},true);"/>
+        oncommand="xului_ref.rpc.send('setPlayerOption','sub_offset', 100);"/>
     <key id="suboffset_down-key" key="z"
-        oncommand="ajaxdj_ref.send_command('setPlayerOption',
-         {option_name:'sub_offset',option_value:'100',set_type:'down'},true);"/>
+        oncommand="xului_ref.rpc.send('setPlayerOption','sub_offset', -100);"/>
     <key id="avoffset_up-key" key="p"
-        oncommand="ajaxdj_ref.send_command('setPlayerOption',
-         {option_name:'av_offset',option_value:'100',set_type:'up'},true);"/>
+        oncommand="xului_ref.rpc.send('setPlayerOption','av_offset', 100);"/>
     <key id="avoffset_down-key" key="o"
-        oncommand="ajaxdj_ref.send_command('setPlayerOption',
-         {option_name:'av_offset',option_value:'100',set_type:'down'},true);"/>
+        oncommand="xului_ref.rpc.send('setPlayerOption','av_offset', -100);"/>
     <key id="zoom_up-key" key="l"
-        oncommand="ajaxdj_ref.send_command('setPlayerOption',
-         {option_name:'zoom',option_value:'5',set_type:'up'},true);"/>
+        oncommand="xului_ref.rpc.send('setPlayerOption','zoom', 5);"/>
     <key id="zoom_down-key" key="m"
-        oncommand="ajaxdj_ref.send_command('setPlayerOption',
-         {option_name:'zoom',option_value:'5',set_type:'down'},true);"/>
-
+        oncommand="xului_ref.rpc.send('setPlayerOption','zoom', -5);"/>
 </keyset>
 
 <popupset>
@@ -62,30 +48,29 @@
         <menuitem
             class="menuitem-iconic play-action"
             label="&play;"
-            oncommand="queue_ref.play();"/>
+            oncommand="xului_ref.ui.queue.play();"/>
         <menuitem
             class="menuitem-iconic remove-action"
             label="&remove;"
-            oncommand="queue_ref.removeItems();"/>
+            oncommand="xului_ref.ui.queue.removeItems();"/>
         <menu
             label="&rating;">
             <menupopup id="queue-rating-menu">
                 <menuitem
                     label=" 0 "
-                    oncommand="queue_ref.setRating(0);"/>
+                    oncommand="xului_ref.ui.setRating('queue', 0);"/>
                 <menuitem
                     label="1 &#9834;"
-                    oncommand="queue_ref.setRating(1);"/>
-
+                    oncommand="xului_ref.ui.setRating('queue', 1);"/>
                 <menuitem
                     label="2 &#9834;&#9834;"
-                    oncommand="queue_ref.setRating(2);"/>
+                    oncommand="xului_ref.ui.setRating('queue', 2);"/>
                 <menuitem
                     label="3 &#9834;&#9834;&#9834;"
-                    oncommand="queue_ref.setRating(3);"/>
+                    oncommand="xului_ref.ui.setRating('queue', 3);"/>
                 <menuitem
                     label="4 &#9834;&#9834;&#9834;&#9834;"
-                    oncommand="queue_ref.setRating(4);"/>
+                    oncommand="xului_ref.ui.setRating('queue', 4);"/>
             </menupopup>
         </menu>
         <menu
@@ -100,28 +85,26 @@
 <!-- HEADER -->
 <hbox
     align="start"
-    id="ajaxdj-header" >
+    id="xului-header" >
 
     <groupbox id="command-panel">
         <toolbox align="center" >
             <toolbar
                 id="command-toolbar">
                 <toolbarbutton
-                 oncommand="return ajaxdj_ref.send_command('previous','',true);"
+                 oncommand="xului_ref.rpc.previous();"
                  class="previous-button"
                  id="previous-button"/>
                 <toolbarbutton
-                 oncommand=
-                        "return ajaxdj_ref.send_command('play_toggle','',true);"
+                 oncommand="xului_ref.rpc.playToggle();"
                  class="play-button"
                  id="playtoggle-button"/>
-
                 <toolbarbutton
-                 oncommand="return ajaxdj_ref.send_command('stop','',true);"
+                 oncommand="xului_ref.rpc.stop();"
                  class="stop-button"
                  id="stop-button"/>
                 <toolbarbutton
-                 oncommand="return ajaxdj_ref.send_command('next','',true);"
+                 oncommand="xului_ref.rpc.next();"
                  class="next-button"
                  id="next-button"/>
             </toolbar>
@@ -134,7 +117,7 @@
                   height="25px"
                   width="25px"/>
                 <scale
-                    onchange="PlayerObserver.volumeUpdate(this); return true;"
+                    onchange="return xului_ref.ui.player.volumeUpdate(this);"
                     min="0"
                     max="100"
                     increment="5"
@@ -157,7 +140,7 @@
                 oncommand="toogleNodeVisibility('player-seekbar');"/>
             <scale
                 style="visibility: collapse"
-                onchange="PlayerObserver.seekUpdate(this); return true;"
+                onchange="return xului_ref.ui.player.seekUpdate(this);"
                 min="0"
                 increment="5"
                 pageincrement="60"
@@ -186,7 +169,7 @@
                 id="audio-row">
                 <label value="&audio_channel;"/>
                 <menulist
-                    oncommand="player_ref.set_alang(event.target.value);">
+                  oncommand="xului_ref.ui.player.setAlang(event.target.value);">
                     <menupopup id="audio-menu"/>
                 </menulist>
             </row>
@@ -196,7 +179,7 @@
                 id="subtitle-row">
                 <label value="&subtitle_channel;"/>
                 <menulist
-                    oncommand="player_ref.set_slang(event.target.value);">
+                  oncommand="xului_ref.ui.player.setSlang(event.target.value);">
                     <menupopup id="subtitle-menu"/>
                 </menulist>
             </row>
@@ -207,7 +190,7 @@
                 <textbox
                     increment="100"
                     min="-10000"
-                    onchange="player_ref.set_avoffset();"
+                    onchange="xului_ref.ui.player.setAVOffset();"
                     type="number"
                     id="av_offset-value"/>
 
@@ -220,7 +203,7 @@
                 <textbox
                     increment="100"
                     min="-10000"
-                    onchange="player_ref.set_suboffset();"
+                    onchange="xului_ref.ui.player.setSubOffset();"
                     type="number"
                     id="sub_offset-value"/>
                 <label value="ms"/>
@@ -234,7 +217,7 @@
                     increment="5"
                     min="-85"
                     max="400"
-                    onchange="player_ref.set_zoom();"
+                    onchange="xului_ref.ui.player.setZoom();"
                     type="number"
                     id="zoom-value"/>
                 <label value="%"/>
@@ -252,7 +235,7 @@
             <description value="&mode; "/>
             <menulist
                 id="mode-menu"
-                oncommand="ajaxdj_ref.updateMode();"
+                oncommand="xului_ref.ui.updateMode();"
                 label="">
                 <menupopup>
                     <menuitem
@@ -289,7 +272,7 @@
             <button
                 id="webui-refresh-button"
                 class="update-button"
-                oncommand="ajaxdj_ref.send_command('refresh',null,false);"
+                oncommand="xului_ref.refresh();"
                 label="&refreshWebui;"/>
         </hbox>
     </vbox>
@@ -308,11 +291,8 @@
         id="main">
             <hbox>
 <keyset>
-
     <key id="search-key" modifiers="accel" key="s"
         oncommand="$('search-text').select();"/>
-    <key id="search-key" modifiers="accel" key="l"
-        oncommand="fileList_ref.loadCommand();"/>
 </keyset>
 
 <popupset>
@@ -320,37 +300,35 @@
         <menuitem
             class="menuitem-iconic play-action"
             label="&play;"
-            oncommand="playlist_ref.play();"/>
+            oncommand="xului_ref.ui.modes.playlist.play();"/>
         <menuitem
             class="menuitem-iconic remove-action"
             label="&remove;"
-            oncommand="playlist_ref.removeItems();"/>
+            oncommand="xului_ref.ui.modes.playlist.removeItems();"/>
         <menu
             label="&rating;">
             <menupopup id="pl-rating-menu">
 
                 <menuitem
                     label=" 0 "
-                    oncommand="playlist_ref.setRating(0);"/>
+                    oncommand="xului_ref.ui.setRating('playlist', 0);"/>
                 <menuitem
                     label="1 &#9834;"
-                    oncommand="playlist_ref.setRating(1);"/>
+                    oncommand="xului_ref.ui.setRating('playlist', 1);"/>
                 <menuitem
                     label="2 &#9834;&#9834;"
-                    oncommand="playlist_ref.setRating(2);"/>
+                    oncommand="xului_ref.ui.setRating('playlist', 2);"/>
                 <menuitem
                     label="3 &#9834;&#9834;&#9834;"
-                    oncommand="playlist_ref.setRating(3);"/>
+                    oncommand="xului_ref.ui.setRating('playlist', 3);"/>
                 <menuitem
                     label="4 &#9834;&#9834;&#9834;&#9834;"
-                    oncommand="playlist_ref.setRating(4);"/>
+                    oncommand="xului_ref.ui.setRating('playlist', 4);"/>
             </menupopup>
         </menu>
         <menu
             label="&plAdd;">
-            <menupopup id="playlist-pls-menu">
-
-            </menupopup>
+            <menupopup id="playlist-pls-menu"></menupopup>
         </menu>
     </menupopup>
 
@@ -358,11 +336,11 @@
         <menuitem
             class="menuitem-iconic add-action"
             label="&load;"
-            oncommand="fileList_ref.loadFiles(-1);"/>
+            oncommand="xului_ref.ui.modes.playlist.loadFiles();"/>
         <menuitem
             class="menuitem-iconic add-action"
             label="&loadQueue;"
-            oncommand="fileList_ref.loadFilesInQueue(-1);"/>
+            oncommand="xului_ref.ui.queue.loadFiles();"/>
         <menu
             label="&plAdd;">
             <menupopup id="fileaddplaylist-menu">
@@ -375,15 +353,15 @@
         <menuitem
             label="&load;"
             class="menuitem-iconic add-action"
-            oncommand="fileList_ref.loadPlaylist(-1);"/>
+            oncommand="xului_ref.ui.modes.playlist.loadPlaylist();"/>
         <menuitem
             label="&loadQueue;"
             class="menuitem-iconic add-action"
-            oncommand="fileList_ref.loadPlaylistInQueue(-1);"/>
+            oncommand="xului_ref.ui.queue.loadPlaylist();"/>
         <menuitem
             label="&remove;"
             class="menuitem-iconic remove-action"
-            oncommand="fileList_ref.erasePlaylist();"/>
+            oncommand="xului_ref.ui.panels.playlist.erasePlaylist();"/>
     </menupopup>
 
 </popupset>
@@ -418,10 +396,10 @@
                     id="search-clear"
                     class="clear-button"
                     label="&clear;"
-                    oncommand="fileList_ref.searchClear();"/>
+                    oncommand="xului_ref.ui.panels.playlist.searchClear();"/>
                 <textbox
                     flex="1"
-                    oncommand="fileList_ref.searchFile();"
+                    oncommand="xului_ref.ui.panels.playlist.searchFile();"
                     timeout="500"
                     type="timed"
                     id="search-text"/>
@@ -457,7 +435,7 @@
             <button
                 id="audio-update-button"
                 class="update-button"
-                oncommand="ajaxdj_ref.send_command('audioUpdate',null,false);"
+                oncommand="xului_ref.ui.libraries.audio.launchUpdate();"
                 label="&updateAudioDB;"/>
             <progressmeter
                 id="audio-update-progressbar"
@@ -481,7 +459,7 @@
         <description value="&playorder;"/>
         <menulist
             id="playlist-playorder"
-            oncommand="playlist_ref.setPlayorder();"
+            oncommand="xului_ref.ui.modes.playlist.setPlayorder();"
             label="">
             <menupopup>
                 <menuitem value="inorder" label="&inorder;"/>
@@ -492,8 +470,7 @@
             </menupopup>
         </menulist>
         <command
-            oncommand=
-              "ajaxdj_ref.send_command('repeat',{source:'playlist'},true);"
+            oncommand= "xului_ref.ui.modes.playlist.setRepeat();"
             id="plrepeat-command"/>
         <checkbox
             label="&repeat;"
@@ -507,9 +484,9 @@
             enableColumnDrag="true"
             ref="http://playlist/all-content"
             datasources="rdf:null"
-            ondragover="playlist_ref.dragOver(event);"
-            ondragenter="playlist_ref.dragEnter(event);"
-            ondragexit="playlist_ref.dragExit(event);"
+            ondragover="xului_ref.ui.modes.playlist.dragOver(event);"
+            ondragenter="xului_ref.ui.modes.playlist.dragEnter(event);"
+            ondragexit="xului_ref.ui.modes.playlist.dragExit(event);"
             flex="4">
 
             <treecols>
@@ -548,8 +525,9 @@
 
                 <treechildren
                     ondraggesture = "dragStart(event, 'playlist');"
-                    oncontextmenu="playlist_ref.showPopupMenu(event);"
-                    ondblclick = "playlist_ref.play();"
+                    oncontextmenu=
+                        "xului_ref.ui.modes.playlist.showPopupMenu(event);"
+                    ondblclick = "xului_ref.ui.modes.playlist.play();"
                     id="playlist-items">
                     <treeitem uri="rdf:*"
                               value="rdf:http://playlist/rdf#media_id">
@@ -582,14 +560,13 @@
                 id="playlist-save-list"
                 minwidth="120px" editable="true">
                 <menupopup id="playlist-save-plslist">
-
                     <menuitem label=""/>
                 </menupopup>
             </menulist>
                 <button
                     height="25px"
                     label="&ok;"
-                    oncommand="playlist_ref.savePlaylist();"/>
+                    oncommand="xului_ref.ui.modes.playlist.savePlaylist();"/>
         </hbox>
         <hbox
             flex="0"
@@ -598,18 +575,17 @@
                 <toolbarbutton
                     id="playlist-clear"
                     class="clear-button"
-                   oncommand="ajaxdj_ref.send_command('playlistClear',{},true);"
+                    oncommand="xului_ref.rpc.plsModeClear();"
                     label="&clear;"/>
                 <toolbarbutton
                     id="playlist-goCurSong"
                     class="goCurSong-button"
-                    oncommand="playlist_ref.goToCurSong();"
+                    oncommand="xului_ref.ui.modes.playlist.goToCurSong();"
                     label="&curSong;"/>
-
                 <toolbarbutton
                     class="shuffle-button"
                     id="playlist-shuffle"
-                 oncommand="ajaxdj_ref.send_command('playlistShuffle',{},true);"
+                    oncommand="xului_ref.rpc.plsModeShuffle();"
                     label="&shuffle;"/>
                 <deck
                     id="playlist-save-btn"
@@ -617,11 +593,13 @@
                     <toolbarbutton
                         class="save-button"
                         id="playlist-savebtn"
-                        oncommand="playlist_ref.togglePlaylistForm(1);"
+                        oncommand=
+                          "xului_ref.ui.modes.playlist.togglePlaylistForm(1);"
                         label="&save;"/>
                     <toolbarbutton
                         class="cancel-button"
-                        oncommand="playlist_ref.togglePlaylistForm(0);"
+                        oncommand=
+                          "xului_ref.ui.modes.playlist.togglePlaylistForm(0);"
                         label="&cancel;"/>
                 </deck>
             </toolbar>
@@ -641,30 +619,29 @@
             <menuitem
                 class="menuitem-iconic play-action"
                 label="&play;"
-                oncommand="panel_ref.play();"/>
+                oncommand="xului_ref.ui.modes.panel.play();"/>
             <menuitem
                 class="menuitem-iconic add-action"
                 label="&loadQueue;"
-                oncommand="panel_ref.loadInQueue(-1);"/>
-
+                oncommand="xului_ref.ui.queue.loadFromPanel(-1);"/>
             <menu
                 label="&rating;">
                 <menupopup id="panel-rating-menu">
                     <menuitem
                         label=" 0 "
-                        oncommand="panel_ref.setRating(0);"/>
+                        oncommand="xului_ref.ui.setRating('panel', 0);"/>
                     <menuitem
                         label="1 &#9834;"
-                        oncommand="panel_ref.setRating(1);"/>
+                        oncommand="xului_ref.ui.setRating('panel', 1);"/>
                     <menuitem
                         label="2 &#9834;&#9834;"
-                        oncommand="panel_ref.setRating(2);"/>
+                        oncommand="xului_ref.ui.setRating('panel', 2);"/>
                     <menuitem
                         label="3 &#9834;&#9834;&#9834;"
-                        oncommand="panel_ref.setRating(3);"/>
+                        oncommand="xului_ref.ui.setRating('panel', 3);"/>
                     <menuitem
                         label="4 &#9834;&#9834;&#9834;&#9834;"
-                        oncommand="panel_ref.setRating(4);"/>
+                        oncommand="xului_ref.ui.setRating('panel', 4);"/>
                 </menupopup>
             </menu>
 
@@ -676,7 +653,7 @@
         </popup>
 
         <popup id="panel-pls-action-menu"
-            onpopupshowing="PlsPanelObserver.updateMenu(event);">
+            onpopupshowing="xului_ref.ui.panels.panel.updateMenu(event);">
         </popup>
 
     </popupset>
@@ -684,7 +661,7 @@
     <vbox persist="width" id="panel-select-box" flex="1">
         <button
           id="panel-select-button"
-          oncommand="ajaxdj_ref.send_post_command('panelSet',{type: 'panel'})"
+          oncommand="xului_ref.rpc.pnModeSetActiveList('panel', '0');"
           label="&panelBtn;"/>
 
         <spacer height="10px"/>
@@ -692,19 +669,24 @@
                 <menupopup id="pls-action-menu">
                     <menuitem label="&newStaticPls;"
                         class="menuitem-iconic playlist-new"
-                        oncommand="panel_ref.createStaticPlaylist();"/>
+                        oncommand=
+                          "xului_ref.ui.panels.panel.createStaticPlaylist();"/>
                     <menuitem label="&newMagicPls;"
                         class="menuitem-iconic playlist-new"
-                        oncommand="panel_ref.createMagicPlaylist();"/>
+                        oncommand=
+                          "xului_ref.ui.panels.panel.createMagicPlaylist();"/>
                 </menupopup>
             </button>
         <tree
             id="panel-pls-list"
             hidecolumnpicker="true"
-            onclick = "PlsPanelObserver.setPlaylist(event);"
-            ondragover="panel_ref.plsDropSupport.dragOver(event);"
-            ondragenter="panel_ref.plsDropSupport.dragEnter(event);"
-            ondragexit="panel_ref.plsDropSupport.dragExit(event);"
+            onclick = "xului_ref.ui.modes.panel.setPlaylist(event);"
+            ondragover=
+              "xului_ref.ui.panels.panel.plsDropSupport.dragOver(event);"
+            ondragenter=
+              "xului_ref.ui.panels.panel.plsDropSupport.dragEnter(event);"
+            ondragexit=
+              "xului_ref.ui.panels.panel.plsDropSupport.dragExit(event);"
             seltype="single"
             flex="1">
             <treecols>
@@ -719,7 +701,7 @@
                 <button
                   id="panel-audio-update-button"
                   class="update-button"
-                  oncommand="ajaxdj_ref.send_command('audioUpdate',null,false);"
+                  oncommand="xului_ref.ui.libraries.audio.launchUpdate();"
                   label="&updateAudioDB;"/>
                 <progressmeter
                   id="panel-audio-update-progressbar"
@@ -737,16 +719,15 @@
             <textbox
                 flex="1"
                 onfocus="this.select();"
-                oncommand="panel_ref.updatePanelFilterText();"
+                oncommand="xului_ref.ui.modes.panel.updatePanelFilterText();"
                 timeout="700"
                 type="timed"
                 id="panel-filter-text"/>
             <menulist
                 id="panel-filter-type"
-                oncommand="panel_ref.updatePanelFilterText();"
+                oncommand="xului_ref.ui.modes.panel.updatePanelFilterText();"
                 label="">
                 <menupopup>
-
                     <menuitem value="all" label="&all;" selected="true"/>
                     <menuitem value="album" label="&album;"/>
                     <menuitem value="artist" label="&artist;"/>
@@ -758,11 +739,11 @@
                 id="filter-clear"
                 class="clear-button"
                 label="&clear;"
-                oncommand="panel_ref.clearPanelFilterText();"/>
+                oncommand="xului_ref.ui.modes.panel.clearPanelFilterText();"/>
             <button
                 id="panel-chooseall"
                 label="&chooseAll;"
-                oncommand="ajaxdj_ref.send_command('panelClear',{},true);"/>
+                oncommand="xului_ref.rpc.pnModeClearAll();"/>
 
         </hbox>
         <hbox flex="1" persist="height" id="panel-box">
@@ -770,6 +751,7 @@
             <listbox
                 seltype="multiple"
                 flex="1"
+                hidden="true"
                 id="genre-panel">
                 <listhead>
                     <listheader label="&genre;"/>
@@ -782,6 +764,7 @@
             <listbox
                 seltype="multiple"
                 flex="1"
+                hidden="true"
                 id="artist-panel">
                 <listhead>
                     <listheader label="&artist;"/>
@@ -794,6 +777,7 @@
             <listbox
                 seltype="multiple"
                 flex="1"
+                hidden="true"
                 id="various_artist-panel">
                 <listhead>
                     <listheader label="&artist;"/>
@@ -806,6 +790,7 @@
             <listbox
                 seltype="multiple"
                 flex="1"
+                hidden="true"
                 id="album-panel">
                 <listhead>
                     <listheader label="&album;"/>
@@ -832,31 +817,31 @@
                     label=""/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-track"
-                    onclick="panel_ref.updateSort('tracknumber');"
-                    flex="1" label="#"/>
+                   onclick="xului_ref.ui.modes.panel.updateSort('tracknumber');"
+                   flex="1" label="#"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-title"
-                    onclick="panel_ref.updateSort('title');"
+                    onclick="xului_ref.ui.modes.panel.updateSort('title');"
                     flex="4" label="&title;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-artist"
-                    onclick="panel_ref.updateSort('artist');"
+                    onclick="xului_ref.ui.modes.panel.updateSort('artist');"
                     flex="3" label="&artist;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-album"
-                    onclick="panel_ref.updateSort('album');"
+                    onclick="xului_ref.ui.modes.panel.updateSort('album');"
                     flex="3" label="&album;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-genre"
-                    onclick="panel_ref.updateSort('genre');"
+                    onclick="xului_ref.ui.modes.panel.updateSort('genre');"
                     hidden="true" flex="3" label="&genre;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-rating"
-                    onclick="panel_ref.updateSort('rating');"
+                    onclick="xului_ref.ui.modes.panel.updateSort('rating');"
                     flex="2" label="&rating;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-time"
-                    onclick="panel_ref.updateSort('length');"
+                    onclick="xului_ref.ui.modes.panel.updateSort('length');"
                     flex="2" label="&length;"/>
                 <splitter class="tree-splitter"/>
                 <treecol persist="width ordinal hidden" id="panel-bitrate"
@@ -867,10 +852,11 @@
             <rule>
 
                 <treechildren
-                    ondblclick = "panel_ref.play();"
-                    oncontextmenu="panel_ref.showPopupMenu(event);"
-                    ondraggesture = "dragStart(event, panel_ref.selected_mode);"
-                    id="panel-items">
+                  ondblclick = "xului_ref.ui.modes.panel.play();"
+                  oncontextmenu="xului_ref.ui.modes.panel.showPopupMenu(event);"
+                  ondraggesture =
+                    "dragStart(event, xului_ref.ui.modes.panel.selected_mode);"
+                  id="panel-items">
                     <treeitem uri="rdf:*"
                               value="rdf:http://panel/rdf#media_id">
 
@@ -898,13 +884,13 @@
             <button
                 id="panel-goCurSong"
                 class="goCurSong-button"
-                oncommand="panel_ref.goToCurSong();"
+                oncommand="xului_ref.ui.modes.panel.goToCurSong();"
                 label="&curSong;"/>
             <spacer width="5px"/>
             <description value="&playorder;"/>
             <menulist
                 id="panel-playorder"
-                oncommand="panel_ref.setPlayorder();"
+                oncommand="xului_ref.ui.modes.panel.setPlayorder();"
                 label="">
                 <menupopup>
                     <menuitem value="inorder" label="&inorder;"/>
@@ -915,8 +901,7 @@
                 </menupopup>
             </menulist>
             <command
-                oncommand=
-                  "ajaxdj_ref.send_command('repeat',{source:'panel'},true);"
+                oncommand="xului_ref.ui.modes.panel.setRepeat();"
                 id="panelrepeat-command"/>
             <checkbox
                 label="&repeat;"
@@ -935,11 +920,11 @@
             <menuitem
                 class="menuitem-iconic play-action"
                 label="&play;"
-                oncommand="webradio_ref.play();"/>
+                oncommand="xului_ref.ui.modes.wb.play();"/>
             <menuitem
                 class="menuitem-iconic remove-action"
                 label="&remove;"
-                oncommand="webradio_ref.removeItems();"/>
+                oncommand="xului_ref.ui.modes.wb.remove();"/>
         </popup>
     </popupset>
 
@@ -955,14 +940,14 @@
             id="webradio-url"/>
         <button
             class="add-action"
-            oncommand="webradio_ref.add();"
+            oncommand="xului_ref.ui.modes.wb.add();"
             label="&add;"/>
     </groupbox>
 
     <tree
         id="webradio-tree"
-        oncontextmenu="webradio_ref.showPopupMenu(event);"
-        ondblclick = "webradio_ref.play();"
+        oncontextmenu="xului_ref.ui.modes.wb.showPopupMenu(event);"
+        ondblclick = "xului_ref.ui.modes.wb.play();"
         enableColumnDrag="true"
         ref="http://webradio/all-content"
         datasources="rdf:null"
@@ -1000,7 +985,7 @@
             <toolbarbutton
             id="webradio-clear"
             class="clear-button"
-            oncommand="ajaxdj_ref.send_command('webradioClear',{},true);"
+            oncommand="xului_ref.rpc.wbModeClear();"
             label="&clear;"/>
         </toolbar>
 
@@ -1016,26 +1001,26 @@
         <menuitem
             class="menuitem-iconic play-action"
             label="&play;"
-            oncommand="videolist_ref.play();"/>
+            oncommand="xului_ref.ui.modes.video.play();"/>
         <menu
             label="&rating;">
 
             <menupopup id="video-rating-menu">
                 <menuitem
                     label=" 0 "
-                    oncommand="videolist_ref.setRating(0);"/>
+                    oncommand="xului_ref.ui.setRating('video', 0);"/>
                 <menuitem
                     label="1 &#9834;"
-                    oncommand="videolist_ref.setRating(1);"/>
+                    oncommand="xului_ref.ui.setRating('video', 1);"/>
                 <menuitem
                     label="2 &#9834;&#9834;"
-                    oncommand="videolist_ref.setRating(2);"/>
+                    oncommand="xului_ref.ui.setRating('video', 2);"/>
                 <menuitem
                     label="3 &#9834;&#9834;&#9834;"
-                    oncommand="videolist_ref.setRating(3);"/>
+                    oncommand="xului_ref.ui.setRating('video', 3);"/>
                 <menuitem
                     label="4 &#9834;&#9834;&#9834;&#9834;"
-                    oncommand="videolist_ref.setRating(4);"/>
+                    oncommand="xului_ref.ui.setRating('video', 4);"/>
             </menupopup>
         </menu>
     </popup>
@@ -1058,7 +1043,7 @@
             <tree
                 id="videodir-tree"
                 ref="http://videodir/all-content"
-                onclick = "videolib_ref.setDirectory(event);"
+                onclick = "xului_ref.ui.panels.video.setDirectory(event);"
                 datasources="rdf:null"
                 hidecolumnpicker="true"
                 seltype="single"
@@ -1095,7 +1080,7 @@
                 <hbox id="videosearch-box">
                     <textbox
                         flex="1"
-                        oncommand="videolib_ref.search();"
+                        oncommand="xului_ref.ui.panels.video.search();"
                         timeout="700"
                         type="timed"
                         id="videosearch-text"/>
@@ -1110,7 +1095,7 @@
             <button
                 id="video-update-button"
                 class="update-button"
-                oncommand="ajaxdj_ref.send_command('videoUpdate',null,false);"
+                oncommand="xului_ref.ui.libraries.video.launchUpdate();"
                 label="&updateVideoDB;"/>
             <progressmeter
                 id="video-update-progressbar"
@@ -1139,7 +1124,7 @@
                 label=""/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-title"
-                onclick="videolist_ref.updateSort('title');"
+                onclick="xului_ref.ui.modes.video.updateSort('title');"
                 flex="4" label="&title;"/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-width"
@@ -1149,11 +1134,11 @@
                 flex="1" label="&height;"/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-length"
-                onclick="videolist_ref.updateSort('length');"
+                onclick="xului_ref.ui.modes.video.updateSort('length');"
                 flex="1" label="&length;"/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-rating"
-                onclick="videolist_ref.updateSort('rating');"
+                onclick="xului_ref.ui.modes.video.updateSort('rating');"
                 flex="2" label="&rating;"/>
             <splitter class="tree-splitter"/>
             <treecol persist="width ordinal hidden" id="video-subtitle"
@@ -1164,8 +1149,8 @@
         <rule>
 
             <treechildren
-                ondblclick = "videolist_ref.play();"
-                oncontextmenu="videolist_ref.showPopupMenu(event);"
+                ondblclick = "xului_ref.ui.modes.video.play();"
+                oncontextmenu="xului_ref.ui.modes.video.showPopupMenu(event);"
                 id="video-items">
                 <treeitem uri="rdf:*"
                           value="rdf:http://video/rdf#media_id">
@@ -1190,7 +1175,7 @@
         <description value="&playorder;"/>
         <menulist
             id="video-playorder"
-            oncommand="videolist_ref.setPlayorder();"
+            oncommand= "xului_ref.ui.modes.video.setPlayorder();"
             label="">
             <menupopup>
                 <menuitem value="inorder" label="&inorder;"/>
@@ -1201,8 +1186,7 @@
             </menupopup>
         </menulist>
         <command
-            oncommand=
-              "ajaxdj_ref.send_command('repeat',{source:'video'},true);"
+            oncommand= "xului_ref.ui.modes.video.setRepeat();"
             id="vidrepeat-command"/>
         <checkbox
             label="&repeat;"
@@ -1210,7 +1194,7 @@
             command="vidrepeat-command"
             checked="false"/>
         <spacer flex="1"/>
-        <description id="videolist-description" value=""/>
+        <description id="video-description" value=""/>
 
     </hbox>
 </vbox>
@@ -1223,7 +1207,7 @@
             <menuitem
                 class="menuitem-iconic play-action"
                 label="&play;"
-                oncommand="dvd_ref.play();"/>
+                oncommand="xului_ref.ui.modes.dvd.play();"/>
         </popup>
     </popupset>
 
@@ -1231,9 +1215,8 @@
         <tree
             id="dvd-tree"
             enableColumnDrag="true"
-            oncontextmenu="dvd_ref.showPopupMenu(event);"
-            ondblclick="return dvd_ref.play();"
-            onclick="dvd_ref.update_langinfo()"
+            oncontextmenu="xului_ref.ui.modes.dvd.showPopupMenu(event);"
+            ondblclick="return xului_ref.ui.modes.dvd.play();"
             datasources="rdf:null"
             ref="http://dvd/all-content"
             flex="1">
@@ -1278,7 +1261,7 @@
         <button
             id="dvd-reload-button"
             class="update-button"
-            oncommand="ajaxdj_ref.send_command('dvdLoad',null,true);"
+            oncommand="xului_ref.rpc.dvdReload();"
             label="&reload;"/>
         <groupbox
             id="dvdinfo-box">
@@ -1302,12 +1285,12 @@
         <toolbarbutton
             id="queue-button"
             class="collapsed"
-            oncommand="queue_ref.toogleQueue();"
+            oncommand="xului_ref.ui.queue.toogleQueue();"
             label="&queue;"/>
         <toolbarbutton
             id="queue-status-button"
             class="stop-button"
-            oncommand="queue_ref.toogleQueue();"
+            oncommand="xului_ref.ui.queue.toogleQueue();"
             />
     </toolbar>
     <hbox align="center">
@@ -1317,10 +1300,10 @@
             <button
                 id="queue-clear"
                 class="clear-button"
-                oncommand="ajaxdj_ref.send_command('queueClear',{},true);"
+                oncommand="xului_ref.rpc.queueClear();"
                 label="&clear;"/>
             <command
-                oncommand="return queue_ref.toggle_random();"
+                oncommand="return xului_ref.ui.queue.toggleRandom();"
                 id="qplayorder-command"/>
             <checkbox
                 label="&random;"
@@ -1336,12 +1319,6 @@
             id="msg-loading"
             style="display: none;"
             src="chrome://deejayd-webui/skin/images/loading.gif"/>
-        <button
-            id = "debug-button"
-            style = "display: none;"
-            oncommand="ajaxdj_ref.toggleDebugZone();"
-            label="&showDebug;"/>
-
     </hbox>
 </hbox>
 <splitter
@@ -1360,9 +1337,9 @@
         enableColumnDrag="true"
         ref="http://queue/all-content"
         datasources="rdf:null"
-        ondragover="queue_ref.dragOver(event);"
-        ondragenter="queue_ref.dragEnter(event);"
-        ondragexit="queue_ref.dragExit(event);">
+        ondragover="xului_ref.ui.queue.dragOver(event);"
+        ondragenter="xului_ref.ui.queue.dragEnter(event);"
+        ondragexit="xului_ref.ui.queue.dragExit(event);">
         <treecols>
             <treecol persist="width ordinal hidden" id="qu-track"
                 flex="1" label="#"/>
@@ -1396,8 +1373,8 @@
 
             <treechildren
                 ondraggesture = "dragStart(event, 'queue');"
-                oncontextmenu="queue_ref.showPopupMenu(event);"
-                ondblclick = "queue_ref.play();"
+                oncontextmenu="xului_ref.ui.queue.showPopupMenu(event);"
+                ondblclick = "xului_ref.ui.queue.play();"
                 id="queue-items">
                 <treeitem uri="rdf:*"
                           value="rdf:http://queue/rdf#media_id">

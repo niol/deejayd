@@ -20,6 +20,8 @@ var deejaydWebuiTest = function(event) {
     var default_refresh = event.target.getAttribute("refresh");
     var new_server = win.location.href;
     new_server = new_server.replace("http://","").replace("/","");
+    // remove xul part of the string
+    new_server = new_server.slice(0, new_server.length-4);
 
     var strings = $("webui_strings");
     var prefManager = Components.classes["@mozilla.org/preferences-service;1"]

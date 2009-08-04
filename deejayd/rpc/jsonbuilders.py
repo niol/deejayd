@@ -92,16 +92,18 @@ class JSONFilter:
 
     def dump(self):
         return {
-            "type": "basic",
+            "type": self.type,
             "id": self.filter.get_identifier(),
             "value": self._get_value(),
             }
 
 class JSONBasicFilter(JSONFilter):
+    type = "basic"
     def _get_value(self):
         return {"tag": self.filter.tag, "pattern": self.filter.pattern}
 
 class JSONComplexFilter(JSONFilter):
+    type = "complex"
     def _get_value(self):
         return [Get_json_filter(f).dump() for f in self.filter.filterlist]
 

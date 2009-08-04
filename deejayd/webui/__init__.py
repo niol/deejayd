@@ -26,22 +26,37 @@ from deejayd.ui import log
 # jsonrpc import
 from deejayd.webui.jsonrpc import JSONRPC
 from deejayd.rpc.protocol import build_protocol, set_web_subhandler
+
 # xul parts
 from deejayd.webui.xul import build as xul_build
-from deejayd.webui.xul import xmlanswer as xul_xmlanswer
-from deejayd.webui.xul import commands as xul_commands
-
 # mobile parts
 from deejayd.webui import mobile
 
 
 class DeejaydWebError(DeejaydError): pass
 
+class DeejaydMainHandler(Resource):
+
+    def getChild(self, name, request):
+        if name == '': return self
+        return Resource.getChild(self,name,request)
+
+    def render_GET(self, request):
+        user_agent = request.getHeader("user-agent");
+        root = request.prepath[-1] != '' and request.path + '/' or request.path
+        if user_agent.lower().find("mobile") != -1:
+            # redirect to specific mobile interface
+            request.redirect(root + 'm/')
+            return 'redirected'
+        else: # default xul interface
+            request.redirect(root + 'xul/')
+            return 'redirected'
+
+
 class DeejaydXulHandler(Resource):
 
-    def __init__(self, deejayd, config):
+    def __init__(self, config):
         Resource.__init__(self)
-        self.__deejayd = deejayd
         self.__config = config
 
     def getChild(self, name, request):
@@ -76,56 +91,6 @@ class DeejaydMobileHandler(Resource):
         return mobile.build_template(self.__deejayd, user_agent)
 
 
-class _DeejaydCommandHandler(Resource):
-    isLeaf = True
-
-    def __init__(self, deejayd, tmp_dir):
-        Resource.__init__(self)
-        self._deejayd = deejayd
-        self._tmp_dir = tmp_dir
-
-    def render_GET(self,request):
-        return self._render(request,"get")
-
-    def render_POST(self,request):
-        return self._render(request,"post")
-
-    def _render(self, request, type):
-        raise NotImplementedError
-
-
-class DeejaydXulCommandHandler(_DeejaydCommandHandler):
-
-    def _render(self, request, type):
-        # init xml answer
-        request.setHeader("Content-type","text/xml")
-        ans = xul_xmlanswer.DeejaydWebAnswer(self._tmp_dir)
-
-        try: action = request.args["action"]
-        except KeyError:
-            ans.set_error(_("You have to enter an action."))
-            return ans.to_xml()
-        try: cmd_cls = xul_commands.commands[action[0]]
-        except KeyError:
-            ans.set_error(_("Command %s not found") % action[0])
-            return ans.to_xml()
-
-        if cmd_cls.method != type:
-            ans.set_error(_("Command send with invalid method"))
-        else:
-            cmd = cmd_cls(self._deejayd,ans)
-            try:
-                cmd.argument_validation(request.args)
-                cmd.execute()
-                cmd.set_answer()
-            except DeejaydError, err:
-                ans.set_error("%s" % err)
-            except commands.ArgError, err:
-                ans.set_error(_("Bad argument : %s") % err)
-
-        return ans.to_xml()
-
-
 class SiteWithCustomLogging(server.Site):
 
     def _openLogFile(self, path):
@@ -155,28 +120,25 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
         raise DeejaydWebError(_("Htdocs directory %s does not exists") % \
                 htdocs_dir)
 
+    # main handler
+    main_handler = DeejaydMainHandler()
     # json-rpc handler
     rpc_handler = JSONRPC(deejayd_core)
     rpc_handler = build_protocol(deejayd_core, rpc_handler)
     rpc_handler = set_web_subhandler(deejayd_core, tmp_dir, rpc_handler)
+    main_handler.putChild("rpc",rpc_handler)
+    # statics url
+    main_handler.putChild("tmp",static.File(tmp_dir))
+    main_handler.putChild("static",static.File(htdocs_dir))
 
-    # main (xul) part
-    xul_handler = DeejaydXulHandler(deejayd_core, config)
-    xul_handler.putChild("commands",DeejaydXulCommandHandler(deejayd_core,\
-            tmp_dir))
-    xul_handler.putChild("static",static.File(htdocs_dir))
-    xul_handler.putChild("rdf",static.File(tmp_dir))
-    xul_handler.putChild("rpc",rpc_handler)
+    # xul part
+    xul_handler = DeejaydXulHandler(config)
+    main_handler.putChild("xul", xul_handler)
 
     # mobile part
-    mobile_webui = config.getboolean("webui","mobile_ui")
-    if mobile_webui:
-        mobile_handler = DeejaydMobileHandler(deejayd_core, config)
-        mobile_handler.putChild("static",static.File(htdocs_dir))
-        mobile_handler.putChild("tmp",static.File(tmp_dir))
-        mobile_handler.putChild("rpc",rpc_handler)
-        xul_handler.putChild("m", mobile_handler)
+    mobile_handler = DeejaydMobileHandler(deejayd_core, config)
+    main_handler.putChild("m", mobile_handler)
 
-    return SiteWithCustomLogging(xul_handler, logPath=webui_logfile)
+    return SiteWithCustomLogging(main_handler, logPath=webui_logfile)
 
 # vim: ts=4 sw=4 expandtab

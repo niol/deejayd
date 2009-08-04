@@ -1,6 +1,20 @@
-/*
- * main.js
- */
+/* Deejayd, a media player daemon
+ # Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+ #                         Alexandre Rossi <alexandre.rossi@gmail.com>
+ #
+ # This program is free software; you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+ # the Free Software Foundation; either version 2 of the License, or
+ # (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ # GNU General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License along
+ # with this program; if not, write to the Free Software Foundation, Inc.,
+ # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
 /****************************************************************************/
 /* Common functions
@@ -11,7 +25,7 @@ function $(id) {
 
 function formatTime(time)
 {
-    var sec = time % 60;
+    var sec = parseInt(time % 60);
     if (sec < 10)
         sec = "0" + sec;
     var min = parseInt(time/60);
@@ -29,6 +43,32 @@ function formatTime(time)
         }
 }
 
+function Dump(arr,level) {
+    var dumped_text = "";
+    if(!level) level = 0;
+
+    //The padding given at the beginning of the line.
+    var level_padding = "";
+    for(var j=0;j<level+1;j++) level_padding += "    ";
+
+    if(typeof(arr) == 'object') { //Array/Hashes/Objects
+        for(var item in arr) {
+            var value = arr[item];
+
+            if(typeof(value) == 'object') { //If it is an array,
+                dumped_text += level_padding + "'" + item + "' ...\n";
+                dumped_text += dump(value,level+1);
+            } else {
+                dumped_text += level_padding + "'" + item +
+                    "' => \"" + value + "\"\n";
+            }
+        }
+    } else { //Stings/Chars/Numbers etc.
+        dumped_text = "===>"+arr+"<===("+typeof(arr)+")";
+    }
+    return dumped_text;
+}
+
 function urlencode(str) {
   var output = new String(encodeURIComponent(str));
   output = output.replace(/'/g,"%27");
@@ -39,8 +79,7 @@ function eregReplace(search, replace, subject) {
 	return subject.replace(new RegExp(search,'g'), replace);
 }
 
-function toogleNodeVisibility(node)
-{
+function toogleNodeVisibility(node) {
     if (typeof node == 'string')
         node = $(node);
 
@@ -48,19 +87,17 @@ function toogleNodeVisibility(node)
     node.style.visibility = newState;
 }
 
-function removeNode(node)
-{
-	if (typeof node == 'string')
-		node = $(node);
+function removeNode(node) {
+    if (typeof node == 'string')
+        node = $(node);
 
-	if (node && node.parentNode)
-		return node.parentNode.removeChild(node);
-	else
-		return false;
+    if (node && node.parentNode)
+        return node.parentNode.removeChild(node);
+    else
+        return false;
 }
 
-function replaceNodeText(node,content)
-{
+function replaceNodeText(node,content) {
     text = document.createTextNode(content);
     if (typeof node == 'string')
         node = $(node);
@@ -74,27 +111,21 @@ function replaceNodeText(node,content)
 /****************************************************************************/
 /****************************************************************************/
 
-var ajaxdj_ref = "";
-function ajaxdj()
+var xului_ref = "";
+function XulUI()
 {
     this.url = null;
-    this.playerObj = new Player();
-    this.__msg_id = 0;
-    // Activate Debug
-    this.debug = false;
-    // Initiate debug
-    if (this.debug)
-        $("debug-button").style.display = "block";
 
     // Internal parms
     this.str = $("webui_strings");
+    this.__msg_id = 0;
     this.message_time = 4000;
     this.config = Array();
     this.config["refresh"] = "0";
     this.refreshEvent = null;
 
-    ajaxdj_ref = this;
-    this.ref = 'ajaxdj_ref';
+    xului_ref = this;
+    this.ref = 'xului_ref';
 
     this.init = function()
     {
@@ -111,11 +142,7 @@ function ajaxdj()
             return;
             }
 
-        if (current != "") {
-            this.url = "http://"+current+"/";
-            // Send Init request
-            this.send_command('init',null,true);
-            }
+        if (current != "") { this.url = "http://"+current+"/"; }
         else {
             this.display_message(this.getString("prefError2"), 'error');
             return;
@@ -129,6 +156,62 @@ function ajaxdj()
                     "extensions.deejayd-webui.refresh");
             this.setRefresh(refresh);
             }
+
+        this.rpc = new RPC(this, this.url+'rpc/');
+        this.rpc.callbacks = {
+            updateMode: this.updateStatus,
+            updateOption: this.updateStatus,
+            updateRating: this.updateStatus,
+            queue: this.updateStatus,
+            dvd: this.updateStatus,
+            player: { def: this.updateStatus, },
+            webradio: { def: this.updateStatus, },
+            playlist: {
+                def: this.updateStatus,
+                save: function(data) {
+                    xului_ref.displayMessage(xului_ref.getString("plsSave"));
+                    xului_ref.updateRecPlaylist();
+                }
+            },
+            panel: { def: this.updateStatus, },
+            video: { def: this.updateStatus, },
+            recpls: this.updateRecPlaylist,
+        };
+        this.rpc.onerror = function(request, error, exception) {
+            xului_ref.displayMessage("Fatal Error "+ error + " : "+
+                request.responseText, 'error');
+        };
+        this.rpc.onrequesterror = function(code, message){
+            xului_ref.displayMessage("Request Error "+ code + " : "+
+                message, 'error');
+        };
+
+        this.ui = new UI(this);
+        this.refresh();
+    };
+
+    this.refresh = function()
+    {
+        this.updateStats();
+        this.updateStatus();
+        this.updateRecPlaylist();
+    };
+
+    this.updateStatus = function(data)
+    {
+        var status_cb = function(data) { xului_ref.ui.updateStatus(data); };
+        xului_ref.rpc.send("status", [], status_cb);
+    };
+
+    this.updateStats = function(data)
+    {
+        var stats_cb = function(data) { xului_ref.ui.updateStats(data); };
+        xului_ref.rpc.send("stats", [], stats_cb);
+    };
+
+    this.updateRecPlaylist = function(data)
+    {
+        xului_ref.ui.rec_pls.update();
     };
 
     this.getString = function(str)
@@ -141,289 +224,38 @@ function ajaxdj()
         return this.str.getFormattedString(str, values);
     };
 
-    this.set_busy = function(a)
-    {
-        if (a)
-            $('msg-loading').style.display = "block";
-        else if (!a && this.busy)
-            $('msg-loading').style.display = "none";
-        this.busy = a;
-    };
-
     this.__get_message_id = function()
     {
         this.__msg_id += 1;
         return this.__msg_id;
     };
 
-    this.display_message = function(msg,type)
+    this.displayMessage = function(msg,type)
     {
+        var notif_box = $("notification-box");
         // first remove all notifications
-        $("notification-box").removeAllNotifications(true);
+        notif_box.removeAllNotifications(true);
 
         var p = type == "error" ? 8 : 4;
         var image = "chrome://deejayd-webui/skin/images/";
         image += type == "error" ? "error.png" : "info.png";
         var msg_id = this.__get_message_id();
 
-        $("notification-box").appendNotification(msg, msg_id, image, p, null);
+        notif_box.appendNotification(msg, msg_id, image, p, null);
         if (type != 'error') {
-            setTimeout(this.ref+'.hide_message('+msg_id+')',this.message_time);
+            setTimeout(this.ref+'.hideMessage('+msg_id+')',this.message_time);
             }
     };
 
-    this.hide_message = function(msg_id)
+    this.hideMessage = function(msg_id)
     {
-        var msg = $("notification-box").getNotificationWithValue(msg_id);
+        var notif_box = $("notification-box");
+        var msg = notif_box.getNotificationWithValue(msg_id);
         if (msg != null) {
-            try { $("notification-box").removeNotification(msg); }
+            try { notif_box.removeNotification(msg); }
             catch (ex) { }
             }
     };
-
-    this.http_sockets = new Array();
-
-    this.get_request_obj = function()
-    {
-        for (var n=0; n<this.http_sockets.length; n++) {
-            if (!this.http_sockets[n].busy)
-                return this.http_sockets[n];
-            }
-
-        var i = this.http_sockets.length;
-        this.http_sockets[i] = new http_request();
-
-        return this.http_sockets[i];
-    };
-
-    this.send_http_request = function(type, url, parm, lock)
-    {
-        var request_obj = this.get_request_obj();
-
-        if (request_obj) {
-            if (lock) this.set_busy(true);
-
-            request_obj.__lock = lock ? true : false;
-            request_obj.onerror = function(o){ ajaxdj_ref.http_error(o); };
-            request_obj.oncomplete = function(o){
-                    ajaxdj_ref.http_response(o); };
-            if (type == 'GET')
-                request_obj.GET(url);
-            else
-                request_obj.POST(url,parm);
-            }
-    };
-
-    this.send_command = function(command, args, lock)
-    {
-        if (!this.url) {
-            this.display_message(this.getString("unknownHost"), "error");
-            return false;
-            }
-        var cmd = command;
-        if (typeof args == 'object') {
-            for (var i in args)
-                cmd += '&' + i + '=' + args[i];
-            }
-        this.send_http_request('GET',
-            this.url+'commands?action='+cmd,'',lock);
-        return false;
-    }
-
-    this.send_post_command = function(command,args)
-    {
-        if (!this.url) {
-            this.display_message(this.getString("unknownHost"), "error");
-            return false;
-            }
-        this.send_http_request('POST',
-            this.url+'commands?action='+command,args,true);
-        return false;
-    }
-
-    this.http_error = function(request_obj)
-    {
-        this.display_message('Error '+ request_obj.responseStatus +
-            ' in request : '+request_obj.url, 'error');
-
-        if (request_obj.__lock)
-            this.set_busy(false);
-
-        request_obj.reset();
-        request_obj.__lock = false;
-    };
-
-    this.http_response = function(request_obj)
-    {
-        if (request_obj.__lock)
-            this.set_busy(false);
-
-        this.set_debug(request_obj.responseText);
-        var rs = '';
-        var xmldoc = request_obj.responseXML;
-        if (xmldoc)
-        {
-            rs = xmldoc.getElementsByTagName("config").item(0);
-            if (rs)
-                this.parseConfig(rs);
-
-            rs = xmldoc.getElementsByTagName("message").item(0);
-            if (rs)
-                this.display_message(rs.firstChild.data,
-                    rs.getAttribute("type"));
-
-            rs = xmldoc.getElementsByTagName("availableModes").item(0);
-            if (rs) {
-                // queue always need to be loaded
-                this.quObj = new Queue();
-                this.quObj.init();
-
-                var modes = rs.getElementsByTagName("mode");
-                for(var i=0; mode = modes.item(i); i++) {
-                    if (mode.getAttribute("activate") == "1") {
-                        switch (mode.getAttribute("name")) {
-                            case "playlist":
-                            this.fileListObj = new FileList();
-                            this.fileListObj.init();
-                            this.plObj = new Playlist();
-                            this.plObj.init();
-                            break;
-
-                            case "panel":
-                            this.panelObj = new Panel();
-                            this.panelObj.init();
-                            rs=xmldoc.getElementsByTagName("panelTags").item(0);
-                            if (rs) { this.panelObj.initPanelTags(rs); }
-
-                            break;
-
-                            case "webradio":
-                            this.webradioObj = new Webradio();
-                            this.webradioObj.init();
-                            break;
-
-                            case "video":
-                            this.videoList = new VideoList();
-                            this.videoLib = new VideoLibrary();
-                            break;
-
-                            case "dvd":
-                            this.dvdObj = new Dvd();
-                            this.dvdObj.init();
-                            break;
-                            }
-                        }
-                    }
-                playerStatus.init_mode();
-                }
-
-            rs = xmldoc.getElementsByTagName("setsource").item(0);
-            if (rs)
-            {
-                var mode = rs.getAttribute("value");
-                var selectedSrc = 0;
-                if (mode == "panel")
-                    selectedSrc = 1;
-                else if (mode == "webradio")
-                    selectedSrc = 2;
-                else if (mode == "video")
-                    selectedSrc = 3;
-                else if (mode == "dvd")
-                    selectedSrc = 4;
-
-                $('main').selectedIndex = selectedSrc;
-                $('mode-menu').value = mode;
-            }
-
-            rs = xmldoc.getElementsByTagName("audio_update").item(0);
-            if (rs) {
-                var progress = rs.getAttribute("p");
-                var upId = rs.firstChild.data;
-                if (progress == "1") {
-                    setTimeout(
-                            "ajaxdj_ref.send_command('"+"audio"+
-                            "_update_check',{id:"+upId+
-                            "},false)",1000);
-                    }
-                if (this.fileListObj)
-                    this.fileListObj.updateDatabase(progress);
-                if (this.panelObj)
-                    this.panelObj.updateDatabase(progress);
-                }
-            rs = xmldoc.getElementsByTagName("video_update").item(0);
-            if (rs)
-                this.videoLib.updateDatabase(rs);
-
-            rs = xmldoc.getElementsByTagName("playlist").item(0);
-            if (rs)
-                this.plObj.update(rs);
-
-            rs = xmldoc.getElementsByTagName("file-list").item(0);
-            if (rs)
-                this.fileListObj.updateFileList(rs,
-                    rs.getAttribute("directory"));
-
-            rs = xmldoc.getElementsByTagName("audiosearch-list").item(0);
-            if (rs)
-                this.fileListObj.updateFileList(rs, "");
-
-            rs = xmldoc.getElementsByTagName("webradio").item(0);
-            if (rs)
-                this.webradioObj.update(rs);
-
-            rs = xmldoc.getElementsByTagName("playlist-list").item(0);
-            if (rs) {
-                if (this.fileListObj)
-                    this.fileListObj.updatePlaylistList(rs);
-                if (this.panelObj)
-                    this.panelObj.updatePlaylistList(rs);
-                if (this.plObj)
-                    this.plObj.updatePlaylistList(rs);
-                this.quObj.updatePlaylistList(rs);
-                }
-
-            rs = xmldoc.getElementsByTagName("magic-playlist").item(0);
-            if (rs)
-                panel_ref.editMagicPlaylist(rs.getAttribute("id"), rs);
-
-            rs = xmldoc.getElementsByTagName("queue").item(0);
-            if (rs)
-                this.quObj.update(rs);
-
-            rs = xmldoc.getElementsByTagName("panel").item(0);
-            if (rs)
-                this.panelObj.update(rs);
-
-            rs = xmldoc.getElementsByTagName("panel-list");
-            for (var i=0; obj = rs.item(i); i++)
-                this.panelObj.updatePanel(obj);
-
-            rs = xmldoc.getElementsByTagName("dvd").item(0);
-            if (rs)
-                this.dvdObj.update(rs);
-
-            rs = xmldoc.getElementsByTagName("video").item(0);
-            if (rs)
-                this.videoList.update(rs);
-
-            rs = xmldoc.getElementsByTagName("videodir").item(0);
-            if (rs)
-                this.videoLib.updateDir(rs);
-
-            rs = xmldoc.getElementsByTagName("player").item(0);
-            if (rs)
-                this.playerObj.updatePlayerInfo(rs);
-        }
-        else
-            alert(request_obj.responseText);
-
-        return;
-    };
-
-    this.updateMode = function()
-    {
-        this.send_command("setMode",{mode:$('mode-menu').value},true);
-    }
 
     this.parseConfig = function(config)
     {
@@ -449,53 +281,13 @@ function ajaxdj()
             }
         if (refresh != "0")
             this.refreshEvent = setInterval(
-                "ajaxdj_ref.send_command('refresh','',false)", refresh*'1000');
-    };
-
-    this.set_debug = function(msg)
-    {
-        if (this.debug) $('debug').value = msg;
-    };
-
-    this.toggleDebugZone = function()
-    {
-        var obj = $("main-and-debug");
-        if (obj.selectedIndex == 0)
-            obj.selectedIndex = 1;
-        else
-            obj.selectedIndex = 0;
+                "xului_ref.updateStatus()", refresh*'1000');
     };
 }
 
-//
-//general functions
-//
-function updatePlaylistMenu(menu_id, playlistList, command_ref)
-{
-    var menu = $(menu_id);
-    // first remove old playlist
-    while(menu.hasChildNodes())
-        menu.removeChild(menu.firstChild);
-
-    var playlists = playlistList.getElementsByTagName("item");
-    for (var i=0;pls=playlists[i];i++) {
-        if (pls.getAttribute("pls_type") == 'static') {
-            var item = document.createElement("menuitem");
-            item.setAttribute("label",pls.firstChild.data);
-            if (command_ref) {
-                item.setAttribute("oncommand",
-                  command_ref+".addToPlaylist('"+pls.getAttribute("id")+"');");
-                }
-            menu.appendChild(item);
-            }
-        }
+window.onload = function(e) {
+    var _xului = new XulUI();
+    _xului.init();
 };
-
-var _ajaxdj = new ajaxdj();
-//_ajaxdj.init();
-window.onload = function(e)
-{
-    _ajaxdj.init();
-}
 
 // vim: ts=4 sw=4 expandtab

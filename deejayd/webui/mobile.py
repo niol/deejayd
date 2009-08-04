@@ -28,7 +28,7 @@ class IphoneBrowser(object):
     def header(self):
         return """
      <meta name="viewport" content="user-scalable=no, width=device-width">
-     <link rel="apple-touch-icon" href="./static/themes/mobile/deejayd.jpg"/>
+     <link rel="apple-touch-icon" href="./../static/themes/mobile/deejayd.jpg"/>
      <link href="./static/themes/mobile/iphone.css" type= "text/css"
         rel="stylesheet"/>
 """
@@ -76,18 +76,19 @@ def build_template(deejayd, user_agent):
 <html>
    <head>
      <title>Deejayd Webui</title>
-    <link href="./static/themes/mobile/default.css" type= "text/css"
+    <link href="./../static/themes/mobile/default.css" type= "text/css"
         rel="stylesheet"/>
     %(header)s
     <!-- javascript script -->
-    <script type="text/javascript" src="./static/js/lib/jquery.js"></script>
-    <script type="text/javascript" src="./static/js/lib/jquery.json.js">
+    <script type="text/javascript" src="./../static/js/lib/jquery.js"></script>
+    <script type="text/javascript" src="./../static/js/lib/jquery.json.js">
     </script>
-    <script type="text/javascript" src="./static/js/common.js"></script>
-    <script type="text/javascript" src="./static/js/rpc.js"></script>
-    <script type="text/javascript" src="./static/js/mobile/widget.js"></script>
-    <script type="text/javascript" src="./static/js/mobile/ui.js"></script>
-    <script type="text/javascript" src="./static/js/mobile/main.js"></script>
+    <script type="text/javascript" src="./../static/js/common.js"></script>
+    <script type="text/javascript" src="./../static/js/rpc.js"></script>
+    <script type="text/javascript" src="./../static/js/mobile/widget.js">
+    </script>
+    <script type="text/javascript" src="./../static/js/mobile/ui.js"></script>
+    <script type="text/javascript" src="./../static/js/mobile/main.js"></script>
    </head>
    <body>
         <div style="display: none;" id="notification"></div>

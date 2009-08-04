@@ -19,10 +19,12 @@
 import os, re
 
 from deejayd.interfaces import DeejaydError
+from deejayd.mediafilters import *
 from deejayd.rpc import Fault, INTERNAL_ERROR, INVALID_METHOD_PARAMS
 from deejayd.rpc.jsonbuilders import Get_json_filter
 from deejayd.rpc.jsonparsers import Parse_json_filter
 from deejayd.rpc.jsonrpc import JSONRPC, addIntrospection
+from deejayd.rpc.rdfbuilder import modes as rdf_modes
 
 def returns_answer(type, params = None):
 
@@ -164,6 +166,23 @@ class DeejaydMainJSONRPC(_DeejaydJSONRPC):
   * albums : number of albums in the database"""
         return dict(self.deejayd_core.get_stats(objanswer = False))
 
+    @returns_answer('ack', [{"name":"source", "type":"string", "req":True},\
+            {"name":"option_name", "type":"string","req":True},\
+            {"name":"option_value","type":"string","req":True}])
+    def jsonrpc_setOption(self, source, option_name, option_value):
+        """Set player options "name" to "value" for mode "source",
+           Available options are :
+           * playorder (inorder, onemedia, random or random-weighted)
+           * repeat (0 or 1) """
+        self.deejayd_core.set_option(source, option_name,\
+                option_value, objanswer=False)
+
+    @returns_answer('ack', params=[\
+            {"name":"ids", "type":"int-list", "req": True},\
+            {"name": "value", "type": "int", "req": True} ])
+    def jsonrpc_setRating(self, ids, value):
+        """Set rating of media file with ids equal to media_id"""
+        self.deejayd_core.set_media_rating(ids, value, objanswer=False)
 
 #
 # Player commands
@@ -247,22 +266,11 @@ class _DeejaydLibraryJSONRPC(_DeejaydJSONRPC):
 
     @returns_answer('dict', params=[{"name":"force","type":"bool","req":False}])
     def jsonrpc_update(self, force = False):
-        # build the doc message
-        doc = """Update the %{type}s library.
-  * %{type}s_updating_db : the id of this task.
-    It appears in the status until the update are completed.""" \
-        % {"type": self.type}
-        setattr(self.jsonrpc_update, "__doc__", doc)
-
+        """Update the library.
+  * 'type'_updating_db : the id of this task.
+    It appears in the status until the update are completed."""
         func = getattr(self.deejayd_core, "update_%s_library"%self.type)
         return dict(func(force=force, objanswer=False))
-
-    @returns_answer('ack', params=[\
-            {"name":"ids", "type":"int-list", "req": True},\
-            {"name": "value", "type": "int", "req": True} ])
-    def jsonrpc_setRating(self, ids, value):
-        """Set rating of media file with ids equal to media_id"""
-        self.deejayd_core.set_media_rating(ids, value, objanswer=False)
 
     @returns_answer('fileAndDirList',\
             params=[{"name":"directory","type":"string","req":False}])
@@ -306,7 +314,7 @@ class DeejaydVideoLibraryJSONRPC(_DeejaydLibraryJSONRPC):
 #
 # generic class for modes
 #
-class _DeejaydModeJSONRPC(_DeejaydLibraryJSONRPC):
+class _DeejaydModeJSONRPC(_DeejaydJSONRPC):
     def __init__(self, deejayd):
         super(_DeejaydModeJSONRPC, self).__init__(deejayd)
         self.source = getattr(self.deejayd_core, "get_%s"%self.source_name)()
@@ -329,6 +337,22 @@ class _DeejaydModeJSONRPC(_DeejaydLibraryJSONRPC):
                 "filter": json_filter,
                 "sort": sort,
                 }
+
+#
+# Dvd commands
+#
+class DeejaydDvdModeJSONRPC(_DeejaydJSONRPC):
+
+    @returns_answer('dvdInfo')
+    def jsonrpc_get(self):
+        """Get the content of the current dvd."""
+        return self.deejayd_core.get_dvd_content(objanswer=False)
+
+    @returns_answer('ack')
+    def jsonrpc_reload(self):
+        """Load the content of the dvd player."""
+        self.deejayd_core.dvd_reload(objanswer=False)
+
 #
 # video command
 #
@@ -402,6 +426,12 @@ class DeejaydPanelModeJSONRPC(_DeejaydModeJSONRPC):
     def jsonrpc_clearSearch(self):
         """Clear search filter in panel mode"""
         self.source.clear_search_filter(objanswer=False)
+
+    @returns_answer('ack')
+    def jsonrpc_clearAll(self):
+        """Clear search filter and panel filters"""
+        self.source.clear_search_filter(objanswer=False)
+        self.source.clear_panel_filters(objanswer=False)
 
     @returns_answer('ack', [{"name":"sort","type":"sort","req":True},])
     def jsonrpc_setSort(self, sort):
@@ -544,6 +574,144 @@ class DeejaydQueueModeJSONRPC(_DeejaydModeJSONRPC):
         self.source.clear(objanswer=False)
 
 
+#
+# recorded playlist
+#
+class DeejaydRecordedPlaylistJSONRPC(_DeejaydJSONRPC):
+
+    @returns_answer('mediaList')
+    def jsonrpc_list(self):
+        """Return the list of recorded playlists."""
+        pls = self.deejayd_core.get_playlist_list(objanswer=False)
+        return {
+                "media_type": 'playlist',
+                "medias": pls,
+                "filter": None,
+                "sort": None,
+                }
+
+    @returns_answer('dict', [{"name":"name", "type":"string", "req":True},\
+                    {"name":"type","type":"string","req":True}])
+    def jsonrpc_create(self, name, type):
+        """Create recorded playlist. The answer consist on
+          * pl_id : id of the created playlist
+          * name : name of the created playlist
+          * type : type of the created playlist
+          """
+        pl_infos = self.deejayd_core.create_recorded_playlist(\
+                name, type, objanswer=False)
+        return dict(pl_infos)
+
+    @returns_answer('ack', [{"name":"pl_ids", "type":"int-list", "req":True}])
+    def jsonrpc_erase(self, pl_ids):
+        """Erase recorded playlists passed as arguments."""
+        self.deejayd_core.erase_playlist(pl_ids, objanswer=False)
+
+    @returns_answer('mediaList', [{"name":"pl_id", "type":"int", "req":True},\
+                    {"name":"first", "type":"int", "req":False},\
+                    {"name":"length","type":"int","req":False}])
+    def jsonrpc_get(self, pl_id, first = 0, length = -1):
+        """Return the content of a recorded playlist."""
+        pls = self.deejayd_core.get_recorded_playlist(pl_id)
+        if pls.type == "static":
+            songs = pls.get(first, length, objanswer=False)
+            filter, sort = None, None
+        elif pls.type == "magic":
+            songs, filter, sort = pls.get(first, length, objanswer=False)
+
+        json_filter = filter is not None and \
+                Get_json_filter(filter).dump() or None
+        return {
+                "media_type": 'song',
+                "medias": songs,
+                "filter": json_filter,
+                "sort": sort,
+                }
+
+    @returns_answer('ack', params=[{"name":"pl_id", "type":"int", "req":True},\
+                    {"name":"values", "type":"list", "req":True},\
+                    {"name":"type","type":"string","req":False}])
+    def jsonrpc_staticAdd(self, pl_id, values, type = "path"):
+        """Add songs in a recorded static playlist.
+           Argument 'type' has to be 'path' (default) or 'id'"""
+        if type not in ("id", "path"):
+            raise Fault(INVALID_METHOD_PARAMS,\
+                _("Param 'type' has a wrong value"))
+        pls = self.deejayd_core.get_recorded_playlist(pl_id)
+        if pls.type == "magic":
+            raise Fault(INVALID_METHOD_PARAMS,\
+                _("Selected playlist is not static."))
+        if type == "id":
+            try: values = map(int, values)
+            except (TypeError, ValueError):
+                raise Fault(INVALID_METHOD_PARAMS,\
+                        _("values arg must be integer"))
+            pls.add_songs(values, objanswer=False)
+        else:
+            pls.add_paths(values, objanswer=False)
+
+    @returns_answer('ack', params=[{"name":"pl_id", "type":"int", "req":True},\
+                    {"name":"filter","type":"filter","req":True}])
+    def jsonrpc_magicAddFilter(self, pl_id, filter):
+        """Add a filter in recorded magic playlist."""
+        pls = self.deejayd_core.get_recorded_playlist(pl_id)
+        if pls.type != "magic":
+            raise Fault(INVALID_METHOD_PARAMS,\
+                _("Selected playlist is not magic."))
+        if filter is not None:
+            filter = Parse_json_filter(filter)
+        pls.add_filter(filter, objanswer=False)
+
+    @returns_answer('ack', params=[{"name":"pl_id", "type":"int", "req":True},\
+                    {"name":"filter","type":"filter","req":True}])
+    def jsonrpc_magicRemoveFilter(self, pl_id, filter):
+        """Remove a filter from recorded magic playlist."""
+        pls = self.deejayd_core.get_recorded_playlist(pl_id)
+        if pls.type != "magic":
+            raise Fault(INVALID_METHOD_PARAMS,\
+                _("Selected playlist is not magic."))
+        if filter is not None:
+            filter = Parse_json_filter(filter)
+        pls.remove_filter(filter, objanswer=False)
+
+    @returns_answer('ack', params=[{"name":"pl_id", "type":"int", "req":True}])
+    def jsonrpc_magicClearFilter(self, pl_id):
+        """Remove all filter from recorded magic playlist."""
+        pls = self.deejayd_core.get_recorded_playlist(pl_id)
+        if pls.type != "magic":
+            raise Fault(INVALID_METHOD_PARAMS,\
+                _("Selected playlist is not magic."))
+        pls.clear_filters(objanswer=False)
+
+    @returns_answer('dict', [{"name":"pl_id", "type":"int", "req":True}])
+    def jsonrpc_magicGetProperties(self, pl_id):
+        """Get properties of a magic playlist
+          * use-or-filter: if equal to 1, use "Or" filter
+            instead of "And" (0 or 1)
+          * use-limit: limit or not number of songs in the playlist (0 or 1)
+          * limit-value: number of songs for this playlist (integer)
+          * limit-sort-value: when limit is active sort playlist with this tag
+          * limit-sort-direction: sort direction for limit
+            (ascending or descending)
+          """
+        pls = self.deejayd_core.get_recorded_playlist(pl_id)
+        if pls.type != "magic":
+            raise Fault(INVALID_METHOD_PARAMS,\
+                _("Selected playlist is not magic."))
+        return dict(pls.get_properties(objanswer=False))
+
+    @returns_answer('ack', [{"name":"pl_id", "type":"int", "req":True},\
+            {"name":"key", "type":"string","req":True},\
+            {"name":"value", "type":"string", "req":True}])
+    def jsonrpc_magicSetProperty(self, pl_id, key, value):
+        """Set a property for a magic playlist."""
+        pls = self.deejayd_core.get_recorded_playlist(pl_id)
+        if pls.type != "magic":
+            raise Fault(INVALID_METHOD_PARAMS,\
+                _("Selected playlist is not magic."))
+        pls.set_property(key, value, objanswer=False)
+
+
 def build_protocol(deejayd, main = None):
     main = main or DeejaydMainJSONRPC(deejayd)
     # add introspection
@@ -558,7 +726,9 @@ def build_protocol(deejayd, main = None):
             "panel": DeejaydPanelModeJSONRPC,
             "video": DeejaydVideoModeJSONRPC,
             "webradio": DeejaydWebradioModeJSONRPC,
+            "dvd": DeejaydDvdModeJSONRPC,
             "queue": DeejaydQueueModeJSONRPC,
+            "recpls": DeejaydRecordedPlaylistJSONRPC,
             }
     for key in sub_handlers:
         main.putSubHandler(key, sub_handlers[key](deejayd))
@@ -612,10 +782,86 @@ class DeejaydWebJSONRPC(_DeejaydJSONRPC):
                     pass
         return {"cover": os.path.join('tmp', filename), "mime": cover["mime"]}
 
-    @returns_answer('ack', params=[{"name":"mode","type":"string","req":True}])
+    @returns_answer('dict', params=[{"name":"mode","type":"string","req":True}])
     def jsonrpc_buildSourceRDF(self, mode):
-        """ Build rdf file with medialist of the specified mode """
-        raise NotImplementedError
+        """ Build rdf file with current medialist of the specified mode
+            return dict with specific informations (like a description)"""
+        try: rdf = rdf_modes[mode](self.deejayd_core, self._tmp_dir)
+        except KeyError:
+            raise Fault(INVALID_METHOD_PARAMS,_("mode %s is not known") % mode)
+        return rdf.update()
+
+    @returns_answer('dict',[{"name":"updated_tag","type":"string","req":False}])
+    def jsonrpc_buildPanel(self, updated_tag = None):
+        """ Build panel list """
+        panel = self.deejayd_core.get_panel()
+
+        medias, filters, sort = panel.get(objanswer=False)
+        try: filter_list = filters.filterlist
+        except (TypeError, AttributeError):
+            filter_list = []
+
+        answer = {"panels": {}}
+        panel_filter = And()
+        # find search filter
+        for ft in filter_list:
+            if ft.type == "basic" and ft.get_name() == "contains":
+                panel_filter.combine(ft)
+                answer["search"] = Get_json_filter(ft).dump()
+                break
+            elif ft.type == "complex" and ft.get_name() == "or":
+                panel_filter.combine(ft)
+                answer["search"] = Get_json_filter(ft).dump()
+                break
+
+        # find panel filter list
+        for ft in filter_list:
+            if ft.type == "complex" and ft.get_name() == "and":
+                filter_list = ft
+                break
+
+        tag_list = panel.get_panel_tags(objanswer=False)
+        try: idx = tag_list.index(updated_tag)
+        except ValueError:
+            pass
+        else:
+            tag_list = tag_list[idx+1:]
+
+        for t in panel.get_panel_tags(objanswer=False):
+            selected = []
+
+            for ft in filter_list: # OR filter
+                try: tag = ft[0].tag
+                except (IndexError, TypeError): # bad filter
+                    continue
+                if tag == t:
+                    selected = [t_ft.pattern for t_ft in ft]
+                    tag_filter = ft
+                    break
+
+            if t in tag_list:
+                list = self.deejayd_core.mediadb_list(t,\
+                        panel_filter, objanswer=False)
+                items = [{"name": _("All"), "value":"__all__", \
+                    "class":"list-all", "sel":str(selected==[]).lower()}]
+                if t == "various_artist" and "__various__" in list:
+                    items.append({"name": _("Various Artist"),\
+                        "value":"__various__",\
+                        "class":"list-unknown",\
+                        "sel":str("__various__" in selected).lower()})
+                items.extend([{"name": l,"value":l,\
+                    "sel":str(l in selected).lower(), "class":""}\
+                    for l in list if l != "" and l != "__various__"])
+                if "" in list:
+                    items.append({"name": _("Unknown"), "value":"",\
+                        "class":"list-unknown",\
+                        "sel":str("" in selected).lower()})
+                answer["panels"][t] = items
+            # add filter for next panel
+            if len(selected) > 0:
+                panel_filter.combine(tag_filter)
+
+        return answer
 
 def set_web_subhandler(deejayd, tmp_dir, main):
     main.putSubHandler("web", DeejaydWebJSONRPC(deejayd, tmp_dir))

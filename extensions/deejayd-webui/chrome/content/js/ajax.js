@@ -1,9 +1,23 @@
-/*
- * ajax.js
- * class for http request
- */
+/* Deejayd, a media player daemon
+# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-function http_request()
+
+function httpRequest()
 {
     this.url = '';
     this.busy = false;
@@ -51,7 +65,7 @@ function http_request()
         return this.xmlhttp.send(null);
     };
 
-    this.POST = function(url,parm)
+    this.POST = function(url, data, type)
     {
         this.build();
 
@@ -64,30 +78,12 @@ function http_request()
         this.url = url;
         this.busy = true;
 
-
         this.xmlhttp.onreadystatechange = function(){
             ref.xmlhttp_onreadystatechange(); };
         this.xmlhttp.open('POST', url);
+        this.xmlhttp.setRequestHeader('Content-Type', type);
 
-        var toSend = '';
-        if (typeof parm == 'object') {
-            this.xmlhttp.setRequestHeader('Content-Type',
-                                          'application/x-www-form-urlencoded');
-
-            for (var i in parm) {
-                if (typeof parm[i] == 'object') {
-                    var obj = parm[i];
-                    for (var j in obj)
-                        toSend += (toSend?'&':'') + i + '=' + urlencode(obj[j]);
-                    }
-                else
-                    toSend += (toSend? '&' : '') + i + '=' + urlencode(parm[i]);
-                }
-            }
-        else
-            toSend = parm;
-
-        return this.xmlhttp.send(toSend);
+        return this.xmlhttp.send(data);
     };
 
     this.xmlhttp_onreadystatechange = function()
@@ -124,3 +120,5 @@ function http_request()
 
     this.reset();
 }
+
+// vim: ts=4 sw=4 expandtab

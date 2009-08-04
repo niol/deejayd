@@ -237,7 +237,7 @@ if __name__ == "__main__":
                      "deejayd.sources","deejayd.ui","deejayd.rpc",\
                      "deejayd.database","deejayd.database.upgrade",\
                      "deejayd.database.backends",\
-                     "deejayd.webui","deejayd.webui.xul","pytyxi"],
+                     "deejayd.webui","pytyxi"],
            package_data={'deejayd.ui': ['defaults.conf'],},
            data_files= build_data_files_list(),
            cmdclass={"build": deejayd_build,

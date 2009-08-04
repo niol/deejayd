@@ -30,51 +30,43 @@ function MagicPlaylist()
     {
         this.str = $("dialog_strings");
         if (!window.arguments) {return this.add_filter(null);}
-        if (window.arguments[0].title) {
-            // update dialog title
+        if (window.arguments[0].title) // update dialog title
             window.title = window.arguments[0].title;
-            }
         if (window.arguments[0].input) {
             // set filters
-            var filters =
-                window.arguments[0].input.getElementsByTagName('filter');
-            for (var i=0; filter=filters.item(i); i++) {
+            var filters = window.arguments[0].input.filters;
+            for (var i=0; filter=filters[i]; i++) {
                 var input_data = {
-                    tag: filter.getElementsByTagName('tag').item(0).
-                             firstChild.data,
-                    op: filter.getElementsByTagName('operator').item(0).
-                             firstChild.data,
-                    value: filter.getElementsByTagName('value').item(0).
-                             firstChild.data,
+                    tag: filter.value.tag,
+                    op: filter.id,
+                    value: filter.value.pattern,
                     };
                 this.add_filter(input_data);
-                }
+            }
             // set properties
-            var properties =
-                window.arguments[0].input.getElementsByTagName('property');
-            for (var i=0; property=properties.item(i); i++) {
-                var id = property.getAttribute('id');
-                var value = property.firstChild.data;
+            var properties = window.arguments[0].input.properties;
+            for (var id in properties) {
+                var value = properties[id];
                 if (id == 'use-or-filter') {
                     var checked = value == "1" ? true : false;
                     $('use-or-filter').checked = checked;
-                    }
+                }
                 else if (id == 'use-limit' && value == "1") {
                     $('limit-checkbox').checked = true;
                     this.update_limit_activation();
-                    }
+                }
                 else if (id == 'limit-value') {
                     $('limit-value').value = value;
-                    }
+                }
                 else if (id == 'limit-sort-value') {
                     $('limit-sort-value').value = value;
-                    }
+                }
                 else if (id == 'limit-sort-direction') {
                     var checked = value == "descending" ? true : false;
                     $('limit-sort-direction').checked = checked;
-                    }
                 }
             }
+        }
         else
             this.add_filter(null);
     };
@@ -181,44 +173,31 @@ function MagicPlaylist()
 
     this.record = function()
     {
-        var output_filter = "";
+        var answer = {properties: {}, filters: []};
         var filters = $('filters-box').getElementsByTagName("hbox");
-        for (var i=0; filter=filters.item(i); i++) {
-            output_filter += "<filter>";
-            var tag_list = filter.firstChild;
-            output_filter += "<tag>" + tag_list.value + "</tag>";
+        for (var i=0; f=filters.item(i); i++) {
+            var filter = {type: "basic", value: {}};
+            var tag_list = f.firstChild;
+            filter.value.tag = tag_list.value;
             var op_list = tag_list.nextSibling;
-            output_filter += "<operator>" + op_list.value + "</operator>";
-            output_filter += "<value>" + op_list.nextSibling.value + "</value>";
-            output_filter += "</filter>";
-            }
+            filter.id = op_list.value;
+            filter.value.pattern = op_list.nextSibling.value;
 
-        var output_prop = "";
-        if ($('use-or-filter').checked)
-            output_prop += "<property id='use-or-filter'>1</property>";
-        else
-            output_prop += "<property id='use-or-filter'>0</property>"
+            answer.filters.push(filter);
+        }
+
+        answer.properties["use-or-filter"]=$('use-or-filter').checked? "1":"0";
+        answer.properties["use-limit"]=$('limit-checkbox').checked? "1":"0";
         if ($('limit-checkbox').checked) {
-            output_prop += "<property id='use-limit'>1</property>"
-            output_prop += "<property id='limit-value'>" +
-                    $('limit-value').value + "</property>";
-            output_prop += "<property id='limit-sort-value'>" +
-                    $('limit-sort-value').value + "</property>";
+            answer.properties["limit-value"] = $('limit-value').value;
+            answer.properties["limit-sort-value"] = $('limit-sort-value').value;
             var direction = "ascending";
             if ($('limit-sort-direction').checked)
                 direction = "descending";
-            output_prop += "<property id='limit-sort-direction'>" +
-                direction + "</property>";
-            }
-        else {
-            output_prop += "<property id='use-limit'>0</property>"
-            }
+            answer.properties["limit-sort-direction"] = direction;
+        }
 
-        window.arguments[0].output = '<?xml version="1.0"?>'
-            + "<magic_playlist>"
-            + "<filters>" + output_filter + "</filters>"
-            + "<properties>" + output_prop + "</properties>"
-            + "</magic_playlist>";
+        window.arguments[0].output = answer;
         return true;
     };
 

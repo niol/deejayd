@@ -19,8 +19,7 @@
 import os,re
 
 from deejayd.xmlobject import DeejaydXMLObject, ET
-from deejayd.webui.utils import *
-from deejayd.mediafilters import *
+from deejayd.utils import *
 
 
 class RdfBuilder(DeejaydXMLObject):
@@ -85,34 +84,36 @@ class _DeejaydSourceRdf(DeejaydXMLObject):
         self._deejayd = deejayd
         self._rdf_dir = rdf_dir
 
-    def update(self, xml_ans, status):
+    def update(self):
         current_id = self._get_current_id()
-        try: new_id = status[self.__class__.name]
+        try:
+            status = self._deejayd.get_status(objanswer=False)
+            new_id = status[self.__class__.name]
         except KeyError:
-            return # this mode is not active
+            return {"desc": ""}# this mode is not active
         new_id = int(new_id) % 10000
-        if current_id != new_id:
-            self._build_rdf_file(new_id)
+        # get media list
+        obj = getattr(self._deejayd, self.__class__.get_list_func)()
+        res = obj.get(objanswer=False)
+        if isinstance(res, tuple):
+            medias, filter, sort = res
+        else:
+            medias, filter, sort = res, None, None
 
-        # set xml
-        elt = ET.SubElement(xml_ans.xmlroot, self.__class__.name,\
-            id=xml_ans._to_xml_string(new_id))
+        if current_id != new_id:
+            self._build_rdf_file(medias, new_id)
+        # build description
         single, plural = self.__class__.locale_strings
         len = status[self.__class__.name + "length"]
-        desc = self._to_xml_string(ngettext(single,plural,int(len))%int(len))
+        desc = ngettext(single,plural,int(len))%int(len)
         try: time = int(status[self.__class__.name + "timelength"])
         except KeyError:
             pass
         else:
             if time > 0: desc += " (%s)" % format_time_long(time)
-        elt.attrib["description"] = desc
-        return elt
+        return {"desc": desc, "sort": sort}
 
-    def _build_rdf_file(self, new_id):
-        # get media list
-        obj = getattr(self._deejayd, self.__class__.get_list_func)()
-        media_list = obj.get().get_medias()
-
+    def _build_rdf_file(self, media_list, new_id):
         # build xml
         rdf_builder = RdfBuilder(self.__class__.name)
         seq = rdf_builder.build_seq("http://%s/all-content" % self.name)
@@ -159,66 +160,6 @@ class DeejaydPanelRdf(_DeejaydSourceRdf):
     name = "panel"
     get_list_func = "get_panel"
 
-    def update(self, xml_ans, status):
-        panel = self._deejayd.get_panel()
-        mode = panel.get_active_list()
-        elt = super(DeejaydPanelRdf, self).update(xml_ans, status)
-        elt.attrib["type"] = mode["type"]
-        elt.attrib["value"] = mode["value"]
-
-        mode = panel.get_active_list()
-        if mode["type"] == "panel":
-            filters = panel.get().get_filter()
-            try: filter_list = filters.filterlist
-            except (TypeError, AttributeError):
-                filter_list = []
-
-            panel_filter = And()
-            elt.attrib["filtertext_text"] = ""
-            elt.attrib["filtertext_type"] = "all"
-            for ft in filter_list:
-                if ft.type == "basic" and ft.get_name() == "contains":
-                    elt.attrib["filtertext_text"] = ft.pattern
-                    elt.attrib["filtertext_type"] = ft.tag
-                    panel_filter.combine(ft)
-                    break
-                elif ft.type == "complex" and ft.get_name() == "or":
-                    elt.attrib["filtertext_text"] = ft.filterlist[0].pattern
-                    elt.attrib["filtertext_type"] = "all"
-                    panel_filter.combine(ft)
-                    break
-
-        sorts = panel.get().get_sort()
-        if sorts is not None:
-            sort_elt = ET.SubElement(elt, "sorts")
-            for (tag, direction) in sorts:
-                tag_elt = ET.SubElement(sort_elt, "item")
-                tag_elt.attrib["tag"] = self._to_xml_string(tag)
-                tag_elt.attrib["direction"] = self._to_xml_string(direction)
-
-    def _build_rdf_file(self, new_id):
-        panel = self._deejayd.get_panel()
-        mode = panel.get_active_list()
-        media_list = panel.get().get_medias()
-
-        rdf_builder = RdfBuilder(self.__class__.name)
-        if mode["type"] == "playlist":
-            filters = panel.get().get_filter()
-            if filters:
-                self.__build_filter(filters)
-
-        # build medialist
-        seq = rdf_builder.build_seq("http://%s/all-content" % self.name)
-        for media in media_list:
-            li = rdf_builder.build_li(seq)
-            rdf_builder.build_item_desc(media, li,\
-                "http://%s/%s" % (self.name, media["id"]))
-
-        self._save_rdf(rdf_builder, new_id)
-
-    def __build_filter(self, filter):
-        pass
-
 class DeejaydQueueRdf(_DeejaydSourceRdf):
     name = "queue"
     get_list_func = "get_queue"
@@ -233,26 +174,20 @@ class DeejaydVideoRdf(_DeejaydSourceRdf):
     locale_strings = ("%d Video", "%d Videos")
     get_list_func = "get_video"
 
-    def update(self, xml_ans, status):
-        elt = super(DeejaydVideoRdf, self).update(xml_ans, status)
-        video = self._deejayd.get_video()
-        sorts = video.get().get_sort()
-        if sorts is not None:
-            sort_elt = ET.SubElement(elt, "sorts")
-            for (tag, direction) in sorts:
-                tag_elt = ET.SubElement(sort_elt, "item")
-                tag_elt.attrib["tag"] = self._to_xml_string(tag)
-                tag_elt.attrib["direction"] = self._to_xml_string(direction)
-
 class DeejaydVideoDirRdf(_DeejaydSourceRdf):
     name = "videodir"
 
-    def update(self, new_id):
+    def update(self):
+        try:
+            stats = self._deejayd.get_stats()
+            new_id = stats["video_library_update"]
+        except KeyError:
+            return {"id": None}# this mode is not active
         current_id = self._get_current_id()
         new_id = int(new_id) % 10000
         if current_id != new_id:
             self._build_rdf_file(new_id)
-        return new_id
+        return {"id": new_id}
 
     def _build_rdf_file(self,new_id):
         rdf_builder = RdfBuilder(self.__class__.name)
@@ -280,18 +215,26 @@ class DeejaydVideoDirRdf(_DeejaydSourceRdf):
 class DeejaydDvdRdf(_DeejaydSourceRdf):
     name = "dvd"
     locale_strings = ("%d Track", "%d Tracks")
-    get_list_func = "get_dvd_content"
 
-    def update(self, xml_ans, status):
-        elt = super(DeejaydDvdRdf, self).update(xml_ans, status)
-        dvd_content = self._get_media_list()
-        elt.attrib["title"] = self._to_xml_string(_("DVD Title : %s")\
-                % dvd_content["title"])
-        elt.attrib["longest_track"] = self._to_xml_string(\
-                _("Longest Track : %s") % dvd_content["longest_track"])
+    def update(self):
+        current_id = self._get_current_id()
+        try:
+            status = self._deejayd.get_status(objanswer=False)
+            new_id = status[self.__class__.name]
+        except KeyError:
+            return {"desc": ""}# this mode is not active
+        dvd_content = self._deejayd.get_dvd_content(objanswer=False)
+        new_id = int(new_id) % 10000
+        if current_id != new_id:
+            self._build_rdf_file(dvd_content, new_id)
+        # build description
+        single, plural = self.__class__.locale_strings
+        len = status[self.__class__.name + "length"]
+        desc = ngettext(single,plural,int(len))%int(len)
+        return {"desc": desc, "title": dvd_content["title"],\
+                "longest_track": dvd_content["longest_track"]}
 
-    def _build_rdf_file(self,new_id):
-        dvd_content = self._get_media_list()
+    def _build_rdf_file(self, dvd_content, new_id):
         rdf_builder = RdfBuilder(self.__class__.name)
 
         # dvd structure
@@ -319,22 +262,20 @@ class DeejaydDvdRdf(_DeejaydSourceRdf):
 
         self._save_rdf(rdf_builder,new_id)
 
-    def _get_media_list(self):
-        return self._deejayd.get_dvd_content().get_dvd_contents()
-
 
 ngettext("%d Song", "%d Songs", 0)
 ngettext("%d Video", "%d Videos", 0)
 ngettext("%d Webradio", "%d Webradios", 0)
 ngettext("%d Track", "%d Tracks", 0)
 
-modes = (
-    DeejaydPlaylistRdf,
-    DeejaydQueueRdf,
-    DeejaydPanelRdf,
-    DeejaydWebradioRdf,
-    DeejaydVideoRdf,
-    DeejaydDvdRdf,
-    )
+modes = {
+        "playlist": DeejaydPlaylistRdf,
+        "queue": DeejaydQueueRdf,
+        "panel": DeejaydPanelRdf,
+        "webradio": DeejaydWebradioRdf,
+        "video": DeejaydVideoRdf,
+        "dvd": DeejaydDvdRdf,
+        "videodir": DeejaydVideoDirRdf,
+    }
 
 # vim: ts=4 sw=4 expandtab

@@ -9,5 +9,5 @@
     </stringbundleset>
 
     <script type="application/x-javascript"
-        src="chrome://deejayd-webui/content/overlay.js"/>
+        src="chrome://deejayd-webui/content/js/overlay.js"/>
 </overlay>
