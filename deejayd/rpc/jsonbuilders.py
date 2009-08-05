@@ -38,11 +38,13 @@ class JSONRPCRequest:
     """
     Build JSON-RPC Request
     """
-    def __init__(self, method_name, params, notification = False):
+    def __init__(self, method_name, params, notification = False, id = None):
         self.method = method_name
         self.params = params
-        # use timestamp as id
-        self.id = not notification and time.time() or None
+        # use timestamp as id if no id has been given
+        self.id = None
+        if not notification:
+            self.id = id or time.time()
 
     def __build_obj(self):
         return {"method": self.method, "params": self.params, "id": self.id}
@@ -52,6 +54,10 @@ class JSONRPCRequest:
 
     def dumps(self):
         return json.dumps(self.__build_obj(), cls=JSONRPCEncoder)
+
+    def to_pretty_json(self):
+        s = json.dumps(self.__build_obj(), sort_keys=True, indent=4)
+        return '\n'.join([l.rstrip() for l in  s.splitlines()])
 
 
 class JSONRPCResponse:
@@ -78,6 +84,9 @@ class JSONRPCResponse:
             obj = {"result": None, "error": error, "id": self.id}
             return json.dumps(obj)
 
+    def to_pretty_json(self):
+        s = json.dumps(self.__build_obj(), sort_keys=True, indent=4)
+        return '\n'.join([l.rstrip() for l in  s.splitlines()])
 
 #
 # JSON filter serializer and parser
@@ -96,6 +105,10 @@ class JSONFilter:
             "id": self.filter.get_identifier(),
             "value": self._get_value(),
             }
+
+    def to_pretty_json(self):
+        s = json.dumps(self.dump(), sort_keys=True, indent=4)
+        return '\n'.join([l.rstrip() for l in  s.splitlines()])
 
 class JSONBasicFilter(JSONFilter):
     type = "basic"

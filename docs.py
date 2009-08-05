@@ -22,135 +22,130 @@
 Use to create documentation of the protocol
 """
 
-from deejayd.net import commandsXML
-from testdeejayd.xmldatabuilder import DeejaydXMLSampleFactory
+# init translation
+import gettext
+from deejayd.ui.i18n import DeejaydTranslations
+try: t = gettext.translation("deejayd", class_=DeejaydTranslations)
+except IOError:
+    t = DeejaydTranslations()
+t.install()
 
+from twisted.python import reflect
+from deejayd.mediafilters import *
+from deejayd.rpc import protocol
+from deejayd.rpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
+                                     Get_json_filter
 
-class DeejaydXMLDocFactory(DeejaydXMLSampleFactory):
+common_request = [
+        {"prefix": "", "desc": "General Commands",\
+                       "object": protocol.DeejaydMainJSONRPC},
+        {"prefix": "player.", "desc": "Player Commands",\
+                       "object": protocol.DeejaydPlayerJSONRPC},
+        {"prefix": "audiolib.", "desc": "Audio Library Commands",\
+                       "object": protocol.DeejaydAudioLibraryJSONRPC},
+        {"prefix": "videolib.", "desc": "Video Library Commands",\
+                       "object": protocol.DeejaydVideoLibraryJSONRPC},
+        {"prefix": "playlist.", "desc": "Playlist Mode Commands",\
+                       "object": protocol.DeejaydPlaylistModeJSONRPC},
+        {"prefix": "panel.", "desc": "Panel Mode Commands",\
+                       "object": protocol.DeejaydPanelModeJSONRPC},
+        {"prefix": "video.", "desc": "Video Mode Commands",\
+                       "object": protocol.DeejaydVideoModeJSONRPC},
+        {"prefix": "webradio.", "desc": "Webradio Mode Commands",\
+                       "object": protocol.DeejaydWebradioModeJSONRPC},
+        {"prefix": "dvd.", "desc": "Dvd Mode Commands",\
+                       "object": protocol.DeejaydDvdModeJSONRPC},
+        {"prefix": "queue.", "desc": "Queue Commands",\
+                       "object": protocol.DeejaydQueueJSONRPC},
+        {"prefix": "queue.", "desc": "Queue Commands",\
+                       "object": protocol.DeejaydQueueJSONRPC},
+        {"prefix": "recpls.", "desc": "Recorded Playlist Commands",\
+                       "object": protocol.DeejaydRecordedPlaylistJSONRPC},
+    ]
 
-    def formatResponseDoc(self, response):
-        info = {}
-        info['type'] = response.response_type
-        info['desc'] = response.__doc__
-        info['example'] = self.get_sample_answer(response).to_pretty_xml()
+class WikiFormat:
 
-        responseDoc = """
-  * '''`%(type)s`''' : %(desc)s
+    def commandDoc(self):
+        return """
+As written in specification, request is like that :
 {{{
-%(example)sENDXML
-}}}""" % info
-
-        return responseDoc
-
-    def formatCombinedResponse(self):
-        combi = self.getAck()
-        self.set_mother(combi)
-        combiFact = DeejaydXMLDocFactory()
-        combiFact.set_mother(combi)
-        vl = combiFact.getMediaList()
-        return combi.to_pretty_xml()
-
-
-def headerXMLCommands(xml_doc_builder):
-    return """= deejayd - XML Protocol =
-
-All data between the client and server is encoded in UTF-8.
-
-== Commands Format ==
-
-{{{
-%s
-ENDXML
+`%(request)s`
 }}}
 
-{{{ENDXML}}} is used as command delimiter.
+""" % {
+    "request": JSONRPCRequest("method_name",\
+                          ["params1", "params2"], id="id").to_pretty_json(),\
+    }
 
-For certain commands, you may need to pass several values as an argument. If
-so, you have to set the argument type to {{{multiple}}} instead of {{{single}}}.
+    def answerDoc(self):
+        return """
+As written in specification, response is like that :
+{{{
+%s
+}}}
 
-== Response Format ==
+For deejayd, result parameter has always the same syntax :
+{{{
+`{
+    "type": answer_type,
+    "answer": the real answer value
+}`
+}}}
+With response types equals to:
+    * ack
+    * list
+    * dict
+    * mediaList
+    * dvdInfo
+    * fileAndDirList
+""" % JSONRPCResponse("deejayd_response", "id").to_pretty_json()
 
-{{{ENDXML}}} is also used as an answer delimiter.
-""" % xml_doc_builder.get_sample_command('cmdName1').to_pretty_xml()
+    def formatSectionDoc(self, section):
+        cmds = reflect.prefixedMethodNames(section["object"], 'jsonrpc_')
+        cmds = [getattr(section["object"], 'jsonrpc_%s'%cmd) for cmd in cmds]
+        return """
+=== `%(section)s` ===
 
-commandsOrders  = ("close", "ping", "status", "stats", "setMode", "getMode",
-                   "audioUpdate", "videoUpdate", "getAudioDir", "audioSearch",
-                   "getVideoDir", "playToggle", "goto", "stop", "next",
-                   "previous", "setVolume", "seek", "setOption", "current",
-                   "setPlayerOption", "playlistCreate", "recordedPlaylistInfo",
-                   "staticPlaylistAdd", "magicPlaylistAddFilter",
-                   "magicPlaylistClearFilter", "magicPlaylistRemoveFilter",
-                   "magicPlaylistGetProperties", "magicPlaylistSetProperty",
-                   "playlistInfo", "playlistList",
-                   "playlistAdd", "playlistRemove", "playlistClear",
-                   "playlistMove", "playlistShuffle", "playlistErase",
-                   "playlistLoad", "playlistSave", "webradioList",
-                   "webradioAdd", "webradioRemove", "webradioClear",
-                   "queueInfo", "queueAdd", "queueMove", "queueLoadPlaylist",
-                   "queueRemove", "queueClear", "panelSetSearch", "panelInfo",
-                   "panelClearFilter", "panelSetActiveList", "panelActiveList",
-                   "panelTags", "panelRemoveFilter", "panelClearSearch",
-                   "panelSort", "panelSetFilter", "setvideo","videoInfo",
-                   "videoSort", "dvdLoad","dvdInfo",
-                   "setSubscription", "setMediaRating", "mediadbList")
+%(commands)s
+""" % {
+        "section": section["desc"],
+        "commands": "\n\n".join(map(self.formatCommandDoc, cmds,\
+                        [section["prefix"] for i in range(len(cmds))])),
+    }
 
-# Check for missing commands in commandsOrder
-missingCmdsInOrderredList = []
-for cmdName in commandsXML.commands.keys():
-    if cmdName not in commandsOrders:
-        missingCmdsInOrderredList.append(cmdName)
-if len(missingCmdsInOrderredList) > 0:
-    import sys
-    sys.exit("Please order the documentation of the following commands : %s."
-             % ', '.join(missingCmdsInOrderredList))
+    def formatCommandDoc(self, cmd, prefix):
+        args = ''
 
+        command_args = cmd.params or []
+        for arg in command_args:
+            props = []
 
-def formatCommandDoc(cmd):
-    args = ''
+            # An argument is optional by default
+            if 'req' not in arg.keys():
+                arg['req'] = False
+            if arg['req']:
+                props.append('Mandatory')
+            else:
+                props.append('Optional')
 
-    command_args = None
-    try:
-        command_args = cmd.command_args
-    except AttributeError:
-        command_args = []
+            args += "  * {{{%(name)s}}} (%(props)s) : %(type)s\n"\
+                        % { 'name':  arg['name'],
+                            'props': ' and '.join(props),
+                            'type' : arg['type'] }
 
-    for arg in command_args:
-        props = []
+        if len(command_args) == 0:
+            args = "  * ''This command does not accept any argument.''\n"
 
-        # An argument is simple by default
-        if 'mult' not in arg.keys():
-            arg['mult'] = False
-        if arg['mult']:
-            props.append('Multiple')
-        else:
-            props.append('Simple')
+        rvalues = None
+        try:
+            if isinstance(cmd.answer_type, list):
+                rvalues = cmd.answer_type
+            else:
+                rvalues = [cmd.answer_type]
+        except AttributeError:
+            rvalues = ['ack']
 
-        # An argument is optional by default
-        if 'req' not in arg.keys():
-            arg['req'] = False
-        if arg['req']:
-            props.append('Mandatory')
-        else:
-            props.append('Optional')
-
-        args += "  * {{{%(name)s}}} (%(props)s) : %(type)s\n"\
-                    % { 'name':  arg['name'],
-                        'props': ' and '.join(props),
-                        'type' : arg['type'] }
-
-    if len(command_args) == 0:
-        args = "  * ''This command does not accept any argument.''\n"
-
-    rvalues = None
-    try:
-        if isinstance(cmd.command_rvalue, list):
-            rvalues = cmd.command_rvalue
-        else:
-            rvalues = [cmd.command_rvalue]
-    except AttributeError:
-        rvalues = ['Ack']
-
-    return """=== `%(name)s` ===
+        return """==== `%(name)s` ====
 
 %(desc)s
 
@@ -158,64 +153,51 @@ Arguments :
 %(args)s
 Expected return value : ''`%(rvalues)s`''
 
-""" % { 'name'    : cmd.command_name,
+""" % { 'name'    : prefix+cmd.__name__[8:],
         'desc'    : cmd.__doc__.strip('\n'),
         'args'    : args,
-        'rvalues' : ' or '.join(rvalues) }
+        'rvalues' : rvalues }
 
+    def build(self, sections):
+        filter = And(Equals("artist", "artist_name"),\
+                Or(Contains("genre", "Rock"), Higher("Rating", "4")))
+        return """= deejayd - JSON-RPC Protocol =
 
-def formatCmdDoc(name, cmdObj):
-    infos = cmdObj("", None, []).docInfos()
-    # Args
-    argsText = ""
-    if "args" in infos:
-        for arg in infos["args"]:
-            req = arg["req"] and "true" or "false"
-            mult = "false"
-            if "mult" in arg: mult = arg["mult"]
+Deejayd protocol follows JSON-RPC 1.0 specification available
+[http://json-rpc.org/wiki/specification here].
+All data between the client and server is encoded in UTF-8.
 
-            argsText += "%s : type->%s, required->%s\n" %\
-                    (arg["name"],arg["type"],req)
+== Commands Format ==
 
-    return """
------------------
-%(name)s
------------------
-arguments :
-%(args)s
-description :
-%(descr)s
-    """ % {"name":name,
-           "args":argsText,
-           "descr":infos["description"].strip("\n")
-    }
+%(cmd_format)s
 
+== Response Format ==
 
-if __name__ == "__main__":
-    xml_doc_builder = DeejaydXMLDocFactory()
+%(answer)s
 
-    # XML Doc
-    docs = headerXMLCommands(xml_doc_builder)
+== Specific Objects ==
 
-    docs += """
-There are 6 response types :"""
+=== Mediafilter Objects ===
 
-    for response in xml_doc_builder.response_types:
-        docs += xml_doc_builder.formatResponseDoc(response)
-
-    docs += """
-Responses may be combined in the same physical message :
+Mediafilter object has been serialized in a specific way to be passed as
+an method argument or receive with an answer. An example is given here.
 {{{
-%s
-}}}""" % xml_doc_builder.formatCombinedResponse()
-
-    docs += """
+`%(filter)s`
+}}}
 
 == Available Commands ==
 
-"""
-    for cmd in commandsOrders:
-        docs += formatCommandDoc(commandsXML.commands[cmd])
+%(commands)s
+
+""" % {
+        "cmd_format": self.commandDoc(),
+        "answer": self.answerDoc(),
+        "filter": Get_json_filter(filter).to_pretty_json(),
+        "commands": "\n\n".join(map(self.formatSectionDoc, sections))
+    }
+
+if __name__ == "__main__":
+    docs = WikiFormat().build(common_request)
 
     f = open("doc/deejayd_xml_protocol","w")
     try: f.write(docs)

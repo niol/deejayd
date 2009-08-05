@@ -66,7 +66,9 @@ def returns_answer(type, params = None):
             return {"type": type, "answer": res}
 
         returns_answer_func.__name__ = func.__name__
-        returns_answer_func.__doc__ = func.__name__
+        returns_answer_func.__doc__ = func.__doc__
+        returns_answer_func.answer_type = type
+        returns_answer_func.params = params
         # build help
         p_desc = "\nNo arguments"
         if params:
@@ -303,6 +305,8 @@ class DeejaydAudioLibraryJSONRPC(_DeejaydLibraryJSONRPC):
             params=[{"name":"tag", "type":"string", "req":True},\
                 {"name":"filter","type":"filter","req":False}])
     def jsonrpc_taglist(self, tag, filter = None):
+        """List all the possible values for a tag according to the optional
+        filter argument."""
         if filter is not None:
             filter = Parse_json_filter(filter)
         tag_list = self.deejayd_core.mediadb_list(tag, filter, objanswer=False)
@@ -527,7 +531,7 @@ class DeejaydWebradioModeJSONRPC(_DeejaydModeJSONRPC):
 #
 # queue commands
 #
-class DeejaydQueueModeJSONRPC(_DeejaydModeJSONRPC):
+class DeejaydQueueJSONRPC(_DeejaydModeJSONRPC):
     media_type = "song"
     source_name = "queue"
 
@@ -727,7 +731,7 @@ def build_protocol(deejayd, main = None):
             "video": DeejaydVideoModeJSONRPC,
             "webradio": DeejaydWebradioModeJSONRPC,
             "dvd": DeejaydDvdModeJSONRPC,
-            "queue": DeejaydQueueModeJSONRPC,
+            "queue": DeejaydQueueJSONRPC,
             "recpls": DeejaydRecordedPlaylistJSONRPC,
             }
     for key in sub_handlers:
