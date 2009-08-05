@@ -22,7 +22,7 @@
 This is the script used to launch deejayd
 """
 
-import errno, random, sys, os, pwd, grp
+import errno, random, sys, os, pwd, grp, traceback
 from optparse import OptionParser
 from deejayd.ui.config import DeejaydConfig
 
@@ -203,8 +203,14 @@ if __name__ == "__main__":
     t.install()
 
     # start core
-    from deejayd.core import DeejayDaemonCore
-    deejayd_core = DeejayDaemonCore(config)
+    try:
+        from deejayd.core import DeejayDaemonCore
+        deejayd_core = DeejayDaemonCore(config)
+    except Exception, ex:
+        from deejayd.utils import str_encode
+        log.err("Unable to launch deejayd core, see traceback for more details")
+        log.msg(str_encode(traceback.format_exc()))
+        sys.exit(1)
 
     service = False
     # net service
