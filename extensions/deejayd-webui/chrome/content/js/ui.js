@@ -35,12 +35,12 @@ function UI(controller)
 UI.prototype =
 {
     initialize: function(controller) {
-        xului_ref.rpc.onrequeststart(function(){
+        xului_ref.rpc.onrequeststart = function(){
             $("msg-loading").style.display = 'block';
-        });
-        xului_ref.rpc.onrequeststop(function(){
+        };
+        xului_ref.rpc.onrequeststop = function(){
             $("msg-loading").style.display = 'none';
-        });
+        };
 
         // init player
         this.player = new Player();
