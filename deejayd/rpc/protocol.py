@@ -735,21 +735,30 @@ def build_protocol(deejayd, main = None):
     # add introspection
     addIntrospection(main)
 
-    # add specific deejayd subhandler
+    # add common deejayd subhandler
     sub_handlers = {
             "player": DeejaydPlayerJSONRPC,
             "audiolib": DeejaydAudioLibraryJSONRPC,
             "videolib": DeejaydVideoLibraryJSONRPC,
-            "playlist": DeejaydPlaylistModeJSONRPC,
-            "panel": DeejaydPanelModeJSONRPC,
-            "video": DeejaydVideoModeJSONRPC,
-            "webradio": DeejaydWebradioModeJSONRPC,
-            "dvd": DeejaydDvdModeJSONRPC,
-            "queue": DeejaydQueueJSONRPC,
             "recpls": DeejaydRecordedPlaylistJSONRPC,
             }
     for key in sub_handlers:
         main.putSubHandler(key, sub_handlers[key](deejayd))
+    # add mode deejayd subhandler
+    mode_handlers = {
+            "panel": DeejaydPanelModeJSONRPC,
+            "webradio": DeejaydWebradioModeJSONRPC,
+            "video": DeejaydVideoModeJSONRPC,
+            "playlist": DeejaydPlaylistModeJSONRPC,
+            "dvd": DeejaydDvdModeJSONRPC,
+            "queue": DeejaydQueueJSONRPC,
+            }
+    for key in mode_handlers:
+        try: mode = mode_handlers[key](deejayd)
+        except DeejaydError: # this mode is not activated
+            pass
+        else:
+            main.putSubHandler(key, mode)
 
     return main
 
