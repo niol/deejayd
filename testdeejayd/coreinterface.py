@@ -401,6 +401,10 @@ class InterfaceTests:
         # wrong rating
         ans = self.deejayd.set_media_rating(file_ids, "9", "audio")
         self.assertRaises(DeejaydError, ans.get_contents)
+        # wrong library
+        rand_lib = self.testdata.getRandomString()
+        ans = self.deejayd.set_media_rating(file_ids, "2", rand_lib)
+        self.assertRaises(DeejaydError, ans.get_contents)
 
         ans =  self.deejayd.set_media_rating(file_ids, "4", "audio")
         self.failUnless(ans.get_contents())
