@@ -20,7 +20,6 @@
 
 import socket, asyncore, threading
 import sys,time
-from cStringIO import StringIO
 
 from Queue import Queue, Empty
 
