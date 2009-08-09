@@ -1,9 +1,9 @@
 usr/lib/python*/site-packages/deejayd/__init__.py
 usr/lib/python*/site-packages/deejayd/interfaces.py
 usr/lib/python*/site-packages/deejayd/mediafilters.py
-usr/lib/python*/site-packages/deejayd/xmlobject.py
-usr/lib/python*/site-packages/deejayd/net/xmlbuilders.py
-usr/lib/python*/site-packages/deejayd/net/xmlparsers.py
+usr/lib/python*/site-packages/deejayd/rpc/__init__.py
+usr/lib/python*/site-packages/deejayd/rpc/jsonbuilders.py
+usr/lib/python*/site-packages/deejayd/rpc/jsonparsers.py
 usr/lib/python*/site-packages/deejayd/net/client.py
 usr/lib/python*/site-packages/deejayd/net/__init__.py
 usr/bin/djc

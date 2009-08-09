@@ -1,6 +1,2 @@
 usr/lib/python*/site-packages/deejayd/webui/*.py
-usr/lib/python*/site-packages/deejayd/webui/xul/*.py
-usr/lib/python*/site-packages/deejayd/webui/mobile/*.py
-usr/lib/python*/site-packages/deejayd/webui/mobile/templates/*.thtml
-usr/lib/python*/site-packages/deejayd/webui/mobile/templates/modes/*.thtml
 usr/share/deejayd/htdocs/*

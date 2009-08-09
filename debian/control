@@ -17,7 +17,7 @@ Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, adduser,
          deejayd-xine (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
          python-twisted,
          python-pysqlite2 | python-mysqldb,
-         python-mutagen, python-hachoir-metadata (>= 1.1)
+         python-lxml, python-mutagen, python-hachoir-metadata (>= 1.1)
 Recommends: python-pyinotify (>= 0.6.0)
 Suggests: deejayd-webui, xserver-xorg, xauth
 XB-Python-Version: ${python:Versions}
@@ -32,7 +32,6 @@ Package: deejayd-webui
 Architecture: all
 Depends: ${python:Depends}, deejayd (= ${binary:Version}), logrotate,
          python-twisted-web, libjs-jquery
-Recommends: python-genshi
 XB-Python-Version: ${python:Versions}
 Description: Web interface for deejayd
  This package provides, in order to control your deejayd server:
@@ -43,7 +42,7 @@ Description: Web interface for deejayd
 
 Package: deejayd-client
 Architecture: all
-Depends: ${python:Depends}, python-lxml
+Depends: ${python:Depends}, python-simplejson
 Conflicts: djc
 XB-Python-Version: ${python:Versions}
 Description: Client library and command line tool to access the deejayd server
