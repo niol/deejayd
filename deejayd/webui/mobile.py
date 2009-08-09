@@ -75,7 +75,9 @@ def build_template(deejayd, user_agent):
     "http://www.w3.org/TR/REC-html40/strict.dtd">
 <html>
    <head>
-     <title>Deejayd Webui</title>
+    <title>Deejayd Webui</title>
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link href="./../static/themes/mobile/default.css" type= "text/css"
         rel="stylesheet"/>
     %(header)s
