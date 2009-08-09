@@ -28,8 +28,13 @@ from twisted.internet import reactor
 from twisted.python import log
 import twisted.internet.error
 
+# init translation
+from deejayd.ui.i18n import DeejaydTranslations
+t = DeejaydTranslations()
+t.install()
+
 from deejayd.ui.config import DeejaydConfig
-from deejayd.net.deejaydProtocol import DeejaydFactory
+from deejayd.net.protocol import DeejaydFactory
 from deejayd.core import DeejayDaemonCore
 
 # argv[1] should be port
@@ -57,11 +62,6 @@ config.set('general', 'video_support', 'yes')
 config.set('general', 'media_backend', 'xine')
 config.set('xine','audio_output',"none")
 config.set('xine','video_output',"none")
-
-# init translation
-from deejayd.ui.i18n import DeejaydTranslations
-t = DeejaydTranslations()
-t.install()
 
 # start core
 deejayd_core = DeejayDaemonCore(config)

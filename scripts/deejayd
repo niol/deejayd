@@ -216,7 +216,7 @@ if __name__ == "__main__":
     # net service
     if config.getboolean("net","enabled"):
         service = True
-        from deejayd.net.deejaydProtocol import DeejaydFactory
+        from deejayd.net.protocol import DeejaydFactory
 
         factory = DeejaydFactory(deejayd_core)
         port = config.getint("net", "port")

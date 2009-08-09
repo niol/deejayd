@@ -34,6 +34,19 @@ class JSONRPCEncoder(json.JSONEncoder):
         raise TypeError("%r is not JSON serializable" % (obj,))
 
 
+class _DeejaydJSON:
+
+    def dump(self):
+        return self._build_obj()
+
+    def to_json(self):
+        return json.dumps(self._build_obj(), cls=JSONRPCEncoder)
+
+    def to_pretty_json(self):
+        s = json.dumps(self._build_obj(), sort_keys=True, indent=4)
+        return '\n'.join([l.rstrip() for l in  s.splitlines()])
+
+
 class JSONRPCRequest:
     """
     Build JSON-RPC Request
@@ -44,13 +57,13 @@ class JSONRPCRequest:
         # use timestamp as id if no id has been given
         self.id = None
         if not notification:
-            self.id = id or time.time()
+            self.id = id or int(time.time())
 
     def __build_obj(self):
         return {"method": self.method, "params": self.params, "id": self.id}
 
     def get_id(self):
-        return id
+        return self.id
 
     def dumps(self):
         return json.dumps(self.__build_obj(), cls=JSONRPCEncoder)
@@ -89,7 +102,7 @@ class JSONRPCResponse:
         return '\n'.join([l.rstrip() for l in  s.splitlines()])
 
 #
-# JSON filter serializer and parser
+# JSON filter serializer
 #
 class JSONFilter:
 
@@ -128,5 +141,21 @@ def Get_json_filter(filter):
     elif filter.type == 'complex':
         json_filter_class = JSONComplexFilter
     return json_filter_class(filter)
+
+#
+# JSON signal serializer
+#
+class DeejaydJSONSignal(_DeejaydJSON):
+
+    def __init__(self, signal):
+        self.name = signal is not None and signal.get_name() or ""
+        self.attrs = signal is not None and signal.get_attrs() or {}
+
+    def set_name(self, name):
+        self.name = name
+
+    def _build_obj(self):
+        return {"type": "signal",\
+                "answer": {"name": self.name, "attrs": self.attrs}}
 
 # vim: ts=4 sw=4 expandtab

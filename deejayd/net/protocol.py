@@ -16,34 +16,38 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys
+import sys, traceback
 from twisted.application import service, internet
 from twisted.internet import protocol, reactor
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
 
-from deejayd.xmlobject import ET
+from deejayd import __version__
 from deejayd.interfaces import DeejaydSignal
 from deejayd.mediafilters import *
 from deejayd.ui import log
 from deejayd.utils import str_encode
-from deejayd.net import commandsXML, xmlbuilders
+from deejayd.rpc import Fault
+from deejayd.rpc.jsonparsers import loads_request
+from deejayd.rpc.jsonbuilders import JSONRPCResponse, DeejaydJSONSignal
+from deejayd.rpc import protocol as deejayd_protocol
 from __init__ import DEEJAYD_PROTOCOL_VERSION
 
-class DeejaydProtocol(LineReceiver):
+class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydMainJSONRPC):
+    NOT_FOUND = 8001
+    FAILURE = 8002
+    delimiter = 'ENDJSON\n'
 
     def __init__(self, deejayd_core, protocol_manager):
-        self.delimiter = "ENDXML\n"
+        super(DeejaydProtocol, self).__init__()
         self.MAX_LENGTH = 40960
+        self.subHandlers = {}
         self.deejayd_core = deejayd_core
         self.manager = protocol_manager
 
     def connectionMade(self):
-        from deejayd import __version__
-        self.cmdFactory = CommandFactory(self.deejayd_core)
         self.send_buffer("OK DEEJAYD %s protocol %d\n" %
-                         (__version__, DEEJAYD_PROTOCOL_VERSION, ),
-                         xml=False)
+                         (__version__, DEEJAYD_PROTOCOL_VERSION, ))
 
     def connectionLost(self, reason=ConnectionDone):
         self.manager.close_signals(self)
@@ -52,21 +56,40 @@ class DeejaydProtocol(LineReceiver):
         line = line.strip("\r")
         # DEBUG Informations
         log.debug(line)
+        print line
 
-        remoteCmd = self.cmdFactory.createCmdFromXML(line)
-        remoteCmd.register_connector(self)
-        rsp = remoteCmd.execute()
-        self.send_buffer(rsp)
+        need_to_close = False
+        try:
+            parsed = loads_request(line)
+            args, functionPath = parsed['params'], parsed["method"]
+            function = self._getFunction(functionPath)
+            if parsed["method"] == "close":
+                # close the connection after send answer
+                need_to_close = True
+        except Fault, f:
+            try: id = parsed["id"]
+            except:
+                id = None
+            ans = JSONRPCResponse(f, id)
+        else:
+            try: result = function(*args)
+            except Exception, ex:
+                if not isinstance(ex, Fault):
+                    log.err(str_encode(traceback.format_exc()))
+                    result = Fault(self.FAILURE, _("error, see deejayd log"))
+                else:
+                    result = ex
+            ans = JSONRPCResponse(result, parsed["id"])
 
-        if 'close' in remoteCmd.commands:
+        self.send_buffer(ans.dumps()+self.delimiter)
+        if need_to_close:
             self.transport.loseConnection()
 
-    def send_buffer(self, buf, xml=True):
+    def send_buffer(self, buf):
         if isinstance(buf, unicode):
             buf = buf.encode("utf-8")
         self.transport.write(buf)
-        if xml:
-            self.transport.write(self.delimiter)
+        print buf
         log.debug(buf)
 
     def lineLengthExceeded(self, line):
@@ -95,6 +118,9 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def buildProtocol(self, addr):
         p = self.protocol(self.deejayd_core, self)
+        p = deejayd_protocol.build_protocol(self.deejayd_core, p)
+        # set specific signal subhandler
+        p = deejayd_protocol.set_signal_subhandler(self.deejayd_core, p)
         p.factory = self
         return p
 
@@ -128,7 +154,8 @@ class DeejaydFactory(protocol.ServerFactory):
     def sig_bcast_to_clients(self, signal):
         interested_clients = self.signaled_clients[signal.get_name()]
         if len(interested_clients) > 0:
-            xml_sig = xmlbuilders.DeejaydXMLSignal(signal)
+            j_sig = DeejaydJSONSignal(signal)
+            ans = JSONRPCResponse(j_sig.dump(), None).dumps()
             for client in interested_clients:
                 # http://twistedmatrix.com/pipermail/twisted-python/2007-August/015905.html
                 # says : "Don't call reactor methods from any thread except the
@@ -136,84 +163,6 @@ class DeejaydFactory(protocol.ServerFactory):
                 # unpredictable results and generally be broken."
                 # This is the "why" of this weird call instead of a simple
                 # client.send_buffer(xml_sig.to_xml()).
-                reactor.callFromThread(client.send_buffer, xml_sig.to_xml())
-
-
-class CommandFactory:
-
-    def __init__(self, deejayd_core=None):
-        self.deejayd_core = deejayd_core
-
-    def tree_from_line(self, line):
-        return ET.fromstring(line)
-
-    def createCmdFromXML(self,line):
-        queueCmd = commandsXML.queueCommands(self.deejayd_core)
-
-        try: xml_tree = self.tree_from_line(line)
-        except:
-            queueCmd.addCommand('parsing error', commandsXML.UnknownCommand, [])
-        else:
-            cmds = xml_tree.findall("command")
-            for cmd in cmds:
-                (cmdName,cmdClass,args) = self.parseXMLCommand(cmd)
-                queueCmd.addCommand(cmdName,cmdClass,args)
-
-        return queueCmd
-
-    def __encode_arg(self, arg):
-        # only accept argument encoded to utf-8
-        return str_encode(arg is not None and arg or "")
-
-    def __parse_filter(self, xml_filter):
-        filter_xml_name = xml_filter.tag
-        if filter_xml_name in NAME2BASIC.keys():
-            filter_class = NAME2BASIC[filter_xml_name]
-            return filter_class(xml_filter.attrib['tag'], xml_filter.text)
-        elif filter_xml_name in NAME2COMPLEX.keys():
-            filter_class = NAME2COMPLEX[filter_xml_name]
-            filter_list = [self.__parse_filter(f) for f in xml_filter]
-            return filter_class(*filter_list)
-        else:
-            raise ValueError('Unknwown filter type %s' % filter_xml_name)
-
-    def parseXMLCommand(self,cmd):
-        cmdName = cmd.attrib["name"]
-        args = {}
-        for arg in cmd.findall("arg"):
-            name = arg.attrib["name"]
-            type = arg.attrib["type"]
-            if type == "simple":
-                try: value = self.__encode_arg(arg.text)
-                except UnicodeError:
-                    continue
-            elif type == "multiple":
-                value = []
-                for val in arg.findall("value"):
-                    try: value.append(self.__encode_arg(val.text))
-                    except UnicodeError:
-                        continue
-            elif type == "filter":
-                try:
-                    if len(arg) != 1:
-                        raise ValueError('Only one filter allowed in arg')
-                    value = self.__parse_filter(arg[0])
-                except ValueError, ex:
-                    return (str(ex), commandsXML.UnknownCommand, {})
-            elif type == "sort":
-                value = []
-                for val in arg.findall("sortitem"):
-                    try:
-                        tag = self.__encode_arg(val.attrib["tag"])
-                        direction = self.__encode_arg(val.attrib["direction"])
-                        value.append((tag, direction))
-                    except UnicodeError:
-                        continue
-            args[name] = value
-
-        if cmdName in commandsXML.commands.keys():
-            return (cmdName, commandsXML.commands[cmdName], args)
-        else: return (cmdName,commandsXML.UnknownCommand,{})
-
+                reactor.callFromThread(client.send_buffer, ans+client.delimiter)
 
 # vim: ts=4 sw=4 expandtab

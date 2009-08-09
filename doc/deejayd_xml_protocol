@@ -164,7 +164,7 @@ Expected return value : ''`['dict']`''
 Set player options "name" to "value" for mode "source",
            Available options are :
            * playorder (inorder, onemedia, random or random-weighted)
-           * repeat (0 or 1)
+           * repeat (0 or 1) 
 
 Arguments :
   * {{{source}}} (Mandatory) : string
@@ -175,13 +175,27 @@ Expected return value : ''`['ack']`''
 
 
 
+==== `ping` ====
+
+Does nothing, just replies with an acknowledgement that the
+        command was received
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`['ack']`''
+
+
+
 ==== `setRating` ====
 
 Set rating of media file with ids equal to media_id
+        for library 'type' 
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
   * {{{value}}} (Mandatory) : int
+  * {{{type}}} (Optional) : string
 
 Expected return value : ''`['ack']`''
 
@@ -219,6 +233,17 @@ Arguments :
   * ''This command does not accept any argument.''
 
 Expected return value : ''`['dict']`''
+
+
+
+==== `close` ====
+
+Close the connection with the server
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`['ack']`''
 
 
 
@@ -993,7 +1018,7 @@ Create recorded playlist. The answer consist on
           * pl_id : id of the created playlist
           * name : name of the created playlist
           * type : type of the created playlist
-
+          
 
 Arguments :
   * {{{name}}} (Mandatory) : string
@@ -1074,7 +1099,7 @@ Get properties of a magic playlist
           * limit-sort-value: when limit is active sort playlist with this tag
           * limit-sort-direction: sort direction for limit
             (ascending or descending)
-
+          
 
 Arguments :
   * {{{pl_id}}} (Mandatory) : int

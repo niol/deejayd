@@ -121,15 +121,9 @@ class DeejaydMediaList(DeejaydAnswer):
     def __init__(self):
         DeejaydAnswer.__init__(self)
         self.medias = []
-        self.total_length = None
         self.filter = None
         self.sort = None
-
-    def set_total_length(self, length):
-        self.total_length = length
-
-    def get_total_length(self):
-        return self.total_length
+        self.media_type = None
 
     def add_media(self, media):
         self.medias.append(media)
@@ -142,18 +136,28 @@ class DeejaydMediaList(DeejaydAnswer):
         self.medias = medias
 
     def is_magic(self):
+        self.get_contents()
         return self.filter != None
+
+    def set_media_type(self, media_type):
+        self.media_type = media_type
+
+    def get_media_type(self):
+        self.get_contents()
+        return self.media_type
 
     def set_filter(self, filter):
         self.filter = filter
 
     def get_filter(self):
+        self.get_contents()
         return self.filter
 
     def set_sort(self, sort):
         self.sort = sort
 
     def get_sort(self):
+        self.get_contents()
         return self.sort
 
 

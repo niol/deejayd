@@ -24,7 +24,7 @@ from deejayd.rpc import *
 
 
 def loads_request(string, **kws):
-    err = Fault(NOT_WELLFORMED_ERROR, _("Bad json-rpc request"))
+    err = Fault(NOT_WELLFORMED_ERROR, "Bad json-rpc request")
 
     try: unmarshalled = json.loads(string, **kws)
     except ValueError:
@@ -38,12 +38,17 @@ def loads_request(string, **kws):
     raise err
 
 def loads_response(string, **kws):
-    unmarshalled = json.loads(string, **kws)
-    if (isinstance(unmarshalled, dict) and
-        unmarshalled.has_key('fault')):
-        raise Fault(unmarshalled['faultCode'],
-            unmarshalled['faultString'])
-    return unmarshalled
+    err = Fault(NOT_WELLFORMED_ERROR, "Bad json-rpc response")
+
+    try: ans = json.loads(string, **kws)
+    except ValueError:
+        raise err
+
+    for key in ("error", "result", "id"):
+        if key not in ans:
+            raise err
+    return ans
+
 
 def Parse_json_filter(json_filter):
     try:
@@ -61,7 +66,7 @@ def Parse_json_filter(json_filter):
             raise TypeError
     except (KeyError, TypeError):
         raise Fault(NOT_WELLFORMED_ERROR,\
-                _("Bad filter argument for this json-rpc request"))
+                "Bad filter argument for this json-rpc request")
 
     return filter
 

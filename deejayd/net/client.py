@@ -25,13 +25,14 @@ from cStringIO import StringIO
 from Queue import Queue, Empty
 
 import deejayd.interfaces
-from deejayd.interfaces import DeejaydError, DeejaydKeyValue
-from deejayd.net.xmlbuilders import DeejaydXMLCommand
-from deejayd.net.xmlparsers import DeejaydXMLAnswerParser
+from deejayd.interfaces import DeejaydError, DeejaydKeyValue, DeejaydSignal
+from deejayd.rpc import Fault
+from deejayd.rpc.jsonbuilders import JSONRPCRequest, Get_json_filter
+from deejayd.rpc.jsonparsers import loads_response, Parse_json_filter
 from __init__ import DEEJAYD_PROTOCOL_VERSION
 
 
-MSG_DELIMITER = 'ENDXML\n'
+MSG_DELIMITER = 'ENDJSON\n'
 MAX_BANNER_LENGTH = 50
 
 
@@ -42,7 +43,13 @@ class DeejaydAnswer(deejayd.interfaces.DeejaydAnswer):
         self.answer_received = threading.Event()
         self.callbacks = []
         self.server = server
-        self.originating_command = 'unknown'
+        self.id = None
+
+    def set_id(self, id):
+        self.id = id
+
+    def get_id(self):
+        return self.id
 
     def wait(self):
         self.answer_received.wait()
@@ -71,12 +78,6 @@ class DeejaydAnswer(deejayd.interfaces.DeejaydAnswer):
         self.wait()
         for cb in self.callbacks:
             cb(self)
-
-    def set_originating_command(self, cmd):
-        self.originating_command = cmd
-
-    def get_originating_command(self):
-        return self.originating_command
 
 
 class DeejaydKeyValue(DeejaydAnswer, deejayd.interfaces.DeejaydKeyValue):
@@ -120,19 +121,15 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
         self.__name = name
 
     def get(self, first=0, length=-1):
-        cmd = DeejaydXMLCommand('recordedPlaylistInfo')
-        cmd.add_simple_arg('playlist_id', self.__pl_id)
-        cmd.add_simple_arg('first', first)
+        params = [self.__pl_id, first]
         if length != -1:
-            cmd.add_simple_arg('length', length)
-        ans = DeejaydMediaList(self)
+            params.append(length)
+        cmd = JSONRPCRequest('recpls.get', params)
+        ans = DeejaydMediaList(self.server)
         return self.server._send_command(cmd, ans)
 
     def __add(self, values, type):
-        cmd = DeejaydXMLCommand('staticPlaylistAdd')
-        cmd.add_simple_arg('playlist_id', self.__pl_id)
-        cmd.add_simple_arg('type', type)
-        cmd.add_multiple_arg('values', values)
+        cmd = JSONRPCRequest('recpls.staticAdd', [self.__pl_id, values, type])
         return self.server._send_command(cmd)
 
     def add_songs(self, song_ids):
@@ -150,41 +147,35 @@ class DeejaydMagicPlaylist(deejayd.interfaces.DeejaydMagicPlaylist):
         self.__name = name
 
     def get(self, first=0, length=-1):
-        cmd = DeejaydXMLCommand('recordedPlaylistInfo')
-        cmd.add_simple_arg('playlist_id', self.__pl_id)
-        cmd.add_simple_arg('first', first)
+        params = [self.__pl_id, first]
         if length != -1:
-            cmd.add_simple_arg('length', length)
-        ans = DeejaydMediaList(self)
+            params.append(length)
+        cmd = JSONRPCRequest('recpls.get', params)
+        ans = DeejaydMediaList(self.server)
         return self.server._send_command(cmd, ans)
 
     def add_filter(self, filter):
-        cmd = DeejaydXMLCommand('magicPlaylistAddFilter')
-        cmd.add_simple_arg('playlist_id', self.__pl_id)
-        cmd.add_filter_arg('filter', filter)
+        jfilter = Get_json_filter(filter).dump()
+        cmd = JSONRPCRequest('recpls.magicAddFilter', [self.__pl_id, jfilter])
         return self.server._send_command(cmd)
 
     def remove_filter(self, filter):
-        cmd = DeejaydXMLCommand('magicPlaylistRemoveFilter')
-        cmd.add_simple_arg('playlist_id', self.__pl_id)
-        cmd.add_filter_arg('filter', filter)
+        jfilter = Get_json_filter(filter).dump()
+        cmd = JSONRPCRequest('recpls.magicRemoveFilter',\
+                [self.__pl_id, jfilter])
         return self.server._send_command(cmd)
 
     def clear_filters(self):
-        cmd = DeejaydXMLCommand('magicPlaylistClearFilter')
-        cmd.add_simple_arg('playlist_id', self.__pl_id)
+        cmd = JSONRPCRequest('recpls.magicClearFilter', [self.__pl_id])
         return self.server._send_command(cmd)
 
     def get_properties(self):
-        cmd = DeejaydXMLCommand('magicPlaylistGetProperties')
-        cmd.add_simple_arg('playlist_id', self.__pl_id)
+        cmd = JSONRPCRequest('recpls.magicGetProperties', [self.__pl_id])
         return self.server._send_command(cmd, DeejaydKeyValue())
 
     def set_property(self, key, value):
-        cmd = DeejaydXMLCommand('magicPlaylistSetProperty')
-        cmd.add_simple_arg('playlist_id', self.__pl_id)
-        cmd.add_simple_arg('key', key)
-        cmd.add_simple_arg('value', value)
+        cmd = JSONRPCRequest('recpls.magicSetProperty',\
+                [self.__pl_id, key, value])
         return self.server._send_command(cmd)
 
 
@@ -194,29 +185,26 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
         self.server = server
 
     def get(self, first = 0, length = None):
-        cmd = DeejaydXMLCommand('webradioList')
-        cmd.add_simple_arg('first', first)
+        params = [first]
         if length != None:
-            cmd.add_simple_arg('length', length)
+            params.append(length)
+        cmd = JSONRPCRequest('webradio.get', params)
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
     def add_webradio(self, name, urls):
-        cmd = DeejaydXMLCommand('webradioAdd')
-        cmd.add_simple_arg('name', name)
         # FIXME : Provision for the future where one webradio may have multiple
         # urls.
         # cmd.add_multiple_arg('url', urls)
-        cmd.add_simple_arg('url', urls)
+        cmd = JSONRPCRequest('webradio.add', [name, urls])
         return self.server._send_command(cmd)
 
     def delete_webradios(self, wr_ids):
-        cmd = DeejaydXMLCommand('webradioRemove')
-        cmd.add_multiple_arg('id', wr_ids)
+        cmd = JSONRPCRequest('webradio.remove', [wr_ids])
         return self.server._send_command(cmd)
 
     def clear(self):
-        cmd = DeejaydXMLCommand('webradioClear')
+        cmd = JSONRPCRequest('webradio.clear', [])
         return self.server._send_command(cmd)
 
 
@@ -226,47 +214,44 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
         self.server = server
 
     def get(self, first = 0, length = None):
-        cmd = DeejaydXMLCommand('queueInfo')
-        cmd.add_simple_arg('first', first)
+        params = [first]
         if length != None:
-            cmd.add_simple_arg('length', length)
+            params.append(length)
+        cmd = JSONRPCRequest('queue.get', params)
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
-    def __add(self, values, type, pos):
-        cmd = DeejaydXMLCommand('queueAdd')
-        cmd.add_simple_arg('type', type)
-        cmd.add_multiple_arg('values', values)
+    def add_songs(self, song_ids, pos = None):
+        params = [song_ids]
         if pos != None:
-            cmd.add_simple_arg('pos', pos)
+            params.append(pos)
+        cmd = JSONRPCRequest('queue.addIds', params)
         return self.server._send_command(cmd)
 
-    def add_songs(self, song_ids, pos = None):
-        return self.__add(song_ids, "id", pos)
-
     def add_paths(self, paths, pos = None):
-        return self.__add(paths, "path", pos)
+        params = [paths]
+        if pos != None:
+            params.append(pos)
+        cmd = JSONRPCRequest('queue.addPath', params)
+        return self.server._send_command(cmd)
 
     def load_playlists(self, pl_ids, pos = None):
-        cmd = DeejaydXMLCommand('queueLoadPlaylist')
-        cmd.add_multiple_arg('id', pl_ids)
+        params = [pl_ids]
         if pos != None:
-            cmd.add_simple_arg('pos', pos)
+            params.append(pos)
+        cmd = JSONRPCRequest('queue.loads', params)
         return self.server._send_command(cmd)
 
     def clear(self):
-        cmd = DeejaydXMLCommand('queueClear')
+        cmd = JSONRPCRequest('queue.clear', [])
         return self.server._send_command(cmd)
 
     def move(self, ids, new_pos):
-        cmd = DeejaydXMLCommand('queueMove')
-        cmd.add_multiple_arg('ids', ids)
-        cmd.add_simple_arg('new_pos', new_pos)
+        cmd = JSONRPCRequest('queue.move', [ids, new_pos])
         return self.server._send_command(cmd)
 
     def del_songs(self, ids):
-        cmd = DeejaydXMLCommand('queueRemove')
-        cmd.add_multiple_arg('id', ids)
+        cmd = JSONRPCRequest('queue.remove', [ids])
         return self.server._send_command(cmd)
 
 
@@ -276,56 +261,52 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
         self.server = server
 
     def get(self, first = 0, length = None):
-        cmd = DeejaydXMLCommand('playlistInfo')
-        cmd.add_simple_arg('first', first)
+        params = [first]
         if length != None:
-            cmd.add_simple_arg('length', length)
+            params.append(length)
+        cmd = JSONRPCRequest('playlist.get', params)
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
     def save(self, name):
-        cmd = DeejaydXMLCommand('playlistSave')
-        cmd.add_simple_arg('name', name)
+        cmd = JSONRPCRequest('playlist.save', [name])
         return self.server._send_command(cmd, DeejaydKeyValue())
 
-    def __add(self, values, type, pos):
-        cmd = DeejaydXMLCommand('playlistAdd')
-        cmd.add_simple_arg('type', type)
-        cmd.add_multiple_arg('values', values)
+    def add_songs(self, song_ids, pos = None):
+        params = [song_ids]
         if pos != None:
-            cmd.add_simple_arg('pos', pos)
+            params.append(pos)
+        cmd = JSONRPCRequest('playlist.addIds', params)
         return self.server._send_command(cmd)
 
-    def add_songs(self, song_ids, pos = None):
-        return self.__add(song_ids, "id", pos)
-
     def add_paths(self, paths, pos = None):
-        return self.__add(paths, "path", pos)
+        params = [paths]
+        if pos != None:
+            params.append(pos)
+        cmd = JSONRPCRequest('playlist.addPath', params)
+        return self.server._send_command(cmd)
 
     def loads(self, pl_ids, pos = None):
-        cmd = DeejaydXMLCommand('playlistLoad')
-        cmd.add_multiple_arg('id', pl_ids)
+        params = [pl_ids]
         if pos != None:
-            cmd.add_simple_arg('pos', pos)
+            params.append(pos)
+        cmd = JSONRPCRequest('playlist.loads', params)
         return self.server._send_command(cmd)
 
     def move(self, ids, new_pos):
-        cmd = DeejaydXMLCommand('playlistMove')
-        cmd.add_multiple_arg('ids', ids)
-        cmd.add_simple_arg('new_pos', new_pos)
+        cmd = JSONRPCRequest('playlist.move', [ids, new_pos])
         return self.server._send_command(cmd)
 
     def shuffle(self):
-        cmd = DeejaydXMLCommand('playlistShuffle')
+        cmd = JSONRPCRequest('playlist.shuffle', [])
         return self.server._send_command(cmd)
 
     def clear(self):
-        cmd = DeejaydXMLCommand('playlistClear')
+        cmd = JSONRPCRequest('playlist.clear', [])
         return self.server._send_command(cmd)
 
     def del_songs(self, ids):
-        cmd = DeejaydXMLCommand('playlistRemove')
-        cmd.add_multiple_arg('id', ids)
+        cmd = JSONRPCRequest('playlist.remove', [ids])
         return self.server._send_command(cmd)
 
 
@@ -335,56 +316,49 @@ class DeejaydPanel(deejayd.interfaces.DeejaydPanel):
         self.server = server
 
     def get(self, first = 0, length = None):
-        cmd = DeejaydXMLCommand('panelInfo')
-        cmd.add_simple_arg('first', first)
+        params = [first]
         if length != None:
-            cmd.add_simple_arg('length', length)
-        ans = DeejaydMediaList(self.server)
-        return self.server._send_command(cmd, ans)
-
-    def get_active_list(self):
-        cmd = DeejaydXMLCommand('panelActiveList')
-        ans = DeejaydList(self.server)
+            params.append(length)
+        cmd = JSONRPCRequest('panel.get', params)
+        ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
     def get_panel_tags(self):
-        cmd = DeejaydXMLCommand('panelTags')
+        cmd = JSONRPCRequest('panel.tags', [])
         return self.server._send_command(cmd, DeejaydList())
 
+    def get_active_list(self):
+        cmd = JSONRPCRequest('panel.activeList', [])
+        return self.server._send_command(cmd, DeejaydKeyValue())
+
     def set_active_list(self, type, pl_id=""):
-        cmd = DeejaydXMLCommand('panelSetActiveList')
-        cmd.add_simple_arg('type', type)
-        cmd.add_simple_arg('value', pl_id)
+        cmd = JSONRPCRequest('panel.setActiveList', [type, pl_id])
         return self.server._send_command(cmd)
 
     def set_panel_filters(self, tag, values):
-        cmd = DeejaydXMLCommand('panelSetFilter')
-        cmd.add_simple_arg('tag', tag)
-        cmd.add_multiple_arg('values', values)
+        if not isinstance(values, list):
+            values = [values]
+        cmd = JSONRPCRequest('panel.setFilter', [tag, values])
         return self.server._send_command(cmd)
 
     def remove_panel_filters(self, tag):
-        cmd = DeejaydXMLCommand('panelRemoveFilter')
-        cmd.add_simple_arg('tag', tag)
+        cmd = JSONRPCRequest('panel.removeFilter', [tag])
         return self.server._send_command(cmd)
 
     def clear_panel_filters(self):
-        cmd = DeejaydXMLCommand('panelClearFilter')
+        cmd = JSONRPCRequest('panel.clearFilter', [])
         return self.server._send_command(cmd)
 
     def set_search_filter(self, tag, value):
-        cmd = DeejaydXMLCommand('panelSetSearch')
-        cmd.add_simple_arg('tag', tag)
-        cmd.add_simple_arg('value', value)
+        cmd = JSONRPCRequest('panel.setSearch', [tag, value])
         return self.server._send_command(cmd)
 
     def clear_search_filter(self):
-        cmd = DeejaydXMLCommand('panelClearSearch')
+        cmd = JSONRPCRequest('panel.clearSearch', [])
         return self.server._send_command(cmd)
 
     def set_sorts(self, sort):
-        cmd = DeejaydXMLCommand('panelSort')
-        cmd.add_sort_arg('sort', sort)
+        cmd = JSONRPCRequest('panel.setSort', [sort])
         return self.server._send_command(cmd)
 
 
@@ -394,26 +368,23 @@ class DeejaydVideo(deejayd.interfaces.DeejaydVideo):
         self.server = server
 
     def get(self, first = 0, length = None):
-        cmd = DeejaydXMLCommand('videoInfo')
-        cmd.add_simple_arg('first', first)
+        params = [first]
         if length != None:
-            cmd.add_simple_arg('length', length)
+            params.append(length)
+        cmd = JSONRPCRequest('video.get', params)
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
     def set(self, value, type = "directory"):
-        cmd = DeejaydXMLCommand('setvideo')
-        cmd.add_simple_arg('value', value)
-        cmd.add_simple_arg('type', type)
+        cmd = JSONRPCRequest('video.set', [value, type])
         return self.server._send_command(cmd)
 
     def set_sorts(self, sort):
-        cmd = DeejaydXMLCommand('videoSort')
-        cmd.add_sort_arg('sort', sort)
+        cmd = JSONRPCRequest('video.sort', [sort])
         return self.server._send_command(cmd)
 
 
-class ConnectError(Exception):
+class ConnectError(deejayd.interfaces.DeejaydError):
     pass
 
 
@@ -424,10 +395,6 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         deejayd.interfaces.DeejaydCore.__init__(self)
 
         self.expected_answers_queue = Queue()
-        self.answer_parser = DeejaydXMLAnswerParser(\
-                                              self.expected_answers_queue.get,
-                                              self._dispatch_signal)
-
         self.connected = False
 
     def connect(self, host, port, ignore_version=False):
@@ -465,7 +432,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
         return protocol_version == DEEJAYD_PROTOCOL_VERSION
 
     def _send_simple_command(self, cmd_name):
-        cmd = DeejaydXMLCommand(cmd_name)
+        cmd = JSONRPCRequest(cmd_name, [])
         return self._send_command(cmd)
 
     def get_recorded_playlist(self, pl_id):
@@ -489,85 +456,94 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
     def ping(self):
         return self._send_simple_command('ping')
 
-    def play_toggle(self):
-        return self._send_simple_command('playToggle')
-
-    def stop(self):
-        return self._send_simple_command('stop')
-
-    def previous(self):
-        return self._send_simple_command('previous')
-
-    def next(self):
-        return self._send_simple_command('next')
-
-    def seek(self, pos):
-        cmd = DeejaydXMLCommand('seek')
-        cmd.add_simple_arg('time', pos)
-        return self._send_command(cmd)
-
-    def get_current(self):
-        cmd = DeejaydXMLCommand('current')
-        return self._send_command(cmd,DeejaydMediaList())
-
-    def go_to(self, id, id_type = None, source = None):
-        cmd = DeejaydXMLCommand('goto')
-        cmd.add_simple_arg('id', id)
-        if id_type:
-            cmd.add_simple_arg('id_type', id_type)
-        if source:
-            cmd.add_simple_arg('source', source)
-        return self._send_command(cmd)
-
-    def set_volume(self, volume_value):
-        cmd = DeejaydXMLCommand('setVolume')
-        cmd.add_simple_arg('volume', volume_value)
-        return self._send_command(cmd)
-
-    def set_option(self, source, option_name, option_value):
-        cmd = DeejaydXMLCommand('setOption')
-        cmd.add_simple_arg('source', source)
-        cmd.add_simple_arg('option_name', option_name)
-        cmd.add_simple_arg('option_value', option_value)
-        return self._send_command(cmd)
-
-    def set_mode(self, mode_name):
-        cmd = DeejaydXMLCommand('setMode')
-        cmd.add_simple_arg('mode', mode_name)
+    def set_mode(self, mode):
+        cmd = JSONRPCRequest('setmode', [mode])
         return self._send_command(cmd)
 
     def get_mode(self):
-        cmd = DeejaydXMLCommand('getMode')
+        cmd = JSONRPCRequest('availablemodes', [])
         return self._send_command(cmd, DeejaydKeyValue())
 
-    def set_player_option(self, name, value):
-        cmd = DeejaydXMLCommand('setPlayerOption')
-        cmd.add_simple_arg('option_name', name)
-        cmd.add_simple_arg('option_value', value)
+    def set_option(self, source, option_name, option_value):
+        cmd = JSONRPCRequest('setOption', [source, option_name, option_value])
         return self._send_command(cmd)
 
     def get_status(self):
-        cmd = DeejaydXMLCommand('status')
+        cmd = JSONRPCRequest('status', [])
         return self._send_command(cmd, DeejaydKeyValue())
 
     def get_stats(self):
-        cmd = DeejaydXMLCommand('stats')
+        cmd = JSONRPCRequest('stats', [])
         return self._send_command(cmd, DeejaydKeyValue())
 
+    def play_toggle(self):
+        return self._send_simple_command('player.playToggle')
+
+    def stop(self):
+        return self._send_simple_command('player.stop')
+
+    def previous(self):
+        return self._send_simple_command('player.previous')
+
+    def next(self):
+        return self._send_simple_command('player.next')
+
+    def seek(self, pos, relative = False):
+        cmd = JSONRPCRequest('player.seek', [pos, relative])
+        return self._send_command(cmd)
+
+    def get_current(self):
+        cmd = JSONRPCRequest('player.current', [])
+        return self._send_command(cmd,DeejaydMediaList())
+
+    def go_to(self, id, id_type = "id", source = None):
+        params = [id, id_type]
+        if source:
+            params.append(source)
+        cmd = JSONRPCRequest('player.goto', params)
+        return self._send_command(cmd)
+
+    def set_volume(self, volume):
+        cmd = JSONRPCRequest('player.setVolume', [volume])
+        return self._send_command(cmd)
+
+    def set_player_option(self, name, value):
+        cmd = JSONRPCRequest('player.setPlayerOption', [name, value])
+        return self._send_command(cmd)
+
     def update_audio_library(self, force = False):
-        cmd = DeejaydXMLCommand('audioUpdate')
-        cmd.add_boolean_arg('force', force)
+        cmd = JSONRPCRequest('audiolib.update', [force])
         return self._send_command(cmd, DeejaydKeyValue())
 
     def update_video_library(self, force = False):
-        cmd = DeejaydXMLCommand('videoUpdate')
-        cmd.add_boolean_arg('force', force)
+        cmd = JSONRPCRequest('videolib.update', [force])
         return self._send_command(cmd, DeejaydKeyValue())
 
+    def get_audio_dir(self, dir = ""):
+        ans = DeejaydFileList(self)
+        cmd = JSONRPCRequest('audiolib.getDir', [dir])
+        return self._send_command(cmd, ans)
+
+    def audio_search(self, pattern, type = 'all'):
+        ans = DeejaydMediaList(self)
+        cmd = JSONRPCRequest('audiolib.search', [pattern, type])
+        return self._send_command(cmd, ans)
+
+    def mediadb_list(self, tag, filter):
+        params = [tag]
+        if filter is not None:
+            params.append(Get_json_filter(filter).dump())
+        ans = DeejaydList(self)
+        cmd = JSONRPCRequest('audiolib.taglist', params)
+        return self._send_command(cmd, ans)
+
+    def get_video_dir(self, dir = ""):
+        ans = DeejaydFileList(self)
+        cmd = JSONRPCRequest('videolib.getDir', [dir])
+        return self._send_command(cmd, ans)
+
     def create_recorded_playlist(self, name, type):
-        cmd = DeejaydXMLCommand('playlistCreate')
-        cmd.add_simple_arg('name', name)
-        cmd.add_simple_arg('type', type)
+        cmd = JSONRPCRequest('recpls.create', [name, type])
         return self._send_command(cmd, DeejaydKeyValue())
 
     def get_recorded_playlist(self, pl_id, name, type):
@@ -577,61 +553,62 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
             return DeejaydMagicPlaylist(self, pl_id, name)
 
     def erase_playlist(self, pl_ids):
-        cmd = DeejaydXMLCommand('playlistErase')
-        cmd.add_multiple_arg('ids', pl_ids)
+        cmd = JSONRPCRequest('recpls.erase', [pl_ids])
         return self._send_command(cmd)
 
     def get_playlist_list(self):
-        cmd = DeejaydXMLCommand('playlistList')
+        cmd = JSONRPCRequest('recpls.list', [])
         return self._send_command(cmd,DeejaydMediaList())
 
     def set_media_rating(self, media_ids, rating, type = "audio"):
-        cmd = DeejaydXMLCommand('setMediaRating')
-        cmd.add_multiple_arg('ids', media_ids)
-        cmd.add_simple_arg('value', rating)
-        cmd.add_simple_arg('type', type)
+        cmd = JSONRPCRequest('setRating', [media_ids, rating, type])
         return self._send_command(cmd)
-
-    def get_audio_dir(self,dir = None):
-        cmd = DeejaydXMLCommand('getAudioDir')
-        if dir != None:
-            cmd.add_simple_arg('directory', dir)
-        ans = DeejaydFileList(self)
-        return self._send_command(cmd, ans)
-
-    def audio_search(self, search_txt, type = 'all'):
-        cmd = DeejaydXMLCommand('audioSearch')
-        cmd.add_simple_arg('type', type)
-        cmd.add_simple_arg('txt', search_txt)
-        ans = DeejaydMediaList(self)
-        return self._send_command(cmd, ans)
-
-    def get_video_dir(self,dir = None):
-        cmd = DeejaydXMLCommand('getVideoDir')
-        if dir != None:
-            cmd.add_simple_arg('directory', dir)
-        ans = DeejaydFileList(self)
-        return self._send_command(cmd, ans)
 
     def dvd_reload(self):
-        cmd = DeejaydXMLCommand('dvdLoad')
-        return self._send_command(cmd)
+        return self._send_simple_command('dvd.reload')
 
     def get_dvd_content(self):
-        cmd = DeejaydXMLCommand('dvdInfo')
+        cmd = JSONRPCRequest('dvd.get', [])
         ans = DeejaydDvdInfo(self)
         return self._send_command(cmd, ans)
 
-    def mediadb_list(self, tag, filter):
-        cmd = DeejaydXMLCommand('mediadbList')
-        cmd.add_simple_arg('tag', tag)
-        if filter is not None:
-            cmd.add_filter_arg('filter', filter)
-        ans = DeejaydList(self)
-        return self._send_command(cmd, ans)
+    def _build_answer(self, msg):
+        try: msg = loads_response(msg)
+        except Fault, f:
+            raise DeejaydError("JSONRPC error - %s - %s" % (f.code, f.message))
+        else:
+            if msg["id"] is None: # it is a notification
+                result =  msg["result"]["answer"]
+                type = msg["result"]["type"]
+                if type == 'signal':
+                    signal = DeejaydSignal(result["name"], result["attrs"])
+                    return self._dispatch_signal(signal)
+            else:
+                expected_answer = self.expected_answers_queue.get()
+                if expected_answer.id != msg["id"]:
+                    raise DeejaydError("Bad id for JSON server answer")
 
-    def _build_answer(self, string_io):
-        return self.answer_parser.parse(string_io)
+                if msg["error"] is not None: # an error is returned
+                    expected_answer.set_error("Deejayd Server Error - %s - %s"\
+                            % (msg["error"]["code"], msg["error"]["message"]))
+                else:
+                    result =  msg["result"]["answer"]
+                    type = msg["result"]["type"]
+                    if type == 'fileAndDirList':
+                        expected_answer.set_rootdir(result["root"])
+                        expected_answer.set_files(result["files"])
+                        expected_answer.set_directories(result["directories"])
+                    elif type == 'mediaList':
+                        expected_answer.set_medias(result["medias"])
+                        expected_answer.set_media_type(result["media_type"])
+                        if "filter" in result and result["filter"] is not None:
+                            expected_answer.set_filter(\
+                                    Parse_json_filter(result["filter"]))
+                        if "sort" in result:
+                            expected_answer.set_sort(result["sort"])
+                    elif type == 'dvdInfo':
+                        pass
+                    expected_answer._received(result)
 
 
 class DeejayDaemonSync(_DeejayDaemon):
@@ -684,14 +661,13 @@ class DeejayDaemonSync(_DeejayDaemon):
         # Set a default answer by default
         if expected_answer == None:
             expected_answer = DeejaydAnswer(self)
+        expected_answer.set_id(cmd.get_id())
         self.expected_answers_queue.put(expected_answer)
 
-        self._sendmsg(cmd.to_xml())
+        self._sendmsg(cmd.dumps())
 
         rawmsg = self._readmsg()
-        try: self._build_answer(StringIO(rawmsg))
-        except SyntaxError:
-            raise DeejaydError("Unable to parse server answer : %s" % rawmsg)
+        self._build_answer(rawmsg)
         return expected_answer
 
     def disconnect(self):
@@ -781,7 +757,7 @@ class _DeejaydSocket(asyncore.dispatcher):
     def handle_error(self):
         t, v, tb = sys.exc_info()
         assert tb # Must have a traceback
-        if self.state != "xml_protocol":
+        if self.state != "json_protocol":
             # error appears when we try to connect
             for cb in self.__connect_callback:
                 cb(False,str(v))
@@ -790,7 +766,7 @@ class _DeejaydSocket(asyncore.dispatcher):
         self.state = "connected"
 
     def handle_close(self):
-        if self.state == "xml_protocol":
+        if self.state == "json_protocol":
             self.__error_callbacks('disconnected')
         self.state = "disconnected"
         self.close()
@@ -810,17 +786,20 @@ class _DeejaydSocket(asyncore.dispatcher):
                 try:
                     versions = self.deejayd._version_from_banner(banner_line)
                 except ValueError:
-                    cb(False, 'Initial version dialog with server failed')
+                    for cb in self.__connect_callback:
+                        cb(False, 'Initial version dialog with server failed')
                 if self.ignore_version\
                 or self.deejayd._version_is_supported(versions):
-                    self.state = 'xml_protocol'
+                    self.state = 'json_protocol'
                     # now we are sure to be connected
                     for cb in self.__connect_callback:
                         cb(True,"")
                 else:
-                    cb(False, 'This server version protocol is not handled by this client version')
+                    for cb in self.__connect_callback:
+                        cb(False,\
+          'This server version protocol is not handled by this client version')
 
-        elif self.state == "xml_protocol":
+        elif self.state == "json_protocol":
             msg_chunk = self.recv(256)
             # socket.recv returns an empty string if the socket is closed, so
             # catch this.
@@ -849,17 +828,17 @@ class _DeejaydSocket(asyncore.dispatcher):
             raise AttributeError
 
     def answer_received(self,rawmsg):
-        try: self.deejayd._build_answer(StringIO(rawmsg))
-        except SyntaxError:
+        try: self.deejayd._build_answer(rawmsg)
+        except DeejaydError:
             self.__error_callbacks("Unable to parse server answer : %s" %rawmsg)
             self.close()
 
     def handle_write(self):
         cmd = self.deejayd.command_queue.get()
-        self.send(cmd.to_xml()+MSG_DELIMITER)
+        self.send(cmd.dumps()+MSG_DELIMITER)
 
     def writable(self):
-        if self.state != "xml_protocol": return False
+        if self.state != "json_protocol": return False
         return not self.deejayd.command_queue.empty()
 
 
@@ -973,6 +952,7 @@ class DeejayDaemonAsync(_DeejayDaemon):
         # Set a default answer by default
         if expected_answer == None:
             expected_answer = DeejaydAnswer(self)
+        expected_answer.set_id(cmd.get_id())
 
         self.expected_answers_queue.put(expected_answer)
         self.command_queue.put(cmd)
@@ -980,9 +960,7 @@ class DeejayDaemonAsync(_DeejayDaemon):
 
     def subscribe(self, signal_name, callback):
         if signal_name not in self.get_subscriptions().values():
-            cmd = DeejaydXMLCommand('setSubscription')
-            cmd.add_simple_arg('signal', signal_name)
-            cmd.add_simple_arg('value', 1)
+            cmd = JSONRPCRequest('signal.setSubscription', [signal_name, True])
             ans = self._send_command(cmd)
             # Subscription are sync because there should be a way to tell the
             # client that subscription failed.
@@ -998,9 +976,7 @@ class DeejayDaemonAsync(_DeejayDaemon):
         _DeejayDaemon.unsubscribe(self, sub_id)
         # Remote unsubscribe if last local subscription laid off
         if signal_name not in self.get_subscriptions().values():
-            cmd = DeejaydXMLCommand('setSubscription')
-            cmd.add_simple_arg('signal', signal_name)
-            cmd.add_simple_arg('value', 0)
+            cmd = JSONRPCRequest('signal.setSubscription', [signal_name, False])
             ans = self._send_command(cmd)
             # As subscription, unsubscription is sync.
             ans.get_contents()

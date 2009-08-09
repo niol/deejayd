@@ -373,7 +373,7 @@ class InterfaceTests:
         ans = self.deejayd.get_video_dir(dir)
         self.assertEqual(len(video_list), len(ans.get_files()))
         # sort videolist content
-        sort = [("rating", "ascending")]
+        sort = [["rating", "ascending"]]
         video_obj.set_sorts(sort).get_contents()
         video_list = video_obj.get()
         self.assertEqual(video_list.get_sort(), sort)

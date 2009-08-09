@@ -63,6 +63,7 @@ def returns_answer(type, params = None):
                 res = func(*__args, **__kw)
             except DeejaydError, txt:
                 raise Fault(INTERNAL_ERROR, str(txt))
+            if type == "ack": res = True
             return {"type": type, "answer": res}
 
         returns_answer_func.__name__ = func.__name__
@@ -96,6 +97,17 @@ class _DeejaydJSONRPC(JSONRPC):
 
 
 class DeejaydMainJSONRPC(_DeejaydJSONRPC):
+
+    @returns_answer('ack')
+    def jsonrpc_ping(self):
+        """Does nothing, just replies with an acknowledgement that the
+        command was received"""
+        return None
+
+    @returns_answer('ack')
+    def jsonrpc_close(self):
+        """Close the connection with the server"""
+        return None
 
     @returns_answer('ack', params=[{"name":"mode","type":"string","req":True}])
     def jsonrpc_setmode(self, mode):
@@ -181,10 +193,12 @@ class DeejaydMainJSONRPC(_DeejaydJSONRPC):
 
     @returns_answer('ack', params=[\
             {"name":"ids", "type":"int-list", "req": True},\
-            {"name": "value", "type": "int", "req": True} ])
-    def jsonrpc_setRating(self, ids, value):
-        """Set rating of media file with ids equal to media_id"""
-        self.deejayd_core.set_media_rating(ids, value, objanswer=False)
+            {"name": "value", "type": "int", "req": True},\
+            {"name": "type", "type": "string", "req": False}])
+    def jsonrpc_setRating(self, ids, value, type = "audio"):
+        """Set rating of media file with ids equal to media_id
+        for library 'type' """
+        self.deejayd_core.set_media_rating(ids, value, type, objanswer=False)
 
 #
 # Player commands
@@ -296,7 +310,7 @@ class _DeejaydLibraryJSONRPC(_DeejaydJSONRPC):
         func = getattr(self.deejayd_core, "%s_search"%self.type)
         medias = func(pattern, type, objanswer=False)
         type = self.type == "audio" and "song" or self.type
-        return {"type": type, "medias": medias}
+        return {"media_type": type, "medias": medias}
 
 class DeejaydAudioLibraryJSONRPC(_DeejaydLibraryJSONRPC):
     type = "audio"
@@ -739,6 +753,29 @@ def build_protocol(deejayd, main = None):
 
     return main
 
+
+#############################################################################
+## part specific for jsonrpc over a TCP connecion : signals
+#############################################################################
+class DeejaydSignalJSONRPC(_DeejaydJSONRPC):
+
+    def __init__(self, deejayd, connector):
+        super(DeejaydSignalJSONRPC, self).__init__(deejayd)
+        self.connector = connector
+
+    @returns_answer('ack', [{"name":"signal", "type":"string", "req":True},\
+            {"name":"value", "type":"bool", "req":True}])
+    def jsonrpc_setSubscription(self, signal, value):
+        """Set subscribtion to "signal" signal notifications to "value"
+        which should be 0 or 1."""
+        if value is False:
+            self.connector.set_not_signaled(signal)
+        elif value is True:
+            self.connector.set_signaled(signal)
+
+def set_signal_subhandler(deejayd, protocol):
+    protocol.putSubHandler("signal", DeejaydSignalJSONRPC(deejayd, protocol))
+    return protocol
 
 #############################################################################
 ## part specific for jsonrpc over a http connecion

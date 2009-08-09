@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-DEEJAYD_PROTOCOL_VERSION = 2
+DEEJAYD_PROTOCOL_VERSION = 3
 
 
 # vim: ts=4 sw=4 expandtab
