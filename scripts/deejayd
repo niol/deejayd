@@ -229,7 +229,6 @@ if __name__ == "__main__":
 
     # webui service
     if config.getboolean("webui","enabled"):
-        from deejayd import webui
         try:
             from deejayd import webui
         except ImportError:

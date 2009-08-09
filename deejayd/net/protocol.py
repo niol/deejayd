@@ -56,7 +56,6 @@ class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydMainJSONRPC):
         line = line.strip("\r")
         # DEBUG Informations
         log.debug(line)
-        print line
 
         need_to_close = False
         try:
@@ -89,7 +88,6 @@ class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydMainJSONRPC):
         if isinstance(buf, unicode):
             buf = buf.encode("utf-8")
         self.transport.write(buf)
-        print buf
         log.debug(buf)
 
     def lineLengthExceeded(self, line):
