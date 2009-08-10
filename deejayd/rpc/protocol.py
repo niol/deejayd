@@ -84,6 +84,28 @@ Answer type : %(answer)s %(p_desc)s""" % {\
                 "answer": type,\
                 "p_desc": p_desc,\
             }
+        # build signature
+        p_dict = {
+                "list": "array",
+                "int-list": "array",
+                "dict": "object",
+                "string": "string",
+                "int": "number",
+                "bool": "boolean",
+                "filter": "object",
+                "sort": "array",
+        }
+        if params:
+            signature = []
+            opt_params = [p_dict[p["type"]] for p in params if not p["req"]]
+            for i in range(len(opt_params)+1):
+                s = ["object"]
+                s.extend([p_dict[p["type"]] for p in params if p["req"]])
+                s.extend(opt_params[:i])
+                signature.append(s)
+        else:
+            signature = [["object"]]
+        returns_answer_func.signature = signature
 
         return returns_answer_func
 
