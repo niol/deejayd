@@ -94,7 +94,24 @@ an method argument or receive with an answer. An example is given here.
 }`
 }}}
 
-== Available Commands ==
+=== Signal Objects ===
+
+Signal is available for TCP connection only.
+Signal object has been serialized in a specific way to be send to client.
+An example is given here.
+{{{
+`{
+    "answer": {
+        "attrs": {
+            "attr1": "value1"
+        },
+        "name": "signal_name"
+    },
+    "type": "signal"
+}`
+}}}
+
+== Common Available Commands ==
 
 
 === `General Commands` ===
@@ -1129,6 +1146,64 @@ Arguments :
 
 Expected return value : ''`['ack']`''
 
+
+
+
+== Http Specific Commands ==
+
+
+=== `Commands specific to webui` ===
+
+==== `web.buildPanel` ====
+
+ Build panel list 
+
+Arguments :
+  * {{{updated_tag}}} (Optional) : string
+
+Expected return value : ''`['dict']`''
+
+
+
+==== `web.writecover` ====
+
+ Record requested cover in the temp directory 
+
+Arguments :
+  * {{{mid}}} (Mandatory) : int
+
+Expected return value : ''`['dict']`''
+
+
+
+==== `web.buildSourceRDF` ====
+
+ Build rdf file with current medialist of the specified mode
+            return dict with specific informations (like a description)
+
+Arguments :
+  * {{{mode}}} (Mandatory) : string
+
+Expected return value : ''`['dict']`''
+
+
+
+
+== TCP Specific Commands ==
+
+
+=== `Signal subscription commands` ===
+
+==== `signal.setSubscription` ====
+
+Set subscribtion to "signal" signal notifications to "value"
+        which should be 0 or 1.
+
+Arguments :
+  * {{{signal}}} (Mandatory) : string
+  * {{{value}}} (Mandatory) : bool
+
+Expected return value : ''`['ack']`''
 
 
 

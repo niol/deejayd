@@ -32,9 +32,10 @@ t.install()
 
 from twisted.python import reflect
 from deejayd.mediafilters import *
+from deejayd.interfaces import DeejaydSignal
 from deejayd.rpc import protocol
 from deejayd.rpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
-                                     Get_json_filter
+                                     Get_json_filter, DeejaydJSONSignal
 
 common_request = [
         {"prefix": "", "desc": "General Commands",\
@@ -161,6 +162,7 @@ Expected return value : ''`%(rvalues)s`''
     def build(self, sections):
         filter = And(Equals("artist", "artist_name"),\
                 Or(Contains("genre", "Rock"), Higher("Rating", "4")))
+        signal = DeejaydSignal("signal_name", {"attr1": "value1"})
         return """= deejayd - JSON-RPC Protocol =
 
 Deejayd protocol follows JSON-RPC 1.0 specification available
@@ -185,15 +187,42 @@ an method argument or receive with an answer. An example is given here.
 `%(filter)s`
 }}}
 
-== Available Commands ==
+=== Signal Objects ===
+
+Signal is available for TCP connection only.
+Signal object has been serialized in a specific way to be send to client.
+An example is given here.
+{{{
+`%(signal)s`
+}}}
+
+== Common Available Commands ==
 
 %(commands)s
 
+== Http Specific Commands ==
+
+%(web_commands)s
+
+== TCP Specific Commands ==
+
+%(tcp_commands)s
 """ % {
         "cmd_format": self.commandDoc(),
         "answer": self.answerDoc(),
         "filter": Get_json_filter(filter).to_pretty_json(),
-        "commands": "\n\n".join(map(self.formatSectionDoc, sections))
+        "commands": "\n\n".join(map(self.formatSectionDoc, sections)),
+        "signal": DeejaydJSONSignal(signal).to_pretty_json(),
+        "web_commands": self.formatSectionDoc({\
+                "prefix": "web.",
+                "desc": "Commands specific to webui",
+                "object": protocol.DeejaydWebJSONRPC,
+            }),
+        "tcp_commands": self.formatSectionDoc({\
+                "prefix": "signal.",
+                "desc": "Signal subscription commands",
+                "object": protocol.DeejaydSignalJSONRPC,
+            }),
     }
 
 if __name__ == "__main__":
