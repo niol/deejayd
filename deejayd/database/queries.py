@@ -153,13 +153,19 @@ class DatabaseQueries(object):
 
     @query_decorator("none")
     def remove_dirlink(self, cursor, dirlink, type="audio"):
-        query = "DELETE FROM library_dir WHERE name = %s AND lib_type = %s"
+        query = "DELETE FROM library_dir\
+                 WHERE name = %s AND\
+                       type = 'dirlink' AND\
+                       lib_type = %s"
         cursor.execute(query, (dirlink, type))
 
     @query_decorator("fetchall")
     def get_dir_list(self, cursor, dir, t = "audio"):
         query = "SELECT DISTINCT id, name FROM library_dir\
-            WHERE name LIKE %s AND lib_type = %s ORDER BY name"
+                 WHERE name LIKE %s AND\
+                       lib_type = %s AND\
+                       type = 'directory'\
+                 ORDER BY name"
         term = dir == unicode("") and u"%%" or dir+unicode("/%%")
         cursor.execute(query, (term, t))
 
