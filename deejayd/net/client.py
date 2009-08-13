@@ -980,4 +980,56 @@ class DeejayDaemonAsync(_DeejayDaemon):
             ans.get_contents()
 
 
+#
+# HTTP client
+#
+import httplib
+
+class DeejayDaemonHTTP(_DeejayDaemon):
+    """HTTP deejayd client library."""
+
+    def __init__(self, host, port = 6880):
+        _DeejayDaemon.__init__(self)
+        self.host = host
+        self.port = port
+        self.connection = httplib.HTTPConnection(self.host, self.port)
+        self.hdrs = {
+                "Content-Type": "text/json",
+                "Accept": "text/json",
+                "User-Agent": "Deejayd Client Library",
+            }
+
+    def test_compatibility(self):
+        # get server informations
+        cmd = JSONRPCRequest('serverInfo', [])
+        ans = self._send_command(cmd, DeejaydKeyValue())
+
+        versions = (ans["server_version"], ans["protocol_version"])
+        return self._version_is_supported(versions)
+
+    def _send_command(self, cmd, expected_answer = None):
+        # Set a default answer by default
+        if expected_answer == None:
+            expected_answer = DeejaydAnswer(self)
+        expected_answer.set_id(cmd.get_id())
+        self.expected_answers_queue.put(expected_answer)
+
+        # send http request
+        try: self.connection.request("POST", "/rpc/", cmd.to_json(), self.hdrs)
+        except Exception, ex:
+            raise DeejaydError("Unable to send request : %s" % str(ex))
+
+        # get answer
+        response = self.connection.getresponse()
+        if response.status != 200:
+            raise DeejaydError("Server return error code %d - %s" %\
+                    (response.status, response.reason))
+        rawmsg = response.read()
+        self._build_answer(rawmsg)
+        return expected_answer
+
+    # No subscription for the http client
+    def subscribe(self, signal_name, callback): raise NotImplementedError
+    def unsubscribe(self, sub_id): raise NotImplementedError
+
 # vim: ts=4 sw=4 expandtab
