@@ -27,13 +27,12 @@ from deejayd.interfaces import DeejaydSignal
 from deejayd.mediafilters import *
 from deejayd.ui import log
 from deejayd.utils import str_encode
-from deejayd.rpc import Fault
+from deejayd.rpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.rpc.jsonparsers import loads_request
 from deejayd.rpc.jsonbuilders import JSONRPCResponse, DeejaydJSONSignal
 from deejayd.rpc import protocol as deejayd_protocol
-from __init__ import DEEJAYD_PROTOCOL_VERSION
 
-class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydMainJSONRPC):
+class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydTcpJSONRPC):
     NOT_FOUND = 8001
     FAILURE = 8002
     delimiter = 'ENDJSON\n'

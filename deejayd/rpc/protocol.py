@@ -18,13 +18,16 @@
 
 import os, re
 
+from deejayd import __version__
 from deejayd.interfaces import DeejaydError
 from deejayd.mediafilters import *
-from deejayd.rpc import Fault, INTERNAL_ERROR, INVALID_METHOD_PARAMS
+from deejayd.rpc import Fault, INTERNAL_ERROR, INVALID_METHOD_PARAMS,\
+                        DEEJAYD_PROTOCOL_VERSION
 from deejayd.rpc.jsonbuilders import Get_json_filter
 from deejayd.rpc.jsonparsers import Parse_json_filter
 from deejayd.rpc.jsonrpc import JSONRPC, addIntrospection
 from deejayd.rpc.rdfbuilder import modes as rdf_modes
+
 
 def returns_answer(type, params = None):
 
@@ -118,17 +121,12 @@ class _DeejaydJSONRPC(JSONRPC):
         self.deejayd_core = deejayd
 
 
-class DeejaydMainJSONRPC(_DeejaydJSONRPC):
+class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
 
     @returns_answer('ack')
     def jsonrpc_ping(self):
         """Does nothing, just replies with an acknowledgement that the
         command was received"""
-        return None
-
-    @returns_answer('ack')
-    def jsonrpc_close(self):
-        """Close the connection with the server"""
         return None
 
     @returns_answer('ack', params=[{"name":"mode","type":"string","req":True}])
@@ -221,6 +219,26 @@ class DeejaydMainJSONRPC(_DeejaydJSONRPC):
         """Set rating of media file with ids equal to media_id
         for library 'type' """
         self.deejayd_core.set_media_rating(ids, value, type, objanswer=False)
+
+
+class DeejaydTcpJSONRPC(_DeejaydMainJSONRPC):
+
+    @returns_answer('ack')
+    def jsonrpc_close(self):
+        """Close the connection with the server"""
+        return None
+
+class DeejaydHttpJSONRPC(_DeejaydMainJSONRPC):
+
+    @returns_answer('dict')
+    def jsonrpc_serverInfo(self):
+        """Return deejayd server informations :
+  * server_version : deejayd server version
+  * protocol_version : protocol version"""
+        return {
+            "server_version": __version__,
+            "protocol_version": DEEJAYD_PROTOCOL_VERSION
+        }
 
 #
 # Player commands
@@ -752,8 +770,7 @@ class DeejaydRecordedPlaylistJSONRPC(_DeejaydJSONRPC):
         pls.set_property(key, value, objanswer=False)
 
 
-def build_protocol(deejayd, main = None):
-    main = main or DeejaydMainJSONRPC(deejayd)
+def build_protocol(deejayd, main):
     # add introspection
     addIntrospection(main)
 

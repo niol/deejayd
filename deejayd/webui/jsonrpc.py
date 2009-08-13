@@ -63,7 +63,7 @@ class Handler:
         self.result.errback(NotImplementedError("Implement run() in subclasses"))
 
 
-class JSONRPC(resource.Resource, deejayd_protocol.DeejaydMainJSONRPC):
+class JSONRPC(resource.Resource, deejayd_protocol.DeejaydHttpJSONRPC):
     """A resource that implements JSON-RPC.
 
     Methods published can return JSON-RPC serializable results, Faults,

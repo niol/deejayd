@@ -25,10 +25,9 @@ from Queue import Queue, Empty
 
 import deejayd.interfaces
 from deejayd.interfaces import DeejaydError, DeejaydKeyValue, DeejaydSignal
-from deejayd.rpc import Fault
+from deejayd.rpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.rpc.jsonbuilders import JSONRPCRequest, Get_json_filter
 from deejayd.rpc.jsonparsers import loads_response, Parse_json_filter
-from __init__ import DEEJAYD_PROTOCOL_VERSION
 
 
 MSG_DELIMITER = 'ENDJSON\n'
