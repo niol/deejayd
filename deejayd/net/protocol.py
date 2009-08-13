@@ -80,7 +80,7 @@ class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydMainJSONRPC):
                     result = ex
             ans = JSONRPCResponse(result, parsed["id"])
 
-        self.send_buffer(ans.dumps()+self.delimiter)
+        self.send_buffer(ans.to_json()+self.delimiter)
         if need_to_close:
             self.transport.loseConnection()
 
@@ -153,7 +153,7 @@ class DeejaydFactory(protocol.ServerFactory):
         interested_clients = self.signaled_clients[signal.get_name()]
         if len(interested_clients) > 0:
             j_sig = DeejaydJSONSignal(signal)
-            ans = JSONRPCResponse(j_sig.dump(), None).dumps()
+            ans = JSONRPCResponse(j_sig.dump(), None).to_json()
             for client in interested_clients:
                 # http://twistedmatrix.com/pipermail/twisted-python/2007-August/015905.html
                 # says : "Don't call reactor methods from any thread except the

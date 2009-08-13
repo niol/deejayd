@@ -47,7 +47,7 @@ class _DeejaydJSON:
         return '\n'.join([l.rstrip() for l in  s.splitlines()])
 
 
-class JSONRPCRequest:
+class JSONRPCRequest(_DeejaydJSON):
     """
     Build JSON-RPC Request
     """
@@ -59,21 +59,14 @@ class JSONRPCRequest:
         if not notification:
             self.id = id or int(time.time())
 
-    def __build_obj(self):
+    def _build_obj(self):
         return {"method": self.method, "params": self.params, "id": self.id}
 
     def get_id(self):
         return self.id
 
-    def dumps(self):
-        return json.dumps(self.__build_obj(), cls=JSONRPCEncoder)
 
-    def to_pretty_json(self):
-        s = json.dumps(self.__build_obj(), sort_keys=True, indent=4)
-        return '\n'.join([l.rstrip() for l in  s.splitlines()])
-
-
-class JSONRPCResponse:
+class JSONRPCResponse(_DeejaydJSON):
     """
     Build JSON-RPC Response
     """
@@ -81,7 +74,7 @@ class JSONRPCResponse:
         self.id = id
         self.result = result
 
-    def __build_obj(self):
+    def _build_obj(self):
         result, error = self.result, None
         if isinstance(self.result, Fault):
             error = {"code": self.result.code, "message": str(self.result)}
@@ -89,22 +82,18 @@ class JSONRPCResponse:
 
         return {"result": result, "error": error, "id": self.id}
 
-    def dumps(self):
+    def to_json(self):
         try:
-            return json.dumps(self.__build_obj(), cls=JSONRPCEncoder)
+            return json.dumps(self._build_obj(), cls=JSONRPCEncoder)
         except TypeError, ex:
             error = {"code": NOT_WELLFORMED_ERROR, "message": str(ex)}
             obj = {"result": None, "error": error, "id": self.id}
             return json.dumps(obj)
 
-    def to_pretty_json(self):
-        s = json.dumps(self.__build_obj(), sort_keys=True, indent=4)
-        return '\n'.join([l.rstrip() for l in  s.splitlines()])
-
 #
 # JSON filter serializer
 #
-class JSONFilter:
+class JSONFilter(_DeejaydJSON):
 
     def __init__(self, filter):
         self.filter = filter
@@ -112,16 +101,12 @@ class JSONFilter:
     def _get_value(self):
         raise NotImplementedError
 
-    def dump(self):
+    def _build_obj(self):
         return {
             "type": self.type,
             "id": self.filter.get_identifier(),
             "value": self._get_value(),
             }
-
-    def to_pretty_json(self):
-        s = json.dumps(self.dump(), sort_keys=True, indent=4)
-        return '\n'.join([l.rstrip() for l in  s.splitlines()])
 
 class JSONBasicFilter(JSONFilter):
     type = "basic"

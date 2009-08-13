@@ -114,7 +114,7 @@ class JSONRPC(resource.Resource, deejayd_protocol.DeejaydMainJSONRPC):
         if isinstance(result, Handler):
             result = result.result
         # build json answer
-        ans = JSONRPCResponse(result, id).dumps()
+        ans = JSONRPCResponse(result, id).to_json()
         request.setHeader("content-length", str(len(ans)))
         request.write(ans)
         request.finish()

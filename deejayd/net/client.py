@@ -663,7 +663,7 @@ class DeejayDaemonSync(_DeejayDaemon):
         expected_answer.set_id(cmd.get_id())
         self.expected_answers_queue.put(expected_answer)
 
-        self._sendmsg(cmd.dumps())
+        self._sendmsg(cmd.to_json())
 
         rawmsg = self._readmsg()
         self._build_answer(rawmsg)
@@ -834,7 +834,7 @@ class _DeejaydSocket(asyncore.dispatcher):
 
     def handle_write(self):
         cmd = self.deejayd.command_queue.get()
-        self.send(cmd.dumps()+MSG_DELIMITER)
+        self.send(cmd.to_json()+MSG_DELIMITER)
 
     def writable(self):
         if self.state != "json_protocol": return False
