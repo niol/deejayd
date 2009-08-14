@@ -49,7 +49,7 @@ def build(config):
                     </description>
                 </vbox>
                 <vbox align="center">
-                    <html:a href="static/deejayd-webui.xpi">
+                    <html:a href="../static/deejayd-webui.xpi">
                         %(clickHere)s
                     </html:a>
                 </vbox>
@@ -63,7 +63,7 @@ def build(config):
                     </description>
                 </vbox>
                 <vbox align="center">
-                    <html:a href="static/deejayd-webui.xpi">
+                    <html:a href="../static/deejayd-webui.xpi">
                         %(clickHere)s
                     </html:a>
                 </vbox>
