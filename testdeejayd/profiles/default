@@ -1,0 +1,31 @@
+[general]
+log = info
+activated_modes = playlist,panel,webradio,video,dvd
+video_support = yes
+fullscreen = no
+replaygain = yes
+media_backend = xine
+
+[net]
+enabled = yes
+port = 23344
+bind_addresses = localhost
+
+[webui]
+enabled = yes
+port = 23380
+bind_addresses = localhost
+refresh = 0
+
+[database]
+db_type = sqlite
+
+[mediadb]
+filesystem_charset = utf-8
+
+[panel]
+panel_tags = genre,artist,album
+
+[xine]
+audio_output = none
+video_output = none

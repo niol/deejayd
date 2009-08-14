@@ -16,10 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys
+import sys, os, shutil
 import unittest
 from testdeejayd.databuilder import TestData, TestAudioCollection,\
                                     TestVideoCollection
+from testdeejayd.server import TestServer
+from deejayd.ui.config import DeejaydConfig
 
 
 class DeejaydTest(unittest.TestCase):
@@ -88,5 +90,59 @@ class TestCaseWithAudioAndVideoData(DeejaydTest):
     def tearDown(self):
         self.test_audiodata.cleanLibraryDirectoryTree()
         self.test_videodata.cleanLibraryDirectoryTree()
+
+
+class TestCaseWithServer(TestCaseWithAudioAndVideoData):
+    profiles = "default"
+
+    def setUp(self):
+        super(TestCaseWithServer, self).setUp()
+        # create custom configuration files
+        current_dir = os.path.dirname(__file__)
+        DeejaydConfig.custom_conf = os.path.join(current_dir,\
+                "profiles", self.profiles)
+        config = DeejaydConfig()
+        config.set('mediadb', 'music_directory',\
+                self.test_audiodata.getRootDir())
+        config.set('mediadb', 'video_directory',\
+                self.test_videodata.getRootDir())
+        self.dbfilename = None
+        if config.get('database', 'db_type') == 'sqlite':
+            self.dbfilename = '/tmp/testdeejayddb-' +\
+                    self.testdata.getRandomString() + '.db'
+            config.set('database', 'db_name', self.dbfilename)
+
+        self.tmp_dir = None
+        if config.getboolean("webui","enabled"):
+            # define a tmp directory
+            self.tmp_dir = '/tmp/testdeejayd-tmpdir-'+\
+                    self.testdata.getRandomString()
+            config.set("webui", "tmp_dir", self.tmp_dir)
+
+        # record config to be used by the test server
+        self.conf = os.path.join(current_dir, "profiles", "current")
+        fp = open(self.conf, "w")
+        config.write(fp)
+        fp.close()
+        os.chmod(self.conf, 0644)
+
+        # launch server
+        self.testserver = TestServer(self.conf)
+        self.testserver.start()
+
+        # record port for clients
+        self.serverPort = config.getint('net', 'port')
+        self.webServerPort = config.getint('webui', 'port')
+
+    def tearDown(self):
+        self.testserver.stop()
+        if self.dbfilename is not None: # Clean up temporary db file
+            os.unlink(self.dbfilename)
+        if self.tmp_dir is not None:
+             try: shutil.rmtree(self.tmp_dir)
+             except (IOError, OSError):
+                 pass
+        os.unlink(self.conf)
+        super(TestCaseWithServer, self).tearDown()
 
 # vim: ts=4 sw=4 expandtab

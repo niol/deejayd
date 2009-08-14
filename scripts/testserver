@@ -22,61 +22,84 @@
 This is a deejayd test server executable
 """
 
-import sys, os
+import sys, os, traceback
 
-from twisted.internet import reactor
 from twisted.python import log
 import twisted.internet.error
+
+
+# argv[1] should be configuration files
+if len(sys.argv) != 2:
+    sys.exit('Incorrect invocation')
+
+log.startLogging(open('/tmp/testdeejayd.log', 'a'))
+
+from deejayd.ui.config import DeejaydConfig
+conf_file = sys.argv[1]
+if os.path.isfile(conf_file):
+    DeejaydConfig.custom_conf = conf_file
+else:
+    os.write(2, 'stopped\n')
+    sys.exit()
+config = DeejaydConfig()
 
 # init translation
 from deejayd.ui.i18n import DeejaydTranslations
 t = DeejaydTranslations()
 t.install()
 
-from deejayd.ui.config import DeejaydConfig
-from deejayd.net.protocol import DeejaydFactory
-from deejayd.core import DeejayDaemonCore
-
-# argv[1] should be port
-# argv[2] should be music dir
-# argv[3] should be video dir
-# argv[4] should be db filename
-if len(sys.argv) != 5:
-    sys.exit('Incorrect invocation')
-
-port = sys.argv[1]
-music_dir = sys.argv[2]
-video_dir = sys.argv[3]
-dbfilename = sys.argv[4]
-
-log.startLogging(open('/tmp/testdeejayd.log', 'a'))
-
-config = DeejaydConfig()
-config.set('general', 'activated_modes', 'playlist,panel,webradio,video,dvd')
-config.set('net', 'port', port)
-config.set('mediadb', 'music_directory', music_dir)
-config.set('mediadb', 'video_directory', video_dir)
-config.set('database', 'db_type', 'sqlite')
-config.set('database', 'db_name', dbfilename)
-config.set('general', 'video_support', 'yes')
-config.set('general', 'media_backend', 'xine')
-config.set('xine','audio_output',"none")
-config.set('xine','video_output',"none")
+# instanciate reactor
+media_backend = config.get("general", "media_backend")
+if media_backend == "gstreamer":
+    # Install glib2 reactor
+    from twisted.internet import glib2reactor
+    glib2reactor.install()
+from twisted.internet import reactor
 
 # start core
-deejayd_core = DeejayDaemonCore(config)
-deejayd_core.update_audio_library(sync = True, objanswer = False)
-deejayd_core.update_video_library(sync = True, objanswer = False)
-
-factory = DeejaydFactory(deejayd_core)
+from deejayd.core import DeejayDaemonCore
 try:
-    reactor.listenTCP(int(port), factory)
-except twisted.internet.error.CannotListenError:
-    # This is to avoid locking the test suite when the server used in the
-    # previous test has not stopped listenning.
-    deejayd_core.close()
+    deejayd_core = DeejayDaemonCore(config)
+    deejayd_core.update_audio_library(sync = True, objanswer = False)
+    deejayd_core.update_video_library(sync = True, objanswer = False)
+except Exception, ex:
+    try: deejayd_core.close()
+    except:
+        pass
+    from deejayd.utils import str_encode
+    err = "Unable to launch deejayd core, see traceback for more details"
+    log.msg(err)
+    log.msg(str_encode(traceback.format_exc()))
     os.write(2, 'stopped\n')
     sys.exit()
+
+# net protocol
+if config.getboolean("net","enabled"):
+    from deejayd.net.protocol import DeejaydFactory
+    factory = DeejaydFactory(deejayd_core)
+    try:
+        reactor.listenTCP(config.getint("net","port"), factory)
+    except twisted.internet.error.CannotListenError:
+        # This is to avoid locking the test suite when the server used in the
+        # previous test has not stopped listenning.
+        deejayd_core.close()
+        os.write(2, 'stopped\n')
+        sys.exit()
+# http protocol
+if config.getboolean("webui","enabled"):
+    from deejayd import webui
+    htdocs_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),\
+            '..', 'data', 'htdocs'))
+    site = webui.init(deejayd_core, config,
+                '/tmp/testdeejayd-webui.log', htdocs_dir)
+    try:
+        reactor.listenTCP(config.getint("webui","port"), site)
+    except twisted.internet.error.CannotListenError:
+        # This is to avoid locking the test suite when the server used in the
+        # previous test has not stopped listenning.
+        deejayd_core.close()
+        os.write(2, 'stopped\n')
+        sys.exit()
 
 def printReady():
     os.write(2, 'ready\n')

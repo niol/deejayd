@@ -21,20 +21,17 @@ Tools to create a test server.
 """
 import os, signal, os.path, sys, subprocess
 
-logfile = '/tmp/testdeejayd.log'
-if os.path.isfile(logfile):
-    os.unlink(logfile)
+logfiles = ['/tmp/testdeejayd.log', '/tmp/testdeejayd-webui.log']
+for logfile in logfiles:
+    if os.path.isfile(logfile):
+        os.unlink(logfile)
 
 
 class TestServer:
     """Implements a server ready for testing."""
 
-    def __init__(self, testServerPort, musicDir, videoDir, dbfilename):
-        self.testServerPort = testServerPort
-        self.musicDir = musicDir
-        self.videoDir = videoDir
-        self.dbfilename = dbfilename
-
+    def __init__(self, conf_file):
+        self.conf_file = conf_file
         self.serverExecRelPath = 'scripts/testserver'
         self.srcpath = self.findSrcPath()
 
@@ -62,12 +59,8 @@ class TestServer:
             sys.exit("The test server executable '%s' is not executable."\
                      % serverExec)
 
-        args = [serverExec, str(self.testServerPort),
-                            self.musicDir,
-                            self.videoDir,
-                            self.dbfilename]
-        env = {}
-        env['PYTHONPATH'] = self.srcpath
+        args = [serverExec, self.conf_file]
+        env = {'PYTHONPATH': self.srcpath, "PATH": os.getenv('PATH')}
         self.__serverProcess = subprocess.Popen(args = args,
                                                 env = env,
                                                 stderr = subprocess.PIPE,
@@ -87,9 +80,6 @@ class TestServer:
 
         # Wait for the process to finish
         self.__serverProcess.wait()
-
-        # Clean up temporary db file
-        os.unlink(self.dbfilename)
 
 
 # vim: ts=4 sw=4 expandtab
