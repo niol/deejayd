@@ -39,7 +39,7 @@ from deejayd.rpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
 
 common_request = [
         {"prefix": "", "desc": "General Commands",\
-                       "object": protocol.DeejaydMainJSONRPC},
+                       "object": protocol._DeejaydMainJSONRPC},
         {"prefix": "player.", "desc": "Player Commands",\
                        "object": protocol.DeejaydPlayerJSONRPC},
         {"prefix": "audiolib.", "desc": "Audio Library Commands",\
@@ -114,7 +114,7 @@ With response types equals to:
                         [section["prefix"] for i in range(len(cmds))])),
     }
 
-    def formatCommandDoc(self, cmd, prefix):
+    def formatCommandDoc(self, cmd, prefix = ""):
         args = ''
 
         command_args = cmd.params or []
@@ -202,9 +202,17 @@ An example is given here.
 
 == Http Specific Commands ==
 
+=== General Commands ===
+
+%(serverinfo_cmd)s
+
 %(web_commands)s
 
 == TCP Specific Commands ==
+
+=== General Commands ===
+
+%(close_cmd)s
 
 %(tcp_commands)s
 """ % {
@@ -223,6 +231,10 @@ An example is given here.
                 "desc": "Signal subscription commands",
                 "object": protocol.DeejaydSignalJSONRPC,
             }),
+        "serverinfo_cmd": self.formatCommandDoc(\
+                protocol.DeejaydHttpJSONRPC.jsonrpc_serverInfo),
+        "close_cmd": self.formatCommandDoc(\
+                protocol.DeejaydTcpJSONRPC.jsonrpc_close),
     }
 
 if __name__ == "__main__":

@@ -253,17 +253,6 @@ Expected return value : ''`['dict']`''
 
 
 
-==== `close` ====
-
-Close the connection with the server
-
-Arguments :
-  * ''This command does not accept any argument.''
-
-Expected return value : ''`['ack']`''
-
-
-
 
 
 === `Player Commands` ===
@@ -1151,6 +1140,21 @@ Expected return value : ''`['ack']`''
 
 == Http Specific Commands ==
 
+=== General Commands ===
+
+==== `serverInfo` ====
+
+Return deejayd server informations :
+  * server_version : deejayd server version
+  * protocol_version : protocol version
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`['dict']`''
+
+
+
 
 === `Commands specific to webui` ===
 
@@ -1190,6 +1194,19 @@ Expected return value : ''`['dict']`''
 
 
 == TCP Specific Commands ==
+
+=== General Commands ===
+
+==== `close` ====
+
+Close the connection with the server
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`['ack']`''
+
+
 
 
 === `Signal subscription commands` ===
