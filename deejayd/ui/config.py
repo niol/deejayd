@@ -28,7 +28,7 @@ class DeejaydConfig:
     def __init__(self):
 
         if DeejaydConfig.__config == None:
-            DeejaydConfig.__config = ConfigParser.ConfigParser()
+            DeejaydConfig.__config = ConfigParser.SafeConfigParser()
 
             default_config_path = os.path.abspath(os.path.dirname(__file__))
             DeejaydConfig.__config.readfp(open(default_config_path\
@@ -57,5 +57,7 @@ class DeejaydConfig:
         else:
             return bind_addresses
 
+    def write(self, fp):
+        self.__config.write(fp)
 
 # vim: ts=4 sw=4 expandtab
