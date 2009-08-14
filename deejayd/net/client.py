@@ -605,7 +605,7 @@ class _DeejayDaemon(deejayd.interfaces.DeejaydCore):
                         if "sort" in result:
                             expected_answer.set_sort(result["sort"])
                     elif type == 'dvdInfo':
-                        pass
+                        expected_answer.set_dvd_content(result)
                     expected_answer._received(result)
 
 
