@@ -60,7 +60,8 @@ class TestServer:
                      % serverExec)
 
         args = [serverExec, self.conf_file]
-        env = {'PYTHONPATH': self.srcpath, "PATH": os.getenv('PATH')}
+        env = {'PYTHONPATH': self.srcpath, "PATH": os.getenv('PATH'),\
+                'LANG': os.getenv('LANG')}
         self.__serverProcess = subprocess.Popen(args = args,
                                                 env = env,
                                                 stderr = subprocess.PIPE,
