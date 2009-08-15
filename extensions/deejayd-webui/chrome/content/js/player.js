@@ -226,7 +226,8 @@ Player.prototype =
                     player.__updateVideoOptions(current);
                 if (current.type == "webradio" && current["song-title"]) {
                     var title = current.title + " : " + current["song-title"];
-                    this.__build_label_item("title", title);
+                    var label = $("current-title");
+                    label.firstChild.data = title;
                 }
             };
             xului_ref.rpc.send("player.current", [], callback);

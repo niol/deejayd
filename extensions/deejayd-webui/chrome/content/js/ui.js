@@ -69,7 +69,7 @@ UI.prototype =
                             ui.modes.panel = new PanelMode(ui.rec_pls);
                         break;
                         case "webradio":
-                            ui.modes.wb = new WebradioMode();
+                            ui.modes.webradio = new WebradioMode();
                         break;
                         case "video":
                             ui.libraries.video = new VideoLibrary();

@@ -920,11 +920,11 @@
             <menuitem
                 class="menuitem-iconic play-action"
                 label="&play;"
-                oncommand="xului_ref.ui.modes.wb.play();"/>
+                oncommand="xului_ref.ui.modes.webradio.play();"/>
             <menuitem
                 class="menuitem-iconic remove-action"
                 label="&remove;"
-                oncommand="xului_ref.ui.modes.wb.remove();"/>
+                oncommand="xului_ref.ui.modes.webradio.remove();"/>
         </popup>
     </popupset>
 
@@ -940,14 +940,14 @@
             id="webradio-url"/>
         <button
             class="add-action"
-            oncommand="xului_ref.ui.modes.wb.add();"
+            oncommand="xului_ref.ui.modes.webradio.add();"
             label="&add;"/>
     </groupbox>
 
     <tree
         id="webradio-tree"
-        oncontextmenu="xului_ref.ui.modes.wb.showPopupMenu(event);"
-        ondblclick = "xului_ref.ui.modes.wb.play();"
+        oncontextmenu="xului_ref.ui.modes.webradio.showPopupMenu(event);"
+        ondblclick = "xului_ref.ui.modes.webradio.play();"
         enableColumnDrag="true"
         ref="http://webradio/all-content"
         datasources="rdf:null"
