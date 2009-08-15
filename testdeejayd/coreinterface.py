@@ -46,7 +46,7 @@ class InterfaceTests:
 
     def testGetMode(self):
         """Test getMode command"""
-        known_keys = ("playlist","dvd","webradio","video")
+        known_keys = ("playlist", "panel", "dvd", "webradio", "video")
         ans = self.deejayd.get_mode()
         for k in known_keys:
             self.failUnless(k in ans.get_contents().keys())
@@ -357,36 +357,44 @@ class InterfaceTests:
 
     def testVideo(self):
         """ Test video source actions """
-        video_obj = self.deejayd.get_video()
-        # choose a wrong directory
-        rand_dir = self.testdata.getRandomString()
-        ans = video_obj.set(rand_dir, "directory")
-        self.assertRaises(DeejaydError, ans.get_contents)
+        if self.video_support:
+            video_obj = self.deejayd.get_video()
+            # choose a wrong directory
+            rand_dir = self.testdata.getRandomString()
+            ans = video_obj.set(rand_dir, "directory")
+            self.assertRaises(DeejaydError, ans.get_contents)
 
-        # get contents of root dir and try to set video directory
-        ans = self.deejayd.get_video_dir()
-        dir = self.testdata.getRandomElement(ans.get_directories())
-        video_obj.set(dir, "directory").get_contents()
+            # get contents of root dir and try to set video directory
+            ans = self.deejayd.get_video_dir()
+            dir = self.testdata.getRandomElement(ans.get_directories())
+            video_obj.set(dir, "directory").get_contents()
 
-        # test videolist content
-        video_list = video_obj.get().get_medias()
-        ans = self.deejayd.get_video_dir(dir)
-        self.assertEqual(len(video_list), len(ans.get_files()))
-        # sort videolist content
-        sort = [["rating", "ascending"]]
-        video_obj.set_sorts(sort).get_contents()
-        video_list = video_obj.get()
-        self.assertEqual(video_list.get_sort(), sort)
-        # set bad sort
-        rnd_sort = [(self.testdata.getRandomString(), "ascending")]
-        ans = video_obj.set_sorts(rnd_sort)
-        self.assertRaises(DeejaydError, ans.get_contents)
+            # test videolist content
+            video_list = video_obj.get().get_medias()
+            ans = self.deejayd.get_video_dir(dir)
+            self.assertEqual(len(video_list), len(ans.get_files()))
+            # sort videolist content
+            sort = [["rating", "ascending"]]
+            video_obj.set_sorts(sort).get_contents()
+            video_list = video_obj.get()
+            self.assertEqual(video_list.get_sort(), sort)
+            # set bad sort
+            rnd_sort = [(self.testdata.getRandomString(), "ascending")]
+            ans = video_obj.set_sorts(rnd_sort)
+            self.assertRaises(DeejaydError, ans.get_contents)
 
-        # search a wrong title
-        rand = self.testdata.getRandomString()
-        video_obj.set(rand, "search").get_contents()
-        video_list = video_obj.get().get_medias()
-        self.assertEqual(len(video_list), 0)
+            # search a wrong title
+            rand = self.testdata.getRandomString()
+            video_obj.set(rand, "search").get_contents()
+            video_list = video_obj.get().get_medias()
+            self.assertEqual(len(video_list), 0)
+        else:
+            try: video_obj = self.deejayd.get_video()
+            except DeejaydError: # we test core
+                pass
+            else:
+                ans = video_obj.get()
+                self.assertRaises(DeejaydError, ans.get_medias)
 
     def testMediaRating(self):
         """Test media rating method"""
@@ -439,17 +447,21 @@ class InterfaceTests:
 
     def testVideoLibrary(self):
         """ Test request on video library """
-        # try to get contents of an unknown directory
-        rand_dir = self.testdata.getRandomString()
-        ans = self.deejayd.get_video_dir(rand_dir)
-        self.assertRaises(DeejaydError, ans.get_contents)
+        if self.video_support:
+            # try to get contents of an unknown directory
+            rand_dir = self.testdata.getRandomString()
+            ans = self.deejayd.get_video_dir(rand_dir)
+            self.assertRaises(DeejaydError, ans.get_contents)
 
-        # get contents of root dir and try to get content of a directory
-        ans = self.deejayd.get_video_dir()
-        dir = self.testdata.getRandomElement(ans.get_directories())
-        ans = self.deejayd.get_video_dir(dir)
-        files = ans.get_files()
-        self.failUnless(len(files) > 0)
+            # get contents of root dir and try to get content of a directory
+            ans = self.deejayd.get_video_dir()
+            dir = self.testdata.getRandomElement(ans.get_directories())
+            ans = self.deejayd.get_video_dir(dir)
+            files = ans.get_files()
+            self.failUnless(len(files) > 0)
+        else:
+            ans = self.deejayd.get_video_dir()
+            self.assertRaises(DeejaydError, ans.get_contents)
 
     def testSetOption(self):
         """ Test set_option commands"""
@@ -469,10 +481,11 @@ class InterfaceTests:
         status = self.deejayd.get_status().get_contents()
         self.assertEqual(status["playlistplayorder"], "random")
         # set video option
-        ans = self.deejayd.set_option("video", "repeat", "1")
-        ans.get_contents()
-        status = self.deejayd.get_status().get_contents()
-        self.assertEqual(status["videorepeat"], 1)
+        if self.video_support:
+            ans = self.deejayd.set_option("video", "repeat", "1")
+            ans.get_contents()
+            status = self.deejayd.get_status().get_contents()
+            self.assertEqual(status["videorepeat"], 1)
 
     def testAudioPlayer(self):
         """ Test player commands (play, pause,...) for audio """
@@ -517,36 +530,42 @@ class InterfaceTests:
 
     def testVideoPlayer(self):
         """ Test player commands (play, pause,...) for video """
-        video_obj = self.deejayd.get_video()
-        # set video mode
-        self.deejayd.set_mode("video").get_contents()
+        if self.video_support:
+            video_obj = self.deejayd.get_video()
+            # set video mode
+            self.deejayd.set_mode("video").get_contents()
 
-        # choose directory
-        ans = self.deejayd.get_video_dir()
-        dir = self.testdata.getRandomElement(ans.get_directories())
-        video_obj.set(dir, "directory").get_contents()
+            # choose directory
+            ans = self.deejayd.get_video_dir()
+            dir = self.testdata.getRandomElement(ans.get_directories())
+            video_obj.set(dir, "directory").get_contents()
 
-        # play video file
-        self.deejayd.play_toggle().get_contents()
-        # verify status
-        status = self.deejayd.get_status().get_contents()
-        self.assertEqual(status["state"], "play")
+            # play video file
+            self.deejayd.play_toggle().get_contents()
+            # verify status
+            status = self.deejayd.get_status().get_contents()
+            self.assertEqual(status["state"], "play")
 
-        # test set_player_option cmd
-        self.deejayd.set_player_option("av_offset", 100).get_contents()
-        ans = self.deejayd.set_player_option(self.testdata.getRandomString(),0)
-        self.assertRaises(DeejaydError, ans.get_contents)
+            # test set_player_option cmd
+            self.deejayd.set_player_option("av_offset", 100).get_contents()
+            ans = self.deejayd.set_player_option(\
+                    self.testdata.getRandomString(),0)
+            self.assertRaises(DeejaydError, ans.get_contents)
 
-        self.deejayd.stop().get_contents()
+            self.deejayd.stop().get_contents()
 
     def testDvd(self):
         """ Test dvd commands"""
-        status = self.deejayd.get_status().get_contents()
-        dvd_id = status["dvd"]
+        if self.video_support:
+            status = self.deejayd.get_status().get_contents()
+            dvd_id = status["dvd"]
 
-        self.deejayd.dvd_reload().get_contents()
-        status = self.deejayd.get_status().get_contents()
-        self.assertEqual(status["dvd"], dvd_id + 1)
+            self.deejayd.dvd_reload().get_contents()
+            status = self.deejayd.get_status().get_contents()
+            self.assertEqual(status["dvd"], dvd_id + 1)
+        else:
+            ans = self.deejayd.dvd_reload()
+            self.assertRaises(DeejaydError, ans.get_contents)
 
     def test_mediadb_list(self):
         """Test db queries for tags listing."""
@@ -611,7 +630,7 @@ class InterfaceSubscribeTests:
 
         trigger_list = ((self.deejayd.play_toggle, ()),
                         (self.deejayd.set_option, ("playlist", 'repeat', 1)),
-                        (self.deejayd.set_option, ('video', "playorder",\
+                        (self.deejayd.set_option, ('panel', "playorder",\
                                                    "random")),
                         (self.deejayd.set_volume, (51, )),
                         (self.deejayd.seek, (5, )),
@@ -730,6 +749,9 @@ class InterfaceSubscribeTests:
     def test_sub_broadcast_video_update(self):
         """Checks that video.update signals are broadcasted."""
 
+        if not self.video_support:
+            return True
+
         djvideo = self.deejayd.get_video()
         ans = self.deejayd.get_video_dir()
         dir = self.testdata.getRandomElement(ans.get_directories())
@@ -775,6 +797,8 @@ class InterfaceSubscribeTests:
 
     def test_sub_broadcast_dvd_update(self):
         """Checks that dvd.update signals are broadcasted."""
+        if not self.video_support:
+            return True
         self.generic_sub_bcast_test('dvd.update', self.deejayd.dvd_reload, ())
 
     def test_sub_broadcast_mode(self):
@@ -790,6 +814,8 @@ class InterfaceSubscribeTests:
 
     def test_sub_broadcast_mediadb_vupdate(self):
         """Checks that mediadb.vupdate signals are broadcasted."""
+        if not self.video_support:
+            return True
         # This is tested only using inotify support
         self.generic_sub_bcast_test('mediadb.vupdate',
                                     self.test_videodata.addMedia)

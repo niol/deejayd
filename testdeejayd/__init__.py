@@ -74,6 +74,7 @@ class TestCaseWithVideoData(_TestCaseWithMediaData):
 
 
 class TestCaseWithAudioAndVideoData(DeejaydTest):
+    video_support = True
 
     def setUp(self):
         super(TestCaseWithAudioAndVideoData, self).setUp()
@@ -133,6 +134,9 @@ class TestCaseWithServer(TestCaseWithAudioAndVideoData):
         # record port for clients
         self.serverPort = config.getint('net', 'port')
         self.webServerPort = config.getint('webui', 'port')
+
+        # update video_support var
+        self.video_support = config.get("general","media_backend")!="gstreamer"
 
     def tearDown(self):
         self.testserver.stop()

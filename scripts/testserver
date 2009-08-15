@@ -61,7 +61,10 @@ from deejayd.core import DeejayDaemonCore
 try:
     deejayd_core = DeejayDaemonCore(config)
     deejayd_core.update_audio_library(sync = True, objanswer = False)
-    deejayd_core.update_video_library(sync = True, objanswer = False)
+
+    activated_sources = config.getlist('general', "activated_modes")
+    if "video" in activated_sources: # video library activated
+        deejayd_core.update_video_library(sync = True, objanswer = False)
 except Exception, ex:
     try: deejayd_core.close()
     except:

@@ -1,9 +1,9 @@
 [general]
 log = info
-activated_modes = playlist,panel,webradio,video,dvd
+activated_modes = playlist,panel,webradio
 fullscreen = no
 replaygain = yes
-media_backend = xine
+media_backend = gstreamer
 
 [net]
 enabled = yes
@@ -23,8 +23,7 @@ db_type = sqlite
 filesystem_charset = utf-8
 
 [panel]
-panel_tags = genre,artist,album
+panel_tags = genre,various_artist,album
 
-[xine]
-audio_output = none
-video_output = none
+[gstreamer]
+audio_output = fake

@@ -37,6 +37,7 @@ This is the test suite launcher :
 """
 
 import sys, os, glob
+from optparse import OptionParser
 import unittest
 
 import testdeejayd
@@ -62,15 +63,26 @@ def get_id_from_module(module):
 def get_all_tests():
     return [(x, None) for x in glob.glob(get_testfile_from_id("*"))]
 
+usage = "usage: %prog [options] [tests-list]"
+parser = OptionParser(usage=usage)
+parser.add_option("-p","--profile",dest="profile",type="string",\
+    help="testserver profile used for this test suite")
+parser.set_defaults(profile="default")
+(options, myargs) = parser.parse_args()
+
+# update profiles
+from testdeejayd import TestCaseWithServer
+TestCaseWithServer.profiles = options.profile
+
 tests_to_run = None
 list_only = False
 args = None
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'list':
+if len(myargs) > 0:
+    if myargs[0] == 'list':
         list_only = True
-        args = sys.argv[2:]
+        args = myargs[1:]
     else:
-        args = sys.argv[1:]
+        args = myargs
 
 if args:
     tests_to_consider = []
