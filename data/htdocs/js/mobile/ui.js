@@ -935,7 +935,10 @@ PanelMode.prototype.showTags = function(evt, tag_pos) {
             }
         };
 
-        $("#mode-extra-title").html(mobileui_ref.getString(tag, tag));
+        var tag_title = tag;
+        if (tag == "various_artist")
+            tag_title = "artist";
+        $("#mode-extra-title").html(mobileui_ref.getString(tag_title, tag));
         mode.setExtraLoading();
         mobileui_ref.rpc.send("audiolib.taglist", [tag,mode.filters], callback);
     }
