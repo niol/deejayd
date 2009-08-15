@@ -401,17 +401,6 @@ panel_tags = genre,artist,album
         </listitem>
       </varlistentry>
 
-      <varlistentry>
-        <term>video_output</term>
-        <listitem>
-          <para>The video driver to use. This is usually one among
-            <parameter>auto</parameter>,
-            <parameter>xv</parameter>,
-            <parameter>x</parameter>, etc.
-          </para>
-        </listitem>
-      </varlistentry>
-
     </variablelist>
   </refsect1>
 
