@@ -18,6 +18,7 @@
 
 import sys, os, shutil
 import unittest
+
 from testdeejayd.databuilder import TestData, TestAudioCollection,\
                                     TestVideoCollection
 from testdeejayd.server import TestServer
@@ -112,6 +113,30 @@ class TestCaseWithServer(TestCaseWithAudioAndVideoData):
             self.dbfilename = '/tmp/testdeejayddb-' +\
                     self.testdata.getRandomString() + '.db'
             config.set('database', 'db_name', self.dbfilename)
+        elif config.get('database', 'db_type') == 'mysql':
+            import MySQLdb
+            try:
+                connection = MySQLdb.connect(\
+                    db=config.get('database', 'db_name'),\
+                    user=config.get('database', 'db_user'),\
+                    passwd=config.get('database', 'db_password'),\
+                    host=config.get('database', 'db_host'),\
+                    port=config.getint('database', 'db_port'),\
+                    use_unicode=True, charset="utf8")
+            except MySQLdb.DatabaseError:
+                print "Unable to connect to mysql db"
+                sys.exit(1)
+            cursor = connection.cursor()
+           # drop all table
+            from deejayd.database.schema import db_schema
+            for table in db_schema:
+                try:
+                    cursor.execute("DROP TABLE `%s`" % table.name)
+                except MySQLdb.DatabaseError:
+                    pass
+           # commit changes and close
+            connection.commit()
+            connection.close()
 
         self.tmp_dir = None
         if config.getboolean("webui","enabled"):
