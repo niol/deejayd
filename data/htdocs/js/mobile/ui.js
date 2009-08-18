@@ -32,6 +32,13 @@ UI.prototype =
         this.message_time = 4000;
         this.current_page = {name: "now_playing", obj: null};
 
+        // set playing control width
+        $("#playing-control").width($(window).width()).
+            css("padding-left", "1px");
+        // set main title width
+        var title_width = $(window).width()-115;
+        $("#main_title").width(title_width);
+
         // handler on ajax event
         $("#loading").ajaxStart(function(){
             //window.scrollTo(0, 1);
@@ -61,6 +68,7 @@ UI.prototype =
             if (mode.current_page != mode.total_page)
                 mode.updateMedialist(mode.current_length, mode.total_page);
             });
+
     },
 
     displayMessage: function(msg, type) {
@@ -918,8 +926,8 @@ PanelMode.prototype.showTags = function(evt, tag_pos) {
                         mode.showTags(evt, n_idx);
                     else {
                         var null_callback = function(data) {};
-                        mobileui_ref.rpc.pnModeClearFilter();
-                        mobileui_ref.rpc.pnModeClearSearch();
+                        mobileui_ref.rpc.send("panel.clearAll",
+                            [], null_callback)
                         for (i in mode.filters.value) {
                             var f = mode.filters.value[i];
                             mobileui_ref.rpc.send("panel.setFilter",

@@ -7,6 +7,7 @@ body {
     margin: 0px; padding: 0px;
     background-color: #121212;
     color: #fff;
+    min-height: 416px;
 }
 input { padding: 2px; }
 
@@ -63,18 +64,21 @@ div.header div.title {
 }
 #playing-text div.title {
     font-size: 13px; font-weight: bold;
+    white-space: nowrap;
 }
 #playing-text div.desc{
     font-size: 12px; font-style: italic;
+    white-space: nowrap;
 }
 div.header div.button {
     position: fixed; top: 3px;
     height: 35px; width: 50px;
-    font-size: 12px;
+    font-size: 11px;
     background-image: url(images/headerbtn-bg.png);
     background-repeat: repeat-x;
     border: 1px solid #ababab;
     padding: 2px 8px 0px 8px;
+    overflow: hidden;
 }
 div.left { left: 4px; }
 div.right { right: 4px; }
@@ -133,7 +137,11 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 }
 #playing-time-control #time-control-position {
     height: 50px;
+    font-size: 12px;
+    line-height: 12px;
     text-align: center; vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
     display: inline-block;
 }
 #time-fast-back { background-image: url(images/go-first.png); }
@@ -151,6 +159,8 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 }
 #volume-widget div { display: inline-block; }
 #volume-slider {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
     position: relative; top: 2px;
     width: 200px; height: 15px;
     background-color: #fff;
@@ -183,6 +193,9 @@ div.pause, div.stop { background-image: url('images/play.png'); }
     margin: 0px 20px 10px 20px;
     background-color: #454545;
     padding-top: 20px;
+
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
 }
 
 /*

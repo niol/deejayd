@@ -21,7 +21,7 @@
 class IphoneBrowser(object):
 
     def is_true(self, user_agent):
-        if user_agent.lower().find("mobile") != -1:
+        if user_agent.lower().find("iphone") != -1:
             return True
         return False
 
@@ -29,7 +29,20 @@ class IphoneBrowser(object):
         return """
      <meta name="viewport" content="user-scalable=no, width=device-width">
      <link rel="apple-touch-icon" href="./../static/themes/mobile/deejayd.jpg"/>
-     <link href="./static/themes/mobile/iphone.css" type= "text/css"
+     <link href="./../static/themes/mobile/webkit.css" type= "text/css"
+        rel="stylesheet"/>
+"""
+
+class WebkitBrowser(object):
+
+    def is_true(self, user_agent):
+        if user_agent.lower().find("applewebkit") != -1:
+            return True
+        return False
+
+    def header(self):
+        return """
+     <link href="./../static/themes/mobile/webkit.css" type= "text/css"
         rel="stylesheet"/>
 """
 
@@ -41,7 +54,7 @@ class DefaultBrowser(object):
     def header(self):
         return ""
 
-browsers = [IphoneBrowser(), DefaultBrowser()]
+browsers = [IphoneBrowser(), WebkitBrowser(), DefaultBrowser()]
 
 def build_template(deejayd, user_agent):
     global browsers
