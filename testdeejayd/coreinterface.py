@@ -548,8 +548,17 @@ class InterfaceTests:
 
             # test set_player_option cmd
             self.deejayd.set_player_option("av_offset", 100).get_contents()
+            self.deejayd.set_player_option("aspect_ratio","16:9").get_contents()
+            # bad option name
             ans = self.deejayd.set_player_option(\
                     self.testdata.getRandomString(),0)
+            self.assertRaises(DeejaydError, ans.get_contents)
+            # bad option value
+            ans = self.deejayd.set_player_option("av_offset",\
+                    self.testdata.getRandomString())
+            self.assertRaises(DeejaydError, ans.get_contents)
+            ans = self.deejayd.set_player_option("aspect_ratio",\
+                    self.testdata.getRandomString())
             self.assertRaises(DeejaydError, ans.get_contents)
 
             self.deejayd.stop().get_contents()
