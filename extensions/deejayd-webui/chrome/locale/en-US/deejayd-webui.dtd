@@ -26,6 +26,7 @@
 <!ENTITY wbAdd "Add a Webradio">
 <!ENTITY create "Create">
 <!ENTITY sub_offset "Subtitle Offset:">
+<!ENTITY video_aspect "Video Aspect:">
 <!ENTITY onemedia "One Media">
 <!ENTITY width "Width">
 <!ENTITY add "Add">

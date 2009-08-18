@@ -112,6 +112,10 @@ Player.prototype =
         xului_ref.rpc.setPlayerOption("sub_lang", idx);
     },
 
+    setAspectRatio: function(aspect) {
+        xului_ref.rpc.setPlayerOption("aspect_ratio", aspect);
+    },
+
     setAVOffset: function() {
         xului_ref.rpc.setPlayerOption("av_offset", $("av_offset-value").value);
     },
@@ -133,8 +137,8 @@ Player.prototype =
             removeNode(media_info.firstChild);
         // hide option block
         var rows = Array("audio-row", "subtitle-row", "av_offset-row",
-            "sub_offset-row", "zoom-row",  "player-seekbar", "current-media",
-            "playeroption-button");
+            "sub_offset-row", "zoom-row",  "aspect_ratio-row",
+            "player-seekbar", "current-media", "playeroption-button");
         for (ix in rows) {
             $(rows[ix]).style.visibility = "collapse";
             }
@@ -247,7 +251,7 @@ Player.prototype =
             }
         }
 
-        a = Array("av_offset","sub_offset", "zoom");
+        a = Array("av_offset","sub_offset", "zoom", "aspect_ratio");
         for (ix in a) {
             if (typeof(current[a[ix]]) != "undefined") {
                 $(a[ix]+"-row").style.visibility = "visible";

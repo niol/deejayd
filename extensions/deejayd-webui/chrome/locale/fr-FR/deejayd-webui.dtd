@@ -61,6 +61,7 @@
 <!ENTITY mode "Mode">
 <!ENTITY webradio "Radio Web">
 <!ENTITY av_offset "Décalage Audio/Vidéo :">
+<!ENTITY video_aspect "Aspect Vidéo :">
 <!ENTITY videoInfo "Informations vidéo">
 <!ENTITY updateAudioDB "Mettre à jour la librarie audio">
 <!ENTITY curSong "Aller à la chanson courante">

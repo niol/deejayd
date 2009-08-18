@@ -222,6 +222,24 @@
                     id="zoom-value"/>
                 <label value="%"/>
             </row>
+            <row align="center"
+                style="visibility: collapse"
+                id="aspect_ratio-row">
+                <label value="&video_aspect;"/>
+
+                <menulist
+                    id="aspect_ratio-value"
+                    oncommand=
+                    "xului_ref.ui.player.setAspectRatio(event.target.value);">
+                    <menupopup id="aspect_ratio-menu">
+                        <menuitem label="Auto" value="auto"/>
+                        <menuitem label="1:1" value="1:1"/>
+                        <menuitem label="16:9" value="16:9"/>
+                        <menuitem label="4:3" value="4:3"/>
+                        <menuitem label="DVB (2.11:1)" value="2.11:1"/>
+                    </menupopup>
+                </menulist>
+            </row>
         </rows>
     </grid></panel>
 
