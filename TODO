@@ -9,9 +9,6 @@
 
 * Devscripts dir
 
-* Fix ratio using avi header, but this is difficult as the extended AVI header
-  is not parsed by Xine. Maybe in hachoir?
-
 * Build testing library once and for all tests for speedups.
 
 * Interlude functionality : save state, play a media, retrieve state. This is
@@ -27,8 +24,5 @@
   is either an access to libdbus low level message marshalling functions, or to
   rely on a pure python DBus implementation. Such implementation exists in Ruby:
   http://trac.luon.net/ruby-dbus/browser/trunk/lib/dbus/bus.rb
-
-* Use nevow or athena for webui?
-  http://divmod.org/trac/wiki/DivmodNevow
 
 * Do not segfault when there is no xserver and video mode is activated.
