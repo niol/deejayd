@@ -40,6 +40,14 @@ class XinePlayer(UnknownPlayer):
             "osd_font_size" : self.config.getint("xine", "osd_font_size"),
             "software_mixer": self.config.getboolean("xine", "software_mixer"),
             }
+        self.__video_aspects = {
+                "auto": xine.Stream.XINE_VO_ASPECT_AUTO,
+                "1:1": xine.Stream.XINE_VO_ASPECT_SQUARE,
+                "4:3": xine.Stream.XINE_VO_ASPECT_4_3,
+                "16:9": xine.Stream.XINE_VO_ASPECT_ANAMORPHIC,
+                "2.11:1": xine.Stream.XINE_VO_ASPECT_DVB,
+            }
+        self.__default_aspect_ratio = "auto"
 
         # init main instance
         try:
@@ -116,12 +124,14 @@ class XinePlayer(UnknownPlayer):
             self._media_file["av_offset"] = 0
             self._media_file["zoom"] = 100
             if "audio" in self._media_file:
-                self._media_file["audio_idx"] = \
-          self.__stream.get_param(xine.Stream.XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
+                self._media_file["audio_idx"] = self.__stream.get_param(\
+                        xine.Stream.XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
             if "subtitle" in self._media_file:
                 self._media_file["sub_offset"] = 0
-                self._media_file["subtitle_idx"] = \
-          self.__stream.get_param(xine.Stream.XINE_PARAM_SPU_CHANNEL)
+                self._media_file["subtitle_idx"] = self.__stream.get_param(\
+                        xine.Stream.XINE_PARAM_SPU_CHANNEL)
+            # set video aspect ration to default value
+            self.set_aspectratio(self.__default_aspect_ratio)
 
     def _change_file(self, new_file, gapless = False):
         sig = self.get_state() == PLAYER_STOP and True or False
@@ -168,6 +178,16 @@ class XinePlayer(UnknownPlayer):
         self.__stream.set_param(xine.Stream.XINE_PARAM_VO_ZOOM_Y, zoom)
         self._media_file["zoom"] = zoom
         self._osd_set(_("Zoom: %d percent") % zoom)
+
+    def set_aspectratio(self, aspect_ratio):
+        try: asp = self.__video_aspects[aspect_ratio]
+        except KeyError:
+            raise PlayerError(_("Video aspect ration %s is not known.")\
+                    % aspect_ratio)
+        self.__default_aspect_ratio = aspect_ratio
+        self._media_file["aspect_ratio"] = self.__default_aspect_ratio
+        if self.__stream.has_video():
+            self.__stream.set_param(xine.Stream.XINE_PARAM_VO_ASPECT_RATIO, asp)
 
     def set_avoffset(self, offset):
         self.__stream.set_param(xine.Stream.XINE_PARAM_AV_OFFSET, offset * 90)

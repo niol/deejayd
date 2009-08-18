@@ -126,6 +126,7 @@ class UnknownPlayer(SignalingComponent):
             "av_offset": self.set_avoffset,
             "sub_offset": self.set_suboffset,
             "zoom": self.set_zoom,
+            "aspect_ratio": self.set_aspectratio,
             }
         options[name](value)
 
@@ -136,6 +137,9 @@ class UnknownPlayer(SignalingComponent):
         raise NotImplementedError
 
     def set_suboffset(self, offset):
+        raise NotImplementedError
+
+    def set_aspectratio(self, aspect):
         raise NotImplementedError
 
     def set_alang(self,lang_idx):

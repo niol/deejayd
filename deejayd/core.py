@@ -572,7 +572,12 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def set_player_option(self, name, value):
-        try: self.player.set_option(name, int(value))
+        if name != "aspect_ratio":
+            try: value = int(value)
+            except (ValueError,TypeError):
+                raise DeejaydError(_("Param value is not an int"))
+
+        try: self.player.set_option(name, value)
         except KeyError:
             raise DeejaydError(_("Option %s does not exist") % name)
         except NotImplementedError:

@@ -301,7 +301,7 @@ class DeejaydPlayerJSONRPC(_DeejaydJSONRPC):
 
     @returns_answer('ack', params=[\
             {"name":"option_name", "type":"string", "req":True},\
-            {"name":"option_value", "type":"int", "req":True}])
+            {"name":"option_value", "type":"string", "req":True}])
     def jsonrpc_setPlayerOption(self, option_name, option_value):
         """Set player option for the current media
        Possible options are :
@@ -309,7 +309,14 @@ class DeejaydPlayerJSONRPC(_DeejaydJSONRPC):
          * audio_lang : select audio channel (video only)
          * sub_lang : select subtitle channel (video only)
          * av_offset : set audio/video offset (video only)
-         * sub_offset : set subtitle/video offset (video only)"""
+         * sub_offset : set subtitle/video offset (video only)
+         * aspect_ratio : set video aspect ratio (video only)
+           available value are :
+               * auto
+               * 1:1
+               * 16:9
+               * 4:3
+               * 2.11:1 (for DVB)"""
         self.deejayd_core.set_player_option(option_name, option_value,\
                 objanswer=False)
 
