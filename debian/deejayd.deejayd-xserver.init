@@ -181,7 +181,7 @@ do_stop_xclients()
 
 is_alive () {
     ret=1
-    if [ -r $PIDFILE ] ; then
+    if [ -r "$PIDFILE" ] ; then
         pid=`cat $PIDFILE`
         if [ -e /proc/$pid ] ; then
             procname=`/bin/ps h -p $pid -C $NAME`

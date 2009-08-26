@@ -56,7 +56,7 @@ done
 if [ ! -z "$DEEJAYD_XSERVER_METHOD" ] &&\
    [ "$DEEJAYD_XSERVER_METHOD" != "off" ]; then
     export XAUTHORITY=$DEEJAYD_XAUTHORITY
-    if [ ! -e $DEEJAYD_XAUTHORITY ]; then
+    if [ ! -e "$DEEJAYD_XAUTHORITY" ]; then
         # Just create a dummy auth file to make it have to appropriate file
         # permissions.
         touch $DEEJAYD_XAUTHORITY

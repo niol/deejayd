@@ -9,10 +9,10 @@ if [ -r /etc/default/deejayd ]; then
         # add it to the Deejayd auth cookie file. Also cleanup old auth cookies
         # matching the same display.
         DEEJAYD_DISPLAYNAME=${DEEJAYD_DISPLAYNAME:=:0.0}
-        if [ ! -z "$XAUTHORITY" ] && [ -r $XAUTHORITY ]; then
+        if [ ! -z "$XAUTHORITY" ] && [ -r "$XAUTHORITY" ]; then
             authcookie=`xauth list "$DEEJAYD_DISPLAYNAME" 2> /dev/null\
             | sed -n "s/.*$DEEJAYD_DISPLAYNAME[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
-            if [ -r $DEEJAYD_XAUTHORITY ]; then
+            if [ -r "$DEEJAYD_XAUTHORITY" ]; then
                 # To change the $DEEJAYD_XAUTHORITY file, we must use a
                 # temporary file because xauth uses one of its own in the
                 # same directory, and we do not have write permission in this
