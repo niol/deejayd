@@ -1,4 +1,18 @@
-deejayd (0.8.3-1) unstable; urgency=low
+deejayd (0.8.3-2) unstable; urgency=low
+
+  * Xorg connection scripts :
+    - do not force mktemp to use /tmp.
+    - fix possible bashisms in related scripts.
+    - ensure required variables have default values.
+    - change [ -r $filepath ] to [ -r "$filepath" ] in scripts to ensure proper
+      behaviour.
+    - when using the provided Xorg initscript, ensure the X server is ready to
+      accept connections before trying to launch the X clients.
+  * Update to policy 3.8.3 (nothing to do).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 26 Aug 2009 22:05:34 +0200
+
+deejayd (0.8.3-1) UNRELEASED; urgency=low
 
   * New upstream release ensuring compatility with Firefox/Iceweasel >= 3.5 .
   * Improve how Deejayd can connect to Xorg, see README.Debian and comments
