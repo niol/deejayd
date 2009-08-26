@@ -19,7 +19,7 @@ Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, adduser,
          python-pysqlite2 | python-mysqldb,
          python-lxml, python-mutagen, python-hachoir-metadata (>= 1.1)
 Recommends: python-pyinotify (>= 0.6.0)
-Suggests: deejayd-webui, xserver-xorg, xauth
+Suggests: deejayd-webui, xserver-xorg, xauth, x11-utils
 XB-Python-Version: ${python:Versions}
 Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled

@@ -119,6 +119,15 @@ do_start()
         --exec $DAEMON\
         -b -c $DAEMON_USER -- $DAEMON_ARGS \
         || return 2
+
+    # Wait for the X server to accept X connections.
+    maxtries=40
+    tries=0
+    while [ "`xorg_ping`" != "pong" ] && [ $tries -lt $maxtries ]
+    do
+        tries=`expr $tries + 1`
+        sleep 0.5
+    done
 }
 
 do_start_xclients()
@@ -180,6 +189,15 @@ is_alive () {
         fi
     fi
     return $ret
+}
+
+xorg_ping () {
+    # This function checks if a basic X client can probe the X server.
+    /usr/bin/xprop -root -display $authdisplay > /dev/null 2> /dev/null
+    case "$?" in
+        0) echo "pong" && return 0;;
+        *) echo "fail" && return 1;;
+    esac
 }
 
 case "$1" in
