@@ -72,6 +72,8 @@ UI.prototype =
     },
 
     displayMessage: function(msg, type) {
+        if (type === undefined)
+            type = "confirmation";
         var cont = msg;
         if (type == 'error')
           cont = '<input type="submit" onclick="mobileui_ref.ui.hideMessage();'
