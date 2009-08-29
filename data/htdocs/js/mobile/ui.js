@@ -874,6 +874,7 @@ function PanelMode(st) {
 
     // init var to update panel filter
     this.filters = null;
+    this.cur_filter_idx = null;
     this.current_tag = null;
     // get tag list
     this.tags = null;
@@ -925,17 +926,8 @@ PanelMode.prototype.showTags = function(evt, tag_pos) {
                     if (n_idx < mode.tags.length)
                         mode.showTags(evt, n_idx);
                     else {
-                        var null_callback = function(data) {};
                         mobileui_ref.rpc.send("panel.clearAll",
-                            [], null_callback)
-                        for (i in mode.filters.value) {
-                            var f = mode.filters.value[i];
-                            mobileui_ref.rpc.send("panel.setFilter",
-                              [f.value.tag, [f.value.pattern]], null_callback);
-                        }
-                        mobileui_ref.rpc.pnModeSetActiveList("panel", "");
-                        $("#mode-extra").hide();
-                        $("#mode-main").show();
+                            [], mode.__updatePanelFilters)
                     }
                 });
 
@@ -950,6 +942,25 @@ PanelMode.prototype.showTags = function(evt, tag_pos) {
         mode.setExtraLoading();
         mobileui_ref.rpc.send("audiolib.taglist", [tag,mode.filters], callback);
     }
+};
+PanelMode.prototype.__updatePanelFilters = function() {
+    var mode = mobileui_ref.ui.getCurrentMode();
+    if (mode.cur_filter_idx == null) {
+        mode.cur_filter_idx = 0;
+    }
+    else if (mode.cur_filter_idx == mode.filters.value.length-1) {
+        mobileui_ref.rpc.pnModeSetActiveList("panel", "");
+        $("#mode-extra").hide();
+        $("#mode-main").show();
+        mode.cur_filter_idx = null;
+        return;
+    }
+    else {
+        mode.cur_filter_idx += 1;
+    }
+    var f = mode.filters.value[mode.cur_filter_idx];
+    mobileui_ref.rpc.send("panel.setFilter",
+      [f.value.tag, [f.value.pattern]], mode.__updatePanelFilters);
 };
 
 // vim: ts=4 sw=4 expandtab
