@@ -228,6 +228,7 @@ class TestAnswerParser(TestCaseWithData):
             self.failUnless(unicode(dir) in ans.get_directories())
 
     def test_answer_parser_medialist(self):
+        """Test the client library parsing a medialist answer"""
         def dict_to_json(input):
             return """{%s}""" % ",".join([""" "%s": "%s" """ % (k,v)\
                     for k,v in input.items()])
