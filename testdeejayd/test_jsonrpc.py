@@ -20,7 +20,6 @@
 
 import re
 from testdeejayd import TestCaseWithAudioAndVideoData, TestCaseWithData
-from testdeejayd.server import TestServer
 from deejayd.mediafilters import *
 from deejayd.interfaces import DeejaydSignal
 from deejayd.net.client import _DeejayDaemon,\
