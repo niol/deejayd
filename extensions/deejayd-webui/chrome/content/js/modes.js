@@ -601,10 +601,16 @@ PanelMode.prototype.updateSort = function(tag) {
 // Observers
 PanelMode.prototype.panelSelectObserver = function(evt) {
     var tag = evt.target.id.replace("-panel", "");
-    var listbox = $(tag+"-panel");
+    var listbox = evt.target;
     var values = new Array();
-    for (var i=0; item = listbox.getSelectedItem(i); i++)
+    for (var i=0; item = listbox.getSelectedItem(i); i++) {
+        if (item.getAttribute("value") == "__all__") {
+            xului_ref.ui.modes.panel.__last_selected_tag = tag;
+            xului_ref.rpc.pnModeRemoveFilter(tag);
+            return;
+        }
         values.push(item.getAttribute("value"))
+    }
     xului_ref.ui.modes.panel.__last_selected_tag = tag;
     xului_ref.rpc.pnModeSetFilter(tag, values);
 };

@@ -289,6 +289,9 @@ RPC.prototype =
     pnModeSetFilter: function(tag, values) {
         this.__pnModeRequest("setFilter",[tag, values]);
     },
+    pnModeRemoveFilter: function(tag) {
+        this.__pnModeRequest("removeFilter",[tag]);
+    },
 
 /*
  * recorded playlist requests
