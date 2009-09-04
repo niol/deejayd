@@ -55,6 +55,9 @@ if media_backend == "gstreamer":
     from twisted.internet import glib2reactor
     glib2reactor.install()
 from twisted.internet import reactor
+# use twisted loop for kaa
+import kaa
+kaa.main.select_notifier('twisted')
 
 # start core
 from deejayd.core import DeejayDaemonCore

@@ -186,6 +186,9 @@ if __name__ == "__main__":
         glib2reactor.install()
 
     from twisted.internet import reactor
+    # use twisted loop for kaa
+    import kaa
+    kaa.main.select_notifier('twisted')
     ###############################################################
 
     setEnv(options)

@@ -18,9 +18,8 @@
 
 import os
 from deejayd.utils import quote_uri
-# hachoir
-from hachoir_core.error import HachoirError
-from hachoir_parser import createParser
+import kaa.metadata
+
 
 class _MediaFile(object):
     type = "unknown"
@@ -84,9 +83,6 @@ class _VideoFile(_MediaFile):
         title = title.replace("_", " ")
         return title.title()
 
-    def _format_duration(self, duration):
-        return str(duration.days*86400 + duration.seconds)
-
     def parse(self, file):
         infos = _MediaFile.parse(self, file)
         infos.update({
@@ -99,23 +95,19 @@ class _VideoFile(_MediaFile):
         (path,filename) = os.path.split(file)
         infos["title"] = self._format_title(filename)
 
-        # parse video file with hachoir
-        parser = createParser(unicode(file))
-        if not parser: # file not supported
-            raise TypeError(_("Video media not supported by hachoir parser"))
-        if parser.mime_type not in self.__class__.mime_type:
-            raise TypeError(_("Wrong file mime type for this extension"))
-
-        self.infos = infos
-        self.video, self.audio, self.sub = [], [], []
-        self.extract(parser)
-
-        if len(self.video) == 0:
+        # parse video file with kaa
+        kaa_infos = kaa.metadata.parse(file)
+        if kaa_infos is None:
+            raise TypeError(_("Video media %s not supported by kaa parser") \
+                    % file)
+        if len(kaa_infos["video"]) == 0:
             raise TypeError(_("This file is not a video"))
-        self.infos["videowidth"] = self.video[0]["width"]
-        self.infos["videoheight"] = self.video[0]["height"]
-        self.infos["audio_channels"] = len(self.audio)
-        self.infos["subtitle_channels"] = len(self.sub)
-        return self.infos
+        infos["length"] = int(kaa_infos["length"])
+        infos["videowidth"] = kaa_infos["video"][0]["width"]
+        infos["videoheight"] = kaa_infos["video"][0]["height"]
+        infos["audio_channels"] = len(kaa_infos["audio"])
+        infos["subtitle_channels"] = len(kaa_infos["subtitles"])
+
+        return infos
 
 # vim: ts=4 sw=4 expandtab

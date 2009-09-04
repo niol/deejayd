@@ -18,6 +18,7 @@
 
 import os, subprocess
 from os import path
+import kaa.metadata
 from twisted.internet import reactor
 from pytyxi import xine
 
@@ -397,6 +398,7 @@ class XinePlayer(UnknownPlayer):
 
 
 class DvdParser:
+    DEVICE = "/dev/dvd"
 
     def __init__(self):
         try:
@@ -405,56 +407,51 @@ class DvdParser:
             raise PlayerError(_("Unable to init a xine instance"))
         self.__mine_stream = self.__xine.stream_new(None, None)
 
-        # test lsdvd availability
-        path = os.getenv('PATH') or ""
-        for p in path.split(':'):
-            if os.path.isfile(os.path.join(p,"lsdvd")):
-                return
-        raise PlayerError(_("lsdvd not found, can't extract dvd info"))
-
-    def _get_dvd_info(self):
-        command = 'lsdvd -Oy -s -a -c'
-        lsdvd_process = subprocess.Popen(command, shell=True, stdin=None,\
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        lsdvd_process.wait()
-
-        # read error
-        error = lsdvd_process.stderr.read()
-        output = lsdvd_process.stdout.read()
-        if error and output == '':
-            raise PlayerError(error)
-
-        try: exec(output)
-        except:
-            raise PlayerError(_("error in lsdvd command"))
-        return lsdvd
-
     def get_dvd_info(self):
-        dvd_info = self._get_dvd_info()
-        ix = 0
-        for track in dvd_info['track']:
-            try:
-                self.__mine_stream.open("dvd://%d" % track['ix'])
+        kaa_infos = kaa.metadata.parse(self.DEVICE)
+        if kaa_infos is None:
+            raise PlayerError(_("Unable to identify dvd device"))
+
+        dvd_info = {"title": kaa_infos["label"], 'track': []}
+        longest_track = {"ix": 0, "length": 0}
+        for idx, t in enumerate(kaa_infos['tracks']):
+            try: self.__mine_stream.open("dvd://%d" % (idx+1,))
             except xine.XineError, ex:
                 raise PlayerError, ex
+            track = {"ix": idx+1, "length": int(t['length']), "chapter": []}
+            if track['length'] > longest_track["length"]:
+                longest_track = track
+
             # get audio channels info
-            channels_number = len(track['audio'])
+            channels_number = len(t['audio'])
             audio_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
             for ch in range(0,channels_number):
                 lang = self.__mine_stream.get_audio_lang(ch)
                 audio_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
-            dvd_info['track'][ix]["audio"] = audio_channels
+            track["audio"] = audio_channels
 
             # get subtitles channels info
-            channels_number = len(track['subp'])
+            channels_number = len(t['subtitles'])
             sub_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
             for ch in range(0,channels_number):
                 lang = self.__mine_stream.get_spu_lang(ch)
                 sub_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
-            dvd_info['track'][ix]["subp"] = sub_channels
+            track["subp"] = sub_channels
 
-            ix += 1
+            # chapters
+            for c_i,chapter in enumerate(kaa_infos['tracks'][idx]['chapters']):
+                track["chapter"].append({ "ix": c_i+1,\
+                        'length': int(chapter["pos"]) })
+                if c_i > 0:
+                    track["chapter"][c_i-1]['length'] = int(chapter["pos"]) - \
+                            track["chapter"][c_i-1]['length']
+                if c_i == len(kaa_infos['tracks'][idx]['chapters']) - 1:
+                    track["chapter"][c_i]['length'] = track["length"] - \
+                            int(track["chapter"][c_i]['length'])
 
+            dvd_info['track'].append(track)
+
+        dvd_info['longest_track'] = longest_track["ix"]
         return dvd_info
 
     def close(self):

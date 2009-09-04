@@ -18,10 +18,9 @@
 # -*- coding: utf-8 -*-
 
 import os, sys, threading, traceback, base64, locale, hashlib
-from hachoir_core.error import HachoirError
-from hachoir_parser import createParser
-from hachoir_metadata import extractMetadata
 from twisted.internet import threads, reactor
+import kaa.metadata
+
 
 from deejayd.interfaces import DeejaydError
 from deejayd.component import SignalingComponent
@@ -520,20 +519,14 @@ class AudioLibrary(_Library):
         if os.path.getsize(cover_path) > 512*1024:
             return None # file too large (> 512k)
 
-        parser = createParser(unicode(cover_path))
-        if not parser:
-            log.info(_("cover %s not supported") % cover_path)
-            return None
-        try: metadata = extractMetadata(parser)
-        except HachoirError, err:
-            log.info(_("cover %s not supported") % cover_path)
-            return None
-        if not metadata:
-            log.info(_("cover %s not supported") % cover_path)
-            return None
+        # parse video file with kaa
+        cover_infos = kaa.metadata.parse(cover_path)
+        if cover_infos is None:
+            raise TypeError(_("cover %s not supported by kaa parser") % \
+                    cover_path)
         # get mime type of this picture
-        mime_type = metadata.get("mime_type", "")
-        if mime_type not in (u"image/jpeg", u"image/png"):
+        mime_type = cover_infos["mime"]
+        if unicode(mime_type) not in (u"image/jpeg", u"image/png"):
             log.info(_("cover %s : wrong mime type") % cover_path)
             return None
 

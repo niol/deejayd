@@ -16,18 +16,4 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from hachoir_core.error import HACHOIR_ERRORS
-from deejayd.ui import log
-
-def fault_tolerant(func, *args):
-    def safe_func(*args, **kw):
-        try:
-            rs = func(*args, **kw)
-        except HACHOIR_ERRORS, err:
-            log.err("Error when calling function %s(): %s" % (
-                func.__name__, err))
-            return None
-        return rs
-    return safe_func
-
 # vim: ts=4 sw=4 expandtab
