@@ -17,7 +17,7 @@ Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, adduser,
          deejayd-xine (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
          python-twisted,
          python-pysqlite2 | python-mysqldb,
-         python-lxml, python-mutagen, python-hachoir-metadata (>= 1.1)
+         python-lxml, python-mutagen, python-kaa-metadata (>= 0.7.3)
 Recommends: python-pyinotify (>= 0.6.0)
 Suggests: deejayd-webui, xserver-xorg, xauth, x11-utils
 XB-Python-Version: ${python:Versions}
@@ -58,7 +58,6 @@ Architecture: all
 Depends: ${python:Depends},
          python-ctypes (>= 1.0.0) | python (>= 2.5),
          libxine1, libx11-6, libxext6
-Recommends: lsdvd
 XB-Python-Version: ${python:Versions}
 Description: Deejayd XINE backend
  The deejayd media backend using the XINE library.
