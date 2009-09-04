@@ -34,6 +34,10 @@ class AvailableCommands:
     def __init__(self, server):
         self.server = server
 
+    def ping(self, args):
+        """Ping server using the protocol"""
+        self.server.ping().get_contents()
+
     def playtoggle(self, args):
         """Toggle play/pause"""
         self.server.play_toggle().get_contents()
