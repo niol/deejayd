@@ -384,7 +384,7 @@ class _Library(SignalingComponent):
     def _get_file_info(self, file_path):
         (base, ext) = os.path.splitext(file_path)
         # try to get infos from this file
-        try: file_info = self.ext_dict[ext.lower()].parse(file_path)
+        try: file_info = self.ext_dict[ext.lower()]().parse(file_path)
         except KeyError:
             log.info(_("File %s not supported") % file_path)
             return None

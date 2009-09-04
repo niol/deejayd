@@ -27,10 +27,10 @@ def get_extensions(player, type = "audio"):
                 for f in glob.glob(os.path.join(base, "[!_]*.py"))]
     for m in modules:
         mod = __import__(base_import+"."+m, {}, {}, base)
-        inst = mod.object()
+        filetype_class = mod.object
         for ext in mod.extensions:
             if player.is_supported_format(ext):
-                ext_dict[ext] = inst
+                ext_dict[ext] = filetype_class
 
     return ext_dict
 
