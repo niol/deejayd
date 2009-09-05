@@ -476,8 +476,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
     @returns_deejaydanswer(DeejaydAnswer)
     def play_toggle(self):
         if self.player.get_state() == player._base.PLAYER_PLAY:
-            current_mode = dict(self.sources.get_status())['mode']
-            if current_mode == 'webradio':
+            current_media = self.player.get_playing()
+            if current_media['type'] == 'webradio':
                 # There is no point in pausing radio streams.
                 try: self.player.stop()
                 except player.PlayerError, err: raise DeejaydError(err)
