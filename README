@@ -46,7 +46,7 @@ Requirements:
        for mysql database support
     * mutagen >= 1.6
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
-    * hachoir-metadata >= 1.1 (http://hachoir.org/wiki/hachoir-metadata)
+    * kaa-metadata >= 0.7.3 (http://doc.freevo.org/2.0/Kaa)
     * lxml >= 2.0 (http://codespeak.net/lxml/)
     * twisted-web >= 0.6.0 if you want to use deejayd-webui
     * if you want to use gstreamer backend
