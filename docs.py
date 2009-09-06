@@ -240,7 +240,7 @@ An example is given here.
 if __name__ == "__main__":
     docs = WikiFormat().build(common_request)
 
-    f = open("doc/deejayd_xml_protocol","w")
+    f = open("doc/deejayd_rpc_protocol","w")
     try: f.write(docs)
     finally: f.close()
 

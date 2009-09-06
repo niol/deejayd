@@ -212,7 +212,7 @@ def get_data_files(walking_root, dest_dir):
 
 def build_data_files_list():
     data = [
-        ('share/doc/deejayd', ("doc/deejayd_xml_protocol", )),
+        ('share/doc/deejayd', ("doc/deejayd_rpc_protocol", )),
         ('share/doc/deejayd', ("README", "NEWS", )),
         ('share/doc/deejayd', ["scripts/deejayd_rgscan"]),
         ]
