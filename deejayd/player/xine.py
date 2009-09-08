@@ -97,7 +97,7 @@ class XinePlayer(UnknownPlayer):
                         {"lang": _("Audio channel %d") % (i+1,), "ix": i})
             self._media_file["audio"] = audio_channels
 
-        needs_video = self._media_file["type"] == "video"
+        needs_video = self.current_is_video()
         if self.__stream:
             stream_should_change = (needs_video and\
                                     not self.__stream.has_video())\
@@ -116,9 +116,8 @@ class XinePlayer(UnknownPlayer):
             msg = _("Unable to play file %s") % uri
             log.err(msg)
             raise PlayerError(msg)
-        isvideo = self._media_file["type"] == "video"
         if self.__window:
-            self.__window.show(isvideo)
+            self.__window.show(self.current_is_video())
 
         # init video information
         if needs_video:
@@ -271,6 +270,10 @@ class XinePlayer(UnknownPlayer):
         if self.supported_extensions == None:
             self.supported_extensions = self.__xine.get_supported_extensions()
         return format.strip(".") in self.supported_extensions
+
+    def current_is_video(self):
+        return self._media_file is not None\
+               and self._media_file['type'] == 'video'
 
     def close(self):
         UnknownPlayer.close(self)
