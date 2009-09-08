@@ -58,7 +58,10 @@ class XinePlayer(UnknownPlayer):
 
         # init vars
         self.__supports_gapless = self.__xine.has_gapless()
-        self.__volume = 100
+
+        self.__audio_volume = 100
+        self.__video_volume = 100
+
         self.__window = None
         self.__stream = None
         self.__osd = None
@@ -149,7 +152,7 @@ class XinePlayer(UnknownPlayer):
             self.__stream.set_param(xine.Stream.XINE_PARAM_GAPLESS_SWITCH, 0)
 
         # replaygain reset
-        self.set_volume(self.__volume, sig=False)
+        self.set_volume(self.get_volume(), sig=False)
 
         if sig: self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
@@ -216,12 +219,20 @@ class XinePlayer(UnknownPlayer):
         return self.__stream.get_param(xine.Stream.XINE_PARAM_SPU_CHANNEL)
 
     def get_volume(self):
-        return self.__volume
+        if self.current_is_video():
+            return self.__video_volume
+        else:
+            return self.__audio_volume
 
     def set_volume(self, vol, sig = True):
-        self.__volume = min(100, int(vol))
+        new_volume = min(100, int(vol))
+        if self.current_is_video():
+            self.__video_volume = new_volume
+        else:
+            self.__audio_volume = new_volume
+
         # replaygain support
-        vol = self.__volume
+        vol = self.get_volume()
         if self._replaygain and self._media_file is not None:
             try: scale = self._media_file.replay_gain()
             except AttributeError: pass # replaygain not supported
@@ -231,7 +242,7 @@ class XinePlayer(UnknownPlayer):
         if self.__stream:
             self.__stream.set_volume(vol)
         if sig:
-            self._osd_set("Volume: %d" % self.__volume)
+            self._osd_set("Volume: %d" % self.get_volume())
             self.dispatch_signame('player.status')
 
     def get_position(self):
@@ -319,7 +330,7 @@ class XinePlayer(UnknownPlayer):
         self.__stream.add_event_callback(self._event_callback)
 
         # restore volume
-        self.__stream.set_volume(self.__volume)
+        self.__stream.set_volume(self.get_volume())
 
     def _destroy_stream(self):
         if self.__stream:
