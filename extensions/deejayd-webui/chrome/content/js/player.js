@@ -66,7 +66,6 @@ Player.prototype =
                 $('seekbar-button').label = formatTime(time[0]) + " -->";
                 $('player-seekbar').max = time[1];
                 $('player-seekbar').value = time[0];
-                this._time = st.time;
             }
         }
         else if (player._current != "") {
