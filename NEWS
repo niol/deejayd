@@ -7,6 +7,7 @@ New features and significant updates in version...
   * Rewrite XUL/Mobile webui to use new JSON-RPC protocol
   * Xine : Add a new player option 'aspect_ratio" to change video aspect ratio
   * Improve mobile webui
+  * Use kaa-metradata instead of hachoir-metadata/lsdvd to get video infos
 
 0.8.3 (2009-07-05)
 --------------------

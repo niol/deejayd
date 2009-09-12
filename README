@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.8.3
+Actual version : 0.9.0 (not released yet)
 ----------------------
 
 Description:
@@ -49,7 +49,7 @@ Requirements:
     * kaa-metadata >= 0.7.3 (http://doc.freevo.org/2.0/Kaa)
     * lxml >= 2.0 (http://codespeak.net/lxml/)
     * twisted-web >= 0.6.0 if you want to use deejayd-webui
-    * if you want to use gstreamer backend
+    * if you want to use gstreamer backend (audio only)
         * (2.9 > pygtk >= 2.8) or pygobject >= 2.12 (http://www.pygtk.org/)
         * gstreamer >= 0.10 (http://gstreamer.freedesktop.org)
         * gstreamer plugins :
@@ -60,22 +60,19 @@ Requirements:
               * mad to play mp3
               * ogg to play ogg
               * for webradio, gst-plugins-gnomevfs >= 0.10
-              * for video : xv, ffmpeg
-              * dvd to ply dvd with deejayd
     * if you want to use xine backend
         * xine-lib >= 1.1.0
         * libX11, libXext
         * ctypes >= 1.0.0 (It is include in python 2.5)
-    * lsdvd (http://untrepid.com/acidrip/lsdvd.html) for dvd support
     * pyinotify >= 0.6.0 for inotify support (http://pyinotify.sourceforge.net/)
 
 Installation:
 -------------
 Download deejayd and extract it:
-  $tar xzvf deejayd-0.8.3.tar.gz
+  $tar xzvf deejayd-0.9.0.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.8.3
+  $cd deejayd-0.9.0
   $python setup.py build
   $python setup.py install
 
