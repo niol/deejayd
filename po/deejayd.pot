@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-18 16:37+0200\n"
+"POT-Creation-Date: 2009-09-12 11:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,7 +39,7 @@ msgstr ""
 msgid "Webradio info could not be retrieved"
 msgstr ""
 
-#: ../deejayd/core.py:301 ../deejayd/core.py:617
+#: ../deejayd/core.py:301 ../deejayd/core.py:623
 msgid "Set a playlist name"
 msgstr ""
 
@@ -47,72 +47,72 @@ msgstr ""
 msgid "Not supported type"
 msgstr ""
 
-#: ../deejayd/core.py:537
+#: ../deejayd/core.py:543
 msgid "Bad value for id_type parm"
 msgstr ""
 
-#: ../deejayd/core.py:541
+#: ../deejayd/core.py:547
 msgid "Bad value for id parm"
 msgstr ""
 
-#: ../deejayd/core.py:555 ../deejayd/core.py:563
+#: ../deejayd/core.py:561 ../deejayd/core.py:569
 #, python-format
 msgid "Mode %s not supported"
 msgstr ""
 
-#: ../deejayd/core.py:578
+#: ../deejayd/core.py:584
 msgid "Param value is not an int"
 msgstr ""
 
-#: ../deejayd/core.py:582
+#: ../deejayd/core.py:588
 #, python-format
 msgid "Option %s does not exist"
 msgstr ""
 
-#: ../deejayd/core.py:584
+#: ../deejayd/core.py:590
 #, python-format
 msgid "Option %s is not supported for this backend"
 msgstr ""
 
-#: ../deejayd/core.py:611 ../deejayd/core.py:713
+#: ../deejayd/core.py:617 ../deejayd/core.py:719
 msgid "Video mode disabled"
 msgstr ""
 
 #. pls already exists
-#: ../deejayd/core.py:622
+#: ../deejayd/core.py:628
 msgid "This playlist already exists"
 msgstr ""
 
-#: ../deejayd/core.py:645
+#: ../deejayd/core.py:651
 #, python-format
 msgid "Playlist with id %s not found."
 msgstr ""
 
-#: ../deejayd/core.py:666
+#: ../deejayd/core.py:672
 msgid "Bad rating value"
 msgstr ""
 
-#: ../deejayd/core.py:670 ../deejayd/core.py:697
+#: ../deejayd/core.py:676 ../deejayd/core.py:703
 #, python-format
 msgid "Type %s is not supported"
 msgstr ""
 
-#: ../deejayd/core.py:674
+#: ../deejayd/core.py:680
 #, python-format
 msgid "%s library not activated"
 msgstr ""
 
-#: ../deejayd/core.py:676
+#: ../deejayd/core.py:682
 #, python-format
 msgid "File with id %s not found"
 msgstr ""
 
-#: ../deejayd/core.py:683 ../deejayd/core.py:718
+#: ../deejayd/core.py:689 ../deejayd/core.py:724
 #, python-format
 msgid "Directory %s not found in database"
 msgstr ""
 
-#: ../deejayd/core.py:691
+#: ../deejayd/core.py:697
 msgid "Cover not found"
 msgstr ""
 
@@ -210,48 +210,47 @@ msgstr ""
 msgid "Inotify support disabled"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:77
+#: ../deejayd/mediadb/library.py:76
 #, python-format
 msgid "Unable to find directory %s"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:276
+#: ../deejayd/mediadb/library.py:275
 #, python-format
 msgid "%s library has to be updated, this can take a while."
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:338
+#: ../deejayd/mediadb/library.py:337
 #, python-format
 msgid "The %s library has been updated"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:340
+#: ../deejayd/mediadb/library.py:339
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:390
+#: ../deejayd/mediadb/library.py:389
 #, python-format
 msgid "File %s not supported"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:393
+#: ../deejayd/mediadb/library.py:392
 #, python-format
 msgid "Unable to get infos from %s, see traceback"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:525 ../deejayd/mediadb/library.py:529
-#: ../deejayd/mediadb/library.py:532
+#: ../deejayd/mediadb/library.py:525
 #, python-format
-msgid "cover %s not supported"
+msgid "cover %s not supported by kaa parser"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:537
+#: ../deejayd/mediadb/library.py:530
 #, python-format
 msgid "cover %s : wrong mime type"
 msgstr ""
 
-#: ../deejayd/mediadb/library.py:542
+#: ../deejayd/mediadb/library.py:535
 #, python-format
 msgid "Unable to open cover file %s"
 msgstr ""
@@ -309,68 +308,64 @@ msgstr ""
 msgid "Sub channel %d not found"
 msgstr ""
 
-#: ../deejayd/player/xine.py:56 ../deejayd/player/xine.py:405
+#: ../deejayd/player/xine.py:57 ../deejayd/player/xine.py:421
 msgid "Unable to init a xine instance"
 msgstr ""
 
-#: ../deejayd/player/xine.py:89
+#: ../deejayd/player/xine.py:93
 #, python-format
 msgid "Sub channel %d"
 msgstr ""
 
-#: ../deejayd/player/xine.py:96
+#: ../deejayd/player/xine.py:100
 #, python-format
 msgid "Audio channel %d"
 msgstr ""
 
-#: ../deejayd/player/xine.py:115 ../deejayd/player/gstreamer.py:95
+#: ../deejayd/player/xine.py:119 ../deejayd/player/gstreamer.py:95
 #, python-format
 msgid "Unable to play file %s"
 msgstr ""
 
-#: ../deejayd/player/xine.py:176
+#: ../deejayd/player/xine.py:179
 msgid "Zoom value not accepted"
 msgstr ""
 
-#: ../deejayd/player/xine.py:180
+#: ../deejayd/player/xine.py:183
 #, python-format
 msgid "Zoom: %d percent"
 msgstr ""
 
-#: ../deejayd/player/xine.py:185
+#: ../deejayd/player/xine.py:188
 #, python-format
 msgid "Video aspect ration %s is not known."
 msgstr ""
 
-#: ../deejayd/player/xine.py:195
+#: ../deejayd/player/xine.py:198
 #, python-format
 msgid "Audio/Video offset: %d ms"
 msgstr ""
 
-#: ../deejayd/player/xine.py:202
+#: ../deejayd/player/xine.py:205
 #, python-format
 msgid "Subtitle offset: %d ms"
 msgstr ""
 
-#: ../deejayd/player/xine.py:287
+#: ../deejayd/player/xine.py:302
 msgid "Unable to open audio driver"
 msgstr ""
 
-#: ../deejayd/player/xine.py:298
+#: ../deejayd/player/xine.py:313
 msgid "Unable to open video driver"
 msgstr ""
 
-#: ../deejayd/player/xine.py:394
+#: ../deejayd/player/xine.py:409
 #, python-format
 msgid "Xine error %s"
 msgstr ""
 
-#: ../deejayd/player/xine.py:413
-msgid "lsdvd not found, can't extract dvd info"
-msgstr ""
-
-#: ../deejayd/player/xine.py:429
-msgid "error in lsdvd command"
+#: ../deejayd/player/xine.py:427
+msgid "Unable to identify dvd device"
 msgstr ""
 
 #: ../deejayd/player/gstreamer.py:47

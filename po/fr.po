@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-18 16:37+0200\n"
+"POT-Creation-Date: 2009-09-12 11:26+0200\n"
 "PO-Revision-Date: 2008-04-12 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -40,7 +40,7 @@ msgstr "L'URI proposée pour cette radio web n'est pas supportée"
 msgid "Webradio info could not be retrieved"
 msgstr "Les infos sur la radio web n'ont pas pu être récupérées"
 
-#: ../deejayd/core.py:301 ../deejayd/core.py:617
+#: ../deejayd/core.py:301 ../deejayd/core.py:623
 msgid "Set a playlist name"
 msgstr "Indiquer un nom de playlist"
 
@@ -48,72 +48,72 @@ msgstr "Indiquer un nom de playlist"
 msgid "Not supported type"
 msgstr "type non supporté"
 
-#: ../deejayd/core.py:537
+#: ../deejayd/core.py:543
 msgid "Bad value for id_type parm"
 msgstr "Mauvaise valeur pour le paramètre id_type"
 
-#: ../deejayd/core.py:541
+#: ../deejayd/core.py:547
 msgid "Bad value for id parm"
 msgstr "Mauvaise valeur pour le paramètre id"
 
-#: ../deejayd/core.py:555 ../deejayd/core.py:563
+#: ../deejayd/core.py:561 ../deejayd/core.py:569
 #, python-format
 msgid "Mode %s not supported"
 msgstr "Mode %s non supporté"
 
-#: ../deejayd/core.py:578
+#: ../deejayd/core.py:584
 msgid "Param value is not an int"
 msgstr "L'argument 'value' n'est pas un chiffre entier"
 
-#: ../deejayd/core.py:582
+#: ../deejayd/core.py:588
 #, python-format
 msgid "Option %s does not exist"
 msgstr "L'option %s n'existe pas"
 
-#: ../deejayd/core.py:584
+#: ../deejayd/core.py:590
 #, python-format
 msgid "Option %s is not supported for this backend"
 msgstr "L'option %s n'est pas supporté pour ce backend"
 
-#: ../deejayd/core.py:611 ../deejayd/core.py:713
+#: ../deejayd/core.py:617 ../deejayd/core.py:719
 msgid "Video mode disabled"
 msgstr "Mode vidéo désactivé"
 
 #. pls already exists
-#: ../deejayd/core.py:622
+#: ../deejayd/core.py:628
 msgid "This playlist already exists"
 msgstr "Cette liste de lecture existe déjà"
 
-#: ../deejayd/core.py:645
+#: ../deejayd/core.py:651
 #, python-format
 msgid "Playlist with id %s not found."
 msgstr "La liste de lecture avec l'identifiant %s n'a pas été trouvée"
 
-#: ../deejayd/core.py:666
+#: ../deejayd/core.py:672
 msgid "Bad rating value"
 msgstr "Valeur érronée pour la notation"
 
-#: ../deejayd/core.py:670 ../deejayd/core.py:697
+#: ../deejayd/core.py:676 ../deejayd/core.py:703
 #, python-format
 msgid "Type %s is not supported"
 msgstr "Le type %s n'est pas supporté"
 
-#: ../deejayd/core.py:674
+#: ../deejayd/core.py:680
 #, python-format
 msgid "%s library not activated"
 msgstr "la librairie %s n'est pas activé"
 
-#: ../deejayd/core.py:676
+#: ../deejayd/core.py:682
 #, python-format
 msgid "File with id %s not found"
 msgstr "Le fichier avec l'identifiant %s n'a pas été trouvé"
 
-#: ../deejayd/core.py:683 ../deejayd/core.py:718
+#: ../deejayd/core.py:689 ../deejayd/core.py:724
 #, python-format
 msgid "Directory %s not found in database"
 msgstr "Le répertoire %s n'a pas été trouvé dans la base de donnée"
 
-#: ../deejayd/core.py:691
+#: ../deejayd/core.py:697
 msgid "Cover not found"
 msgstr "Pochette d'album non trouvée"
 
@@ -213,50 +213,49 @@ msgstr "Impossible d'initialiser la librairie vidéo : %s"
 msgid "Inotify support disabled"
 msgstr "Support d'inotify désactivé"
 
-#: ../deejayd/mediadb/library.py:77
+#: ../deejayd/mediadb/library.py:76
 #, python-format
 msgid "Unable to find directory %s"
 msgstr "Impossible de trouver le répertoire %s"
 
-#: ../deejayd/mediadb/library.py:276
+#: ../deejayd/mediadb/library.py:275
 #, python-format
 msgid "%s library has to be updated, this can take a while."
 msgstr "La librairie %s doit être mise à jour, cela peut prendre du temps"
 
-#: ../deejayd/mediadb/library.py:338
+#: ../deejayd/mediadb/library.py:337
 #, python-format
 msgid "The %s library has been updated"
 msgstr "La librairie %s a été mise à jour"
 
-#: ../deejayd/mediadb/library.py:340
+#: ../deejayd/mediadb/library.py:339
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr "Impossible de mettre à jour la library %s. Voir les logs"
 
-#: ../deejayd/mediadb/library.py:390
+#: ../deejayd/mediadb/library.py:389
 #, python-format
 msgid "File %s not supported"
 msgstr "Le fichier %s n'est pas supporté"
 
-#: ../deejayd/mediadb/library.py:393
+#: ../deejayd/mediadb/library.py:392
 #, python-format
 msgid "Unable to get infos from %s, see traceback"
 msgstr ""
 "Impossible d'obtenir les données du fichier %s, voir l'exception pour plus "
 "de détail"
 
-#: ../deejayd/mediadb/library.py:525 ../deejayd/mediadb/library.py:529
-#: ../deejayd/mediadb/library.py:532
+#: ../deejayd/mediadb/library.py:525
 #, python-format
-msgid "cover %s not supported"
+msgid "cover %s not supported by kaa parser"
 msgstr "Pochette pour %s non supportée"
 
-#: ../deejayd/mediadb/library.py:537
+#: ../deejayd/mediadb/library.py:530
 #, python-format
 msgid "cover %s : wrong mime type"
 msgstr "Pochette pour %s : type mime non supporté"
 
-#: ../deejayd/mediadb/library.py:542
+#: ../deejayd/mediadb/library.py:535
 #, python-format
 msgid "Unable to open cover file %s"
 msgstr "Impossible d'ouvrir la pochette d'album pour %s"
@@ -314,69 +313,65 @@ msgstr "Le média courant n'a pas plusieurs canaux de sous-titre"
 msgid "Sub channel %d not found"
 msgstr "Canal des sous-titres %d non trouvé"
 
-#: ../deejayd/player/xine.py:56 ../deejayd/player/xine.py:405
+#: ../deejayd/player/xine.py:57 ../deejayd/player/xine.py:421
 msgid "Unable to init a xine instance"
 msgstr "Impossible d'initialiser une instance de xine"
 
-#: ../deejayd/player/xine.py:89
+#: ../deejayd/player/xine.py:93
 #, python-format
 msgid "Sub channel %d"
 msgstr "Canal des sous-titres %d"
 
-#: ../deejayd/player/xine.py:96
+#: ../deejayd/player/xine.py:100
 #, python-format
 msgid "Audio channel %d"
 msgstr "Canal audio %d"
 
-#: ../deejayd/player/xine.py:115 ../deejayd/player/gstreamer.py:95
+#: ../deejayd/player/xine.py:119 ../deejayd/player/gstreamer.py:95
 #, python-format
 msgid "Unable to play file %s"
 msgstr "Impossible de lire le fichier %s"
 
-#: ../deejayd/player/xine.py:176
+#: ../deejayd/player/xine.py:179
 msgid "Zoom value not accepted"
 msgstr "valeur de zoom non accepté"
 
-#: ../deejayd/player/xine.py:180
+#: ../deejayd/player/xine.py:183
 #, python-format
 msgid "Zoom: %d percent"
 msgstr "Zoom : %d pourcent"
 
-#: ../deejayd/player/xine.py:185
+#: ../deejayd/player/xine.py:188
 #, python-format
 msgid "Video aspect ration %s is not known."
 msgstr "L'aspect vidéo %s n'est pas connu"
 
-#: ../deejayd/player/xine.py:195
+#: ../deejayd/player/xine.py:198
 #, python-format
 msgid "Audio/Video offset: %d ms"
 msgstr "Décalage Audio/Vidéo : %s ms"
 
-#: ../deejayd/player/xine.py:202
+#: ../deejayd/player/xine.py:205
 #, python-format
 msgid "Subtitle offset: %d ms"
 msgstr "Décalage des sous-titre : %d ms"
 
-#: ../deejayd/player/xine.py:287
+#: ../deejayd/player/xine.py:302
 msgid "Unable to open audio driver"
 msgstr "Impossible d'ouvrir le driver audio"
 
-#: ../deejayd/player/xine.py:298
+#: ../deejayd/player/xine.py:313
 msgid "Unable to open video driver"
 msgstr "Impossible d'ouvrir le driver vidéo"
 
-#: ../deejayd/player/xine.py:394
+#: ../deejayd/player/xine.py:409
 #, python-format
 msgid "Xine error %s"
 msgstr "Erreur Xine %s"
 
-#: ../deejayd/player/xine.py:413
-msgid "lsdvd not found, can't extract dvd info"
-msgstr "lsdvd non trouvé, impossible d'extraire les informations du dvd"
-
-#: ../deejayd/player/xine.py:429
-msgid "error in lsdvd command"
-msgstr "Erreur dans la commande lsdvd"
+#: ../deejayd/player/xine.py:427
+msgid "Unable to identify dvd device"
+msgstr "Impossible d'identifier le dvd"
 
 #: ../deejayd/player/gstreamer.py:47
 #, python-format
@@ -782,6 +777,12 @@ msgstr "Artiste"
 #: ../deejayd/webui/mobile.py:305
 msgid "Album"
 msgstr "Album"
+
+#~ msgid "lsdvd not found, can't extract dvd info"
+#~ msgstr "lsdvd non trouvé, impossible d'extraire les informations du dvd"
+
+#~ msgid "error in lsdvd command"
+#~ msgstr "Erreur dans la commande lsdvd"
 
 #~ msgid "Unknown command : %s"
 #~ msgstr "Commande inconnue : %s"
