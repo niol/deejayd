@@ -114,8 +114,8 @@ class Event(object):
     def __init__(self, type, contents):
         self.type = type
         if self.type == Event.XINE_EVENT_UI_MESSAGE:
-            self.data = cast(event.data,
-                             POINTER(xinelib.xine_ui_message_data_t))
+            self.data = ctypes.cast(event.data,
+                                    POINTER(xinelib.xine_ui_message_data_t))
 
 
 class EventQueue(object):
