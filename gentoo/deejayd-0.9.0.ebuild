@@ -11,7 +11,7 @@ SRC_URI="http://mroy31.dyndns.org/~roy/archives/deejayd/${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
-IUSE="sqlite mysql dvd webradio xine gstreamer webui inotify logrotate man"
+IUSE="sqlite mysql webradio xine gstreamer webui inotify logrotate man"
 
 DEPEND="
 	man? ( >=app-text/docbook-xsl-stylesheets-1.73
@@ -23,14 +23,15 @@ RDEPEND="
 	mysql? ( >=dev-python/mysql-python-1.2.1 )
 	|| ( >=dev-lang/python-2.5.0
 		 >=dev-python/celementtree-1.0.2 )
+	|| ( >=dev-lang/python-2.6.0
+		 >=dev-python/simplejson-2.0.9 )
 	>=media-libs/mutagen-1.9
-	>=app-misc/hachoir-metadata-1.1
+	>=dev-python/kaa-metadata-1.1
 	>=dev-python/lxml-1.3.0
 	logrotate? ( app-admin/logrotate )
 	webui?
         (
             >=dev-python/twisted-web-0.6.0
-            >=dev-python/genshi-0.5.0
         )
 	inotify? ( >=dev-python/pyinotify-0.6.0 )
 	gstreamer?
@@ -47,8 +48,7 @@ RDEPEND="
 	             >=dev-python/ctypes-1.0.0 )
 			>=x11-libs/libX11-1.0.0
 			>=x11-libs/libXext-1.0.0
-			>=media-libs/xine-lib-1.1.0 )
-	dvd? ( >=media-video/lsdvd-0.16 )"
+			>=media-libs/xine-lib-1.1.0 )"
 
 
 pkg_setup() {
