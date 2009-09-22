@@ -114,8 +114,31 @@ class Event(object):
     def __init__(self, type, contents):
         self.type = type
         if self.type == Event.XINE_EVENT_UI_MESSAGE:
-            self.data = ctypes.cast(event.data,
-                                    POINTER(xinelib.xine_ui_message_data_t))
+            self.data = ctypes.cast(contents.data,
+                             ctypes.POINTER(xinelib.xine_ui_message_data_t))
+        else:
+            self.data = None
+
+    def message(self):
+        if not self.data: return None
+        msg = self.data.contents
+        if msg.type != XinePlayer.XINE_MSG_NO_ERROR:
+            if msg.explanation:
+                message_txt = ctypes.string_at(ctypes.addressof(msg)\
+                              + msg.explanation)
+                message_parameters = []
+                param_address = ctypes.addressof(msg) + msg.parameters
+                for param_index in range(0, msg.num_parameters):
+                    message_par = ctypes.string_at(param_address)
+                    param_address += len(message_par) + 2 # Skip '\0'
+                    message_parameters.append(message_par)
+                message_params = ' '.join(message_parameters)
+                message = "%s %s" % (message_txt, message_params)
+            else:
+                raise XineError(msg.type)
+        else:
+            message = None
+        return message
 
 
 class EventQueue(object):
@@ -610,10 +633,21 @@ if __name__ == '__main__':
     x.set_param(XinePlayer.XINE_ENGINE_PARAM_VERBOSITY_LOG, 1)
     vd = VideoDriver(x, fullscreen=False)
     s = x.stream_new(video_port=vd)
+
+    def print_message(data, event):
+        if event.type == Event.XINE_EVENT_UI_MESSAGE:
+            try:
+                print "Xine error message : %s" % event.message()
+            except XineError, e:
+                print "Xine exception message : %s " % e
+    s.add_event_callback(print_message)
+
     file_path = sys.argv[1]
-    if not file_path.startswith('/'):
+    if not file_path.startswith('/') and not file_path.startswith('http://'):
        file_path = os.path.join(os.getcwd(), file_path)
-    s.open('file:/' + file_path)
+    if file_path.startswith('/'):
+       file_path = 'file:/' + file_path
+    s.open(file_path)
     s.play()
     time.sleep(15)
     s.stop()

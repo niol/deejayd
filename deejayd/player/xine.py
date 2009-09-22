@@ -398,15 +398,11 @@ class XinePlayer(UnknownPlayer):
             reactor.callFromThread(self._update_metadata)
         elif event.type == xine.Event.XINE_EVENT_UI_MESSAGE:
             log.info("Xine event : message")
-            msg = event.data.contents
-            if msg.type != xine.XinePlayer.XINE_MSG_NO_ERROR:
-                if msg.explanation:
-                    # FIXME : This is strange to use pointer arithemtics here,
-                    # as ctypes may automatically dereference pointers, I think
-                    # msg.explanation should suffice...
-                    message = string_at(addressof(msg) + msg.explanation)
-                else:
-                    message = _("Xine error %s") % msg.type
+            try:
+                message = event.message()
+            except xine.XineError, errornum:
+                message = _("Xine error %s") % errornum
+            if message is not None:
                 reactor.callFromThread(log.err, message)
         return True
 
