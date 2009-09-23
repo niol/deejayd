@@ -30,3 +30,4 @@ deejayd/rpc/rdfbuilder.py
 deejayd/webui/__init__.py
 deejayd/webui/xul.py
 deejayd/webui/mobile.py
+scripts/deejayd

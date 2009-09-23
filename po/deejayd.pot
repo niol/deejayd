@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-12 11:26+0200\n"
+"POT-Creation-Date: 2009-09-23 15:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -308,7 +308,7 @@ msgstr ""
 msgid "Sub channel %d not found"
 msgstr ""
 
-#: ../deejayd/player/xine.py:57 ../deejayd/player/xine.py:421
+#: ../deejayd/player/xine.py:57 ../deejayd/player/xine.py:417
 msgid "Unable to init a xine instance"
 msgstr ""
 
@@ -359,12 +359,12 @@ msgstr ""
 msgid "Unable to open video driver"
 msgstr ""
 
-#: ../deejayd/player/xine.py:409
+#: ../deejayd/player/xine.py:404
 #, python-format
 msgid "Xine error %s"
 msgstr ""
 
-#: ../deejayd/player/xine.py:427
+#: ../deejayd/player/xine.py:423
 msgid "Unable to identify dvd device"
 msgstr ""
 
@@ -767,4 +767,81 @@ msgstr ""
 
 #: ../deejayd/webui/mobile.py:305
 msgid "Album"
+msgstr ""
+
+#: ../scripts/deejayd:55
+msgid "The uid to run as"
+msgstr ""
+
+#: ../scripts/deejayd:57
+msgid ""
+"The gid to run as (the first one), and the supplementary gids separated by "
+"commas."
+msgstr ""
+
+#: ../scripts/deejayd:59
+msgid "No daemonize deejayd"
+msgstr ""
+
+#: ../scripts/deejayd:61 ../scripts/deejayd:65
+msgid "Specify the log file"
+msgstr ""
+
+#: ../scripts/deejayd:63
+msgid "Specify the log file for the webui"
+msgstr ""
+
+#: ../scripts/deejayd:67
+msgid "Specify a custom conf file"
+msgstr ""
+
+#: ../scripts/deejayd:69
+msgid "Kill the actual deejayd process"
+msgstr ""
+
+#: ../scripts/deejayd:72
+msgid "Log more debug informations"
+msgstr ""
+
+#: ../scripts/deejayd:82
+msgid "The config file does not exist."
+msgstr ""
+
+#: ../scripts/deejayd:112
+#, python-format
+msgid "Pidfile %s contains non-numeric value"
+msgstr ""
+
+#: ../scripts/deejayd:118
+#, python-format
+msgid "Unable to stop deejayd : %s, are you sure it running ?"
+msgstr ""
+
+#: ../scripts/deejayd:121
+msgid "no PidFile found, are you sure deejayd running ?"
+msgstr ""
+
+#: ../scripts/deejayd:128
+#, python-format
+msgid "Unable to remove pid file : %s"
+msgstr ""
+
+#: ../scripts/deejayd:153
+msgid "Unable to change gid of the process"
+msgstr ""
+
+#: ../scripts/deejayd:161
+msgid "Unable to change uid of the process"
+msgstr ""
+
+#: ../scripts/deejayd:216
+msgid "Unable to launch deejayd core, see traceback for more details"
+msgstr ""
+
+#: ../scripts/deejayd:240
+msgid "Webui does not seem to be installed, disabling."
+msgstr ""
+
+#: ../scripts/deejayd:271
+msgid "No service has been activated"
 msgstr ""

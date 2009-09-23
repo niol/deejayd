@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-12 11:26+0200\n"
+"POT-Creation-Date: 2009-09-23 15:08+0200\n"
 "PO-Revision-Date: 2008-04-12 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -313,7 +313,7 @@ msgstr "Le média courant n'a pas plusieurs canaux de sous-titre"
 msgid "Sub channel %d not found"
 msgstr "Canal des sous-titres %d non trouvé"
 
-#: ../deejayd/player/xine.py:57 ../deejayd/player/xine.py:421
+#: ../deejayd/player/xine.py:57 ../deejayd/player/xine.py:417
 msgid "Unable to init a xine instance"
 msgstr "Impossible d'initialiser une instance de xine"
 
@@ -364,12 +364,12 @@ msgstr "Impossible d'ouvrir le driver audio"
 msgid "Unable to open video driver"
 msgstr "Impossible d'ouvrir le driver vidéo"
 
-#: ../deejayd/player/xine.py:409
+#: ../deejayd/player/xine.py:404
 #, python-format
 msgid "Xine error %s"
 msgstr "Erreur Xine %s"
 
-#: ../deejayd/player/xine.py:427
+#: ../deejayd/player/xine.py:423
 msgid "Unable to identify dvd device"
 msgstr "Impossible d'identifier le dvd"
 
@@ -778,6 +778,86 @@ msgstr "Artiste"
 msgid "Album"
 msgstr "Album"
 
+#: ../scripts/deejayd:55
+msgid "The uid to run as"
+msgstr "L'UID avec lequel sera lancé deejayd"
+
+#: ../scripts/deejayd:57
+msgid ""
+"The gid to run as (the first one), and the supplementary gids separated by "
+"commas."
+msgstr ""
+"L'GID avec lequel sera lancé deejayd (le premier), suivi par les gid "
+"supplémentaires spéarés par des virgules."
+
+#: ../scripts/deejayd:59
+msgid "No daemonize deejayd"
+msgstr "Ne pas lancer en démon"
+
+#: ../scripts/deejayd:61 ../scripts/deejayd:65
+msgid "Specify the log file"
+msgstr "Spécifier le fichier de log"
+
+#: ../scripts/deejayd:63
+msgid "Specify the log file for the webui"
+msgstr "Spécifier le fichier de log pour l'interface web"
+
+#: ../scripts/deejayd:67
+msgid "Specify a custom conf file"
+msgstr "Spécifier un fichier de configuration à prendre en compte"
+
+#: ../scripts/deejayd:69
+msgid "Kill the actual deejayd process"
+msgstr "Tuer le processus actuel de deejayd"
+
+#: ../scripts/deejayd:72
+msgid "Log more debug informations"
+msgstr "Enregistre plus d'information pour le debuggage"
+
+#: ../scripts/deejayd:82
+msgid "The config file does not exist."
+msgstr "Le fichier de configuration n'existe pas"
+
+#: ../scripts/deejayd:112
+#, python-format
+msgid "Pidfile %s contains non-numeric value"
+msgstr "Le fichier pour le PID %s contient une valeur non numérique"
+
+#: ../scripts/deejayd:118
+#, python-format
+msgid "Unable to stop deejayd : %s, are you sure it running ?"
+msgstr "Impossible d'arrêter deejayd : %s, Etes vous sûr qu'il est lancé ?"
+
+#: ../scripts/deejayd:121
+msgid "no PidFile found, are you sure deejayd running ?"
+msgstr ""
+"Aucun fichier pour le PID trouvé, Etes vous sûr que deejayd est lancé ?"
+
+#: ../scripts/deejayd:128
+#, python-format
+msgid "Unable to remove pid file : %s"
+msgstr "Impossible de supprimer leier pour le PID : %s"
+
+#: ../scripts/deejayd:153
+msgid "Unable to change gid of the process"
+msgstr "Impossible de modifier le GID du process"
+
+#: ../scripts/deejayd:161
+msgid "Unable to change uid of the process"
+msgstr "Impossible de modifier l'UID du process"
+
+#: ../scripts/deejayd:216
+msgid "Unable to launch deejayd core, see traceback for more details"
+msgstr "Impossible de lancer deejayd, voir les logs pour plus de détails"
+
+#: ../scripts/deejayd:240
+msgid "Webui does not seem to be installed, disabling."
+msgstr "L'interface web ne semble pas installé, désactivé."
+
+#: ../scripts/deejayd:271
+msgid "No service has been activated"
+msgstr "Aucun service n'a été activé"
+
 #~ msgid "lsdvd not found, can't extract dvd info"
 #~ msgstr "lsdvd non trouvé, impossible d'extraire les informations du dvd"
 
@@ -1002,9 +1082,6 @@ msgstr "Album"
 
 #~ msgid "Unable to get audio metadata from %s"
 #~ msgstr "Impossible d'obtenir les données audio du fichier %s"
-
-#~ msgid "Unable to change audio channel"
-#~ msgstr "Impossible de modifier le canal audio"
 
 #~ msgid "Unable to change subtitle channel"
 #~ msgstr "Impossible de modifier le canal des sous-titres"
