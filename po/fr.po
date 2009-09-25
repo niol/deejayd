@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-23 15:08+0200\n"
+"POT-Creation-Date: 2009-09-25 12:59+0000\n"
 "PO-Revision-Date: 2008-04-12 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -778,11 +778,16 @@ msgstr "Artiste"
 msgid "Album"
 msgstr "Album"
 
-#: ../scripts/deejayd:55
+#. The help option must be changed to comply with i18n.
+#: ../scripts/deejayd:56
+msgid "Show this help message and exit."
+msgstr "Afficher ce message d'aide et quitter."
+
+#: ../scripts/deejayd:59
 msgid "The uid to run as"
 msgstr "L'UID avec lequel sera lancé deejayd"
 
-#: ../scripts/deejayd:57
+#: ../scripts/deejayd:61
 msgid ""
 "The gid to run as (the first one), and the supplementary gids separated by "
 "commas."
@@ -790,71 +795,71 @@ msgstr ""
 "L'GID avec lequel sera lancé deejayd (le premier), suivi par les gid "
 "supplémentaires spéarés par des virgules."
 
-#: ../scripts/deejayd:59
+#: ../scripts/deejayd:63
 msgid "No daemonize deejayd"
 msgstr "Ne pas lancer en démon"
 
-#: ../scripts/deejayd:61 ../scripts/deejayd:65
+#: ../scripts/deejayd:65 ../scripts/deejayd:69
 msgid "Specify the log file"
 msgstr "Spécifier le fichier de log"
 
-#: ../scripts/deejayd:63
+#: ../scripts/deejayd:67
 msgid "Specify the log file for the webui"
 msgstr "Spécifier le fichier de log pour l'interface web"
 
-#: ../scripts/deejayd:67
+#: ../scripts/deejayd:71
 msgid "Specify a custom conf file"
 msgstr "Spécifier un fichier de configuration à prendre en compte"
 
-#: ../scripts/deejayd:69
+#: ../scripts/deejayd:73
 msgid "Kill the actual deejayd process"
 msgstr "Tuer le processus actuel de deejayd"
 
-#: ../scripts/deejayd:72
+#: ../scripts/deejayd:76
 msgid "Log more debug informations"
 msgstr "Enregistre plus d'information pour le debuggage"
 
-#: ../scripts/deejayd:82
+#: ../scripts/deejayd:86
 msgid "The config file does not exist."
 msgstr "Le fichier de configuration n'existe pas"
 
-#: ../scripts/deejayd:112
+#: ../scripts/deejayd:116
 #, python-format
 msgid "Pidfile %s contains non-numeric value"
 msgstr "Le fichier pour le PID %s contient une valeur non numérique"
 
-#: ../scripts/deejayd:118
+#: ../scripts/deejayd:122
 #, python-format
 msgid "Unable to stop deejayd : %s, are you sure it running ?"
 msgstr "Impossible d'arrêter deejayd : %s, Etes vous sûr qu'il est lancé ?"
 
-#: ../scripts/deejayd:121
+#: ../scripts/deejayd:125
 msgid "no PidFile found, are you sure deejayd running ?"
 msgstr ""
 "Aucun fichier pour le PID trouvé, Etes vous sûr que deejayd est lancé ?"
 
-#: ../scripts/deejayd:128
+#: ../scripts/deejayd:132
 #, python-format
 msgid "Unable to remove pid file : %s"
 msgstr "Impossible de supprimer leier pour le PID : %s"
 
-#: ../scripts/deejayd:153
+#: ../scripts/deejayd:157
 msgid "Unable to change gid of the process"
 msgstr "Impossible de modifier le GID du process"
 
-#: ../scripts/deejayd:161
+#: ../scripts/deejayd:165
 msgid "Unable to change uid of the process"
 msgstr "Impossible de modifier l'UID du process"
 
-#: ../scripts/deejayd:216
+#: ../scripts/deejayd:220
 msgid "Unable to launch deejayd core, see traceback for more details"
 msgstr "Impossible de lancer deejayd, voir les logs pour plus de détails"
 
-#: ../scripts/deejayd:240
+#: ../scripts/deejayd:244
 msgid "Webui does not seem to be installed, disabling."
 msgstr "L'interface web ne semble pas installé, désactivé."
 
-#: ../scripts/deejayd:271
+#: ../scripts/deejayd:275
 msgid "No service has been activated"
 msgstr "Aucun service n'a été activé"
 

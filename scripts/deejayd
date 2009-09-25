@@ -56,6 +56,10 @@ parser = OptionParser(usage=usage)
 
 # List options
 parser.set_defaults(pidfile="deejayd.pid",kill = False,daemon = True)
+
+# The help option must be changed to comply with i18n.
+parser.get_option('-h').help = _("Show this help message and exit.")
+
 parser.add_option("-u","--uid",dest="uid",type="string",\
     help=_("The uid to run as"))
 parser.add_option("-g","--gid",dest="gid",type="string",\
