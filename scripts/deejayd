@@ -39,7 +39,12 @@ if binsuffix == 'bin':
 ######################################################
 import gettext
 from deejayd.ui.i18n import DeejaydTranslations
-try: t = gettext.translation("deejayd", class_=DeejaydTranslations)
+if INSTALL_MODE == 'source':
+    LOCALES_PATH = os.path.join(INSTALL_BIN_DIR, '..', 'build', 'mo')
+else:
+    LOCALES_PATH = os.path.join(INSTALL_PREFIX, 'share', 'locale')
+try:
+    t = gettext.translation("deejayd", LOCALES_PATH, class_=DeejaydTranslations)
 except IOError:
     t = DeejaydTranslations()
 t.install()
