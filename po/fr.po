@@ -792,8 +792,8 @@ msgid ""
 "The gid to run as (the first one), and the supplementary gids separated by "
 "commas."
 msgstr ""
-"L'GID avec lequel sera lancé deejayd (le premier), suivi par les gid "
-"supplémentaires spéarés par des virgules."
+"Le GID avec lequel sera lancé deejayd (le premier), suivi par les GIDs "
+"supplémentaires séparés par des virgules."
 
 #: ../scripts/deejayd:63
 msgid "No daemonize deejayd"
