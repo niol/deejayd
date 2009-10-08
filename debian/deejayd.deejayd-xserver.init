@@ -77,7 +77,7 @@ gen_auth_cookie()
     dummy=0
 
     # create a file with auth information for the server. ':0' is a dummy.
-    xserverauthfile=`mktemp serverauth.XXXXXXXXXX`
+    xserverauthfile=`mktemp -t serverauth.XXXXXXXXXX`
 
     xauth -q -f $xserverauthfile << EOF
 add :$dummy . $mcookie
