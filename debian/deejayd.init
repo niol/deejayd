@@ -61,7 +61,7 @@ if [ ! -z "$DEEJAYD_XSERVER_METHOD" ] &&\
         # permissions.
         touch $DEEJAYD_XAUTHORITY
         chgrp video $DEEJAYD_XAUTHORITY && chmod 640 $DEEJAYD_XAUTHORITY
-        if [ "$DEEJAYD_XSERVER_METHOD" == "reuse" ]; then
+        if [ "$DEEJAYD_XSERVER_METHOD" = "reuse" ]; then
             chmod g+w $DEEJAYD_XAUTHORITY
         fi
     fi
