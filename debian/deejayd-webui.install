@@ -1,2 +1,2 @@
-usr/lib/python*/site-packages/deejayd/webui/*.py
+usr/lib/python*/*-packages/deejayd/webui/*.py
 usr/share/deejayd/htdocs/*
