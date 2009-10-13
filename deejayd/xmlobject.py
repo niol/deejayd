@@ -25,16 +25,27 @@ except ImportError:
 
 class DeejaydXMLObject(object):
 
+    def __is_xml_char(self, char):
+        # FIXME: This function should probably be more complicated than this.
+        return char not in '\x19'
+
     def _to_xml_string(self, s):
+        xml_string = ''
         if isinstance(s, int) or isinstance(s, float) or isinstance(s, long):
-            return "%d" % (s,)
+            xml_string = "%d" % (s,)
         elif isinstance(s, str):
-            return "%s" % (s.decode('utf-8'))
+            xml_string = "%s" % (s.decode('utf-8'))
         elif isinstance(s, unicode):
             rs = s.encode("utf-8")
-            return "%s" % (rs.decode('utf-8'))
+            xml_string = "%s" % (rs.decode('utf-8'))
         else:
             raise TypeError
+
+        filtered_xml_string = []
+        for string_char in xml_string:
+            if self.__is_xml_char(string_char):
+                filtered_xml_string.append(string_char)
+        return ''.join(filtered_xml_string)
 
     def _indent(self,elem, level=0):
         indent_char = "    "
