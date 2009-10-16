@@ -10,6 +10,7 @@ export DH_OPTIONS
 PYVERS=$(shell pyversions -vr)
 
 ifeq ($(PYVERS), 2.5)
+	# --install-layout=deb does not exist in python << 2.6
 	DISTUTILSINSTLAYOUT =
 else
 	DISTUTILSINSTLAYOUT = --install-layout=deb
