@@ -219,7 +219,7 @@ NowPlayingPage.prototype =
                                 break;
                             case "webradio":
                                 $(title).html(media.title);
-                                $(desc).html(media.url);
+                                $(desc).html(media.uri);
                                 break;
                         }
                         $(playing_text).append(title).append(desc);
@@ -356,7 +356,11 @@ _ModePage.prototype =
                         var desc = infos.videoheight+" X "+infos.videowidth;
                         break;
                     case "webradio":
-                        var desc = infos.url;
+                        if (infos["url-type"] == "urls") {
+                            var desc = infos["urls"].join(" ");
+                        } else {
+                            var desc = infos.url;
+                        }
                         break;
                     case "dvd_track":
                         var desc = '';
@@ -740,6 +744,10 @@ function WebradioMode(st) {
     return this;
 };
 WebradioMode.prototype = new _ModePage;
+WebradioMode.prototype.update = function(st) {
+    this.has_selection = st.webradiosource == "local";
+    _ModePage.prototype.update.apply(this, arguments);
+};
 WebradioMode.prototype.clear = function(evt) {
     mobileui_ref.rpc.wbModeClear();
 };

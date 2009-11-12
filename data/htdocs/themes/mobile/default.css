@@ -238,7 +238,7 @@ div.pause, div.stop { background-image: url('images/play.png'); }
 #mode-content div.media-item div.media-info .media-title,
 #mode-content div.media-item div.media-info .media-desc {
     min-height: 16px;
-    overflow:visible;
+    overflow:hidden;
     white-space: normal;
 }
 #mode-content div.media-item div.media-info .media-title {

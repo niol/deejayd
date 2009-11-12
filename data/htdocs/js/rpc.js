@@ -189,9 +189,17 @@ RPC.prototype =
         this.send("webradio."+request, p, callback);
     },
 
-    wbModeClear: function() { this.__wbModeRequest("clear"); },
-    wbModeRemove: function(val) { this.__wbModeRequest("remove",[val]); },
-    wbModeAdd: function(name, url) { this.__wbModeRequest("add",[name, url]); },
+    wbModeClear: function() { this.__wbModeRequest("localClear"); },
+    wbModeRemove: function(val) { this.__wbModeRequest("localRemove",[val]); },
+    wbModeAdd: function(name, url) {
+        this.__wbModeRequest("localAdd",[name, url]);
+    },
+    wbModeSetSource: function(source) {
+        this.__wbModeRequest("setSource",[source]);
+    },
+    wbModeSetSourceCat: function(categorie) {
+        this.__wbModeRequest("setSourceCategorie",[categorie]);
+    },
 
 /*
  * Webradio requests
