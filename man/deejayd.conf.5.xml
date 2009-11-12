@@ -130,6 +130,17 @@ activated_modes = playlist, panel, webradio, video
         </listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>enabled_plugins</term>
+        <listitem>
+          <para>a list of plugins to activate separated by ','.
+          Available plugins are :
+            <parameter>shoutcast</parameter> to navigate and play shoutcast
+            webradio
+          </para>
+        </listitem>
+      </varlistentry>
+
     </variablelist>
 
   </refsect1>
