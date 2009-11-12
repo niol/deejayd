@@ -132,7 +132,8 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
     @returns_answer('ack', params=[{"name":"mode","type":"string","req":True}])
     def jsonrpc_setmode(self, mode):
         """Change the player mode. Possible values are :
-  * playlist : to manage and listen songs
+  * playlist : to manage and listen songs in playlist
+  * panel : to manage and listen songs in panel mode (like itunes)
   * video : to manage and wath video file
   * dvd : to wath dvd
   * webradio : to manage and listen webradios"""
@@ -142,13 +143,10 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
     def jsonrpc_availablemodes(self):
         """For each available source, shows if it is activated or not.
    The answer consists in :
-  * playlist : 0 or 1 (actually always 1 because it does not need optionnal
-               dependencies)
-  * queue : 0 or 1 (actually always 1 because it does not need optionnal
-               dependencies)
-  * webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activated)
-  * video : 0 or 1 (needs video dependencies, X display and needs to be
-            activated in configuration)
+  * playlist : 0 or 1
+  * panel : 0 or 1
+  * webradio : 0 or 1 (media backend has to be abble to read url streams)
+  * video : 0 or 1 (needs video dependencies, X display and needs to be activated in configuration)
   * dvd : 0 or 1 (media backend has to be able to read dvd)"""
         return  dict(self.deejayd_core.get_mode(objanswer=False))
 
@@ -177,18 +175,13 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
   * dvdlength : _int_ number of tracks on the current dvd
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
-  * current : _int_:_int_:_str_ current media pos : current media file id :
-                                playing source name
+  * current : _int_:_int_:_str_ current media pos : current media file id : playing source name
   * time : _int_:_int_ position:length of the current media file
   * mode : [playlist-webradio-video] the current mode
-  * audio_updating_db : _int_ show when a audio library update
-                        is in progress
-  * audio_updating_error : _string_ error message that apppears when the
-                           audio library update has failed
-  * video_updating_db : _int_ show when a video library update
-                        is in progress
-  * video_updating_error : _string_ error message that apppears when the
-                           video library update has failed"""
+  * audio_updating_db : _int_ show when a audio library update is in progress
+  * audio_updating_error : _string_ error message that apppears when the audio library update has failed
+  * video_updating_db : _int_ show when a video library update is in progress
+  * video_updating_error : _string_ error message that apppears when the video library update has failed"""
         return dict(self.deejayd_core.get_status(objanswer = False))
 
     @returns_answer('dict')
@@ -206,10 +199,9 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
             {"name":"option_name", "type":"string","req":True},\
             {"name":"option_value","type":"string","req":True}])
     def jsonrpc_setOption(self, source, option_name, option_value):
-        """Set player options "name" to "value" for mode "source",
-           Available options are :
-           * playorder (inorder, onemedia, random or random-weighted)
-           * repeat (0 or 1) """
+        """Set player options "name" to "value" for mode "source", Available options are :
+  * playorder (inorder, onemedia, random or random-weighted)
+  * repeat (0 or 1)"""
         self.deejayd_core.set_option(source, option_name,\
                 option_value, objanswer=False)
 
@@ -218,8 +210,7 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
             {"name": "value", "type": "int", "req": True},\
             {"name": "type", "type": "string", "req": False}])
     def jsonrpc_setRating(self, ids, value, type = "audio"):
-        """Set rating of media file with ids equal to media_id
-        for library 'type' """
+        """Set rating of media file with ids equal to media_id for library 'type' """
         self.deejayd_core.set_media_rating(ids, value, type, objanswer=False)
 
 
@@ -270,8 +261,7 @@ class DeejaydPlayerJSONRPC(_DeejaydJSONRPC):
     @returns_answer('ack', params=[{"name":"pos", "type":"int", "req":True},\
             {"name":"relative", "type":"bool", "req":False}])
     def jsonrpc_seek(self, pos, relative = False):
-        """Seeks to the position "pos" (in seconds) of the current media
-           set relative argument to true to set new pos in relative way"""
+        """Seeks to the position "pos" (in seconds) of the current media set relative argument to true to set new pos in relative way"""
         self.deejayd_core.seek(pos, relative, objanswer=False)
 
     @returns_answer('mediaList')
@@ -305,20 +295,18 @@ class DeejaydPlayerJSONRPC(_DeejaydJSONRPC):
             {"name":"option_name", "type":"string", "req":True},\
             {"name":"option_value", "type":"string", "req":True}])
     def jsonrpc_setPlayerOption(self, option_name, option_value):
-        """Set player option for the current media
-       Possible options are :
-         * zoom : set zoom (video only), min=-85, max=400
-         * audio_lang : select audio channel (video only)
-         * sub_lang : select subtitle channel (video only)
-         * av_offset : set audio/video offset (video only)
-         * sub_offset : set subtitle/video offset (video only)
-         * aspect_ratio : set video aspect ratio (video only)
-           available value are :
-               * auto
-               * 1:1
-               * 16:9
-               * 4:3
-               * 2.11:1 (for DVB)"""
+        """Set player option for the current media. Possible options are :
+  * zoom : set zoom (video only), min=-85, max=400
+  * audio_lang : select audio channel (video only)
+  * sub_lang : select subtitle channel (video only)
+  * av_offset : set audio/video offset (video only)
+  * sub_offset : set subtitle/video offset (video only)
+  * aspect_ratio : set video aspect ratio (video only), available values are :
+    * auto
+    * 1:1
+    * 16:9
+    * 4:3
+    * 2.11:1 (for DVB)"""
         self.deejayd_core.set_player_option(option_name, option_value,\
                 objanswer=False)
 
@@ -332,8 +320,7 @@ class _DeejaydLibraryJSONRPC(_DeejaydJSONRPC):
     @returns_answer('dict', params=[{"name":"force","type":"bool","req":False}])
     def jsonrpc_update(self, force = False):
         """Update the library.
-  * 'type'_updating_db : the id of this task.
-    It appears in the status until the update are completed."""
+  * 'type'_updating_db : the id of this task. It appears in the status until the update are completed."""
         func = getattr(self.deejayd_core, "update_%s_library"%self.type)
         return dict(func(force=force, objanswer=False))
 
@@ -368,8 +355,7 @@ class DeejaydAudioLibraryJSONRPC(_DeejaydLibraryJSONRPC):
             params=[{"name":"tag", "type":"string", "req":True},\
                 {"name":"filter","type":"filter","req":False}])
     def jsonrpc_taglist(self, tag, filter = None):
-        """List all the possible values for a tag according to the optional
-        filter argument."""
+        """List all the possible values for a tag according to the optional filter argument."""
         if filter is not None:
             filter = Parse_json_filter(filter)
         tag_list = self.deejayd_core.mediadb_list(tag, filter, objanswer=False)
@@ -456,8 +442,7 @@ class DeejaydPanelModeJSONRPC(_DeejaydModeJSONRPC):
     @returns_answer('dict')
     def jsonrpc_activeList(self):
         """Return active list in panel mode
-         * type : 'playlist' if playlist is choosen as active medialist
-                  'panel' if panel navigation is active
+         * type : 'playlist' if playlist is choosen as active medialist 'panel' if panel navigation is active
          * value : if 'playlist' is selected, return used playlist id"""
         return dict(self.source.get_active_list(objanswer=False))
 
@@ -539,22 +524,19 @@ class DeejaydPlaylistModeJSONRPC(_DeejaydModeJSONRPC):
             {"name":"paths", "type":"list", "req":True},
             {"name":"pos", "type":"int", "req":False}])
     def jsonrpc_addPath(self, paths, pos = None):
-        """Load files or directories passed as arguments ("paths")
-        at the position "pos" in the current playlist."""
+        """Load files or directories passed as arguments ("paths") at the position "pos" in the current playlist."""
         self.source.add_paths(paths, pos,objanswer=False)
 
     @returns_answer('ack', params=[\
             {"name":"ids", "type":"int-list", "req":True},
             {"name":"pos", "type":"int", "req":False}])
     def jsonrpc_addIds(self, ids, pos = None):
-        """Load files with id passed as arguments ("ids")
-        at the position "pos" in the current playlist."""
+        """Load files with id passed as arguments ("ids") at the position "pos" in the current playlist."""
         self.source.add_songs(ids, pos, objanswer=False)
 
     @returns_answer('ack', params=[{"name":"ids","type":"int-list","req":True}])
     def jsonrpc_remove(self, ids):
-        """Remove songs with ids passed as argument ("ids"),
-           from the current playlist"""
+        """Remove songs with ids passed as argument ("ids") from the current playlist"""
         self.source.del_songs(ids, objanswer=False)
 
     @returns_answer('ack', params=[\
@@ -623,16 +605,14 @@ class DeejaydQueueJSONRPC(_DeejaydModeJSONRPC):
             {"name":"paths", "type":"list", "req":True},
             {"name":"pos", "type":"int", "req":False}])
     def jsonrpc_addPath(self, paths, pos = None):
-        """Load files or directories passed as arguments ("paths")
-        at the position "pos" in the queue."""
+        """Load files or directories passed as arguments ("paths") at the position "pos" in the queue."""
         self.source.add_paths(paths, pos,objanswer=False)
 
     @returns_answer('ack', params=[\
             {"name":"ids", "type":"int-list", "req":True},
             {"name":"pos", "type":"int", "req":False}])
     def jsonrpc_addIds(self, ids, pos = None):
-        """Load files with id passed as arguments ("ids")
-        at the position "pos" in the queue."""
+        """Load files with id passed as arguments ("ids") at the position "pos" in the queue."""
         self.source.add_songs(ids, pos, objanswer=False)
 
     @returns_answer('ack', params=[\
@@ -645,8 +625,7 @@ class DeejaydQueueJSONRPC(_DeejaydModeJSONRPC):
 
     @returns_answer('ack', params=[{"name":"ids","type":"int-list","req":True}])
     def jsonrpc_remove(self, ids):
-        """Remove songs with ids passed as argument ("ids"),
-           from the queue"""
+        """Remove songs with ids passed as argument ("ids") from the queue"""
         self.source.del_songs(ids, objanswer=False)
 
     @returns_answer('ack', params=[\
@@ -682,10 +661,9 @@ class DeejaydRecordedPlaylistJSONRPC(_DeejaydJSONRPC):
                     {"name":"type","type":"string","req":True}])
     def jsonrpc_create(self, name, type):
         """Create recorded playlist. The answer consist on
-          * pl_id : id of the created playlist
-          * name : name of the created playlist
-          * type : type of the created playlist
-          """
+  * pl_id : id of the created playlist
+  * name : name of the created playlist
+  * type : type of the created playlist"""
         pl_infos = self.deejayd_core.create_recorded_playlist(\
                 name, type, objanswer=False)
         return dict(pl_infos)
@@ -720,8 +698,7 @@ class DeejaydRecordedPlaylistJSONRPC(_DeejaydJSONRPC):
                     {"name":"values", "type":"list", "req":True},\
                     {"name":"type","type":"string","req":False}])
     def jsonrpc_staticAdd(self, pl_id, values, type = "path"):
-        """Add songs in a recorded static playlist.
-           Argument 'type' has to be 'path' (default) or 'id'"""
+        """Add songs in a recorded static playlist. Argument 'type' has to be 'path' (default) or 'id'"""
         if type not in ("id", "path"):
             raise Fault(INVALID_METHOD_PARAMS,\
                 _("Param 'type' has a wrong value"))
@@ -774,14 +751,11 @@ class DeejaydRecordedPlaylistJSONRPC(_DeejaydJSONRPC):
     @returns_answer('dict', [{"name":"pl_id", "type":"int", "req":True}])
     def jsonrpc_magicGetProperties(self, pl_id):
         """Get properties of a magic playlist
-          * use-or-filter: if equal to 1, use "Or" filter
-            instead of "And" (0 or 1)
-          * use-limit: limit or not number of songs in the playlist (0 or 1)
-          * limit-value: number of songs for this playlist (integer)
-          * limit-sort-value: when limit is active sort playlist with this tag
-          * limit-sort-direction: sort direction for limit
-            (ascending or descending)
-          """
+  * use-or-filter: if equal to 1, use "Or" filter instead of "And" (0 or 1)
+  * use-limit: limit or not number of songs in the playlist (0 or 1)
+  * limit-value: number of songs for this playlist (integer)
+  * limit-sort-value: when limit is active sort playlist with this tag
+  * limit-sort-direction: sort direction for limit (ascending or descending)"""
         pls = self.deejayd_core.get_recorded_playlist(pl_id)
         if pls.type != "magic":
             raise Fault(INVALID_METHOD_PARAMS,\
@@ -844,8 +818,7 @@ class DeejaydSignalJSONRPC(_DeejaydJSONRPC):
     @returns_answer('ack', [{"name":"signal", "type":"string", "req":True},\
             {"name":"value", "type":"bool", "req":True}])
     def jsonrpc_setSubscription(self, signal, value):
-        """Set subscribtion to "signal" signal notifications to "value"
-        which should be 0 or 1."""
+        """Set subscribtion to "signal" signal notifications to "value" which should be 0 or 1."""
         if value is False:
             self.connector.set_not_signaled(signal)
         elif value is True:
@@ -903,8 +876,7 @@ class DeejaydWebJSONRPC(_DeejaydJSONRPC):
 
     @returns_answer('dict', params=[{"name":"mode","type":"string","req":True}])
     def jsonrpc_buildSourceRDF(self, mode):
-        """ Build rdf file with current medialist of the specified mode
-            return dict with specific informations (like a description)"""
+        """ Build rdf file with current medialist of the specified mode return dict with specific informations (like a description)"""
         try: rdf = rdf_modes[mode](self.deejayd_core, self._tmp_dir)
         except KeyError:
             raise Fault(INVALID_METHOD_PARAMS,_("mode %s is not known") % mode)
