@@ -187,30 +187,31 @@ class InterfaceTests:
 
         wr_list = self.deejayd.get_webradios()
 
+        # try to set wrong source
+        ans = wr_list.set_source(self.testdata.getRandomString())
+        self.assertRaises(DeejaydError, ans.get_contents)
+        # set local source
+        ans = wr_list.set_source('local')
+        self.failUnless(ans.get_contents())
+        # local does not have categorie, raise DeejaydError if we try to get it
+        ans = wr_list.get_source_categories('local')
+        self.assertRaises(DeejaydError, ans.get_contents)
+
+
         # Test for bad URI and inexistant playlist
-        for badURI in [[self.testdata.getRandomString(50)],]:
-                   #['http://' + self.testdata.getRandomString(50) + '.pls']]:
-            ans = wr_list.add_webradio(self.testdata.getRandomString(),
-                                       badURI[0])
-            # FIXME : provision for the future where the same webradio may have
-            # multiple urls.
-            #                          badURI)
+        for badURI in [[self.testdata.getRandomString(50)],\
+                   ['http://' + self.testdata.getRandomString(50) + '.pls']]:
+            ans = wr_list.add_webradio(self.testdata.getRandomString(), badURI)
             self.assertRaises(DeejaydError, ans.get_contents)
 
         testWrName = self.testdata.getRandomString()
 
-        # FIXME : provision for the future where the same webradio may have
-        # multiple urls.
-        # testWrUrls = []
-        # for urlCount in range(self.testdata.getRandomInt(10)):
-        #     testWrUrls.append('http://' + self.testdata.getRandomString(50))
-        testWrUrls = 'http://' + self.testdata.getRandomString(50)
+        testWrUrls = []
+        for urlCount in range(self.testdata.getRandomInt(10)):
+            testWrUrls.append('http://' + self.testdata.getRandomString(50))
 
         ans = wr_list.add_webradio(testWrName, testWrUrls)
         self.failUnless(ans.get_contents())
-
-        # FIXME : This should not be, see the future of webradios.
-        testWrName += '-1'
 
         wr_list = self.deejayd.get_webradios()
         wr_names = [wr['title'] for wr in wr_list.get().get_medias()]
@@ -219,10 +220,8 @@ class InterfaceTests:
         retrievedWr = [wr for wr in wr_list.get().get_medias()\
                           if wr['title'] == testWrName][0]
 
-        # FIXME : Same provision for the future.
-        # for url in testWrUrls:
-        #     self.failUnless(url in retrievedWr['Url'])
-        self.assertEqual(testWrUrls, retrievedWr['url'])
+        for url in testWrUrls:
+            self.failUnless(url in retrievedWr['urls'])
 
         ans = wr_list.delete_webradio(51)
         self.assertRaises(DeejaydError, ans.get_contents)
