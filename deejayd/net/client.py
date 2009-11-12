@@ -190,19 +190,32 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
         ans = DeejaydMediaList(self)
         return self.server._send_command(cmd, ans)
 
-    def add_webradio(self, name, urls):
-        # FIXME : Provision for the future where one webradio may have multiple
-        # urls.
-        # cmd.add_multiple_arg('url', urls)
-        cmd = JSONRPCRequest('webradio.add', [name, urls])
+    def get_available_sources(self):
+        cmd = JSONRPCRequest('webradio.getAvailableSources', [])
+        return self.server._send_command(cmd, DeejaydKeyValue())
+
+    def get_source_categories(self, source_name):
+        cmd = JSONRPCRequest('webradio.getSourceCategories', [source_name])
+        return self.server._send_command(cmd, DeejaydList())
+
+    def set_source(self, source_name):
+        cmd = JSONRPCRequest('webradio.setSource', [source_name])
+        return self.server._send_command(cmd)
+
+    def set_source_categorie(self, categorie):
+        cmd = JSONRPCRequest('webradio.setSourceCategorie', [categorie])
+        return self.server._send_command(cmd)
+
+    def add_webradio(self, name, url):
+        cmd = JSONRPCRequest('webradio.localAdd', [name, url])
         return self.server._send_command(cmd)
 
     def delete_webradios(self, wr_ids):
-        cmd = JSONRPCRequest('webradio.remove', [wr_ids])
+        cmd = JSONRPCRequest('webradio.localRemove', [wr_ids])
         return self.server._send_command(cmd)
 
     def clear(self):
-        cmd = JSONRPCRequest('webradio.clear', [])
+        cmd = JSONRPCRequest('webradio.localClear', [])
         return self.server._send_command(cmd)
 
 
