@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os, locale
+import cPickle as pickle
 
 from twisted.internet import reactor
 from deejayd import mediafilters
@@ -32,6 +33,7 @@ class SourceError(DeejaydError): pass
 
 class _BaseSource(SignalingComponent):
     name = "unknown"
+    _default_state = {"id": 1}
 
     def __init__(self, db):
         super(_BaseSource, self).__init__()
@@ -39,9 +41,15 @@ class _BaseSource(SignalingComponent):
         self._current = None
         self._playorder = orders["inorder"]
 
+    def _load_state(self):
+        state = self._default_state.copy()
+        recorded_state = self.db.get_state("%s_state" % self.name)
+        if recorded_state is not None:
+            state = pickle.loads(recorded_state.encode("utf-8"))
+        return state
+
     def get_recorded_id(self):
-        id = int(self.db.get_state(self.name+"id"))
-        return id
+        return self._state["id"]
 
     def get_content(self, start = 0, stop = None):
         return self._media_list.get(start, stop)
@@ -90,17 +98,20 @@ class _BaseSource(SignalingComponent):
         raise NotImplementedError
 
     def close(self):
-        states = [ (str(self._media_list.list_id),self.__class__.name+"id") ]
+        self._state["id"] = self._media_list.list_id
+        states = [ (pickle.dumps(self._state), "%s_state" % self.name) ]
         self.db.set_state(states)
 
 
 class _BaseLibrarySource(_BaseSource):
     available_playorder = ("inorder", "random", "onemedia","random-weighted")
     has_repeat = True
+    _default_state = {"id": 1, "playorder": "inorder", "repeat": False}
     source_signal = ''
 
     def __init__(self, db, library):
         super(_BaseLibrarySource, self).__init__(db)
+        self._state = self._load_state()
         if self.medialist_type == "sorted":
             self._media_list = SortedMediaList(self.get_recorded_id() + 1)
         elif self.medialist_type == "unsorted":
@@ -108,8 +119,8 @@ class _BaseLibrarySource(_BaseSource):
         self.library = library
 
         if self.has_repeat:
-            self._media_list.repeat = int(db.get_state(self.name+"-repeat"))
-        self._playorder = orders[db.get_state(self.name+"-playorder")]
+            self._media_list.repeat = self._state["repeat"]
+        self._playorder = orders[self._state["playorder"]]
 
     def _get_playlist_content(self, pl_id):
         try:
@@ -141,8 +152,11 @@ class _BaseLibrarySource(_BaseSource):
             except KeyError:
                 raise SourceError(_("Unable to set %s order, not supported") %
                     value)
+            else:
+                self._state["playorder"] = value
         elif name == "repeat" and self.has_repeat:
             self._media_list.repeat = int(value)
+            self._state["repeat"] = int(value) and True or False
         else: raise NotImplementedError
 
     def get_status(self):
@@ -155,10 +169,6 @@ class _BaseLibrarySource(_BaseSource):
     def close(self):
         super(_BaseLibrarySource, self).close()
         self.db.set_static_medialist(self.base_medialist,self._media_list.get())
-        states = [(self._playorder.name, self.name+"-playorder")]
-        if self.has_repeat:
-            states.append((self._media_list.repeat, self.name+"-repeat"))
-        self.db.set_state(states)
 
     def cb_library_changes(self, signal):
         file_id = signal.get_attr("id")

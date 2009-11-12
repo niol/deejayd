@@ -33,7 +33,9 @@ class DvdSource(SignalingComponent):
             raise DvdError(ex)
 
         self.db = db
-        self.current_id = int(self.db.get_state("dvdid")) + 1
+        try: self.current_id = int(self.db.get_state("dvdid"))
+        except TypeError: # init dvdid
+            self.current_id = 1
 
         self.dvd_info = None
         self.selected_track = None
@@ -137,7 +139,7 @@ class DvdSource(SignalingComponent):
         return status
 
     def close(self):
-        states = [(str(self.current_id),self.__class__.name+"id")]
+        states = [(str(self.current_id),"dvdid")]
         self.db.set_state(states)
         self.parser.close()
 
