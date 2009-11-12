@@ -126,6 +126,8 @@ Return status of deejayd. Given informations are :
   * playlistplayorder : inorder | random | onemedia | random-weighted
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
+  * webradiosource : _str_ current source for webradio streams
+  * webradiosourcecat : _str_ current categorie for webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
   * queuetimelength : _int_ time length of the current queue
@@ -139,18 +141,13 @@ Return status of deejayd. Given informations are :
   * dvdlength : _int_ number of tracks on the current dvd
   * volume : `[0-100]` current volume value
   * state : [play-pause-stop] the current state of the player
-  * current : _int_:_int_:_str_ current media pos : current media file id :
-                                playing source name
+  * current : _int_:_int_:_str_ current media pos : current media file id : playing source name
   * time : _int_:_int_ position:length of the current media file
   * mode : [playlist-webradio-video] the current mode
-  * audio_updating_db : _int_ show when a audio library update
-                        is in progress
-  * audio_updating_error : _string_ error message that apppears when the
-                           audio library update has failed
-  * video_updating_db : _int_ show when a video library update
-                        is in progress
-  * video_updating_error : _string_ error message that apppears when the
-                           video library update has failed
+  * audio_updating_db : _int_ show when a audio library update is in progress
+  * audio_updating_error : _string_ error message that apppears when the audio library update has failed
+  * video_updating_db : _int_ show when a video library update is in progress
+  * video_updating_error : _string_ error message that apppears when the video library update has failed
 
 Arguments :
   * ''This command does not accept any argument.''
@@ -178,10 +175,9 @@ Expected return value : ''`['dict']`''
 
 ==== `setOption` ====
 
-Set player options "name" to "value" for mode "source",
-           Available options are :
-           * playorder (inorder, onemedia, random or random-weighted)
-           * repeat (0 or 1) 
+Set player options "name" to "value" for mode "source", Available options are :
+  * playorder (inorder, onemedia, random or random-weighted)
+  * repeat (0 or 1)
 
 Arguments :
   * {{{source}}} (Mandatory) : string
@@ -206,8 +202,7 @@ Expected return value : ''`['ack']`''
 
 ==== `setRating` ====
 
-Set rating of media file with ids equal to media_id
-        for library 'type' 
+Set rating of media file with ids equal to media_id for library 'type' 
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
@@ -221,7 +216,8 @@ Expected return value : ''`['ack']`''
 ==== `setmode` ====
 
 Change the player mode. Possible values are :
-  * playlist : to manage and listen songs
+  * playlist : to manage and listen songs in playlist
+  * panel : to manage and listen songs in panel mode (like itunes)
   * video : to manage and wath video file
   * dvd : to wath dvd
   * webradio : to manage and listen webradios
@@ -237,13 +233,10 @@ Expected return value : ''`['ack']`''
 
 For each available source, shows if it is activated or not.
    The answer consists in :
-  * playlist : 0 or 1 (actually always 1 because it does not need optionnal
-               dependencies)
-  * queue : 0 or 1 (actually always 1 because it does not need optionnal
-               dependencies)
-  * webradio : 0 or 1 (needs gst-plugins-gnomevfs to be activated)
-  * video : 0 or 1 (needs video dependencies, X display and needs to be
-            activated in configuration)
+  * playlist : 0 or 1
+  * panel : 0 or 1
+  * webradio : 0 or 1 (media backend has to be abble to read url streams)
+  * video : 0 or 1 (needs video dependencies, X display and needs to be activated in configuration)
   * dvd : 0 or 1 (media backend has to be able to read dvd)
 
 Arguments :
@@ -259,20 +252,18 @@ Expected return value : ''`['dict']`''
 
 ==== `player.setPlayerOption` ====
 
-Set player option for the current media
-       Possible options are :
-         * zoom : set zoom (video only), min=-85, max=400
-         * audio_lang : select audio channel (video only)
-         * sub_lang : select subtitle channel (video only)
-         * av_offset : set audio/video offset (video only)
-         * sub_offset : set subtitle/video offset (video only)
-         * aspect_ratio : set video aspect ratio (video only)
-           available value are :
-               * auto
-               * 1:1
-               * 16:9
-               * 4:3
-               * 2.11:1 (for DVB)
+Set player option for the current media. Possible options are :
+  * zoom : set zoom (video only), min=-85, max=400
+  * audio_lang : select audio channel (video only)
+  * sub_lang : select subtitle channel (video only)
+  * av_offset : set audio/video offset (video only)
+  * sub_offset : set subtitle/video offset (video only)
+  * aspect_ratio : set video aspect ratio (video only), available values are :
+    * auto
+    * 1:1
+    * 16:9
+    * 4:3
+    * 2.11:1 (for DVB)
 
 Arguments :
   * {{{option_name}}} (Mandatory) : string
@@ -352,8 +343,7 @@ Expected return value : ''`['ack']`''
 
 ==== `player.seek` ====
 
-Seeks to the position "pos" (in seconds) of the current media
-           set relative argument to true to set new pos in relative way
+Seeks to the position "pos" (in seconds) of the current media set relative argument to true to set new pos in relative way
 
 Arguments :
   * {{{pos}}} (Mandatory) : int
@@ -392,8 +382,7 @@ Expected return value : ''`['mediaList']`''
 
 ==== `audiolib.taglist` ====
 
-List all the possible values for a tag according to the optional
-        filter argument.
+List all the possible values for a tag according to the optional filter argument.
 
 Arguments :
   * {{{tag}}} (Mandatory) : string
@@ -406,8 +395,7 @@ Expected return value : ''`['list']`''
 ==== `audiolib.update` ====
 
 Update the library.
-  * 'type'_updating_db : the id of this task.
-    It appears in the status until the update are completed.
+  * 'type'_updating_db : the id of this task. It appears in the status until the update are completed.
 
 Arguments :
   * {{{force}}} (Optional) : bool
@@ -446,8 +434,7 @@ Expected return value : ''`['mediaList']`''
 ==== `videolib.update` ====
 
 Update the library.
-  * 'type'_updating_db : the id of this task.
-    It appears in the status until the update are completed.
+  * 'type'_updating_db : the id of this task. It appears in the status until the update are completed.
 
 Arguments :
   * {{{force}}} (Optional) : bool
@@ -485,8 +472,7 @@ Expected return value : ''`['ack']`''
 
 ==== `playlist.addPath` ====
 
-Load files or directories passed as arguments ("paths")
-        at the position "pos" in the current playlist.
+Load files or directories passed as arguments ("paths") at the position "pos" in the current playlist.
 
 Arguments :
   * {{{paths}}} (Mandatory) : list
@@ -532,8 +518,7 @@ Expected return value : ''`['ack']`''
 
 ==== `playlist.addIds` ====
 
-Load files with id passed as arguments ("ids")
-        at the position "pos" in the current playlist.
+Load files with id passed as arguments ("ids") at the position "pos" in the current playlist.
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
@@ -545,8 +530,7 @@ Expected return value : ''`['ack']`''
 
 ==== `playlist.remove` ====
 
-Remove songs with ids passed as argument ("ids"),
-           from the current playlist
+Remove songs with ids passed as argument ("ids") from the current playlist
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
@@ -609,8 +593,7 @@ Expected return value : ''`['mediaList']`''
 ==== `panel.activeList` ====
 
 Return active list in panel mode
-         * type : 'playlist' if playlist is choosen as active medialist
-                  'panel' if panel navigation is active
+         * type : 'playlist' if playlist is choosen as active medialist 'panel' if panel navigation is active
          * value : if 'playlist' is selected, return used playlist id
 
 Arguments :
@@ -754,37 +737,46 @@ Expected return value : ''`['mediaList']`''
 
 === `Webradio Mode Commands` ===
 
-==== `webradio.add` ====
+==== `webradio.getSourceCategories` ====
 
-Add a webradio. Its name is "name" and the url of the webradio is
-        "url". You can pass a playlist for "url" argument (.pls and .m3u format
-        are supported).
+Return list of categories for webradio source 'source_name'
+
+Arguments :
+  * {{{source_name}}} (Mandatory) : string
+
+Expected return value : ''`['list']`''
+
+
+
+==== `webradio.localAdd` ====
+
+Add a webradio in 'local' source. Its name is "name" and the url of the webradio is "url". You can pass a playlist for "url" argument (.pls and .m3u format are supported).
 
 Arguments :
   * {{{name}}} (Mandatory) : string
-  * {{{url}}} (Mandatory) : string
+  * {{{url}}} (Mandatory) : list
 
 Expected return value : ''`['ack']`''
 
 
 
-==== `webradio.clear` ====
+==== `webradio.localRemove` ====
 
-Remove all recorded webradios.
-
-Arguments :
-  * ''This command does not accept any argument.''
-
-Expected return value : ''`['ack']`''
-
-
-
-==== `webradio.remove` ====
-
-Remove webradios with id in "ids".
+Remove webradios with id in "ids" from the 'local' source.
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `webradio.localClear` ====
+
+Remove all recorded webradios from the 'local' source.
+
+Arguments :
+  * ''This command does not accept any argument.''
 
 Expected return value : ''`['ack']`''
 
@@ -799,6 +791,39 @@ Arguments :
   * {{{length}}} (Optional) : int
 
 Expected return value : ''`['mediaList']`''
+
+
+
+==== `webradio.setSourceCategorie` ====
+
+Set categorie to 'categorie' for current source
+
+Arguments :
+  * {{{categorie}}} (Mandatory) : string
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `webradio.getAvailableSources` ====
+
+Return list of available sources for webradio mode as source_name: has_categories
+
+Arguments :
+  * ''This command does not accept any argument.''
+
+Expected return value : ''`['dict']`''
+
+
+
+==== `webradio.setSource` ====
+
+Set current source to 'source_name'
+
+Arguments :
+  * {{{source_name}}} (Mandatory) : string
+
+Expected return value : ''`['ack']`''
 
 
 
@@ -846,8 +871,7 @@ Expected return value : ''`['ack']`''
 
 ==== `queue.addIds` ====
 
-Load files with id passed as arguments ("ids")
-        at the position "pos" in the queue.
+Load files with id passed as arguments ("ids") at the position "pos" in the queue.
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
@@ -882,8 +906,7 @@ Expected return value : ''`['ack']`''
 
 ==== `queue.addPath` ====
 
-Load files or directories passed as arguments ("paths")
-        at the position "pos" in the queue.
+Load files or directories passed as arguments ("paths") at the position "pos" in the queue.
 
 Arguments :
   * {{{paths}}} (Mandatory) : list
@@ -895,8 +918,7 @@ Expected return value : ''`['ack']`''
 
 ==== `queue.remove` ====
 
-Remove songs with ids passed as argument ("ids"),
-           from the queue
+Remove songs with ids passed as argument ("ids") from the queue
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
@@ -936,8 +958,7 @@ Expected return value : ''`['ack']`''
 
 ==== `queue.addIds` ====
 
-Load files with id passed as arguments ("ids")
-        at the position "pos" in the queue.
+Load files with id passed as arguments ("ids") at the position "pos" in the queue.
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
@@ -972,8 +993,7 @@ Expected return value : ''`['ack']`''
 
 ==== `queue.addPath` ====
 
-Load files or directories passed as arguments ("paths")
-        at the position "pos" in the queue.
+Load files or directories passed as arguments ("paths") at the position "pos" in the queue.
 
 Arguments :
   * {{{paths}}} (Mandatory) : list
@@ -985,8 +1005,7 @@ Expected return value : ''`['ack']`''
 
 ==== `queue.remove` ====
 
-Remove songs with ids passed as argument ("ids"),
-           from the queue
+Remove songs with ids passed as argument ("ids") from the queue
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
@@ -1028,10 +1047,9 @@ Expected return value : ''`['mediaList']`''
 ==== `recpls.create` ====
 
 Create recorded playlist. The answer consist on
-          * pl_id : id of the created playlist
-          * name : name of the created playlist
-          * type : type of the created playlist
-          
+  * pl_id : id of the created playlist
+  * name : name of the created playlist
+  * type : type of the created playlist
 
 Arguments :
   * {{{name}}} (Mandatory) : string
@@ -1054,8 +1072,7 @@ Expected return value : ''`['mediaList']`''
 
 ==== `recpls.staticAdd` ====
 
-Add songs in a recorded static playlist.
-           Argument 'type' has to be 'path' (default) or 'id'
+Add songs in a recorded static playlist. Argument 'type' has to be 'path' (default) or 'id'
 
 Arguments :
   * {{{pl_id}}} (Mandatory) : int
@@ -1105,14 +1122,11 @@ Expected return value : ''`['ack']`''
 ==== `recpls.magicGetProperties` ====
 
 Get properties of a magic playlist
-          * use-or-filter: if equal to 1, use "Or" filter
-            instead of "And" (0 or 1)
-          * use-limit: limit or not number of songs in the playlist (0 or 1)
-          * limit-value: number of songs for this playlist (integer)
-          * limit-sort-value: when limit is active sort playlist with this tag
-          * limit-sort-direction: sort direction for limit
-            (ascending or descending)
-          
+  * use-or-filter: if equal to 1, use "Or" filter instead of "And" (0 or 1)
+  * use-limit: limit or not number of songs in the playlist (0 or 1)
+  * limit-value: number of songs for this playlist (integer)
+  * limit-sort-value: when limit is active sort playlist with this tag
+  * limit-sort-direction: sort direction for limit (ascending or descending)
 
 Arguments :
   * {{{pl_id}}} (Mandatory) : int
@@ -1189,8 +1203,7 @@ Expected return value : ''`['dict']`''
 
 ==== `web.buildSourceRDF` ====
 
- Build rdf file with current medialist of the specified mode
-            return dict with specific informations (like a description)
+ Build rdf file with current medialist of the specified mode return dict with specific informations (like a description)
 
 Arguments :
   * {{{mode}}} (Mandatory) : string
@@ -1220,8 +1233,7 @@ Expected return value : ''`['ack']`''
 
 ==== `signal.setSubscription` ====
 
-Set subscribtion to "signal" signal notifications to "value"
-        which should be 0 or 1.
+Set subscribtion to "signal" signal notifications to "value" which should be 0 or 1.
 
 Arguments :
   * {{{signal}}} (Mandatory) : string
