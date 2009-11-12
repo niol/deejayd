@@ -502,24 +502,38 @@ class AvailableCommands:
         """ List webradios """
         wrs = DeejaydWebradioList(self.server).get()
         for wr in wrs.get_medias():
-            print wr["title"],"|",wr["url"],"|",wr["id"]
+            if wr["url-type"] == "urls":
+                url = " | ".join(wr["urls"])
+            else:
+                url = wr["url"]
+            print wr["title"],"|",url,"|",wr["id"]
 
-    def webradio_add(self, args):
-        """Add a webradio. ex: djc add_webradio wr_name url"""
+    def webradio_setSource(self, args):
+        """ Set the current source for webradio mode """
         try:
-            wr_name = args[0]
-            wr_url = args[1]
+            source = args[0]
         except IndexError:
             raise DjcError('Bad command line')
         wr = DeejaydWebradioList(self.server)
-        wr.add_webradio(wr_name,wr_url).get_contents()
+        wr.set_source(source).get_contents()
 
-    def webradio_clear(self, args):
-        """Erase all webradios"""
+    def webradio_localAdd(self, args):
+        """Add a webradio in the local source.ex: djc add_webradio wr_name urls.
+        Url has been separated by ","."""
+        try:
+            wr_name = args[0]
+            wr_urls = args[1]
+        except IndexError:
+            raise DjcError('Bad command line')
+        wr = DeejaydWebradioList(self.server)
+        wr.add_webradio(wr_name,wr_url.split(",")).get_contents()
+
+    def webradio_localClear(self, args):
+        """Erase all webradios from the local source"""
         DeejaydWebradioList(self.server).clear().get_contents()
 
-    def webradio_delete(self, args):
-        """Erase webradio(s)
+    def webradio_localDelete(self, args):
+        """Erase webradio(s) from the local source
            ex: djc webradio_erase wr_id1,wr_id2"""
         try: item = args[0]
         except IndexError:
