@@ -19,7 +19,7 @@
 from deejayd.interfaces import DeejaydError
 
 # Deejayd protocol version number
-DEEJAYD_PROTOCOL_VERSION = 3
+DEEJAYD_PROTOCOL_VERSION = 4
 
 # from specification
 # http://groups.google.com/group/json-rpc/web/json-rpc-1-2-proposal
