@@ -932,88 +932,108 @@
     </vbox>
 </hbox>
 
-            <vbox>
+<hbox>
     <popupset>
-        <popup id="webradio-menu" onpopupshowing="javascript:;">
+        <popup
+            id="webradio-menu"
+            onpopupshowing="xului_ref.ui.modes.webradio.updatePopupMenu();">
             <menuitem
                 class="menuitem-iconic play-action"
                 label="&play;"
                 oncommand="xului_ref.ui.modes.webradio.play();"/>
             <menuitem
+                id="webradio-menu-remove-button"
                 class="menuitem-iconic remove-action"
                 label="&remove;"
                 oncommand="xului_ref.ui.modes.webradio.remove();"/>
         </popup>
     </popupset>
 
-    <groupbox align="center" orient="horizontal">
+    <vbox persist="width">
+        <listbox flex="1" id="webradio-sources">
+        </listbox>
+    </vbox>
 
-    <caption label="&wbAdd;"/>
-        <label control="webradio-name" value="&name;"/>
-        <textbox id="webradio-name"/>
-        <label control="webradio-url"
-            value="&wbUrl;"/>
-        <textbox
-            flex="1"
-            id="webradio-url"/>
-        <button
-            class="add-action"
-            oncommand="xului_ref.ui.modes.webradio.add();"
-            label="&add;"/>
-    </groupbox>
+    <splitter id="webradio-source-splitter"/>
 
-    <tree
-        id="webradio-tree"
-        oncontextmenu="xului_ref.ui.modes.webradio.showPopupMenu(event);"
-        ondblclick = "xului_ref.ui.modes.webradio.play();"
-        enableColumnDrag="true"
-        ref="http://webradio/all-content"
-        datasources="rdf:null"
-        flex="1">
+    <vbox persist="width" hidden="true" id="webradio-source-cat-box">
+        <listbox flex="1" id="webradio-source-cat">
+        </listbox>
+    </vbox>
 
-        <treecols>
-            <treecol persist="width ordinal hidden" id="wb-status" label=""/>
-            <splitter class="tree-splitter"/>
-            <treecol persist="width ordinal hidden" id="wb-title"
-                flex="1" label="&title;"/>
-            <splitter class="tree-splitter"/>
-            <treecol persist="width ordinal hidden" id="wb-url"
-                flex="2" label="&url;"/>
-        </treecols>
+    <splitter hidden="true" id="webradio-source-cat-splitter"/>
 
-        <template>
+    <vbox persist="width" flex="1" id="webradio-tree-box">
+        <groupbox
+            id="webradio-add-form"
+            hidden="true" align="center" orient="horizontal">
+        <caption label="&wbAdd;"/>
+            <label control="webradio-name" value="&name;"/>
+            <textbox id="webradio-name"/>
+            <label control="webradio-url" value="&wbUrl;"/>
+            <textbox flex="1" id="webradio-url"/>
+            <button
+                class="add-action"
+                oncommand="xului_ref.ui.modes.webradio.add();"
+                label="&add;"/>
+        </groupbox>
 
-        <treechildren
-            id="webradio-items">
+        <tree
+            id="webradio-tree"
+            oncontextmenu="xului_ref.ui.modes.webradio.showPopupMenu(event);"
+            ondblclick = "xului_ref.ui.modes.webradio.play();"
+            enableColumnDrag="true"
+            ref="http://webradio/all-content"
+            datasources="rdf:null"
+            flex="1">
 
-            <treeitem uri="rdf:*">
-                <treerow>
-                    <treecell label=""/>
-                    <treecell label="rdf:http://webradio/rdf#title"/>
-                    <treecell label="rdf:http://webradio/rdf#url"/>
-                </treerow>
-            </treeitem>
+            <treecols>
+                <treecol
+                    persist="width ordinal hidden"
+                    id="wb-status" label=""/>
+                <splitter class="tree-splitter"/>
+                <treecol
+                    persist="width ordinal hidden" id="wb-title"
+                    flex="1" label="&title;"/>
+                <splitter class="tree-splitter"/>
+                <treecol
+                    persist="width ordinal hidden" id="wb-url"
+                    flex="1" label="&url;"/>
+            </treecols>
 
-        </treechildren>
-        </template>
-    </tree>
-    <hbox align="center">
-        <description value="&action; : "/>
-        <toolbar>
-            <toolbarbutton
-            id="webradio-clear"
-            class="clear-button"
-            oncommand="xului_ref.rpc.wbModeClear();"
-            label="&clear;"/>
-        </toolbar>
+            <template>
+                <treechildren id="webradio-items">
+                    <treeitem uri="rdf:*">
+                        <treerow>
+                            <treecell label=""/>
+                            <treecell
+                                label="rdf:http://webradio/rdf#title"/>
+                            <treecell
+                                label="rdf:http://webradio/rdf#url"/>
+                        </treerow>
+                    </treeitem>
+                </treechildren>
+            </template>
+        </tree>
 
-        <spacer flex="1"/>
-        <description id="webradio-description" value=""/>
-    </hbox>
-</vbox>
+        <hbox align="center">
+            <hbox id="webradio-actions-box">
+                <description value="&action; : "/>
+                <toolbar>
+                    <toolbarbutton
+                        id="webradio-clear"
+                        class="clear-button"
+                        oncommand="xului_ref.rpc.wbModeClear();"
+                        label="&clear;"/>
+                </toolbar>
+            </hbox>
+            <spacer flex="1"/>
+            <description id="webradio-description" value=""/>
+        </hbox>
+    </vbox>
+</hbox>
 
-            <hbox flex="1">
-
+<hbox flex="1">
 <popupset>
     <popup id="video-menu" onpopupshowing="javascript:;">
         <menuitem

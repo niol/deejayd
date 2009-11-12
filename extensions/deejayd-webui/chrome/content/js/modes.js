@@ -409,10 +409,81 @@ function WebradioMode() {
     this.__has_playorder = false;
     this.__has_repeat = false;
     this.__selected_idx = {};
+    this.selected_source = null;
+    this.selected_cat = null;
+    this.sources = null;
+    this.categories = {};
     this.tree = $("webradio-tree");
     $("webradio-source").hidden = false;
+
+    // get source list
+    var webradio = this;
+    var callback = function(data) {
+        for (var source_name in data) {
+            var item = $("webradio-sources").appendItem(source_name,
+                    source_name);
+            item.id = "webradio-"+source_name+"-source";
+            item.addEventListener("click", function(evt) {
+                    xului_ref.rpc.wbModeSetSource(evt.target.value);
+            }, true);
+        }
+        webradio.sources = data;
+    };
+    xului_ref.rpc.send("webradio.getAvailableSources", [], callback);
 }
 WebradioMode.prototype = new _Mode;
+WebradioMode.prototype.__sourceUpdate = function(source, cat) {
+    var webradio = xului_ref.ui.modes.webradio;
+    if (webradio.sources == null) {
+        setTimeout("xului_ref.ui.modes.webradio.__sourceUpdate('"+
+                source+"','"+cat+"');",100);
+        return;
+    }
+
+    $("webradio-sources").selectItem($("webradio-"+source+"-source"));
+    webradio.selected_source = source;
+    $("webradio-source-cat-box").hidden =!
+            webradio.sources[webradio.selected_source];
+    $("webradio-add-form").hidden = webradio.selected_source != "local";
+    $("webradio-actions-box").hidden = webradio.selected_source != "local";
+
+    if (webradio.sources[webradio.selected_source]) {
+         webradio.selected_cat = cat;
+         var callback = function(categories) {
+            var selected_item = null;
+            for (var idx in categories) {
+                var item = $("webradio-source-cat")
+                    .appendItem(categories[idx], categories[idx]);
+                item.id = "webradio-sourcecat-"+categories[idx];
+                if (webradio.selected_cat == categories[idx]) {
+                    selected_item = item;
+                }
+                item.addEventListener("click", function(evt) {
+                    xului_ref.rpc.wbModeSetSourceCat(evt.target.value);
+                }, true);
+            }
+            if (selected_item != null) {
+                $("webradio-source-cat").scrollToIndex(
+                    $("webradio-source-cat").getIndexOfItem(selected_item));
+                $("webradio-source-cat").selectItem(selected_item);
+            }
+         };
+         xului_ref.rpc.send("webradio.getSourceCategories",
+                    [webradio.selected_source], callback);
+    }
+};
+WebradioMode.prototype.__preUpdate = function(st) {
+    if (this.sources == null || st.webradiosource != this.selected_source) {
+        this.__sourceUpdate(st.webradiosource, st.webradiosourcecat);
+    }
+    else if (this.sources[this.selected_source]
+                && this.selected_cat != st.webradiosourcecat) {
+        // select the current categorie
+        this.selected_cat = st.webradiosourcecat;
+        $("webradio-source-cat").selectItem($("webradio-sourcecat-"
+                +this.selected_cat));
+    }
+};
 WebradioMode.prototype.add = function() {
     var nameParm = $('webradio-name').value;
     var urlParm = $('webradio-url').value;
@@ -421,7 +492,7 @@ WebradioMode.prototype.add = function() {
         alert(xului_ref.getString('missParm'));
         return;
         }
-    xului_ref.rpc.wbModeAdd(nameParm, urlParm);
+    xului_ref.rpc.wbModeAdd(nameParm, [urlParm]);
 
     // Clear form
     $('webradio-name').value = "";
@@ -430,6 +501,9 @@ WebradioMode.prototype.add = function() {
 WebradioMode.prototype.remove = function() {
     var ids = this.getSelection("id");
     xului_ref.rpc.wbModeRemove(ids);
+};
+WebradioMode.prototype.updatePopupMenu = function() {
+    $('webradio-menu-remove-button').hidden = this.selected_source != "local";
 };
 
 /*

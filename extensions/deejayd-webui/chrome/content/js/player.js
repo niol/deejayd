@@ -186,8 +186,8 @@ Player.prototype =
                         title += " : " + current["song-title"];
                     player.__build_label_item("title", title);
                     // Url
-                    if (current.url)
-                        player.__build_label_item("url",current.url);
+                    if (current.uri)
+                        player.__build_label_item("url",current.uri);
                 break;
 
                 case "video":
