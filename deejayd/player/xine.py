@@ -67,6 +67,7 @@ class XinePlayer(UnknownPlayer):
         self.__osd = None
 
     def start_play(self):
+        super(XinePlayer, self).start_play()
         if not self._media_file: return
 
         # format correctly the uri
@@ -111,14 +112,35 @@ class XinePlayer(UnknownPlayer):
         if stream_should_change:
             self._create_stream(needs_video)
 
-        try:
-            self.__stream.open(uri)
-            self.__stream.play(0, 0)
-        except xine.XineError:
-            self._destroy_stream()
-            msg = _("Unable to play file %s") % uri
-            log.err(msg)
-            raise PlayerError(msg)
+        def open_uri(uri):
+            try:
+                self.__stream.open(uri)
+                self.__stream.play(0, 0)
+            except xine.XineError:
+                msg = _("Unable to play file %s") % uri
+                log.err(msg)
+                raise PlayerError(msg)
+
+        if self._media_file["type"] == "webradio":
+            while True:
+                try: open_uri(self._media_file["uri"])
+                except PlayerError, ex:
+                    if self._media_file["url-index"] < \
+                                            len(self._media_file["urls"])-1:
+                        self._media_file["url-index"] += 1
+                        self._media_file["uri"] = \
+                                self._media_file["urls"]\
+                                [self._media_file["url-index"]].encode("utf-8")
+                    else:
+                        raise ex
+                else:
+                    break
+        else:
+            try: open_uri(uri)
+            except PlayerError, ex:
+                self._destroy_stream()
+                raise ex
+
         if self.__window:
             self.__window.show(self.current_is_video())
 
@@ -356,8 +378,19 @@ class XinePlayer(UnknownPlayer):
     #
     def _eof(self):
         if self._media_file:
-            try: self._media_file.played()
-            except AttributeError: pass
+            if self._media_file["type"] == "webradio":
+                # an error happened, try the next url
+                if self._media_file["url-index"] \
+                        < len(self._media_file["urls"])-1:
+                    self._media_file["url-index"] += 1
+                    self._media_file["uri"] = \
+                            self._media_file["urls"]\
+                                [self._media_file["url-index"]].encode("utf-8")
+                    self.start_play()
+                return False
+            else:
+                try: self._media_file.played()
+                except AttributeError: pass
         new_file = self._source.next(explicit = False)
         try: self._change_file(new_file, gapless = True)
         except PlayerError:

@@ -270,7 +270,7 @@ class _Library(SignalingComponent):
             try: keys.remove(("cover",))
             except ValueError:
                 pass
-            if len(keys) != len(self.media_attr):
+            if len(keys) > 0 and len(keys) != len(self.media_attr):
                 log.msg(\
                     _("%s library has to be updated, this can take a while.")%\
                     (self.type,))

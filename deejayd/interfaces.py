@@ -235,6 +235,18 @@ class DeejaydWebradioList(object):
     def get(self, first = 0, length = None):
         raise NotImplementedError
 
+    def get_available_sources(self):
+        raise NotImplementedError
+
+    def get_source_categories(self, source_name):
+        raise NotImplementedError
+
+    def set_source(self, source_name):
+        raise NotImplementedError
+
+    def set_source_categorie(self, categorie):
+        raise NotImplementedError
+
     def add_webradio(self, name, urls):
         raise NotImplementedError
 

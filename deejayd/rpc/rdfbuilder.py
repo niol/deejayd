@@ -169,6 +169,20 @@ class DeejaydWebradioRdf(_DeejaydSourceRdf):
     locale_strings = ("%d Webradio", "%d Webradios")
     get_list_func = "get_webradios"
 
+    def _build_rdf_file(self, wb_list, new_id):
+        rdf_builder = RdfBuilder(self.__class__.name)
+        seq = rdf_builder.build_seq("http://webradio/all-content")
+        for wb in wb_list:
+            if wb["url-type"] == "urls":
+                urls = " | ".join(wb["urls"])
+            else:
+                urls = wb["url"]
+            wb_item = rdf_builder.build_li(seq)
+            rdf_builder.build_item_desc({"title": wb["title"], "url": urls},\
+                    wb_item, url = "http://webradio/%s" % str(wb["id"]))
+
+        self._save_rdf(rdf_builder, new_id)
+
 class DeejaydVideoRdf(_DeejaydSourceRdf):
     name = "video"
     locale_strings = ("%d Video", "%d Videos")

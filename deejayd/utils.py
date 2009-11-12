@@ -68,5 +68,28 @@ def format_time_long(time):
     ngettext("%d day", "%d days", 1)
     ngettext("%d year", "%d years", 1)
 
+def get_playlist_file_lines(URL):
+    pls_handle = urllib.urlopen(URL)
+    playlist = pls_handle.read()
+
+    return playlist.splitlines()
+
+def get_uris_from_pls(URL):
+    uris = []
+    lines = get_playlist_file_lines(URL)
+    for line in lines:
+        if line.lower().startswith("file") and line.find("=")!=-1:
+            uris.append(line[line.find("=")+1:].strip())
+
+    return uris
+
+def get_uris_from_m3u(URL):
+    uris = []
+    lines = get_playlist_file_lines(URL)
+    for line in lines:
+        if not line.startswith("#") and line.strip()!="":
+            uris.append(line.strip())
+
+    return uris
 
 # vim: ts=4 sw=4 expandtab

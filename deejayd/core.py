@@ -23,7 +23,7 @@ from deejayd.interfaces import DeejaydError,\
                                DeejaydFileList,\
                                DeejaydMediaList, DeejaydDvdInfo
 from deejayd.ui.config import DeejaydConfig
-from deejayd import mediafilters, player, sources, mediadb, database
+from deejayd import mediafilters, player, sources, mediadb, database, plugins
 
 # Exception imports
 import deejayd.sources.webradio
@@ -209,21 +209,30 @@ class DeejaydWebradioList(deejayd.interfaces.DeejaydWebradioList):
         last = length == -1 and len(wrs) or int(first) + int(length)
         return wrs[int(first):last]
 
+    @returns_deejaydanswer(DeejaydKeyValue)
+    def get_available_sources(self):
+        return dict(self.source.get_available_sources())
+
+    @returns_deejaydanswer(DeejaydList)
+    def get_source_categories(self, source_name):
+        return self.source.get_source_categories(source_name)
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set_source(self, source_name):
+        self.source.set_source(source_name)
+
+    @returns_deejaydanswer(DeejaydAnswer)
+    def set_source_categorie(self, categorie):
+        self.source.set_source_categorie(categorie)
+
     @returns_deejaydanswer(DeejaydAnswer)
     def add_webradio(self, name, urls):
-        try:
-            self.source.add(urls, name)
-        except sources.webradio.UnsupportedFormatException:
-            raise DeejaydError(_('Webradio URI not supported'))
-        except sources.webradio.UrlNotFoundException:
-            raise DeejaydError(_('Webradio info could not be retrieved'))
+        self.source.add(urls, name)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def delete_webradios(self, wr_ids):
         ids = map(int, wr_ids)
-        try: self.source.delete(ids)
-        except deejayd.sources._base.SourceError, ex:
-            raise DeejaydError(str(ex))
+        self.source.delete(ids)
 
     @returns_deejaydanswer(DeejaydAnswer)
     def clear(self):
@@ -443,6 +452,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             config = DeejaydConfig()
 
         self.db = database.init(config)
+        self.plugin_manager = plugins.PluginManager(config)
 
         self.player = player.init(self.db, config)
         self.player.register_dispatcher(self)
@@ -454,7 +464,8 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
             self.video_library.register_dispatcher(self)
 
         self.sources = sources.init(self.player, self.db, self.audio_library,
-                                             self.video_library, config)
+                                    self.video_library, self.plugin_manager,
+                                    config)
         self.sources.register_dispatcher(self)
         for source in self.sources.sources_obj.values():
             source.register_dispatcher(self)

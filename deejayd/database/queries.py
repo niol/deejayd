@@ -646,17 +646,45 @@ class DatabaseQueries(object):
     #
     @query_decorator("fetchall")
     def get_webradios(self, cursor):
-        cursor.execute("SELECT wid, name, url FROM webradio ORDER BY wid")
+        cursor.execute("SELECT DISTINCT w.id, w.name, e.url\
+            FROM webradio w INNER JOIN webradio_entries e \
+                            ON w.id = e.webradio_id\
+            ORDER BY w.id, e.id")
 
     @query_decorator("none")
-    def add_webradios(self, cursor, values):
-        query = "INSERT INTO webradio(wid,name,url)VALUES(%s,%s,%s)"
-        cursor.executemany(query,values)
+    def add_webradio(self, cursor, name, urls):
+        query = "INSERT INTO webradio(name)VALUES(%s)"
+        cursor.execute(query, (name,))
+        wid = self.connection.get_last_insert_id(cursor)
+
+        query = "INSERT INTO webradio_entries(url, webradio_id)VALUES(%s,%s)"
+        cursor.executemany(query, [(url,wid) for url in urls])
+        self.connection.commit()
+
+    @query_decorator("none")
+    def remove_webradios(self, cursor, wids):
+        wids = [(wid,) for wid in wids]
+        cursor.executemany("DELETE FROM webradio WHERE id = %s" , wids)
+        cursor.executemany("DELETE FROM webradio_entries\
+            WHERE webradio_id = %s", wids)
+        self.connection.commit()
+
+    @query_decorator("none")
+    def remove_url_from_webradio(self, cursor, wid, url_id):
+        cursor.execute("DELETE FROM webradio_entries\
+            WHERE webradio_id = %s AND id = %s", (wid, url_id))
+        self.connection.commit()
+
+    @query_decorator("none")
+    def add_url_for_webradio(self, cursor, wid, url):
+        cursor.execute("INSERT INTO webradio_entries (url, webradio_id)\
+            VALUES(%s,%s)", (url, wid))
         self.connection.commit()
 
     @query_decorator("none")
     def clear_webradios(self, cursor):
         cursor.execute("DELETE FROM webradio")
+        cursor.execute("DELETE FROM webradio_entries")
         self.connection.commit()
 
     #

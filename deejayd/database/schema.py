@@ -51,7 +51,7 @@ class Index(object):
         self.columns = columns
 
 
-db_schema_version=12
+db_schema_version=13
 db_schema = [
     Table('library_dir', key='id')[
         Column('id', auto_increment=True),
@@ -115,27 +115,21 @@ db_schema = [
           key=('complexfilter_id', 'filter_id'))[
         Column('complexfilter_id', type='int'),
         Column('filter_id', type='int')],
-    Table('webradio', key='wid')[
-        Column('wid', type='int'),
+    Table('webradio', key='id')[
+        Column('id', auto_increment=True),
         Column('name'),
-        Column('url')],
+        Index(('name',), unique = False)],
+    Table('webradio_entries', key='id')[
+        Column('id', auto_increment=True),
+        Column('url'),
+        Column('webradio_id', type='int'),
+        Index(('url', 'webradio_id'))],
     Table('stats', key='name')[
         Column('name'),
         Column('value', type='int')],
     Table('variables', key='name')[
         Column('name'),
         Column('value')],
-
-    # for future use
-    # Table('webradio', key='id')[
-    #     Column('id', auto_increment=True),
-    #     Column('name'),
-    #     Index(('name',))],
-    # Table('webradio_entries', key='pos')[
-    #     Column('pos', auto_increment=True),
-    #     Column('url'),
-    #     Column('webradio_id', type='int'),
-    #     Index(('url', 'webradio_id'))],
     ]
 db_init_cmds = [
     # stats
@@ -153,22 +147,7 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('current_pos','0');",
     "INSERT INTO variables VALUES('state','stop');",
     "INSERT INTO variables VALUES('source','playlist');",
-    "INSERT INTO variables VALUES('playlist-playorder','inorder');",
-    "INSERT INTO variables VALUES('video-playorder','inorder');",
-    "INSERT INTO variables VALUES('panel-playorder','inorder');",
-    "INSERT INTO variables VALUES('queue-playorder','inorder');",
-    "INSERT INTO variables VALUES('playlist-repeat','0');",
-    "INSERT INTO variables VALUES('panel-repeat','0');",
-    "INSERT INTO variables VALUES('video-repeat','0');",
-    "INSERT INTO variables VALUES('queueid','1');",
-    "INSERT INTO variables VALUES('playlistid','1');",
-    "INSERT INTO variables VALUES('panelid','1');",
-    "INSERT INTO variables VALUES('webradioid','1');",
-    "INSERT INTO variables VALUES('dvdid','1');",
-    "INSERT INTO variables VALUES('videoid','1');",
-    "INSERT INTO variables VALUES('panel-type','panel');",
-    "INSERT INTO variables VALUES('panel-value','');",
-    "INSERT INTO variables VALUES('database_version','12');",
+    "INSERT INTO variables VALUES('database_version','13');",
     ]
 
 # vim: ts=4 sw=4 expandtab

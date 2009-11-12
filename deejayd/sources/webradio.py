@@ -16,88 +16,157 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.sources._base import _BaseSource, SimpleMediaList
-import urllib
+from zope.interface import implements
+from twisted.internet import threads
+from deejayd.sources._base import _BaseSource, SimpleMediaList, SourceError
+from deejayd.plugins import IWebradioPlugin
+from deejayd.utils import get_uris_from_pls, get_uris_from_m3u
 
-class UnsupportedFormatException: pass
-class UrlNotFoundException: pass
 
-def get_playlist_file_lines(URL):
-    try:
-        pls_handle = urllib.urlopen(URL)
-        playlist = pls_handle.read()
-    except IOError:
-        raise UrlNotFoundException
+class WbLocalSource(object):
+    implements(IWebradioPlugin)
+    NAME = "local"
+    HAS_CATEGORIE = False
 
-    return playlist.splitlines()
+    def __init__(self, db):
+        self.db = db
+        self.__load()
 
-def get_uris_from_pls(URL):
-    uris = []
-    lines = get_playlist_file_lines(URL)
-    for line in lines:
-        if line.lower().startswith("file") and line.find("=")!=-1:
-            uris.append(line[line.find("=")+1:].strip())
+    def __load(self):
+        self.__streams = {}
+        for (id, name, url) in self.db.get_webradios():
+            if id not in self.__streams.keys():
+                self.__streams[id] = {"wb_id": id, "title": name,\
+                        "urls": [url], "url-type": "urls", "uri": "",\
+                        "url-index": 0, "type": "webradio"}
+            else:
+                self.__streams[id]["urls"].append(url)
 
-    return uris
+    def add(self, urls, name):
+        needed_urls = []
+        for url in urls:
+            if url.lower().startswith("http://"):
+                try:
+                    if url.lower().endswith(".pls"):
+                        needed_urls.extend(get_uris_from_pls(url))
+                    elif url.lower().endswith(".m3u"):
+                        needed_urls.extend(get_uris_from_m3u(url))
+                    else:
+                        needed_urls.append(url)
+                except IOError:
+                    raise SourceError(_("Given url %s is not supported") % url)
+            else:
+                raise SourceError(_("Given url %s is not supported") % url)
 
-def get_uris_from_m3u(URL):
-    uris = []
-    lines = get_playlist_file_lines(URL)
-    for line in lines:
-        if not line.startswith("#") and line.strip()!="":
-            uris.append(line.strip())
+        # save webradio
+        self.db.add_webradio(name, needed_urls)
+        self.__load()
 
-    return uris
+    def delete(self, webradio_ids):
+        self.db.remove_webradios(webradio_ids)
+        self.__load()
+
+    def clear(self):
+        self.db.clear_webradios()
+        self.__streams = {}
+
+    def get_categories(self):
+        raise SourceError(_("Categories not supported for this source"))
+
+    def get_streams(self, categorie = None):
+        return self.__streams.values()
 
 
 class WebradioSource(_BaseSource):
     name = "webradio"
+    _default_state = {"id": 1, "source": "local", "source-cat": ""}
 
-    def __init__(self, db):
+    def __init__(self, db, plugin_manager):
         _BaseSource.__init__(self, db)
-        self._media_list = SimpleMediaList(self.get_recorded_id())
+        self._state = self._load_state()
+        self.wb_sources = {}
+        # get plugins
+        for plugin in plugin_manager.get_plugins(IWebradioPlugin):
+            self.wb_sources[plugin.NAME] = plugin()
+        # get local source from database
+        self.wb_sources["local"] = WbLocalSource(self.db)
 
-        # load recorded webradio
-        wbs = self.db.get_webradios()
-        medias = [{"title":w[1], "uri":w[2], "type":"webradio",\
-                   "url":w[2]} for w in wbs]
-        self._media_list.add_media(medias)
+        # load current list
+        self._media_list = SimpleMediaList(self.get_recorded_id() + 1)
+        self.__source = self.wb_sources[self._state["source"]]
+        def load():
+            self._media_list.set(\
+                    self.__source.get_streams(self._state["source-cat"]))
+        # defer to thread init to avoid long delay
+        # when we try to connect to shoutcast for example
+        self.defered = threads.deferToThread(load)
 
-    def add(self,url,name):
-        if url.lower().startswith("http://"):
-            if url.lower().endswith(".pls"):
-                uris = get_uris_from_pls(url)
-            elif url.lower().endswith(".m3u"):
-                uris = get_uris_from_m3u(url)
-            else: uris = [url]
-        else: raise UnsupportedFormatException
+    def get_available_sources(self):
+        return [(s.NAME, s.HAS_CATEGORIE) for s in self.wb_sources.values()]
 
-        i = 1
-        medias = []
-        for uri in uris:
-            medias.append({"title":name + "-%d" % i, "uri": uri, "url": uri,\
-                          "type":"webradio"})
-            i += 1
-        self._media_list.add_media(medias)
-        self.dispatch_signame('webradio.listupdate')
+    def set_source(self, source):
+        if self._state["source"] != source:
+            try:
+                self.__source = self.wb_sources[source]
+            except KeyError:
+                raise SourceError(_("Webradio source %s not supported")%source)
+            self._media_list.set(self.__source.get_streams(\
+                    self._state["source-cat"]))
+            self._state["source"] = source
+            self.dispatch_signame('webradio.listupdate')
+
+    def get_source_categories(self, source_name):
+        try: source = self.wb_sources[source_name]
+        except KeyError:
+            raise SourceError(_("Webradio source %s not supported")%source_name)
+        if not source.HAS_CATEGORIE:
+            raise SourceError(_("Categorie not supported for source %s")\
+                              % source_name)
+        return source.get_categories()
+
+
+    def set_source_categorie(self, categorie):
+        if not self.__source.HAS_CATEGORIE:
+            raise SourceError(_("Categorie not supported for source %s")\
+                              % categorie)
+        if self._state["source-cat"] != categorie:
+            self._media_list.set(self.__source.get_streams(categorie))
+            self._state["source-cat"] = categorie
+            self.dispatch_signame('webradio.listupdate')
+
+    def add(self, urls, name):
+        self.wb_sources["local"].add(urls, name)
+        self.__reload_local_source()
         return True
 
     def delete(self, ids):
-        _BaseSource.delete(self, ids)
-        self.dispatch_signame('webradio.listupdate')
+        webradio_ids = []
+        for id in ids:
+            wb = self._media_list.get_item(id)
+            if wb is None:
+                raise SourceError(_("Webradio with id %s not found")%str(id))
+            webradio_ids.append(wb["wb_id"])
+
+        self.wb_sources["local"].delete(webradio_ids)
+        self.__reload_local_source()
+        return True
+
+    def clear(self):
+        self.wb_sources["local"].clear()
+        self.__reload_local_source()
+        return True
 
     def get_status(self):
         return [
-            (self.name, self._media_list.list_id),
-            (self.name+"length", len(self._media_list))
+            ("webradio", self._media_list.list_id),
+            ("webradiolength", len(self._media_list)),
+            ("webradiosource", self._state["source"]),
+            ("webradiosourcecat", self._state["source-cat"]),
             ]
 
-    def close(self):
-        _BaseSource.close(self)
-        # save webradio
-        self.db.clear_webradios()
-        values = [(w["pos"],w["title"],w["uri"])\
-            for w in self._media_list.get()]
-        self.db.add_webradios(values)
+    def __reload_local_source(self):
+        if self.__source.NAME == "local": # reload the current medialist
+            self._media_list.set(self.__source.get_streams())
+            self.dispatch_signame('webradio.listupdate')
 
 # vim: ts=4 sw=4 expandtab

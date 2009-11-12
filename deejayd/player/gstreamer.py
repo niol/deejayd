@@ -66,6 +66,16 @@ class GstreamerPlayer(UnknownPlayer):
 
     def on_message(self, bus, message):
         if message.type == gst.MESSAGE_EOS:
+            if self._media_file["type"] == "webradio":
+                # an error happened, try the next url
+                if self._media_file["url-index"] \
+                        < len(self._media_file["urls"])-1:
+                    self._media_file["url-index"] += 1
+                    self._media_file["uri"] = \
+                            self._media_file["urls"]\
+                                [self._media_file["url-index"]].encode("utf-8")
+                    self.start_play()
+                return False
             if self._media_file:
                 try: self._media_file.played()
                 except AttributeError: pass
@@ -80,20 +90,42 @@ class GstreamerPlayer(UnknownPlayer):
         return True
 
     def start_play(self):
+        super(GstreamerPlayer, self).start_play()
         if not self._media_file: return
 
-        self.bin.set_property('uri',self._media_file["uri"])
-        state_ret = self.bin.set_state(gst.STATE_PLAYING)
-        timeout = 4
-        state = None
+        def open_uri(uri):
+            self.bin.set_property('uri',uri)
+            state_ret = self.bin.set_state(gst.STATE_PLAYING)
+            timeout = 4
+            state = None
 
-        while state_ret == gst.STATE_CHANGE_ASYNC and timeout > 0:
-            state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
-            timeout -= 1
+            while state_ret == gst.STATE_CHANGE_ASYNC and timeout > 0:
+                state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
+                timeout -= 1
 
-        if state_ret != gst.STATE_CHANGE_SUCCESS:
-            msg = _("Unable to play file %s") % self._media_file["uri"]
-            raise PlayerError(msg)
+            if state_ret != gst.STATE_CHANGE_SUCCESS:
+                msg = _("Unable to play file %s") % uri
+                raise PlayerError(msg)
+
+        if self._media_file["type"] == "webradio":
+            while True:
+                try: open_uri(self._media_file["uri"])
+                except PlayerError, ex:
+                    if self._media_file["url-index"] < \
+                                            len(self._media_file["urls"])-1:
+                        self._media_file["url-index"] += 1
+                        self._media_file["uri"] = \
+                                self._media_file["urls"]\
+                                [self._media_file["url-index"]].encode("utf-8")
+                    else:
+                        raise ex
+                else:
+                    break
+        else:
+            try: open_uri(self._media_file["uri"])
+            except PlayerError, ex:
+                self._destroy_stream()
+                raise ex
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:

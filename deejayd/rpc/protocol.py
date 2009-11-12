@@ -162,6 +162,8 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
   * playlistplayorder : inorder | random | onemedia | random-weighted
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
+  * webradiosource : _str_ current source for webradio streams
+  * webradiosourcecat : _str_ current categorie for webradio
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
   * queuetimelength : _int_ time length of the current queue
@@ -570,23 +572,44 @@ class DeejaydWebradioModeJSONRPC(_DeejaydModeJSONRPC):
     media_type = "webradio"
     source_name = "webradios"
 
+    @returns_answer('dict')
+    def jsonrpc_getAvailableSources(self):
+        """Return list of available sources for webradio mode as source_name: has_categories"""
+        return self.source.get_available_sources(objanswer=False)
+
+    @returns_answer('list',\
+                    params=[{"name":"source_name","type":"string","req":True}])
+    def jsonrpc_getSourceCategories(self, source_name):
+        """Return list of categories for webradio source 'source_name'"""
+        return self.source.get_source_categories(source_name, objanswer=False)
+
+    @returns_answer('ack', \
+                    params=[{"name":"source_name","type":"string","req":True}])
+    def jsonrpc_setSource(self, source_name):
+        """Set current source to 'source_name'"""
+        self.source.set_source(source_name, objanswer=False)
+
+    @returns_answer('ack', \
+                    params=[{"name":"categorie","type":"string","req":True}])
+    def jsonrpc_setSourceCategorie(self, categorie):
+        """Set categorie to 'categorie' for current source"""
+        self.source.set_source_categorie(categorie, objanswer=False)
+
     @returns_answer('ack')
-    def jsonrpc_clear(self):
-        """Remove all recorded webradios."""
+    def jsonrpc_localClear(self):
+        """Remove all recorded webradios from the 'local' source."""
         self.source.clear(objanswer=False)
 
     @returns_answer('ack', params=[{"name":"ids","type":"int-list","req":True}])
-    def jsonrpc_remove(self, ids):
-        """Remove webradios with id in "ids"."""
+    def jsonrpc_localRemove(self, ids):
+        """Remove webradios with id in "ids" from the 'local' source."""
         self.source.delete_webradios(ids, objanswer=False)
 
     @returns_answer('ack', params=[{"name":"name","type":"string","req":True},\
-            {"name":"url", "type":"string", "req":True}])
-    def jsonrpc_add(self, name, url):
-        """Add a webradio. Its name is "name" and the url of the webradio is
-        "url". You can pass a playlist for "url" argument (.pls and .m3u format
-        are supported)."""
-        self.source.add_webradio(name, url, objanswer=False)
+            {"name":"url", "type":"list", "req":True}])
+    def jsonrpc_localAdd(self, name, urls):
+        """Add a webradio in 'local' source. Its name is "name" and the url of the webradio is "url". You can pass a playlist for "url" argument (.pls and .m3u format are supported)."""
+        self.source.add_webradio(name, urls, objanswer=False)
 
 
 #

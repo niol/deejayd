@@ -20,6 +20,7 @@ import os,subprocess
 
 from deejayd.component import SignalingComponent
 from deejayd.player import PlayerError
+from deejayd.utils import get_uris_from_pls, get_uris_from_m3u
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
@@ -57,7 +58,7 @@ class UnknownPlayer(SignalingComponent):
                 self.stop()
             else:
                 if self._media_file and self._media_file["source"] != "queue":
-                   self.set_position(int(self.db.get_state("current_pos")))
+                    self.set_position(int(self.db.get_state("current_pos")))
         if state == PLAYER_PAUSE:
             self.pause()
 
@@ -74,6 +75,24 @@ class UnknownPlayer(SignalingComponent):
             self._change_file(file)
         elif self.get_state() in (PLAYER_PAUSE, PLAYER_PLAY):
             self.pause()
+
+    def start_play(self):
+        if not self._media_file: return
+        if self._media_file["type"] == "webradio":
+            if self._media_file["url-type"] == "pls":
+                try:
+                    urls = get_uris_from_pls(self._media_file["url"])
+                except IOError:
+                    raise PlayerError(_("Unable to get pls for webradio %s")\
+                                      % self._media_file["title"])
+                if not len(urls): # we don't succeed to extract uri
+                    raise PlayerError(\
+                            _("Unable to extract uri from pls playlist"))
+                self._media_file.update({"urls": urls, "url-index": 0, \
+                                         "url-type": "urls"})
+            idx = self._media_file["url-index"]
+            self._media_file["uri"] = \
+                    self._media_file["urls"][idx].encode("utf-8")
 
     def pause(self):
         raise NotImplementedError
