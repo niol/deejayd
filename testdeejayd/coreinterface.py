@@ -50,7 +50,7 @@ class InterfaceTests:
         ans = self.deejayd.get_mode()
         for k in known_keys:
             self.failUnless(k in ans.get_contents().keys())
-            self.failUnless(int(ans[k]) in (0,1))
+            self.failUnless(ans[k] in (True, False))
 
     def testGetStats(self):
         """Test getStats command"""
@@ -468,7 +468,7 @@ class InterfaceTests:
         opt = self.testdata.getRandomString()
         ans = self.deejayd.set_option("playlist", opt, 1)
         self.assertRaises(DeejaydError, ans.get_contents)
-        ans = self.deejayd.set_option(opt, "repeat", 1)
+        ans = self.deejayd.set_option(opt, "repeat", True)
         self.assertRaises(DeejaydError, ans.get_contents)
 
         ans = self.deejayd.set_option("webradio", "playorder", "inorder")
@@ -481,10 +481,10 @@ class InterfaceTests:
         self.assertEqual(status["playlistplayorder"], "random")
         # set video option
         if self.video_support:
-            ans = self.deejayd.set_option("video", "repeat", "1")
+            ans = self.deejayd.set_option("video", "repeat", True)
             ans.get_contents()
             status = self.deejayd.get_status().get_contents()
-            self.assertEqual(status["videorepeat"], 1)
+            self.assertEqual(status["videorepeat"], True)
 
     def testAudioPlayer(self):
         """ Test player commands (play, pause,...) for audio """

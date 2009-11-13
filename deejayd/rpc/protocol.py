@@ -143,11 +143,11 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
     def jsonrpc_availablemodes(self):
         """For each available source, shows if it is activated or not.
    The answer consists in :
-  * playlist : 0 or 1
-  * panel : 0 or 1
-  * webradio : 0 or 1 (media backend has to be abble to read url streams)
-  * video : 0 or 1 (needs video dependencies, X display and needs to be activated in configuration)
-  * dvd : 0 or 1 (media backend has to be able to read dvd)"""
+  * playlist : _bool_ true or false
+  * panel : _bool_ true or false
+  * webradio : _bool_ true or false (media backend has to be abble to read url streams)
+  * video : _bool_ true or false (needs video dependencies, X display and needs to be activated in configuration)
+  * dvd : _bool_ true or false (media backend has to be able to read dvd)"""
         return  dict(self.deejayd_core.get_mode(objanswer=False))
 
     @returns_answer('dict')
@@ -156,7 +156,7 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
   * playlist : _int_ id of the current playlist
   * playlistlength : _int_ length of the current playlist
   * playlisttimelength : _int_ time length of the current playlist
-  * playlistrepeat : 0 (not activated) or 1 (activated)
+  * playlistrepeat : _bool_ false (not activated) or true (activated)
   * playlistplayorder : inorder | random | onemedia | random-weighted
   * webradio : _int_ id of the current webradio list
   * webradiolength : _int_ number of recorded webradio
@@ -165,11 +165,11 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
   * queue : _int_ id of the current queue
   * queuelength : _int_ length of the current queue
   * queuetimelength : _int_ time length of the current queue
-  * queueplayorder : inorder | random
+  * queueplayorder : _str_ inorder | random
   * video : _int_ id of the current video list
   * videolength : _int_ length of the current video list
   * videotimelength : _int_ time length of the current video list
-  * videorepeat : 0 (not activated) or 1 (activated)
+  * videorepeat : _bool_ false (not activated) or true (activated)
   * videoplayorder : inorder | random | onemedia | random-weighted
   * dvd : _int_ id of the current dvd
   * dvdlength : _int_ number of tracks on the current dvd
@@ -200,8 +200,8 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
             {"name":"option_value","type":"string","req":True}])
     def jsonrpc_setOption(self, source, option_name, option_value):
         """Set player options "name" to "value" for mode "source", Available options are :
-  * playorder (inorder, onemedia, random or random-weighted)
-  * repeat (0 or 1)"""
+  * playorder (_str_: inorder, onemedia, random or random-weighted)
+  * repeat (_bool_: True or False)"""
         self.deejayd_core.set_option(source, option_name,\
                 option_value, objanswer=False)
 

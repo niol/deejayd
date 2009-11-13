@@ -96,13 +96,19 @@ class AvailableCommands:
 
     def set_option(self, args):
         """Set option to argument value for a given source.
-           ex: djc set_option playlist playorder random"""
+           ex: djc set_option playlist playorder random
+           ex: djc set_option playlist repeat 0 (or 1)"""
         try:
             source = args[0]
             option_name = args[1]
             option_value = args[2]
         except (ValueError, IndexError):
             raise DjcError('Bad command line')
+
+        if option_name == 'repeat':
+            try: option_value = bool(int(option_value))
+            except ValueError:
+                raise DjcError('for repeat option, value has to be 0 or 1')
         self.server.set_option(source,option_name,option_value).get_contents()
 
     def set_mode(self, args):

@@ -137,7 +137,7 @@ UI.prototype =
         mobileui_ref.rpc.setOption(mode_name, "playorder",
                 $("#playorder-option").val());
 
-        var repeat = $("#repeat-option").get(0).checked ? "1" : "0";
+        var repeat = $("#repeat-option").get(0).checked;
         mobileui_ref.rpc.setOption(mode_name, "repeat", repeat);
     },
 };

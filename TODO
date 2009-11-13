@@ -29,4 +29,3 @@
 
 * Build a new webui with GWT
 
-* In JSON answer, use Boolean type instead of 0/1 when needed

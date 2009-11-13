@@ -584,7 +584,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         av_sources = self.sources.get_available_sources()
         modes = {}
         for s in self.sources.get_all_sources():
-            modes[s] = s in av_sources or 1 and 0
+            modes[s] = s in av_sources
         return modes
 
     @returns_deejaydanswer(DeejaydAnswer)

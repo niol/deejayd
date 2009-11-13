@@ -155,9 +155,12 @@ class _BaseLibrarySource(_BaseSource):
             else:
                 self._state["playorder"] = value
         elif name == "repeat" and self.has_repeat:
-            self._media_list.repeat = int(value)
-            self._state["repeat"] = int(value) and True or False
-        else: raise NotImplementedError
+            if not isinstance(value, bool):
+                raise SourceError(_("Option value has to be a boolean"))
+            self._media_list.repeat = value
+            self._state["repeat"] = value
+        else:
+            raise NotImplementedError
 
     def get_status(self):
         status = super(_BaseLibrarySource, self).get_status()
