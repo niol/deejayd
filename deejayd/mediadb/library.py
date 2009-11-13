@@ -403,7 +403,7 @@ class _Library(SignalingComponent):
         (base, ext) = os.path.splitext(file_path)
         # try to get infos from this file
         try: file_info = self.ext_dict[ext.lower()]().parse(file_path)
-        except KeyError:
+        except (TypeError, KeyError):
             log.info(_("File %s not supported") % file_path)
             return None
         except Exception, ex:
