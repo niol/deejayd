@@ -1,7 +1,5 @@
 * ReplayGain support on videos if possible.
 
-* Improve webradios as commented in the tests.
-
 * Work on webui from use cases (albumplayback, etc).
 
 * Signals to the webui exploiting the fact that XmlHttpRequest does not have a
