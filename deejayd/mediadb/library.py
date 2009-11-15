@@ -234,7 +234,7 @@ class _Library(SignalingComponent):
                 return True
         return False
 
-    def _update_dir(self, dir, force = False):
+    def _update_dir(self, dir, force = False, dispatch_signal = True):
         # dirname/filename : (id, lastmodified)
         library_files = dict([(os.path.join(it[1],it[3]), (it[2],it[4]))\
             for it in self.db_con.get_all_files(dir,self.type)])
@@ -245,19 +245,24 @@ class _Library(SignalingComponent):
         library_dirlinks = [item[1] for item\
                             in self.db_con.get_all_dirlinks(dir, self.type)]
 
-        self.walk_directory(dir or self.get_root_path(),
-                library_dirs, library_files, library_dirlinks, force=force)
+        changes = self.walk_directory(dir or self.get_root_path(),
+                library_dirs, library_files, library_dirlinks, force=force,
+                dispatch_signal=dispatch_signal)
 
         # Remove unexistent files and directories from library
         for (id, lastmodified) in library_files.values():
             self.db_con.remove_file(id)
-            reactor.callFromThread(self.dispatch_signame,'mediadb.mupdate',\
-                    attrs = {"type": "remove", "id": id})
+            if dispatch_signal:
+                reactor.callFromThread(self.dispatch_signame,\
+                        'mediadb.mupdate', attrs = {"type": "remove", "id": id})
+            changes.append((id, "remove"))
         for id in library_dirs.values(): self.db_con.remove_dir(id)
         for dirlinkname in library_dirlinks:
             self.db_con.remove_dirlink(dirlinkname, self.type)
             if self.watcher:
                 self.watcher.stop_watching_dir(dirlinkname)
+
+        return changes
 
     def _update(self, force = False):
         self._update_end = False
@@ -275,7 +280,7 @@ class _Library(SignalingComponent):
                     _("%s library has to be updated, this can take a while.")%\
                     (self.type,))
                 force = True
-            self._update_dir('', force)
+            self._update_dir('', force=force)
 
             self.mutex.acquire()
             self.db_con.erase_empty_dir(self.type)
@@ -289,12 +294,14 @@ class _Library(SignalingComponent):
 
     def walk_directory(self, walk_root,
                        library_dirs, library_files, library_dirlinks,
-                       force = False, forbidden_roots=None):
+                       force = False, forbidden_roots=None,
+                       dispatch_signal=True):
         """Walk a directory for files to update.
         Called recursively to carefully handle symlinks."""
         if not forbidden_roots:
             forbidden_roots = [self.get_root_path()]
 
+        changes = []
         for root, dirs, files in os.walk(walk_root):
             try: root = self._encode(root)
             except UnicodeError: # skip this directory
@@ -325,12 +332,16 @@ class _Library(SignalingComponent):
                             self.db_con.insert_dirlink(dir_path, self.type)
                             if self.watcher:
                                 self.watcher.watch_dir(dir_path, self)
-                        self.walk_directory(dir_path,
+                        changes.extend(self.walk_directory(dir_path,
                                  library_dirs, library_files, library_dirlinks,
-                                 force, forbidden_roots)
+                                 force, forbidden_roots,
+                                 dispatch_signal))
 
             # else update files
-            self.update_files(root, dir_id, files, library_files, force)
+            changes.extend(self.update_files(root, dir_id, files,
+                                        library_files, force, dispatch_signal))
+
+        return changes
 
     def end_update(self, result = True):
         self._update_end = True
@@ -341,7 +352,9 @@ class _Library(SignalingComponent):
             self._update_error = msg
         return True
 
-    def update_files(self, root, dir_id, files, library_files, force = False):
+    def update_files(self, root, dir_id, files, library_files,
+                     force = False, dispatch_signal=True):
+        changes = []
         for file in files:
             try: file = self._encode(file)
             except UnicodeError: # skip this file
@@ -362,8 +375,13 @@ class _Library(SignalingComponent):
                     fid = self.set_media(dir_id, file_path, file_info, fid)
             if fid: self.set_extra_infos(root, file, fid)
             if need_update and fid:
-                reactor.callFromThread(self.dispatch_signame,'mediadb.mupdate',\
-                        attrs = {"type": changes_type, "id": fid})
+                if dispatch_signal:
+                    reactor.callFromThread(self.dispatch_signame,\
+                                'mediadb.mupdate',
+                                attrs = {"type": changes_type, "id": fid})
+                changes.append((fid, changes_type))
+
+        return changes
 
     def set_media(self, dir_id, file_path, file_info, file_id):
         if file_info is None: return file_id # not supported
@@ -403,7 +421,8 @@ class _Library(SignalingComponent):
     def add_file(self, path, file):
         file_path = os.path.join(path, file)
         file_info = self._get_file_info(file_path)
-        if not file_info: return self._inotify_add_info(path, file)
+        if not file_info:
+            return self._inotify_add_info(path, file)
 
         try: dir_id, file_id = self.db_con.is_file_exist(path, file, self.type)
         except TypeError:
@@ -415,9 +434,8 @@ class _Library(SignalingComponent):
         if fid:
             self.set_extra_infos(path, file, fid)
             self._add_missing_dir(os.path.dirname(path))
-            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
-                    attrs = {"type": "add", "id": fid})
-        return True
+            return [(fid, "add")]
+        return None
 
     @inotify_action
     def update_file(self, path, name):
@@ -430,9 +448,7 @@ class _Library(SignalingComponent):
             if not file_info:
                 return self._inotify_update_info(path, name)
             self.set_media(dir_id, file_path, file_info, file_id)
-            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
-                    attrs = {"type": "update", "id": file_id})
-            return True
+            return [(file_id, "update")]
 
     @inotify_action
     def remove_file(self, path, name):
@@ -441,10 +457,9 @@ class _Library(SignalingComponent):
             dir_id, file_id = file
             self.db_con.remove_file(file_id)
             self._remove_empty_dir(path)
-            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
-                    attrs = {"type": "remove", "id": file_id})
-            return True
-        else: return self._inotify_remove_info(path, name)
+            return [(file_id, "remove")]
+        else:
+            return self._inotify_remove_info(path, name)
 
     @inotify_action
     def add_directory(self, path, name, dirlink=False):
@@ -453,33 +468,34 @@ class _Library(SignalingComponent):
             self.db_con.insert_dirlink(dir_path, self.type)
             self.watcher.watch_dir(dir_path, self)
 
-        self._update_dir(dir_path.rstrip("/"))
+        changes = self._update_dir(dir_path.rstrip("/"), dispatch_signal=False)
         self._add_missing_dir(os.path.dirname(dir_path))
         self._remove_empty_dir(path)
-        return True
+        return changes
 
     @inotify_action
     def remove_directory(self, path, name, dirlink=False):
         dir_path = os.path.join(path, name)
         dir_id = self.db_con.is_dir_exist(dir_path, self.type)
-        if not dir_id: return False
+        if not dir_id:
+            return None
 
         if dirlink:
             self.db_con.remove_dirlink(dir_path, self.type)
             self.watcher.stop_watching_dir(dir_path)
 
         ids = self.db_con.remove_recursive_dir(dir_path)
-        for id in ids:
-            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
-                    attrs = {"type": "remove", "id": id})
         self._remove_empty_dir(path)
-        return True
+        return [(id, "remove") for id in ids]
 
-    def inotify_record_changes(self):
+    def inotify_record_changes(self, fids):
         self.mutex.acquire()
         self.db_con.update_stats(self.type)
         self.db_con.connection.commit()
-        self.dispatch_signame(self.update_signal_name)
+        for fid, signal_type in fids:
+            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
+                    attrs = {"type": signal_type, "id": fid})
+        reactor.callFromThread(self.dispatch_signame, self.update_signal_name)
         self.mutex.release()
 
     def _remove_empty_dir(self, path):
@@ -572,12 +588,16 @@ class AudioLibrary(_Library):
     def __get_digest(self, data):
         return "hash_-_%s" % hashlib.md5(data).hexdigest()
 
-    def _update_dir(self, dir, force=False):
-        super(AudioLibrary, self)._update_dir(dir, force)
+    def _update_dir(self, dir, force=False, dispatch_signal=True):
+        changes = super(AudioLibrary, self)._update_dir(dir, force,
+                                                        dispatch_signal)
         # remove unused cover
         self.db_con.remove_unused_cover()
+        return changes
 
-    def update_files(self, root, dir_id, files, library_files, force=False):
+    def update_files(self, root, dir_id, files, library_files, force=False,
+                     dispatch_signal=True):
+        changes = []
         if len(files): cover = self.__find_cover(root)
         for file in files:
             try: file = self._encode(file)
@@ -600,8 +620,12 @@ class AudioLibrary(_Library):
             elif fid and cover:
                 self.__update_cover(fid, cover)
             if need_update and fid:
-                reactor.callFromThread(self.dispatch_signame,'mediadb.mupdate',\
+                if dispatch_signal:
+                    reactor.callFromThread(self.dispatch_signame,
+                        'mediadb.mupdate',\
                         attrs = {"type": changes_type, "id": fid})
+                changes.append((fid, changes_type))
+        return changes
 
     def set_media(self, dir_id, file_path, file_info, file_id, cover = None):
         if file_info is not None and "cover" in file_info:
@@ -639,13 +663,12 @@ class AudioLibrary(_Library):
                     return False
                 if image:
                     cover = self.db_con.add_cover(file_path, mime, image)
+                    changes = []
                     for (id,) in files:
                         if self.__update_cover(id, cover):
-                            reactor.callFromThread(self.dispatch_signame,\
-                                    'mediadb.mupdate',\
-                                    attrs = {"type": "update", "id": id})
-                    return True
-            return False
+                            changes.append((id, "update"))
+                    return changes
+            return None
 
         try: dir_id, file_id = self.db_con.is_file_exist(path, file, self.type)
         except TypeError:
@@ -656,32 +679,29 @@ class AudioLibrary(_Library):
         fid = self.set_media(dir_id, file_path, file_info, file_id)
         if fid:
             self._add_missing_dir(os.path.dirname(path))
-            reactor.callFromThread(self.dispatch_signame,\
-                    'mediadb.mupdate', attrs = {"type": "add", "id": fid})
-        return True
+            return [(fid, "add")]
+        return None
 
     def _inotify_remove_info(self, path, file):
         rs = self.db_con.is_cover_exist(os.path.join(path, file))
         try: (cover, lmod) = rs
         except TypeError:
-            return False
+            return None
         ids = self.db_con.search_id("cover", cover)
         for (id,) in ids:
             self.db_con.set_media_infos(id, {"cover": ""})
-            reactor.callFromThread(self.dispatch_signame,\
-                    'mediadb.mupdate', attrs = {"type": "update", "id": id})
         self.db_con.remove_cover(cover)
-        return True
+        return [(id, "update") for (id,) in ids]
 
     def _inotify_update_info(self, path, file):
         file_path = os.path.join(path, file)
         rs = self.db_con.is_cover_exist(file_path)
         try: (cover, lmod) = rs
         except TypeError:
-            return False
+            return None
         image = self.__extract_cover(file_path)
         if image: self.db_con.update_cover(cover, image)
-        return True
+        return []
     ###########################################################
 
 
@@ -701,8 +721,9 @@ class VideoLibrary(_Library):
             if os.path.isfile(os.path.join(base_path + ext_type)):
                 sub = quote_uri(base_path + ext_type)
                 break
-        try: (recorded_sub,) = self.db_con.get_file_info(file_id,\
-                                                         "external_subtitle")
+        try:
+            (recorded_sub,) = self.db_con.get_file_info(file_id,\
+                                                        "external_subtitle")
         except TypeError:
             recorded_sub = None
         if recorded_sub != sub:
@@ -721,11 +742,8 @@ class VideoLibrary(_Library):
                 else:
                     uri = quote_uri(os.path.join(path, file))
                     self.db_con.set_media_infos(fid, {"external_subtitle": uri})
-                    reactor.callFromThread(self.dispatch_signame,\
-                        'mediadb.mupdate',\
-                        attrs = {"type": "update", "id": fid})
-                    return True
-        return False
+                    return [(fid, "update")]
+        return None
 
     def _inotify_remove_info(self, path, file):
         (base_file, ext) = os.path.splitext(file)
@@ -734,13 +752,11 @@ class VideoLibrary(_Library):
                     quote_uri(os.path.join(path, file)))
             for (id,) in ids:
                 self.db_con.set_media_infos(id, {"external_subtitle": ""})
-                reactor.callFromThread(self.dispatch_signame,\
-                    'mediadb.mupdate', attrs = {"type": "update", "id": id})
-            return True
-        return False
+            return [(id, "update") for (id,) in ids]
+        return None
 
     def _inotify_update_info(self, path, file):
-        return False
+        return None
     ###########################################################
 
 # vim: ts=4 sw=4 expandtab

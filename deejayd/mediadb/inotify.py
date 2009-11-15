@@ -79,23 +79,29 @@ class _LibraryWatcher(threading.Thread):
         self.__db = db
         self.__queue = queue
         self.__created_files = []
-        self.__record = False
+        self.__need_update = False
+        self.__record_changes = []
 
     def run(self):
         while not self.should_stop.isSet():
             try: type, library, event = self.__queue.get(True, 0.1)
             except Queue.Empty:
                 continue
-            try: self.__record = self.__execute(type,library,event)\
-                    or self.__record
+            try:
+                changes = self.__execute(type,library,event)
+                if changes is not None:
+                    self.__record_changes.extend(changes)
+                    self.__need_update = True
             except Exception, ex:
                 path = str_encode(os.path.join(event.path, event.name))
                 log.err(_("Inotify problem for '%s', see traceback") % path)
                 log.err("------------------Traceback lines--------------------")
                 log.err(traceback.format_exc())
                 log.err("-----------------------------------------------------")
-            if self.__record and self.__queue.empty(): # record changes
-                library.inotify_record_changes()
+            if self.__need_update and self.__queue.empty(): # record changes
+                library.inotify_record_changes(self.__record_changes)
+                self.__record_changes = []
+                self.__need_update = False
         self.__db.close()
 
     def __occured_on_dirlink(self, library, event):
