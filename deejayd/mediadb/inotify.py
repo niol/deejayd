@@ -93,7 +93,8 @@ class _LibraryWatcher(threading.Thread):
                     self.__record_changes.extend(changes)
                     self.__need_update = True
             except Exception, ex:
-                path = str_encode(os.path.join(event.path, event.name))
+                path = str_encode(os.path.join(event.path, event.name),
+                                  errors='replace')
                 log.err(_("Inotify problem for '%s', see traceback") % path)
                 log.err("------------------Traceback lines--------------------")
                 log.err(traceback.format_exc())

@@ -24,9 +24,9 @@ def quote_uri(path):
         path = path.encode('utf-8')
     return "file://%s" % urllib.quote(path)
 
-def str_encode(data, charset = 'utf-8'):
+def str_encode(data, charset = 'utf-8', errors='strict'):
     if type(data) is unicode: return data
-    try: rs = data.decode(charset, "strict")
+    try: rs = data.decode(charset, errors)
     except UnicodeError:
         log.err(_("%s string has wrong characters, skip it") %\
           data.decode(charset, "ignore").encode("utf-8","ignore"))
