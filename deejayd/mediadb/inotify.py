@@ -89,7 +89,7 @@ class _LibraryWatcher(threading.Thread):
                 continue
             try:
                 changes = self.__execute(type,library,event)
-                if changes is not None:
+                if changes:
                     self.__record_changes.extend(changes)
                     self.__need_update = True
             except Exception, ex:
