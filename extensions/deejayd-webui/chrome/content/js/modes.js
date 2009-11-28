@@ -420,8 +420,12 @@ function WebradioMode() {
     var webradio = this;
     var callback = function(data) {
         for (var source_name in data) {
-            var item = $("webradio-sources").appendItem(source_name,
-                    source_name);
+            var source_names = {
+                local: xului_ref.getString('webradioLocal'),
+                shoutcast: xului_ref.getString('webradioShoutcast')
+            };
+            var item = $("webradio-sources").appendItem(
+                    source_names[source_name], source_name);
             item.id = "webradio-"+source_name+"-source";
             item.addEventListener("click", function(evt) {
                     xului_ref.rpc.wbModeSetSource(evt.target.value);
