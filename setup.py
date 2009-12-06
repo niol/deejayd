@@ -236,7 +236,7 @@ if __name__ == "__main__":
                      "deejayd.mediadb.formats.video","deejayd.player",\
                      "deejayd.sources","deejayd.ui","deejayd.rpc",\
                      "deejayd.database","deejayd.database.upgrade",\
-                     "deejayd.database.backends",\
+                     "deejayd.database.backends","deejayd.plugins",\
                      "deejayd.webui","pytyxi"],
            package_data={'deejayd.ui': ['defaults.conf'],},
            data_files= build_data_files_list(),
