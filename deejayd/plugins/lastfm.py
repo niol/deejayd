@@ -77,8 +77,7 @@ class AudioScrobblerPlugin:
             return True
 
         timestamp = int(time.time())
-        md5_password = md5(self.__auth_details["password"]).hexdigest()
-        token = md5(md5_password+str(timestamp)).hexdigest()
+        token = md5(self.__auth_details["password"]+str(timestamp)).hexdigest()
         p = {
             "hs": "true",
             "u": self.__auth_details["login"],
