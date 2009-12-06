@@ -20,7 +20,8 @@ from deejayd.database import schema
 
 def upgrade(cursor, backend, config):
     # get recorded webradio
-    webradios = cursor.execute("SELECT * FROM webradio").fetchall()
+    cursor.execute("SELECT * FROM webradio")
+    webradios = cursor.fetchall()
     # drop old webradio table and create new one
     cursor.execute("DROP TABLE webradio")
     for table in schema.db_schema:
@@ -29,10 +30,9 @@ def upgrade(cursor, backend, config):
                 cursor.execute(stmt)
     # record webradio in new table
     for wid, name, url in webradios:
-        wb = cursor.execute("SELECT id from webradio WHERE name=%s",\
-                            (name[:-2],))
+        cursor.execute("SELECT id from webradio WHERE name=%s", (name[:-2],))
         try:
-            (id,) = wb.fetchone()
+            (id,) = cursor.fetchone()
         except (TypeError, ValueError):
             cursor.execute("INSERT INTO webradio (name)VALUES(%s)",\
                            (name[:-2],))
