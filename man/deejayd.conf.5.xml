@@ -137,6 +137,8 @@ activated_modes = playlist, panel, webradio, video
           Available plugins are :
             <parameter>shoutcast</parameter> to navigate and play shoutcast
             webradio
+            <parameter>audioscrobbler</parameter> to activate lastfm
+            audioscrobbler
           </para>
         </listitem>
       </varlistentry>

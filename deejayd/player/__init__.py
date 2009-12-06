@@ -25,7 +25,7 @@ AVAILABLE_BACKENDS = ('xine', 'gstreamer', )
 
 class PlayerError(DeejaydError):pass
 
-def init(db,config):
+def init(db, plugin_manager, config):
     media_backend = config.get("general","media_backend")
 
     if media_backend == "auto":
@@ -48,13 +48,13 @@ def init(db,config):
 
     if media_backend == "gstreamer":
         from deejayd.player import gstreamer
-        try: player = gstreamer.GstreamerPlayer(db,config)
+        try: player = gstreamer.GstreamerPlayer(db, plugin_manager, config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 
     elif media_backend == "xine":
         from deejayd.player import xine
-        try: player = xine.XinePlayer(db,config)
+        try: player = xine.XinePlayer(db, plugin_manager, config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 

@@ -32,8 +32,8 @@ from deejayd.ui import log
 class GstreamerPlayer(UnknownPlayer):
     name = 'gstreamer'
 
-    def __init__(self, db, config):
-        UnknownPlayer.__init__(self, db, config)
+    def __init__(self, db, plugin_manager, config):
+        UnknownPlayer.__init__(self, db, plugin_manager, config)
         self.__volume = 100
 
         # Open a Audio pipeline
@@ -76,9 +76,11 @@ class GstreamerPlayer(UnknownPlayer):
                                 [self._media_file["url-index"]].encode("utf-8")
                     self.start_play()
                 return False
-            if self._media_file:
+            elif self._media_file:
                 try: self._media_file.played()
                 except AttributeError: pass
+                for plugin in self.plugins:
+                    plugin.on_media_played(self._media_file)
             self._change_file(self._source.next(explicit = False))
         elif message.type == gst.MESSAGE_TAG:
             self._update_metadata(message.parse_tag())

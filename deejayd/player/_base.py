@@ -19,7 +19,9 @@
 import os,subprocess
 
 from deejayd.component import SignalingComponent
+from deejayd.plugins import PluginError, IPlayerPlugin
 from deejayd.player import PlayerError
+from deejayd.ui import log
 from deejayd.utils import get_uris_from_pls, get_uris_from_m3u
 
 PLAYER_PLAY = "play"
@@ -28,16 +30,24 @@ PLAYER_STOP = "stop"
 
 class UnknownPlayer(SignalingComponent):
 
-    def __init__(self, db, config):
+    def __init__(self, db, plugin_manager, config):
         SignalingComponent.__init__(self)
         self.config = config
         self.db = db
+        # Init plugins
+        self.plugins = []
+        plugins_cls = plugin_manager.get_plugins(IPlayerPlugin)
+        for plugin in plugins_cls:
+            try: self.plugins.append(plugin(config))
+            except PluginError, err:
+                log.err(_("Unable to init %s plugin: %s")%(plugin.NAME, err))
 
         # Initialise var
         self._video_support = False
         self._source = None
         self._media_file = None
         self._replaygain = config.getboolean("general","replaygain")
+
 
     def load_state(self):
         # Restore volume
@@ -225,6 +235,11 @@ class UnknownPlayer(SignalingComponent):
         return status
 
     def close(self):
+        # close plugins
+        for plugin in self.plugins:
+            plugin.close()
+
+        # save state
         current = self._media_file or {"pos": "-1", "source": "none"}
         states = [
             (str(self.get_volume()), "volume"),

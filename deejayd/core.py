@@ -454,7 +454,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
         self.db = database.init(config)
         self.plugin_manager = plugins.PluginManager(config)
 
-        self.player = player.init(self.db, config)
+        self.player = player.init(self.db, self.plugin_manager, config)
         self.player.register_dispatcher(self)
 
         self.audio_library,self.video_library, self.watcher = \

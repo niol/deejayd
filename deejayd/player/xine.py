@@ -30,10 +30,10 @@ from deejayd.ui import log
 class XinePlayer(UnknownPlayer):
     name = "xine"
     supported_extensions = None
-    plugins = None
+    xine_plugins = None
 
-    def __init__(self,db,config):
-        UnknownPlayer.__init__(self,db,config)
+    def __init__(self, db, plugin_manager, config):
+        UnknownPlayer.__init__(self, db, plugin_manager, config)
         self.__xine_options = {
             "video": self.config.get("xine", "video_output"),
             "display" : self.config.get("xine", "video_display"),
@@ -294,10 +294,10 @@ class XinePlayer(UnknownPlayer):
         return PLAYER_STOP
 
     def is_supported_uri(self,uri_type):
-        if self.plugins == None:
-            self.plugins = self.__xine.list_input_plugins()
+        if self.xine_plugins == None:
+            self.xine_plugins = self.__xine.list_input_plugins()
 
-        return uri_type in self.plugins
+        return uri_type in self.xine_plugins
 
     def is_supported_format(self,format):
         if self.supported_extensions == None:
@@ -391,6 +391,8 @@ class XinePlayer(UnknownPlayer):
             else:
                 try: self._media_file.played()
                 except AttributeError: pass
+                for plugin in self.plugins:
+                    plugin.on_media_played(self._media_file)
         new_file = self._source.next(explicit = False)
         try: self._change_file(new_file, gapless = True)
         except PlayerError:

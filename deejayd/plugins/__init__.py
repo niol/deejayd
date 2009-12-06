@@ -59,4 +59,13 @@ class IWebradioPlugin(Interface):
     def get_streams(self, categorie = None):
         """ return list of streams for a given categories """
 
+class IPlayerPlugin(Interface):
+    NAME = Attribute("Name of the plugin")
+
+    def on_media_played(self, media):
+        """ Call when a track has been played """
+
+    def close(self):
+        """ Call when we closed the player """
+
 # vim: ts=4 sw=4 expandtab
