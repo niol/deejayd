@@ -1,6 +1,11 @@
 
 New features and significant updates in version...
 
+0.10.0 (20XX-XX-XX)
+--------------------
+  * Add shoutcast webradio support
+  * Add lastfm audioscrobbler support
+
 0.9.0 (2009-09-21)
 --------------------
   * Replace XML protocol by a JSON-RPC protocol
