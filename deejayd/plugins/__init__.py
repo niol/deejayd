@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, glob
+import os, glob, ConfigParser
 from zope.interface import Interface, Attribute
 from deejayd.interfaces import DeejaydError
 
@@ -25,7 +25,10 @@ class PluginError(DeejaydError): pass
 class PluginManager(object):
 
     def __init__(self, config):
-        self.enabled_plugins = config.getlist("general", "enabled_plugins")
+        try:
+            self.enabled_plugins = config.getlist("general", "enabled_plugins")
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            self.enabled_plugins = []
 
     def get_plugins(self, interface):
         plugins = []
