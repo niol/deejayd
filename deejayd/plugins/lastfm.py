@@ -26,6 +26,7 @@ from zope.interface import implements
 from deejayd.interfaces import DeejaydError
 from deejayd.ui import log
 from deejayd.plugins import IPlayerPlugin, PluginError
+from deejayd.utils import str_encode
 
 class AudioScrobblerFatalError(DeejaydError): pass
 class AudioScrobblerError(DeejaydError):
@@ -47,6 +48,7 @@ class AudioScrobblerPlugin:
     def __init__(self, config):
         self.enabled = True
         self.authenticated = False
+        self.last_request = None
         self.session_id = None
         self.nowplaying_url = None
         self.submit_url = None
@@ -72,6 +74,32 @@ class AudioScrobblerPlugin:
     def close(self):
         self.should_stop.set()
 
+    def __open_request(self, request):
+        try:
+            url_handle = urllib2.urlopen(request)
+        except urllib2.HTTPError, error:
+            err_msg = _("Unable to connect to server: %s - %s")
+            code = str_encode(error.code, errors="ignore")
+            msg = str_encode(error.msg, errors="ignore")
+            raise AudioScrobblerError(err_msg % (code, msg))
+        except urllib2.URLError, error:
+            args = getattr(error.reason, 'args', None)
+            code = '000'
+            message = str(error)
+            if args is not None:
+                if len(args) == 1:
+                    message = error.reason.args[0]
+                elif len(args) == 2:
+                    code = str(error.reason.args[0])
+                    message = error.reason.args[1]
+            code = str_encode(code, errors="ignore")
+            message = str_encode(message, errors="ignore")
+            err_msg = _("Unable to connect to server: %s - %s")
+            raise AudioScrobblerError(err_msg % (code, message))
+
+        self.last_request = int(time.time())
+        return url_handle
+
     def auth(self):
         if self.authenticated:
             return True
@@ -92,23 +120,7 @@ class AudioScrobblerPlugin:
         authparams = urllib.urlencode(plist)
         url = 'http://%s/?%s' % (self.AUDIOSCROBBLER_URL, authparams)
         req = urllib2.Request(url)
-        try:
-            url_handle = urllib2.urlopen(req)
-        except urllib2.HTTPError, error:
-            err_msg = _("Unable to connect to server: %s - %s")
-            raise AudioScrobblerError(err_msg % (error.code, error.msg))
-        except urllib2.URLError, error:
-            args = getattr(error.reason, 'args', None)
-            code = '000'
-            message = str(error)
-            if args is not None:
-                if len(args) == 1:
-                    message = error.reason.args[0]
-                elif len(args) == 2:
-                    code = error.reason.args[0]
-                    message = error.reason.args[1]
-            err_msg = _("Unable to connect to server: %s - %s")
-            raise AudioScrobblerError(err_msg % (code, message))
+        url_handle = self.__open_request(req)
 
         # check answer
         response = url_handle.read().rstrip().split("\n")
@@ -149,23 +161,7 @@ class AudioScrobblerPlugin:
 
         postdata = urllib.urlencode(data)
         req = urllib2.Request(url=self.submit_url, data=postdata)
-        try:
-            url_handle = urllib2.urlopen(req)
-        except urllib2.HTTPError, error:
-            err_msg = _("Unable to connect to server: %s - %s")
-            raise AudioScrobblerError(err_msg % (error.code, error.msg))
-        except urllib2.URLError, error:
-            args = getattr(error.reason, 'args', None)
-            code = '000'
-            message = str(error)
-            if args is not None:
-                if len(args) == 1:
-                    message = error.reason.args[0]
-                elif len(args) == 2:
-                    code = error.reason.args[0]
-                    message = error.reason.args[1]
-            err_msg = _("Unable to connect to server: %s - %s")
-            raise AudioScrobblerError(err_msg % (code, message))
+        url_handle = self.__open_request(req)
 
         response = url_handle.read().rstrip().split("\n")
         if len(response) == 0:
@@ -192,10 +188,16 @@ class AudioScrobblerPlugin:
                 log.err(str(ex))
             else:
                 tracks = []
-                for i in range(1,10):
-                    if self.queue.empty():
-                        break
-                    tracks.append(self.queue.get())
+                if not self.queue.empty():
+                    if (int(time.time()) - self.last_request) > 3600:
+                        log.info(_("Last FM : force reauthentification"))
+                        self.authenticated = False
+                        continue
+                    for i in range(1,10):
+                        if self.queue.empty():
+                            break
+                        tracks.append(self.queue.get())
+
                 if len(tracks):
                     submission_failures = 0
                     while submission_failures < 3:
