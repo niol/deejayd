@@ -21,7 +21,7 @@ Deejayd DB testing module
 """
 import os,time
 from testdeejayd import TestCaseWithAudioData, TestCaseWithVideoData
-from deejayd import database,mediafilters
+from deejayd import database, mediafilters, plugins
 from deejayd.database.queries import DatabaseQueries
 from deejayd.mediadb.library import AudioLibrary,VideoLibrary,NotFoundException
 from deejayd.mediadb import inotify
@@ -44,7 +44,7 @@ class _TestDeejayDBLibrary(object):
         config.set('xine','video_output',"none")
 
         self.db = database.init(config)
-        player = xine.XinePlayer(self.db, config)
+        player = xine.XinePlayer(self.db, plugins.PluginManager(config), config)
         player.init_video_support()
 
         self.library = self.__class__.library_class(self.db, player, \
