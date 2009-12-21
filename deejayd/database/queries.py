@@ -210,7 +210,7 @@ class DatabaseQueries(object):
         joinquery = ""
         for index, key in enumerate(infos_list):
             selectquery += ",i%d.value" % index
-            joinquery += " JOIN media_info i%d ON i%d.id=i.id AND\
+            joinquery += " LEFT OUTER JOIN media_info i%d ON i%d.id=i.id AND\
                 i%d.ikey='%s'" % (index, index, index, key)
         return selectquery, joinquery
 
@@ -219,7 +219,7 @@ class DatabaseQueries(object):
         selectquery, joinquery = self._build_media_query(infos)
         query = "SELECT DISTINCT "+ selectquery +\
             " FROM library l JOIN library_dir d ON d.id=l.directory\
-                           JOIN media_info i ON i.id=l.id"\
+                           LEFT OUTER JOIN media_info i ON i.id=l.id"\
                            + joinquery+\
             " WHERE d.name = %s AND d.lib_type = %s ORDER BY d.name,l.name"
         cursor.execute(query,(dir, type))
