@@ -39,6 +39,7 @@ class Mp3File(_AudioFile):
         infos.update([
             ("title", ""),
             ("artist", ""),
+            ("various_artist", ""),
             ("album", ""),
             ("tracknumber", ""),
             ("discnumber", ""),
