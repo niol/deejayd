@@ -151,10 +151,16 @@ class XinePlayer(UnknownPlayer):
             if "audio" in self._media_file:
                 self._media_file["audio_idx"] = self.__stream.get_param(\
                         xine.Stream.XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
+            else:
+                self._player_set_alang(-1) # auto audio channel
             if "subtitle" in self._media_file:
                 self._media_file["sub_offset"] = 0
                 self._media_file["subtitle_idx"] = self.__stream.get_param(\
                         xine.Stream.XINE_PARAM_SPU_CHANNEL)
+            else:
+                self._player_set_slang(-1) # auto subtitle channel
+                try: del self._media_file["sub_offset"]
+                except KeyError: pass
             # set video aspect ration to default value
             self.set_aspectratio(self.__default_aspect_ratio)
 
