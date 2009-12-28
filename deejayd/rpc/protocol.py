@@ -282,9 +282,9 @@ class DeejaydPlayerJSONRPC(_DeejaydJSONRPC):
             {"name":"source","type":"string","req":False}])
     def jsonrpc_goto(self, id, id_type = "id", source = None):
         """Begin playing at media file with id "id" or toggle play/pause."""
-        if not re.compile("^\w{1,}|\w{1,}\.\w{1,}$").search(id):
+        if not re.compile("^\w{1,}|\w{1,}\.\w{1,}$").search(str(id)):
             raise Fault(INVALID_METHOD_PARAMS, _("Wrong id parameter"))
-        self.deejayd_core.go_to(id, id_type, source, objanswer=False)
+        self.deejayd_core.go_to(str(id), id_type, source, objanswer=False)
 
     @returns_answer('ack', params=[{"name":"volume", "type":"int", "req":True}])
     def jsonrpc_setVolume(self, volume):
