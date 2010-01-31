@@ -12,7 +12,8 @@ Vcs-Browser: http://mroy31.dyndns.org/repository/deejayd
 
 Package: deejayd
 Architecture: all
-Depends: ${python:Depends}, lsb-base (>= 3.0-6), logrotate, adduser,
+Depends: ${misc:Depends}, ${python:Depends},
+         lsb-base (>= 3.0-6), logrotate, adduser,
          deejayd-client (= ${binary:Version}),
          deejayd-xine (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
          python-twisted,
@@ -31,7 +32,8 @@ Description: Network controllable media player daemon
 
 Package: deejayd-webui
 Architecture: all
-Depends: ${python:Depends}, deejayd (= ${binary:Version}), logrotate,
+Depends: ${misc:Depends}, ${python:Depends},
+         deejayd (= ${binary:Version}), logrotate,
          python-twisted-web, libjs-jquery
 XB-Python-Version: ${python:Versions}
 Description: Web interface for deejayd
@@ -43,7 +45,7 @@ Description: Web interface for deejayd
 
 Package: deejayd-client
 Architecture: all
-Depends: ${python:Depends}, python-simplejson | python (>= 2.6)
+Depends: ${misc:Depends}, ${python:Depends}, python-simplejson | python (>= 2.6)
 Conflicts: djc
 XB-Python-Version: ${python:Versions}
 Description: Client library and command line tool to access the deejayd server
@@ -57,7 +59,7 @@ Description: Client library and command line tool to access the deejayd server
 Package: deejayd-xine
 Section: video
 Architecture: all
-Depends: ${python:Depends},
+Depends: ${misc:Depends}, ${python:Depends},
          python-ctypes (>= 1.0.0) | python (>= 2.5),
          libxine1, libx11-6, libxext6
 XB-Python-Version: ${python:Versions}
@@ -66,7 +68,8 @@ Description: Deejayd XINE backend
 
 Package: deejayd-gstreamer
 Architecture: all
-Depends: ${python:Depends}, gstreamer0.10-plugins-base, python-gst0.10
+Depends: ${misc:Depends}, ${python:Depends},
+         gstreamer0.10-plugins-base, python-gst0.10
 Recommends: gstreamer0.10-gnomevfs, lsdvd
 XB-Python-Version: ${python:Versions}
 Description: Deejayd GStreamer backend
@@ -74,7 +77,7 @@ Description: Deejayd GStreamer backend
 
 Package: deejayd-webui-extension
 Architecture: all
-Depends: iceweasel
+Depends: ${misc:Depends}, iceweasel
 Description: Deejayd web user interface Iceweasel extension
  The Deejayd Iceweasel browser extension provides a richer user interface to
  use as a client to the Deejayd server.
