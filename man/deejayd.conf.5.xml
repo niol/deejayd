@@ -397,7 +397,7 @@ panel_tags = genre,artist,album
         <listitem>
           <para>Optionnaly, the alsa card to output to,
           e.g. <parameter>hw:2</parameter>.
-          This is usefull if you have more than one soundcard.</para>
+          This is useful if you have more than one soundcard.</para>
         </listitem>
       </varlistentry>
 
