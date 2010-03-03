@@ -26,7 +26,7 @@ from deejayd.ui.config import DeejaydConfig
 from deejayd import mediafilters, player, sources, mediadb, database, plugins
 
 # Exception imports
-import deejayd.sources.webradio
+import deejayd.sources
 import deejayd.mediadb.library
 
 
@@ -62,7 +62,7 @@ def returns_deejaydanswer(answer_class):
                 objanswer = __kw['objanswer']
                 del __kw['objanswer']
             else:
-               objanswer = True
+                objanswer = True
             if objanswer:
                 ans = answer_class()
                 try:
@@ -120,7 +120,7 @@ class DeejaydStaticPlaylist(deejayd.interfaces.DeejaydStaticPlaylist):
             try: medias = self.library.get_all_files(path)
             except deejayd.mediadb.library.NotFoundException:
                 try: medias = self.library.get_file(path)
-                except NotFoundException:
+                except deejayd.mediadb.library.NotFoundException:
                     raise DeejaydError(_('Path %s not found in library') % path)
             for m in medias: ids.append(m["media_id"])
         self.add_songs(ids)
