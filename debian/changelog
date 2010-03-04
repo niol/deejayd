@@ -7,6 +7,7 @@ deejayd (0.9.0-3) UNRELEASED; urgency=low
     sequence.
   * Update to policy 3.8.4 (nothing to do).
   * Add suggests of python-zope.interface for plugins.
+  * Update Vcs-* fields in debian/control te reflect Hg switch.
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 31 Jan 2010 19:24:45 +0100
 
