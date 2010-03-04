@@ -20,7 +20,9 @@ Depends: ${misc:Depends}, ${python:Depends},
          python-pysqlite2 | python-mysqldb,
          python-lxml, python-mutagen, python-kaa-metadata (>= 0.7.3)
 Recommends: python-pyinotify (>= 0.6.0)
-Suggests: deejayd-webui, xserver-xorg, xauth, x11-utils, x11-common
+Suggests: deejayd-webui,
+          xserver-xorg, xauth, x11-utils, x11-common,
+          python-zope.interface
 Breaks: deejayd-client (<< 0.8.4)
 XB-Python-Version: ${python:Versions}
 Description: Network controllable media player daemon
