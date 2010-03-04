@@ -1,4 +1,8 @@
 syntax: glob
+deejayd.py
+db*
+conf*
+.setting*
 *.orig
 *.rej
 *~
