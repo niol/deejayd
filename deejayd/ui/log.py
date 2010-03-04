@@ -76,22 +76,28 @@ class SignaledFileLogObserver(log.FileLogObserver):
         self.start()
 
 
+def __log(log_msg):
+    try: log.msg(log_msg.encode(locale.getpreferredencoding()))
+    except UnicodeError:
+        # perharps prefered encoding not correctly set, force to UTF-8
+        log.msg(log_msg.encode('utf-8'))
+    
 def err(err, fatal = False):
     msg = _("ERROR - %s") % err
-    log.msg(msg.encode(locale.getpreferredencoding()))
+    __log(msg)
     if fatal: sys.exit(err)
 
 def msg(msg):
-    log.msg(msg.encode(locale.getpreferredencoding()))
+    __log(msg)
 
 def info(msg):
     if log_level >= INFO:
         msg = _("INFO - %s") % msg
-        log.msg(msg.encode(locale.getpreferredencoding()))
+        __log(msg)
 
 def debug(msg):
     if log_level >= DEBUG:
         msg = _("DEBUG - %s") % msg
-        log.msg(msg.encode(locale.getpreferredencoding()))
+        __log(msg)
 
 # vim: ts=4 sw=4 expandtab
