@@ -1,0 +1,140 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+  xmlns:g="urn:import:com.google.gwt.user.client.ui">
+  <ui:with field="resources"
+        type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
+  <ui:style>
+
+  </ui:style>
+     <g:DockLayoutPanel>
+         <g:center>
+      <g:TabLayoutPanel barHeight="24" ui:field="tabPanel">
+         <g:tab>
+             <g:customHeader size='24'>
+                 <g:Label ui:field="dirHeader"></g:Label>
+             </g:customHeader>
+             <g:DockLayoutPanel>
+                 <g:north size="24">
+                    <g:FlowPanel
+                        width="100%" ui:field="navBarPanel"
+                        styleName="{resources.webuiCss.toolbar}">
+                       <g:HorizontalPanel ui:field="navBar">
+                       </g:HorizontalPanel>
+                  </g:FlowPanel>
+                 </g:north>
+                 <g:center>
+                     <g:ScrollPanel>
+                       <g:VerticalPanel ui:field="dirPanel">
+                       </g:VerticalPanel>
+                     </g:ScrollPanel>
+                 </g:center>
+
+                 <g:south size="22">
+                    <g:FlowPanel width="100%"
+                        styleName="{resources.webuiCss.toolbar}">
+                     <g:HorizontalPanel height="24px" ui:field="dirToolbar">
+                       <g:CheckBox ui:field="dirSelectAll"></g:CheckBox>
+                       <g:Button
+                            styleName="{resources.webuiCss.modeToolbarButton}
+                                {resources.webuiCss.addButton}"
+                            ui:field="dirLoadButton"></g:Button>
+                       <g:Button
+                            styleName="{resources.webuiCss.modeToolbarButton}
+                                {resources.webuiCss.addButton}"
+                            ui:field="dirLoadQueueButton"></g:Button>
+                     </g:HorizontalPanel>
+                    </g:FlowPanel>
+                 </g:south>
+             </g:DockLayoutPanel>
+         </g:tab>
+
+         <g:tab>
+             <g:customHeader size='24'>
+                   <g:Label ui:field="searchHeader"></g:Label>
+               </g:customHeader>
+             <g:DockLayoutPanel>
+                 <g:north size="22">
+                     <g:FlowPanel width="100%"
+                            styleName="{resources.webuiCss.toolbar}">
+                       <g:HorizontalPanel ui:field="searchBar" height="24px">
+                          <g:TextBox ui:field="searchPattern"></g:TextBox>
+                          <g:ListBox ui:field="searchType"></g:ListBox>
+                          <g:Button
+                            styleName="{resources.webuiCss.modeToolbarButton}
+                                  {resources.webuiCss.searchButton}"
+                            ui:field="searchButton"></g:Button>
+                       </g:HorizontalPanel>
+                     </g:FlowPanel>
+                 </g:north>
+                 <g:center>
+                     <g:ScrollPanel>
+                      <g:VerticalPanel ui:field="searchPanel">
+                      </g:VerticalPanel>
+                     </g:ScrollPanel>
+                 </g:center>
+                 <g:south size="22">
+                     <g:FlowPanel width="100%"
+                            styleName="{resources.webuiCss.toolbar}">
+                       <g:HorizontalPanel ui:field="searchToolbar">
+                         <g:CheckBox ui:field="searchSelectAll"></g:CheckBox>
+                         <g:Button
+                            styleName="{resources.webuiCss.modeToolbarButton}
+                                  {resources.webuiCss.addButton}"
+                            ui:field="searchLoadButton"></g:Button>
+                         <g:Button
+                            styleName="{resources.webuiCss.modeToolbarButton}
+                                  {resources.webuiCss.addButton}"
+                            ui:field="searchLoadQueueButton"></g:Button>
+                         <g:Button
+                            styleName="{resources.webuiCss.modeToolbarButton}
+                                  {resources.webuiCss.clearButton}"
+                            ui:field="searchClearButton"></g:Button>
+                       </g:HorizontalPanel>
+                     </g:FlowPanel>
+                 </g:south>
+             </g:DockLayoutPanel>
+         </g:tab>
+
+         <g:tab>
+            <g:customHeader size='24'>
+                <g:Label ui:field="plsHeader"></g:Label>
+            </g:customHeader>
+            <g:DockLayoutPanel>
+                <g:center>
+                    <g:ScrollPanel>
+                     <g:VerticalPanel ui:field="plsPanel">
+                     </g:VerticalPanel>
+                    </g:ScrollPanel>
+                </g:center>
+                <g:south size="22">
+                    <g:FlowPanel width="100%"
+                            styleName="{resources.webuiCss.toolbar}">
+                        <g:HorizontalPanel ui:field="plsToolbar">
+                            <g:CheckBox ui:field="plsSelectAll"></g:CheckBox>
+                            <g:Button
+                                styleName="{resources.webuiCss.modeToolbarButton}
+                                  {resources.webuiCss.addButton}"
+                                ui:field="plsLoadButton"></g:Button>
+                            <g:Button
+                                styleName="{resources.webuiCss.modeToolbarButton}
+                                  {resources.webuiCss.addButton}"
+                                ui:field="plsLoadQueueButton"></g:Button>
+                            <g:Button
+                                styleName="{resources.webuiCss.modeToolbarButton}
+                                  {resources.webuiCss.removeButton}"
+                                ui:field="plsRemoveButton"></g:Button>
+                        </g:HorizontalPanel>
+                    </g:FlowPanel>
+                </g:south>
+            </g:DockLayoutPanel>
+        </g:tab>
+      </g:TabLayoutPanel>
+       </g:center>
+
+       <g:south size="24">
+            <g:Button width="100%" ui:field="updateButton">
+                Update Audio Library
+            </g:Button>
+           </g:south>
+    </g:DockLayoutPanel>
+</ui:UiBinder>

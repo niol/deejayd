@@ -1,0 +1,37 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+  xmlns:g="urn:import:com.google.gwt.user.client.ui"
+  xmlns:webui="urn:import:org.mroy31.deejayd.webui.client">
+  <ui:with field="resources" type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
+
+  <g:DockLayoutPanel>
+     <g:north size='100'>
+         <g:FlowPanel>
+             <webui:PlayerUI ui:field="playerUI"></webui:PlayerUI>
+             <g:Button addStyleNames="{resources.webuiCss.refreshButton}"
+                       ui:field="refreshButton"></g:Button>
+             <g:ListBox addStyleNames="{resources.webuiCss.modeList}"
+                       ui:field="modeList"></g:ListBox>
+         </g:FlowPanel>
+     </g:north>
+
+        <g:center>
+            <g:SplitLayoutPanel>
+                <g:south size='50'>
+                    <g:HTML>Zboub</g:HTML>
+                </g:south>
+
+                <g:west size='350'>
+                    <webui:WebuiPanelManager ui:field="panelManager">
+                    </webui:WebuiPanelManager>
+                </g:west>
+
+                <g:center>
+                    <webui:WebuiModeManager ui:field="modeManager">
+                    </webui:WebuiModeManager>
+                </g:center>
+            </g:SplitLayoutPanel>
+        </g:center>
+  </g:DockLayoutPanel>
+
+</ui:UiBinder>

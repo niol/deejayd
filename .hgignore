@@ -8,6 +8,10 @@ conf*
 *~
 *.pyc
 build*
+data/htdocs/deejayd_webui*
+webui--gwt/deejayd-webui/war*
+webui--gwt/deejayd-webui/src/META-INF/jdoconfig.xml
+webui--gwt/deejayd-webui/src/log4j.properties
 .p*
 */.*
 

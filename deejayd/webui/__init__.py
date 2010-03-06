@@ -29,8 +29,6 @@ from deejayd.rpc.protocol import build_protocol, set_web_subhandler
 
 # xul parts
 from deejayd.webui.xul import build as xul_build
-# mobile parts
-from deejayd.webui import mobile
 
 
 class DeejaydWebError(DeejaydError): pass
@@ -48,10 +46,9 @@ class DeejaydMainHandler(Resource):
             # redirect to specific mobile interface
             request.redirect(root + 'm/')
             return 'redirected'
-        else: # default xul interface
-            request.redirect(root + 'xul/')
+        else: # default web interface
+            request.redirect(root + 'webui/')
             return 'redirected'
-
 
 class DeejaydXulHandler(Resource):
 
@@ -66,29 +63,6 @@ class DeejaydXulHandler(Resource):
     def render_GET(self, request):
         request.setHeader("Content-Type", "application/vnd.mozilla.xul+xml")
         return xul_build(self.__config)
-
-
-class DeejaydMobileHandler(Resource):
-
-    def __init__(self, deejayd, config):
-        Resource.__init__(self)
-        self.__deejayd = deejayd
-        self.__config = config
-
-    def getChild(self, name, request):
-        if name == '': return self
-        return Resource.getChild(self,name,request)
-
-    def render_GET(self, request):
-        # Trailing slash is required for js script paths in the mobile webui,
-        # therefore we need to add it if it is missing, by issuing a redirect
-        # to the web browser.
-        if request.prepath[-1] != '':
-            request.redirect(request.path + '/')
-            return 'redirected'
-
-        user_agent = request.getHeader("user-agent");
-        return mobile.build_template(self.__deejayd, user_agent)
 
 
 class SiteWithCustomLogging(server.Site):
@@ -127,17 +101,22 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
     rpc_handler = build_protocol(deejayd_core, rpc_handler)
     rpc_handler = set_web_subhandler(deejayd_core, tmp_dir, rpc_handler)
     main_handler.putChild("rpc",rpc_handler)
-    # statics url
+    # tmp dir
     main_handler.putChild("tmp",static.File(tmp_dir))
-    main_handler.putChild("static",static.File(htdocs_dir))
 
-    # xul part
+    # old xul part
     xul_handler = DeejaydXulHandler(config)
     main_handler.putChild("xul", xul_handler)
 
+    # defaut interface
+    webui_static = static.File(os.path.join(htdocs_dir,"webui"))
+    webui_static.indexNames = ["Deejayd_webui.html"]
+    main_handler.putChild("webui", webui_static)
+
     # mobile part
-    mobile_handler = DeejaydMobileHandler(deejayd_core, config)
-    main_handler.putChild("m", mobile_handler)
+    mobile_static = static.File(os.path.join(htdocs_dir,"mobile"))
+    mobile_static.indexNames = ["Mobile_webui.html"]
+    main_handler.putChild("m", mobile_static)
 
     return SiteWithCustomLogging(main_handler, logPath=webui_logfile)
 

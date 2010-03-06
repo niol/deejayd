@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.0.0//EN" "http://google-web-toolkit.googlecode.com/svn/tags/2.0.0/distro-source/core/src/gwt-module.dtd">
+<module rename-to='mobile_webui'>
+	<inherits name="com.google.gwt.user.User" />
+	<inherits name='org.mroy31.deejayd.common.DeejaydCommon'/>
+
+	<source path="client"/>
+
+    <!-- Inherit the default GWT style sheet.  You can change          -->
+    <!-- the theme of your GWT application by uncommenting             -->
+    <!-- any one of the following lines.                               -->
+    <!-- <inherits name='com.google.gwt.user.theme.standard.Standard'/ -->
+    <!-- <inherits name='com.google.gwt.user.theme.chrome.Chrome'/>    -->
+    <inherits name='com.google.gwt.user.theme.dark.Dark'/>
+
+	<!-- Specify the app entry point class.                         -->
+    <entry-point class='org.mroy31.deejayd.mobile.client.Mobile_Webui'/>
+</module>

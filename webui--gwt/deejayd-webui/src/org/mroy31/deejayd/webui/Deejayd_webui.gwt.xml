@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module rename-to='deejayd_webui'>
+  <!-- Inherit the core Web Toolkit stuff.                        -->
+  <inherits name='com.google.gwt.user.User'/>
+  <inherits name="com.google.gwt.resources.Resources" />
+  <inherits name="com.google.gwt.i18n.I18N"/>
+
+  <!-- French language, independent of country -->
+  <extend-property name="locale" values="fr"/>
+  <!-- English language, independent of country -->
+  <extend-property name="locale" values="en"/>
+
+  <!-- Default locale -->
+  <set-property-fallback name="locale" value="en"/>
+
+
+  <!-- Inherit the default GWT style sheet.  You can change       -->
+  <!-- the theme of your GWT application by uncommenting          -->
+  <!-- any one of the following lines.                            -->
+  <inherits name='com.google.gwt.user.theme.standard.Standard'/>
+  <!-- <inherits name='com.google.gwt.user.theme.chrome.Chrome'/> -->
+  <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/> -->
+
+  <!-- Other module inherits                                      -->
+  <inherits name='org.mroy31.deejayd.common.DeejaydCommon'/>
+
+  <!-- Specify the app entry point class.                         -->
+  <entry-point class='org.mroy31.deejayd.webui.client.Deejayd_webui'/>
+
+  <!-- Specify the paths for translatable code                    -->
+  <source path='client'/>
+  <source path='resources'/>
+  <source path='i18n'/>
+  <source path='widgets'/>
+
+</module>
