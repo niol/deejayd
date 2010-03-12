@@ -22,8 +22,11 @@ package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
 
+import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
+
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
@@ -72,7 +75,7 @@ public class WebradioMode extends WebuiMode implements ClickHandler {
         toolbar.add(wbRemove);
 
         if (goToCurrent == null) {
-            goToCurrent = new Button(ui.i18nConstants.goCurrentSong());
+            goToCurrent = new Button(ui.i18nConstants.wbGoCurrent());
             goToCurrent.setStyleName(
                     ui.resources.webuiCss().modeToolbarButton() + " " +
                     ui.resources.webuiCss().gotoButton());
@@ -92,7 +95,6 @@ public class WebradioMode extends WebuiMode implements ClickHandler {
     void buildHeader(FlexTable header) {
         header.getColumnFormatter().setWidth(0, "28px"); // checkbox
         header.getColumnFormatter().setWidth(1, "18px"); // play button
-        header.getFlexCellFormatter().setColSpan(0, 3, 2); // url
 
         // add a checkbox
         final CheckBox allCk = new CheckBox();
@@ -115,6 +117,12 @@ public class WebradioMode extends WebuiMode implements ClickHandler {
     @Override
     void buildRow(FlexTable mediaList, int idx, JSONObject media) {
         int id = (int) media.get("id").isNumber().doubleValue();
+        // set style for this row
+        if ((idx % 2) == 0) {
+            mediaList.getRowFormatter().setStyleName(idx,
+                    resources.webuiCss().oddRow());
+        }
+
         // add a checkbox
         CheckBox checkbox = new CheckBox();
         checkbox.setFormValue(Integer.toString(id));
@@ -125,8 +133,17 @@ public class WebradioMode extends WebuiMode implements ClickHandler {
         mediaList.setWidget(idx, 1, playButton);
 
         mediaList.setText(idx, 2, media.get("title").isString().stringValue());
-        mediaList.getFlexCellFormatter().setColSpan(idx, 3, 2); // url
-        mediaList.setText(idx, 3, media.get("url").isString().stringValue());
+        String urlType = media.get("url-type").isString().stringValue();
+        String value = "";
+        if (urlType.equals("pls")) {
+            value = media.get("url").isString().stringValue();
+        } else if (urlType.equals("urls")) {
+            JSONArray urls = media.get("urls").isArray();
+            for (int i=0; i<urls.size(); i++) {
+                value += urls.get(i).isString().stringValue()+"<br/>";
+            }
+        }
+        mediaList.setHTML(idx, 3, value);
     }
 
     @Override
@@ -146,14 +163,17 @@ public class WebradioMode extends WebuiMode implements ClickHandler {
     public void onClick(ClickEvent event) {
         Widget sender = (Widget) event.getSource();
         if (sender == wbClear) {
-
+            ui.rpc.wbModeClear(new DefaultRpcCallback(ui));
         } else if (sender == wbRemove) {
-
+            ui.rpc.wbModeRemove(getMediaSelection(),
+                    new DefaultRpcCallback(ui));
         } else if (sender == goToCurrent) {
-
+            if (currentPlayingPos != -1) {
+                Widget wg = modeMedialist.getWidget(currentPlayingPos, 0);
+                modeMedialistPanel.ensureVisible(wg);
+            }
         }
     }
-
 }
 
 //vim: ts=4 sw=4 expandtab

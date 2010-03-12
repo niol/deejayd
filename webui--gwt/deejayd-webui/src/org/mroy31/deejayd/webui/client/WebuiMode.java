@@ -283,7 +283,7 @@ public abstract class WebuiMode extends Composite {
                 if (currentPlayingPos != pos) {
                     resetCurrentPlaying();
                     modeMedialist.getRowFormatter().addStyleName(pos,
-                            resources.webuiCss().modePlayingMedia());
+                            resources.webuiCss().currentItem());
                     currentPlayingPos = pos;
                 }
             } else {
@@ -297,7 +297,7 @@ public abstract class WebuiMode extends Composite {
     public void resetCurrentPlaying() {
         if (currentPlayingPos != -1) {
             modeMedialist.getRowFormatter().removeStyleName(currentPlayingPos,
-                    resources.webuiCss().modePlayingMedia());
+                    resources.webuiCss().currentItem());
             currentPlayingPos = -1;
         }
     }

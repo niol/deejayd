@@ -28,6 +28,7 @@
 .modeList {position: absolute; top: 0px; right: 0px; height: 24px;}
 .bold {font-weight: bold;}
 .italic{font-style: italic;}
+.currentItem { font-weight: bold; }
 
 /*
  * Players button
@@ -79,9 +80,15 @@
 @sprite .saveButton {gwt-image: "save";}
 @sprite .searchButton {gwt-image: "search";}
 
-/*
- * Mode medialist
- */
-.modePlayingMedia { font-weight: bold; }
 
- /*vim: ts=4 sw=4 expandtab*/
+
+
+/*
+ * Webradio Panel
+ */
+.wbCategorieItem {
+  padding: 2px 2px 2px 15px;
+  cursor: pointer;
+}
+
+/*vim: ts=4 sw=4 expandtab*/

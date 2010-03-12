@@ -252,23 +252,23 @@ public class Rpc {
      * Webradio commands
      */
 
-    public void wbGetSources(RpcCallback callback) {
+    public void wbModeGetSources(RpcCallback callback) {
         send("webradio.getAvailableSources", new JSONArray(), callback);
     }
 
-    public void wbGetSourceCategories(String source, RpcCallback callback) {
+    public void wbModeGetSourceCategories(String source, RpcCallback callback) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(source));
         send("webradio.getSourceCategories", args, callback);
     }
 
-    public void wbSetSource(String source, RpcCallback callback) {
+    public void wbModeSetSource(String source, RpcCallback callback) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(source));
         send("webradio.setSource", args, callback);
     }
 
-    public void wbSetSourceCategorie(String cat, RpcCallback callback) {
+    public void wbModeSetSourceCategorie(String cat, RpcCallback callback) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(cat));
         send("webradio.setSourceCategorie", args, callback);

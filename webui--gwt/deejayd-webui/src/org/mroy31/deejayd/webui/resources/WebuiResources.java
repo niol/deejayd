@@ -33,6 +33,8 @@ public interface WebuiResources extends ClientBundle {
         String modeList();
         String bold();
         String italic();
+        String currentItem();
+
         /* player buttons */
         String playerButton();
         String playButton();
@@ -54,12 +56,13 @@ public interface WebuiResources extends ClientBundle {
         String addButton();
         String saveButton();
         String searchButton();
-        String modePlayingMedia();
 
         String toolbar();
         String modeTopToolbar();
         String oddRow();
         String playerButtonsBlock();
+
+        String wbCategorieItem();
     }
 
     @Source("webui-css.css")
@@ -125,6 +128,8 @@ public interface WebuiResources extends ClientBundle {
     ImageResource magicPlaylist();
 
     ImageResource star();
+
+	ImageResource loading();
 }
 
 //vim: ts=4 sw=4 expandtab

@@ -137,6 +137,15 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Shoutcast Webradios")
     String wbShoutcastSource();
+
+    @DefaultStringValue("Categories")
+    String wbCategories();
+
+    @DefaultStringValue("Go to current webradio")
+    String wbGoCurrent();
+
+    @DefaultStringValue("Loading categories list...")
+    String wbLoadingCategories();
 }
 
 // vim: ts=4 sw=4 expandtab
