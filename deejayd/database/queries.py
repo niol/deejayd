@@ -378,7 +378,7 @@ class DatabaseQueries(object):
 
     @query_decorator("none")
     def update_cover(self, cursor, id, mime, new_image):
-        query = "UPDATE cover SET mime_type = %s lmod = %s, image = %s\
+        query = "UPDATE cover SET mime_type = %s, lmod = %s, image = %s\
                 WHERE id=%s"
         cursor.execute(query, (mime, time.time(), new_image, id))
 
