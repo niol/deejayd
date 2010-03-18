@@ -93,12 +93,16 @@ class WebradioSource(_BaseSource):
 
         # load current list
         self._media_list = SimpleMediaList(self.get_recorded_id() + 1)
-        self.__source = self.wb_sources[self._state["source"]]
+        try:
+            self.__source = self.wb_sources[self._state["source"]]
+        except KeyError: # recorded source not found, fallback to default
+            self.__source = self.wb_sources["local"]
+
+        # defer to thread init to avoid long delay
+        # when we try to connect to shoutcast for example
         def load():
             self._media_list.set(\
                     self.__source.get_streams(self._state["source-cat"]))
-        # defer to thread init to avoid long delay
-        # when we try to connect to shoutcast for example
         self.defered = threads.deferToThread(load)
 
     def get_available_sources(self):
