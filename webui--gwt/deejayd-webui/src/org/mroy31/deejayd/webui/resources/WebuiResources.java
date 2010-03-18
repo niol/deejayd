@@ -44,6 +44,7 @@ public interface WebuiResources extends ClientBundle {
         String previousButton();
 
         /* playing title theme */
+        String playingPanel();
         String playingTitle();
         String playingDesc();
         String playingTime();
@@ -129,7 +130,13 @@ public interface WebuiResources extends ClientBundle {
 
     ImageResource star();
 
-	ImageResource loading();
+    ImageResource loading();
+
+    ImageResource slider();
+
+    ImageResource sliderDisabled();
+
+    ImageResource sliderSliding();
 }
 
 //vim: ts=4 sw=4 expandtab

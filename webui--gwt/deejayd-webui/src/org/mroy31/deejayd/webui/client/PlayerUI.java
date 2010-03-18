@@ -24,9 +24,8 @@ import java.util.HashMap;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.common.widgets.IsLayoutWidget;
 import org.mroy31.deejayd.common.widgets.PlayerWidget;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.SliderBar;
@@ -38,13 +37,14 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -64,6 +64,7 @@ public class PlayerUI extends PlayerWidget
     @UiField Button previousButton;
 
     @UiField FlowPanel playingPanel;
+    @UiField HorizontalPanel seekPanel;
     @UiField SliderBar seekBar;
     @UiField HTML playingTitle;
     @UiField HTML playingDesc;
@@ -76,15 +77,29 @@ public class PlayerUI extends PlayerWidget
     private String current = "";
     private String currentTime = "";
 
-    /*
-     * RPC callbacks
-     */
-    class PlayerCallback extends GenericRpcCallback {
-        public PlayerCallback(IsLayoutWidget ui) {super(ui);}
-        public void onCorrectAnswer(JSONValue data) {
-            ui.update();
+    private class SeekTimer extends Timer {
+        private int value;
+        public SeekTimer(int seekTime) {
+            value = seekTime;
+        }
+
+        public void run() {
+            ui.rpc.seek(value, new DefaultRpcCallback(ui));
         }
     }
+    private SeekTimer seekTimer = null;
+
+    private class VolumeTimer extends Timer {
+        private int value;
+        public VolumeTimer(int volume) {
+            value = volume;
+        }
+
+        public void run() {
+            ui.rpc.setVolume(value, new DefaultRpcCallback(ui));
+        }
+    }
+    private VolumeTimer volumeTimer = null;
 
     public PlayerUI(WebuiLayout webui) {
         this.resources = webui.resources;
@@ -97,18 +112,34 @@ public class PlayerUI extends PlayerWidget
         nextButton.addClickHandler(this);
         previousButton.addClickHandler(this);
         // add volume change handler
+        volumeBar.setStepSize(5);
         volumeBar.addValueChangeHandler(new ValueChangeHandler<Double>() {
             public void onValueChange(ValueChangeEvent<Double> event) {
                 int value = (int) Math.round(event.getValue());
-                ui.rpc.setVolume(value, new PlayerCallback(ui));
+                if (volumeTimer != null) {
+                    volumeTimer.cancel();
+                    volumeTimer = null;
+                }
+                volumeTimer = new VolumeTimer(value);
+                volumeTimer.schedule(200);
             }
         });
+        seekPanel.setSpacing(2);
+        seekPanel.setCellVerticalAlignment(playingTime,
+                HorizontalPanel.ALIGN_MIDDLE);
         // add playing change handler
         playingTime.addClickHandler(this);
+        seekBar.setStepSize(10);
         seekBar.addValueChangeHandler(new ValueChangeHandler<Double>() {
             public void onValueChange(ValueChangeEvent<Double> event) {
                 int value = (int) Math.round(event.getValue());
-                ui.rpc.seek(value, new PlayerCallback(ui));
+                if (seekTimer != null) {
+                    seekTimer.cancel();
+                    seekTimer = null;
+                }
+                playingTime.setText(DeejaydUtils.formatTime(value)+"-->");
+                seekTimer = new SeekTimer(value);
+                seekTimer.schedule(200);
             }
         });
 
@@ -117,12 +148,12 @@ public class PlayerUI extends PlayerWidget
     }
 
     @UiFactory SliderBar makeSliderBar() {
-        return new SliderBar(0, 100);
+        return new SliderBar(0, 100, resources);
     }
 
     public void onClick(ClickEvent event) {
         Widget sender = (Widget) event.getSource();
-        PlayerCallback callback = new PlayerCallback(ui);
+        DefaultRpcCallback callback = new DefaultRpcCallback(ui);
         if (sender == playToggleButton) {
             ui.rpc.playToggle(callback);
         } else if (sender == stopButton) {
@@ -133,6 +164,9 @@ public class PlayerUI extends PlayerWidget
             ui.rpc.previous(callback);
         } else if (sender == playingTime) {
             seekBar.setVisible(!seekBar.isVisible());
+            if (seekBar.isVisible()) {
+                seekBar.drawKnob();
+            }
         }
     }
 
@@ -157,15 +191,24 @@ public class PlayerUI extends PlayerWidget
             this.current = "";
             this.currentTime = "";
         } else {
+            String[] times = status.get("time").split(":");
             if (!status.get("current").equals(this.current)) {
                 ui.rpc.getCurrent(new CurrentCallback(ui));
                 this.current = status.get("current");
+                seekBar.setMaxValue(Integer.parseInt(times[1]));
+                this.currentTime = "";
+            } else {
+                String[] currentState = this.current.split(":");
+                if (currentState[2].equals("webradio")
+                        || currentState[2].equals("video")) {
+                    ui.rpc.getCurrent(new CurrentCallback(ui));
+                }
             }
             playingPanel.setVisible(true);
             if (!this.currentTime.equals(status.get("time"))) {
-                String[] times = status.get("time").split(":");
-                seekBar.setMaxValue(Integer.parseInt(times[1]));
-                seekBar.setCurrentValue(Integer.parseInt(times[0]), false);
+                double time = Double.parseDouble(times[0]);
+                seekBar.setCurrentValue(time, false);
+                playingTime.setText(DeejaydUtils.formatTime((int) time)+"-->");
                 this.currentTime = status.get("time");
             }
         }
@@ -191,14 +234,22 @@ public class PlayerUI extends PlayerWidget
             }
 
             // get cover
-            int mediaId = (int) Math.round(media.get("media_id").isNumber().doubleValue());
+            int mediaId = (int) Math.round(
+                    media.get("media_id").isNumber().doubleValue());
             ui.rpc.getCover(mediaId, new CoverCallback(ui));
         } else if (type.equals("video")) {
             int length = (int) media.get("length").isNumber().doubleValue();
             title = media.get("title").isString().stringValue() + " (" +
                 DeejaydUtils.formatTime(length) + ")";
+            // TODO : advanced options
         } else if (type.equals("webradio")) {
-            // TODO
+            title = media.get("title").isString().stringValue();
+            if (media.get("song-title") != null) {
+                title +=" -- "+media.get("song-title").isString().stringValue();
+            }
+            if (media.get("uri") != null) {
+                desc = media.get("uri").isString().stringValue();
+            }
         }
         playingTitle.setHTML(title);
         playingDesc.setHTML(desc);

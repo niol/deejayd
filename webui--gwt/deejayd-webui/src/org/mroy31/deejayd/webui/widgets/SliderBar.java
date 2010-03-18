@@ -19,14 +19,13 @@
  */
 package org.mroy31.deejayd.webui.widgets;
 
-import com.google.gwt.core.client.GWT;
+import org.mroy31.deejayd.webui.resources.WebuiResources;
+
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.logical.shared.HasValueChangeHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.resources.client.ClientBundle;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
@@ -134,32 +133,6 @@ public class SliderBar extends FocusPanel
   }
 
   /**
-   * An {@link ClientBundle} that provides images for {@link SliderBar}.
-   */
-  public static interface SliderBarImages extends ClientBundle {
-    /**
-     * An image used for the sliding knob.
-     *
-     * @return a prototype of this image
-     */
-    ImageResource slider();
-
-    /**
-     * An image used for the sliding knob.
-     *
-     * @return a prototype of this image
-     */
-    ImageResource sliderDisabled();
-
-    /**
-     * An image used for the sliding knob while sliding.
-     *
-     * @return a prototype of this image
-     */
-    ImageResource sliderSliding();
-  }
-
-  /**
    * The current value.
    */
   private double curValue;
@@ -214,16 +187,15 @@ public class SliderBar extends FocusPanel
   /**
    * The images used with the sliding bar.
    */
-  private SliderBarImages images;
+  private WebuiResources resources;
 
   /**
    * The size of the increments between knob positions.
    */
   private double stepSize;
 
-
-  public SliderBar(double minValue, double maxValue) {
-      this(minValue, maxValue, 1);
+  public SliderBar(double minValue, double maxValue, WebuiResources resources) {
+      this(minValue, maxValue, 1, resources);
   }
   /**
    * Create a slider bar.
@@ -231,12 +203,13 @@ public class SliderBar extends FocusPanel
    * @param minValue the minimum value in the range
    * @param maxValue the maximum value in the range
    */
-  public SliderBar(double minValue, double maxValue, double stepSize) {
+  public SliderBar(double minValue, double maxValue, double stepSize,
+          WebuiResources resources) {
     super();
     this.stepSize = stepSize;
     this.minValue = minValue;
     this.maxValue = maxValue;
-    this.images = GWT.create(SliderBarImages.class);
+    this.resources = resources;
 
     // Create the outer shell
     DOM.setStyleAttribute(getElement(), "position", "relative");
@@ -249,7 +222,7 @@ public class SliderBar extends FocusPanel
     DOM.setElementProperty(lineElement, "className", "gwt-SliderBar-line");
 
     // Create the knob
-    AbstractImagePrototype.create(images.slider()).applyTo(knobImage);
+    AbstractImagePrototype.create(resources.slider()).applyTo(knobImage);
     Element knobElement = knobImage.getElement();
     DOM.appendChild(getElement(), knobElement);
     DOM.setStyleAttribute(knobElement, "position", "absolute");
@@ -415,7 +388,7 @@ public class SliderBar extends FocusPanel
           DOM.setCapture(getElement());
           startSliding(true, true);
           DOM.eventPreventDefault(event);
-          slideKnob(event, false);
+          slideKnob(event, true);
           break;
         case Event.ONMOUSEUP:
           if (slidingMouse) {
@@ -427,7 +400,7 @@ public class SliderBar extends FocusPanel
           break;
         case Event.ONMOUSEMOVE:
           if (slidingMouse) {
-            slideKnob(event, false);
+            slideKnob(event);
           }
           break;
       }
@@ -478,6 +451,7 @@ public class SliderBar extends FocusPanel
    * @param fireEvent fire the onValue change event if true
    */
   public void setCurrentValue(double curValue, boolean fireEvent) {
+    double oldValue = this.curValue;
     // Confine the value to the range
     this.curValue = Math.max(minValue, Math.min(maxValue, curValue));
     double remainder = (this.curValue - minValue) % stepSize;
@@ -489,12 +463,14 @@ public class SliderBar extends FocusPanel
       this.curValue += stepSize;
     }
 
-    // Redraw the knob
-    drawKnob();
+    if (this.curValue != oldValue) {
+        // Redraw the knob
+        drawKnob();
 
-    // Fire the onValueChange event
-    if (fireEvent) {
-        ValueChangeEvent.fire(this, this.curValue);
+        // Fire the onValueChange event
+        if (fireEvent) {
+            ValueChangeEvent.fire(this, this.curValue);
+        }
     }
   }
 
@@ -506,10 +482,10 @@ public class SliderBar extends FocusPanel
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
     if (enabled) {
-        AbstractImagePrototype.create(images.slider()).applyTo(knobImage);
+        AbstractImagePrototype.create(resources.slider()).applyTo(knobImage);
       DOM.setElementProperty(lineElement, "className", "gwt-SliderBar-line");
     } else {
-        AbstractImagePrototype.create(images.sliderDisabled())
+        AbstractImagePrototype.create(resources.sliderDisabled())
                               .applyTo(knobImage);
       DOM.setElementProperty(lineElement, "className",
           "gwt-SliderBar-line gwt-SliderBar-line-disabled");
@@ -596,7 +572,7 @@ public class SliderBar extends FocusPanel
   /**
    * Draw the knob where it is supposed to be relative to the line.
    */
-  private void drawKnob() {
+  public void drawKnob() {
     // Abort if not attached
     if (!isAttached()) {
       return;
@@ -660,7 +636,7 @@ public class SliderBar extends FocusPanel
           "gwt-SliderBar-line gwt-SliderBar-line-sliding");
       DOM.setElementProperty(knobImage.getElement(), "className",
           "gwt-SliderBar-knob gwt-SliderBar-knob-sliding");
-      AbstractImagePrototype.create(images.sliderSliding()).applyTo(knobImage);
+      AbstractImagePrototype.create(resources.sliderSliding()).applyTo(knobImage);
     }
   }
 
@@ -676,7 +652,7 @@ public class SliderBar extends FocusPanel
 
       DOM.setElementProperty(knobImage.getElement(), "className",
           "gwt-SliderBar-knob");
-      AbstractImagePrototype.create(images.slider()).applyTo(knobImage);
+      AbstractImagePrototype.create(resources.slider()).applyTo(knobImage);
     }
   }
 

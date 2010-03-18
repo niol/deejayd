@@ -55,9 +55,12 @@
 /*
  * Playing Area
  */
+ .playingPanel {
+   padding: 10px 10px 0px 10px;
+ }
  .playingTitle {padding-bottom: 3px;}
  .playingDesc {padding-left: 10px; font-style: italic;}
- .playingTime {}
+ .playingTime {margin-right: 10px;}
 
 /*
  * toolbar buttons

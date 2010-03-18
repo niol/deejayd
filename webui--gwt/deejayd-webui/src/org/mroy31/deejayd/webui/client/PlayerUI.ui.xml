@@ -27,13 +27,14 @@
        <webui:SliderBar ui:field="volumeBar"></webui:SliderBar>
     </g:FlowPanel>
 
-    <g:FlowPanel visible="false" ui:field="playingPanel">
+    <g:FlowPanel visible="false" ui:field="playingPanel"
+                 styleName="{resources.webuiCss.playingPanel}">
        <g:HTML styleName="{resources.webuiCss.playingTitle}"
                ui:field="playingTitle"></g:HTML>
        <g:HTML styleName="{resources.webuiCss.playingDesc}"
                ui:field="playingDesc"></g:HTML>
-       <g:HorizontalPanel>
-           <g:Button styleName="{resources.webuiCss.playingTime}"
+       <g:HorizontalPanel ui:field="seekPanel">
+           <g:Button addStyleNames="{resources.webuiCss.playingTime}"
                      ui:field="playingTime">00:00 --></g:Button>
            <webui:SliderBar visible="false" ui:field="seekBar">
            </webui:SliderBar>
