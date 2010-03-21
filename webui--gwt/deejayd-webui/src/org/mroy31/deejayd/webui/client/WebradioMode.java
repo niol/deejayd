@@ -23,6 +23,7 @@ package org.mroy31.deejayd.webui.client;
 import java.util.HashMap;
 
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
+import org.mroy31.deejayd.webui.widgets.MediaList;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -36,14 +37,115 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
-public class WebradioMode extends WebuiMode implements ClickHandler {
+public class WebradioMode extends WebuiMode {
     private Label description;
     private Button wbClear;
     private Button wbRemove;
     private Button goToCurrent;
 
+    private class WebradioRenderer
+            implements MediaList.ModeRenderer, ClickHandler {
+        @Override
+        public void buildHeader(FlexTable header) {
+            header.getColumnFormatter().setWidth(0, "28px"); // checkbox
+            header.getColumnFormatter().setWidth(1, "18px"); // play button
+
+            // add a checkbox
+            final CheckBox allCk = new CheckBox();
+            allCk.addClickHandler(new ClickHandler() {
+                public void onClick(ClickEvent event) {
+                    boolean value = allCk.getValue();
+                    mediaList.checkRow(value);
+                }
+            });
+            header.setWidget(0, 0, allCk);
+            // set other columns
+            header.setText(0, 2, ui.i18nConstants.title());
+            header.setText(0, 3, ui.i18nConstants.url());
+        }
+
+        @Override
+        public void buildRow(int idx, FlexTable list, JSONObject media) {
+            int id = (int) media.get("id").isNumber().doubleValue();
+
+            // add a checkbox
+            CheckBox checkbox = new CheckBox();
+            checkbox.setFormValue(Integer.toString(id));
+            list.setWidget(idx, 0, checkbox);
+
+            Image playButton = new Image(resources.medialistPlay());
+            playButton.addClickHandler(new PlayRowHandler(id));
+            list.setWidget(idx, 1, playButton);
+
+            list.setText(idx, 2, media.get("title").isString().stringValue());
+            String urlType = media.get("url-type").isString().stringValue();
+            String value = "";
+            if (urlType.equals("pls")) {
+                value = media.get("url").isString().stringValue();
+            } else if (urlType.equals("urls")) {
+                JSONArray urls = media.get("urls").isArray();
+                for (int i=0; i<urls.size(); i++) {
+                    value += urls.get(i).isString().stringValue()+"<br/>";
+                }
+            }
+            list.setHTML(idx, 3, value);
+        }
+
+        @Override
+        public void buildToolbar(HorizontalPanel toolbar) {
+            if (wbClear == null) {
+                wbClear = new Button(ui.i18nConstants.clear());
+                wbClear.setStyleName(
+                        ui.resources.webuiCss().modeToolbarButton() + " " +
+                        ui.resources.webuiCss().clearButton());
+                wbClear.addClickHandler(this);
+            }
+            toolbar.add(wbClear);
+
+            if (wbRemove == null) {
+                wbRemove = new Button(ui.i18nConstants.remove());
+                wbRemove.setStyleName(
+                        ui.resources.webuiCss().modeToolbarButton() + " " +
+                        ui.resources.webuiCss().removeButton());
+                wbRemove.addClickHandler(this);
+            }
+            toolbar.add(wbRemove);
+
+            if (goToCurrent == null) {
+                goToCurrent = new Button(ui.i18nConstants.wbGoCurrent());
+                goToCurrent.setStyleName(
+                        ui.resources.webuiCss().modeToolbarButton() + " " +
+                        ui.resources.webuiCss().gotoButton());
+                goToCurrent.addClickHandler(this);
+            }
+            toolbar.add(goToCurrent);
+        }
+
+        @Override
+        public void formatMediaList(FlexTable mediaList) {
+            mediaList.getColumnFormatter().setWidth(0, "28px"); // checkbox
+            mediaList.getColumnFormatter().setWidth(1, "18px"); // play button
+        }
+
+        public void onClick(ClickEvent event) {
+            Widget sender = (Widget) event.getSource();
+            if (sender == wbClear) {
+                ui.rpc.wbModeClear(new DefaultRpcCallback(ui));
+            } else if (sender == wbRemove) {
+                ui.rpc.wbModeRemove(mediaList.getSelection(),
+                        new DefaultRpcCallback(ui));
+            } else if (sender == goToCurrent) {
+                if (currentPlayingPos != -1) {
+                    mediaList.goTo(currentPlayingPos);
+                }
+            }
+        }
+    }
+    private WebradioRenderer renderer = new WebradioRenderer();
+
     public WebradioMode(WebuiLayout ui) {
         super("webradio", ui, false, false);
+        mediaList.setOption(true, renderer);
     }
 
     @Override
@@ -55,36 +157,6 @@ public class WebradioMode extends WebuiMode implements ClickHandler {
     }
 
     @Override
-    void buildBottomToolbar(HorizontalPanel toolbar) {
-        if (wbClear == null) {
-            wbClear = new Button(ui.i18nConstants.clear());
-            wbClear.setStyleName(
-                    ui.resources.webuiCss().modeToolbarButton() + " " +
-                    ui.resources.webuiCss().clearButton());
-            wbClear.addClickHandler(this);
-        }
-        toolbar.add(wbClear);
-
-        if (wbRemove == null) {
-            wbRemove = new Button(ui.i18nConstants.remove());
-            wbRemove.setStyleName(
-                    ui.resources.webuiCss().modeToolbarButton() + " " +
-                    ui.resources.webuiCss().removeButton());
-            wbRemove.addClickHandler(this);
-        }
-        toolbar.add(wbRemove);
-
-        if (goToCurrent == null) {
-            goToCurrent = new Button(ui.i18nConstants.wbGoCurrent());
-            goToCurrent.setStyleName(
-                    ui.resources.webuiCss().modeToolbarButton() + " " +
-                    ui.resources.webuiCss().gotoButton());
-            goToCurrent.addClickHandler(this);
-        }
-        toolbar.add(goToCurrent);
-    }
-
-    @Override
     void buildTopToolbar(HorizontalPanel toolbar) {
         description = new Label();
         toolbar.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
@@ -92,86 +164,9 @@ public class WebradioMode extends WebuiMode implements ClickHandler {
     }
 
     @Override
-    void buildHeader(FlexTable header) {
-        header.getColumnFormatter().setWidth(0, "28px"); // checkbox
-        header.getColumnFormatter().setWidth(1, "18px"); // play button
-
-        // add a checkbox
-        final CheckBox allCk = new CheckBox();
-        allCk.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                boolean value = allCk.getValue();
-                int size = modeMedialist.getRowCount();
-                for (int idx=0; idx<size; idx++) {
-                    CheckBox ck = (CheckBox) modeMedialist.getWidget(idx, 0);
-                    ck.setValue(value);
-                }
-            }
-        });
-        header.setWidget(0, 0, allCk);
-        // set other columns
-        header.setText(0, 2, ui.i18nConstants.title());
-        header.setText(0, 3, ui.i18nConstants.url());
-    }
-
-    @Override
-    void buildRow(FlexTable mediaList, int idx, JSONObject media) {
-        int id = (int) media.get("id").isNumber().doubleValue();
-        // set style for this row
-        if ((idx % 2) == 0) {
-            mediaList.getRowFormatter().setStyleName(idx,
-                    resources.webuiCss().oddRow());
-        }
-
-        // add a checkbox
-        CheckBox checkbox = new CheckBox();
-        checkbox.setFormValue(Integer.toString(id));
-        mediaList.setWidget(idx, 0, checkbox);
-
-        Image playButton = new Image(resources.medialistPlay());
-        playButton.addClickHandler(new PlayRowHandler(id));
-        mediaList.setWidget(idx, 1, playButton);
-
-        mediaList.setText(idx, 2, media.get("title").isString().stringValue());
-        String urlType = media.get("url-type").isString().stringValue();
-        String value = "";
-        if (urlType.equals("pls")) {
-            value = media.get("url").isString().stringValue();
-        } else if (urlType.equals("urls")) {
-            JSONArray urls = media.get("urls").isArray();
-            for (int i=0; i<urls.size(); i++) {
-                value += urls.get(i).isString().stringValue()+"<br/>";
-            }
-        }
-        mediaList.setHTML(idx, 3, value);
-    }
-
-    @Override
-    void formatMedialist(FlexTable mediaList) {
-        mediaList.getColumnFormatter().setWidth(0, "28px"); // checkbox
-        mediaList.getColumnFormatter().setWidth(1, "18px"); // play button
-    }
-
-    @Override
     void setDescription(int length, int timelength) {
         if (description != null) {
             description.setText(ui.i18nMessages.webradiosDesc(length));
-        }
-    }
-
-    @Override
-    public void onClick(ClickEvent event) {
-        Widget sender = (Widget) event.getSource();
-        if (sender == wbClear) {
-            ui.rpc.wbModeClear(new DefaultRpcCallback(ui));
-        } else if (sender == wbRemove) {
-            ui.rpc.wbModeRemove(getMediaSelection(),
-                    new DefaultRpcCallback(ui));
-        } else if (sender == goToCurrent) {
-            if (currentPlayingPos != -1) {
-                Widget wg = modeMedialist.getWidget(currentPlayingPos, 0);
-                modeMedialistPanel.ensureVisible(wg);
-            }
         }
     }
 }

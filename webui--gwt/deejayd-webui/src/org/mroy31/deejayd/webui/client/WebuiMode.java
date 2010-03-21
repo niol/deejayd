@@ -20,13 +20,12 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.widgets.IsLayoutWidget;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
+import org.mroy31.deejayd.webui.widgets.MediaList;
 import org.mroy31.deejayd.webui.widgets.RatingWidget;
 
 import com.google.gwt.core.client.GWT;
@@ -37,19 +36,15 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONNumber;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.DeferredCommand;
-import com.google.gwt.user.client.IncrementalCommand;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public abstract class WebuiMode extends Composite {
@@ -70,11 +65,8 @@ public abstract class WebuiMode extends Composite {
         UiBinder<Widget, WebuiMode> {
     }
 
-    @UiField FlexTable modeHeader;
-    @UiField FlexTable modeMedialist;
-    @UiField ScrollPanel modeMedialistPanel;
+    @UiField MediaList mediaList;
     @UiField HorizontalPanel modeTopToolbar;
-    @UiField HorizontalPanel modeBottomToolbar;
     @UiField(provided = true) final WebuiResources resources;
 
     /**
@@ -100,47 +92,12 @@ public abstract class WebuiMode extends Composite {
      *
      */
     private class MediaListCallback extends GenericRpcCallback {
-        private int lastGet;
-        public MediaListCallback(int lastGet, IsLayoutWidget ui) {
+        public MediaListCallback(WebuiLayout ui) {
             super(ui);
-            this.lastGet = lastGet;
         }
         public void onCorrectAnswer(JSONValue data) {
             JSONArray list = data.isObject().get("medias").isArray();
-            for (int idx=0; idx<list.size(); idx++) {
-                buildRow(modeMedialist, lastGet+idx, list.get(idx).isObject());
-            }
-        }
-    }
-
-    /**
-     * Incremental command to load media list
-     *
-     */
-    private class MedialistUpdate implements IncrementalCommand {
-        private int CHUNKLENGTH = 100;
-        private int lastGet = 0;
-        private int length;
-        private HashMap<String, String> status;
-
-        public MedialistUpdate(int length, HashMap<String, String> status) {
-            this.length = length;
-            this.status = status;
-        }
-
-        public boolean execute() {
-            JSONArray args = new JSONArray();
-            args.set(0, new JSONNumber(lastGet));
-            args.set(1, new JSONNumber(CHUNKLENGTH));
-            ui.rpc.send(getSourceName()+".get",
-                    args, new MediaListCallback(lastGet, ui));
-
-            lastGet += CHUNKLENGTH;
-            if (lastGet >= length) {
-                setCurrentPlaying(status);
-                return false;
-            }
-            return true;
+            mediaList.update(list);
         }
     }
 
@@ -171,13 +128,12 @@ public abstract class WebuiMode extends Composite {
         initWidget(uiBinder.createAndBindUi(this));
 
         modeTopToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-        modeBottomToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-        buildBottomToolbar(modeBottomToolbar);
         buildTopToolbar(modeTopToolbar);
-        buildHeader(modeHeader);
-        formatMedialist(modeMedialist);
     }
 
+    @UiFactory MediaList makeMediaList() {
+        return new MediaList(ui);
+    }
     public String getSourceName() {
         return sourceName;
     }
@@ -185,14 +141,15 @@ public abstract class WebuiMode extends Composite {
     public void onStatusChange(HashMap<String, String> status) {
         int id = Integer.parseInt(status.get(getSourceName()));
         if (mediaId != id) {
-            modeMedialist.removeAllRows();
+            mediaList.setLoading();
             int length = Integer.parseInt(status.get(getSourceName()+"length"));
             int timelength = -1;
             if (status.get(getSourceName()+"timelength") != null) {
                 timelength = Integer.parseInt(
                         status.get(getSourceName()+"timelength"));
             }
-            DeferredCommand.addCommand(new MedialistUpdate(length, status));
+            ui.rpc.send(getSourceName()+".get",
+                    new JSONArray(), new MediaListCallback(ui));
             setDescription(length, timelength);
             mediaId = id;
             currentPlayingPos = -1;
@@ -262,17 +219,6 @@ public abstract class WebuiMode extends Composite {
         return repeatCk;
     }
 
-    protected String[] getMediaSelection() {
-        ArrayList<String> selection = new ArrayList<String>();
-        for (int idx=0; idx<modeMedialist.getRowCount(); idx++) {
-            CheckBox ck = (CheckBox) modeMedialist.getWidget(idx, 0);
-            if (ck.getValue())
-                selection.add(ck.getFormValue());
-        }
-        String[] result = new String[0];
-        return selection.toArray(result);
-    }
-
     public void setCurrentPlaying(HashMap<String, String> status) {
         String state = status.get("state");
         if (!state.equals("stop")) {
@@ -282,8 +228,7 @@ public abstract class WebuiMode extends Composite {
                 int pos = Integer.parseInt(currentArray[0]);
                 if (currentPlayingPos != pos) {
                     resetCurrentPlaying();
-                    modeMedialist.getRowFormatter().addStyleName(pos,
-                            resources.webuiCss().currentItem());
+                    mediaList.setPlaying(pos);
                     currentPlayingPos = pos;
                 }
             } else {
@@ -296,8 +241,7 @@ public abstract class WebuiMode extends Composite {
 
     public void resetCurrentPlaying() {
         if (currentPlayingPos != -1) {
-            modeMedialist.getRowFormatter().removeStyleName(currentPlayingPos,
-                    resources.webuiCss().currentItem());
+            mediaList.resetPlaying(currentPlayingPos);
             currentPlayingPos = -1;
         }
     }
@@ -306,10 +250,6 @@ public abstract class WebuiMode extends Composite {
      * Abstract methods
      */
     abstract void buildTopToolbar(HorizontalPanel toolbar);
-    abstract void buildBottomToolbar(HorizontalPanel toolbar);
-    abstract void buildHeader(FlexTable header);
-    abstract void formatMedialist(FlexTable mediaList);
-    abstract void buildRow(FlexTable mediaList,	int idx, JSONObject media);
     abstract void setDescription(int length, int timelength);
 }
 

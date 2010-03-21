@@ -66,7 +66,7 @@ public class WebuiLayout extends Composite
     @UiField WebuiPanelManager panelManager;
     @UiField Button refreshButton;
     @UiField ListBox modeList;
-    @UiField(provided = true) final WebuiResources resources;
+    @UiField(provided = true) public final WebuiResources resources;
 
     /**
      * Default rpc callback to update webui
