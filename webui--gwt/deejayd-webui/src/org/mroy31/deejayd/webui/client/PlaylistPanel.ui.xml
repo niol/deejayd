@@ -1,6 +1,7 @@
 <!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
 <ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
-  xmlns:g="urn:import:com.google.gwt.user.client.ui">
+  xmlns:g="urn:import:com.google.gwt.user.client.ui"
+  xmlns:webui="urn:import:org.mroy31.deejayd.webui.widgets">
   <ui:with field="resources"
         type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
   <ui:style>
@@ -132,9 +133,8 @@
        </g:center>
 
        <g:south size="24">
-            <g:Button width="100%" ui:field="updateButton">
-                Update Audio Library
-            </g:Button>
+            <webui:LibraryManager width="100%" ui:field="updateButton">
+            </webui:LibraryManager>
            </g:south>
     </g:DockLayoutPanel>
 </ui:UiBinder>

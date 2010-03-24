@@ -1,4 +1,5 @@
-/* Deejayd, a media player daemon
+/*
+ * Deejayd, a media player daemon
  * Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
  *                         Alexandre Rossi <alexandre.rossi@gmail.com>
  *
@@ -17,32 +18,20 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.widgets;
+package org.mroy31.deejayd.common.events;
 
-import com.google.gwt.i18n.client.Messages;
 
-public interface HasI18nMessages extends Messages {
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.event.shared.HasHandlers;
 
-	@DefaultMessage("{0,number} seconds")
-	@PluralText({"one", "1 second"})
-	String seconds(@PluralCount int seconds);
-	
-	@DefaultMessage("{0,number} minutes")
-	@PluralText({"one", "1 minute"})
-	String minutes(@PluralCount int minutes);
-	
-	@DefaultMessage("{0,number} hours")
-	@PluralText({"one", "1 hour"})
-	String hours(@PluralCount int hours);
-	
-	@DefaultMessage("{0,number} days")
-	@PluralText({"one", "1 day"})
-	String days(@PluralCount int days);
-	
-	@DefaultMessage("{0,number} years")
-	@PluralText({"one", "1 year"})
-	String years(@PluralCount int years);
-	
+public interface HasLibraryChangeHandlers extends HasHandlers {
+    /**
+       * Adds a {@link LibraryChangeEvent} handler.
+       *
+       * @param handler the handler
+       * @return the registration for the event
+       */
+      HandlerRegistration addLibraryChangeHandler(LibraryChangeHandler handler);
 }
 
 //vim: ts=4 sw=4 expandtab

@@ -146,6 +146,15 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Loading categories list...")
     String wbLoadingCategories();
+
+    @DefaultStringValue("audio")
+    String audio();
+
+    @DefaultStringValue("video")
+    String video();
+
+    @DefaultStringValue("Loading ...")
+    String loading();
 }
 
 // vim: ts=4 sw=4 expandtab

@@ -18,15 +18,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.widgets;
+package org.mroy31.deejayd.common.events;
 
-import org.mroy31.deejayd.common.events.HasStatusChangeHandlers;
+import com.google.gwt.event.shared.EventHandler;
 
-public interface IsLayoutWidget extends HasStatusChangeHandlers {
-    void load();
-    void update();
-    void setMessage(String message);
-    void setError(String error);
+public interface LibraryChangeHandler extends EventHandler {
+    void onLibraryChange(LibraryChangeEvent event);
 }
 
 //vim: ts=4 sw=4 expandtab

@@ -23,7 +23,7 @@ package org.mroy31.deejayd.webui.client;
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.common.widgets.IsLayoutWidget;
+import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.webui.widgets.MediaList;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -54,7 +54,7 @@ public class PlaylistMode extends WebuiMode {
         private WebuiLayout ui;
         private TextBox input;
         private class PlsCallback extends GenericRpcCallback {
-            public PlsCallback(IsLayoutWidget ui) { super(ui); }
+            public PlsCallback(DeejaydUIWidget ui) { super(ui); }
 
             @Override
             public void onCorrectAnswer(JSONValue data) {

@@ -20,9 +20,13 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import org.mroy31.deejayd.common.events.LibraryChangeEvent;
+import org.mroy31.deejayd.common.events.LibraryChangeHandler;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.widgets.IsLayoutWidget;
+import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
+import org.mroy31.deejayd.webui.widgets.LibraryManager;
+import org.mroy31.deejayd.webui.widgets.LoadingWidget;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -48,12 +52,14 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class PlaylistPanel extends WebuiPanel implements ClickHandler {
+public class PlaylistPanel extends WebuiPanel
+        implements ClickHandler, LibraryChangeHandler {
 
     private static PlaylistPanelUiBinder uiBinder = GWT
             .create(PlaylistPanelUiBinder.class);
     interface PlaylistPanelUiBinder extends UiBinder<Widget, PlaylistPanel> {}
 
+    @UiField(provided = true) final LibraryManager updateButton;
     @UiField TabLayoutPanel tabPanel;
     @UiField Label dirHeader;
     @UiField Label searchHeader;
@@ -210,7 +216,7 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
     }
 
     private class DirFileCallback extends GenericRpcCallback {
-        public DirFileCallback(IsLayoutWidget ui) {	super(ui); }
+        public DirFileCallback(DeejaydUIWidget ui) {	super(ui); }
 
         @Override
         public void onCorrectAnswer(JSONValue data) {
@@ -255,6 +261,7 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
                 }
             }
 
+            dirPanel.clear();
             for (int i=0; i<dirs.size(); i++) {
                 String dir = dirs.get(i).isString().stringValue();
                 dirPanel.add(new DirectoryItem(dir, root));
@@ -270,11 +277,13 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
     }
 
     private class SearchCallback extends GenericRpcCallback {
-        public SearchCallback(IsLayoutWidget ui) {	super(ui); }
+        public SearchCallback(DeejaydUIWidget ui) {	super(ui); }
 
         @Override
         public void onCorrectAnswer(JSONValue data) {
             JSONArray medias = data.isObject().get("medias").isArray();
+
+            searchPanel.clear();
             for (int i=0; i<medias.size(); i++) {
                 String filename = medias.get(i).isObject().get("filename")
                         .isString().stringValue();
@@ -287,7 +296,7 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
 
     private class PanelDefaultCallback extends GenericRpcCallback {
         private VerticalPanel panel;
-        public PanelDefaultCallback(IsLayoutWidget ui, VerticalPanel panel) {
+        public PanelDefaultCallback(DeejaydUIWidget ui, VerticalPanel panel) {
             super(ui);
             this.panel = panel;
         }
@@ -306,7 +315,7 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
     }
 
     private class PlsListCallback extends GenericRpcCallback {
-        public PlsListCallback(IsLayoutWidget ui) {	super(ui); }
+        public PlsListCallback(DeejaydUIWidget ui) {	super(ui); }
 
         @Override
         public void onCorrectAnswer(JSONValue data) {
@@ -324,7 +333,7 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
     }
 
     private class PlsEraseCallback extends GenericRpcCallback {
-        public PlsEraseCallback(IsLayoutWidget ui) { super(ui); }
+        public PlsEraseCallback(DeejaydUIWidget ui) { super(ui); }
 
         @Override
         public void onCorrectAnswer(JSONValue data) {
@@ -338,6 +347,7 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
         super("playlist");
 
         this.resources = webui.resources;
+        this.updateButton = webui.audioLibrary;
         this.ui = webui;
 
         initWidget(uiBinder.createAndBindUi(this));
@@ -361,6 +371,7 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
                 }
             }
         });
+        ui.audioLibrary.addLibraryChangeHandler(this);
 
         // set search part
         searchButton.setText(ui.i18nConstants.search());
@@ -419,15 +430,25 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
         buildPlsList();
     }
 
+
+    @Override
+    public void onLibraryChange(LibraryChangeEvent event) {
+        buildDirFileList();
+    }
+
     @Override
     public void onClick(ClickEvent event) {
         Widget source = (Widget) event.getSource();
         if (source == searchButton) {
             String pattern = searchPattern.getValue();
-            if (pattern != "")
+            if (pattern != "") {
+                searchPanel.clear();
+                searchPanel.add(new LoadingWidget(ui.i18nConstants.loading(),
+                        resources));
                 ui.rpc.libSearch("audio", pattern,
                         searchType.getValue(searchType.getSelectedIndex()),
                         new SearchCallback(ui));
+            }
         } else if (source == dirLoadButton) {
             JSONArray sel = getSelection(dirPanel);
             if (sel.size() > 0) {
@@ -490,6 +511,7 @@ public class PlaylistPanel extends WebuiPanel implements ClickHandler {
 
     private void buildDirFileList(String dir) {
         dirPanel.clear();
+        dirPanel.add(new LoadingWidget(ui.i18nConstants.loading(), resources));
         ui.rpc.libGetDirectory("audio",
                 dir, new DirFileCallback(ui));
     }

@@ -5,5 +5,5 @@
   <inherits name="com.google.gwt.json.JSON" />
   <source path="rpc"/>
   <source path="widgets"/>
-  <source path="events"/>
+  <source path="events"/><source path="i18n"></source>
 </module>

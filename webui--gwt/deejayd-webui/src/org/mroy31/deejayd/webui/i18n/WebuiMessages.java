@@ -19,12 +19,12 @@
 
 package org.mroy31.deejayd.webui.i18n;
 
-import org.mroy31.deejayd.common.widgets.HasI18nMessages;
+import org.mroy31.deejayd.common.i18n.CommonI18nMessages;
 
 import com.google.gwt.i18n.client.LocalizableResource.DefaultLocale;
 
 @DefaultLocale("en")
-public interface WebuiMessages extends HasI18nMessages {
+public interface WebuiMessages extends CommonI18nMessages {
 
     @DefaultMessage("{0,number} Songs")
     @PluralText({"one", "1 Song"})
@@ -37,6 +37,15 @@ public interface WebuiMessages extends HasI18nMessages {
     @DefaultMessage("Are you sure you want to erase these {0,number} playlists ?")
     @PluralText({"one", "Are you sure you want to erase this playlist ?"})
     String plsEraseConfirm(@PluralCount int number);
+
+    @DefaultMessage("Update {0} library")
+    String libUpdateButton(String libraryType);
+
+    @DefaultMessage("Updating {0} library ...")
+    String libUpdateLoading(String libraryType);
+
+    @DefaultMessage("The {0} library has been updated.")
+    String libUpdateMessage(String libraryType);
 }
 
 //vim: ts=4 sw=4 expandtab

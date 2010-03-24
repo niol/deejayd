@@ -20,7 +20,7 @@
 
 package org.mroy31.deejayd.common.rpc;
 
-import org.mroy31.deejayd.common.widgets.IsLayoutWidget;
+import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.Response;
@@ -31,9 +31,9 @@ import com.google.gwt.json.client.JSONValue;
 
 
 public abstract class GenericRpcCallback implements RpcCallback {
-	public IsLayoutWidget ui;
+	public DeejaydUIWidget ui;
 
-	public GenericRpcCallback(IsLayoutWidget ui) {
+	public GenericRpcCallback(DeejaydUIWidget ui) {
 		this.ui = ui;
 	}
 

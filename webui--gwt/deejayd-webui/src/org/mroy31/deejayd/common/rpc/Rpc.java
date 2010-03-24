@@ -57,6 +57,10 @@ public class Rpc {
         send("status", new JSONArray(), callback);
     }
 
+    public void getStats(RpcCallback callback) {
+        send("stats", new JSONArray(), callback);
+    }
+
     public void getModeList(RpcCallback callback) {
         send("availablemodes", new JSONArray(), callback);
     }

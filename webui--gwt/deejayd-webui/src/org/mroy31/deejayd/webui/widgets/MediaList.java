@@ -60,7 +60,7 @@ public class MediaList extends Composite {
      *
      */
     private class MedialistUpdate implements IncrementalCommand {
-        private int CHUNKLENGTH = 100;
+        private int CHUNKLENGTH = 500;
         private int lastGet = 0;
         private JSONArray list;
 

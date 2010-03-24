@@ -22,22 +22,20 @@ package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
 
-import org.mroy31.deejayd.common.events.HasStatusChangeHandlers;
+import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
-import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.rpc.Rpc;
-import org.mroy31.deejayd.common.widgets.IsLayoutWidget;
+import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 import org.mroy31.deejayd.webui.i18n.WebuiMessages;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
+import org.mroy31.deejayd.webui.widgets.LibraryManager;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -45,15 +43,14 @@ import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 
-public class WebuiLayout extends Composite
-        implements IsLayoutWidget, ClickHandler, HasStatusChangeHandlers {
+public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     private WebuiLayout ui;
-    public Rpc rpc;
+    public LibraryManager audioLibrary;
+
     public WebuiConstants i18nConstants = GWT.create(WebuiConstants.class);
     public WebuiMessages i18nMessages = GWT.create(WebuiMessages.class);
 
@@ -73,7 +70,7 @@ public class WebuiLayout extends Composite
      *
      */
     public class DefaultCallback extends GenericRpcCallback {
-        public DefaultCallback(IsLayoutWidget ui) {super(ui);}
+        public DefaultCallback(DeejaydUIWidget ui) {super(ui);}
         public void onCorrectAnswer(JSONValue data) {
             ui.update();
         }
@@ -125,14 +122,21 @@ public class WebuiLayout extends Composite
         Window.alert(error);
     }
 
-    @Override
     public void load() {
-        // init RPC
-        this.rpc = new Rpc();
+        super.load();
+        // init audio library
+        HashMap<String, String> messages = new HashMap<String, String>();
+        messages.put("button",
+                ui.i18nMessages.libUpdateButton(ui.i18nConstants.audio()));
+        messages.put("confirmation",
+                ui.i18nMessages.libUpdateMessage(ui.i18nConstants.audio()));
+        messages.put("loading",
+                ui.i18nMessages.libUpdateLoading(ui.i18nConstants.audio()));
+        audioLibrary = new LibraryManager(this, "audio", messages);
 
         // load mode list
         class Callback extends GenericRpcCallback {
-            public Callback(IsLayoutWidget ui) {super(ui);}
+            public Callback(DeejaydUIWidget ui) {super(ui);}
             public void onCorrectAnswer(JSONValue data) {
                 JSONObject list = data.isObject();
                 for (String key : list.keySet()) {
@@ -149,8 +153,8 @@ public class WebuiLayout extends Composite
 
     @Override
     public void update() {
-        class Callback extends GenericRpcCallback {
-            public Callback(IsLayoutWidget ui) {super(ui);}
+        class StatusCallback extends GenericRpcCallback {
+            public StatusCallback(DeejaydUIWidget ui) {super(ui);}
             public void onCorrectAnswer(JSONValue data) {
                 JSONObject obj = data.isObject();
                 // create a java map with status
@@ -180,14 +184,33 @@ public class WebuiLayout extends Composite
                 fireEvent(new StatusChangeEvent(status));
             }
         }
-        this.rpc.getStatus(new Callback(this));
+        this.rpc.getStatus(new StatusCallback(this));
+
+        class StatsCallback extends GenericRpcCallback {
+            public StatsCallback(DeejaydUIWidget ui) {super(ui);}
+            public void onCorrectAnswer(JSONValue data) {
+                JSONObject obj = data.isObject();
+                // create a java map with stats
+                HashMap<String, String> stats = new HashMap<String, String>();
+                for (String key : obj.keySet()) {
+                    JSONValue value = obj.get(key);
+                    if (value.isString() != null) {
+                        stats.put(key, value.isString().stringValue());
+                    } else if (value.isNumber() != null) {
+                        int number = (int) value.isNumber().doubleValue();
+                        stats.put(key, Integer.toString(number));
+                    } else if (value.isBoolean() != null) {
+                        stats.put(key,
+                            Boolean.toString(value.isBoolean().booleanValue()));
+                    }
+                }
+                fireEvent(new StatsChangeEvent(stats));
+            }
+        }
+        this.rpc.getStats(new StatsCallback(this));
     }
 
-    @Override
-    public HandlerRegistration addStatusChangeHandler(
-            StatusChangeHandler handler) {
-        return addHandler(handler, StatusChangeEvent.getType());
-    }
+
 }
 
 //vim: ts=4 sw=4 expandtab

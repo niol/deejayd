@@ -26,7 +26,7 @@ import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.widgets.IsLayoutWidget;
+import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LoadingWidget;
 
@@ -100,7 +100,7 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
     }
 
     private class WbAddCallback extends GenericRpcCallback {
-        public WbAddCallback(IsLayoutWidget ui) {super(ui);}
+        public WbAddCallback(DeejaydUIWidget ui) {super(ui);}
         public void onCorrectAnswer(JSONValue data) {
             nameInput.setValue("");
             urlInput.setValue("");

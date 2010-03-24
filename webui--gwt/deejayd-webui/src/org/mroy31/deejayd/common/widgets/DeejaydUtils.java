@@ -23,6 +23,8 @@ package org.mroy31.deejayd.common.widgets;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.mroy31.deejayd.common.i18n.CommonI18nMessages;
+
 public class DeejaydUtils {
 	public static String formatTime(int time) {
 		if (time > 3600) {
@@ -40,7 +42,7 @@ public class DeejaydUtils {
 		}
 	}
 
-	public static String formatTimeLong(int time, HasI18nMessages messages) {
+	public static String formatTimeLong(int time, CommonI18nMessages messages) {
 		int[] dividors = new int[5];
 		dividors[0] = 60;
 		dividors[1] = 60;

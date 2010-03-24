@@ -1,5 +1,4 @@
-/*
- * Deejayd, a media player daemon
+/* Deejayd, a media player daemon
  * Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
  *                         Alexandre Rossi <alexandre.rossi@gmail.com>
  *
@@ -18,23 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.rpc;
+package org.mroy31.deejayd.common.i18n;
 
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import com.google.gwt.i18n.client.Messages;
 
-import com.google.gwt.json.client.JSONValue;
+public interface CommonI18nMessages extends Messages {
 
-public class DefaultRpcCallback extends GenericRpcCallback {
+    @DefaultMessage("{0,number} seconds")
+    @PluralText({"one", "1 second"})
+    String seconds(@PluralCount int seconds);
 
-    public DefaultRpcCallback(DeejaydUIWidget ui) {
-        super(ui);
-    }
+    @DefaultMessage("{0,number} minutes")
+    @PluralText({"one", "1 minute"})
+    String minutes(@PluralCount int minutes);
 
-    @Override
-    public void onCorrectAnswer(JSONValue data) {
-        ui.update();
-    }
+    @DefaultMessage("{0,number} hours")
+    @PluralText({"one", "1 hour"})
+    String hours(@PluralCount int hours);
 
+    @DefaultMessage("{0,number} days")
+    @PluralText({"one", "1 day"})
+    String days(@PluralCount int days);
+
+    @DefaultMessage("{0,number} years")
+    @PluralText({"one", "1 year"})
+    String years(@PluralCount int years);
 }
 
 //vim: ts=4 sw=4 expandtab

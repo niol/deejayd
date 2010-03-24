@@ -33,7 +33,7 @@ public abstract class PlayerWidget extends Composite {
 	 * RPC callbacks
 	 */
 	protected class CoverCallback extends GenericRpcCallback {
-		public CoverCallback(IsLayoutWidget ui) {super(ui);}
+		public CoverCallback(DeejaydUIWidget ui) {super(ui);}
 		public void onCorrectAnswer(JSONValue data) {
 			JSONString cover = data.isObject().get("cover").isString();
 			updateCover(cover);
@@ -41,7 +41,7 @@ public abstract class PlayerWidget extends Composite {
 	}
 
 	protected class CurrentCallback extends GenericRpcCallback {
-		public CurrentCallback(IsLayoutWidget ui) {super(ui);}
+		public CurrentCallback(DeejaydUIWidget ui) {super(ui);}
 		public void onCorrectAnswer(JSONValue data) {
 			JSONObject media = data.isObject().get("medias")
 								   .isArray().get(0).isObject();
