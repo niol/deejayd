@@ -10,6 +10,7 @@ deejayd (0.9.0-3) UNRELEASED; urgency=low
   * Update Vcs-* fields in debian/control to reflect Hg switch.
   * Depend on libxine1-x instead of libxine1 for deejayd-xine (dh_xine is *NOT*
     used because of the big useless builddep on libxine-dev) (Closes: #575118).
+  * Add debian source format.
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 31 Jan 2010 19:24:45 +0100
 
