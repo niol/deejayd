@@ -7,7 +7,9 @@ deejayd (0.9.0-3) UNRELEASED; urgency=low
     sequence.
   * Update to policy 3.8.4 (nothing to do).
   * Add suggests of python-zope.interface for plugins.
-  * Update Vcs-* fields in debian/control te reflect Hg switch.
+  * Update Vcs-* fields in debian/control to reflect Hg switch.
+  * Depend on libxine1-x instead of libxine1 for deejayd-xine (dh_xine is *NOT*
+    used because of the big useless builddep on libxine-dev) (Closes: #575118).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sun, 31 Jan 2010 19:24:45 +0100
 
