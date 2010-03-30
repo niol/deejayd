@@ -125,12 +125,12 @@ class Event(object):
         if msg.type != XinePlayer.XINE_MSG_NO_ERROR:
             if msg.explanation:
                 message_txt = ctypes.string_at(ctypes.addressof(msg)\
-                              + msg.explanation)
+                                               + msg.explanation)
                 message_parameters = []
                 param_address = ctypes.addressof(msg) + msg.parameters
                 for param_index in range(0, msg.num_parameters):
                     message_par = ctypes.string_at(param_address)
-                    param_address += len(message_par) + 2 # Skip '\0'
+                    param_address += len(message_par) + 1 # Skip '\0'
                     message_parameters.append(message_par)
                 message_params = ' '.join(message_parameters)
                 message = "%s %s" % (message_txt, message_params)

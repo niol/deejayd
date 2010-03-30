@@ -155,7 +155,7 @@ class xine_ui_message_data_t(ctypes.Structure):
         ('type', ctypes.c_int),
         ('explanation', ctypes.c_int),
         ('num_parameters', ctypes.c_int),
-        ('parameters', ctypes.c_void_p),
+        ('parameters', ctypes.c_int),
         ('messages', ctypes.c_char),
     )
 
