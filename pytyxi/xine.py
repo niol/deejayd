@@ -21,6 +21,7 @@
 
 
 import ctypes, os
+import locale
 import _xinelib as xinelib
 import x11
 
@@ -138,7 +139,7 @@ class Event(object):
                 raise XineError(msg.type)
         else:
             message = None
-        return message
+        return message.decode(locale.getpreferredencoding())
 
 
 class EventQueue(object):
