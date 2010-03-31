@@ -1,7 +1,7 @@
 # Copyright 1999-2008 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-NEED_PYTHON=2.4
+NEED_PYTHON=2.5
 inherit distutils
 
 DESCRIPTION="deejayd is a media player daemon based on twisted."
