@@ -31,6 +31,6 @@
   <source path='client'/>
   <source path='resources'/>
   <source path='i18n'/>
-  <source path='widgets'/>
+  <source path='widgets'/><source path="medialist"></source>
 
 </module>

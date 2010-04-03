@@ -22,26 +22,22 @@ package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
-import org.mroy31.deejayd.webui.widgets.MediaList;
+import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.webui.medialist.SongRenderer;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class PlaylistMode extends WebuiMode {
+public class PlaylistMode extends WebuiMode implements ClickHandler {
 
     private Label description;
     private Button plsShuffle;
@@ -110,149 +106,10 @@ public class PlaylistMode extends WebuiMode {
     }
     private SaveDialog saveDg;
 
-    private class PlaylistRenderer
-            implements MediaList.ModeRenderer, ClickHandler {
-
-        @Override
-        public void buildHeader(FlexTable header) {
-            header.getColumnFormatter().setWidth(0, "28px"); // checkbox
-            header.getColumnFormatter().setWidth(1, "18px"); // play button
-            header.getColumnFormatter().setWidth(2, "40px"); // tracknumber
-            header.getFlexCellFormatter().setColSpan(0, 3, 2); // title
-            header.getColumnFormatter().setWidth(8, "50px"); // length
-            header.getColumnFormatter().setWidth(9, "65px"); // rating
-
-            // add a checkbox
-            final CheckBox allCk = new CheckBox();
-            allCk.addClickHandler(new ClickHandler() {
-                public void onClick(ClickEvent event) {
-                    boolean value = allCk.getValue();
-                    mediaList.checkRow(value);
-                }
-            });
-            header.setWidget(0, 0, allCk);
-            // set other columns
-            header.setText(0, 2, "#");
-            header.setText(0, 3, ui.i18nConstants.title());
-            header.setText(0, 4, ui.i18nConstants.artist());
-            header.setText(0, 5, ui.i18nConstants.album());
-            header.setText(0, 6, ui.i18nConstants.genre());
-            header.setText(0, 7, ui.i18nConstants.length());
-            header.setText(0, 8, ui.i18nConstants.rating());
-        }
-
-        @Override
-        public void buildRow(int idx, FlexTable list, JSONObject media) {
-            int id = (int) media.get("id").isNumber().doubleValue();
-
-            // add a checkbox
-            CheckBox checkbox = new CheckBox();
-            checkbox.setFormValue(Integer.toString(id));
-            list.setWidget(idx, 0, checkbox);
-
-            Image playButton = new Image(resources.medialistPlay());
-            playButton.addClickHandler(new PlayRowHandler(id));
-            list.setWidget(idx, 1, playButton);
-
-            list.setText(idx, 2, media.get("tracknumber")
-                                           .isString().stringValue());
-            list.getFlexCellFormatter().setColSpan(idx, 3, 2); // title
-            list.setText(idx, 3, media.get("title").isString().stringValue());
-            list.setText(idx, 4, media.get("artist").isString().stringValue());
-            list.setText(idx, 5, media.get("album").isString().stringValue());
-            list.setText(idx, 6, media.get("genre").isString().stringValue());
-
-            // set medialength
-            int length = Integer.parseInt(media.get("length").
-                    isString().stringValue());
-            list.setText(idx, 7, DeejaydUtils.formatTime(length));
-
-            // set rating
-            list.setWidget(idx, 8, makeRatingWidget(media));
-        }
-
-        @Override
-        public void buildToolbar(HorizontalPanel toolbar) {
-            if (plsShuffle == null) {
-                plsShuffle = new Button(ui.i18nConstants.shuffle());
-                plsShuffle.setStyleName(
-                        ui.resources.webuiCss().modeToolbarButton() + " " +
-                        ui.resources.webuiCss().shuffleButton());
-                plsShuffle.addClickHandler(this);
-            }
-            toolbar.add(plsShuffle);
-
-            if (plsClear == null) {
-                plsClear = new Button(ui.i18nConstants.clear());
-                plsClear.setStyleName(
-                        ui.resources.webuiCss().modeToolbarButton() + " " +
-                        ui.resources.webuiCss().clearButton());
-                plsClear.addClickHandler(this);
-            }
-            toolbar.add(plsClear);
-
-            if (plsRemove == null) {
-                plsRemove = new Button(ui.i18nConstants.remove());
-                plsRemove.setStyleName(
-                        ui.resources.webuiCss().modeToolbarButton() + " " +
-                        ui.resources.webuiCss().removeButton());
-                plsRemove.addClickHandler(this);
-            }
-            toolbar.add(plsRemove);
-
-            if (plsSave == null) {
-                plsSave = new Button(ui.i18nConstants.save());
-                plsSave.setStyleName(
-                        ui.resources.webuiCss().modeToolbarButton() + " " +
-                        ui.resources.webuiCss().saveButton());
-                plsSave.addClickHandler(this);
-            }
-            toolbar.add(plsSave);
-
-            if (goToCurrent == null) {
-                goToCurrent = new Button(ui.i18nConstants.goCurrentSong());
-                goToCurrent.setStyleName(
-                        ui.resources.webuiCss().modeToolbarButton() + " " +
-                        ui.resources.webuiCss().gotoButton());
-                goToCurrent.addClickHandler(this);
-            }
-            toolbar.add(goToCurrent);
-
-        }
-
-        @Override
-        public void formatMediaList(FlexTable mediaList) {
-            mediaList.getColumnFormatter().setWidth(0, "28px"); // checkbox
-            mediaList.getColumnFormatter().setWidth(1, "18px"); // play button
-            mediaList.getColumnFormatter().setWidth(2, "40px"); // tracknumber
-            mediaList.getColumnFormatter().setWidth(8, "50px"); // length
-            mediaList.getColumnFormatter().setWidth(9, "65px"); // rating
-        }
-
-        public void onClick(ClickEvent event) {
-            Widget sender = (Widget) event.getSource();
-            if (sender == plsShuffle) {
-                ui.rpc.plsModeShuffle(new DefaultRpcCallback(ui));
-            } else if (sender == plsClear) {
-                ui.rpc.plsModeClear(new DefaultRpcCallback(ui));
-            } else if (sender == plsRemove) {
-                ui.rpc.plsModeRemove(mediaList.getSelection(),
-                        new DefaultRpcCallback(ui));
-            } else if (sender == goToCurrent) {
-                if (currentPlayingPos != -1) {
-                    mediaList.goTo(currentPlayingPos);
-                }
-            } else if (sender == plsSave) {
-                saveDg.center();
-            }
-        }
-    }
-    private PlaylistRenderer renderer = new PlaylistRenderer();
-
     public PlaylistMode(WebuiLayout ui) {
         super("playlist", ui, true, true);
         saveDg = new SaveDialog(ui);
-        mediaList.setOption(true, renderer);
+        mediaList.setOption(true, new SongRenderer(ui, "playlist"));
     }
 
     void buildTopToolbar(HorizontalPanel toolbar) {
@@ -266,6 +123,53 @@ public class PlaylistMode extends WebuiMode {
         toolbar.add(description);
     }
 
+    public void buildBottomToolbar(HorizontalPanel toolbar) {
+        if (plsShuffle == null) {
+            plsShuffle = new Button(ui.i18nConstants.shuffle());
+            plsShuffle.setStyleName(
+                    ui.resources.webuiCss().modeToolbarButton() + " " +
+                    ui.resources.webuiCss().shuffleButton());
+            plsShuffle.addClickHandler(this);
+        }
+        toolbar.add(plsShuffle);
+
+        if (plsClear == null) {
+            plsClear = new Button(ui.i18nConstants.clear());
+            plsClear.setStyleName(
+                    ui.resources.webuiCss().modeToolbarButton() + " " +
+                    ui.resources.webuiCss().clearButton());
+            plsClear.addClickHandler(this);
+        }
+        toolbar.add(plsClear);
+
+        if (plsRemove == null) {
+            plsRemove = new Button(ui.i18nConstants.remove());
+            plsRemove.setStyleName(
+                    ui.resources.webuiCss().modeToolbarButton() + " " +
+                    ui.resources.webuiCss().removeButton());
+            plsRemove.addClickHandler(this);
+        }
+        toolbar.add(plsRemove);
+
+        if (plsSave == null) {
+            plsSave = new Button(ui.i18nConstants.save());
+            plsSave.setStyleName(
+                    ui.resources.webuiCss().modeToolbarButton() + " " +
+                    ui.resources.webuiCss().saveButton());
+            plsSave.addClickHandler(this);
+        }
+        toolbar.add(plsSave);
+
+        if (goToCurrent == null) {
+            goToCurrent = new Button(ui.i18nConstants.goCurrentSong());
+            goToCurrent.setStyleName(
+                    ui.resources.webuiCss().modeToolbarButton() + " " +
+                    ui.resources.webuiCss().gotoButton());
+            goToCurrent.addClickHandler(this);
+        }
+        toolbar.add(goToCurrent);
+    }
+
     void setDescription(int length, int timelength) {
         if (description != null) {
             if (length == 0) {
@@ -276,6 +180,24 @@ public class PlaylistMode extends WebuiMode {
                 description.setText(ui.i18nMessages.songsDesc(length)+" ("+
                         timeDesc+")");
             }
+        }
+    }
+
+    public void onClick(ClickEvent event) {
+        Widget sender = (Widget) event.getSource();
+        if (sender == plsShuffle) {
+            ui.rpc.plsModeShuffle(new DefaultRpcCallback(ui));
+        } else if (sender == plsClear) {
+            ui.rpc.plsModeClear(new DefaultRpcCallback(ui));
+        } else if (sender == plsRemove) {
+            ui.rpc.plsModeRemove(mediaList.getSelection(),
+                    new DefaultRpcCallback(ui));
+        } else if (sender == goToCurrent) {
+            if (currentPlayingPos != -1) {
+                mediaList.goTo(currentPlayingPos);
+            }
+        } else if (sender == plsSave) {
+            saveDg.center();
         }
     }
 }

@@ -30,6 +30,8 @@ import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 import org.mroy31.deejayd.webui.i18n.WebuiMessages;
+import org.mroy31.deejayd.webui.medialist.MediaList;
+import org.mroy31.deejayd.webui.medialist.SongRenderer;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.widgets.WebuiSplitLayoutPanel;
@@ -41,7 +43,6 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -73,7 +74,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     WebuiSplitLayoutPanel modePanel;
     WebuiModeManager modeManager;
     WebuiPanelManager panelManager;
-    QueueMediaList queueList;
+    MediaList queueList;
 
     @UiField PlayerUI playerUI;
     @UiField Button refreshButton;
@@ -129,7 +130,8 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         queueClear.addClickHandler(this);
         queueRemove.setText(i18nConstants.remove());
         queueRemove.addClickHandler(this);
-        queueList = new QueueMediaList(this);
+        queueList = new MediaList(this, "queue");
+        queueList.setOption(true, new SongRenderer(ui, "queue"));
 
         // Init Mode Panel
         panelManager = new WebuiPanelManager(this);
@@ -241,17 +243,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
                 // update queue medialist
                 int id = Integer.parseInt(status.get("queue"));
                 if (queueId != id) {
-                    class GetCallback extends GenericRpcCallback {
-                        public GetCallback(DeejaydUIWidget ui) { super(ui); }
-
-                        @Override
-                        public void onCorrectAnswer(JSONValue data) {
-                            JSONArray list = data.isObject()
-                                    .get("medias").isArray();
-                            queueList.update(list);
-                        }
-                    }
-                    rpc.send("queue.get", new JSONArray(), new GetCallback(ui));
+                    queueList.update();
                     // update desc
                     int lg = Integer.parseInt(status.get("queuelength"));
                     int tmlg = Integer.parseInt(status.get("queuetimelength"));

@@ -23,21 +23,14 @@ package org.mroy31.deejayd.webui.client;
 import java.util.HashMap;
 
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.webui.medialist.MediaList;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
-import org.mroy31.deejayd.webui.widgets.MediaList;
-import org.mroy31.deejayd.webui.widgets.RatingWidget;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -61,61 +54,13 @@ public abstract class WebuiMode extends Composite {
 
     private static WebuiModeUiBinder uiBinder = GWT
             .create(WebuiModeUiBinder.class);
-    interface WebuiModeUiBinder extends
-        UiBinder<Widget, WebuiMode> {
-    }
+    interface WebuiModeUiBinder extends UiBinder<Widget, WebuiMode> {}
 
     @UiField MediaList mediaList;
-    @UiField HorizontalPanel modeTopToolbar;
+    @UiField HorizontalPanel bottomToolbar;
+    @UiField HorizontalPanel topToolbar;
     @UiField(provided = true) final WebuiResources resources;
 
-    /**
-     * Handler to update rating of a media
-     *
-     */
-    class RatingChangeHandler implements ValueChangeHandler<Integer> {
-        private int mediaId;
-        public RatingChangeHandler(int mediaId) {
-            this.mediaId = mediaId;
-        }
-
-        public void onValueChange(ValueChangeEvent<Integer> event) {
-            int[] ids = new int[1];
-            ids[0] = mediaId;
-            ui.rpc.setRating(ids, event.getValue(),
-                    new DefaultRpcCallback(ui));
-        }
-    }
-
-    /**
-     * Rpc callback used for source.get command
-     *
-     */
-    private class MediaListCallback extends GenericRpcCallback {
-        public MediaListCallback(WebuiLayout ui) {
-            super(ui);
-        }
-        public void onCorrectAnswer(JSONValue data) {
-            JSONArray list = data.isObject().get("medias").isArray();
-            mediaList.update(list);
-        }
-    }
-
-    /**
-     * Click Handler to play a specific media
-     */
-    protected class PlayRowHandler implements ClickHandler {
-        private int id;
-
-        public PlayRowHandler(int id) {
-            this.id = id;
-        }
-
-        @Override
-        public void onClick(ClickEvent event) {
-            ui.rpc.goTo(id, new DefaultRpcCallback(ui));
-        }
-    }
 
     public WebuiMode(String source, WebuiLayout webui,
             boolean hasPlayorder, boolean hasRepeat) {
@@ -127,12 +72,14 @@ public abstract class WebuiMode extends Composite {
 
         initWidget(uiBinder.createAndBindUi(this));
 
-        modeTopToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-        buildTopToolbar(modeTopToolbar);
+        topToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+        bottomToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+        buildTopToolbar(topToolbar);
+        buildBottomToolbar(bottomToolbar);
     }
 
     @UiFactory MediaList makeMediaList() {
-        return new MediaList(ui);
+        return new MediaList(ui, getSourceName());
     }
 
     public String getSourceName() {
@@ -142,15 +89,13 @@ public abstract class WebuiMode extends Composite {
     public void onStatusChange(HashMap<String, String> status) {
         int id = Integer.parseInt(status.get(getSourceName()));
         if (mediaId != id) {
-            mediaList.setLoading();
+            mediaList.update();
             int length = Integer.parseInt(status.get(getSourceName()+"length"));
             int timelength = -1;
             if (status.get(getSourceName()+"timelength") != null) {
                 timelength = Integer.parseInt(
                         status.get(getSourceName()+"timelength"));
             }
-            ui.rpc.send(getSourceName()+".get",
-                    new JSONArray(), new MediaListCallback(ui));
             setDescription(length, timelength);
             mediaId = id;
             currentPlayingPos = -1;
@@ -179,23 +124,12 @@ public abstract class WebuiMode extends Composite {
         }
     }
 
-    protected RatingWidget makeRatingWidget(JSONObject media) {
-        int mediaId = (int) media.get("media_id").isNumber().doubleValue();
-        int rating = Integer.parseInt(media.get("rating").
-                isString().stringValue());
-        RatingWidget rWidget = new RatingWidget(rating, resources);
-        rWidget.addValueChangeHandler(new RatingChangeHandler(mediaId));
-
-        return rWidget;
-    }
-
     protected ListBox makePlayorderWidget() {
         podrList = new ListBox();
         podrList.addItem(ui.i18nConstants.inOrder(), "inorder");
         podrList.addItem(ui.i18nConstants.oneMedia(), "onemedia");
         podrList.addItem(ui.i18nConstants.random(), "random");
-        podrList.addItem(ui.i18nConstants.weightedRandom(),
-                "random-weighted");
+        podrList.addItem(ui.i18nConstants.weightedRandom(), "random-weighted");
         podrList.addChangeHandler(new ChangeHandler() {
             public void onChange(ChangeEvent event) {
                 ListBox lb = (ListBox) event.getSource();
@@ -251,6 +185,7 @@ public abstract class WebuiMode extends Composite {
      * Abstract methods
      */
     abstract void buildTopToolbar(HorizontalPanel toolbar);
+    abstract void buildBottomToolbar(HorizontalPanel toolbar);
     abstract void setDescription(int length, int timelength);
 }
 

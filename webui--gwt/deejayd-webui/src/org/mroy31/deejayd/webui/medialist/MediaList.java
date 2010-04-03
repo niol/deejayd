@@ -18,16 +18,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.widgets;
+package org.mroy31.deejayd.webui.medialist;
 
 import java.util.ArrayList;
 
+import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.DeferredCommand;
@@ -35,7 +36,6 @@ import com.google.gwt.user.client.IncrementalCommand;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -47,13 +47,28 @@ public class MediaList extends Composite {
     interface MediaListUiBinder extends UiBinder<Widget, MediaList> {}
 
     private WebuiLayout ui;
+    private String source;
     private boolean hasSelection = false;
+    private MediaListRenderer renderer;
 
     @UiField FlexTable header;
     @UiField FlexTable mediaList;
     @UiField ScrollPanel mediaListPanel;
-    @UiField HorizontalPanel toolbar;
     @UiField(provided = true) final WebuiResources resources;
+
+    /**
+     * Rpc callback used for source.get command
+     *
+     */
+    private class MediaListCallback extends GenericRpcCallback {
+        public MediaListCallback(WebuiLayout ui) {
+            super(ui);
+        }
+        public void onCorrectAnswer(JSONValue data) {
+            JSONArray list = data.isObject().get("medias").isArray();
+            setMedia(list);
+        }
+    }
 
     /**
      * Incremental command to load media list
@@ -76,7 +91,7 @@ public class MediaList extends Composite {
                         mediaList.getRowFormatter().setStyleName(idx,
                                 resources.webuiCss().oddRow());
                     }
-                    renderer.buildRow(lastGet, mediaList,
+                    renderer.formatRow(lastGet, mediaList,
                             list.get(lastGet).isObject());
                     lastGet++;
                 } else {
@@ -87,38 +102,34 @@ public class MediaList extends Composite {
         }
     }
 
-    public interface ModeRenderer {
-        public void buildToolbar(HorizontalPanel toolbar);
-        public void buildHeader(FlexTable header);
-        public void formatMediaList(FlexTable mediaList);
-        public void buildRow(int idx, FlexTable list, JSONObject media);
-    }
-    private ModeRenderer renderer;
-
-    public MediaList(WebuiLayout webui) {
+    /**
+     * MediaList constructor
+     * @param webui
+     */
+    public MediaList(WebuiLayout webui, String source) {
+        this.source = source;
         this.ui= webui;
         this.resources = webui.resources;
 
         initWidget(uiBinder.createAndBindUi(this));
-        toolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
     }
 
-    public void setOption(boolean hasSelection, ModeRenderer r) {
+    public void setOption(boolean hasSelection, MediaListRenderer r) {
         this.renderer = r;
         this.hasSelection = hasSelection;
 
-        renderer.buildToolbar(toolbar);
-        renderer.buildHeader(header);
+        renderer.formatHeader(header, this);
         renderer.formatMediaList(mediaList);
     }
 
-    public void setLoading() {
+    public void update() {
         mediaList.removeAllRows();
         mediaList.setWidget(0, 0, new Image(resources.loading()));
         mediaList.setText(0, 2, ui.i18nConstants.loading());
+        ui.rpc.send(source+".get", new JSONArray(), new MediaListCallback(ui));
     }
 
-    public void update(JSONArray list) {
+    public void setMedia(JSONArray list) {
         mediaList.removeAllRows();
         DeferredCommand.addCommand(new MedialistUpdate(list));
     }
