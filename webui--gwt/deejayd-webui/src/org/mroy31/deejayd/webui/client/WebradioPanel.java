@@ -36,6 +36,7 @@ import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.http.client.Request;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
@@ -83,6 +84,22 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
     private String categorie = null;
     private HashMap<String, Boolean> sourceList = new HashMap<String, Boolean>();
 
+    private class SourceRpcCallback extends GenericRpcCallback {
+        public SourceRpcCallback(DeejaydUIWidget ui) { super(ui); }
+
+        @Override
+        protected void onJSONRPCError(Request request, String code, String msg){
+            super.onJSONRPCError(request, code, msg);
+            // set source to default value
+            updatePanel();
+        }
+
+        @Override
+        public void onCorrectAnswer(JSONValue data) {
+            ui.update();
+        }
+    }
+
     private class OnSourceChange implements ChangeHandler {
         private WebuiLayout ui;
 
@@ -94,9 +111,8 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         public void onChange(ChangeEvent event) {
             String source = sourceListBox.getValue(
                     sourceListBox.getSelectedIndex());
-            ui.rpc.wbModeSetSource(source, new DefaultRpcCallback(ui));
+            ui.rpc.wbModeSetSource(source, new SourceRpcCallback(ui));
         }
-
     }
 
     private class WbAddCallback extends GenericRpcCallback {
@@ -133,7 +149,8 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
 
         @Override
         public void onClick(ClickEvent event) {
-            this.ui.rpc.wbModeSetSourceCategorie(value, new DefaultRpcCallback(ui));
+            this.ui.rpc.wbModeSetSourceCategorie(value,
+                    new DefaultRpcCallback(ui));
         }
 
     }

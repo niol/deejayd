@@ -31,63 +31,63 @@ import com.google.gwt.json.client.JSONValue;
 
 
 public abstract class GenericRpcCallback implements RpcCallback {
-	public DeejaydUIWidget ui;
+    public DeejaydUIWidget ui;
 
-	public GenericRpcCallback(DeejaydUIWidget ui) {
-		this.ui = ui;
-	}
+    public GenericRpcCallback(DeejaydUIWidget ui) {
+        this.ui = ui;
+    }
 
-	public abstract void onCorrectAnswer(JSONValue data);
-	public void setError(String error) {
-		ui.setError(error);
-	}
+    public abstract void onCorrectAnswer(JSONValue data);
+    public void setError(String error) {
+        ui.setError(error);
+    }
 
-	public void onResponseReceived(Request request, Response response) {
-		if (200 == response.getStatusCode()) {
-			// parse JSON answer
-			try {
-				JSONObject answer = JSONParser.parse(response.getText())
-			      .isObject();
+    public void onResponseReceived(Request request, Response response) {
+        if (200 == response.getStatusCode()) {
+            // parse JSON answer
+            try {
+                JSONObject answer = JSONParser.parse(response.getText())
+                  .isObject();
 
-				if (answer != null) {
-					if (answer.get("error").isNull() != null) {
-						// correct answer, do specific actions
-						JSONValue data = answer.get("result");
-						this.onCorrectAnswer(data.isObject().get("answer"));
-					}
-					else {
-						JSONObject error = answer.get("error").isObject();
-						String c = error.get("code").toString();
-						String msg = error.get("message").toString();
-						this.onJSONRPCError(request, c, msg);
-					}
-				}
+                if (answer != null) {
+                    if (answer.get("error").isNull() != null) {
+                        // correct answer, do specific actions
+                        JSONValue data = answer.get("result");
+                        this.onCorrectAnswer(data.isObject().get("answer"));
+                    }
+                    else {
+                        JSONObject error = answer.get("error").isObject();
+                        String c = error.get("code").toString();
+                        String msg = error.get("message").toString();
+                        this.onJSONRPCError(request, c, msg);
+                    }
+                }
 
-			}
-			catch (JSONException ex) {
-				String err = "Unable to parse Server Answer: "+ ex.getMessage();
-				this.setError(err);
-			}
-		} else {
-			this.setError("Server return an error code");
-		}
-	}
+            }
+            catch (JSONException ex) {
+                String err = "Unable to parse Server Answer: "+ ex.getMessage();
+                this.setError(err);
+            }
+        } else {
+            this.setError("Server return an error code");
+        }
+    }
 
-	public void onError(Request request, Throwable exception) {
-		this.setError("Server error response");
-	}
+    public void onError(Request request, Throwable exception) {
+        this.setError("Server error response");
+    }
 
-	/**
-	   * Called when a {@link org.mroy31.deejayd.rpc.Rpc} return an
-	   * error.
-	   */
-	private void onJSONRPCError(Request request, String code, String msg) {
-		this.setError("Server return an JSON error "+code+" - "+msg);
-	}
+    /**
+       * Called when a {@link org.mroy31.deejayd.rpc.Rpc} return an
+       * error.
+       */
+    protected void onJSONRPCError(Request request, String code, String msg) {
+        this.setError("Server return an JSON error "+code+" - "+msg);
+    }
 
-	public void onRequestError() {
-		this.setError("Request Error");
-	}
+    public void onRequestError() {
+        this.setError("Request Error");
+    }
 }
 
 //vim: ts=4 sw=4 expandtab
