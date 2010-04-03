@@ -9,7 +9,7 @@
   <g:DockLayoutPanel>
      <g:north size="24">
         <g:FlowPanel width="100%"
-                styleName="{resources.webuiCss.modeTopToolbar}">
+                styleName="{resources.webuiCss.blueToolbar}">
           <g:HorizontalPanel height="100%" spacing="2" ui:field="panelHeader">
               <g:Label
                 addStyleNames="{resources.webuiCss.bold}"

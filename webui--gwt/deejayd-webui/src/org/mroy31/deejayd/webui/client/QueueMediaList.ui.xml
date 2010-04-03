@@ -1,0 +1,25 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+  xmlns:g="urn:import:com.google.gwt.user.client.ui">
+  <ui:with field="resources"
+        type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
+
+  <g:DockLayoutPanel>
+       <g:north size="22">
+           <g:FlexTable cellSpacing='0' cellPadding='0'
+               addStyleNames="{resources.webuiCss.fixedTable}
+                              {resources.webuiCss.toolbar}"
+               ui:field="header">
+           </g:FlexTable>
+       </g:north>
+
+       <g:center>
+           <g:ScrollPanel>
+               <g:FlexTable cellSpacing='0' cellPadding='0'
+                   styleName="{resources.webuiCss.fixedTable}"
+                   ui:field="mediaList">
+               </g:FlexTable>
+           </g:ScrollPanel>
+       </g:center>
+  </g:DockLayoutPanel>
+</ui:UiBinder>

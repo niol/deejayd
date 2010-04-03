@@ -24,18 +24,24 @@ import java.util.HashMap;
 
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
+import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 import org.mroy31.deejayd.webui.i18n.WebuiMessages;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
+import org.mroy31.deejayd.webui.widgets.WebuiSplitLayoutPanel;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -43,38 +49,47 @@ import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 
 public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     private WebuiLayout ui;
     public LibraryManager audioLibrary;
+    private boolean queueOpen = false;
+    private int queueId = -1;
+
 
     public WebuiConstants i18nConstants = GWT.create(WebuiConstants.class);
     public WebuiMessages i18nMessages = GWT.create(WebuiMessages.class);
 
     private static LayoutUiBinder uiBinder = GWT.create(LayoutUiBinder.class);
+    interface LayoutUiBinder extends UiBinder<Widget, WebuiLayout> {}
 
-    interface LayoutUiBinder extends UiBinder<DockLayoutPanel, WebuiLayout> {}
+    WebuiSplitLayoutPanel modePanel;
+    WebuiModeManager modeManager;
+    WebuiPanelManager panelManager;
+    QueueMediaList queueList;
 
     @UiField PlayerUI playerUI;
-    @UiField WebuiModeManager modeManager;
-    @UiField WebuiPanelManager panelManager;
     @UiField Button refreshButton;
     @UiField ListBox modeList;
+    @UiField DockLayoutPanel mainPanel;
+    @UiField HorizontalPanel bottomBar;
+    @UiField Image loading;
+    @UiField HorizontalPanel queueBar;
+    @UiField Button queueButton;
+    @UiField Image queueState;
+    @UiField Label queueDesc;
+    @UiField HorizontalPanel queueToolbar;
+    @UiField CheckBox queueRandom;
+    @UiField Button queueRemove;
+    @UiField Button queueClear;
     @UiField(provided = true) public final WebuiResources resources;
-
-    /**
-     * Default rpc callback to update webui
-     *
-     */
-    public class DefaultCallback extends GenericRpcCallback {
-        public DefaultCallback(DeejaydUIWidget ui) {super(ui);}
-        public void onCorrectAnswer(JSONValue data) {
-            ui.update();
-        }
-    }
 
     public WebuiLayout(Deejayd_webui module) {
         ui = this;
@@ -90,28 +105,70 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
             @Override
             public void onChange(ChangeEvent event) {
                 String mode = modeList.getValue(modeList.getSelectedIndex());
-                rpc.setMode(mode, new DefaultCallback(ui));
+                rpc.setMode(mode, new DefaultRpcCallback(ui));
             }
         });
+
+        // Init queue
+        queueButton.setText(i18nConstants.queue());
+        queueButton.addClickHandler(this);
+        queueBar.setCellVerticalAlignment(queueDesc,
+                HorizontalPanel.ALIGN_MIDDLE);
+        queueToolbar.setCellVerticalAlignment(queueRandom,
+                HorizontalPanel.ALIGN_MIDDLE);
+        queueRandom.setText(i18nConstants.random());
+        queueRandom.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+            @Override
+            public void onValueChange(ValueChangeEvent<Boolean> event) {
+                String playorder = event.getValue() ? "random" : "inorder";
+                ui.rpc.setOption("queue", "playorder", playorder
+                        , new DefaultRpcCallback(ui));
+            }
+        });
+        queueClear.setText(i18nConstants.clear());
+        queueClear.addClickHandler(this);
+        queueRemove.setText(i18nConstants.remove());
+        queueRemove.addClickHandler(this);
+        queueList = new QueueMediaList(this);
+
+        // Init Mode Panel
+        panelManager = new WebuiPanelManager(this);
+        modeManager = new WebuiModeManager(this);
+
+        modePanel = new WebuiSplitLayoutPanel();
+        modePanel.addSouth(queueList, 0);
+        modePanel.addWest(panelManager, 350);
+        modePanel.add(modeManager);
+        mainPanel.add(modePanel);
+        modePanel.setSplitPosition(queueList, 0, false);
     }
 
     public void onClick(ClickEvent event) {
         Widget source = (Widget) event.getSource();
         if (source == refreshButton) {
             update();
+        } else if (source == queueButton) {
+            if (queueOpen) {
+                queueButton.removeStyleName(resources.webuiCss().expanded());
+                queueButton.addStyleName(resources.webuiCss().collapsed());
+                modePanel.setSplitPosition(queueList, 0, true);
+            } else {
+                queueButton.removeStyleName(resources.webuiCss().collapsed());
+                queueButton.addStyleName(resources.webuiCss().expanded());
+                modePanel.setSplitPosition(queueList, 100, true);
+            }
+            queueToolbar.setVisible(!queueOpen);
+            queueOpen = !queueOpen;
+        } else if (source == queueRemove) {
+            rpc.queueRemove(queueList.getSelection(),
+                    new DefaultRpcCallback(ui));
+        } else if (source == queueClear) {
+            rpc.queueClear(new DefaultRpcCallback(ui));
         }
     }
 
     @UiFactory PlayerUI makePlayerUI() {
         return new PlayerUI(this);
-    }
-
-    @UiFactory WebuiModeManager makeModeManager() {
-        return new WebuiModeManager(this);
-    }
-
-    @UiFactory WebuiPanelManager makePanelManager() {
-        return new WebuiPanelManager(this);
     }
 
     public void setMessage(String message) {
@@ -179,6 +236,51 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
                         modeList.setSelectedIndex(idx);
                         break;
                     }
+                }
+
+                // update queue medialist
+                int id = Integer.parseInt(status.get("queue"));
+                if (queueId != id) {
+                    class GetCallback extends GenericRpcCallback {
+                        public GetCallback(DeejaydUIWidget ui) { super(ui); }
+
+                        @Override
+                        public void onCorrectAnswer(JSONValue data) {
+                            JSONArray list = data.isObject()
+                                    .get("medias").isArray();
+                            queueList.update(list);
+                        }
+                    }
+                    rpc.send("queue.get", new JSONArray(), new GetCallback(ui));
+                    // update desc
+                    int lg = Integer.parseInt(status.get("queuelength"));
+                    int tmlg = Integer.parseInt(status.get("queuetimelength"));
+                    if (lg == 0) {
+                        queueDesc.setText(i18nMessages.songsDesc(lg));
+                    } else {
+                        String desc = DeejaydUtils.formatTimeLong(tmlg,
+                                i18nMessages);
+                        queueDesc.setText(i18nMessages.songsDesc(lg)+" ("+
+                        desc+")");
+                    }
+
+                    queueId = id;
+                }
+                // update queue state
+                queueRandom.setValue(
+                        status.get("queueplayorder").equals("random"), false);
+                if (!status.get("state").equals("stop")) {
+                    String current = status.get("current");
+                    String[] currentArray = current.split(":");
+                    if (currentArray[2].equals("queue")) {
+                        if (status.get("state").equals("play")) {
+                            queueState.setResource(resources.play());
+                        } else {
+                            queueState.setResource(resources.pause());
+                        }
+                    }
+                } else {
+                    queueState.setResource(resources.stop());
                 }
 
                 fireEvent(new StatusChangeEvent(status));

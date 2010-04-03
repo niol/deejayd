@@ -115,7 +115,7 @@ public class MediaList extends Composite {
     public void setLoading() {
         mediaList.removeAllRows();
         mediaList.setWidget(0, 0, new Image(resources.loading()));
-        mediaList.setText(0, 2, ui.i18nConstants.wbLoadingCategories());
+        mediaList.setText(0, 2, ui.i18nConstants.loading());
     }
 
     public void update(JSONArray list) {

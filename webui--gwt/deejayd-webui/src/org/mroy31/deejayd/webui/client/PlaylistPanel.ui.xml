@@ -133,8 +133,10 @@
        </g:center>
 
        <g:south size="24">
+         <g:FlowPanel width="100%">
             <webui:LibraryManager width="100%" ui:field="updateButton">
             </webui:LibraryManager>
-           </g:south>
+         </g:FlowPanel>
+       </g:south>
     </g:DockLayoutPanel>
 </ui:UiBinder>

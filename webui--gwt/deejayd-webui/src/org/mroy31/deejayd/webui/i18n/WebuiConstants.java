@@ -155,6 +155,9 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Loading ...")
     String loading();
+
+    @DefaultStringValue("Queue")
+    String queue();
 }
 
 // vim: ts=4 sw=4 expandtab

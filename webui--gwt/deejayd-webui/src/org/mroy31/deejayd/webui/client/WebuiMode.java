@@ -134,6 +134,7 @@ public abstract class WebuiMode extends Composite {
     @UiFactory MediaList makeMediaList() {
         return new MediaList(ui);
     }
+
     public String getSourceName() {
         return sourceName;
     }

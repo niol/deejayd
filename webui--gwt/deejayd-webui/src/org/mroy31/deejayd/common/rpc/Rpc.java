@@ -157,6 +157,14 @@ public class Rpc {
         send("player.goto", args, callback);
     }
 
+    public void goTo(int id, String source, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONNumber(id));
+        args.set(1, new JSONString("id"));
+        args.set(2, new JSONString(source));
+        send("player.goto", args, callback);
+    }
+
     public void getCover(int mediaId, RpcCallback callback) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(mediaId));
@@ -309,6 +317,18 @@ public class Rpc {
 
     public void queueClear(RpcCallback callback) {
         send("queue.clear", new JSONArray(), callback);
+    }
+
+    public void queueRemove(String[] ids, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        JSONArray jsonIds = new JSONArray();
+        int idx = 0;
+        for (String id : ids) {
+            jsonIds.set(idx, new JSONString(id));
+            idx ++;
+        }
+        args.set(0, jsonIds);
+        send("queue.remove", args, callback);
     }
 
     public void queueLoadPath(JSONArray sel, int pos, RpcCallback callback) {

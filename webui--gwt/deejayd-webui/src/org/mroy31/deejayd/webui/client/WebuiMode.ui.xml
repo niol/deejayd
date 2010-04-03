@@ -8,7 +8,7 @@
   <g:DockLayoutPanel>
        <g:north size="24">
            <g:HorizontalPanel
-                styleName="{resources.webuiCss.modeTopToolbar}"
+                styleName="{resources.webuiCss.blueToolbar}"
                 ui:field="modeTopToolbar" width="100%" height="24px">
            </g:HorizontalPanel>
        </g:north>

@@ -33,7 +33,15 @@ public interface WebuiResources extends ClientBundle {
         String modeList();
         String bold();
         String italic();
+        String fixedTable();
         String currentItem();
+        String collapsed();
+        String expanded();
+        String blueToolbar();
+        String blueToolbarBg();
+        String toolbar();
+        String oddRow();
+        String iconAndTextButton();
 
         /* player buttons */
         String playerButton();
@@ -42,6 +50,7 @@ public interface WebuiResources extends ClientBundle {
         String stopButton();
         String nextButton();
         String previousButton();
+        String playerButtonsBlock();
 
         /* playing title theme */
         String playingPanel();
@@ -58,11 +67,12 @@ public interface WebuiResources extends ClientBundle {
         String saveButton();
         String searchButton();
 
-        String toolbar();
-        String modeTopToolbar();
-        String oddRow();
-        String playerButtonsBlock();
+        // Queue
+        String queueButton();
+        String queueDesc();
+        String queueToolbarButton();
 
+        // Webradio
         String wbCategorieItem();
     }
 
@@ -137,6 +147,13 @@ public interface WebuiResources extends ClientBundle {
     ImageResource sliderDisabled();
 
     ImageResource sliderSliding();
+
+    ImageResource expanded();
+
+    ImageResource collapsed();
+
+    @ImageOptions(repeatStyle=RepeatStyle.Horizontal)
+    ImageResource blueToolbarBg();
 }
 
 //vim: ts=4 sw=4 expandtab

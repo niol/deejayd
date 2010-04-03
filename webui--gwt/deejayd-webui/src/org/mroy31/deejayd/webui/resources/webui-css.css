@@ -21,14 +21,26 @@
 /*
  * General
  */
-.modeTopToolbar { background-color: #D0E4F6; }
+.blueToolbar { background-color: #D0E4F6; }
+@sprite .blueToolbarBg{ gwt-image: "blueToolbarBg";}
 @sprite .toolbar {gwt-image: "toolbarBg";}
+@sprite .collapsed {gwt-image: "collapsed"};
+@sprite .expanded {gwt-image: "expanded";}
 .oddRow {background-color: #E8EEF7;}
 .refreshButton {position: absolute; top: 25px; right: 0px;}
 .modeList {position: absolute; top: 0px; right: 0px; height: 24px;}
 .bold {font-weight: bold;}
 .italic{font-style: italic;}
 .currentItem { font-weight: bold; }
+.fixedTable { table-layout: fixed; width: 100%; }
+.iconAndTextButton {
+  padding: 2px;
+  margin-left: 2px;
+  height: 22px !important;
+  width: auto !important;
+  padding-left: 20px;
+  background-position: 2px 2px !important;
+}
 
 /*
  * Players button
@@ -68,7 +80,6 @@
 .modeToolbarButton {
   padding: 2px;
   margin-left: 2px;
-  border: 0px solid #ddd;
   height: 22px !important;
   width: auto !important;
   padding-left: 20px;
@@ -93,5 +104,18 @@
   padding: 2px 2px 2px 15px;
   cursor: pointer;
 }
+
+/*
+ * Queue
+ */
+.queueButton {
+  border-right: 2px solid #92C1F0;
+  border-bottom: 2px solid #92C1F0;
+  border-left: 2px solid #D0E4F6;
+  border-top: 2px solid #D0E4F6;
+  margin-right: 5px;
+}
+.queueDesc { margin: 0px 4px; }
+.queueToolbarButton { border: 1px solid #92C1F0; margin-right: 2px; }
 
 /*vim: ts=4 sw=4 expandtab*/
