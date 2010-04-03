@@ -32,7 +32,7 @@ class AudioScrobblerFatalError(DeejaydError): pass
 class AudioScrobblerError(DeejaydError):
 
     def __init__(self, msg):
-        self.message = _("AudioScrobbler Error: %s") % msg
+        self.message = _("AudioScrobbler Error: %s") % str_encode(msg)
 
 
 class AudioScrobblerPlugin:
@@ -180,7 +180,7 @@ class AudioScrobblerPlugin:
         while not self.should_stop.isSet():
             try: self.auth()
             except AudioScrobblerFatalError, ex: # fatal error, disable plugin
-                log.err(_("Fatal error in audioscrobbler: %s") % str(ex))
+                log.err(_("Fatal error in audioscrobbler: %s") % ex)
                 log.err(_("Disable audioscrobbler plugin"))
                 self.enabled = False
                 break
@@ -203,13 +203,13 @@ class AudioScrobblerPlugin:
                     while submission_failures < 3:
                         try: self.submit_track(tracks)
                         except AudioScrobblerError, err:
-                            log.err(_("Unable to submit songs: %s") % str(err))
+                            log.err(_("Unable to submit songs: %s") % err)
                             # wait 10 sec before retry
                             self.should_stop.wait(10)
                             submission_failures += 1
                         except AudioScrobblerFatalError, err:
                             log.err(_("Fatal error in submission process: %s")\
-                                     % str(err))
+                                     % err)
                             log.err(_("Force lastfm reauthentification"))
                             submission_failures = 3
                             break
