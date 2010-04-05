@@ -58,8 +58,6 @@ common_request = [
                        "object": protocol.DeejaydDvdModeJSONRPC},
         {"prefix": "queue.", "desc": "Queue Commands",\
                        "object": protocol.DeejaydQueueJSONRPC},
-        {"prefix": "queue.", "desc": "Queue Commands",\
-                       "object": protocol.DeejaydQueueJSONRPC},
         {"prefix": "recpls.", "desc": "Recorded Playlist Commands",\
                        "object": protocol.DeejaydRecordedPlaylistJSONRPC},
     ]
