@@ -326,7 +326,7 @@ class XinePlayer(UnknownPlayer):
         driver_name = self.config.get("xine", "audio_output")
         try:
             audio_port = xine.AudioDriver(self.__xine, driver_name)
-        except xine.xineError:
+        except xine.XineError:
             raise PlayerError(_("Unable to open audio driver"))
 
         # open video driver
