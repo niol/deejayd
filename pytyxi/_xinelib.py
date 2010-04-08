@@ -50,6 +50,48 @@ _xinelib.xine_new.restype = ctypes.c_void_p
 # void xine_config_load  (xine_t *self, const char *cfg_filename)
 _xinelib.xine_config_load.argstype = (ctypes.c_void_p, ctypes.c_char_p)
 
+class xine_cfg_entry_t(ctypes.Structure):
+    _fields_ = (
+        ('key', ctypes.c_char_p),
+        ('type', ctypes.c_int),
+        ('unknown_value', ctypes.c_char_p),
+        ('str_value', ctypes.c_char_p),
+        ('str_default', ctypes.c_char_p),
+        ('dummy', ctypes.c_void_p),
+        ('num_value', ctypes.c_int),
+        ('num_default', ctypes.c_int),
+        ('range_min', ctypes.c_int),
+        ('range_max', ctypes.c_int),
+        ('enum_values', ctypes.c_void_p), # char **enum_values
+        ('description', ctypes.c_char_p),
+        ('help', ctypes.c_char_p),
+        ('exp_level', ctypes.c_int),
+        ('callback', ctypes.c_void_p),
+        ('callback_data', ctypes.c_void_p),
+    )
+
+# int  xine_config_get_first_entry (xine_t *self, xine_cfg_entry_t *entry)
+_xinelib.xine_config_get_first_entry.argstype = (ctypes.c_void_p,
+                                                 ctypes.c_void_p, )
+_xinelib.xine_config_get_first_entry.restype = ctypes.c_int
+
+# int  xine_config_get_next_entry (xine_t *self, xine_cfg_entry_t *entry)
+_xinelib.xine_config_get_next_entry.argstype = (ctypes.c_void_p,
+                                                ctypes.c_void_p, )
+_xinelib.xine_config_get_next_entry.restype = ctypes.c_int
+
+# int  xine_config_lookup_entry (xine_t *self, const char *key,
+#                  xine_cfg_entry_t *entry)
+_xinelib.xine_config_lookup_entry.argstype = (ctypes.c_void_p,
+                                              ctypes.c_char_p,
+                                              ctypes.c_void_p, )
+_xinelib.xine_config_lookup_entry.restype = ctypes.c_int
+
+# void xine_config_update_entry (xine_t *self,
+#                   const xine_cfg_entry_t *entry)
+_xinelib.xine_config_update_entry.argstype = (ctypes.c_void_p,
+                                              ctypes.c_void_p, )
+
 # const char *xine_get_homedir(void)
 _xinelib.xine_get_homedir.restype = ctypes.c_char_p
 

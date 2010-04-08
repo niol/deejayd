@@ -611,6 +611,81 @@ class XinePlayer(object):
             plugins.append(plugin.lower())
         return plugins
 
+    XINE_CONFIG_TYPE_UNKNOWN = 0
+    XINE_CONFIG_TYPE_RANGE   = 1
+    XINE_CONFIG_TYPE_STRING  = 2
+    XINE_CONFIG_TYPE_ENUM    = 3
+    XINE_CONFIG_TYPE_NUM     = 4
+    XINE_CONFIG_TYPE_BOOL    = 5
+    # string type stored in num_value of config entry struct
+    XINE_CONFIG_STRING_IS_STRING         = 0
+    XINE_CONFIG_STRING_IS_FILENAME       = 1
+    XINE_CONFIG_STRING_IS_DEVICE_NAME    = 2
+    XINE_CONFIG_STRING_IS_DIRECTORY_NAME = 3
+
+    def __get_config_entry_value(self, entry):
+        if entry.type == XinePlayer.XINE_CONFIG_TYPE_UNKNOWN:
+            return entry.unknown_value
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_RANGE:
+            return (entry.range_min, entry.range_max)
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_STRING:
+            return entry.str_value or entry.str_default
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_ENUM:
+            enum_values = []
+            enum_value_addr = entry.enum_values
+            for enum_value_index in range(0, entry.num_value):
+                enum_value = ctypes.string_at(enum_value_addr)
+                enum_values.append(enum_value)
+                enum_value_addr = enum_value_addr + len(enum_value) + 1 # '\0'
+            return enum_values
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_NUM:
+            return entry.num_value or entry.num_default
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_BOOL:
+            if entry.num_value == 1:
+                return True
+            elif entry.num_value == 0:
+                return False
+            else:
+                return False
+
+    def get_all_config(self):
+        entries = {}
+        entry = xinelib.xine_cfg_entry_t()
+        xinelib.xine_config_get_first_entry(self.__xine, ctypes.byref(entry))
+        entries[entry.key] = self.__get_config_entry_value(entry)
+        while xinelib.xine_config_get_next_entry(self.__xine,
+                                                 ctypes.byref(entry)):
+            entries[entry.key] = self.__get_config_entry_value(entry)
+        return entries
+
+    def get_config_entry(self, key):
+        entry = xinelib.xine_cfg_entry_t()
+        xinelib.xine_config_lookup_entry(self.__xine, key, ctypes.byref(entry))
+        return self.__get_config_entry_value(entry)
+
+    def update_config_entry(self, key, value):
+        entry = xinelib.xine_cfg_entry_t()
+        xinelib.xine_config_lookup_entry(self.__xine, key, ctypes.byref(entry))
+        if entry.type == XinePlayer.XINE_CONFIG_TYPE_UNKNOWN:
+            entry.unknown_value = value
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_RANGE:
+            entry.range_min = value[0]
+            entry.range_max = value[1]
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_STRING:
+            entry.str_value = value
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_ENUM:
+            enum_values = '\0'.join(value)
+            entry.enum_values = ctypes.byref(enum_values)
+            entry.num_value = len(value)
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_NUM:
+            entry.num_value = value
+        elif entry.type == XinePlayer.XINE_CONFIG_TYPE_BOOL:
+            if value:
+                entry.num_value = 1
+            else:
+                entry.num_value = 0
+        xinelib.xine_config_update_entry(self.__xine, ctypes.byref(entry))
+
     def destroy(self):
         xinelib.xine_exit(self.__xine)
         self.__xine = None
@@ -634,6 +709,10 @@ if __name__ == '__main__':
     x.set_param(XinePlayer.XINE_ENGINE_PARAM_VERBOSITY_LOG, 1)
     vd = VideoDriver(x, fullscreen=False)
     s = x.stream_new(video_port=vd)
+    x.update_config_entry('audio.device.alsa_front_device', 'hw:0,1')
+    print '\tOutput to : %s'\
+          % x.get_config_entry('audio.device.alsa_default_device')
+    print x.get_all_config()['audio.device.alsa_default_device']
 
     def print_message(data, event):
         if event.type == Event.XINE_EVENT_UI_MESSAGE:
