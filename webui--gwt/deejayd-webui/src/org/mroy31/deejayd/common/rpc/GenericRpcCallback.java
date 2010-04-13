@@ -20,6 +20,8 @@
 
 package org.mroy31.deejayd.common.rpc;
 
+import java.util.ArrayList;
+
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 
 import com.google.gwt.http.client.Request;
@@ -32,6 +34,7 @@ import com.google.gwt.json.client.JSONValue;
 
 public abstract class GenericRpcCallback implements RpcCallback {
     public DeejaydUIWidget ui;
+    private ArrayList<RpcHandler> handlers;
 
     public GenericRpcCallback(DeejaydUIWidget ui) {
         this.ui = ui;
@@ -43,6 +46,9 @@ public abstract class GenericRpcCallback implements RpcCallback {
     }
 
     public void onResponseReceived(Request request, Response response) {
+        for (RpcHandler h : handlers)
+            h.onRpcStop();
+
         if (200 == response.getStatusCode()) {
             // parse JSON answer
             try {
@@ -74,6 +80,8 @@ public abstract class GenericRpcCallback implements RpcCallback {
     }
 
     public void onError(Request request, Throwable exception) {
+        for (RpcHandler h : handlers)
+            h.onRpcStop();
         this.setError("Server error response");
     }
 
@@ -86,7 +94,13 @@ public abstract class GenericRpcCallback implements RpcCallback {
     }
 
     public void onRequestError() {
+        for (RpcHandler h : handlers)
+            h.onRpcStop();
         this.setError("Request Error");
+    }
+
+    public void setRpcHandlers(ArrayList<RpcHandler> handlers) {
+        this.handlers = handlers;
     }
 }
 

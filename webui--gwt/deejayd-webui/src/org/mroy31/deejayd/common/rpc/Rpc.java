@@ -20,6 +20,8 @@
 
 package org.mroy31.deejayd.common.rpc;
 
+import java.util.ArrayList;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestException;
@@ -36,6 +38,11 @@ public class Rpc {
     private static final String RPC_URL = GWT.getHostPageBaseURL()+"../rpc/";
     private final RequestBuilder request = new RequestBuilder(
             RequestBuilder.POST, URL.encode(RPC_URL));
+    private ArrayList<RpcHandler> handlers = new ArrayList<RpcHandler>();
+
+    public void addRpcHandler(RpcHandler handler) {
+        handlers.add(handler);
+    }
 
     public void send(String cmd, JSONValue args, RpcCallback callback) {
         // format json commands
@@ -45,6 +52,9 @@ public class Rpc {
         json_cmd.put("id", new JSONNumber(request_id));
         json_cmd.put("params", args);
 
+        callback.setRpcHandlers(handlers);
+        for (RpcHandler h : handlers)
+            h.onRpcStart();
         try {
             request.sendRequest(json_cmd.toString(), callback);
         }

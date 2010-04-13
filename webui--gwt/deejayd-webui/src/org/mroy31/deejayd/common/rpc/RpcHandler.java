@@ -20,20 +20,9 @@
 
 package org.mroy31.deejayd.common.rpc;
 
-import java.util.ArrayList;
-
-import com.google.gwt.http.client.RequestCallback;
-
-/**
- * The primary interface a caller must implement to receive a response to a
- * {@link org.mroy31.deejayd.rpc.Rpc}.
- * @author Mickaël ROYER
- *
- */
-public interface RpcCallback extends RequestCallback {
-    /**
-     * Called when we can not send HTTP Request
-     */
-    void onRequestError();
-    void setRpcHandlers(ArrayList<RpcHandler> handlers);
+public interface RpcHandler {
+    public void onRpcStart();
+    public void onRpcStop();
 }
+
+//vim: ts=4 sw=4 expandtab

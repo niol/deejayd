@@ -26,6 +26,7 @@ import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
@@ -104,6 +105,9 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         resources.webuiCss().ensureInjected();
 
         initWidget(uiBinder.createAndBindUi(this));
+        loading.setResource(resources.loading());
+        bottomBar.setCellHorizontalAlignment(loading,
+                HorizontalPanel.ALIGN_RIGHT);
         refreshButton.addClickHandler(this);
         refreshButton.setText(i18nConstants.refresh());
 
@@ -189,6 +193,19 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
 
     public void load() {
         super.load();
+        this.rpc.addRpcHandler(new RpcHandler() {
+
+            @Override
+            public void onRpcStop() {
+                loading.setVisible(false);
+            }
+
+            @Override
+            public void onRpcStart() {
+                loading.setVisible(true);
+            }
+        });
+
         // init audio library
         HashMap<String, String> messages = new HashMap<String, String>();
         messages.put("button", i18nMessages.libUpdateButton(
