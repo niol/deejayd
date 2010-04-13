@@ -59,7 +59,7 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 
 public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
-    private WebuiLayout ui;
+    static private WebuiLayout instance;
     public LibraryManager audioLibrary;
     private boolean queueOpen = false;
     private int queueId = -1;
@@ -92,8 +92,13 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     @UiField Button queueClear;
     @UiField(provided = true) public final WebuiResources resources;
 
-    public WebuiLayout(Deejayd_webui module) {
-        ui = this;
+    static public WebuiLayout getInstance() {
+        if (instance == null)
+            instance = new WebuiLayout();
+        return instance;
+    }
+
+    public WebuiLayout() {
         // load ressources
         resources = GWT.create(WebuiResources.class);
         resources.webuiCss().ensureInjected();
@@ -106,7 +111,8 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
             @Override
             public void onChange(ChangeEvent event) {
                 String mode = modeList.getValue(modeList.getSelectedIndex());
-                rpc.setMode(mode, new DefaultRpcCallback(ui));
+                rpc.setMode(mode,
+                        new DefaultRpcCallback(WebuiLayout.getInstance()));
             }
         });
 
@@ -122,8 +128,8 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
             @Override
             public void onValueChange(ValueChangeEvent<Boolean> event) {
                 String playorder = event.getValue() ? "random" : "inorder";
-                ui.rpc.setOption("queue", "playorder", playorder
-                        , new DefaultRpcCallback(ui));
+                instance.rpc.setOption("queue", "playorder", playorder
+                        , new DefaultRpcCallback(WebuiLayout.getInstance()));
             }
         });
         queueClear.setText(i18nConstants.clear());
@@ -131,7 +137,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         queueRemove.setText(i18nConstants.remove());
         queueRemove.addClickHandler(this);
         queueList = new MediaList(this, "queue");
-        queueList.setOption(true, new SongRenderer(ui, "queue"));
+        queueList.setOption(true, new SongRenderer(this, "queue"));
 
         // Init Mode Panel
         panelManager = new WebuiPanelManager(this);
@@ -139,7 +145,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
 
         modePanel = new WebuiSplitLayoutPanel();
         modePanel.addSouth(queueList, 0);
-        modePanel.addWest(panelManager, 350);
+        modePanel.addWest(panelManager, 250);
         modePanel.add(modeManager);
         mainPanel.add(modePanel);
         modePanel.setSplitPosition(queueList, 0, false);
@@ -163,9 +169,9 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
             queueOpen = !queueOpen;
         } else if (source == queueRemove) {
             rpc.queueRemove(queueList.getSelection(),
-                    new DefaultRpcCallback(ui));
+                    new DefaultRpcCallback(this));
         } else if (source == queueClear) {
-            rpc.queueClear(new DefaultRpcCallback(ui));
+            rpc.queueClear(new DefaultRpcCallback(this));
         }
     }
 
@@ -185,12 +191,12 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         super.load();
         // init audio library
         HashMap<String, String> messages = new HashMap<String, String>();
-        messages.put("button",
-                ui.i18nMessages.libUpdateButton(ui.i18nConstants.audio()));
-        messages.put("confirmation",
-                ui.i18nMessages.libUpdateMessage(ui.i18nConstants.audio()));
-        messages.put("loading",
-                ui.i18nMessages.libUpdateLoading(ui.i18nConstants.audio()));
+        messages.put("button", i18nMessages.libUpdateButton(
+                i18nConstants.audio()));
+        messages.put("confirmation", i18nMessages.libUpdateMessage(
+                i18nConstants.audio()));
+        messages.put("loading", i18nMessages.libUpdateLoading(
+                i18nConstants.audio()));
         audioLibrary = new LibraryManager(this, "audio", messages);
 
         // load mode list

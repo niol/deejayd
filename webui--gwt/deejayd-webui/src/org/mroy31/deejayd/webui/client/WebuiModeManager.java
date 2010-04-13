@@ -98,6 +98,8 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
                 return new PlaylistMode(ui);
             } else if (sourceName.equals("webradio")) {
                 return new WebradioMode(ui);
+            } else if (sourceName.equals("panel")) {
+                return new NavigationPanelMode(ui);
             }
             throw new ModeException();
         }

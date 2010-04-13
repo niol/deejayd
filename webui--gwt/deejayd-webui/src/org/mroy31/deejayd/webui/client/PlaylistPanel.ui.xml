@@ -4,9 +4,7 @@
   xmlns:webui="urn:import:org.mroy31.deejayd.webui.widgets">
   <ui:with field="resources"
         type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
-  <ui:style>
 
-  </ui:style>
      <g:DockLayoutPanel>
          <g:center>
       <g:TabLayoutPanel barHeight="24" ui:field="tabPanel">
@@ -15,7 +13,7 @@
                  <g:Label ui:field="dirHeader"></g:Label>
              </g:customHeader>
              <g:DockLayoutPanel>
-                 <g:north size="24">
+                 <g:north size="22">
                     <g:FlowPanel
                         width="100%" ui:field="navBarPanel"
                         styleName="{resources.webuiCss.toolbar}">
@@ -132,9 +130,10 @@
       </g:TabLayoutPanel>
        </g:center>
 
-       <g:south size="24">
+       <g:south size="22">
          <g:FlowPanel width="100%">
-            <webui:LibraryManager width="100%" ui:field="updateButton">
+            <webui:LibraryManager height="100%" width="100%"
+              ui:field="updateButton">
             </webui:LibraryManager>
          </g:FlowPanel>
        </g:south>

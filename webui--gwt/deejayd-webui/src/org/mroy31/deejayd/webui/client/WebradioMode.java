@@ -32,7 +32,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
-public class WebradioMode extends WebuiMode implements ClickHandler {
+public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
     private Label description;
     private Button wbClear;
     private Button wbRemove;
@@ -89,7 +89,7 @@ public class WebradioMode extends WebuiMode implements ClickHandler {
     }
 
     @Override
-    void setDescription(int length, int timelength) {
+    protected void setDescription(int length, int timelength) {
         if (description != null) {
             description.setText(ui.i18nMessages.webradiosDesc(length));
         }

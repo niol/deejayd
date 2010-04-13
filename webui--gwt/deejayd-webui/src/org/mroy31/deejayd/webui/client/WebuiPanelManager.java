@@ -104,6 +104,8 @@ public class WebuiPanelManager extends Composite
                 return new PlaylistPanel(ui);
             } else if (sourceName.equals("webradio")) {
                 return new WebradioPanel(ui);
+            } else if (sourceName.equals("panel")) {
+                return new NavigationPanel(ui);
             }
             throw new ModeException();
         }

@@ -206,6 +206,48 @@ public class Rpc {
         send("recpls.erase", args, callback);
     }
 
+    public void recPlsCreate(String name, String type, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(name));
+        args.set(1, new JSONString(type));
+        send("recpls.create", args, callback);
+    }
+
+    public void recPlsGet(String plsId, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(plsId));
+        send("recpls.get", args, callback);
+    }
+
+    public void recPlsMagicGetProperties(String plsId, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(plsId));
+        send("recpls.magicGetProperties", args, callback);
+    }
+
+    public void recPlsMagicSetProperty(String plsId, String key, String value,
+            RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(plsId));
+        args.set(1, new JSONString(key));
+        args.set(2, new JSONString(value));
+        send("recpls.magicSetProperty", args, callback);
+    }
+
+    public void recPlsMagicAddFilter(String plsId, MediaFilter filter,
+            RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(plsId));
+        args.set(1, filter.toJSON());
+        send("recpls.magicAddFilter", args, callback);
+    }
+
+    public void recPlsMagicClearFilter(String plsId, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(plsId));
+        send("recpls.magicClearFilter", args, callback);
+    }
+
     /*
      * Playlist commands
      */
@@ -353,6 +395,70 @@ public class Rpc {
          if (pos != -1)
              args.set(1, new JSONNumber(pos));
          send("queue.loads", args, callback);
+    }
+
+    /*
+     * Panel commands
+     */
+
+    public void panelModeActiveList(RpcCallback callback) {
+        send("panel.activeList", new JSONArray(), callback);
+    }
+
+    public void panelModeGetTags(RpcCallback callback) {
+        send("panel.tags", new JSONArray(), callback);
+    }
+
+    public void panelModeSetActiveList(String mode, String pls,
+            RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(mode));
+        args.set(1, new JSONString(pls));
+        send("panel.setActiveList", args, callback);
+    }
+
+    public void panelModeClearAll(RpcCallback callback) {
+        send("panel.clearAll", new JSONArray(), callback);
+    }
+
+    public void panelModeSetSearch(String tag, String value,
+            RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(tag));
+        args.set(1, new JSONString(value));
+        send("panel.setSearch", args, callback);
+    }
+
+    public void panelModeClearSearch(RpcCallback callback) {
+        send("panel.clearSearch", new JSONArray(), callback);
+    }
+
+    public void panelModeSetFilter(String tag, String[] values,
+            RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(tag));
+        JSONArray jsonIds = new JSONArray();
+        int idx = 0;
+        for (String value : values) {
+            jsonIds.set(idx, new JSONString(value));
+            idx ++;
+        }
+        args.set(1, jsonIds);
+        send("panel.setFilter", args, callback);
+    }
+
+    public void panelModeRemoveFilter(String tag, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(tag));
+        send("panel.removeFilter", args, callback);
+    }
+
+    public void panelModeBuildPanel(String updatedTag, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        if (updatedTag != null) {
+            args.set(0, new JSONString(updatedTag));
+        }
+        send("web.buildPanel", args, callback);
     }
 }
 

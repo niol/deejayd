@@ -38,7 +38,7 @@ public class Deejayd_webui implements EntryPoint {
         Window.enableScrolling(false);
         Window.setMargin("0px");
 
-        WebuiLayout ui = new WebuiLayout(this);
+        WebuiLayout ui = WebuiLayout.getInstance();
         RootLayoutPanel.get().add(ui);
         ui.load();
     }

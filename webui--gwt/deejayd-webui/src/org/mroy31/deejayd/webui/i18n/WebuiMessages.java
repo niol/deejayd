@@ -46,6 +46,9 @@ public interface WebuiMessages extends CommonI18nMessages {
 
     @DefaultMessage("The {0} library has been updated.")
     String libUpdateMessage(String libraryType);
+
+    @DefaultMessage("Edit {0} informations")
+    String magicPlsDgCaption(String plsName);
 }
 
 //vim: ts=4 sw=4 expandtab

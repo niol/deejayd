@@ -9,19 +9,19 @@
        <g:HorizontalPanel width="100%">
            <g:Button ui:field="previousButton"
                        styleName="{resources.webuiCss.previousButton}
-                                  {resources.webuiCss.playerButton}">
+                                  {resources.webuiCss.iconOnlyButton}">
              </g:Button>
            <g:Button ui:field="playToggleButton"
-                     styleName="{resources.webuiCss.playerButton}
-                                {resources.webuiCss.playButton}">
+                     styleName="{resources.webuiCss.playButton}
+                                {resources.webuiCss.iconOnlyButton}">
            </g:Button>
            <g:Button ui:field="stopButton"
                        styleName="{resources.webuiCss.stopButton}
-                                  {resources.webuiCss.playerButton}">
+                                  {resources.webuiCss.iconOnlyButton}">
              </g:Button>
              <g:Button ui:field="nextButton"
                        styleName="{resources.webuiCss.nextButton}
-                                  {resources.webuiCss.playerButton}">
+                                  {resources.webuiCss.iconOnlyButton}">
              </g:Button>
        </g:HorizontalPanel>
        <webui:SliderBar ui:field="volumeBar"></webui:SliderBar>

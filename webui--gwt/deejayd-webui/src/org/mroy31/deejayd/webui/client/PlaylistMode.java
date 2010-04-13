@@ -25,19 +25,17 @@ import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.medialist.SongRenderer;
+import org.mroy31.deejayd.webui.widgets.NewPlsDialog;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class PlaylistMode extends WebuiMode implements ClickHandler {
+public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
 
     private Label description;
     private Button plsShuffle;
@@ -46,69 +44,29 @@ public class PlaylistMode extends WebuiMode implements ClickHandler {
     private Button goToCurrent;
     private Button plsSave;
 
-    private static class SaveDialog extends DialogBox {
-        private WebuiLayout ui;
-        private TextBox input;
-        private class PlsCallback extends GenericRpcCallback {
-            public PlsCallback(DeejaydUIWidget ui) { super(ui); }
+    private class PlsCallback extends GenericRpcCallback {
+        public PlsCallback(DeejaydUIWidget ui) { super(ui); }
 
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                WebuiLayout layout = (WebuiLayout) ui;
-                PlaylistPanel p = (PlaylistPanel)
-                        layout.panelManager.getCurrentPanel();
-                p.buildPlsList();
+        @Override
+        public void onCorrectAnswer(JSONValue data) {
+            WebuiLayout layout = (WebuiLayout) ui;
+            PlaylistPanel p = (PlaylistPanel)
+                    layout.panelManager.getCurrentPanel();
+            p.buildPlsList();
 
-                layout.setMessage(layout.i18nConstants.plsSaveMsg());
-            }
-        }
-
-        public SaveDialog(WebuiLayout webui) {
-            ui = webui;
-            // Set the dialog box's caption.
-            setText(ui.i18nConstants.saveDgCaption());
-            // Enable animation.
-            setAnimationEnabled(true);
-            // Enable glass background.
-            setGlassEnabled(true);
-
-            VerticalPanel panel = new VerticalPanel();
-            panel.setSpacing(2);
-            HorizontalPanel buttonPanel = new HorizontalPanel();
-            buttonPanel.setSpacing(3);
-
-            input = new TextBox();
-            panel.add(input);
-
-            Button cancel = new Button(ui.i18nConstants.cancel());
-            cancel.addClickHandler(new ClickHandler() {
-                public void onClick(ClickEvent event) {
-                    SaveDialog.this.hide();
-                }
-            });
-            buttonPanel.add(cancel);
-            Button save = new Button(ui.i18nConstants.save());
-            save.addClickHandler(new ClickHandler() {
-                public void onClick(ClickEvent event) {
-                    if (!input.getValue().equals("")) {
-                        ui.rpc.plsModeSave(input.getValue(),
-                                new PlsCallback(ui));
-                        SaveDialog.this.hide();
-                    }
-                }
-            });
-            buttonPanel.add(save);
-            panel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
-            panel.add(buttonPanel);
-
-            setWidget(panel);
+            layout.setMessage(layout.i18nConstants.plsSaveMsg());
         }
     }
-    private SaveDialog saveDg;
+    private NewPlsDialog saveDg;
 
-    public PlaylistMode(WebuiLayout ui) {
-        super("playlist", ui, true, true);
-        saveDg = new SaveDialog(ui);
+    public PlaylistMode(WebuiLayout webui) {
+        super("playlist", webui, true, true);
+        saveDg = new NewPlsDialog(new NewPlsDialog.PlsCommand() {
+            @Override
+            public void execute(String plsName) {
+                ui.rpc.plsModeSave(plsName, new PlsCallback(ui));
+            }
+        });
         mediaList.setOption(true, new SongRenderer(ui, "playlist"));
     }
 
@@ -170,7 +128,7 @@ public class PlaylistMode extends WebuiMode implements ClickHandler {
         toolbar.add(goToCurrent);
     }
 
-    void setDescription(int length, int timelength) {
+    protected void setDescription(int length, int timelength) {
         if (description != null) {
             if (length == 0) {
                 description.setText(ui.i18nMessages.songsDesc(length));

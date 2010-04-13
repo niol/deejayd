@@ -115,12 +115,12 @@ public interface WebuiConstants extends Constants {
     String save();
 
     @DefaultStringValue("Enter playlist name")
-    String saveDgCaption();
+    String newPlsDgCaption();
 
     @DefaultStringValue("Cancel")
     String cancel();
 
-    @DefaultStringValue("Current Webradio Source:")
+    @DefaultStringValue("Source:")
     String wbCurrentSource();
 
     @DefaultStringValue("Add a Webradio")
@@ -158,6 +158,51 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Queue")
     String queue();
+
+    @DefaultStringValue("Panels")
+    String panels();
+
+    @DefaultStringValue("Static Playlist")
+    String staticPls();
+
+    @DefaultStringValue("Magic Playlist")
+    String magicPls();
+
+    @DefaultStringValue("Add song if at least one filter match")
+    String magicUseOrFilter();
+
+    @DefaultStringValue("Limit to ")
+    String magicLimitPls();
+
+    @DefaultStringValue("When sort by ")
+    String magicLimitSort();
+
+    @DefaultStringValue("Revert sort direction")
+    String magicLimitSortDirection();
+
+    @DefaultStringValue("Rules")
+    String rules();
+
+    @DefaultStringValue("Songs")
+    String songs();
+
+    @DefaultStringValue("Equals")
+    String equals();
+
+    @DefaultStringValue("Not equals")
+    String notEquals();
+
+    @DefaultStringValue("Contains")
+    String contains();
+
+    @DefaultStringValue("Not contains")
+    String notContains();
+
+    @DefaultStringValue("Choose All")
+    String chooseAll();
+
+    @DefaultStringValue("Unknown")
+    String unknown();
 }
 
 // vim: ts=4 sw=4 expandtab

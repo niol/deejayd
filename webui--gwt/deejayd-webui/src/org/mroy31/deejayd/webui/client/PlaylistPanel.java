@@ -376,6 +376,7 @@ public class PlaylistPanel extends WebuiPanel
         // set search part
         searchButton.setText(ui.i18nConstants.search());
         searchButton.addClickHandler(this);
+        searchPattern.setVisibleLength(12);
         searchType.addItem(ui.i18nConstants.all(), "all");
         searchType.addItem(ui.i18nConstants.title(), "title");
         searchType.addItem(ui.i18nConstants.artist(), "artist");

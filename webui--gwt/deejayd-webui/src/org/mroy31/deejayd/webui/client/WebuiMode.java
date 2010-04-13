@@ -24,62 +24,34 @@ import java.util.HashMap;
 
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.webui.medialist.MediaList;
-import org.mroy31.deejayd.webui.resources.WebuiResources;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.uibinder.client.UiBinder;
-import com.google.gwt.uibinder.client.UiFactory;
-import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 
 public abstract class WebuiMode extends Composite {
     protected String sourceName;
     protected WebuiLayout ui;
+    protected int currentPlayingPos = -1;
     protected int mediaId = -1;
     protected int selectionLength = 0;
-    protected int currentPlayingPos = -1;
 
     public boolean hasPlayorder;
-    private ListBox podrList;
+    protected ListBox podrList;
     public boolean hasRepeat;
-    private CheckBox repeatCk;
-
-    private static WebuiModeUiBinder uiBinder = GWT
-            .create(WebuiModeUiBinder.class);
-    interface WebuiModeUiBinder extends UiBinder<Widget, WebuiMode> {}
-
-    @UiField MediaList mediaList;
-    @UiField HorizontalPanel bottomToolbar;
-    @UiField HorizontalPanel topToolbar;
-    @UiField(provided = true) final WebuiResources resources;
-
+    protected CheckBox repeatCk;
 
     public WebuiMode(String source, WebuiLayout webui,
             boolean hasPlayorder, boolean hasRepeat) {
         this.ui = webui;
-        this.resources = webui.resources;
         this.sourceName = source;
         this.hasPlayorder = hasPlayorder;
         this.hasRepeat = hasRepeat;
-
-        initWidget(uiBinder.createAndBindUi(this));
-
-        topToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-        bottomToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-        buildTopToolbar(topToolbar);
-        buildBottomToolbar(bottomToolbar);
-    }
-
-    @UiFactory MediaList makeMediaList() {
-        return new MediaList(ui, getSourceName());
     }
 
     public String getSourceName() {
@@ -89,7 +61,7 @@ public abstract class WebuiMode extends Composite {
     public void onStatusChange(HashMap<String, String> status) {
         int id = Integer.parseInt(status.get(getSourceName()));
         if (mediaId != id) {
-            mediaList.update();
+            getMediaList().update();
             int length = Integer.parseInt(status.get(getSourceName()+"length"));
             int timelength = -1;
             if (status.get(getSourceName()+"timelength") != null) {
@@ -122,6 +94,8 @@ public abstract class WebuiMode extends Composite {
                 repeatCk.setValue(value);
             }
         }
+
+        customUpdate();
     }
 
     protected ListBox makePlayorderWidget() {
@@ -163,7 +137,7 @@ public abstract class WebuiMode extends Composite {
                 int pos = Integer.parseInt(currentArray[0]);
                 if (currentPlayingPos != pos) {
                     resetCurrentPlaying();
-                    mediaList.setPlaying(pos);
+                    getMediaList().setPlaying(pos);
                     currentPlayingPos = pos;
                 }
             } else {
@@ -176,7 +150,7 @@ public abstract class WebuiMode extends Composite {
 
     public void resetCurrentPlaying() {
         if (currentPlayingPos != -1) {
-            mediaList.resetPlaying(currentPlayingPos);
+            getMediaList().resetPlaying(currentPlayingPos);
             currentPlayingPos = -1;
         }
     }
@@ -184,9 +158,9 @@ public abstract class WebuiMode extends Composite {
     /*
      * Abstract methods
      */
-    abstract void buildTopToolbar(HorizontalPanel toolbar);
-    abstract void buildBottomToolbar(HorizontalPanel toolbar);
-    abstract void setDescription(int length, int timelength);
+    abstract protected void customUpdate();
+    abstract public MediaList getMediaList();
+    abstract protected void setDescription(int length, int timelength);
 }
 
 //vim: ts=4 sw=4 expandtab

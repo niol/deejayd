@@ -56,7 +56,6 @@ public class PlayerUI extends PlayerWidget
     interface PlayerUIUiBinder extends UiBinder<Widget, PlayerUI> {}
 
     @UiField(provided = true) final WebuiResources resources;
-
     @UiField SliderBar volumeBar;
     @UiField Button playToggleButton;
     @UiField Button stopButton;
@@ -102,8 +101,8 @@ public class PlayerUI extends PlayerWidget
     private VolumeTimer volumeTimer = null;
 
     public PlayerUI(WebuiLayout webui) {
-        this.resources = webui.resources;
         this.ui = webui;
+        this.resources = webui.resources;
 
         initWidget(uiBinder.createAndBindUi(this));
         // add player buttons handlers
@@ -175,10 +174,10 @@ public class PlayerUI extends PlayerWidget
         // update play toggle button
         if (status.get("state").equals("play")) {
             playToggleButton.setStyleName(resources.webuiCss().pauseButton()+
-                    " "+resources.webuiCss().playerButton());
+                    " "+resources.webuiCss().iconOnlyButton());
         } else {
             playToggleButton.setStyleName(resources.webuiCss().playButton()+
-                    " "+resources.webuiCss().playerButton());
+                    " "+resources.webuiCss().iconOnlyButton());
         }
 
         // update volume bar

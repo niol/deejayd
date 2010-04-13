@@ -31,7 +31,7 @@
 .modeList {position: absolute; top: 0px; right: 0px; height: 24px;}
 .bold {font-weight: bold;}
 .italic{font-style: italic;}
-.currentItem { font-weight: bold; }
+.currentItem { font-weight: bold; background-color: #FBEE99;}
 .fixedTable { table-layout: fixed; width: 100%; }
 .iconAndTextButton {
   padding: 2px;
@@ -41,6 +41,9 @@
   padding-left: 20px;
   background-position: 2px 2px !important;
 }
+.iconOnlyButton { padding: 0px; border: 0px; }
+.pointerCursor { cursor: pointer; }
+.disabled { color: #888888; }
 
 /*
  * Players button
@@ -57,7 +60,6 @@
 }
 
 
- .playerButton {padding: 0px; border: 0px;}
 @sprite .playButton {gwt-image: "play";}
 @sprite .stopButton {gwt-image: "stop";}
 @sprite .nextButton {gwt-image: "next";}
@@ -86,6 +88,7 @@
   background-position: 2px 2px !important;
   border: 1px solid #999;
 }
+.toolbarButton { border: 1px solid #999; }
 @sprite .shuffleButton {gwt-image: "shuffle";}
 @sprite .clearButton {gwt-image: "clear";}
 @sprite .removeButton {gwt-image: "remove";}
@@ -93,9 +96,7 @@
 @sprite .addButton {gwt-image: "add";}
 @sprite .saveButton {gwt-image: "save";}
 @sprite .searchButton {gwt-image: "search";}
-
-
-
+@sprite .editButton {gwt-image: "edit";}
 
 /*
  * Webradio Panel
@@ -117,5 +118,25 @@
 }
 .queueDesc { margin: 0px 4px; }
 .queueToolbarButton { border: 1px solid #92C1F0; margin-right: 2px; }
+
+/*
+ * Panel
+ */
+.plsPanel { border: 2px solid #92C1F0; }
+.tagPanelItem {
+  padding: 0px 0px 3px 10px;
+  border-bottom: 1px solid #E8EEF7;
+  cursor: pointer;
+}
+.tagPanelSelectedItem { background-color: #ccc; }
+
+/*
+ * Magic Playlist
+ */
+.rulesList {
+  border: 2px solid #D0E4F6;
+  padding: 3px;
+  margin-bottom: 2px;
+}
 
 /*vim: ts=4 sw=4 expandtab*/

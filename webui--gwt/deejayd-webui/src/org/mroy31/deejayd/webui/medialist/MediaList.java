@@ -23,11 +23,13 @@ package org.mroy31.deejayd.webui.medialist;
 import java.util.ArrayList;
 
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.MediaFilter;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.json.client.JSONArray;
+import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -50,6 +52,7 @@ public class MediaList extends Composite {
     private String source;
     private boolean hasSelection = false;
     private MediaListRenderer renderer;
+    private MediaFilter filter;
 
     @UiField FlexTable header;
     @UiField FlexTable mediaList;
@@ -65,6 +68,12 @@ public class MediaList extends Composite {
             super(ui);
         }
         public void onCorrectAnswer(JSONValue data) {
+            // record filter
+            JSONObject filterObj = data.isObject().get("filter").isObject();
+            if (filterObj != null)
+                filter = MediaFilter.parse(filterObj);
+            else
+                filter = null;
             JSONArray list = data.isObject().get("medias").isArray();
             setMedia(list);
         }
@@ -75,7 +84,7 @@ public class MediaList extends Composite {
      *
      */
     private class MedialistUpdate implements IncrementalCommand {
-        private int CHUNKLENGTH = 500;
+        private int CHUNKLENGTH = 200;
         private int lastGet = 0;
         private JSONArray list;
 
@@ -145,6 +154,10 @@ public class MediaList extends Composite {
             CheckBox ck = (CheckBox) mediaList.getWidget(idx, 0);
             ck.setValue(value);
         }
+    }
+
+    public MediaFilter getFilter() {
+        return filter;
     }
 
     public String[] getSelection() {

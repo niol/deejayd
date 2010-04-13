@@ -41,6 +41,7 @@ import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Button;
@@ -229,6 +230,14 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         ui.addStatusChangeHandler(this);
     }
 
+
+    @UiFactory public TextBox makeWbTextBox() {
+        TextBox box = new TextBox();
+        box.setVisibleLength(12);
+        box.setMaxLength(128);
+
+        return box;
+    }
 
     @Override
     public void onStatusChange(StatusChangeEvent event) {
