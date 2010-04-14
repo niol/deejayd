@@ -24,8 +24,11 @@
             src="deejayd_webui/deejayd_webui.nocache.js"></script>
 
     <style>
+        body, table td {
+            font-size: 0.7em !important;
+        }
         .gwt-SliderBar-shell {
-          margin-top: 5px;
+            margin-top: 5px;
             background-color: #fff;
             height: 18pt;
             width: 100px;
@@ -42,7 +45,7 @@
             top: 1pt;
             width: 11px;
             height: 21px;
-            z-index: 1;
+            z-index: 0;
             cursor: pointer;
         }
         .gwt-SliderBar-shell-focused {
@@ -60,9 +63,14 @@
             background-color: #D0E4F6 !important;
             cursor: n-resize;
         }
+        .gwt-Button {
+            padding: 2px 4px !important;
+            font-size: 1.0em !important;
+        }
         .gwt-ListBox {
-            padding: 0px 4px;
+            padding: 0px 2px;
             height: 22px;
+            font-size: 1.0em;
         }
         .gwt-TextBox {
             padding: 0px !important;
