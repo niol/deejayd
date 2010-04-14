@@ -40,18 +40,16 @@ public abstract class MediaListRenderer {
      * Handler to update rating of a media
      *
      */
-    protected class RatingChangeHandler implements ValueChangeHandler<Integer> {
-        private int mediaId;
-        public RatingChangeHandler(int mediaId) {
-            this.mediaId = mediaId;
-        }
-
-        public void onValueChange(ValueChangeEvent<Integer> event) {
-            int[] ids = new int[1];
-            ids[0] = mediaId;
-            ui.rpc.setRating(ids, event.getValue(),new DefaultRpcCallback(ui));
-        }
-    }
+    protected ValueChangeHandler<Integer> ratingHandler =
+        new ValueChangeHandler<Integer>() {
+            @Override
+            public void onValueChange(ValueChangeEvent<Integer> event) {
+                RatingWidget source = (RatingWidget) event.getSource();
+                int[] ids = {source.getMediaId()};
+                ui.rpc.setRating(ids, event.getValue(),
+                        new DefaultRpcCallback(ui));
+            }
+    };
 
     /**
      * Click Handler to play a specific media
@@ -88,8 +86,8 @@ public abstract class MediaListRenderer {
         int mediaId = (int) media.get("media_id").isNumber().doubleValue();
         int rating = Integer.parseInt(media.get("rating").
                 isString().stringValue());
-        RatingWidget rWidget = new RatingWidget(rating, ui.resources);
-        rWidget.addValueChangeHandler(new RatingChangeHandler(mediaId));
+        RatingWidget rWidget = new RatingWidget(rating, mediaId, ui.resources);
+        rWidget.addValueChangeHandler(ratingHandler);
 
         return rWidget;
     }

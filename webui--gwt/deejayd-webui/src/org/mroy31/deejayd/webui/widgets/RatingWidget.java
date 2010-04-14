@@ -41,13 +41,15 @@ public class RatingWidget extends Composite implements ClickHandler,
         HasValueChangeHandlers<Integer>, HasValue<Integer> {
 
     private int currentValue;
+    private int mediaId;
     private HashMap<Integer,Image> ratingImages = new HashMap<Integer,Image>();
 
     /**
      * Create a rating widget.
      */
-    public RatingWidget(int value, WebuiResources resources) {
-        currentValue = value;
+    public RatingWidget(int value, int mediaId, WebuiResources resources) {
+        this.currentValue = value;
+        this.mediaId = mediaId;
 
         FlowPanel panel = new FlowPanel();
         for (int i=0; i<4; i++) {
@@ -62,6 +64,10 @@ public class RatingWidget extends Composite implements ClickHandler,
 
         initWidget(panel);
         DOM.setStyleAttribute(getElement(), "display", "inline-block");
+    }
+
+    public int getMediaId() {
+        return mediaId;
     }
 
     @Override
