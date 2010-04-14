@@ -46,6 +46,11 @@ public interface WebuiResources extends ClientBundle {
         String pointerCursor();
         String disabled();
 
+        /* message */
+        String msgInformation();
+        String msgWarning();
+        String msgError();
+
         /* player buttons */
         String playButton();
         String pauseButton();
@@ -168,6 +173,15 @@ public interface WebuiResources extends ClientBundle {
     ImageResource blueToolbarBg();
 
     ImageResource edit();
+
+    @Source("dialog-error.png")
+    ImageResource dialogError();
+
+    @Source("dialog-information.png")
+    ImageResource dialogInformation();
+
+    @Source("dialog-warning.png")
+    ImageResource dialogWarning();
 }
 
 //vim: ts=4 sw=4 expandtab

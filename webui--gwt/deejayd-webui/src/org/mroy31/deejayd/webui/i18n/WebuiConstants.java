@@ -203,6 +203,9 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Unknown")
     String unknown();
+
+    @DefaultStringValue("Close")
+    String close();
 }
 
 // vim: ts=4 sw=4 expandtab

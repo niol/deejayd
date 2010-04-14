@@ -49,10 +49,14 @@ import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -77,6 +81,59 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     WebuiPanelManager panelManager;
     MediaList queueList;
 
+    private class Message extends Composite {
+        public Message(String text, String type) {
+            FlowPanel panel = new FlowPanel();
+            DOM.setStyleAttribute(panel.getElement(), "position", "fixed");
+            DOM.setStyleAttribute(panel.getElement(), "zIndex", "1");
+            DOM.setStyleAttribute(panel.getElement(), "top", "0px");
+            DOM.setStyleAttribute(panel.getElement(), "width", "300px");
+            DOM.setStyleAttribute(panel.getElement(), "padding", "7px");
+            // set message position based on window width
+            int left = (Window.getClientWidth() - 300)/2;
+            DOM.setStyleAttribute(panel.getElement(), "left",
+                    Integer.toString(Math.max(0, left))+"px");
+
+            HorizontalPanel msgPanel = new HorizontalPanel();
+            msgPanel.setSpacing(4);
+            msgPanel.setWidth("100%");
+            msgPanel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+            Image typeImg = new Image();
+            if (type.equals("error")) {
+                panel.addStyleName(resources.webuiCss().msgError());
+                typeImg.setResource(resources.dialogError());
+            } else if (type.equals("warning")) {
+                panel.addStyleName(resources.webuiCss().msgWarning());
+                typeImg.setResource(resources.dialogWarning());
+            } else if (type.equals("information")) {
+                panel.addStyleName(resources.webuiCss().msgInformation());
+                typeImg.setResource(resources.dialogInformation());
+            }
+            msgPanel.add(typeImg);
+            msgPanel.add(new Label(text));
+            msgPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+            msgPanel.add(new Button(i18nConstants.close(), new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
+                    removeFromParent();
+                }
+            }));
+
+            panel.add(msgPanel);
+            initWidget(panel);
+            if (!type.equals("error")) {
+                Timer timer = new Timer() {
+                    @Override
+                    public void run() {
+                        removeFromParent();
+                    }
+                };
+                timer.schedule(5000);
+            }
+        }
+    }
+
+    @UiField FlowPanel topPanel;
     @UiField PlayerUI playerUI;
     @UiField Button refreshButton;
     @UiField ListBox modeList;
@@ -184,7 +241,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     }
 
     public void setMessage(String message) {
-        Window.alert(message);
+        topPanel.add(new Message(message, "information"));
     }
 
     public void setError(String error) {

@@ -46,6 +46,21 @@
 .disabled { color: #888888; }
 
 /*
+ * Messages
+ */
+.msgInformation {
+  opacity: 0.8;
+  background-color: #A6EF7B;
+  border: 1px solid #76C83F;
+}
+.msgError {
+  opacity: 0.8;
+  background-color: #EF9398;
+  border: 1px solid #DC5757;
+}
+.msgWarning {}
+
+/*
  * Players button
  */
  .playerButtonsBlock {

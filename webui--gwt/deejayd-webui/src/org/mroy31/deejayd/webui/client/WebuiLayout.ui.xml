@@ -7,7 +7,7 @@
 
   <g:DockLayoutPanel ui:field="mainPanel">
      <g:north size='100'>
-         <g:FlowPanel>
+         <g:FlowPanel ui:field="topPanel">
              <webui:PlayerUI ui:field="playerUI"></webui:PlayerUI>
              <g:Button addStyleNames="{resources.webuiCss.refreshButton}"
                        ui:field="refreshButton"></g:Button>
