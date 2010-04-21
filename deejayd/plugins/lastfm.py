@@ -185,7 +185,7 @@ class AudioScrobblerPlugin:
                 self.enabled = False
                 break
             except AudioScrobblerError, ex: # log error and try later
-                log.err(str(ex))
+                log.err(ex)
             else:
                 tracks = []
                 if not self.queue.empty():
