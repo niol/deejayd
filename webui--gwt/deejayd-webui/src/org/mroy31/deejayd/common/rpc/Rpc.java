@@ -158,7 +158,7 @@ public class Rpc {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(optionName));
         args.set(1, new JSONString(optionValue));
-        send("player.seek", args, callback);
+        send("player.setPlayerOption", args, callback);
     }
 
     public void goTo(int id, RpcCallback callback) {
@@ -469,6 +469,17 @@ public class Rpc {
             args.set(0, new JSONString(updatedTag));
         }
         send("web.buildPanel", args, callback);
+    }
+
+    /*
+     * Video Commands
+     */
+
+    public void videoModeSet(String value, String type, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(value));
+        args.set(1, new JSONString(type));
+        send("video.set", args, callback);
     }
 }
 

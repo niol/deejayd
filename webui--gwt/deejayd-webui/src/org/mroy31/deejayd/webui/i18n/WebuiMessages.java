@@ -34,6 +34,10 @@ public interface WebuiMessages extends CommonI18nMessages {
     @PluralText({"one", "1 Webradio"})
     String webradiosDesc(@PluralCount int number);
 
+    @DefaultMessage("{0,number} Videos")
+    @PluralText({"one", "1 Video"})
+    String videosDesc(@PluralCount int number);
+
     @DefaultMessage("Are you sure you want to erase these {0,number} playlists ?")
     @PluralText({"one", "Are you sure you want to erase this playlist ?"})
     String plsEraseConfirm(@PluralCount int number);

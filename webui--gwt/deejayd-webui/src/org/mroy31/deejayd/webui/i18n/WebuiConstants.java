@@ -206,6 +206,39 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Close")
     String close();
+
+    @DefaultStringValue("Width")
+    String width();
+
+    @DefaultStringValue("Height")
+    String height();
+
+    @DefaultStringValue("Subtitle")
+    String subtitle();
+
+    @DefaultStringValue("Go to current video")
+    String goCurrentVideo();
+
+    @DefaultStringValue("Video Directories")
+    String videoDirectories();
+
+    @DefaultStringValue("Audio/Video Offset")
+    String avOffset();
+
+    @DefaultStringValue("Zoom")
+    String zoom();
+
+    @DefaultStringValue("Aspect Ratio")
+    String aspectRatio();
+
+    @DefaultStringValue("Audio Channels")
+    String audioChannels();
+
+    @DefaultStringValue("Subtitle Channels")
+    String subChannels();
+
+    @DefaultStringValue("Subtitle Offset")
+    String subOffset();
 }
 
 // vim: ts=4 sw=4 expandtab

@@ -46,6 +46,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class PlayerUI extends PlayerWidget
@@ -75,6 +76,7 @@ public class PlayerUI extends PlayerWidget
     private WebuiLayout ui;
     private String current = "";
     private String currentTime = "";
+    private VideoOptions videoOptions;
 
     private class SeekTimer extends Timer {
         private int value;
@@ -141,6 +143,9 @@ public class PlayerUI extends PlayerWidget
                 seekTimer.schedule(200);
             }
         });
+        // init video options
+        optionButton.addClickHandler(this);
+        videoOptions = new VideoOptions(ui);
 
         // add status change handler
         ui.addStatusChangeHandler(this);
@@ -165,6 +170,21 @@ public class PlayerUI extends PlayerWidget
             seekBar.setVisible(!seekBar.isVisible());
             if (seekBar.isVisible()) {
                 seekBar.drawKnob();
+            }
+        } else if (sender == optionButton) {
+            if (videoOptions.isShowing()) {
+                videoOptions.hide();
+            } else {
+                videoOptions.setPopupPositionAndShow(
+                        new PopupPanel.PositionCallback() {
+                            public void setPosition(int offsetWidth,
+                                    int offsetHeight) {
+                                int left = optionButton.getAbsoluteLeft() +
+                                    optionButton.getOffsetWidth();
+                                int top = optionButton.getAbsoluteTop();
+                                videoOptions.setPopupPosition(left, top);
+                      }
+                });
             }
         }
     }
@@ -192,6 +212,7 @@ public class PlayerUI extends PlayerWidget
         } else {
             String[] times = status.get("time").split(":");
             if (!status.get("current").equals(this.current)) {
+                videoOptions.hide();
                 ui.rpc.getCurrent(new CurrentCallback(ui));
                 this.current = status.get("current");
                 seekBar.setMaxValue(Integer.parseInt(times[1]));
@@ -237,10 +258,10 @@ public class PlayerUI extends PlayerWidget
                     media.get("media_id").isNumber().doubleValue());
             ui.rpc.getCover(mediaId, new CoverCallback(ui));
         } else if (type.equals("video")) {
-            int length = (int) media.get("length").isNumber().doubleValue();
+            String length = media.get("length").isString().stringValue();
             title = media.get("title").isString().stringValue() + " (" +
-                DeejaydUtils.formatTime(length) + ")";
-            // TODO : advanced options
+                DeejaydUtils.formatTime(Integer.parseInt(length)) + ")";
+            setVideoOptions(media);
         } else if (type.equals("webradio")) {
             title = media.get("title").isString().stringValue();
             if (media.get("song-title") != null) {
@@ -256,6 +277,7 @@ public class PlayerUI extends PlayerWidget
 
     protected void clearPlayingArea() {
         playingPanel.setVisible(false);
+        videoOptions.hide();
         coverPanel.setVisible(false);
     }
 
@@ -264,6 +286,33 @@ public class PlayerUI extends PlayerWidget
             String url = GWT.getHostPageBaseURL()+"../"+cover.stringValue();
             coverImage.setUrl(url);
             coverPanel.setVisible(true);
+        }
+    }
+
+    protected void setVideoOptions(JSONObject media) {
+        long avOffset = (long) media.get("av_offset").isNumber().doubleValue();
+        videoOptions.setAVOffset(avOffset);
+        long zoom = (long) media.get("zoom").isNumber().doubleValue();
+        videoOptions.setZoom(zoom);
+        String aspectRatio = media.get("aspect_ratio").isString().stringValue();
+        videoOptions.setAspectRatio(aspectRatio);
+
+        boolean hasAudioChannel = media.get("audio") != null;
+        videoOptions.setAudioChannelEnabled(hasAudioChannel);
+        if (hasAudioChannel) {
+            String value = Integer.toString(
+                    (int)media.get("audio_idx").isNumber().doubleValue());
+            videoOptions.setAudioChannels(media.get("audio").isArray(), value);
+        }
+
+        boolean hasSubChannel = media.get("subtitle") != null;
+        videoOptions.setSubChannelEnabled(hasSubChannel);
+        if (hasSubChannel) {
+            String value = Integer.toString(
+                    (int)media.get("subtitle_idx").isNumber().doubleValue());
+            videoOptions.setSubChannels(media.get("subtitle").isArray(), value);
+            videoOptions.setSubOffset(
+                    (long)media.get("sub_offset").isNumber().doubleValue());
         }
     }
 }

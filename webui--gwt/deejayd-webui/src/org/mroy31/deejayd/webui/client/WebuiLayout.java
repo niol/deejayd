@@ -66,6 +66,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     static private WebuiLayout instance;
     public LibraryManager audioLibrary;
+    public LibraryManager videoLibrary;
     private boolean queueOpen = false;
     private int queueId = -1;
 
@@ -282,6 +283,19 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
                     boolean av = list.get(key).isBoolean().booleanValue();
                     if (av) {
                         modeList.addItem(key, key);
+                        if (key.equals("video")) {
+                            // init video library
+                            HashMap<String, String> msg =
+                                new HashMap<String, String>();
+                            msg.put("button", i18nMessages.libUpdateButton(
+                                    i18nConstants.video()));
+                            msg.put("confirmation", i18nMessages
+                                    .libUpdateMessage(i18nConstants.audio()));
+                            msg.put("loading", i18nMessages.libUpdateLoading(
+                                    i18nConstants.video()));
+                            videoLibrary = new LibraryManager(
+                                    WebuiLayout.getInstance(), "video", msg);
+                        }
                     }
                 }
             }

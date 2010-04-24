@@ -182,6 +182,22 @@ public interface WebuiResources extends ClientBundle {
 
     @Source("dialog-warning.png")
     ImageResource dialogWarning();
+
+	ImageResource arrowDown();
+
+	ImageResource arrowDownDisabled();
+
+	ImageResource arrowDownHover();
+
+	ImageResource arrowDownPressed();
+
+	ImageResource arrowUp();
+
+	ImageResource arrowUpDisabled();
+
+	ImageResource arrowUpHover();
+
+	ImageResource arrowUpPressed();
 }
 
 //vim: ts=4 sw=4 expandtab
