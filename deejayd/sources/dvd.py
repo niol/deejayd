@@ -86,7 +86,7 @@ class DvdSource(SignalingComponent):
         uri = "dvd://%d" % self.selected_track["ix"]
         return {"title": self.dvd_info["title"], "type": "video", \
                 "uri": uri, "chapter":self.selected_track["selected_chapter"],\
-                "length": self.selected_track["length"],\
+                "length": str(self.selected_track["length"]),\
                 "id": id, "pos": pos,\
                 "audio": self.selected_track["audio"],\
                 "subtitle": self.selected_track["subp"]}
