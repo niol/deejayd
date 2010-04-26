@@ -34,7 +34,8 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 
-public abstract class WebuiMode extends Composite {
+public abstract class WebuiMode extends Composite
+        implements WebuiModeInterface {
     protected String sourceName;
     protected WebuiLayout ui;
     protected int currentPlayingPos = -1;

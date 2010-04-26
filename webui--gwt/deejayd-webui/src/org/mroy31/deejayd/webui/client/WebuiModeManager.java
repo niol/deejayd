@@ -49,7 +49,7 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
     @UiField(provided = true) final WebuiResources resources;
 
     private WebuiLayout ui;
-    private WebuiMode currentMode;
+    private WebuiModeInterface currentMode;
 
     public WebuiModeManager(WebuiLayout ui) {
         this.resources = ui.resources;
@@ -87,13 +87,14 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
                     return;
 
                 }
-                deckPanel.add(currentMode);
+                deckPanel.add((Widget) currentMode);
                 deckPanel.showWidget(1);
             }
             currentMode.onStatusChange(status);
         }
 
-        private WebuiMode getMode(String sourceName) throws ModeException {
+        private WebuiModeInterface getMode(String sourceName)
+                throws ModeException {
             if (sourceName.equals("playlist")) {
                 return new PlaylistMode(ui);
             } else if (sourceName.equals("webradio")) {
@@ -102,6 +103,8 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
                 return new NavigationPanelMode(ui);
             } else if (sourceName.equals("video")) {
                 return new VideoMode(ui);
+            } else if (sourceName.equals("dvd")) {
+                return new DvdMode(ui);
             }
             throw new ModeException();
         }

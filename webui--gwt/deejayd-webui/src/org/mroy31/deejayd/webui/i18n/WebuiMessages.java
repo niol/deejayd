@@ -53,6 +53,16 @@ public interface WebuiMessages extends CommonI18nMessages {
 
     @DefaultMessage("Edit {0} informations")
     String magicPlsDgCaption(String plsName);
+
+    @DefaultMessage("{0,number} Tracks")
+    @PluralText({"one", "1 Track"})
+    String tracksDesc(@PluralCount int number);
+
+    @DefaultMessage("Track {0,number}")
+    String dvdTrack(int idx);
+
+    @DefaultMessage("Chapter {0,number}")
+    String dvdChapter(int idx);
 }
 
 //vim: ts=4 sw=4 expandtab

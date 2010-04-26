@@ -175,6 +175,14 @@ public class Rpc {
         send("player.goto", args, callback);
     }
 
+    public void goTo(String id, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(id));
+        args.set(1, new JSONString("dvd_id"));
+        args.set(2, new JSONString("dvd"));
+        send("player.goto", args, callback);
+    }
+
     public void getCover(int mediaId, RpcCallback callback) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(mediaId));
@@ -480,6 +488,18 @@ public class Rpc {
         args.set(0, new JSONString(value));
         args.set(1, new JSONString(type));
         send("video.set", args, callback);
+    }
+
+    /*
+     * Dvd Commands
+     */
+
+    public void dvdModeReload(RpcCallback callback) {
+        send("dvd.reload", new JSONArray(), callback);
+    }
+
+    public void dvdGetInfo(RpcCallback callback) {
+        send("dvd.get", new JSONArray(), callback);
     }
 }
 

@@ -239,6 +239,21 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Subtitle Offset")
     String subOffset();
+
+    @DefaultStringValue("Reload")
+    String reload();
+
+    @DefaultStringValue("Dvd")
+    String dvd();
+
+    @DefaultStringValue("Panel Mode")
+    String panel();
+
+    @DefaultStringValue("Webradio")
+    String webradio();
+
+    @DefaultStringValue("Video")
+    String videoMode();
 }
 
 // vim: ts=4 sw=4 expandtab

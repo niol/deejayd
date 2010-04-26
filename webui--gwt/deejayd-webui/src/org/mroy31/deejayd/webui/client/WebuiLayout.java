@@ -246,7 +246,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     }
 
     public void setError(String error) {
-        Window.alert(error);
+        topPanel.add(new Message(error, "error"));
     }
 
     public void load() {
@@ -282,7 +282,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
                 for (String key : list.keySet()) {
                     boolean av = list.get(key).isBoolean().booleanValue();
                     if (av) {
-                        modeList.addItem(key, key);
+                        modeList.addItem(getSourceTitle(key), key);
                         if (key.equals("video")) {
                             // init video library
                             HashMap<String, String> msg =
@@ -398,7 +398,20 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         this.rpc.getStats(new StatsCallback(this));
     }
 
-
+    private String getSourceTitle(String source) {
+        if (source.equals("panel")) {
+            return i18nConstants.panel();
+        } else if (source.equals("playlist")) {
+            return i18nConstants.playlist();
+        } else if (source.equals("webradio")) {
+            return i18nConstants.webradio();
+        } else if (source.equals("video")) {
+            return i18nConstants.videoMode();
+        } else if (source.equals("dvd")) {
+            return i18nConstants.dvd();
+        }
+        return "";
+    }
 }
 
 //vim: ts=4 sw=4 expandtab

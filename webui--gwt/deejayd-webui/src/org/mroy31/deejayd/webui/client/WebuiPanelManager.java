@@ -108,6 +108,8 @@ public class WebuiPanelManager extends Composite
                 return new NavigationPanel(ui);
             } else if (sourceName.equals("video")) {
                 return new VideoPanel(ui);
+            } else if (sourceName.equals("dvd")) {
+                return new DvdPanel(ui);
             }
             throw new ModeException();
         }
