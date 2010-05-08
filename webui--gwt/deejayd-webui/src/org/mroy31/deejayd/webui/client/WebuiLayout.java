@@ -149,6 +149,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     @UiField CheckBox queueRandom;
     @UiField Button queueRemove;
     @UiField Button queueClear;
+    @UiField Label queueLoading;
     @UiField(provided = true) public final WebuiResources resources;
 
     static public WebuiLayout getInstance() {
@@ -181,10 +182,6 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         // Init queue
         queueButton.setText(i18nConstants.queue());
         queueButton.addClickHandler(this);
-        queueBar.setCellVerticalAlignment(queueDesc,
-                HorizontalPanel.ALIGN_MIDDLE);
-        queueToolbar.setCellVerticalAlignment(queueRandom,
-                HorizontalPanel.ALIGN_MIDDLE);
         queueRandom.setText(i18nConstants.random());
         queueRandom.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
             @Override
@@ -198,8 +195,10 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         queueClear.addClickHandler(this);
         queueRemove.setText(i18nConstants.remove());
         queueRemove.addClickHandler(this);
+        DOM.setStyleAttribute(queueLoading.getElement(), "paddingLeft", "10px");
         queueList = new MediaList(this, "queue");
-        queueList.setOption(true, new SongRenderer(this, "queue"));
+        queueList.setOption(true,new SongRenderer(this, "queue", queueLoading));
+
 
         // Init Mode Panel
         panelManager = new WebuiPanelManager(this);
@@ -211,6 +210,13 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         modePanel.add(modeManager);
         mainPanel.add(modePanel);
         modePanel.setSplitPosition(queueList, 0, false);
+    }
+
+    @UiFactory HorizontalPanel makeHPanel() {
+        HorizontalPanel panel = new HorizontalPanel();
+        panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+
+        return panel;
     }
 
     public void onClick(ClickEvent event) {

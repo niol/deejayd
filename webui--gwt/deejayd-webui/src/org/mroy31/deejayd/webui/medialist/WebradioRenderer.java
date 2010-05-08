@@ -28,13 +28,14 @@ import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Label;
 
 public class WebradioRenderer extends MediaListRenderer {
 
-    public WebradioRenderer(WebuiLayout webui, String source) {
-        super(webui, source);
-        // TODO Auto-generated constructor stub
+    public WebradioRenderer(WebuiLayout webui, String source, Label loadZone) {
+        super(webui, source, loadZone);
     }
 
     @Override
@@ -75,7 +76,7 @@ public class WebradioRenderer extends MediaListRenderer {
         playButton.addClickHandler(new PlayRowHandler(id));
         list.setWidget(idx, 1, playButton);
 
-        list.setText(idx, 2, media.get("title").isString().stringValue());
+        list.setWidget(idx, 2, formatTagCell(media, "title"));
         String urlType = media.get("url-type").isString().stringValue();
         String value = "";
         if (urlType.equals("pls")) {
@@ -86,7 +87,9 @@ public class WebradioRenderer extends MediaListRenderer {
                 value += urls.get(i).isString().stringValue()+"<br/>";
             }
         }
-        list.setHTML(idx, 3, value);
+        HTML urlLabel = new HTML(value);
+        urlLabel.addStyleName("gwt-TextOverflow");
+        list.setWidget(idx, 3, urlLabel);
     }
 
 }

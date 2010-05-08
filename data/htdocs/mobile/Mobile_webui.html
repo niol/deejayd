@@ -24,18 +24,45 @@
     <!-- If you add any GWT meta tags, they must   -->
     <!-- be added before this line.                -->
     <!--                                           -->
-    <script type="text/javascript" language="javascript"
-            src="mobile_webui/mobile_webui.nocache.js"></script>
+    <!-- <script type="text/javascript" language="javascript"
+            src="mobile_webui/mobile_webui.nocache.js"></script> -->
+
+    <style>
+        body { width:100%; height:100%; margin: 0px; }
+        div.box {
+            width:100%; height:100%;
+            display: -webkit-box;
+            display: -moz-box;
+            -webkit-box-orient: vertical;
+            -moz-box-orient: vertical;
+        }
+
+        div.topBox {
+            -webkit-box-flex:1;
+            -moz-box-flex:1;
+            background-color: #f00;
+        }
+        div.contentBox {
+            -webkit-box-flex:2;
+            -moz-box-flex:2;
+            background-color: #0f0;
+        }
+        div.bottomBox {
+            -webkit-box-flex:1;
+            -moz-box-flex:1;
+            background-color: #00f;
+        }
+    </style>
+
   </head>
 
   <body>
 
-    <noscript>
-      <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
-        Your web browser must have JavaScript enabled
-        in order for this application to display correctly.
-      </div>
-    </noscript>
+    <div class="box">
+        <div class="topBox">1</div>
+        <div class="contentBox">2</div>
+        <div class="bottomBox">3</div>
+    </div>
 
   </body>
 </html>

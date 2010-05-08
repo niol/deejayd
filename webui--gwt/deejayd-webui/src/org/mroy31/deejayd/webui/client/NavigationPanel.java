@@ -78,7 +78,6 @@ public class NavigationPanel extends WebuiPanel
 
         @Override
         public void onCorrectAnswer(JSONValue data) {
-            // TODO : set message
             updatePlsList();
         }
     }
@@ -315,8 +314,10 @@ public class NavigationPanel extends WebuiPanel
 
     private void clearPlsSelection() {
         for (int idx=0; idx<plsList.getWidgetCount(); idx++) {
-            HorizontalPanel item = (HorizontalPanel) plsList.getWidget(idx);
-            item.removeStyleName(resources.webuiCss().currentItem());
+            try {
+                HorizontalPanel item = (HorizontalPanel) plsList.getWidget(idx);
+                item.removeStyleName(resources.webuiCss().currentItem());
+            } catch (ClassCastException ex) {}
         }
     }
 

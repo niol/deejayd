@@ -27,7 +27,9 @@
         </g:south>
 
         <g:center>
-          <g:Tree ui:field="videoTree"></g:Tree>
+          <g:ScrollPanel>
+            <g:Tree ui:field="videoTree"></g:Tree>
+          </g:ScrollPanel>
         </g:center>
       </g:DockLayoutPanel>
     </g:center>

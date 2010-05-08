@@ -149,6 +149,7 @@ public class PlaylistPanel extends WebuiPanel
             item.add(img);
 
             Label dirName = new Label(dir);
+            dirName.addStyleName(resources.webuiCss().pointerCursor());
             dirName.addClickHandler(new ClickHandler() {
                 public void onClick(ClickEvent event) {
                     buildDirFileList(path);

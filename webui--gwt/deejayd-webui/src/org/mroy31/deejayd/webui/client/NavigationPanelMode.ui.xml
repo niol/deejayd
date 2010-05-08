@@ -18,20 +18,28 @@
                <g:Button ui:field="chooseAllButton"></g:Button>
              </g:HorizontalPanel>
 
-             <g:Label ui:field="descLabel">
+             <g:Label styleName="{resources.webuiCss.toolbarDescLabel}"
+                      ui:field="descLabel">
              </g:Label>
            </g:HorizontalPanel>
        </g:north>
 
        <g:south size="22">
-            <g:FlowPanel styleName="{resources.webuiCss.toolbar}">
-                <g:HorizontalPanel ui:field="bottomToolbar">
+            <g:HorizontalPanel height="100%" ui:field="bottomToolbar"
+                    width="100%" styleName="{resources.webuiCss.toolbar}">
+                <g:HorizontalPanel ui:field="leftBottomToolbar">
                     <g:Button ui:field="goToCurrent"
                         styleName="{resources.webuiCss.modeToolbarButton}
                                    {resources.webuiCss.gotoButton}">
                     </g:Button>
                 </g:HorizontalPanel>
-            </g:FlowPanel>
+
+                <g:HorizontalPanel ui:field="rightBottomToolbar">
+                    <g:Label ui:field="loadLabel"
+                        styleName="{resources.webuiCss.toolbarDescLabel}">
+                    </g:Label>
+                </g:HorizontalPanel>
+            </g:HorizontalPanel>
        </g:south>
   </g:DockLayoutPanel>
 </ui:UiBinder>

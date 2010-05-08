@@ -71,10 +71,8 @@ public abstract class WebuiMode extends Composite
             }
             setDescription(length, timelength);
             mediaId = id;
-            currentPlayingPos = -1;
-        } else { // update current playing state if necessary
-            setCurrentPlaying(status);
         }
+        setCurrentPlaying(status);
 
         if (hasPlayorder) {
             String value = status.get(getSourceName()+"playorder");

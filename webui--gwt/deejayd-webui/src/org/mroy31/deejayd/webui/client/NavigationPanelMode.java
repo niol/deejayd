@@ -143,12 +143,15 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
 
     @UiField DockLayoutPanel mainPanel;
     @UiField HorizontalPanel bottomToolbar;
+    @UiField HorizontalPanel leftBottomToolbar;
+    @UiField HorizontalPanel rightBottomToolbar;
     @UiField HorizontalPanel topToolbar;
     @UiField TextBox searchPattern;
     @UiField ListBox searchType;
     @UiField Button searchClearButton;
     @UiField Button chooseAllButton;
     @UiField Label descLabel;
+    @UiField Label loadLabel;
     @UiField Button goToCurrent;
     @UiField(provided = true) final WebuiResources resources;
     HorizontalPanel tagListPanel = new HorizontalPanel();
@@ -163,14 +166,14 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
         panelLayout.addNorth(tagListPanel, 150);
         tagListPanel.setWidth("100%"); tagListPanel.setHeight("100%");
         mediaList = new MediaList(ui, getSourceName());
-        mediaList.setOption(false, new SongRenderer(ui, "panel"));
+        mediaList.setOption(false, new SongRenderer(ui, "panel", loadLabel));
         panelLayout.add(mediaList);
         mainPanel.add(panelLayout);
 
         topToolbar.setCellHorizontalAlignment(descLabel,
                 HorizontalPanel.ALIGN_RIGHT);
-        topToolbar.setCellVerticalAlignment(descLabel,
-                HorizontalPanel.ALIGN_MIDDLE);
+        bottomToolbar.setCellHorizontalAlignment(rightBottomToolbar,
+                HorizontalPanel.ALIGN_RIGHT);
 
         // build search toolbar
         searchType.addItem(ui.i18nConstants.all(), "all");
@@ -203,7 +206,7 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
         DOM.setStyleAttribute(optionPanel.getElement(), "paddingLeft", "4px");
         optionPanel.add(makePlayorderWidget());
         optionPanel.add(makeRepeatWidget());
-        bottomToolbar.add(optionPanel);
+        leftBottomToolbar.add(optionPanel);
 
         // load tag list
         ui.rpc.panelModeGetTags(new TagListCallback(ui));
@@ -211,6 +214,13 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
 
     @UiFactory MediaList makeMediaList() {
         return new MediaList(ui, getSourceName());
+    }
+
+    @UiFactory HorizontalPanel makeHPanel() {
+        HorizontalPanel panel = new HorizontalPanel();
+        panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+
+        return panel;
     }
 
     @Override

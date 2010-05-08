@@ -37,7 +37,7 @@ public class VideoMode extends DefaultWebuiMode implements ClickHandler {
 
     public VideoMode(WebuiLayout webui) {
         super("video", webui, true, true);
-        mediaList.setOption(false, new VideoRenderer(ui, "video"));
+        mediaList.setOption(false, new VideoRenderer(ui, "video", loadLabel));
     }
 
     @Override
@@ -60,6 +60,7 @@ public class VideoMode extends DefaultWebuiMode implements ClickHandler {
         toolbar.add(optionPanel);
 
         description = new Label();
+        description.addStyleName(resources.webuiCss().toolbarDescLabel());
         toolbar.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
         toolbar.add(description);
     }

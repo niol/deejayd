@@ -31,10 +31,12 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Label;
 
 public abstract class MediaListRenderer {
     protected WebuiLayout ui;
     protected String source;
+    protected Label loadZoneLabel;
 
     /**
      * Handler to update rating of a media
@@ -70,9 +72,15 @@ public abstract class MediaListRenderer {
     /**
      * MediaListRenderer constructor
      */
-    public MediaListRenderer(WebuiLayout webui, String source) {
+    public MediaListRenderer(WebuiLayout webui, String source, Label loadZone) {
         this.ui = webui;
         this.source = source;
+        this.loadZoneLabel = loadZone;
+    }
+
+    public void setLoadText(String text) {
+        if (loadZoneLabel != null)
+            loadZoneLabel.setText(text);
     }
 
     protected Image getPlayButton(int id) {
@@ -90,6 +98,14 @@ public abstract class MediaListRenderer {
         rWidget.addValueChangeHandler(ratingHandler);
 
         return rWidget;
+    }
+
+
+    protected Label formatTagCell(JSONObject media, String tag) {
+        Label label = new Label(media.get(tag).isString().stringValue());
+        label.addStyleName("gwt-TextOverflow");
+
+        return label;
     }
 
     public abstract void formatHeader(FlexTable header, MediaList mediaList);

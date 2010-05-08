@@ -28,6 +28,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
 public abstract class DefaultWebuiMode extends WebuiMode {
@@ -38,7 +39,10 @@ public abstract class DefaultWebuiMode extends WebuiMode {
 
     @UiField MediaList mediaList;
     @UiField HorizontalPanel bottomToolbar;
+    @UiField HorizontalPanel leftBottomToolbar;
+    @UiField HorizontalPanel rightBottomToolbar;
     @UiField HorizontalPanel topToolbar;
+    @UiField Label loadLabel;
     @UiField(provided = true) final WebuiResources resources;
 
 
@@ -48,14 +52,21 @@ public abstract class DefaultWebuiMode extends WebuiMode {
         this.resources = webui.resources;
         initWidget(uiBinder.createAndBindUi(this));
 
-        topToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-        bottomToolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+        bottomToolbar.setCellHorizontalAlignment(rightBottomToolbar,
+                HorizontalPanel.ALIGN_RIGHT);
         buildTopToolbar(topToolbar);
-        buildBottomToolbar(bottomToolbar);
+        buildBottomToolbar(leftBottomToolbar);
     }
 
     @UiFactory MediaList makeMediaList() {
         return new MediaList(ui, getSourceName());
+    }
+
+    @UiFactory HorizontalPanel makeHPanel() {
+        HorizontalPanel panel = new HorizontalPanel();
+        panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+
+        return panel;
     }
 
     public MediaList getMediaList() {

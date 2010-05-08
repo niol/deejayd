@@ -28,11 +28,15 @@ import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ScrollEvent;
+import com.google.gwt.event.dom.client.ScrollHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.IncrementalCommand;
 import com.google.gwt.user.client.ui.CheckBox;
@@ -43,6 +47,7 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class MediaList extends Composite {
+    private final int PAGE_SIZE = 100;
 
     private static MediaListUiBinder uiBinder = GWT
             .create(MediaListUiBinder.class);
@@ -53,6 +58,9 @@ public class MediaList extends Composite {
     private boolean hasSelection = false;
     private MediaListRenderer renderer;
     private MediaFilter filter;
+    private JSONArray mediaListArray;
+    private int lastMediaLoaded = 0;
+    private int currentPlaying = -1;
 
     @UiField FlexTable header;
     @UiField FlexTable mediaList;
@@ -80,36 +88,66 @@ public class MediaList extends Composite {
     }
 
     /**
-     * Incremental command to load media list
+     * Incremental command to load medialist
      *
      */
     private class MedialistUpdate implements IncrementalCommand {
-        private int CHUNKLENGTH = 200;
-        private int lastGet = 0;
-        private JSONArray list;
+        private final int CHUNK_SIZE = 500;
+        private Command onFinish;
+        private int lastItem;
+        private int currentItem = lastMediaLoaded;
 
-        public MedialistUpdate(JSONArray list) {
-            this.list = list;
+        public MedialistUpdate(int lastItem, Command cmd) {
+            this.lastItem = lastItem;
+            this.onFinish = cmd;
         }
 
+        @Override
         public boolean execute() {
-            for (int idx=0; idx<CHUNKLENGTH; idx++) {
-                if (lastGet < list.size()) {
-                    // set style for this row
-                    if ((lastGet % 2) == 0) {
-                        mediaList.getRowFormatter().setStyleName(idx,
-                                resources.webuiCss().oddRow());
-                    }
-                    renderer.formatRow(lastGet, mediaList,
-                            list.get(lastGet).isObject());
-                    lastGet++;
-                } else {
-                    return false;
-                }
+            currentItem = Math.min(lastItem, currentItem+CHUNK_SIZE);
+            for (int idx=lastMediaLoaded; idx<currentItem; idx++) {
+                JSONObject media = mediaListArray.get(idx).isObject();
+                // set style for this row
+                if ((idx % 2) == 0)
+                    mediaList.getRowFormatter().setStyleName(idx,
+                            resources.webuiCss().oddRow());
+
+                renderer.formatRow(idx, mediaList, media);
+            }
+
+            lastMediaLoaded = currentItem;
+            renderer.setLoadText(
+                    ui.i18nMessages.itemLoadedDesc(lastMediaLoaded,
+                    mediaListArray.size()));
+            if (currentItem == lastItem) {
+                mScrollReg = mediaListPanel.addScrollHandler(mScrollHandler);
+                if (currentPlaying != -1 && currentPlaying < lastItem)
+                    mediaList.getRowFormatter().addStyleName(currentPlaying,
+                            resources.webuiCss().currentItem());
+
+                if (onFinish != null)
+                    onFinish.execute();
+                return false;
             }
             return true;
         }
     }
+
+    /**
+     * Medialist scroll handler
+     */
+    private ScrollHandler mScrollHandler = new ScrollHandler() {
+
+        @Override
+        public void onScroll(ScrollEvent event) {
+            int height = mediaList.getOffsetHeight();
+            int scrollPosition = mediaListPanel.getScrollPosition();
+            if ((height - scrollPosition) < 750) {
+                loadMediaList();
+            }
+        }
+    };
+    private HandlerRegistration mScrollReg;
 
     /**
      * MediaList constructor
@@ -132,6 +170,8 @@ public class MediaList extends Composite {
     }
 
     public void update() {
+        removeScrollHandler();
+
         mediaList.removeAllRows();
         mediaList.setWidget(0, 0, new Image(resources.loading()));
         mediaList.setText(0, 2, ui.i18nConstants.loading());
@@ -139,13 +179,28 @@ public class MediaList extends Composite {
     }
 
     public void setMedia(JSONArray list) {
+        renderer.setLoadText("");
         mediaList.removeAllRows();
-        DeferredCommand.addCommand(new MedialistUpdate(list));
+        mediaListArray = list;
+        lastMediaLoaded = 0;
+
+        loadMediaList();
     }
 
-    public void goTo(int pos) {
-        Widget wg = mediaList.getWidget(pos, 0);
-        mediaListPanel.ensureVisible(wg);
+    public void goTo(final int pos) {
+        Command cmd =  new Command() {
+            @Override
+            public void execute() {
+                Widget wg = mediaList.getWidget(pos, 0);
+                mediaListPanel.ensureVisible(wg);
+            }
+        };
+
+        if (pos < lastMediaLoaded)
+            cmd.execute();
+        else
+            loadMediaList(pos+10, cmd);
+
     }
 
     public void checkRow(boolean value) {
@@ -175,13 +230,43 @@ public class MediaList extends Composite {
     }
 
     public void setPlaying(int pos) {
-        mediaList.getRowFormatter().addStyleName(pos,
-                resources.webuiCss().currentItem());
+        if (pos < lastMediaLoaded)
+            mediaList.getRowFormatter().addStyleName(pos,
+                    resources.webuiCss().currentItem());
+        currentPlaying = pos;
     }
 
     public void resetPlaying(int pos) {
-        mediaList.getRowFormatter().removeStyleName(pos,
-                resources.webuiCss().currentItem());
+        if (pos < lastMediaLoaded)
+            mediaList.getRowFormatter().removeStyleName(pos,
+                    resources.webuiCss().currentItem());
+        currentPlaying = -1;
+    }
+
+    private void loadMediaList() {
+        loadMediaList(lastMediaLoaded+PAGE_SIZE);
+    }
+
+    private void loadMediaList(int lastItem) {
+        loadMediaList(lastItem, null);
+    }
+
+    private void loadMediaList(int lastItem, Command onFinish) {
+        removeScrollHandler();
+
+        if (lastMediaLoaded < mediaListArray.size()) {
+            renderer.setLoadText(ui.i18nConstants.loading());
+            lastItem = Math.min(lastItem, mediaListArray.size());
+            DeferredCommand.addCommand(new MedialistUpdate(lastItem, onFinish));
+
+        }
+    }
+
+    private void removeScrollHandler() {
+        if (mScrollReg != null) {
+            mScrollReg.removeHandler();
+            mScrollReg = null;
+        }
     }
 }
 

@@ -63,6 +63,10 @@ public interface WebuiMessages extends CommonI18nMessages {
 
     @DefaultMessage("Chapter {0,number}")
     String dvdChapter(int idx);
+
+    @DefaultMessage("{0,number}/{1,number} items loaded")
+    @PluralText({"one", "1/{1,number} item loaded"})
+    String itemLoadedDesc(@PluralCount int number, int total);
 }
 
 //vim: ts=4 sw=4 expandtab

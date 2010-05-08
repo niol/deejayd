@@ -45,6 +45,7 @@ public interface WebuiResources extends ClientBundle {
         String iconOnlyButton();
         String pointerCursor();
         String disabled();
+        String toolbarDescLabel();
 
         /* message */
         String msgInformation();
@@ -183,21 +184,21 @@ public interface WebuiResources extends ClientBundle {
     @Source("dialog-warning.png")
     ImageResource dialogWarning();
 
-	ImageResource arrowDown();
+    ImageResource arrowDown();
 
-	ImageResource arrowDownDisabled();
+    ImageResource arrowDownDisabled();
 
-	ImageResource arrowDownHover();
+    ImageResource arrowDownHover();
 
-	ImageResource arrowDownPressed();
+    ImageResource arrowDownPressed();
 
-	ImageResource arrowUp();
+    ImageResource arrowUp();
 
-	ImageResource arrowUpDisabled();
+    ImageResource arrowUpDisabled();
 
-	ImageResource arrowUpHover();
+    ImageResource arrowUpHover();
 
-	ImageResource arrowUpPressed();
+    ImageResource arrowUpPressed();
 }
 
 //vim: ts=4 sw=4 expandtab

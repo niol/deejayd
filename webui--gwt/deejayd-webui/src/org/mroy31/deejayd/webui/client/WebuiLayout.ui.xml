@@ -46,6 +46,8 @@
                             {resources.webuiCss.queueToolbarButton}">
                     </g:Button>
                     <g:CheckBox ui:field="queueRandom"></g:CheckBox>
+                    <g:Label styleName="{resources.webuiCss.toolbarDescLabel}"
+                        ui:field="queueLoading"></g:Label>
                 </g:HorizontalPanel>
             </g:HorizontalPanel>
 

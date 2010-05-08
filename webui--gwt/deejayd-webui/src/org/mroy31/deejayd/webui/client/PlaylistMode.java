@@ -67,7 +67,7 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
                 ui.rpc.plsModeSave(plsName, new PlsCallback(ui));
             }
         });
-        mediaList.setOption(true, new SongRenderer(ui, "playlist"));
+        mediaList.setOption(true, new SongRenderer(ui, "playlist", loadLabel));
     }
 
     void buildTopToolbar(HorizontalPanel toolbar) {
@@ -77,6 +77,7 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
         toolbar.add(optionPanel);
 
         description = new Label();
+        description.addStyleName(resources.webuiCss().toolbarDescLabel());
         toolbar.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
         toolbar.add(description);
     }

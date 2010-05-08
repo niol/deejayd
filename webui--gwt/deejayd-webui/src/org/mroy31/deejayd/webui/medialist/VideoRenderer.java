@@ -25,11 +25,12 @@ import org.mroy31.deejayd.webui.client.WebuiLayout;
 
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.Label;
 
 public class VideoRenderer extends MediaListRenderer {
 
-    public VideoRenderer(WebuiLayout webui, String source) {
-        super(webui, source);
+    public VideoRenderer(WebuiLayout webui, String source, Label loadZone) {
+        super(webui, source, loadZone);
     }
 
     @Override
@@ -64,10 +65,11 @@ public class VideoRenderer extends MediaListRenderer {
         int id = (int) media.get("id").isNumber().doubleValue();
 
         list.setWidget(idx, 0, getPlayButton(id));
-        list.setText(idx, 1, media.get("title").isString().stringValue());
-        list.setText(idx, 2, media.get("videowidth").isString().stringValue());
-        list.setText(idx, 3, media.get("videoheight").isString().stringValue());
-        //list.setText(idx, 5, media.get("subtitle").isString().stringValue());
+        list.setWidget(idx, 1,formatTagCell(media, "title"));
+        list.setWidget(idx, 2, formatTagCell(media, "videowidth"));
+        list.setWidget(idx, 3, formatTagCell(media, "videoheight"));
+        String sub = media.get("subtitle").isString().stringValue();
+        list.setText(idx, 5, (sub.equals("") ? "no" : "yes"));
 
         // set medialength
         int l = Integer.parseInt(media.get("length").isString().stringValue());

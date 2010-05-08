@@ -28,11 +28,12 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.Label;
 
 public class SongRenderer extends MediaListRenderer {
 
-    public SongRenderer(WebuiLayout webui, String source) {
-        super(webui, source);
+    public SongRenderer(WebuiLayout webui, String source, Label loadZone) {
+        super(webui, source, loadZone);
     }
 
     @Override
@@ -85,10 +86,10 @@ public class SongRenderer extends MediaListRenderer {
         list.setText(idx, 2, media.get("tracknumber")
                                        .isString().stringValue());
         list.getFlexCellFormatter().setColSpan(idx, 3, 2); // title
-        list.setText(idx, 3, media.get("title").isString().stringValue());
-        list.setText(idx, 4, media.get("artist").isString().stringValue());
-        list.setText(idx, 5, media.get("album").isString().stringValue());
-        list.setText(idx, 6, media.get("genre").isString().stringValue());
+        list.setWidget(idx, 3, formatTagCell(media, "title"));
+        list.setWidget(idx, 4, formatTagCell(media, "artist"));
+        list.setWidget(idx, 5, formatTagCell(media, "album"));
+        list.setWidget(idx, 6, formatTagCell(media, "genre"));
 
         // set medialength
         int length = Integer.parseInt(media.get("length").
@@ -98,7 +99,6 @@ public class SongRenderer extends MediaListRenderer {
         // set rating
         list.setWidget(idx, 8, makeRatingWidget(media));
     }
-
 }
 
 //vim: ts=4 sw=4 expandtab

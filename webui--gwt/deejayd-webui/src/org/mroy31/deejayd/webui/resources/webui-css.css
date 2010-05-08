@@ -44,6 +44,10 @@
 .iconOnlyButton { padding: 0px; border: 0px; }
 .pointerCursor { cursor: pointer; }
 .disabled { color: #888888; }
+.toolbarDescLabel {
+  padding-right: 5px;
+  font-style: italic;
+}
 
 /*
  * Messages

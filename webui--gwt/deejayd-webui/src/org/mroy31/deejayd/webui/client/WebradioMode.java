@@ -40,7 +40,8 @@ public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
 
     public WebradioMode(WebuiLayout ui) {
         super("webradio", ui, false, false);
-        mediaList.setOption(true, new WebradioRenderer(ui, "webradio"));
+        mediaList.setOption(true,
+                new WebradioRenderer(ui, "webradio", loadLabel));
     }
 
     @Override
@@ -54,6 +55,7 @@ public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
     @Override
     void buildTopToolbar(HorizontalPanel toolbar) {
         description = new Label();
+        description.addStyleName(resources.webuiCss().toolbarDescLabel());
         toolbar.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
         toolbar.add(description);
     }
