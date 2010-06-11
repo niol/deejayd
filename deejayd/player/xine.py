@@ -392,7 +392,11 @@ class XinePlayer(UnknownPlayer):
                     self._media_file["uri"] = \
                             self._media_file["urls"]\
                                 [self._media_file["url-index"]].encode("utf-8")
-                    self.start_play()
+                    try:
+                        self.start_play()
+                    except PlayerError:
+                        # This stream is really dead, all its mirrors
+                        pass
                 return False
             else:
                 try: self._media_file.played()
