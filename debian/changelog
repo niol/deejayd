@@ -1,3 +1,14 @@
+deejayd (0.10.0-2~tst+1) UNRELEASED; urgency=low
+
+  * Drop the 'current' keyword in the 'XS-Python-Version' debian/control
+    field to ensure compatibility with newer Python versions without
+    rebuilding.
+  * Simplify debian/rules by removing per-python-version targets which are not
+    needed.
+  * Add the ability to disable the deejayd initscript in /etc/default/deejayd.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 24 Jun 2010 08:25:28 +0200
+
 deejayd (0.10.0-1) unstable; urgency=low
 
   * New upstream version.
