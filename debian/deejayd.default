@@ -1,5 +1,8 @@
 # Defaults for deejayd initscripts
 
+# Whether to run the daemon using the supplied initscript
+DEEJAYD_INITSCRIPT_ENABLED="true"
+
 # Additional options that are passed to the Daemon.
 DEEJAYD_DAEMON_OPTS=""
 

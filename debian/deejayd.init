@@ -35,6 +35,9 @@ SCRIPTNAME=/etc/init.d/$NAME
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
+# Exit if daemon run by initscript is disabled
+[ "$DEEJAYD_INITSCRIPT_ENABLED" = "true" ] || exit 0
+
 DAEMON_ARGS="-u $DAEMON_USER -g audio,cdrom,video -p $PIDFILE -l $LOGFILE -w $WEBUI_LOGFILE $DEEJAYD_DAEMON_OPTS"
 
 # Create logfiles if they do not exist
