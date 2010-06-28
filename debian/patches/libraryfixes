@@ -1,0 +1,18 @@
+changeset:   1550:f11e7ad893a2
+user:        Mickael Royer <mickael.royer@gmail.com>
+date:        Wed Apr 21 13:04:30 2010 +0200
+summary:     [library] Correctly encode root path to avoid UnicodeError exception
+
+diff --git a/deejayd/mediadb/library.py b/deejayd/mediadb/library.py
+--- a/deejayd/mediadb/library.py
++++ b/deejayd/mediadb/library.py
+@@ -70,7 +70,7 @@
+         self._changes_cb = {}
+         self._changes_cb_id = 0
+ 
+-        self._path = os.path.abspath(path)
++        self._path = os.path.abspath(self._encode(path))
+         # test library path
+         if not os.path.isdir(self._path):
+             msg = _("Unable to find directory %s") % self._encode(self._path)
+

@@ -1,4 +1,4 @@
-deejayd (0.10.0-2~tst+1) UNRELEASED; urgency=low
+deejayd (0.10.0-2~tst+2) UNRELEASED; urgency=low
 
   * Drop the 'current' keyword in the 'XS-Python-Version' debian/control
     field to ensure compatibility with newer Python versions without
@@ -8,8 +8,10 @@ deejayd (0.10.0-2~tst+1) UNRELEASED; urgency=low
   * Add the ability to disable the deejayd initscript in /etc/default/deejayd.
   * Update policy to 3.9.0: Handle djc binary package removal with
     Breaks/Replaces instead of Conflicts.
+  * Switch to dpkg-source 3.0 (quilt) format
+  * Add some upstream bugfixes.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 28 Jun 2010 19:27:12 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 28 Jun 2010 21:59:38 +0200
 
 deejayd (0.10.0-1) unstable; urgency=low
 
