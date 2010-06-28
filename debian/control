@@ -46,7 +46,7 @@ Description: Web interface for deejayd
 Package: deejayd-client
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-simplejson | python (>= 2.6)
-Breaks: djc
+Breaks: djc (<= 0.8.1)
 Replaces: djc
 XB-Python-Version: ${python:Versions}
 Description: Client library and command line tool to access the deejayd server
