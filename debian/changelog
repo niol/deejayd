@@ -1,3 +1,9 @@
+deejayd (0.10.0-3~mobilefix+1) UNRELEASED; urgency=low
+
+  * Add patch for Android mobile web ui fix.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 05 Jul 2010 19:46:36 +0000
+
 deejayd (0.10.0-2) unstable; urgency=low
 
   * Drop the 'current' keyword in the 'XS-Python-Version' debian/control
