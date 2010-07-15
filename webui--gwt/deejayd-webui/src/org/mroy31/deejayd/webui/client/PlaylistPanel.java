@@ -22,7 +22,7 @@ package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.events.LibraryChangeEvent;
 import org.mroy31.deejayd.common.events.LibraryChangeHandler;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
@@ -216,7 +216,7 @@ public class PlaylistPanel extends WebuiPanel
         }
     }
 
-    private class DirFileCallback extends GenericRpcCallback {
+    private class DirFileCallback extends DefaultRpcCallback {
         public DirFileCallback(DeejaydUIWidget ui) {	super(ui); }
 
         @Override
@@ -277,7 +277,7 @@ public class PlaylistPanel extends WebuiPanel
 
     }
 
-    private class SearchCallback extends GenericRpcCallback {
+    private class SearchCallback extends DefaultRpcCallback {
         public SearchCallback(DeejaydUIWidget ui) {	super(ui); }
 
         @Override
@@ -295,7 +295,7 @@ public class PlaylistPanel extends WebuiPanel
         }
     }
 
-    private class PanelDefaultCallback extends GenericRpcCallback {
+    private class PanelDefaultCallback extends DefaultRpcCallback {
         private VerticalPanel panel;
         public PanelDefaultCallback(DeejaydUIWidget ui, VerticalPanel panel) {
             super(ui);
@@ -310,12 +310,10 @@ public class PlaylistPanel extends WebuiPanel
                 PanelItem item = (PanelItem) panel.getWidget(idx);
                 item.getCheckBox().setValue(false);
             }
-            // Set message
-            // TODO
         }
     }
 
-    private class PlsListCallback extends GenericRpcCallback {
+    private class PlsListCallback extends DefaultRpcCallback {
         public PlsListCallback(DeejaydUIWidget ui) {	super(ui); }
 
         @Override
@@ -333,12 +331,11 @@ public class PlaylistPanel extends WebuiPanel
         }
     }
 
-    private class PlsEraseCallback extends GenericRpcCallback {
+    private class PlsEraseCallback extends DefaultRpcCallback {
         public PlsEraseCallback(DeejaydUIWidget ui) { super(ui); }
 
         @Override
         public void onCorrectAnswer(JSONValue data) {
-            // TODO : set message
             buildPlsList();
         }
     }

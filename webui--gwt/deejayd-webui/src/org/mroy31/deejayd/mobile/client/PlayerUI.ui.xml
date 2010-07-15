@@ -1,0 +1,39 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+  xmlns:g="urn:import:com.google.gwt.user.client.ui"
+  xmlns:mobile="urn:import:org.mroy31.deejayd.mobile.widgets">
+
+  <ui:with field="resources"
+        type="org.mroy31.deejayd.mobile.resources.MobileResources"/>
+
+  <g:FlowPanel width="100%" addStyleNames="{resources.mobileCss.center}">
+    <g:FlowPanel width="100%" addStyleNames="{resources.mobileCss.center}">
+      <g:HorizontalPanel ui:field="seekBarPanel" width="100%"
+            addStyleNames="{resources.mobileCss.seekBar}">
+        <mobile:TimeSeekBar ui:field="seekBar">
+        </mobile:TimeSeekBar>
+      </g:HorizontalPanel>
+
+      <g:FlowPanel addStyleNames="{resources.mobileCss.coverImg}">
+        <g:Image ui:field="coverImg"></g:Image>
+      </g:FlowPanel>
+
+      <g:FlowPanel addStyleNames="{resources.mobileCss.playerButtonPanel}">
+        <g:Button ui:field="previousButton"
+          addStyleNames="{resources.mobileCss.playerButton}
+                         {resources.mobileCss.previous}"></g:Button>
+        <g:Button ui:field="playToggleButton"
+          addStyleNames="{resources.mobileCss.playerButton}
+                         {resources.mobileCss.play}"></g:Button>
+        <g:Button ui:field="stopButton"
+          addStyleNames="{resources.mobileCss.playerButton}
+                         {resources.mobileCss.stop}"></g:Button>
+        <g:Button ui:field="nextButton"
+          addStyleNames="{resources.mobileCss.playerButton}
+                         {resources.mobileCss.next}"></g:Button>
+      </g:FlowPanel>
+    </g:FlowPanel>
+
+    <mobile:VolumeSlider ui:field="volSlider"></mobile:VolumeSlider>
+  </g:FlowPanel>
+</ui:UiBinder>

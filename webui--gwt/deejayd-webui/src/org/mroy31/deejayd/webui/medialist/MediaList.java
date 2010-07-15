@@ -68,26 +68,6 @@ public class MediaList extends Composite {
     @UiField(provided = true) final WebuiResources resources;
 
     /**
-     * Rpc callback used for source.get command
-     *
-     */
-    private class MediaListCallback extends GenericRpcCallback {
-        public MediaListCallback(WebuiLayout ui) {
-            super(ui);
-        }
-        public void onCorrectAnswer(JSONValue data) {
-            // record filter
-            JSONObject filterObj = data.isObject().get("filter").isObject();
-            if (filterObj != null)
-                filter = MediaFilter.parse(filterObj);
-            else
-                filter = null;
-            JSONArray list = data.isObject().get("medias").isArray();
-            setMedia(list);
-        }
-    }
-
-    /**
      * Incremental command to load medialist
      *
      */
@@ -175,7 +155,25 @@ public class MediaList extends Composite {
         mediaList.removeAllRows();
         mediaList.setWidget(0, 0, new Image(resources.loading()));
         mediaList.setText(0, 2, ui.i18nConstants.loading());
-        ui.rpc.send(source+".get", new JSONArray(), new MediaListCallback(ui));
+        ui.rpc.send(source+".get", new JSONArray(), new GenericRpcCallback() {
+
+            @Override
+            public void setError(String error) {
+                ui.setError(error);
+            }
+
+            @Override
+            public void onCorrectAnswer(JSONValue data) {
+                // record filter
+                JSONObject filterObj = data.isObject().get("filter").isObject();
+                if (filterObj != null)
+                    filter = MediaFilter.parse(filterObj);
+                else
+                    filter = null;
+                JSONArray list = data.isObject().get("medias").isArray();
+                setMedia(list);
+            }
+        });
     }
 
     public void setMedia(JSONArray list) {

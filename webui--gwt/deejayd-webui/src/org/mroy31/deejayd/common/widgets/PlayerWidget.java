@@ -20,7 +20,7 @@
 
 package org.mroy31.deejayd.common.widgets;
 
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
@@ -29,28 +29,28 @@ import com.google.gwt.user.client.ui.Composite;
 
 public abstract class PlayerWidget extends Composite {
 
-	/*
-	 * RPC callbacks
-	 */
-	protected class CoverCallback extends GenericRpcCallback {
-		public CoverCallback(DeejaydUIWidget ui) {super(ui);}
-		public void onCorrectAnswer(JSONValue data) {
-			JSONString cover = data.isObject().get("cover").isString();
-			updateCover(cover);
-		}
-	}
+    /*
+     * RPC callbacks
+     */
+    protected class CoverCallback extends DefaultRpcCallback {
+        public CoverCallback(DeejaydUIWidget ui) {super(ui);}
+        public void onCorrectAnswer(JSONValue data) {
+            JSONString cover = data.isObject().get("cover").isString();
+            updateCover(cover);
+        }
+    }
 
-	protected class CurrentCallback extends GenericRpcCallback {
-		public CurrentCallback(DeejaydUIWidget ui) {super(ui);}
-		public void onCorrectAnswer(JSONValue data) {
-			JSONObject media = data.isObject().get("medias")
-								   .isArray().get(0).isObject();
-			formatCurrentTitle(media);
-		}
-	}
+    protected class CurrentCallback extends DefaultRpcCallback {
+        public CurrentCallback(DeejaydUIWidget ui) {super(ui);}
+        public void onCorrectAnswer(JSONValue data) {
+            JSONObject media = data.isObject().get("medias")
+                                   .isArray().get(0).isObject();
+            formatCurrentTitle(media);
+        }
+    }
 
-	abstract protected void updateCover(JSONString cover);
-	abstract protected void formatCurrentTitle(JSONObject media);
+    abstract protected void updateCover(JSONString cover);
+    abstract protected void formatCurrentTitle(JSONObject media);
 }
 
 //vim: ts=4 sw=4 expandtab

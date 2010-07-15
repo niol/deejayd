@@ -22,6 +22,7 @@ package org.mroy31.deejayd.webui.widgets;
 
 import org.mroy31.deejayd.common.rpc.BasicFilter;
 import org.mroy31.deejayd.common.rpc.ComplexFilter;
+import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.rpc.MediaFilter;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
@@ -154,8 +155,12 @@ public class MagicPlsDialogContent extends Composite implements ClickHandler {
         rulesList.clear();
         if (loadFilter) {
             // get filter list
-            class GetFilterCallback extends GenericRpcCallback {
-                public GetFilterCallback(WebuiLayout webui) { super(webui); }
+            ui.rpc.recPlsGet(this.plsId, new GenericRpcCallback() {
+
+                @Override
+                public void setError(String error) {
+                    ui.setError(error);
+                }
 
                 @Override
                 public void onCorrectAnswer(JSONValue data) {
@@ -169,15 +174,18 @@ public class MagicPlsDialogContent extends Composite implements ClickHandler {
                             addFilter(filters[idx]);
                     }
                 }
-            }
-            ui.rpc.recPlsGet(this.plsId, new GetFilterCallback(ui));
+            });
         } else {
             addFilter(null);
         }
 
         // get properties
-        class GetPropertiesCallback extends GenericRpcCallback {
-            public GetPropertiesCallback(WebuiLayout webui) { super(webui); }
+        ui.rpc.recPlsMagicGetProperties(plsId, new GenericRpcCallback() {
+
+            @Override
+            public void setError(String error) {
+                ui.setError(error);
+            }
 
             @Override
             public void onCorrectAnswer(JSONValue data) {
@@ -196,12 +204,11 @@ public class MagicPlsDialogContent extends Composite implements ClickHandler {
                 limitSortRevert.setValue(properties.get("limit-sort-direction")
                         .isString().stringValue().equals("ascending"));
             }
-        }
-        ui.rpc.recPlsMagicGetProperties(plsId, new GetPropertiesCallback(ui));
+        });
     }
 
     public void save() {
-        class NullCallback extends GenericRpcCallback {
+        class NullCallback extends DefaultRpcCallback {
             public NullCallback(WebuiLayout ui) { super(ui); }
 
             @Override

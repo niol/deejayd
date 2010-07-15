@@ -84,7 +84,7 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
         }
     }
 
-    private class TagListCallback extends GenericRpcCallback {
+    private class TagListCallback extends DefaultRpcCallback {
         public TagListCallback(WebuiLayout webui) { super(webui); }
 
         @Override
@@ -101,7 +101,7 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
         }
     }
 
-    private class BuildPanelCallback extends GenericRpcCallback {
+    private class BuildPanelCallback extends DefaultRpcCallback {
         public BuildPanelCallback(WebuiLayout webui) { super(webui); }
 
         @Override
@@ -256,8 +256,12 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
 
     @Override
     protected void customUpdate() {
-        class ActiveListCallback extends GenericRpcCallback {
-            public ActiveListCallback(WebuiLayout webui) { super(webui); }
+        ui.rpc.panelModeActiveList(new GenericRpcCallback() {
+
+            @Override
+            public void setError(String error) {
+                ui.setError(error);
+            }
 
             @Override
             public void onCorrectAnswer(JSONValue data) {
@@ -276,8 +280,7 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
                     updatedTag = null;
                 }
             }
-        }
-        ui.rpc.panelModeActiveList(new ActiveListCallback(ui));
+        });
     }
 
     private void updateSearch() {

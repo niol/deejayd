@@ -156,8 +156,12 @@ public class VideoPanel extends WebuiPanel
     }
 
     private void buildTree(final String rPath, final TreeItem parent) {
-        class GetDirCallback extends GenericRpcCallback {
-            public GetDirCallback(WebuiLayout webui) {super(webui); }
+        ui.rpc.libGetDirectory("video", rPath, new GenericRpcCallback() {
+
+            @Override
+            public void setError(String error) {
+                ui.setError(error);
+            }
 
             @Override
             public void onCorrectAnswer(JSONValue data) {
@@ -171,9 +175,7 @@ public class VideoPanel extends WebuiPanel
                     buildTree(path, item);
                 }
             }
-        }
-
-        ui.rpc.libGetDirectory("video", rPath, new GetDirCallback(ui));
+        });
     }
 }
 

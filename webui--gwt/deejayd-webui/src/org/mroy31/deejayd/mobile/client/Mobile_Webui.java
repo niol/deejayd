@@ -20,11 +20,7 @@
 
 package org.mroy31.deejayd.mobile.client;
 
-import org.mroy31.deejayd.common.rpc.Rpc;
-
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.RootPanel;
 
 /**
@@ -32,19 +28,14 @@ import com.google.gwt.user.client.ui.RootPanel;
  */
 public class Mobile_Webui implements EntryPoint {
 
-	public Rpc rpc;
+    /**
+     * This is the entry point method.
+     */
+    public void onModuleLoad() {
 
-	/**
-	 * This is the entry point method.
-	 */
-	public void onModuleLoad() {
-		// init RPC
-		this.rpc = new Rpc();
-
-		FlowPanel mainPanel = new FlowPanel();
-		mainPanel.add(new HTML("Zboub"));
-		mainPanel.add(new HTML("Zboub"));
-
-		RootPanel.get().add(mainPanel);
-	}
+        MobileLayout panel = MobileLayout.getInstance();
+        RootPanel.get().add(panel);
+    }
 }
+
+//vim: ts=4 sw=4 expandtab

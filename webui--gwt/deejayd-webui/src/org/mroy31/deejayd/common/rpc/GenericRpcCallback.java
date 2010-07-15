@@ -22,8 +22,6 @@ package org.mroy31.deejayd.common.rpc;
 
 import java.util.ArrayList;
 
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
-
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.json.client.JSONException;
@@ -33,17 +31,10 @@ import com.google.gwt.json.client.JSONValue;
 
 
 public abstract class GenericRpcCallback implements RpcCallback {
-    public DeejaydUIWidget ui;
     private ArrayList<RpcHandler> handlers;
 
-    public GenericRpcCallback(DeejaydUIWidget ui) {
-        this.ui = ui;
-    }
-
     public abstract void onCorrectAnswer(JSONValue data);
-    public void setError(String error) {
-        ui.setError(error);
-    }
+    public abstract void setError(String error);
 
     public void onResponseReceived(Request request, Response response) {
         for (RpcHandler h : handlers)

@@ -25,9 +25,10 @@ import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import com.google.gwt.json.client.JSONValue;
 
 public class DefaultRpcCallback extends GenericRpcCallback {
+    DeejaydUIWidget ui;
 
     public DefaultRpcCallback(DeejaydUIWidget ui) {
-        super(ui);
+       this.ui = ui;
     }
 
     @Override
@@ -35,6 +36,10 @@ public class DefaultRpcCallback extends GenericRpcCallback {
         ui.update();
     }
 
+    @Override
+    public void setError(String error) {
+        ui.setError(error);
+    }
 }
 
 //vim: ts=4 sw=4 expandtab

@@ -21,7 +21,6 @@
 package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.medialist.SongRenderer;
@@ -44,7 +43,7 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
     private Button goToCurrent;
     private Button plsSave;
 
-    private class PlsCallback extends GenericRpcCallback {
+    private class PlsCallback extends DefaultRpcCallback {
         public PlsCallback(DeejaydUIWidget ui) { super(ui); }
 
         @Override

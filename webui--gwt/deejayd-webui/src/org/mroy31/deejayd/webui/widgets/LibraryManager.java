@@ -50,15 +50,19 @@ public class LibraryManager extends Composite implements StatsChangeHandler,
 
     Timer updateTimer = new Timer() {
         public void run() {
-            class UpdateTimerCallback extends GenericRpcCallback {
-                public UpdateTimerCallback(DeejaydUIWidget ui) { super(ui); }
+            ui.rpc.getStatus(new GenericRpcCallback() {
+
+                @Override
+                public void setError(String error) {
+                    ui.setError(error);
+                }
 
                 @Override
                 public void onCorrectAnswer(JSONValue data) {
                     JSONValue idValue = data.isObject()
-                                            .get(libraryType+"_updating_db");
+                            .get(libraryType+"_updating_db");
                     JSONValue errorMsg = data.isObject()
-                                            .get(libraryType+"_updating_error");
+                            .get(libraryType+"_updating_error");
                     if (idValue == null) {
                         // library update is finished
                         stopUpdate();
@@ -82,8 +86,7 @@ public class LibraryManager extends Composite implements StatsChangeHandler,
                     updateButton.setText(messages.get("button"));
                     updateButton.setEnabled(true);
                 }
-            }
-            ui.rpc.getStatus(new UpdateTimerCallback(ui));
+            });
         }
     };
 
@@ -118,8 +121,12 @@ public class LibraryManager extends Composite implements StatsChangeHandler,
 
     @Override
     public void onClick(ClickEvent event) {
-        class LibraryCallback extends GenericRpcCallback {
-            public LibraryCallback(DeejaydUIWidget ui) { super(ui); }
+        ui.rpc.libUpdate(libraryType, new GenericRpcCallback() {
+
+            @Override
+            public void setError(String error) {
+                ui.setError(error);
+            }
 
             @Override
             public void onCorrectAnswer(JSONValue data) {
@@ -131,8 +138,7 @@ public class LibraryManager extends Composite implements StatsChangeHandler,
                 updateButton.setEnabled(false);
                 updateTimer.scheduleRepeating(800);
             }
-        }
-        ui.rpc.libUpdate(libraryType, new LibraryCallback(ui));
+        });
     }
 }
 

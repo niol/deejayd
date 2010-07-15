@@ -10,9 +10,9 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
-    <!-- Specific for iphone / ipod touch
+    <!-- Specific for iphone / ipod touch -->
     <meta name="viewport" content="user-scalable=no, width=device-width">
-    <link rel="apple-touch-icon" href="./css/deejayd.jpg"/>
+    <link rel="apple-touch-icon" href="./style/deejayd.jpg"/>
 
     <!--                                           -->
     <!-- Any title is fine                         -->
@@ -24,33 +24,54 @@
     <!-- If you add any GWT meta tags, they must   -->
     <!-- be added before this line.                -->
     <!--                                           -->
-    <!-- <script type="text/javascript" language="javascript"
-            src="mobile_webui/mobile_webui.nocache.js"></script> -->
+    <script type="text/javascript" language="javascript"
+            src="mobile_webui/mobile_webui.nocache.js"></script>
 
     <style>
-        body { width:100%; height:100%; margin: 0px; }
-        div.box {
-            width:100%; height:100%;
-            display: -webkit-box;
-            display: -moz-box;
-            -webkit-box-orient: vertical;
-            -moz-box-orient: vertical;
+        * { margin: 0; padding: 0; }
+        a { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+        body {
+            width: 100%;
+            overflow-x: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -webkit-text-size-adjust: none;
+            -moz-text-size-adjust: none;
+            font-family: Helvetica;
+            -webkit-perspective: 800;
+            -webkit-transform-style: preserve-3d;
+            background-color: rgb(94, 94, 101);
         }
-
-        div.topBox {
-            -webkit-box-flex:1;
-            -moz-box-flex:1;
-            background-color: #f00;
+        .gwt-Selectable, input, textarea {
+            -webkit-user-select: auto;
         }
-        div.contentBox {
-            -webkit-box-flex:2;
-            -moz-box-flex:2;
-            background-color: #0f0;
+        .gwt-Body > * {
+            background: -webkit-gradient(linear, 0% 0, 0% 100%,
+                            from(rgb(51, 51, 51)), to(rgb(94, 94, 101)));
+            background: -moz-linear-gradient(top,
+                            rgb(51, 51, 51), rgb(94, 94, 101));
+            -webkit-backface-visibility: hidden;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            display: none;
+            position: absolute;
+            left: 0;
+            width: 100%; height: 100%;
+            -webkit-transform: translate3d(0,0,0) rotate(0) scale(1);
+            min-height: 420px !important;
         }
-        div.bottomBox {
-            -webkit-box-flex:1;
-            -moz-box-flex:1;
-            background-color: #00f;
+        .gwt-ListPanel li {
+            background: -webkit-gradient(linear, 0% 0, 0% 100%,
+                            from(rgb(76, 77, 78)), to(rgb(64, 65, 66)));
+            background: -moz-linear-gradient(top,
+                            rgb(76, 77, 78), rgb(64, 65, 66));
+        }
+        .gwt-TextOverflow {
+            overflow: hidden;
+            white-space: nowrap;
+            width: 100%;
+            text-overflow: ellipsis;
+            -moz-binding: url('style/mozbinding.xml#ellipsis');
         }
     </style>
 
@@ -58,11 +79,12 @@
 
   <body>
 
-    <div class="box">
-        <div class="topBox">1</div>
-        <div class="contentBox">2</div>
-        <div class="bottomBox">3</div>
-    </div>
+    <noscript>
+      <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+        Your web browser must have JavaScript enabled
+        in order for this application to display correctly.
+      </div>
+    </noscript>
 
   </body>
 </html>

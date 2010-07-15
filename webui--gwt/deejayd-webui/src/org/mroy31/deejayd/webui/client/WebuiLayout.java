@@ -25,7 +25,6 @@ import java.util.HashMap;
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.rpc.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
@@ -210,6 +209,8 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         modePanel.add(modeManager);
         mainPanel.add(modePanel);
         modePanel.setSplitPosition(queueList, 0, false);
+
+        load();
     }
 
     @UiFactory HorizontalPanel makeHPanel() {
@@ -255,8 +256,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         topPanel.add(new Message(error, "error"));
     }
 
-    public void load() {
-        super.load();
+    private void load() {
         this.rpc.addRpcHandler(new RpcHandler() {
 
             @Override
@@ -281,7 +281,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         audioLibrary = new LibraryManager(this, "audio", messages);
 
         // load mode list
-        class Callback extends GenericRpcCallback {
+        class Callback extends DefaultRpcCallback {
             public Callback(DeejaydUIWidget ui) {super(ui);}
             public void onCorrectAnswer(JSONValue data) {
                 JSONObject list = data.isObject();
@@ -312,7 +312,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
 
     @Override
     public void update() {
-        class StatusCallback extends GenericRpcCallback {
+        class StatusCallback extends DefaultRpcCallback {
             public StatusCallback(DeejaydUIWidget ui) {super(ui);}
             public void onCorrectAnswer(JSONValue data) {
                 JSONObject obj = data.isObject();
@@ -380,7 +380,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         }
         this.rpc.getStatus(new StatusCallback(this));
 
-        class StatsCallback extends GenericRpcCallback {
+        class StatsCallback extends DefaultRpcCallback {
             public StatsCallback(DeejaydUIWidget ui) {super(ui);}
             public void onCorrectAnswer(JSONValue data) {
                 JSONObject obj = data.isObject();

@@ -33,7 +33,7 @@ import com.google.gwt.user.client.ui.Composite;
 
 public abstract class DeejaydUIWidget extends Composite
         implements HasStatusChangeHandlers, HasStatsChangeHandlers {
-    public Rpc rpc;
+    public final Rpc rpc = new Rpc();
 
     @Override
     public HandlerRegistration addStatusChangeHandler(
@@ -45,11 +45,6 @@ public abstract class DeejaydUIWidget extends Composite
     public HandlerRegistration addStatsChangeHandler(
             StatsChangeHandler handler) {
         return addHandler(handler, StatsChangeEvent.getType());
-    }
-
-    public void load() {
-        // init RPC
-        this.rpc = new Rpc();
     }
 
     abstract public void update();

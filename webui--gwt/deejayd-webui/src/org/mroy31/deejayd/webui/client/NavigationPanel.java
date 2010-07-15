@@ -73,7 +73,7 @@ public class NavigationPanel extends WebuiPanel
     private NewPlsDialog magicDg;
     private MagicPlsDialog magicEditDg = new MagicPlsDialog();
 
-    private class PlsEraseCallback extends GenericRpcCallback {
+    private class PlsEraseCallback extends DefaultRpcCallback {
         public PlsEraseCallback(DeejaydUIWidget ui) { super(ui); }
 
         @Override
@@ -148,25 +148,28 @@ public class NavigationPanel extends WebuiPanel
         staticDg = new NewPlsDialog(new NewPlsDialog.PlsCommand() {
             @Override
             public void execute(String plsName) {
-                class Callback extends GenericRpcCallback {
-                    public Callback(WebuiLayout webui) {
-                        super(webui);
+                ui.rpc.recPlsCreate(plsName,"static",new GenericRpcCallback() {
+
+                    @Override
+                    public void setError(String error) {
+                        ui.setError(error);
                     }
 
                     @Override
                     public void onCorrectAnswer(JSONValue data) {
                         updatePlsList();
                     }
-                }
-                ui.rpc.recPlsCreate(plsName, "static", new Callback(ui));
+                });
             }
         });
         magicDg = new NewPlsDialog(new NewPlsDialog.PlsCommand() {
             @Override
             public void execute(String plsName) {
-                class Callback extends GenericRpcCallback {
-                    public Callback(WebuiLayout webui) {
-                        super(webui);
+                ui.rpc.recPlsCreate(plsName, "magic", new GenericRpcCallback() {
+
+                    @Override
+                    public void setError(String error) {
+                        ui.setError(error);
                     }
 
                     @Override
@@ -179,8 +182,7 @@ public class NavigationPanel extends WebuiPanel
                         magicEditDg.center();
                         updatePlsList();
                     }
-                }
-                ui.rpc.recPlsCreate(plsName, "magic", new Callback(ui));
+                });
             }
         });
 
@@ -213,8 +215,12 @@ public class NavigationPanel extends WebuiPanel
     }
 
     private void updateActiveList() {
-        class ActiveListCallback extends GenericRpcCallback {
-            public ActiveListCallback(WebuiLayout ui) { super(ui); }
+        ui.rpc.panelModeActiveList(new GenericRpcCallback() {
+
+            @Override
+            public void setError(String error) {
+                ui.setError(error);
+            }
 
             @Override
             public void onCorrectAnswer(JSONValue data) {
@@ -238,12 +244,11 @@ public class NavigationPanel extends WebuiPanel
                     setPlsSelection(pls);
                 }
             }
-        }
-        ui.rpc.panelModeActiveList(new ActiveListCallback(ui));
+        });
     }
 
     private void updatePlsList() {
-        class PlsListCallback extends GenericRpcCallback {
+        class PlsListCallback extends DefaultRpcCallback {
             public PlsListCallback(WebuiLayout ui) { super(ui); }
 
             @Override

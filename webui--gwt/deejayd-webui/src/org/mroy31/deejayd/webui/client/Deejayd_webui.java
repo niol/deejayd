@@ -40,7 +40,6 @@ public class Deejayd_webui implements EntryPoint {
 
         WebuiLayout ui = WebuiLayout.getInstance();
         RootLayoutPanel.get().add(ui);
-        ui.load();
     }
 
 }

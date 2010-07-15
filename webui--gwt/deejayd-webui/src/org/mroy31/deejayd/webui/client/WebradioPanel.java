@@ -25,7 +25,6 @@ import java.util.HashMap;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LoadingWidget;
@@ -85,7 +84,7 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
     private String categorie = null;
     private HashMap<String, Boolean> sourceList = new HashMap<String, Boolean>();
 
-    private class SourceRpcCallback extends GenericRpcCallback {
+    private class SourceRpcCallback extends DefaultRpcCallback {
         public SourceRpcCallback(DeejaydUIWidget ui) { super(ui); }
 
         @Override
@@ -116,7 +115,7 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         }
     }
 
-    private class WbAddCallback extends GenericRpcCallback {
+    private class WbAddCallback extends DefaultRpcCallback {
         public WbAddCallback(DeejaydUIWidget ui) {super(ui);}
         public void onCorrectAnswer(JSONValue data) {
             nameInput.setValue("");
@@ -125,7 +124,7 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         }
     }
 
-    private class WbSourceListCallback extends GenericRpcCallback {
+    private class WbSourceListCallback extends DefaultRpcCallback {
         public WbSourceListCallback(WebuiLayout ui) {super(ui);}
         public void onCorrectAnswer(JSONValue data) {
             JSONObject list = data.isObject();
@@ -156,7 +155,7 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
 
     }
 
-    private class WbCategoriesListCallback extends GenericRpcCallback {
+    private class WbCategoriesListCallback extends DefaultRpcCallback {
         public WbCategoriesListCallback(WebuiLayout ui) {super(ui);}
         public void onCorrectAnswer(JSONValue data) {
             categoriesList.clear();

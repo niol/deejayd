@@ -23,7 +23,6 @@ package org.mroy31.deejayd.webui.client;
 import java.util.HashMap;
 
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LoadingWidget;
@@ -54,7 +53,7 @@ public class DvdMode extends Composite implements WebuiModeInterface {
     interface DvdModeUiBinder extends UiBinder<Widget, DvdMode> {}
 
 
-    private class InfoCallback extends GenericRpcCallback {
+    private class InfoCallback extends DefaultRpcCallback {
 
         private class DvdItem extends HorizontalPanel {
             public DvdItem(String title, int length, final String id) {
@@ -64,7 +63,7 @@ public class DvdMode extends Composite implements WebuiModeInterface {
                 playButton.addClickHandler(new ClickHandler() {
                     @Override
                     public void onClick(ClickEvent event) {
-                        ui.rpc.goTo(id, new DefaultRpcCallback(webui));
+                        webui.rpc.goTo(id, new DefaultRpcCallback(webui));
                     }
                 });
                 add(playButton);
