@@ -541,9 +541,9 @@ class DeejaydPlaylistModeJSONRPC(_DeejaydModeJSONRPC):
 
     @returns_answer('ack', params=[\
             {"name":"ids", "type":"int-list", "req":True},
-            {"name":"pos", "type":"int", "req":True}])
-    def jsonrpc_move(self, ids, pos):
-        """Move songs with id in "ids" to position "pos"."""
+            {"name":"pos", "type":"int", "req":False}])
+    def jsonrpc_move(self, ids, pos=-1):
+        """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)"""
         self.source.move(ids, pos, objanswer=False)
 
 
@@ -630,9 +630,9 @@ class DeejaydQueueJSONRPC(_DeejaydModeJSONRPC):
 
     @returns_answer('ack', params=[\
             {"name":"ids", "type":"int-list", "req":True},
-            {"name":"pos", "type":"int", "req":True}])
-    def jsonrpc_move(self, ids, pos):
-        """Move songs with id in "ids" to position "pos"."""
+            {"name":"pos", "type":"int", "req":False}])
+    def jsonrpc_move(self, ids, pos = -1):
+        """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the queue (default)."""
         self.source.move(ids, pos, objanswer=False)
 
     @returns_answer('ack')

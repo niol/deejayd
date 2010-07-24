@@ -80,7 +80,8 @@ class SimpleMediaList(object):
         self.add_media(medias)
 
     def add_media(self, medias, first_pos = None):
-        first_pos = first_pos or len(self._order)
+        if first_pos is None:
+            first_pos = len(self._order)
 
         for index, m in enumerate(medias):
             id = self._set_media_id()
@@ -183,9 +184,12 @@ class UnsortedMediaList(_MediaList):
         missing_ids = [id for id in ids if id not in self._order]
         if missing_ids: return False
 
-        s_list = [id for id in self._order[:new_pos] if id not in ids]
-        e_list = [id for id in self._order[new_pos:] if id not in ids]
-        self._order = s_list + ids + e_list
+        if (new_pos != -1):
+            s_list = [id for id in self._order[:new_pos] if id not in ids]
+            e_list = [id for id in self._order[new_pos:] if id not in ids]
+            self._order = s_list + ids + e_list
+        else:
+            self._order = [id for id in self._order if id not in ids] + ids
         self.list_id += 1
         return True
 

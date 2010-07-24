@@ -16,10 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, locale
 import cPickle as pickle
 
-from twisted.internet import reactor
 from deejayd import mediafilters
 from deejayd.interfaces import DeejaydError
 from deejayd.component import SignalingComponent
@@ -225,7 +223,7 @@ class _BaseAudioLibSource(_BaseLibrarySource):
             raise SourceError(_("One of these ids %s not found") % \
                 ",".join(map(str, song_ids)))
         self._media_list.add_media(medias, pos)
-        if pos: self._media_list.reload_item_pos(self._current)
+        if pos is not None: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)
 
     def add_path(self, paths, pos = None):
@@ -237,7 +235,7 @@ class _BaseAudioLibSource(_BaseLibrarySource):
                 except NotFoundException:
                     raise SourceError(_("%s not found") % path)
         self._media_list.add_media(medias, pos)
-        if pos: self._media_list.reload_item_pos(self._current)
+        if pos is not None: self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)
 
     def load_playlist(self, pl_ids, pos = None):
