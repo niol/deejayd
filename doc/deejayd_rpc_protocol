@@ -460,11 +460,11 @@ Expected return value : ''`['fileAndDirList']`''
 
 ==== `playlist.move` ====
 
-Move songs with id in "ids" to position "pos".
+Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
-  * {{{pos}}} (Mandatory) : int
+  * {{{pos}}} (Optional) : int
 
 Expected return value : ''`['ack']`''
 
@@ -859,11 +859,11 @@ Expected return value : ''`['dvdInfo']`''
 
 ==== `queue.move` ====
 
-Move songs with id in "ids" to position "pos".
+Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the queue (default).
 
 Arguments :
   * {{{ids}}} (Mandatory) : int-list
-  * {{{pos}}} (Mandatory) : int
+  * {{{pos}}} (Optional) : int
 
 Expected return value : ''`['ack']`''
 
