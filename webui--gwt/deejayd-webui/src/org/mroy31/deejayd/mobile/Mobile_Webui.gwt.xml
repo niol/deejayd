@@ -14,6 +14,9 @@
   <!-- Default locale -->
   <set-property-fallback name="locale" value="en"/>
 
+  <!-- Only support gecko and webkit -->
+  <set-property name="user.agent" value="safari,gecko1_8"/>
+
   <define-property name="mobile.user.agent" values="mobilesafari, none"/>
   <property-provider name="mobile.user.agent"><![CDATA[
     var ua = navigator.userAgent.toLowerCase();
