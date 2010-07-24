@@ -25,6 +25,15 @@ import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import org.mroy31.deejayd.webui.events.DragEnterEvent;
+import org.mroy31.deejayd.webui.events.DragEnterHandler;
+import org.mroy31.deejayd.webui.events.DragLeaveEvent;
+import org.mroy31.deejayd.webui.events.DragLeaveHandler;
+import org.mroy31.deejayd.webui.events.DragOverEvent;
+import org.mroy31.deejayd.webui.events.DragOverHandler;
+import org.mroy31.deejayd.webui.events.DropEvent;
+import org.mroy31.deejayd.webui.events.DropHandler;
+import org.mroy31.deejayd.webui.events.HasDropHandlers;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.widgets.LoadingWidget;
@@ -34,6 +43,7 @@ import org.mroy31.deejayd.webui.widgets.NewPlsDialog;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
@@ -42,7 +52,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Hidden;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -73,6 +83,116 @@ public class NavigationPanel extends WebuiPanel
     private NewPlsDialog magicDg;
     private MagicPlsDialog magicEditDg = new MagicPlsDialog();
 
+    private class PlsItem extends Composite implements HasDropHandlers {
+        private String plsId;
+
+        public PlsItem(JSONObject plsObj) {
+            String type = plsObj.get("type").isString().stringValue();
+            String name = plsObj.get("name").isString().stringValue();
+            int id = (int) plsObj.get("id").isNumber().doubleValue();
+            plsId = Integer.toString(id);
+
+            HorizontalPanel item = new HorizontalPanel();
+            item.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+            item.setWidth("100%");
+
+            HorizontalPanel desc = new HorizontalPanel();
+            desc.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+            desc.setSpacing(3);
+            desc.setStyleName(resources.webuiCss().pointerCursor());
+
+            ClickHandler handler = new PlsClickHandler(plsId);
+            Image img = new Image(resources.playlist());
+            if (type.equals("magic"))
+                img = new Image(resources.magicPlaylist());
+            img.addClickHandler(handler);
+            desc.add(img);
+            Label label = new Label(name);
+            label.addClickHandler(handler);
+            desc.add(label);
+            item.add(desc);
+
+            item.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
+            HorizontalPanel actionPanel = new HorizontalPanel();
+            actionPanel.setSpacing(3);
+            if (type.equals("magic")) {
+                Button editButton = new Button();
+                editButton.setStyleName(
+                        resources.webuiCss().editButton()+" "+
+                        resources.webuiCss().iconOnlyButton());
+                editButton.addClickHandler(new PlsEditHandler(plsId, name));
+                actionPanel.add(editButton);
+            }
+            Button removeButton = new Button();
+            removeButton.setStyleName(
+                    resources.webuiCss().clearButton()+" "+
+                    resources.webuiCss().iconOnlyButton());
+            removeButton.addClickHandler(new PlsRemoveHandler(plsId));
+            actionPanel.add(removeButton);
+            item.add(actionPanel);
+
+            initWidget(item);
+            if (type.equals("static")) {
+                addDragEnterHandler(new DragEnterHandler() {
+                    @Override
+                    public void onDragEnter(DragEnterEvent event) {
+                        addStyleName(ui.resources.webuiCss().mlRowOver());
+                    }
+                });
+                addDragLeaveHandler(new DragLeaveHandler() {
+                    @Override
+                    public void onDragLeave(DragLeaveEvent event) {
+                        removeStyleName(ui.resources.webuiCss().mlRowOver());
+                    }
+                });
+                addDragOverHandler(new DragOverHandler() {
+                    @Override
+                    public void onDragOver(DragOverEvent event) {
+                        event.preventDefault();
+                    }
+                });
+                addDropHandler(new DropHandler() {
+                    @Override
+                    public void onDrop(DropEvent event) {
+                        event.preventDefault();
+                        removeStyleName(ui.resources.webuiCss().mlRowOver());
+                        String[] data = event.dataTransfert()
+                                             .getData().split("-");
+                        ui.rpc.recPlsStaticAdd(plsId, new String[] {data[2]},
+                                new DefaultRpcCallback(ui));
+                    }
+                });
+            }
+        }
+
+        public String getPlsId() {
+            return plsId;
+        }
+
+        @Override
+        public HandlerRegistration addDragEnterHandler(DragEnterHandler handler) {
+            return addDomHandler(handler, DragEnterEvent.getType());
+        }
+
+        @Override
+        public HandlerRegistration addDragLeaveHandler(DragLeaveHandler handler) {
+            return addDomHandler(handler, DragLeaveEvent.getType());
+        }
+
+        @Override
+        public HandlerRegistration addDragOverHandler(DragOverHandler handler) {
+            return addDomHandler(handler, DragOverEvent.getType());
+        }
+
+        @Override
+        public HandlerRegistration addDropHandler(DropHandler handler) {
+            return addDomHandler(handler, DropEvent.getType());
+        }
+    }
+
+    /*
+     * Specific rpc callbacks
+     */
     private class PlsEraseCallback extends DefaultRpcCallback {
         public PlsEraseCallback(DeejaydUIWidget ui) { super(ui); }
 
@@ -258,53 +378,7 @@ public class NavigationPanel extends WebuiPanel
 
                 for (int idx=0; idx<list.size(); idx++) {
                     JSONObject plsObj = list.get(idx).isObject();
-                    String type = plsObj.get("type").isString().stringValue();
-                    String name = plsObj.get("name").isString().stringValue();
-                    String plsId = Integer.toString(
-                            (int) plsObj.get("id").isNumber().doubleValue());
-
-                    HorizontalPanel item = new HorizontalPanel();
-                    item.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-                    item.setWidth("100%");
-                    item.add(new Hidden("plsId", plsId));
-
-                    HorizontalPanel desc = new HorizontalPanel();
-                    desc.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-                    desc.setSpacing(3);
-                    desc.setStyleName(resources.webuiCss().pointerCursor());
-
-                    ClickHandler handler = new PlsClickHandler(plsId);
-                    Image img = new Image(resources.playlist());
-                    if (type.equals("magic"))
-                        img = new Image(resources.magicPlaylist());
-                    img.addClickHandler(handler);
-                    desc.add(img);
-                    Label label = new Label(name);
-                    label.addClickHandler(handler);
-                    desc.add(label);
-                    item.add(desc);
-
-                    item.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
-                    HorizontalPanel actionPanel = new HorizontalPanel();
-                    actionPanel.setSpacing(3);
-                    if (type.equals("magic")) {
-                        Button editButton = new Button();
-                        editButton.setStyleName(
-                                resources.webuiCss().editButton()+" "+
-                                resources.webuiCss().iconOnlyButton());
-                        editButton.addClickHandler(
-                                new PlsEditHandler(plsId, name));
-                        actionPanel.add(editButton);
-                    }
-                    Button removeButton = new Button();
-                    removeButton.setStyleName(
-                            resources.webuiCss().clearButton()+" "+
-                            resources.webuiCss().iconOnlyButton());
-                    removeButton.addClickHandler(new PlsRemoveHandler(plsId));
-                    actionPanel.add(removeButton);
-                    item.add(actionPanel);
-
-                    plsList.add(item);
+                    plsList.add(new PlsItem(plsObj));
                 }
 
                 if (activeList.equals("playlist"))
@@ -320,7 +394,7 @@ public class NavigationPanel extends WebuiPanel
     private void clearPlsSelection() {
         for (int idx=0; idx<plsList.getWidgetCount(); idx++) {
             try {
-                HorizontalPanel item = (HorizontalPanel) plsList.getWidget(idx);
+                PlsItem item = (PlsItem) plsList.getWidget(idx);
                 item.removeStyleName(resources.webuiCss().currentItem());
             } catch (ClassCastException ex) {}
         }
@@ -328,10 +402,9 @@ public class NavigationPanel extends WebuiPanel
 
     private void setPlsSelection(String pls) {
         for (int idx=0; idx<plsList.getWidgetCount(); idx++) {
-            HorizontalPanel item = (HorizontalPanel) plsList.getWidget(idx);
-            Hidden valueW = (Hidden) item.getWidget(0);
+            PlsItem item = (PlsItem) plsList.getWidget(idx);
             item.removeStyleName(resources.webuiCss().currentItem());
-            if (valueW.getValue().equals(pls))
+            if (item.getPlsId().equals(pls))
                 item.addStyleName(resources.webuiCss().currentItem());
         }
         activePls = pls;

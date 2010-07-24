@@ -37,6 +37,7 @@ public abstract class MediaListRenderer {
     protected WebuiLayout ui;
     protected String source;
     protected Label loadZoneLabel;
+    protected MediaList mediaList;
 
     /**
      * Handler to update rating of a media
@@ -78,6 +79,10 @@ public abstract class MediaListRenderer {
         this.loadZoneLabel = loadZone;
     }
 
+    public void setMediaListParent(MediaList list) {
+        this.mediaList = list;
+    }
+
     public void setLoadText(String text) {
         if (loadZoneLabel != null)
             loadZoneLabel.setText(text);
@@ -106,6 +111,10 @@ public abstract class MediaListRenderer {
         label.addStyleName("gwt-TextOverflow");
 
         return label;
+    }
+
+    public int getCkColumn() {
+        return 0;
     }
 
     public abstract void formatHeader(FlexTable header, MediaList mediaList);

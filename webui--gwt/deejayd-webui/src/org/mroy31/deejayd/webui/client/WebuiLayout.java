@@ -28,9 +28,13 @@ import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.webui.events.DragLeaveEvent;
+import org.mroy31.deejayd.webui.events.DragOverEvent;
+import org.mroy31.deejayd.webui.events.DropEvent;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 import org.mroy31.deejayd.webui.i18n.WebuiMessages;
 import org.mroy31.deejayd.webui.medialist.MediaList;
+import org.mroy31.deejayd.webui.medialist.MediaListDropCommand;
 import org.mroy31.deejayd.webui.medialist.SongRenderer;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
@@ -43,12 +47,16 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.json.client.JSONString;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
@@ -68,6 +76,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     public LibraryManager videoLibrary;
     private boolean queueOpen = false;
     private int queueId = -1;
+    private int queueOverRow = -1;
 
 
     public WebuiConstants i18nConstants = GWT.create(WebuiConstants.class);
@@ -197,6 +206,50 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         DOM.setStyleAttribute(queueLoading.getElement(), "paddingLeft", "10px");
         queueList = new MediaList(this, "queue");
         queueList.setOption(true,new SongRenderer(this, "queue", queueLoading));
+        queueList.addDragDropCommand(new MediaListDropCommand() {
+
+            @Override
+            public void onDrop(DropEvent event, int row) {
+                String[] data = event.dataTransfert().getData().split("-");
+                if (data[0].equals("queue")) {
+                    rpc.queueMove(new String[] {data[1]}, row,
+                            new DefaultRpcCallback(instance));
+                } else {
+                    JSONArray sel = new JSONArray();
+                    sel.set(0, new JSONString(data[2]));
+                    rpc.queueLoadIds(sel, row, new DefaultRpcCallback(instance));
+                }
+                if (queueOverRow != -1) {
+                    queueList.getRowFormatter().removeStyleName(
+                            queueOverRow,
+                            resources.webuiCss().mlRowOver());
+                    queueOverRow = -1;
+                }
+            }
+
+            @Override
+            public void onDragOver(DragOverEvent event, int row) {
+                if (row != queueOverRow) {
+                    if (queueOverRow != -1) {
+                        queueList.getRowFormatter().removeStyleName(
+                            queueOverRow, resources.webuiCss().mlRowOver());
+                    }
+                    if (row != -1 )
+                        queueList.getRowFormatter().addStyleName(row,
+                                resources.webuiCss().mlRowOver());
+                    queueOverRow = row;
+                }
+            }
+
+            @Override
+            public void onDragLeave(DragLeaveEvent event) {
+                if (queueOverRow != -1) {
+                    queueList.getRowFormatter().removeStyleName(
+                            queueOverRow, resources.webuiCss().mlRowOver());
+                    queueOverRow = -1;
+                }
+            }
+        });
 
 
         // Init Mode Panel
@@ -205,12 +258,19 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
 
         modePanel = new WebuiSplitLayoutPanel();
         modePanel.addSouth(queueList, 0);
-        modePanel.addWest(panelManager, 250);
+        modePanel.addWest(panelManager, 300);
         modePanel.add(modeManager);
         mainPanel.add(modePanel);
         modePanel.setSplitPosition(queueList, 0, false);
 
-        load();
+        DeferredCommand.addCommand(new Command() {
+
+            @Override
+            public void execute() {
+                load();
+            }
+
+        });
     }
 
     @UiFactory HorizontalPanel makeHPanel() {

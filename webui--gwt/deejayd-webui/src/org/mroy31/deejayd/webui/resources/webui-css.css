@@ -50,6 +50,11 @@
 }
 
 /*
+ * Medialist
+ */
+.mlRowOver { background-color: #888;}
+
+/*
  * Messages
  */
 .msgInformation {
@@ -106,6 +111,8 @@
   padding-left: 20px;
   background-position: 2px 2px !important;
   border: 1px solid #999;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .toolbarButton { border: 1px solid #999; }
 @sprite .shuffleButton {gwt-image: "shuffle";}

@@ -237,6 +237,19 @@ public class Rpc {
         send("recpls.get", args, callback);
     }
 
+    public void recPlsStaticAdd(String plsId, String[] ids,
+            RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(plsId));
+        JSONArray idsArray = new JSONArray();
+        for (String id : ids)
+            idsArray.set(idsArray.size(), new JSONString(id));
+        args.set(1, idsArray);
+        args.set(2, new JSONString("id"));
+
+        send("recpls.staticAdd", args, callback);
+    }
+
     public void recPlsMagicGetProperties(String plsId, RpcCallback callback) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
@@ -288,6 +301,19 @@ public class Rpc {
         }
         args.set(0, jsonIds);
         send("playlist.remove", args, callback);
+    }
+
+    public void plsModeMove(String[] ids, int pos, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        JSONArray jsonIds = new JSONArray();
+        int idx = 0;
+        for (String id : ids) {
+            jsonIds.set(idx, new JSONString(id));
+            idx ++;
+        }
+        args.set(0, jsonIds);
+        args.set(1, new JSONNumber(pos));
+        send("playlist.move", args, callback);
     }
 
     public void plsModeLoadPath(JSONArray sel, int pos, RpcCallback callback) {
@@ -389,6 +415,19 @@ public class Rpc {
         }
         args.set(0, jsonIds);
         send("queue.remove", args, callback);
+    }
+
+    public void queueMove(String[] ids, int pos, RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        JSONArray jsonIds = new JSONArray();
+        int idx = 0;
+        for (String id : ids) {
+            jsonIds.set(idx, new JSONString(id));
+            idx ++;
+        }
+        args.set(0, jsonIds);
+        args.set(1, new JSONNumber(pos));
+        send("queue.move", args, callback);
     }
 
     public void queueLoadPath(JSONArray sel, int pos, RpcCallback callback) {

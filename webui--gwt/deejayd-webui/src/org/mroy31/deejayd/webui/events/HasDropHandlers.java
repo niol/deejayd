@@ -18,17 +18,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.events;
+package org.mroy31.deejayd.webui.events;
 
-import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.event.shared.HasHandlers;
 
-public class Touch extends JavaScriptObject {
+public interface HasDropHandlers extends HasHandlers {
 
-    protected Touch() {}
-
-    public final native int pageX() /*-{
-      return this.pageX;
-    }-*/;
+    HandlerRegistration addDragEnterHandler(DragEnterHandler handler);
+    HandlerRegistration addDragLeaveHandler(DragLeaveHandler handler);
+    HandlerRegistration addDragOverHandler(DragOverHandler handler);
+    HandlerRegistration addDropHandler(DropHandler handler);
 
 }
 

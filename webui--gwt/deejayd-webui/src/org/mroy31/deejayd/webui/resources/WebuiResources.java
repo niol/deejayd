@@ -52,6 +52,9 @@ public interface WebuiResources extends ClientBundle {
         String msgWarning();
         String msgError();
 
+        /* Medialist */
+        String mlRowOver();
+
         /* player buttons */
         String playButton();
         String pauseButton();
@@ -199,6 +202,8 @@ public interface WebuiResources extends ClientBundle {
     ImageResource arrowUpHover();
 
     ImageResource arrowUpPressed();
+
+    ImageResource drag();
 }
 
 //vim: ts=4 sw=4 expandtab

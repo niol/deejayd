@@ -5,6 +5,13 @@
   <inherits name="com.google.gwt.resources.Resources" />
   <inherits name="com.google.gwt.i18n.I18N"/>
 
+  <!-- Inherit the default GWT style sheet.                       -->
+  <inherits name='com.google.gwt.user.theme.standard.Standard'/>
+
+  <!-- Other module inherits                                      -->
+  <inherits name='org.mroy31.deejayd.common.DeejaydCommon'/>
+
+
   <!-- French language, independent of country -->
   <extend-property name="locale" values="fr"/>
   <!-- English language, independent of country -->
@@ -14,23 +21,31 @@
   <set-property-fallback name="locale" value="en"/>
 
 
-  <!-- Inherit the default GWT style sheet.  You can change       -->
-  <!-- the theme of your GWT application by uncommenting          -->
-  <!-- any one of the following lines.                            -->
-  <inherits name='com.google.gwt.user.theme.standard.Standard'/>
-  <!-- <inherits name='com.google.gwt.user.theme.chrome.Chrome'/> -->
-  <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/> -->
+  <!-- HTML5 drag and drop support                                -->
+  <replace-with class="com.google.gwt.user.client.impl.DOMImplDragDropSafari">
+    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
+    <when-property-is name="user.agent" value="safari"/>
+  </replace-with>
 
-  <!-- Other module inherits                                      -->
-  <inherits name='org.mroy31.deejayd.common.DeejaydCommon'/>
+  <replace-with class="com.google.gwt.user.client.impl.DOMImplDragDropMozilla">
+    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
+    <when-property-is name="user.agent" value="gecko1_8"/>
+  </replace-with>
+
+  <replace-with class="com.google.gwt.user.client.impl.DOMImplDragDropOpera">
+    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
+    <when-property-is name="user.agent" value="opera"/>
+  </replace-with>
 
   <!-- Specify the app entry point class.                         -->
   <entry-point class='org.mroy31.deejayd.webui.client.Deejayd_webui'/>
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>
+  <source path='events'/>
   <source path='resources'/>
   <source path='i18n'/>
-  <source path='widgets'/><source path="medialist"></source>
+  <source path='widgets'/>
+  <source path="medialist"/>
 
 </module>

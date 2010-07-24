@@ -23,6 +23,10 @@ package org.mroy31.deejayd.webui.client;
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.webui.events.DragLeaveEvent;
+import org.mroy31.deejayd.webui.events.DragOverEvent;
+import org.mroy31.deejayd.webui.events.DropEvent;
+import org.mroy31.deejayd.webui.medialist.MediaListDropCommand;
 import org.mroy31.deejayd.webui.medialist.SongRenderer;
 import org.mroy31.deejayd.webui.widgets.NewPlsDialog;
 
@@ -42,6 +46,8 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
     private Button plsRemove;
     private Button goToCurrent;
     private Button plsSave;
+
+    private int currentOverRow = -1;
 
     private class PlsCallback extends DefaultRpcCallback {
         public PlsCallback(DeejaydUIWidget ui) { super(ui); }
@@ -67,6 +73,50 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
             }
         });
         mediaList.setOption(true, new SongRenderer(ui, "playlist", loadLabel));
+        mediaList.addDragDropCommand(new MediaListDropCommand() {
+
+            @Override
+            public void onDrop(DropEvent event, int row) {
+                String[] data = event.dataTransfert().getData().split("-");
+                if (data[0].equals("playlist")) {
+                    ui.rpc.plsModeMove(new String[] {data[1]}, row,
+                            new DefaultRpcCallback(ui));
+                    if (currentOverRow != -1) {
+                        mediaList.getRowFormatter().removeStyleName(
+                                currentOverRow,
+                                ui.resources.webuiCss().mlRowOver());
+                        currentOverRow = -1;
+                    }
+                }
+            }
+
+            @Override
+            public void onDragOver(DragOverEvent event, int row) {
+                String[] data = event.dataTransfert().getData().split("-");
+                if (data[0].equals("playlist")) {
+                    if (row != currentOverRow) {
+                        if (currentOverRow != -1) {
+                            mediaList.getRowFormatter().removeStyleName(
+                                currentOverRow,
+                                ui.resources.webuiCss().mlRowOver());
+                        }
+                        if (row != -1 )
+                            mediaList.getRowFormatter().addStyleName(row,
+                                    ui.resources.webuiCss().mlRowOver());
+                        currentOverRow = row;
+                    }
+                }
+            }
+
+            @Override
+            public void onDragLeave(DragLeaveEvent event) {
+                if (currentOverRow != -1) {
+                    mediaList.getRowFormatter().removeStyleName(
+                        currentOverRow, ui.resources.webuiCss().mlRowOver());
+                    currentOverRow = -1;
+                }
+            }
+        });
     }
 
     void buildTopToolbar(HorizontalPanel toolbar) {

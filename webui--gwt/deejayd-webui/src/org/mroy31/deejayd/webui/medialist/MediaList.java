@@ -25,6 +25,12 @@ import java.util.ArrayList;
 import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
 import org.mroy31.deejayd.common.rpc.MediaFilter;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
+import org.mroy31.deejayd.webui.events.DragLeaveEvent;
+import org.mroy31.deejayd.webui.events.DragLeaveHandler;
+import org.mroy31.deejayd.webui.events.DragOverEvent;
+import org.mroy31.deejayd.webui.events.DragOverHandler;
+import org.mroy31.deejayd.webui.events.DropEvent;
+import org.mroy31.deejayd.webui.events.DropHandler;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
 import com.google.gwt.core.client.GWT;
@@ -43,8 +49,8 @@ import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.HTMLTable.RowFormatter;
 
 public class MediaList extends Composite {
     private final int PAGE_SIZE = 100;
@@ -63,8 +69,8 @@ public class MediaList extends Composite {
     private int currentPlaying = -1;
 
     @UiField FlexTable header;
-    @UiField FlexTable mediaList;
-    @UiField ScrollPanel mediaListPanel;
+    @UiField MediaTable mediaList;
+    @UiField ScrollMediaPanel mediaListPanel;
     @UiField(provided = true) final WebuiResources resources;
 
     /**
@@ -147,6 +153,50 @@ public class MediaList extends Composite {
 
         renderer.formatHeader(header, this);
         renderer.formatMediaList(mediaList);
+        renderer.setMediaListParent(this);
+    }
+
+    public void addDragDropCommand(final MediaListDropCommand cmd) {
+        DropHandler dropHandler = new DropHandler() {
+            @Override
+            public void onDrop(DropEvent event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                int row = mediaList.getRowForDropEvent(event);
+                cmd.onDrop(event, row);
+            }
+        };
+        mediaList.addDropHandler(dropHandler);
+        mediaListPanel.addDropHandler(dropHandler);
+
+        DragOverHandler dragOverHandler = new DragOverHandler() {
+            @Override
+            public void onDragOver(DragOverEvent event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                int row = mediaList.getRowForDragOverEvent(event);
+                cmd.onDragOver(event, row);
+            }
+        };
+        mediaList.addDragOverHandler(dragOverHandler);
+        mediaListPanel.addDragOverHandler(dragOverHandler);
+
+        DragLeaveHandler dragLeaveHandler = new DragLeaveHandler() {
+
+            @Override
+            public void onDragLeave(DragLeaveEvent event) {
+                event.stopPropagation();
+                cmd.onDragLeave(event);
+            }
+        };
+        mediaList.addDragLeaveHandler(dragLeaveHandler);
+        mediaListPanel.addDragLeaveHandler(dragLeaveHandler);
+    }
+
+    public RowFormatter getRowFormatter() {
+        return mediaList.getRowFormatter();
     }
 
     public void update() {
@@ -204,9 +254,15 @@ public class MediaList extends Composite {
     public void checkRow(boolean value) {
         int size = mediaList.getRowCount();
         for (int idx=0; idx<size; idx++) {
-            CheckBox ck = (CheckBox) mediaList.getWidget(idx, 0);
+            CheckBox ck = (CheckBox) mediaList.getWidget(idx,
+                    renderer.getCkColumn());
             ck.setValue(value);
         }
+    }
+
+    public void checkRow(int row, boolean value) {
+        CheckBox ck = (CheckBox)mediaList.getWidget(row,renderer.getCkColumn());
+        ck.setValue(value);
     }
 
     public MediaFilter getFilter() {
@@ -217,7 +273,8 @@ public class MediaList extends Composite {
         if (hasSelection) {
             ArrayList<String> selection = new ArrayList<String>();
             for (int idx=0; idx<mediaList.getRowCount(); idx++) {
-                CheckBox ck = (CheckBox) mediaList.getWidget(idx, 0);
+                CheckBox ck = (CheckBox) mediaList.getWidget(idx,
+                        renderer.getCkColumn());
                 if (ck.getValue())
                     selection.add(ck.getFormValue());
             }
