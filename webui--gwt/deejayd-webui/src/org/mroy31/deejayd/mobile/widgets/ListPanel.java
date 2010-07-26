@@ -36,7 +36,6 @@ public class ListPanel extends ComplexPanel {
 
     public ListPanel() {
         setElement(DOM.createElement("ul"));
-        addStyleName("gwt-ListPanel");
         addStyleName(MobileLayout.getInstance().resources.mobileCss().listPanel());
     }
 

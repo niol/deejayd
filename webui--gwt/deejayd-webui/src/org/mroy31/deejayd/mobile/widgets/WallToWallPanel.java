@@ -54,7 +54,6 @@ public abstract class WallToWallPanel extends Composite
     private final WallToWallPanel parent;
     private WallToWallPanel child;
 
-
     private final FlowPanel contents = new FlowPanel();
     private final HorizontalPanel header = new HorizontalPanel();
     private final UnsunkLabel titleLabel = new UnsunkLabel("");

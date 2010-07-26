@@ -88,7 +88,7 @@ public class WebradioRenderer extends MediaListRenderer {
             }
         }
         HTML urlLabel = new HTML(value);
-        urlLabel.addStyleName("gwt-TextOverflow");
+        urlLabel.addStyleName(ui.resources.webuiCss().textOverflow());
         list.setWidget(idx, 3, urlLabel);
     }
 

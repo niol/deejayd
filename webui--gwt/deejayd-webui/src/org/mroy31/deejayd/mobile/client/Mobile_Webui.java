@@ -21,6 +21,8 @@
 package org.mroy31.deejayd.mobile.client;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.RootPanel;
 
 /**
@@ -32,6 +34,8 @@ public class Mobile_Webui implements EntryPoint {
      * This is the entry point method.
      */
     public void onModuleLoad() {
+        Element errorMsg = DOM.getElementById("errorMsg");
+        errorMsg.removeFromParent();
 
         MobileLayout panel = MobileLayout.getInstance();
         RootPanel.get().add(panel);

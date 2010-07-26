@@ -49,6 +49,19 @@
   font-style: italic;
 }
 
+
+.textOverflow {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  text-overflow: ellipsis;
+}
+@if user.agent gecko1_8 gecko {
+  .textOverflow { -moz-binding: url('style/mozbinding.xml#ellipsis'); }
+} @elif user.agent safari {
+  .textOverflow { text-overflow: ellipsis; }
+}
+
 /*
  * Medialist
  */

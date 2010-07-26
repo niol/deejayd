@@ -30,6 +30,7 @@ import com.google.gwt.resources.client.ImageResource.RepeatStyle;
 public interface MobileResources extends ClientBundle {
 
     interface MobileCss extends CssResource {
+        String mainBody();
         String center();
 
         String currentWall();
@@ -116,7 +117,6 @@ public interface MobileResources extends ClientBundle {
 
     @Source("go-next.png")
     ImageResource goNext();
-
 
     @Source("back_button.png")
     DataResource backButton();

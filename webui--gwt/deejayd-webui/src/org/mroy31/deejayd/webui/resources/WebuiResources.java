@@ -46,6 +46,7 @@ public interface WebuiResources extends ClientBundle {
         String pointerCursor();
         String disabled();
         String toolbarDescLabel();
+        String textOverflow();
 
         /* message */
         String msgInformation();

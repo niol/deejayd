@@ -1,3 +1,23 @@
+# Deejayd, a media player daemon
+# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+def build(config):
+    return """
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <!-- The HTML 4.01 Transitional DOCTYPE declaration-->
 <!-- above set at the top of the file will set     -->
@@ -14,6 +34,9 @@
     <!-- Any title is fine                         -->
     <!--                                           -->
     <title>Deejayd Webui</title>
+
+    <!-- this property sets the webui lang.   -->
+    <meta name="gwt:property" content="locale=%(lang)s">
 
     <!--                                           -->
     <!-- This script loads your compiled module.   -->
@@ -37,7 +60,7 @@
             border: 1px solid #ccc;
             background-color: white;
             height: 4px;
-            width: 95%;
+            width: %(slider_width)s;
             top: 9pt;
             overflow: hidden;
         }
@@ -75,20 +98,19 @@
         .gwt-TextBox {
             padding: 0px !important;
         }
-        .gwt-TextOverflow {
-            overflow: hidden;
-            white-space: nowrap;
-            width: 100%;
-            text-overflow: ellipsis;
-            -moz-binding: url('style/mozbinding.xml#ellipsis');
-        }
     </style>
   </head>
 
   <body>
 
+    <div id="errorMsg" style="width: 22em; position: absolute; left: %(msg_left)s; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+      Your web browser is not supported by this application.
+      You need to use a web browser based on gecko or webkit engine
+      in order for this application to display correctly.
+    </div>
+
     <noscript>
-      <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+      <div style="width: 22em; position: absolute; left: %(msg_left)s; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
         Your web browser must have JavaScript enabled
         in order for this application to display correctly.
       </div>
@@ -96,3 +118,10 @@
 
   </body>
 </html>
+""" % {
+        "lang": config.get("webui", "lang"),
+        "slider_width": "95%",
+        "msg_left": "50%",
+        }
+
+# vim: ts=4 sw=4 expandtab

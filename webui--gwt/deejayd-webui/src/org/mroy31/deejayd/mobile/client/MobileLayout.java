@@ -55,7 +55,7 @@ public class MobileLayout extends DeejaydUIWidget {
 
     public MobileLayout() {
         resources.mobileCss().ensureInjected();
-        panel.addStyleName("gwt-Body");
+        panel.addStyleName(resources.mobileCss().mainBody());
 
         initWidget(panel);
         DeferredCommand.addCommand(new Command() {

@@ -21,6 +21,8 @@
 package org.mroy31.deejayd.webui.client;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 
@@ -33,6 +35,9 @@ public class Deejayd_webui implements EntryPoint {
      * This is the entry point method.
      */
     public void onModuleLoad() {
+        Element errorMsg = DOM.getElementById("errorMsg");
+        errorMsg.removeFromParent();
+
         // Get rid of scrollbars, and clear out the window's built-in margin,
         // because we want to take advantage of the entire client area.
         Window.enableScrolling(false);

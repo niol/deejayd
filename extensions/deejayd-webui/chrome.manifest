@@ -1,7 +1,0 @@
-content     deejayd-webui    chrome/content/
-skin        deejayd-webui    classic/1.0  chrome/skin/classic/
-
-overlay     chrome://browser/content/browser.xul    chrome://deejayd-webui/content/overlay.xul
-
-locale      deejayd-webui    en-US  chrome/locale/en-US/
-locale      deejayd-webui    fr-FR  chrome/locale/fr-FR/

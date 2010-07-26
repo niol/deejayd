@@ -108,7 +108,7 @@ public abstract class MediaListRenderer {
 
     protected Label formatTagCell(JSONObject media, String tag) {
         Label label = new Label(media.get(tag).isString().stringValue());
-        label.addStyleName("gwt-TextOverflow");
+        label.addStyleName(ui.resources.webuiCss().textOverflow());
 
         return label;
     }
