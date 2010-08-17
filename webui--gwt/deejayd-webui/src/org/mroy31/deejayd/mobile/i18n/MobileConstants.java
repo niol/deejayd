@@ -82,6 +82,48 @@ public interface MobileConstants extends Constants {
 
     @DefaultStringValue("Title")
     String title();
+
+    @DefaultStringValue("Options")
+    String options();
+
+    @DefaultStringValue("Play Order")
+    String playOrder();
+
+    @DefaultStringValue("save")
+    String save();
+
+    @DefaultStringValue("All")
+    String all();
+
+    @DefaultStringValue("Genre")
+    String genre();
+
+    @DefaultStringValue("Artist")
+    String artist();
+
+    @DefaultStringValue("Album")
+    String album();
+
+    @DefaultStringValue("Various artists")
+    String variousArtist();
+
+    @DefaultStringValue("Update panels")
+    String updatePanel();
+
+    @DefaultStringValue("Add Files")
+    String addFiles();
+
+    @DefaultStringValue("Add")
+    String add();
+
+    @DefaultStringValue("Files has been added to the playlist")
+    String plsAddMsg();
+
+    @DefaultStringValue("Unknown")
+    String unknown();
+
+    @DefaultStringValue("Select")
+    String select();
 }
 
 // vim: ts=4 sw=4 expandtab

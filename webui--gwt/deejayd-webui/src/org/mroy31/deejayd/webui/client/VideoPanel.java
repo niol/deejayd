@@ -138,7 +138,20 @@ public class VideoPanel extends WebuiPanel
         if (source == searchButton) {
             if (!searchEntry.getValue().equals("")) {
                 ui.rpc.videoModeSet(searchEntry.getValue(), "search",
-                        new DefaultRpcCallback(ui));
+                        new GenericRpcCallback() {
+
+                            @Override
+                            public void setError(String error) {
+                                ui.setError(error);
+                            }
+
+                            @Override
+                            public void onCorrectAnswer(JSONValue data) {
+                                searchEntry.setValue("");
+                                searchButton.setFocus(false);
+                                ui.update();
+                            }
+                        });
             }
         }
     }

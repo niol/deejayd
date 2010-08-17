@@ -31,17 +31,66 @@ import org.mroy31.deejayd.mobile.widgets.ScrollToCommand;
 import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
-import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Widget;
 
 public class MobileLayout extends DeejaydUIWidget {
     static private MobileLayout instance;
     public final MobileConstants i18nConst = GWT.create(MobileConstants.class);
     public final MobileResources resources = GWT.create(MobileResources.class);
+
+    private class Message extends Composite {
+
+        public Message(String text, String type) {
+            HorizontalPanel msgPanel = new HorizontalPanel();
+            msgPanel.addStyleName(resources.mobileCss().msgPanel());
+            msgPanel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+            msgPanel.setSpacing(4);
+
+            Label msgLabel = new Label(text);
+            msgPanel.add(msgLabel);
+            msgPanel.setCellWidth(msgLabel, "100%");
+            Button close = new Button(i18nConst.close());
+            close.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    removeFromParent();
+                }
+            });
+            msgPanel.add(close);
+
+            if (type.equals("error")) {
+                msgPanel.addStyleName(resources.mobileCss().error());
+            } else if (type.equals("information")) {
+                msgPanel.addStyleName(resources.mobileCss().information());
+            }
+
+            initWidget(msgPanel);
+            if (!type.equals("error")) {
+                Timer timer = new Timer() {
+                    @Override
+                    public void run() {
+                        removeFromParent();
+                    }
+                };
+                timer.schedule(5000);
+            }
+        }
+    }
 
     private final FlowPanel panel = new FlowPanel();
     private HashMap<String, WallToWallPanel> walls =
@@ -83,6 +132,7 @@ public class MobileLayout extends DeejaydUIWidget {
             }
         });
         DeferredCommand.addPause();
+        DeferredCommand.addPause();
         DeferredCommand.addCommand(new ScrollToCommand(null));
     }
 
@@ -90,14 +140,18 @@ public class MobileLayout extends DeejaydUIWidget {
         return walls.get(name);
     }
 
+    public void addWidget(Widget w) {
+        panel.add(w);
+    }
+
     @Override
     public void setError(String error) {
-        Window.alert(error);
+        panel.add(new Message(error, "error"));
     }
 
     @Override
     public void setMessage(String message) {
-        Window.alert(message);
+        panel.add(new Message(message, "information"));
     }
 
     @Override

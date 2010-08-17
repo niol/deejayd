@@ -54,9 +54,13 @@
     </all>
   </replace-with>
 
+  <!-- disable animation for mobile for now -->
   <replace-with class="org.mroy31.deejayd.mobile.widgets.impl.WallToWallPanelSafariImpl">
     <when-type-is class="org.mroy31.deejayd.mobile.widgets.impl.WallToWallPanelImpl"/>
-    <when-property-is name="user.agent" value="safari"/>
+    <all>
+      <when-property-is name="user.agent" value="safari"/>
+      <when-property-is name="mobile.user.agent" value="none"/>
+    </all>
   </replace-with>
 
 

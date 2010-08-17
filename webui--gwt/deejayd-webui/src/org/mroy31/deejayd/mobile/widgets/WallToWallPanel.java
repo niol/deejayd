@@ -27,15 +27,11 @@ import org.mroy31.deejayd.mobile.events.HasAnimationHandlers;
 import org.mroy31.deejayd.mobile.widgets.impl.WallToWallPanelImpl;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
@@ -48,55 +44,69 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public abstract class WallToWallPanel extends Composite
         implements HasAnimationHandlers {
+    final String TITLE_W = Integer.toString(Window.getClientWidth()-170)+"px";
+
     protected final MobileLayout ui = MobileLayout.getInstance();
     private WallToWallPanelImpl impl = GWT.create(WallToWallPanelImpl.class);
 
     private final WallToWallPanel parent;
     private WallToWallPanel child;
 
-    private final FlowPanel contents = new FlowPanel();
-    private final HorizontalPanel header = new HorizontalPanel();
-    private final UnsunkLabel titleLabel = new UnsunkLabel("");
-
-    private Command editCommand;
+    private final WallPanel wall = new WallPanel();
+    private final WallPanel context = new WallPanel();
 
     public WallToWallPanel(String title, WallToWallPanel par) {
+        wall.addStyleName(ui.resources.mobileCss().wallPanel());
+        wall.setTitle(title);
         this.parent = par;
         if (par != null) {
             par.setChild(this);
         }
 
-        // build header
-        header.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-        header.addStyleName(ui.resources.mobileCss().wallHeader());
-
         if (par != null) {
-            Label l = new Label(par.getShortTitle());
-            l.addStyleName(ui.resources.mobileCss().headerButton());
-            l.addStyleName(ui.resources.mobileCss().headerBackButton());
-            l.addClickHandler(new ClickHandler() {
+            wall.setLeftButton(par.getShortTitle(), new Command() {
                 @Override
-                public void onClick(ClickEvent event) {
+                public void execute() {
                     showParent();
                 }
             });
-            header.add(l);
         }
 
-        titleLabel.setText(title);
-        titleLabel.setWidth(
-                Integer.toString(Window.getClientWidth()-170)+"px");
-        titleLabel.addStyleName(ui.resources.mobileCss().wallHeaderTitle());
-        header.add(titleLabel);
-        header.setCellWidth(titleLabel, "100%");
-        header.setCellHorizontalAlignment(titleLabel,
-                HorizontalPanel.ALIGN_CENTER);
+        // build context panel with a close button
+        context.setVisible(false);
+        context.addStyleName(ui.resources.mobileCss().contextPanel());
+        context.setRightButton(ui.i18nConst.close(), new Command() {
+            @Override
+            public void execute() {
+                setContextVisible(false);
+            }
+        }, false);
+        wall.setContextPanel(context);
 
-        FlowPanel vp = new FlowPanel();
-        vp.add(header);
-        vp.add(contents);
+        initWidget(wall);
+    }
 
-        initWidget(vp);
+    public WallPanel getContextPanel() {
+        return context;
+    }
+
+    public WallPanel getWall() {
+        return wall;
+    }
+
+    public void setContextWidget(String title, Widget w) {
+        context.setTitle(title);
+        context.setContents(w);
+    }
+
+    public void setContextVisible(boolean visible) {
+        if (visible) {
+            impl.showContextPanel(this);
+        } else {
+            impl.hideContextPanel(this);
+        }
+        DeferredCommand.addPause();
+        DeferredCommand.addCommand(new ScrollToCommand(null));
     }
 
     public void setChild(WallToWallPanel ch) {
@@ -113,18 +123,18 @@ public abstract class WallToWallPanel extends Composite
 
     public void showParent() {
         impl.showParent(this, parent);
+        DeferredCommand.addPause();
+        DeferredCommand.addCommand(new ScrollToCommand(null));
     }
 
     public void showChild() {
         impl.showChild(this, child);
+        DeferredCommand.addPause();
+        DeferredCommand.addCommand(new ScrollToCommand(null));
     }
 
     public void add(Widget w) {
-        contents.add(w);
-    }
-
-    public void clear() {
-        contents.clear();
+        wall.setContents(w);
     }
 
     public void setWallTitle(String title) {
@@ -132,19 +142,7 @@ public abstract class WallToWallPanel extends Composite
     }
 
     public void setWallTitle(String text, boolean html) {
-        if (html) {
-            titleLabel.removeStyleName(
-                    ui.resources.mobileCss().wallHeaderTitle());
-            titleLabel.addStyleName(
-                    ui.resources.mobileCss().wallHeaderHTMLTitle());
-            titleLabel.setHTML(text);
-
-        } else {
-            titleLabel.removeStyleName(
-                    ui.resources.mobileCss().wallHeaderHTMLTitle());
-            titleLabel.addStyleName(ui.resources.mobileCss().wallHeaderTitle());
-            titleLabel.setText(text);
-        }
+        wall.setTitle(text, html);
     }
 
     public void setRightCommand(String label, String title, Command command) {
@@ -162,23 +160,8 @@ public abstract class WallToWallPanel extends Composite
      */
     public void setRightCommand(String label, String title,
             Command command, boolean forward) {
-        editCommand = command;
-        Label l = new Label(label);
-        l.addStyleName(ui.resources.mobileCss().headerButton());
-        if (forward) {
-            l.addStyleName(ui.resources.mobileCss().headerForwardButton());
-        }
-        l.setTitle(title);
-        l.addClickHandler(new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                editCommand.execute();
-            }
-        });
-        header.add(l);
-        header.setCellHorizontalAlignment(l, HorizontalPanel.ALIGN_RIGHT);
-    }
+        wall.setRightButton(label, command, forward);
+     }
 
     @Override
     public HandlerRegistration addAnimationEndHandler(

@@ -21,15 +21,21 @@
 package org.mroy31.deejayd.mobile.sources;
 
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.mobile.client.SourcePanel;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 
 public class VideoMode extends DefaultDeejaydMode {
+    private OptionPanel optionPanel = new OptionPanel("video", hideCtxCmd);
 
-    public VideoMode() {
-        super("video");
+    public VideoMode(SourcePanel manager) {
+        super("video", manager);
     }
 
     @Override
@@ -55,6 +61,34 @@ public class VideoMode extends DefaultDeejaydMode {
     @Override
     public String getTitle() {
         return ui.i18nConst.videoMode();
+    }
+
+    @Override
+    public void initToolbar(HorizontalPanel toolbar) {
+        Button option = new Button();
+        option.addStyleName(ui.resources.mobileCss().playerButton());
+        option.addStyleName(ui.resources.mobileCss().option());
+        option.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                manager.setContextWidget(ui.i18nConst.options(), optionPanel);
+                manager.setContextVisible(true);
+            }
+        });
+        toolbar.add(option);
+
+        Button loadFiles = new Button();
+        loadFiles.addStyleName(ui.resources.mobileCss().playerButton());
+        loadFiles.addStyleName(ui.resources.mobileCss().add());
+        loadFiles.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                manager.setContextWidget(ui.i18nConst.addFiles(),
+                        new VideoLibrary(hideCtxCmd));
+                manager.setContextVisible(true);
+            }
+        });
+        toolbar.add(loadFiles);
     }
 }
 

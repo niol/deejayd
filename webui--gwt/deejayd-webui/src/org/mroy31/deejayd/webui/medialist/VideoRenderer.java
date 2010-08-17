@@ -68,7 +68,7 @@ public class VideoRenderer extends MediaListRenderer {
         list.setWidget(idx, 1,formatTagCell(media, "title"));
         list.setWidget(idx, 2, formatTagCell(media, "videowidth"));
         list.setWidget(idx, 3, formatTagCell(media, "videoheight"));
-        String sub = media.get("subtitle").isString().stringValue();
+        String sub = media.get("external_subtitle").isString().stringValue();
         list.setText(idx, 5, (sub.equals("") ? "no" : "yes"));
 
         // set medialength

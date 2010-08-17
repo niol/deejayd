@@ -26,6 +26,16 @@ import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 public class WallToWallPanelImpl {
     protected final MobileLayout ui = MobileLayout.getInstance();
 
+    public void showContextPanel(final WallToWallPanel panel) {
+        panel.getContextPanel().setVisible(true);
+        panel.getWall().getContents().setVisible(false);
+    }
+
+    public void hideContextPanel(final WallToWallPanel panel) {
+        panel.getWall().getContents().setVisible(true);
+        panel.getContextPanel().setVisible(false);
+    }
+
     public void showParent(WallToWallPanel current, WallToWallPanel parent) {
         current.removeStyleName(ui.resources.mobileCss().currentWall());
         parent.addStyleName(ui.resources.mobileCss().currentWall());

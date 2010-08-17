@@ -47,6 +47,13 @@ public class ListPanel extends ComplexPanel {
     public void insert(Widget w, int beforeIndex) {
         insert(w, getElement(), beforeIndex, true);
     }
+
+    @Override
+    public Widget getWidget(int idx) {
+        ListItem item = (ListItem) super.getWidget(idx);
+
+        return item.getWidget(0);
+    }
 }
 
 //vim: ts=4 sw=4 expandtab

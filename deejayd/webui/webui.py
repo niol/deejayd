@@ -103,11 +103,18 @@ def build(config):
 
   <body>
 
-    <div id="errorMsg" style="width: 22em; position: absolute; left: %(msg_left)s; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+    <div id="errorMsg" style="display: none; width: 22em; position: absolute; left: %(msg_left)s; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
       Your web browser is not supported by this application.
       You need to use a web browser based on gecko or webkit engine
       in order for this application to display correctly.
     </div>
+
+    <script>
+      var errorMsg = document.getElementById("errorMsg");
+      if (errorMsg) {
+        setTimeout('errorMsg.style.display = "block";', 1000);
+      }
+    </script>
 
     <noscript>
       <div style="width: 22em; position: absolute; left: %(msg_left)s; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">

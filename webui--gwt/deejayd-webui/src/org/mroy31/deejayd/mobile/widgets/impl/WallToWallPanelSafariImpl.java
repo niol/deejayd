@@ -30,6 +30,56 @@ import com.google.gwt.user.client.DeferredCommand;
 
 public class WallToWallPanelSafariImpl extends WallToWallPanelImpl {
     private HandlerRegistration animHandlerReg;
+    private HandlerRegistration contextHandlerReg;
+
+    @Override
+    public void showContextPanel(final WallToWallPanel panel) {
+        contextHandlerReg = panel.addAnimationEndHandler(
+                new AnimationEndHandler() {
+                    @Override
+                    public void onAnimationEnd(AnimationEndEvent event) {
+                        panel.getWall().getContents().setVisible(false);
+
+                        panel.getContextPanel().removeStyleName(
+                                ui.resources.mobileCss().slideup()+" "+
+                                ui.resources.mobileCss().in());
+                        panel.removeStyleName(ui.resources.mobileCss().slideup()
+                                +" "+ui.resources.mobileCss().in()+" "+
+                                ui.resources.mobileCss().reverse());
+
+                        contextHandlerReg.removeHandler();
+                }
+            });
+        panel.getContextPanel().setVisible(true);
+        panel.getContextPanel().addStyleName(
+                ui.resources.mobileCss().slideup()+" "+
+                ui.resources.mobileCss().in());
+        panel.addStyleName(ui.resources.mobileCss().slideup()+" "+
+                ui.resources.mobileCss().in()+" "+
+                ui.resources.mobileCss().reverse());
+    }
+
+    @Override
+    public void hideContextPanel(final WallToWallPanel panel) {
+        contextHandlerReg = panel.addAnimationEndHandler(
+                new AnimationEndHandler() {
+                    @Override
+                    public void onAnimationEnd(AnimationEndEvent event) {
+                        panel.getContextPanel().removeStyleName(
+                                ui.resources.mobileCss().slideup()
+                                +" "+ui.resources.mobileCss().out()+" "+
+                                ui.resources.mobileCss().reverse());
+                        panel.getContextPanel().setVisible(false);
+
+                        contextHandlerReg.removeHandler();
+                }
+            });
+        panel.getWall().getContents().setVisible(true);
+        panel.getContextPanel().addStyleName(
+                ui.resources.mobileCss().slideup()+" "+
+                ui.resources.mobileCss().out()+" "+
+                ui.resources.mobileCss().reverse());
+    }
 
     @Override
     public void showParent(final WallToWallPanel current, final WallToWallPanel parent) {
@@ -57,9 +107,6 @@ public class WallToWallPanelSafariImpl extends WallToWallPanelImpl {
                     ui.resources.mobileCss().slide()+" "+
                     ui.resources.mobileCss().in()+" "+
                     ui.resources.mobileCss().reverse());
-
-            DeferredCommand.addPause();
-            DeferredCommand.addCommand(new ScrollToCommand(null));
         }
     }
 
@@ -87,9 +134,6 @@ public class WallToWallPanelSafariImpl extends WallToWallPanelImpl {
             child.addStyleName(ui.resources.mobileCss().currentWall()+" "+
                     ui.resources.mobileCss().slide()+" "+
                     ui.resources.mobileCss().in());
-
-            DeferredCommand.addPause();
-            DeferredCommand.addCommand(new ScrollToCommand(null));
         }
     }
 

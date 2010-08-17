@@ -18,41 +18,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.sources;
+package org.mroy31.deejayd.common.rpc;
 
-import org.mroy31.deejayd.mobile.client.SourcePanel;
+import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.json.client.JSONValue;
 
+public class NullRpcCallback extends GenericRpcCallback {
+    DeejaydUIWidget ui;
 
-public class WebradioMode extends DefaultDeejaydMode {
-
-    public WebradioMode(SourcePanel manager) {
-        super("webradio", manager);
+    public NullRpcCallback(DeejaydUIWidget ui) {
+       this.ui = ui;
     }
 
     @Override
-    public MediaList initMediaList() {
-        return new MediaList("webradio", new MediaListFormater() {
-            @Override
-            public Widget formatRow(JSONObject media) {
-                String title = media.get("title").isString().stringValue();
-                return new MediaItem(
-                        (int) media.get("id").isNumber().doubleValue(),
-                        title, "");
-            }
-        });
-    }
+    public void onCorrectAnswer(JSONValue data) {}
 
     @Override
-    public String getTitle() {
-        return ui.i18nConst.webradio();
+    public void setError(String error) {
+        ui.setError(error);
     }
-
-    @Override
-    public void initToolbar(HorizontalPanel toolbar) {}
 }
 
 //vim: ts=4 sw=4 expandtab

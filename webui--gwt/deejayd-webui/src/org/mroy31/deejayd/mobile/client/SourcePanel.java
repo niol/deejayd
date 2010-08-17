@@ -49,7 +49,6 @@ public class SourcePanel extends WallToWallPanel implements StatusChangeHandler{
     public void onStatusChange(StatusChangeEvent event) {
         String mode = event.getStatus().get("mode");
         if (!mode.equals(currentMode)) {
-            clear();
             current = getMode(mode);
             add(current);
             setWallTitle(current.getTitle());
@@ -61,13 +60,13 @@ public class SourcePanel extends WallToWallPanel implements StatusChangeHandler{
 
     private DeejaydMode getMode(String name) {
         if (name.equals("playlist")) {
-            return new PlaylistMode();
+            return new PlaylistMode(this);
         } else if (name.equals("webradio")) {
-            return new WebradioMode();
+            return new WebradioMode(this);
         } else if (name.equals("video")) {
-            return new VideoMode();
+            return new VideoMode(this);
         } else if (name.equals("panel")) {
-            return new PanelMode();
+            return new PanelMode(this);
         } else if (name.equals("dvd")) {
             return new DvdMode();
         }

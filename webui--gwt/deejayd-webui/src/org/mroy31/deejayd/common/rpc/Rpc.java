@@ -211,6 +211,14 @@ public class Rpc {
         send(library+"lib.search", args, callback);
     }
 
+    public void audioLibTagList(String tag, MediaFilter filter,
+            RpcCallback callback) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(tag));
+        args.set(1, filter.toJSON());
+        send("audiolib.taglist", args, callback);
+    }
+
     /*
      * Recorded playlist commands
      */

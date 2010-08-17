@@ -20,17 +20,24 @@
 
 package org.mroy31.deejayd.mobile.sources;
 
+import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.mobile.client.SourcePanel;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 
 public class PanelMode extends DefaultDeejaydMode {
+    private OptionPanel optionPanel = new OptionPanel("panel", hideCtxCmd);
 
-    public PanelMode() {
-        super("panel");
+    public PanelMode(SourcePanel manager) {
+        super("panel", manager);
     }
 
     @Override
@@ -60,6 +67,42 @@ public class PanelMode extends DefaultDeejaydMode {
     @Override
     public String getTitle() {
         return ui.i18nConst.panel();
+    }
+
+    @Override
+    public void initToolbar(HorizontalPanel toolbar) {
+        Button option = new Button();
+        option.addStyleName(ui.resources.mobileCss().playerButton());
+        option.addStyleName(ui.resources.mobileCss().option());
+        option.addClickHandler(new ClickHandler() {
+
+            @Override
+            public void onClick(ClickEvent event) {
+                manager.setContextWidget(ui.i18nConst.options(), optionPanel);
+                manager.setContextVisible(true);
+            }
+        });
+        toolbar.add(option);
+
+        Button updatePanel = new Button();
+        updatePanel.addStyleName(ui.resources.mobileCss().playerButton());
+        updatePanel.addStyleName(ui.resources.mobileCss().add());
+        updatePanel.addClickHandler(new ClickHandler() {
+
+            @Override
+            public void onClick(ClickEvent event) {
+                manager.setContextWidget(ui.i18nConst.updatePanel(),
+                        new TagList(hideCtxCmd));
+                manager.setContextVisible(true);
+            }
+        });
+        toolbar.add(updatePanel);
+    }
+
+    @Override
+    public void onStatusChange(StatusChangeEvent event) {
+        super.onStatusChange(event);
+        optionPanel.update(event.getStatus());
     }
 }
 

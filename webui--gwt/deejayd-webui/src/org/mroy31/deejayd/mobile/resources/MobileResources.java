@@ -32,19 +32,28 @@ public interface MobileResources extends ClientBundle {
     interface MobileCss extends CssResource {
         String mainBody();
         String center();
+        String italic();
+        String button();
+
+        String msgPanel();
+        String error();
+        String information();
 
         String currentWall();
+        String wallPanel();
         String wallHeader();
         String wallHeaderTitle();
         String wallHeaderHTMLTitle();
 
-        String headerButton();
         String headerBackButton();
         String headerForwardButton();
 
         String modeListDesc();
         String modeListItem();
         String listPanel();
+        String tagListItem();
+        String contextPanel();
+        String contextHeader();
 
         /*
          * Player buttons
@@ -89,9 +98,18 @@ public interface MobileResources extends ClientBundle {
         String dvdTrack();
 
         /*
+         * Toolbar buttons
+         */
+        String option();
+        String add();
+        String clear();
+        String shuffle();
+
+        /*
          * effects
          */
         String slide();
+        String slideup();
         String in();
         String out();
         String reverse();
@@ -148,6 +166,19 @@ public interface MobileResources extends ClientBundle {
     ImageResource goFirst();
 
     ImageResource chevron();
+
+    ImageResource options();
+
+    ImageResource add();
+
+    ImageResource folder();
+
+    ImageResource clear();
+
+    ImageResource refresh();
+
+    @Source("audio-file.png")
+    ImageResource audioFile();
 }
 
 //vim: ts=4 sw=4 expandtab

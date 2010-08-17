@@ -20,17 +20,24 @@
 
 package org.mroy31.deejayd.mobile.sources;
 
+import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.mobile.client.SourcePanel;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 
 public class PlaylistMode extends DefaultDeejaydMode {
+    private OptionPanel optionPanel = new OptionPanel("playlist", hideCtxCmd);
 
-    public PlaylistMode() {
-        super("playlist");
+    public PlaylistMode(SourcePanel manager) {
+        super("playlist", manager);
     }
 
     @Override
@@ -60,6 +67,56 @@ public class PlaylistMode extends DefaultDeejaydMode {
     @Override
     public String getTitle() {
         return ui.i18nConst.playlist();
+    }
+
+    @Override
+    public void initToolbar(HorizontalPanel toolbar) {
+        Button option = new Button();
+        option.addStyleName(ui.resources.mobileCss().playerButton());
+        option.addStyleName(ui.resources.mobileCss().option());
+        option.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                manager.setContextWidget(ui.i18nConst.options(), optionPanel);
+                manager.setContextVisible(true);
+            }
+        });
+        toolbar.add(option);
+
+        Button loadFiles = new Button();
+        loadFiles.addStyleName(ui.resources.mobileCss().playerButton());
+        loadFiles.addStyleName(ui.resources.mobileCss().add());
+        loadFiles.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                manager.setContextWidget(ui.i18nConst.addFiles(),
+                        new AudioLibrary());
+                manager.setContextVisible(true);
+            }
+        });
+        toolbar.add(loadFiles);
+
+        Button clear = new Button();
+        clear.addStyleName(ui.resources.mobileCss().playerButton());
+        clear.addStyleName(ui.resources.mobileCss().clear());
+        clear.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                ui.rpc.plsModeClear(new DefaultRpcCallback(ui));
+            }
+        });
+        toolbar.add(clear);
+
+        Button shuffle = new Button();
+        shuffle.addStyleName(ui.resources.mobileCss().playerButton());
+        shuffle.addStyleName(ui.resources.mobileCss().shuffle());
+        shuffle.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                ui.rpc.plsModeShuffle(new DefaultRpcCallback(ui));
+            }
+        });
+        toolbar.add(shuffle);
     }
 }
 
