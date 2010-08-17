@@ -253,21 +253,21 @@ class DeejaydQueue(deejayd.interfaces.DeejaydQueue):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_songs(self, song_ids, pos = None):
-        p = pos and int(pos) or None
-        try: self.source.add_song(song_ids, pos = p)
+        if pos is not None: pos = int(pos)
+        try: self.source.add_song(song_ids, pos = pos)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_paths(self, paths, pos = None):
-        p = pos and int(pos) or None
-        try: self.source.add_path(paths, p)
+        if pos is not None: pos = int(pos)
+        try: self.source.add_path(paths, pos)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def load_playlists(self, pl_ids, pos=None):
-        pos = pos and int(pos) or None
+        if pos is not None: pos = int(pos)
         try: self.source.load_playlist(pl_ids, pos)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
@@ -312,21 +312,21 @@ class DeejaydPlaylistMode(deejayd.interfaces.DeejaydPlaylistMode):
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_paths(self, paths, pos=None):
-        p = pos and int(pos) or None
-        try: self.source.add_path(paths, pos = p)
+        if pos is not None: pos = int(pos)
+        try: self.source.add_path(paths, pos = pos)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def add_songs(self, song_ids, pos=None):
-        p = pos and int(pos) or None
-        try: self.source.add_song(song_ids, pos = p)
+        if pos is not None: pos = int(pos)
+        try: self.source.add_song(song_ids, pos = pos)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))
 
     @returns_deejaydanswer(DeejaydAnswer)
     def loads(self, pl_ids, pos=None):
-        pos = pos and int(pos) or None
+        if pos is not None: pos = int(pos)
         try: self.source.load_playlist(pl_ids, pos)
         except deejayd.sources._base.SourceError, ex:
             raise DeejaydError(str(ex))

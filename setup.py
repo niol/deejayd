@@ -44,38 +44,6 @@ def force_rmdir(path):
         pass
 
 
-class build_extension(Command):
-    ext_directory = None
-    extension = None
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        self.ext_directory = "extensions"
-        self.extension = "deejayd-webui"
-        self.ext_dir = os.path.join(self.ext_directory, self.extension)
-        self.ext_path = "%s.xpi" % self.ext_dir
-
-    def run(self):
-        data_files = self.distribution.data_files
-
-        # first remove old zip file
-        self.clean()
-        ext_file = ZipFile(self.ext_path, 'w')
-        for root, dirs, files in os.walk(self.ext_dir):
-            for f in files:
-                path = os.path.join(root, f)
-                ext_file.write(path, path[len(self.ext_dir):])
-        ext_file.close()
-
-        target_path = os.path.join('share', 'deejayd', 'htdocs')
-        data_files.append((target_path, (self.ext_path, ), ))
-
-    def clean(self):
-        force_unlink(self.ext_path)
-
-
 class build_manpages(Command):
     manpages = None
     db2mans = [
@@ -156,6 +124,33 @@ class build_i18n(Command):
             remove_tree(self.mo_dir)
 
 
+class build_webui(Command):
+    webui_directory = None
+    build_file = None
+    ant = find_executable('ant')
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        self.webui_directory = os.path.join('webui--gwt', 'deejayd-webui')
+        self.build_file = os.path.join(self.webui_directory, "build.xml")
+
+    def run(self):
+        cmd = (self.ant, "-f", self.build_file, "builddist")
+        self.spawn(cmd)
+
+        wdir = os.path.join("build", "webui")
+        data_files = self.distribution.data_files
+        data_files.extend(get_data_files(os.path.join(wdir, "deejayd_webui"),
+                'share/deejayd/htdocs/webui/deejayd_webui'))
+        data_files.extend(get_data_files(os.path.join(wdir, "mobile_webui"),
+                'share/deejayd/htdocs/mobile/mobile_webui'))
+
+    def clean(self):
+        self.spawn((self.ant, "-f", self.build_file, "clean"))
+
+
 class deejayd_build(distutils_build):
 
     def __has_manpages(self, command):
@@ -169,14 +164,14 @@ class deejayd_build(distutils_build):
         return self.distribution.cmdclass.has_key("build_i18n")\
             and build_i18n.executable != None
 
-    def __has_extension(self, command):
-        return self.distribution.cmdclass.has_key("build_extension")
+    def __has_webui(self, command):
+        return self.distribution.cmdclass.has_key("build_webui")
 
     def finalize_options(self):
         distutils_build.finalize_options(self)
         self.sub_commands.append(("build_i18n", self.__has_i18n))
         self.sub_commands.append(("build_manpages", self.__has_manpages))
-        self.sub_commands.append(("build_extension", self.__has_extension))
+        self.sub_commands.append(("build_webui", self.__has_webui))
 
     def clean(self):
         for subcommand_name in self.get_sub_commands():
@@ -242,8 +237,8 @@ if __name__ == "__main__":
            data_files= build_data_files_list(),
            cmdclass={"build": deejayd_build,
                      "build_i18n": build_i18n,
-                     "build_extension": build_extension,
                      "build_manpages": build_manpages,
+                     "build_webui": build_webui,
                      "clean"          : deejayd_clean,
                     }
         )

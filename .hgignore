@@ -5,11 +5,23 @@ conf*
 .setting*
 *.orig
 *.rej
+.DS_Store
 *~
 *.pyc
 build*
+data/htdocs/webui/deejayd_webui*
+data/htdocs/mobile/mobile_webui*
+webui--gwt/deejayd-webui/war*
+webui--gwt/deejayd-webui/gwt*
+webui--gwt/deejayd-webui/src/META-INF/jdoconfig.xml
+webui--gwt/deejayd-webui/src/log4j.properties
 .p*
 */.*
 
 syntax: regexp
 .*\#.*\#$
+
+syntax: regexp
+^data/htdocs/webui/deejayd_webui$
+syntax: regexp
+^data/htdocs/mobile/mobile_webui$

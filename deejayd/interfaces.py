@@ -27,7 +27,11 @@ class DeejaydError(Exception):
     # http://bugs.python.org/issue2517
     def __str__(self):
         if type(self.message) is unicode:
-            return str(self.message.encode(locale.getpreferredencoding()))
+            try:
+                return str(self.message.encode(locale.getpreferredencoding()))
+            except UnicodeError:
+                # perharps prefered encoding not correctly set, force to UTF-8
+                return str(self.message.encode("utf-8"))
         else:
             return str(self.message)
 

@@ -2,8 +2,7 @@
 
 * Work on webui from use cases (albumplayback, etc).
 
-* Signals to the webui exploiting the fact that XmlHttpRequest does not have a
-  timeout.
+* Signals to the webui exploiting websocket API.
 
 * Devscripts dir
 
@@ -24,6 +23,4 @@
   http://trac.luon.net/ruby-dbus/browser/trunk/lib/dbus/bus.rb
 
 * Do not segfault when there is no xserver and video mode is activated.
-
-* Build a new webui with GWT
 

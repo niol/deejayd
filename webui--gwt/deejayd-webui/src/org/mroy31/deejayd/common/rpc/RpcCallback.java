@@ -1,0 +1,39 @@
+/*
+ * Deejayd, a media player daemon
+ * Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+ *                         Alexandre Rossi <alexandre.rossi@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+package org.mroy31.deejayd.common.rpc;
+
+import java.util.ArrayList;
+
+import com.google.gwt.http.client.RequestCallback;
+
+/**
+ * The primary interface a caller must implement to receive a response to a
+ * {@link org.mroy31.deejayd.rpc.Rpc}.
+ * @author Mickaël ROYER
+ *
+ */
+public interface RpcCallback extends RequestCallback {
+    /**
+     * Called when we can not send HTTP Request
+     */
+    void onRequestError();
+    void setRpcHandlers(ArrayList<RpcHandler> handlers);
+}

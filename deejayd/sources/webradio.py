@@ -97,6 +97,7 @@ class WebradioSource(_BaseSource):
             self.__source = self.wb_sources[self._state["source"]]
         except KeyError: # recorded source not found, fallback to default
             self.__source = self.wb_sources["local"]
+            self._state["source"] = "local"
 
         # defer to thread init to avoid long delay
         # when we try to connect to shoutcast for example

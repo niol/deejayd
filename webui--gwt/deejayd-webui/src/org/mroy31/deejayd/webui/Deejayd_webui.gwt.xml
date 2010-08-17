@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module rename-to='deejayd_webui'>
+  <!-- Inherit the core Web Toolkit stuff.                        -->
+  <inherits name='com.google.gwt.user.User'/>
+  <inherits name="com.google.gwt.resources.Resources" />
+  <inherits name="com.google.gwt.i18n.I18N"/>
+
+  <!-- Inherit the default GWT style sheet.                       -->
+  <inherits name='com.google.gwt.user.theme.standard.Standard'/>
+  <!-- Other module inherits                                      -->
+  <inherits name='org.mroy31.deejayd.common.DeejaydCommon'/>
+
+  <!-- French language, independent of country -->
+  <extend-property name="locale" values="fr"/>
+  <!-- English language, independent of country -->
+  <extend-property name="locale" values="en"/>
+  <!-- Default locale -->
+  <set-property-fallback name="locale" value="en"/>
+
+  <!-- Only support gecko and webkit -->
+  <set-property name="user.agent" value="safari,gecko1_8"/>
+
+  <!-- HTML5 drag and drop support                                -->
+  <replace-with class="com.google.gwt.user.client.impl.DOMImplDragDropSafari">
+    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
+    <when-property-is name="user.agent" value="safari"/>
+  </replace-with>
+
+  <replace-with class="com.google.gwt.user.client.impl.DOMImplDragDropMozilla">
+    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
+    <when-property-is name="user.agent" value="gecko1_8"/>
+  </replace-with>
+
+  <!-- Specify the app entry point class.                         -->
+  <entry-point class='org.mroy31.deejayd.webui.client.Deejayd_webui'/>
+
+  <!-- Specify the paths for translatable code                    -->
+  <source path='client'/>
+  <source path='events'/>
+  <source path='resources'/>
+  <source path='i18n'/>
+  <source path='widgets'/>
+  <source path="medialist"/>
+
+</module>

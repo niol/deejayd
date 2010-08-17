@@ -1,0 +1,14 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+  xmlns:g="urn:import:com.google.gwt.user.client.ui">
+  <ui:with field="resources"
+        type="org.mroy31.deejayd.mobile.resources.MobileResources"/>
+  <g:FlowPanel ui:field="rootPanel">
+    <g:HorizontalPanel ui:field="header"
+                       addStyleNames="{resources.mobileCss.wallHeader}">
+      <g:HTML ui:field="title"
+               addStyleNames="{resources.mobileCss.wallHeaderTitle}"></g:HTML>
+    </g:HorizontalPanel>
+    <g:FlowPanel ui:field="contents"></g:FlowPanel>
+  </g:FlowPanel>
+</ui:UiBinder>
