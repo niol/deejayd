@@ -20,5 +20,5 @@ include scripts/testserver
 include scripts/deejayd_rgscan
 recursive-include testdeejayd *
 include data/logo/*
-recursive-include extensions/deejayd-webui *
+recursive-include webui--gwt/deejayd-webui *
 include man/*

@@ -4,7 +4,7 @@
   <property name="gwt.args" value="" />
 
   <!-- Configure path to GWT SDK -->
-  <property name="gwt.sdk" location="gwt-2.0.4" />
+  <property name="gwt.sdk" location="TO BE COMPLETED" />
 
   <path id="project.class.path">
     <pathelement location="war/WEB-INF/classes"/>
@@ -62,6 +62,7 @@
     <delete dir="war/WEB-INF/classes" failonerror="false" />
     <delete dir="war/deejayd_webui" failonerror="false" />
     <delete dir="war/mobile_webui" failonerror="false" />
+    <delete dir="war" failonerror="false" />
   </target>
 
 </project>

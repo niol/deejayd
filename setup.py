@@ -18,7 +18,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import glob,os
+import glob, os, shutil
+from distutils.errors import DistutilsOptionError
 from distutils.command.build import build as distutils_build
 from distutils.command.clean import clean as distutils_clean
 from distutils.core import setup,Command
@@ -26,7 +27,7 @@ from distutils.errors import DistutilsFileError
 from distutils.dep_util import newer
 from distutils.dir_util import remove_tree
 from distutils.spawn import find_executable
-from zipfile import ZipFile
+from xml.dom import minidom
 
 import deejayd
 
@@ -39,12 +40,15 @@ def force_unlink(path):
 
 def force_rmdir(path):
     try:
-        os.rmdir(path)
+        shutil.rmtree(path)
     except OSError:
         pass
 
 
 class build_manpages(Command):
+    description = "Build deejayd man pages"
+    user_options = []
+
     manpages = None
     db2mans = [
         # debian
@@ -88,7 +92,9 @@ class build_manpages(Command):
 
 
 class build_i18n(Command):
+    description = "Build deejayd .po files"
     user_options = []
+
     po_package = None
     po_directory = None
     po_files = None
@@ -123,35 +129,78 @@ class build_i18n(Command):
         if os.path.isdir(self.mo_dir):
             remove_tree(self.mo_dir)
 
+gwt_option = [ ("gwt=", None,
+                "location of GWT SDK used to compile deejayd webui"),
+               ("ant-target=", None,
+                "ant-target use to build webui with gwt : build or builddist")]
 
 class build_webui(Command):
-    webui_directory = None
-    build_file = None
+    description = "Build deejayd webui with GWT SDK"
+    user_options = gwt_option
+
     ant = find_executable('ant')
+    webui_directory = os.path.join('webui--gwt', 'deejayd-webui')
 
     def initialize_options(self):
-        pass
+        self.gwt = None
+        self.ant_target = None
 
-    def finalize_options(self):
-        self.webui_directory = os.path.join('webui--gwt', 'deejayd-webui')
+        self.build_tpl = os.path.join(self.webui_directory, "build.xml.tpl")
         self.build_file = os.path.join(self.webui_directory, "build.xml")
 
+    def finalize_options(self):
+        if self.gwt is None:
+            self.set_undefined_options("build", ("gwt", "gwt"))
+        if self.ant_target is None:
+            self.set_undefined_options("build", ("ant_target", "ant_target"))
+            if self.ant_target is None:
+                self.ant_target = "builddist"
+
     def run(self):
-        cmd = (self.ant, "-f", self.build_file, "builddist")
+        if self.gwt is None:
+            raise DistutilsOptionError(\
+                   "You have to enter a GWT SDK location to build webui")
+
+        # construct build.xml file
+        document = minidom.parse(self.build_tpl)
+        properties = document.getElementsByTagName("property")
+        for property in properties:
+            p_name = property.getAttribute("name")
+            if p_name == "gwt.sdk":
+                property.setAttribute("location", os.path.abspath(self.gwt))
+                break
+        output = document.writexml(open(self.build_file, "w"), encoding="utf-8")
+
+        cmd = (self.ant, "-f", self.build_file, self.ant_target)
         self.spawn(cmd)
 
-        wdir = os.path.join("build", "webui")
-        data_files = self.distribution.data_files
-        data_files.extend(get_data_files(os.path.join(wdir, "deejayd_webui"),
-                'share/deejayd/htdocs/webui/deejayd_webui'))
-        data_files.extend(get_data_files(os.path.join(wdir, "mobile_webui"),
-                'share/deejayd/htdocs/mobile/mobile_webui'))
+        if self.ant_target == "builddist":
+            wdir = os.path.join("build", "webui")
+            data_files = self.distribution.data_files
+            data_files.extend(get_data_files(os.path.join(wdir,"deejayd_webui"),
+                    'share/deejayd/htdocs/webui/deejayd_webui'))
+            data_files.extend(get_data_files(os.path.join(wdir,"mobile_webui"),
+                    'share/deejayd/htdocs/mobile/mobile_webui'))
 
     def clean(self):
-        self.spawn((self.ant, "-f", self.build_file, "clean"))
+        if os.path.isfile(self.build_file):
+            self.spawn((self.ant, "-f", self.build_file, "clean"))
+            os.unlink(self.build_file)
 
 
 class deejayd_build(distutils_build):
+    distutils_build.user_options.extend(gwt_option)
+
+    def initialize_options(self):
+        distutils_build.initialize_options(self)
+        self.gwt = None
+        self.ant_target = None
+
+    def finalize_options(self):
+        distutils_build.finalize_options(self)
+        self.sub_commands.append(("build_i18n", self.__has_i18n))
+        self.sub_commands.append(("build_manpages", self.__has_manpages))
+        self.sub_commands.append(("build_webui", self.__has_webui))
 
     def __has_manpages(self, command):
         has_db2man = False
@@ -166,12 +215,6 @@ class deejayd_build(distutils_build):
 
     def __has_webui(self, command):
         return self.distribution.cmdclass.has_key("build_webui")
-
-    def finalize_options(self):
-        distutils_build.finalize_options(self)
-        self.sub_commands.append(("build_i18n", self.__has_i18n))
-        self.sub_commands.append(("build_manpages", self.__has_manpages))
-        self.sub_commands.append(("build_webui", self.__has_webui))
 
     def clean(self):
         for subcommand_name in self.get_sub_commands():
