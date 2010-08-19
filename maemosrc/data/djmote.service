@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=com.nokia.djmote
-Exec=/usr/bin/djmote
