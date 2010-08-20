@@ -150,16 +150,24 @@ class build_webui(Command):
 
     def finalize_options(self):
         if self.gwt is None:
-            self.set_undefined_options("build", ("gwt", "gwt"))
+            self.gwt = self.__find_gwt()
         if self.ant_target is None:
-            self.set_undefined_options("build", ("ant_target", "ant_target"))
-            if self.ant_target is None:
-                self.ant_target = "builddist"
+            self.ant_target = "builddist"
+
+    def __find_gwt(self):
+        # First, try to see if GWT_SDK env var has been set
+        if "GWT_SDK" in os.environ.keys():
+            return os.environ["GWT_SDK"]
+        # finally, try to find gwt sdk in default java classpath
+        # TODO
+        return None
 
     def run(self):
         if self.gwt is None:
+            raise DistutilsOptionError("No GWT SDK found to build webui")
+        if self.ant is None:
             raise DistutilsOptionError(\
-                   "You have to enter a GWT SDK location to build webui")
+                    "ant program not found, we can't build webui")
 
         # construct build.xml file
         document = minidom.parse(self.build_tpl)
@@ -183,21 +191,16 @@ class build_webui(Command):
                     'share/deejayd/htdocs/mobile/mobile_webui'))
 
     def clean(self):
-        if os.path.isfile(self.build_file):
+        if os.path.isfile(self.build_file) and self.ant is not None:
             self.spawn((self.ant, "-f", self.build_file, "clean"))
             os.unlink(self.build_file)
 
 
 class deejayd_build(distutils_build):
-    distutils_build.user_options.extend(gwt_option)
-
-    def initialize_options(self):
-        distutils_build.initialize_options(self)
-        self.gwt = None
-        self.ant_target = None
 
     def finalize_options(self):
         distutils_build.finalize_options(self)
+
         self.sub_commands.append(("build_i18n", self.__has_i18n))
         self.sub_commands.append(("build_manpages", self.__has_manpages))
         self.sub_commands.append(("build_webui", self.__has_webui))
