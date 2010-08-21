@@ -1114,17 +1114,6 @@ Expected return value : ''`['dict']`''
 
 
 
-==== `web.buildSourceRDF` ====
-
- Build rdf file with current medialist of the specified mode return dict with specific informations (like a description)
-
-Arguments :
-  * {{{mode}}} (Mandatory) : string
-
-Expected return value : ''`['dict']`''
-
-
-
 
 == TCP Specific Commands ==
 
