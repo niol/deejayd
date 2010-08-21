@@ -264,12 +264,10 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         modePanel.setSplitPosition(queueList, 0, false);
 
         DeferredCommand.addCommand(new Command() {
-
             @Override
             public void execute() {
                 load();
             }
-
         });
     }
 
@@ -356,7 +354,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
                             msg.put("button", i18nMessages.libUpdateButton(
                                     i18nConstants.video()));
                             msg.put("confirmation", i18nMessages
-                                    .libUpdateMessage(i18nConstants.audio()));
+                                    .libUpdateMessage(i18nConstants.video()));
                             msg.put("loading", i18nMessages.libUpdateLoading(
                                     i18nConstants.video()));
                             videoLibrary = new LibraryManager(
@@ -364,10 +362,11 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
                         }
                     }
                 }
+
+                update();
             }
         }
         rpc.getModeList(new Callback(this));
-        update();
     }
 
     @Override
@@ -393,10 +392,13 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
 
                 // select current mode
                 String currentMode = status.get("mode");
-                for (int idx=0; idx<modeList.getItemCount(); idx ++) {
-                    if (currentMode.equals(modeList.getValue(idx))) {
-                        modeList.setSelectedIndex(idx);
-                        break;
+                String mode = modeList.getValue(modeList.getSelectedIndex());
+                if (!currentMode.equals(mode)) {
+                    for (int idx=0; idx<modeList.getItemCount(); idx ++) {
+                        if (currentMode.equals(modeList.getValue(idx))) {
+                            modeList.setSelectedIndex(idx);
+                            break;
+                        }
                     }
                 }
 
