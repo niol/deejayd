@@ -26,7 +26,6 @@ from deejayd.rpc import Fault, INTERNAL_ERROR, INVALID_METHOD_PARAMS,\
 from deejayd.rpc.jsonbuilders import Get_json_filter
 from deejayd.rpc.jsonparsers import Parse_json_filter
 from deejayd.rpc.jsonrpc import JSONRPC, addIntrospection
-from deejayd.rpc.rdfbuilder import modes as rdf_modes
 
 
 def returns_answer(type, params = None):
@@ -873,14 +872,6 @@ class DeejaydWebJSONRPC(_DeejaydJSONRPC):
                 except OSError:
                     pass
         return {"cover": os.path.join('tmp', filename), "mime": cover["mime"]}
-
-    @returns_answer('dict', params=[{"name":"mode","type":"string","req":True}])
-    def jsonrpc_buildSourceRDF(self, mode):
-        """ Build rdf file with current medialist of the specified mode return dict with specific informations (like a description)"""
-        try: rdf = rdf_modes[mode](self.deejayd_core, self._tmp_dir)
-        except KeyError:
-            raise Fault(INVALID_METHOD_PARAMS,_("mode %s is not known") % mode)
-        return rdf.update()
 
     @returns_answer('dict',[{"name":"updated_tag","type":"string","req":False}])
     def jsonrpc_buildPanel(self, updated_tag = None):
