@@ -22,8 +22,6 @@ package org.mroy31.deejayd.mobile.client;
 
 import java.util.HashMap;
 
-import org.mroy31.deejayd.common.events.StatusChangeEvent;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.mobile.i18n.MobileConstants;
 import org.mroy31.deejayd.mobile.resources.MobileResources;
@@ -33,13 +31,9 @@ import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -50,15 +44,20 @@ public class MobileLayout extends DeejaydUIWidget {
     public final MobileConstants i18nConst = GWT.create(MobileConstants.class);
     public final MobileResources resources = GWT.create(MobileResources.class);
 
-    private class Message extends Composite {
+    private class MobileMessage extends Message {
 
-        public Message(String text, String type) {
+        public MobileMessage(String message, String type) {
+            super(message, type);
+        }
+
+        @Override
+        protected Widget buildWidget(String message, String type) {
             HorizontalPanel msgPanel = new HorizontalPanel();
             msgPanel.addStyleName(resources.mobileCss().msgPanel());
             msgPanel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
             msgPanel.setSpacing(4);
 
-            Label msgLabel = new Label(text);
+            Label msgLabel = new Label(message);
             msgPanel.add(msgLabel);
             msgPanel.setCellWidth(msgLabel, "100%");
             Button close = new Button(i18nConst.close());
@@ -79,16 +78,7 @@ public class MobileLayout extends DeejaydUIWidget {
                 msgPanel.addStyleName(resources.mobileCss().information());
             }
 
-            initWidget(msgPanel);
-            if (!type.equals("error")) {
-                Timer timer = new Timer() {
-                    @Override
-                    public void run() {
-                        removeFromParent();
-                    }
-                };
-                timer.schedule(5000);
-            }
+            return msgPanel;
         }
     }
 
@@ -132,7 +122,6 @@ public class MobileLayout extends DeejaydUIWidget {
             }
         });
         DeferredCommand.addPause();
-        DeferredCommand.addPause();
         DeferredCommand.addCommand(new ScrollToCommand(null));
     }
 
@@ -145,40 +134,8 @@ public class MobileLayout extends DeejaydUIWidget {
     }
 
     @Override
-    public void setError(String error) {
-        panel.add(new Message(error, "error"));
-    }
-
-    @Override
-    public void setMessage(String message) {
-        panel.add(new Message(message, "information"));
-    }
-
-    @Override
-    public void update() {
-        class StatusCallback extends DefaultRpcCallback {
-            public StatusCallback(DeejaydUIWidget ui) {super(ui);}
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject obj = data.isObject();
-                // create a java map with status
-                HashMap<String, String> status = new HashMap<String, String>();
-                for (String key : obj.keySet()) {
-                    JSONValue value = obj.get(key);
-                    if (value.isString() != null) {
-                        status.put(key, value.isString().stringValue());
-                    } else if (value.isNumber() != null) {
-                        int number = (int) value.isNumber().doubleValue();
-                        status.put(key, Integer.toString(number));
-                    } else if (value.isBoolean() != null) {
-                        status.put(key,
-                            Boolean.toString(value.isBoolean().booleanValue()));
-                    }
-                }
-
-                fireEvent(new StatusChangeEvent(status));
-            }
-        }
-        this.rpc.getStatus(new StatusCallback(this));
+    public void setMessage(String message, String type) {
+        panel.add(new MobileMessage(message, type));
     }
 
     public String getSourceTitle(String source) {

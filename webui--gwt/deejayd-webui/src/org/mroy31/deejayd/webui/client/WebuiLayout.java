@@ -24,6 +24,7 @@ import java.util.HashMap;
 
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
+import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
@@ -57,11 +58,9 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.DeferredCommand;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -70,7 +69,8 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 
-public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
+public class WebuiLayout extends DeejaydUIWidget
+        implements ClickHandler, StatusChangeHandler {
     static private WebuiLayout instance;
     public LibraryManager audioLibrary;
     public LibraryManager videoLibrary;
@@ -90,8 +90,14 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
     WebuiPanelManager panelManager;
     MediaList queueList;
 
-    private class Message extends Composite {
-        public Message(String text, String type) {
+    private class WebuiMessage extends Message {
+
+        public WebuiMessage(String message, String type) {
+            super(message, type);
+        }
+
+        @Override
+        protected Widget buildWidget(String message, String type) {
             FlowPanel panel = new FlowPanel();
             DOM.setStyleAttribute(panel.getElement(), "position", "fixed");
             DOM.setStyleAttribute(panel.getElement(), "zIndex", "1");
@@ -119,7 +125,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
                 typeImg.setResource(resources.dialogInformation());
             }
             msgPanel.add(typeImg);
-            msgPanel.add(new Label(text));
+            msgPanel.add(new Label(message));
             msgPanel.setHorizontalAlignment(HorizontalPanel.ALIGN_RIGHT);
             msgPanel.add(new Button(i18nConstants.close(), new ClickHandler() {
                 @Override
@@ -129,16 +135,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
             }));
 
             panel.add(msgPanel);
-            initWidget(panel);
-            if (!type.equals("error")) {
-                Timer timer = new Timer() {
-                    @Override
-                    public void run() {
-                        removeFromParent();
-                    }
-                };
-                timer.schedule(5000);
-            }
+            return panel;
         }
     }
 
@@ -263,6 +260,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         mainPanel.add(modePanel);
         modePanel.setSplitPosition(queueList, 0, false);
 
+        addStatusChangeHandler(this);
         DeferredCommand.addCommand(new Command() {
             @Override
             public void execute() {
@@ -306,12 +304,9 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
         return new PlayerUI(this);
     }
 
-    public void setMessage(String message) {
-        topPanel.add(new Message(message, "information"));
-    }
-
-    public void setError(String error) {
-        topPanel.add(new Message(error, "error"));
+    @Override
+    public void setMessage(String message, String type) {
+        topPanel.add(new WebuiMessage(message, type));
     }
 
     private void load() {
@@ -371,76 +366,7 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
 
     @Override
     public void update() {
-        class StatusCallback extends DefaultRpcCallback {
-            public StatusCallback(DeejaydUIWidget ui) {super(ui);}
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject obj = data.isObject();
-                // create a java map with status
-                HashMap<String, String> status = new HashMap<String, String>();
-                for (String key : obj.keySet()) {
-                    JSONValue value = obj.get(key);
-                    if (value.isString() != null) {
-                        status.put(key, value.isString().stringValue());
-                    } else if (value.isNumber() != null) {
-                        int number = (int) value.isNumber().doubleValue();
-                        status.put(key, Integer.toString(number));
-                    } else if (value.isBoolean() != null) {
-                        status.put(key,
-                            Boolean.toString(value.isBoolean().booleanValue()));
-                    }
-                }
-
-                // select current mode
-                String currentMode = status.get("mode");
-                String mode = modeList.getValue(modeList.getSelectedIndex());
-                if (!currentMode.equals(mode)) {
-                    for (int idx=0; idx<modeList.getItemCount(); idx ++) {
-                        if (currentMode.equals(modeList.getValue(idx))) {
-                            modeList.setSelectedIndex(idx);
-                            break;
-                        }
-                    }
-                }
-
-                // update queue medialist
-                int id = Integer.parseInt(status.get("queue"));
-                if (queueId != id) {
-                    queueList.update();
-                    // update desc
-                    int lg = Integer.parseInt(status.get("queuelength"));
-                    int tmlg = Integer.parseInt(status.get("queuetimelength"));
-                    if (lg == 0) {
-                        queueDesc.setText(i18nMessages.songsDesc(lg));
-                    } else {
-                        String desc = DeejaydUtils.formatTimeLong(tmlg,
-                                i18nMessages);
-                        queueDesc.setText(i18nMessages.songsDesc(lg)+" ("+
-                        desc+")");
-                    }
-
-                    queueId = id;
-                }
-                // update queue state
-                queueRandom.setValue(
-                        status.get("queueplayorder").equals("random"), false);
-                if (!status.get("state").equals("stop")) {
-                    String current = status.get("current");
-                    String[] currentArray = current.split(":");
-                    if (currentArray[2].equals("queue")) {
-                        if (status.get("state").equals("play")) {
-                            queueState.setResource(resources.play());
-                        } else {
-                            queueState.setResource(resources.pause());
-                        }
-                    }
-                } else {
-                    queueState.setResource(resources.stop());
-                }
-
-                fireEvent(new StatusChangeEvent(status));
-            }
-        }
-        this.rpc.getStatus(new StatusCallback(this));
+        super.update();
 
         class StatsCallback extends DefaultRpcCallback {
             public StatsCallback(DeejaydUIWidget ui) {super(ui);}
@@ -479,6 +405,58 @@ public class WebuiLayout extends DeejaydUIWidget implements ClickHandler {
             return i18nConstants.dvd();
         }
         return "";
+    }
+
+    @Override
+    public void onStatusChange(StatusChangeEvent event) {
+        HashMap<String, String> status = event.getStatus();
+
+        // select current mode
+        String currentMode = status.get("mode");
+        String mode = modeList.getValue(modeList.getSelectedIndex());
+        if (!currentMode.equals(mode)) {
+            for (int idx=0; idx<modeList.getItemCount(); idx ++) {
+                if (currentMode.equals(modeList.getValue(idx))) {
+                    modeList.setSelectedIndex(idx);
+                    break;
+                }
+            }
+        }
+
+        // update queue medialist
+        int id = Integer.parseInt(status.get("queue"));
+        if (queueId != id) {
+            queueList.update();
+            // update desc
+            int lg = Integer.parseInt(status.get("queuelength"));
+            int tmlg = Integer.parseInt(status.get("queuetimelength"));
+            if (lg == 0) {
+                queueDesc.setText(i18nMessages.songsDesc(lg));
+            } else {
+                String desc = DeejaydUtils.formatTimeLong(tmlg,
+                        i18nMessages);
+                queueDesc.setText(i18nMessages.songsDesc(lg)+" ("+
+                desc+")");
+            }
+
+            queueId = id;
+        }
+        // update queue state
+        queueRandom.setValue(
+                status.get("queueplayorder").equals("random"), false);
+        if (!status.get("state").equals("stop")) {
+            String current = status.get("current");
+            String[] currentArray = current.split(":");
+            if (currentArray[2].equals("queue")) {
+                if (status.get("state").equals("play")) {
+                    queueState.setResource(resources.play());
+                } else {
+                    queueState.setResource(resources.pause());
+                }
+            }
+        } else {
+            queueState.setResource(resources.stop());
+        }
     }
 }
 
