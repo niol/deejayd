@@ -2,7 +2,6 @@ syntax: glob
 deejayd.py
 db*
 conf*
-.setting*
 *.orig
 *.rej
 .DS_Store
@@ -11,12 +10,10 @@ conf*
 build*
 data/htdocs/webui/deejayd_webui*
 data/htdocs/mobile/mobile_webui*
-webui--gwt/deejayd-webui/war*
-webui--gwt/deejayd-webui/gwt*
-webui--gwt/deejayd-webui/src/META-INF/jdoconfig.xml
-webui--gwt/deejayd-webui/src/log4j.properties
-.p*
-*/.*
+webui/war*
+webui/gwt*
+webui/src/META-INF/jdoconfig.xml
+webui/src/log4j.properties
 
 syntax: regexp
 .*\#.*\#$

@@ -139,7 +139,7 @@ class build_webui(Command):
     user_options = gwt_option
 
     ant = find_executable('ant')
-    webui_directory = os.path.join('webui--gwt', 'deejayd-webui')
+    webui_directory = "webui"
 
     def initialize_options(self):
         self.gwt = None
