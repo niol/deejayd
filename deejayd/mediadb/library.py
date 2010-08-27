@@ -70,7 +70,7 @@ class _Library(SignalingComponent):
         self._changes_cb = {}
         self._changes_cb_id = 0
 
-        self._path = os.path.abspath(path)
+        self._path = os.path.abspath(self._encode(path))
         # test library path
         if not os.path.isdir(self._path):
             msg = _("Unable to find directory %s") % self._encode(self._path)
