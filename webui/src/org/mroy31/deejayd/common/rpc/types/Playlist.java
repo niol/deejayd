@@ -18,27 +18,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.rpc;
+package org.mroy31.deejayd.common.rpc.types;
 
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import com.google.gwt.json.client.JSONObject;
 
-import com.google.gwt.json.client.JSONValue;
+public class Playlist {
+    private final JSONObject pls;
 
-public class DefaultRpcCallback extends GenericRpcCallback {
-    DeejaydUIWidget ui;
-
-    public DefaultRpcCallback(DeejaydUIWidget ui) {
-       this.ui = ui;
+    public Playlist(JSONObject pls) {
+        this.pls = pls;
     }
 
-    @Override
-    public void onCorrectAnswer(JSONValue data) {
-        ui.update();
+    public int getId() {
+        return (int) pls.get("id").isNumber().doubleValue();
     }
 
-    @Override
-    public void setError(String error) {
-        ui.setError(error);
+    public String getName() {
+        return pls.get("name").isString().stringValue();
+    }
+
+    public String getType() {
+        return pls.get("type").isString().stringValue();
     }
 }
 

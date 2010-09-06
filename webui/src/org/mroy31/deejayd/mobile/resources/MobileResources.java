@@ -51,6 +51,7 @@ public interface MobileResources extends ClientBundle {
         String modeListDesc();
         String modeListItem();
         String listPanel();
+        String listItem();
         String tagListItem();
         String contextPanel();
         String contextHeader();
@@ -92,7 +93,6 @@ public interface MobileResources extends ClientBundle {
          */
         String chevron();
         String mListPager();
-        String mListItem();
         String mListTitle();
         String mListDesc();
         String dvdTrack();

@@ -20,7 +20,10 @@
 
 package org.mroy31.deejayd.mobile.client;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
+import java.util.HashMap;
+
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.common.widgets.PlayerWidget;
 import org.mroy31.deejayd.mobile.resources.MobileResources;
@@ -28,79 +31,43 @@ import org.mroy31.deejayd.mobile.widgets.TimeSeekBar;
 import org.mroy31.deejayd.mobile.widgets.VolumeSlider;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 
-public class PlayerUI extends PlayerWidget implements ClickHandler {
+public class PlayerUI extends PlayerWidget {
     private final MobileLayout ui = MobileLayout.getInstance();
 
     private static PlayerUIUiBinder uiBinder = GWT
             .create(PlayerUIUiBinder.class);
-
     interface PlayerUIUiBinder extends UiBinder<Widget, PlayerUI> {}
+
     public interface MediaChangeHandler {
         public void onMediaChange(String title);
     }
     private MediaChangeHandler changeHandler;
 
-    private class VolumeTimer extends Timer {
-        private int value;
-        public VolumeTimer(int value) {
-            this.value = value;
-        }
-
-        @Override
-        public void run() {
-            ui.rpc.setVolume(value, new DefaultRpcCallback(ui));
-        }
-    };
-    private VolumeTimer volTimer = null;
-
-    private class SeekTimer extends Timer {
-        private int value;
-        public SeekTimer(int seekTime) {
-            value = seekTime;
-        }
-
-        @Override
-        public void run() {
-            ui.rpc.seek(value, new DefaultRpcCallback(ui));
-        }
-    }
-    private SeekTimer seekTimer = null;
-
     @UiField HorizontalPanel seekBarPanel;
     @UiField TimeSeekBar seekBar;
     @UiField VolumeSlider volSlider;
     @UiField Image coverImg;
-    @UiField Button previousButton;
     @UiField Button playToggleButton;
-    @UiField Button stopButton;
-    @UiField Button nextButton;
     @UiField(provided = true) final MobileResources resources = ui.resources;
 
     public PlayerUI(MediaChangeHandler handler) {
+        super(MobileLayout.getInstance());
+
         this.changeHandler = handler;
         initWidget(uiBinder.createAndBindUi(this));
 
-        for (Button btn : new Button[]{previousButton, playToggleButton,
-                stopButton, nextButton}) {
-            btn.addClickHandler(this);
-        }
         coverImg.addLoadHandler(new LoadHandler() {
             public void onLoad(LoadEvent event) {
                 int size = Math.min(Window.getClientWidth(),
@@ -114,17 +81,15 @@ public class PlayerUI extends PlayerWidget implements ClickHandler {
         // Volume slider
         volSlider.addValueChangeHandler(new ValueChangeHandler<Integer>() {
             public void onValueChange(ValueChangeEvent<Integer> event) {
-                if (volTimer != null) {
-                    volTimer.cancel();
+                if (volumeTimer != null) {
+                    volumeTimer.cancel();
                 }
-                volTimer = new VolumeTimer(event.getValue());
-                volTimer.schedule(400);
+                volumeTimer = new VolumeTimer(event.getValue());
+                volumeTimer.schedule(400);
             }
         });
 
         // Time SeekBar
-        seekBarPanel.setCellHorizontalAlignment(seekBar,
-                HorizontalPanel.ALIGN_CENTER);
         seekBar.addValueChangeHandler(new ValueChangeHandler<Integer>() {
             public void onValueChange(ValueChangeEvent<Integer> event) {
                 if (seekTimer != null) {
@@ -134,47 +99,6 @@ public class PlayerUI extends PlayerWidget implements ClickHandler {
                 seekTimer.schedule(250);
             }
         });
-    }
-
-    @Override
-    protected void formatCurrentTitle(JSONObject media) {
-        String title = "";
-        String desc = "";
-        String type = media.get("type").isString().stringValue();
-
-        if (type.equals("song")) {
-            String length = media.get("length").isString().stringValue();
-            title = media.get("title").isString().stringValue() + " (" +
-                DeejaydUtils.formatTime(Integer.parseInt(length)) + ")";
-            JSONString artist = media.get("artist").isString();
-            JSONString album = media.get("album").isString();
-            if (artist != null) {
-                desc += artist.stringValue()+" - ";
-            }
-            if (album != null) {
-                desc += album.stringValue();
-            }
-
-            // get cover
-            int mediaId = (int) Math.round(
-                    media.get("media_id").isNumber().doubleValue());
-            ui.rpc.getCover(mediaId, new CoverCallback(ui));
-        } else if (type.equals("video")) {
-            String length = media.get("length").isString().stringValue();
-            title = media.get("title").isString().stringValue() + " (" +
-                DeejaydUtils.formatTime(Integer.parseInt(length)) + ")";
-        } else if (type.equals("webradio")) {
-            title = media.get("title").isString().stringValue();
-            if (media.get("song-title") != null) {
-                title +=" -- "+media.get("song-title")
-                        .isString().stringValue();
-            }
-            if (media.get("uri") != null) {
-                desc = media.get("uri").isString().stringValue();
-            }
-        }
-
-        changeHandler.onMediaChange("<b>"+title+"</b><br/><i>"+desc+"</i>");
     }
 
     public void updateState(String state) {
@@ -195,33 +119,45 @@ public class PlayerUI extends PlayerWidget implements ClickHandler {
     }
 
     public void updateCurrent() {
-        ui.rpc.getCurrent(new CurrentCallback(ui));
-    }
+        ui.rpc.getCurrent(new AnswerHandler<Media>() {
 
-    @Override
-    protected void updateCover(JSONString cover) {
-        if (cover != null) {
-            String url = GWT.getHostPageBaseURL()+"../"+cover.stringValue();
-            coverImg.setUrl(url);
-        }
+            public void onAnswer(Media current) {
+                String title = current.getStrAttr("title");
+                String desc = "";
+
+                if (current.isSong()) {
+                    title += " ("+DeejaydUtils.formatTime(current.getIntAttr("length"))+")";
+                    if (current.hasAttr("artist"))
+                        desc += current.getStrAttr("artist");
+                    if (current.hasAttr("album"))
+                        desc += " - " + current.getStrAttr("album");
+
+                    // get cover
+                    ui.rpc.getCover(current.getMediaId(), new AnswerHandler<HashMap<String,String>>() {
+                        public void onAnswer(HashMap<String, String> answer) {
+                            if (!answer.containsKey("cover"))
+                                return;
+                            String cover = answer.get("cover");
+                            String url = GWT.getHostPageBaseURL()+"../"+cover;
+                            coverImg.setUrl(url);
+                        }
+                    });
+                } else if (current.isVideo()) {
+                    title += " ("+DeejaydUtils.formatTime(current.getIntAttr("length"))+")";
+                } else if (current.isWebradio()) {
+                    if (current.hasAttr("song-title"))
+                        title += " -- " + current.getStrAttr("song-title");
+                    if (current.hasAttr("uri"))
+                        desc = current.getStrAttr("uri");
+                }
+
+                changeHandler.onMediaChange("<b>"+title+"</b><br/><i>"+desc+"</i>");
+            }
+        });
     }
 
     public void resetCover() {
         coverImg.setResource(ui.resources.missingCover());
-    }
-
-    public void onClick(ClickEvent event) {
-        Widget sender = (Widget) event.getSource();
-        DefaultRpcCallback callback = new DefaultRpcCallback(ui);
-        if (sender == playToggleButton) {
-            ui.rpc.playToggle(callback);
-        } else if (sender == stopButton) {
-            ui.rpc.stop(callback);
-        } else if (sender == nextButton) {
-            ui.rpc.next(callback);
-        } else if (sender == previousButton) {
-            ui.rpc.previous(callback);
-        }
     }
 
 }

@@ -22,7 +22,7 @@ package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LoadingWidget;
@@ -53,7 +53,7 @@ public class DvdMode extends Composite implements WebuiModeInterface {
     interface DvdModeUiBinder extends UiBinder<Widget, DvdMode> {}
 
 
-    private class InfoCallback extends DefaultRpcCallback {
+    private class InfoCallback extends AbstractRpcCallback {
 
         private class DvdItem extends HorizontalPanel {
             public DvdItem(String title, int length, final String id) {
@@ -62,7 +62,7 @@ public class DvdMode extends Composite implements WebuiModeInterface {
                 Image playButton = new Image(webui.resources.playLow());
                 playButton.addClickHandler(new ClickHandler() {
                     public void onClick(ClickEvent event) {
-                        webui.rpc.goTo(id, new DefaultRpcCallback(webui));
+                        webui.rpc.goTo(id, null);
                     }
                 });
                 add(playButton);
@@ -77,8 +77,6 @@ public class DvdMode extends Composite implements WebuiModeInterface {
             }
 
         }
-
-        public InfoCallback(WebuiLayout webui) { super(webui); }
 
         @Override
         public void onCorrectAnswer(JSONValue data) {
@@ -152,7 +150,7 @@ public class DvdMode extends Composite implements WebuiModeInterface {
             dvdTree.clear();
             dvdTree.addItem(new LoadingWidget(webui.i18nConstants.loading(),
                     webui.resources));
-            webui.rpc.dvdGetInfo(new InfoCallback(webui));
+            webui.rpc.dvdGetInfo(new InfoCallback());
             dvdId = id;
         }
     }

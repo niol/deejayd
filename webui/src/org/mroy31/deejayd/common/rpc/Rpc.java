@@ -21,6 +21,25 @@
 package org.mroy31.deejayd.common.rpc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AckCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.callbacks.CurrentCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.DictCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.FileDirListCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.ListCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.MediaListCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.PlsListCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.RpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.RpcHandler;
+import org.mroy31.deejayd.common.rpc.types.FileDirList;
+import org.mroy31.deejayd.common.rpc.types.Media;
+import org.mroy31.deejayd.common.rpc.types.MediaFilter;
+import org.mroy31.deejayd.common.rpc.types.MediaList;
+import org.mroy31.deejayd.common.rpc.types.Playlist;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.RequestBuilder;
@@ -39,12 +58,38 @@ public class Rpc {
     private final RequestBuilder request = new RequestBuilder(
             RequestBuilder.POST, URL.encode(RPC_URL));
     private ArrayList<RpcHandler> handlers = new ArrayList<RpcHandler>();
+    private final AnswerHandler<String> defaultHandler;
+
+    public Rpc(final AnswerHandler<String> defaultHandler) {
+        this.defaultHandler = defaultHandler;
+    }
 
     public void addRpcHandler(RpcHandler handler) {
         handlers.add(handler);
     }
 
-    public void send(String cmd, JSONValue args, RpcCallback callback) {
+    public void send(String cmd) {
+        send(cmd, new JSONArray(), (AnswerHandler<Boolean>) null);
+    }
+
+    public void send(String cmd, JSONValue args,
+            final AnswerHandler<Boolean> handler) {
+        RpcCallback cb = null;
+        if (handler != null) {
+            cb = new AckCallback(handler);
+        }
+        send(cmd, args, cb);
+    }
+
+    public void send(final String cmd, JSONValue args, RpcCallback callback) {
+        if (callback == null)
+            callback = new AbstractRpcCallback() {
+                @Override
+                public void onCorrectAnswer(JSONValue data) {
+                    defaultHandler.onAnswer(cmd);
+                }
+            };
+
         // format json commands
         ++request_id;
         JSONObject json_cmd = new JSONObject();
@@ -53,9 +98,9 @@ public class Rpc {
         json_cmd.put("params", args);
 
         callback.setRpcHandlers(handlers);
-        for (RpcHandler h : handlers)
-            h.onRpcStart();
         try {
+            for (RpcHandler h : handlers)
+                h.onRpcStart();
             request.sendRequest(json_cmd.toString(), callback);
         }
         catch (RequestException ex) {
@@ -63,25 +108,26 @@ public class Rpc {
         }
     }
 
-    public void getStatus(RpcCallback callback) {
-        send("status", new JSONArray(), callback);
+    public void getStatus(AnswerHandler<HashMap<String, String>> handler) {
+        send("status", new JSONArray(), new DictCallback(handler));
     }
 
-    public void getStats(RpcCallback callback) {
-        send("stats", new JSONArray(), callback);
+    public void getStats(AnswerHandler<HashMap<String, String>> handler) {
+        send("stats", new JSONArray(), new DictCallback(handler));
     }
 
-    public void getModeList(RpcCallback callback) {
-        send("availablemodes", new JSONArray(), callback);
+    public void getModeList(AnswerHandler<HashMap<String, String>> handler) {
+        send("availablemodes", new JSONArray(), new DictCallback(handler));
     }
 
-    public void setMode(String mode, RpcCallback callback) {
+    public void setMode(String mode, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(mode));
-        send("setmode", args, callback);
+        send("setmode", args, handler);
     }
 
-    public void setRating(int[] mediaIds, int rating, RpcCallback callback) {
+    public void setRating(int[] mediaIds, int rating,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonMediaIds = new JSONArray();
         int idx = 0;
@@ -91,162 +137,165 @@ public class Rpc {
         }
         args.set(0, jsonMediaIds);
         args.set(1, new JSONNumber(rating));
-        send("setRating", args, callback);
+        send("setRating", args, handler);
     }
 
-    public void setOption(String source, String oName,
-            String oValue, RpcCallback callback) {
+    public void setOption(String source, String oName, String oValue,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(source));
         args.set(1, new JSONString(oName));
         args.set(2, new JSONString(oValue));
-        send("setOption", args, callback);
+        send("setOption", args, handler);
     }
 
-    public void setOption(String source, String oName,
-            boolean oValue, RpcCallback callback) {
+    public void setOption(String source, String oName, boolean oValue,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(source));
         args.set(1, new JSONString(oName));
         args.set(2, JSONBoolean.getInstance(oValue));
-        send("setOption", args, callback);
+        send("setOption", args, handler);
     }
 
     /*
      * Player commmands
      */
 
-    public void playToggle(RpcCallback callback) {
-        send("player.playToggle", new JSONArray(), callback);
+    public void playToggle() {
+        send("player.playToggle");
     }
 
-    public void stop(RpcCallback callback) {
-        send("player.stop", new JSONArray(), callback);
+    public void stop() {
+        send("player.stop");
     }
 
-    public void next(RpcCallback callback) {
-        send("player.next", new JSONArray(), callback);
+    public void next() {
+        send("player.next");
     }
 
-    public void previous(RpcCallback callback) {
-        send("player.previous", new JSONArray(), callback);
+    public void previous() {
+        send("player.previous");
     }
 
-    public void setVolume(int volume, RpcCallback callback) {
+    public void setVolume(int volume, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(volume));
-        send("player.setVolume", args, callback);
+        send("player.setVolume", args, handler);
     }
 
-    public void getCurrent(RpcCallback callback) {
-        send("player.current", new JSONArray(), callback);
+    public void getCurrent(AnswerHandler<Media> handler) {
+        send("player.current", new JSONArray(), new CurrentCallback(handler));
     }
 
-    public void seek(int pos, RpcCallback callback) {
-        seek(pos, false, callback);
+    public void seek(int pos, AnswerHandler<Boolean> handler) {
+        seek(pos, false, handler);
     }
 
-    public void seek(int pos, boolean relative, RpcCallback callback) {
+    public void seek(int pos, boolean relative, AnswerHandler<Boolean> handler){
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(pos));
         args.set(1, JSONBoolean.getInstance(relative));
-        send("player.seek", args, callback);
+        send("player.seek", args, handler);
     }
 
     public void setPlayerOption(String optionName, String optionValue,
-            RpcCallback callback) {
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(optionName));
         args.set(1, new JSONString(optionValue));
-        send("player.setPlayerOption", args, callback);
+        send("player.setPlayerOption", args, handler);
     }
 
-    public void goTo(int id, RpcCallback callback) {
+    public void goTo(int id, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(id));
-        send("player.goto", args, callback);
+        send("player.goto", args, handler);
     }
 
-    public void goTo(int id, String source, RpcCallback callback) {
+    public void goTo(int id, String source, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(id));
         args.set(1, new JSONString("id"));
         args.set(2, new JSONString(source));
-        send("player.goto", args, callback);
+        send("player.goto", args, handler);
     }
 
-    public void goTo(String id, RpcCallback callback) {
+    public void goTo(String id, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(id));
         args.set(1, new JSONString("dvd_id"));
         args.set(2, new JSONString("dvd"));
-        send("player.goto", args, callback);
+        send("player.goto", args, handler);
     }
 
-    public void getCover(int mediaId, RpcCallback callback) {
+    public void getCover(int mediaId,
+            AnswerHandler<HashMap<String,String>> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(mediaId));
-        send("web.writecover", args, callback);
+        send("web.writecover", args, new DictCallback(handler));
     }
 
     /*
      * library commands
      */
     public void libGetDirectory(String library, String dir,
-            RpcCallback callback) {
+            AnswerHandler<FileDirList> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(dir));
-        send(library+"lib.getDir", args, callback);
+        send(library+"lib.getDir", args, new FileDirListCallback(handler));
     }
 
-    public void libUpdate(String library, RpcCallback callback) {
-        send(library+"lib.update", new JSONArray(), callback);
+    public void libUpdate(String library,
+            AnswerHandler<HashMap<String,String>> handler) {
+        send(library+"lib.update", new JSONArray(), new DictCallback(handler));
     }
 
     public void libSearch(String library, String pattern,
-            String type, RpcCallback callback) {
+            String type, AnswerHandler<FileDirList> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(pattern));
         args.set(1, new JSONString(type));
-        send(library+"lib.search", args, callback);
+        send(library+"lib.search", args, new FileDirListCallback(handler));
     }
 
     public void audioLibTagList(String tag, MediaFilter filter,
-            RpcCallback callback) {
+            AnswerHandler<List<String>> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(tag));
         args.set(1, filter.toJSON());
-        send("audiolib.taglist", args, callback);
+        send("audiolib.taglist", args, new ListCallback(handler));
     }
 
     /*
      * Recorded playlist commands
      */
-    public void recPlsList(RpcCallback callback) {
-        send("recpls.list", new JSONArray(), callback);
+    public void recPlsList(AnswerHandler<List<Playlist>> handler) {
+        send("recpls.list", new JSONArray(), new PlsListCallback(handler));
     }
 
-    public void recPlsErase(JSONArray ids, RpcCallback callback) {
+    public void recPlsErase(JSONArray ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, ids);
-        send("recpls.erase", args, callback);
+        send("recpls.erase", args, handler);
     }
 
-    public void recPlsCreate(String name, String type, RpcCallback callback) {
+    public void recPlsCreate(String name, String type,
+            AnswerHandler<HashMap<String, String>> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(name));
         args.set(1, new JSONString(type));
-        send("recpls.create", args, callback);
+        send("recpls.create", args, new DictCallback(handler));
     }
 
-    public void recPlsGet(String plsId, RpcCallback callback) {
+    public void recPlsGet(String plsId,AnswerHandler<MediaList> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
-        send("recpls.get", args, callback);
+        send("recpls.get", args, new MediaListCallback(handler));
     }
 
     public void recPlsStaticAdd(String plsId, String[] ids,
-            RpcCallback callback) {
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
         JSONArray idsArray = new JSONArray();
@@ -255,51 +304,63 @@ public class Rpc {
         args.set(1, idsArray);
         args.set(2, new JSONString("id"));
 
-        send("recpls.staticAdd", args, callback);
+        send("recpls.staticAdd", args, handler);
     }
 
-    public void recPlsMagicGetProperties(String plsId, RpcCallback callback) {
+    public void recPlsMagicGetProperties(String plsId,
+            AnswerHandler<HashMap<String, String>> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
-        send("recpls.magicGetProperties", args, callback);
+        send("recpls.magicGetProperties", args, new DictCallback(handler));
     }
 
     public void recPlsMagicSetProperty(String plsId, String key, String value,
-            RpcCallback callback) {
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
         args.set(1, new JSONString(key));
         args.set(2, new JSONString(value));
-        send("recpls.magicSetProperty", args, callback);
+        send("recpls.magicSetProperty", args, handler);
     }
 
     public void recPlsMagicAddFilter(String plsId, MediaFilter filter,
-            RpcCallback callback) {
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
         args.set(1, filter.toJSON());
-        send("recpls.magicAddFilter", args, callback);
+        send("recpls.magicAddFilter", args, handler);
     }
 
-    public void recPlsMagicClearFilter(String plsId, RpcCallback callback) {
+    public void recPlsMagicClearFilter(String plsId,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
-        send("recpls.magicClearFilter", args, callback);
+        send("recpls.magicClearFilter", args, handler);
+    }
+
+    /*
+     * Generic source command
+     */
+    public void modeGetMedia(String source,
+            int start, int length, AnswerHandler<MediaList> handler) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONNumber(start));
+        args.set(1, new JSONNumber(length));
+        send(source+".get", args, new MediaListCallback(handler));
     }
 
     /*
      * Playlist commands
      */
-
-    public void plsModeShuffle(RpcCallback callback) {
-        send("playlist.shuffle", new JSONArray(), callback);
+    public void plsModeShuffle() {
+        send("playlist.shuffle");
     }
 
-    public void plsModeClear(RpcCallback callback) {
-        send("playlist.clear", new JSONArray(), callback);
+    public void plsModeClear() {
+        send("playlist.clear");
     }
 
-    public void plsModeRemove(String[] ids, RpcCallback callback) {
+    public void plsModeRemove(String[] ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
         int idx = 0;
@@ -308,10 +369,11 @@ public class Rpc {
             idx ++;
         }
         args.set(0, jsonIds);
-        send("playlist.remove", args, callback);
+        send("playlist.remove", args, handler);
     }
 
-    public void plsModeMove(String[] ids, int pos, RpcCallback callback) {
+    public void plsModeMove(String[] ids, int pos,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
         int idx = 0;
@@ -321,66 +383,72 @@ public class Rpc {
         }
         args.set(0, jsonIds);
         args.set(1, new JSONNumber(pos));
-        send("playlist.move", args, callback);
+        send("playlist.move", args, handler);
     }
 
-    public void plsModeLoadPath(JSONArray sel, int pos, RpcCallback callback) {
+    public void plsModeLoadPath(JSONArray sel, int pos,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, sel);
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
-        send("playlist.addPath", args, callback);
+        send("playlist.addPath", args, handler);
     }
 
-    public void plsModeLoadIds(JSONArray sel, int pos, RpcCallback callback) {
+    public void plsModeLoadIds(JSONArray sel, int pos,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, sel);
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
-        send("playlist.addIds", args, callback);
+        send("playlist.addIds", args, handler);
     }
 
-    public void plsModeLoadPls(JSONArray sel, int pos, RpcCallback callback) {
+    public void plsModeLoadPls(JSONArray sel, int pos,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
          args.set(0, sel);
          if (pos != -1)
              args.set(1, new JSONNumber(pos));
-         send("playlist.loads", args, callback);
+         send("playlist.loads", args, handler);
     }
 
-    public void plsModeSave(String plsName, RpcCallback callback) {
+    public void plsModeSave(String plsName, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsName));
-        send("playlist.save", args, callback);
+        send("playlist.save", args, handler);
     }
 
     /*
      * Webradio commands
      */
 
-    public void wbModeGetSources(RpcCallback callback) {
-        send("webradio.getAvailableSources", new JSONArray(), callback);
+    public void wbModeGetSources(AnswerHandler<HashMap<String,String>> handler) {
+        send("webradio.getAvailableSources", new JSONArray(),
+                new DictCallback(handler));
     }
 
-    public void wbModeGetSourceCategories(String source, RpcCallback callback) {
+    public void wbModeGetSourceCategories(String source,
+            AnswerHandler<List<String>> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(source));
-        send("webradio.getSourceCategories", args, callback);
+        send("webradio.getSourceCategories", args, new ListCallback(handler));
     }
 
-    public void wbModeSetSource(String source, RpcCallback callback) {
+    public void wbModeSetSource(String source, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(source));
-        send("webradio.setSource", args, callback);
+        send("webradio.setSource", args, handler);
     }
 
-    public void wbModeSetSourceCategorie(String cat, RpcCallback callback) {
+    public void wbModeSetSourceCategorie(String cat,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(cat));
-        send("webradio.setSourceCategorie", args, callback);
+        send("webradio.setSourceCategorie", args, handler);
     }
 
-    public void wbModeRemove(String[] ids, RpcCallback callback) {
+    public void wbModeRemove(String[] ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
         int idx = 0;
@@ -389,31 +457,32 @@ public class Rpc {
             idx ++;
         }
         args.set(0, jsonIds);
-        send("webradio.localRemove", args, callback);
+        send("webradio.localRemove", args, handler);
     }
 
-    public void wbModeClear(RpcCallback callback) {
-        send("webradio.localClear", new JSONArray(), callback);
+    public void wbModeClear() {
+        send("webradio.localClear");
     }
 
-    public void wbModeAdd(String name, String url, RpcCallback callback) {
+    public void wbModeAdd(String name, String url,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(name));
         JSONArray urls = new JSONArray();
         urls.set(0, new JSONString(url));
         args.set(1, urls);
-        send("webradio.localAdd", args, callback);
+        send("webradio.localAdd", args, handler);
     }
 
     /*
      * Queue commands
      */
 
-    public void queueClear(RpcCallback callback) {
-        send("queue.clear", new JSONArray(), callback);
+    public void queueClear() {
+        send("queue.clear");
     }
 
-    public void queueRemove(String[] ids, RpcCallback callback) {
+    public void queueRemove(String[] ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
         int idx = 0;
@@ -422,10 +491,11 @@ public class Rpc {
             idx ++;
         }
         args.set(0, jsonIds);
-        send("queue.remove", args, callback);
+        send("queue.remove", args, handler);
     }
 
-    public void queueMove(String[] ids, int pos, RpcCallback callback) {
+    public void queueMove(String[] ids, int pos,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
         int idx = 0;
@@ -435,71 +505,75 @@ public class Rpc {
         }
         args.set(0, jsonIds);
         args.set(1, new JSONNumber(pos));
-        send("queue.move", args, callback);
+        send("queue.move", args, handler);
     }
 
-    public void queueLoadPath(JSONArray sel, int pos, RpcCallback callback) {
+    public void queueLoadPath(JSONArray sel, int pos,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, sel);
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
-        send("queue.addPath", args, callback);
+        send("queue.addPath", args, handler);
     }
 
-    public void queueLoadIds(JSONArray sel, int pos, RpcCallback callback) {
+    public void queueLoadIds(JSONArray sel, int pos,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, sel);
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
-        send("queue.addIds", args, callback);
+        send("queue.addIds", args, handler);
     }
 
-    public void queueModeLoadPls(JSONArray sel, int pos, RpcCallback callback) {
+    public void queueModeLoadPls(JSONArray sel, int pos,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
          args.set(0, sel);
          if (pos != -1)
              args.set(1, new JSONNumber(pos));
-         send("queue.loads", args, callback);
+         send("queue.loads", args, handler);
     }
 
     /*
      * Panel commands
      */
 
-    public void panelModeActiveList(RpcCallback callback) {
-        send("panel.activeList", new JSONArray(), callback);
+    public void panelModeActiveList(
+            AnswerHandler<HashMap<String,String>> handler) {
+        send("panel.activeList", new JSONArray(), new DictCallback(handler));
     }
 
-    public void panelModeGetTags(RpcCallback callback) {
-        send("panel.tags", new JSONArray(), callback);
+    public void panelModeGetTags(AnswerHandler<List<String>> handler) {
+        send("panel.tags", new JSONArray(), new ListCallback(handler));
     }
 
     public void panelModeSetActiveList(String mode, String pls,
-            RpcCallback callback) {
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(mode));
         args.set(1, new JSONString(pls));
-        send("panel.setActiveList", args, callback);
+        send("panel.setActiveList", args, handler);
     }
 
-    public void panelModeClearAll(RpcCallback callback) {
-        send("panel.clearAll", new JSONArray(), callback);
+    public void panelModeClearAll() {
+        send("panel.clearAll");
     }
 
     public void panelModeSetSearch(String tag, String value,
-            RpcCallback callback) {
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(tag));
         args.set(1, new JSONString(value));
-        send("panel.setSearch", args, callback);
+        send("panel.setSearch", args, handler);
     }
 
-    public void panelModeClearSearch(RpcCallback callback) {
-        send("panel.clearSearch", new JSONArray(), callback);
+    public void panelModeClearSearch() {
+        send("panel.clearSearch");
     }
 
     public void panelModeSetFilter(String tag, String[] values,
-            RpcCallback callback) {
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(tag));
         JSONArray jsonIds = new JSONArray();
@@ -509,13 +583,14 @@ public class Rpc {
             idx ++;
         }
         args.set(1, jsonIds);
-        send("panel.setFilter", args, callback);
+        send("panel.setFilter", args, handler);
     }
 
-    public void panelModeRemoveFilter(String tag, RpcCallback callback) {
+    public void panelModeRemoveFilter(String tag,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(tag));
-        send("panel.removeFilter", args, callback);
+        send("panel.removeFilter", args, handler);
     }
 
     public void panelModeBuildPanel(String updatedTag, RpcCallback callback) {
@@ -530,19 +605,20 @@ public class Rpc {
      * Video Commands
      */
 
-    public void videoModeSet(String value, String type, RpcCallback callback) {
+    public void videoModeSet(String value, String type,
+            AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(value));
         args.set(1, new JSONString(type));
-        send("video.set", args, callback);
+        send("video.set", args, handler);
     }
 
     /*
      * Dvd Commands
      */
 
-    public void dvdModeReload(RpcCallback callback) {
-        send("dvd.reload", new JSONArray(), callback);
+    public void dvdModeReload() {
+        send("dvd.reload");
     }
 
     public void dvdGetInfo(RpcCallback callback) {

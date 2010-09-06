@@ -20,41 +20,20 @@
 
 package org.mroy31.deejayd.mobile.sources;
 
-import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.mobile.client.SourcePanel;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 
-public class VideoMode extends DefaultDeejaydMode {
+public class VideoMode extends DefaultMode {
     private OptionPanel optionPanel = new OptionPanel("video", hideCtxCmd);
 
     public VideoMode(SourcePanel manager) {
         super("video", manager);
-    }
-
-    @Override
-    public MediaList initMediaList() {
-        return new MediaList("video", new MediaListFormater() {
-            public Widget formatRow(JSONObject media) {
-                String title = media.get("title").isString().stringValue() +
-                        " ("+DeejaydUtils.formatTime(Integer.parseInt(
-                             media.get("length").isString().stringValue()))+")";
-
-                String width = media.get("videowidth").isString().stringValue();
-                String height = media.get("videoheight").isString().stringValue();
-                String desc = width+"x"+height;
-
-                return new MediaItem(
-                        (int) media.get("id").isNumber().doubleValue(),
-                        title, desc);
-            }
-        });
     }
 
     @Override
@@ -86,6 +65,12 @@ public class VideoMode extends DefaultDeejaydMode {
             }
         });
         toolbar.add(loadFiles);
+    }
+
+    @Override
+    public void onStatusChange(StatusChangeEvent event) {
+        super.onStatusChange(event);
+        optionPanel.update(event.getStatus());
     }
 }
 

@@ -20,11 +20,13 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import java.util.HashMap;
+import java.util.List;
+
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.Playlist;
 import org.mroy31.deejayd.webui.events.DragEnterEvent;
 import org.mroy31.deejayd.webui.events.DragEnterHandler;
 import org.mroy31.deejayd.webui.events.DragLeaveEvent;
@@ -45,9 +47,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
@@ -86,10 +86,10 @@ public class NavigationPanel extends WebuiPanel
     private class PlsItem extends Composite implements HasDropHandlers {
         private String plsId;
 
-        public PlsItem(JSONObject plsObj) {
-            String type = plsObj.get("type").isString().stringValue();
-            String name = plsObj.get("name").isString().stringValue();
-            int id = (int) plsObj.get("id").isNumber().doubleValue();
+        public PlsItem(Playlist pls) {
+            String type = pls.getType();
+            String name = pls.getName();
+            int id = pls.getId();
             plsId = Integer.toString(id);
 
             HorizontalPanel item = new HorizontalPanel();
@@ -154,8 +154,7 @@ public class NavigationPanel extends WebuiPanel
                         removeStyleName(ui.resources.webuiCss().mlRowOver());
                         String[] data = event.dataTransfert()
                                              .getData().split("-");
-                        ui.rpc.recPlsStaticAdd(plsId, new String[] {data[2]},
-                                new DefaultRpcCallback(ui));
+                        ui.rpc.recPlsStaticAdd(plsId,new String[]{data[2]},null);
                     }
                 });
             }
@@ -182,25 +181,12 @@ public class NavigationPanel extends WebuiPanel
         }
     }
 
-    /*
-     * Specific rpc callbacks
-     */
-    private class PlsEraseCallback extends DefaultRpcCallback {
-        public PlsEraseCallback(DeejaydUIWidget ui) { super(ui); }
-
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            updatePlsList();
-        }
-    }
-
     protected class PlsClickHandler implements ClickHandler {
         private String pls;
         public PlsClickHandler(String pls) { this.pls = pls; }
 
         public void onClick(ClickEvent event) {
-            ui.rpc.panelModeSetActiveList("playlist", pls,
-                    new DefaultRpcCallback(ui));
+            ui.rpc.panelModeSetActiveList("playlist", pls, null);
         }
     }
 
@@ -229,9 +215,13 @@ public class NavigationPanel extends WebuiPanel
                     ui.i18nMessages.plsEraseConfirm(sel.size()));
             if (confirm) {
                 if (activeList.equals("playlist") && pls.equals(activePls))
-                    ui.rpc.panelModeSetActiveList("panel", "",
-                            new DefaultRpcCallback(ui));
-                ui.rpc.recPlsErase(sel, new PlsEraseCallback(ui));
+                    ui.rpc.panelModeSetActiveList("panel", "", null);
+                ui.rpc.recPlsErase(sel, new AnswerHandler<Boolean>() {
+
+                    public void onAnswer(Boolean answer) {
+                        updatePlsList();
+                    }
+                });
             }
         }
     }
@@ -256,40 +246,26 @@ public class NavigationPanel extends WebuiPanel
         plsMagicNewButton.addClickHandler(this);
         staticDg = new NewPlsDialog(new NewPlsDialog.PlsCommand() {
             public void execute(String plsName) {
-                ui.rpc.recPlsCreate(plsName,"static",new GenericRpcCallback() {
+                ui.rpc.recPlsCreate(plsName,"static",
+                        new AnswerHandler<HashMap<String,String>>() {
 
-                    @Override
-                    public void setError(String error) {
-                        ui.setError(error);
-                    }
-
-                    @Override
-                    public void onCorrectAnswer(JSONValue data) {
-                        updatePlsList();
-                    }
+                            public void onAnswer(HashMap<String, String> answer) {
+                                updatePlsList();
+                            }
                 });
             }
         });
         magicDg = new NewPlsDialog(new NewPlsDialog.PlsCommand() {
             public void execute(String plsName) {
-                ui.rpc.recPlsCreate(plsName, "magic", new GenericRpcCallback() {
+                ui.rpc.recPlsCreate(plsName, "magic",
+                        new AnswerHandler<HashMap<String,String>>() {
 
-                    @Override
-                    public void setError(String error) {
-                        ui.setError(error);
-                    }
-
-                    @Override
-                    public void onCorrectAnswer(JSONValue data) {
-                        // open dialog to set pls filter/property
-                        JSONObject plsObj = data.isObject();
-                        magicEditDg.load(
-                                plsObj.get("name").isString().stringValue(),
-                                plsObj.get("pl_id").isNumber().toString());
+                    public void onAnswer(HashMap<String, String> answer) {
+                        magicEditDg.load(answer.get("name"), answer.get("pl_id"));
                         magicEditDg.center();
                         updatePlsList();
                     }
-                });
+        });
             }
         });
 
@@ -301,8 +277,7 @@ public class NavigationPanel extends WebuiPanel
         Widget source = (Widget) event.getSource();
         if (source == panelModeButton) {
             if (activeList.equals("playlist")) {
-                ui.rpc.panelModeSetActiveList("panel", "",
-                        new DefaultRpcCallback(ui));
+                ui.rpc.panelModeSetActiveList("panel", "", null);
             }
         } else if (source == plsStaticNewButton) {
             staticDg.center();
@@ -320,18 +295,11 @@ public class NavigationPanel extends WebuiPanel
     }
 
     private void updateActiveList() {
-        ui.rpc.panelModeActiveList(new GenericRpcCallback() {
+        ui.rpc.panelModeActiveList(new AnswerHandler<HashMap<String,String>>() {
 
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject obj = data.isObject();
-                String type = obj.get("type").isString().stringValue();
-                String pls = obj.get("value").isString().stringValue();
+            public void onAnswer(HashMap<String, String> answer) {
+                String type = answer.get("type");
+                String pls = answer.get("value");
                 if (!type.equals(activeList)) {
                     if (type.equals("panel")) {
                         // Clear pls selection
@@ -353,27 +321,19 @@ public class NavigationPanel extends WebuiPanel
     }
 
     private void updatePlsList() {
-        class PlsListCallback extends DefaultRpcCallback {
-            public PlsListCallback(WebuiLayout ui) { super(ui); }
+        plsList.clear();
+        plsList.add(new LoadingWidget(ui.i18nConstants.loading(), resources));
+        ui.rpc.recPlsList(new AnswerHandler<List<Playlist>>() {
 
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
+            public void onAnswer(List<Playlist> answer) {
                 plsList.clear();
-                JSONArray list = data.isObject().get("medias").isArray();
-
-                for (int idx=0; idx<list.size(); idx++) {
-                    JSONObject plsObj = list.get(idx).isObject();
-                    plsList.add(new PlsItem(plsObj));
-                }
+                for (Playlist pls : answer)
+                    plsList.add(new PlsItem(pls));
 
                 if (activeList.equals("playlist"))
                     setPlsSelection(activePls);
             }
-        }
-
-        plsList.clear();
-        plsList.add(new LoadingWidget(ui.i18nConstants.loading(), resources));
-        ui.rpc.recPlsList(new PlsListCallback(ui));
+        });
     }
 
     private void clearPlsSelection() {

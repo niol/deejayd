@@ -22,7 +22,6 @@ package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.webui.medialist.MediaList;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -107,8 +106,7 @@ public abstract class WebuiMode extends Composite
             public void onChange(ChangeEvent event) {
                 ListBox lb = (ListBox) event.getSource();
                 ui.rpc.setOption(getSourceName(), "playorder",
-                        lb.getValue(lb.getSelectedIndex()),
-                        new DefaultRpcCallback(ui));
+                        lb.getValue(lb.getSelectedIndex()), null);
             }
         });
 
@@ -120,7 +118,7 @@ public abstract class WebuiMode extends Composite
         repeatCk.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
                 ui.rpc.setOption(getSourceName(), "repeat",
-                        repeatCk.getValue(), new DefaultRpcCallback(ui));
+                        repeatCk.getValue(), null);
             }
         });
 

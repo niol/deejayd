@@ -22,8 +22,7 @@ package org.mroy31.deejayd.mobile.sources;
 
 import java.util.HashMap;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.NullRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -33,10 +32,10 @@ import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.HTMLTable.RowFormatter;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.HTMLTable.RowFormatter;
 
 public class OptionPanel extends Composite {
     private final MobileLayout ui = MobileLayout.getInstance();
@@ -106,9 +105,12 @@ public class OptionPanel extends Composite {
     public void save() {
         ui.rpc.setOption(source, "playorder",
                 playorder.getValue(playorder.getSelectedIndex()),
-                new NullRpcCallback(ui));
-        ui.rpc.setOption(source, "repeat",
-                repeat.getValue(), new DefaultRpcCallback(ui));
+                    new AnswerHandler<Boolean>() {
+                        public void onAnswer(Boolean answer) {
+                            // do nothing
+                        }
+        });
+        ui.rpc.setOption(source, "repeat", repeat.getValue(), null);
 
         saveCmd.execute();
     }

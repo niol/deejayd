@@ -21,10 +21,11 @@
 package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
+import java.util.List;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.rpc.MediaFilter;
+import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.medialist.MediaList;
 import org.mroy31.deejayd.webui.medialist.SongRenderer;
@@ -75,60 +76,9 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
             updatedTag = tag;
             String[] value = event.getValue();
             if (value[0].equals("__all__")) {
-                ui.rpc.panelModeRemoveFilter(tag, new DefaultRpcCallback(ui));
+                ui.rpc.panelModeRemoveFilter(tag, null);
             } else {
-                ui.rpc.panelModeSetFilter(tag, value,
-                        new DefaultRpcCallback(ui));
-            }
-        }
-    }
-
-    private class TagListCallback extends DefaultRpcCallback {
-        public TagListCallback(WebuiLayout webui) { super(webui); }
-
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            JSONArray list = data.isArray();
-            for (int idx=0; idx<list.size(); idx++) {
-                String tag = list.get(idx).isString().stringValue();
-                TagList tagW = new TagList((WebuiLayout) ui,
-                        getTagPanelTitle(tag));
-                tagW.addValueChangeHandler(new TagChangeHandler(tag));
-                tagListPanel.add(tagW);
-                tagMap.put(tag, tagW);
-            }
-        }
-    }
-
-    private class BuildPanelCallback extends DefaultRpcCallback {
-        public BuildPanelCallback(WebuiLayout webui) { super(webui); }
-
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            JSONObject ans = data.isObject();
-
-            // update search bar
-            if (ans.containsKey("search")) {
-                MediaFilter searchFilter = MediaFilter.parse(
-                        ans.get("search").isObject());
-                if (searchFilter.isBasic() != null ) {
-                    searchPattern.setValue(searchFilter.isBasic().getPattern());
-                    selectSearchType(searchFilter.isBasic().getTag());
-                } else if (searchFilter.isComplex() != null ) {
-                    MediaFilter f = searchFilter.isComplex().getFilters()[0];
-                    searchType.setSelectedIndex(0);
-                    searchPattern.setValue(f.isBasic().getPattern());
-                }
-            } else {
-                searchPattern.setValue("");
-                searchType.setSelectedIndex(0);
-            }
-
-            // update panel list
-            JSONObject list = ans.get("panels").isObject();
-            for (String tag : list.keySet()) {
-                JSONArray itemList = list.get(tag).isArray();
-                tagMap.get(tag).setItems(itemList);
+                ui.rpc.panelModeSetFilter(tag, value, null);
             }
         }
     }
@@ -206,7 +156,18 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
         leftBottomToolbar.add(optionPanel);
 
         // load tag list
-        ui.rpc.panelModeGetTags(new TagListCallback(ui));
+        ui.rpc.panelModeGetTags(new AnswerHandler<List<String>>() {
+
+            public void onAnswer(List<String> answer) {
+                for (String tag : answer) {
+                    TagList tagW = new TagList((WebuiLayout) ui,
+                            getTagPanelTitle(tag));
+                    tagW.addValueChangeHandler(new TagChangeHandler(tag));
+                    tagListPanel.add(tagW);
+                    tagMap.put(tag, tagW);
+                }
+            }
+        });
     }
 
     @UiFactory MediaList makeMediaList() {
@@ -240,9 +201,9 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
     public void onClick(ClickEvent event) {
         Widget sender = (Widget) event.getSource();
         if (sender == searchClearButton) {
-            ui.rpc.panelModeClearSearch(new DefaultRpcCallback(ui));
+            ui.rpc.panelModeClearSearch();
         } else if (sender == chooseAllButton) {
-            ui.rpc.panelModeClearAll(new DefaultRpcCallback(ui));
+            ui.rpc.panelModeClearAll();
         } else if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
                 mediaList.goTo(currentPlayingPos);
@@ -252,17 +213,10 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
 
     @Override
     protected void customUpdate() {
-        ui.rpc.panelModeActiveList(new GenericRpcCallback() {
+        ui.rpc.panelModeActiveList(new AnswerHandler<HashMap<String, String>>(){
 
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject obj = data.isObject();
-                String type = obj.get("type").isString().stringValue();
+            public void onAnswer(HashMap<String, String> answer) {
+                String type = answer.get("type");
                 if (!type.equals(currentSource)) {
                     int pos = type.equals("panel") ? 150 : 0;
                     panelLayout.setSplitPosition(tagListPanel, pos, false);
@@ -272,7 +226,41 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
 
                 if (type.equals("panel")) {
                     ui.rpc.panelModeBuildPanel(updatedTag,
-                            new BuildPanelCallback((WebuiLayout) ui));
+                            new AbstractRpcCallback() {
+
+                        @Override
+                        public void onCorrectAnswer(JSONValue data) {
+                            JSONObject ans = data.isObject();
+
+                            // update search bar
+                            if (ans.containsKey("search")) {
+                                MediaFilter searchFilter = MediaFilter.parse(
+                                        ans.get("search").isObject());
+                                if (searchFilter.isBasic() != null ) {
+                                    searchPattern.setValue(searchFilter
+                                            .isBasic().getPattern());
+                                    selectSearchType(searchFilter
+                                            .isBasic().getTag());
+                                } else if (searchFilter.isComplex() != null ) {
+                                    MediaFilter f = searchFilter
+                                            .isComplex().getFilters()[0];
+                                    searchType.setSelectedIndex(0);
+                                    searchPattern.setValue(f
+                                            .isBasic().getPattern());
+                                }
+                            } else {
+                                searchPattern.setValue("");
+                                searchType.setSelectedIndex(0);
+                            }
+
+                            // update panel list
+                            JSONObject list = ans.get("panels").isObject();
+                            for (String tag : list.keySet()) {
+                                JSONArray itemList = list.get(tag).isArray();
+                                tagMap.get(tag).setItems(itemList);
+                            }
+                        }
+                    });
                     updatedTag = null;
                 }
             }
@@ -282,7 +270,7 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
     private void updateSearch() {
         ui.rpc.panelModeSetSearch(
                 searchType.getValue(searchType.getSelectedIndex()),
-                searchPattern.getValue(), new DefaultRpcCallback(ui));
+                    searchPattern.getValue(), null);
     }
 
     private void setSearchEnabled(boolean enabled) {

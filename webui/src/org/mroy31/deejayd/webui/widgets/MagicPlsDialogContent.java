@@ -20,19 +20,19 @@
 
 package org.mroy31.deejayd.webui.widgets;
 
-import org.mroy31.deejayd.common.rpc.BasicFilter;
-import org.mroy31.deejayd.common.rpc.ComplexFilter;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.rpc.MediaFilter;
+import java.util.HashMap;
+
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.BasicFilter;
+import org.mroy31.deejayd.common.rpc.types.ComplexFilter;
+import org.mroy31.deejayd.common.rpc.types.MediaFilter;
+import org.mroy31.deejayd.common.rpc.types.MediaList;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -153,19 +153,10 @@ public class MagicPlsDialogContent extends Composite implements ClickHandler {
         rulesList.clear();
         if (loadFilter) {
             // get filter list
-            ui.rpc.recPlsGet(this.plsId, new GenericRpcCallback() {
+            ui.rpc.recPlsGet(this.plsId, new AnswerHandler<MediaList>() {
 
-                @Override
-                public void setError(String error) {
-                    ui.setError(error);
-                }
-
-                @Override
-                public void onCorrectAnswer(JSONValue data) {
-                    JSONObject filterObj = data.isObject()
-                            .get("filter").isObject();
-                    ComplexFilter filter = MediaFilter.parse(filterObj)
-                            .isComplex();
+                public void onAnswer(MediaList answer) {
+                    ComplexFilter filter = answer.getFilter().isComplex();
                     if (filter != null) {
                         MediaFilter[] filters = filter.getFilters();
                         for (int idx=0; idx<filters.length; idx++)
@@ -178,59 +169,44 @@ public class MagicPlsDialogContent extends Composite implements ClickHandler {
         }
 
         // get properties
-        ui.rpc.recPlsMagicGetProperties(plsId, new GenericRpcCallback() {
+        ui.rpc.recPlsMagicGetProperties(plsId, new AnswerHandler<HashMap<String,String>>() {
 
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject properties = data.isObject();
-
-                useOrFilter.setValue(properties.get("use-or-filter")
-                        .isString().stringValue().equals("1"));
-                limitPls.setValue(properties.get("use-limit")
-                        .isString().stringValue().equals("1"));
+            public void onAnswer(HashMap<String, String> answer) {
+                useOrFilter.setValue(answer.get("use-or-filter").equals("1"));
+                limitPls.setValue(answer.get("use-limit").equals("1"));
                 setLimitEnabled(limitPls.getValue());
-                limitPlsNumber.setValue(properties.get("limit-value")
-                        .isString().stringValue());
-                selectListValue(limitSortOrder,
-                        properties.get("limit-sort-value")
-                        .isString().stringValue());
-                limitSortRevert.setValue(properties.get("limit-sort-direction")
-                        .isString().stringValue().equals("ascending"));
+                limitPlsNumber.setValue(answer.get("limit-value"));
+                 selectListValue(limitSortOrder,answer.get("limit-sort-value"));
+                 limitSortRevert.setValue(
+                    answer.get("limit-sort-direction").equals("ascending"));
             }
         });
     }
 
     public void save() {
-        class NullCallback extends DefaultRpcCallback {
-            public NullCallback(WebuiLayout ui) { super(ui); }
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {}
-        }
-        NullCallback callback = new NullCallback(ui);
+        AnswerHandler<Boolean> nullCb = new AnswerHandler<Boolean>() {
+            public void onAnswer(Boolean answer) {
+                return;
+            }
+        };
 
         // save properties
         ui.rpc.recPlsMagicSetProperty(plsId, "use-or-filter",
-                formatCheckBoxValue(useOrFilter), callback);
+                formatCheckBoxValue(useOrFilter), nullCb);
         ui.rpc.recPlsMagicSetProperty(plsId, "use-limit",
-                formatCheckBoxValue(limitPls), callback);
+                formatCheckBoxValue(limitPls), nullCb);
         if (limitPls.getValue()) {
             ui.rpc.recPlsMagicSetProperty(plsId, "limit-value",
-                    limitPlsNumber.getValue(), callback);
+                    limitPlsNumber.getValue(), nullCb);
             ui.rpc.recPlsMagicSetProperty(plsId, "limit-sort-value",
                     limitSortOrder.getValue(limitSortOrder.getSelectedIndex()),
-                    callback);
+                    nullCb);
             ui.rpc.recPlsMagicSetProperty(plsId, "limit-sort-direction",
-                    formatCheckBoxValue(limitSortRevert), callback);
+                    formatCheckBoxValue(limitSortRevert), nullCb);
         }
 
         // save filter
-        ui.rpc.recPlsMagicClearFilter(plsId, callback);
+        ui.rpc.recPlsMagicClearFilter(plsId, nullCb);
         for (int idx=0; idx<rulesList.getWidgetCount(); idx++) {
             HorizontalPanel panel = (HorizontalPanel) rulesList.getWidget(idx);
             ListBox tag = (ListBox) panel.getWidget(0);
@@ -241,7 +217,7 @@ public class MagicPlsDialogContent extends Composite implements ClickHandler {
                     op.getValue(op.getSelectedIndex()),
                     tag.getValue(tag.getSelectedIndex()),
                     pattern.getValue());
-            ui.rpc.recPlsMagicAddFilter(plsId, filter, callback);
+            ui.rpc.recPlsMagicAddFilter(plsId, filter, nullCb);
         }
     }
 

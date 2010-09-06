@@ -18,27 +18,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.widgets;
+package org.mroy31.deejayd.common.rpc.callbacks;
 
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.ui.Widget;
+import org.mroy31.deejayd.common.rpc.types.FileDirList;
 
-/**
- * Provides a trivial Image widget that does not sink any events.
- */
-public class UnsunkImage extends Widget {
-    public UnsunkImage() {
-        setElement(DOM.createImg());
+import com.google.gwt.json.client.JSONValue;
+
+public class FileDirListCallback extends AbstractRpcCallback {
+    private final AnswerHandler<FileDirList> handler;
+
+    public FileDirListCallback(AnswerHandler<FileDirList> handler) {
+        this.handler = handler;
     }
 
-    public UnsunkImage(String src) {
-        this();
-        setUrl(src);
+    @Override
+    public void onCorrectAnswer(JSONValue data) {
+        handler.onAnswer(new FileDirList(data.isObject()));
     }
 
-    public void setUrl(String src) {
-        DOM.setElementProperty(getElement(), "src", src);
-    }
 }
 
 //vim: ts=4 sw=4 expandtab

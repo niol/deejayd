@@ -20,24 +20,13 @@
 
 package org.mroy31.deejayd.mobile.sources;
 
-import org.mroy31.deejayd.mobile.client.SourcePanel;
+import org.mroy31.deejayd.common.events.StatusChangeHandler;
 
-import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Composite;
 
-
-public class WebradioMode extends DefaultMode {
-
-    public WebradioMode(SourcePanel manager) {
-        super("webradio", manager);
-    }
-
+public abstract class AbstractMode extends Composite implements StatusChangeHandler{
     @Override
-    public String getTitle() {
-        return ui.i18nConst.webradio();
-    }
-
-    @Override
-    public void initToolbar(HorizontalPanel toolbar) {}
+    abstract public String getTitle();
 }
 
 //vim: ts=4 sw=4 expandtab

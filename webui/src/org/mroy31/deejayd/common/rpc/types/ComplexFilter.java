@@ -18,7 +18,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.rpc;
+package org.mroy31.deejayd.common.rpc.types;
 
 import java.util.ArrayList;
 

@@ -22,7 +22,7 @@ package org.mroy31.deejayd.mobile.client;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
-import org.mroy31.deejayd.mobile.sources.DeejaydMode;
+import org.mroy31.deejayd.mobile.sources.AbstractMode;
 import org.mroy31.deejayd.mobile.sources.DvdMode;
 import org.mroy31.deejayd.mobile.sources.PanelMode;
 import org.mroy31.deejayd.mobile.sources.PlaylistMode;
@@ -32,7 +32,7 @@ import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 
 public class SourcePanel extends WallToWallPanel implements StatusChangeHandler{
     private String currentMode = "";
-    private DeejaydMode current = null;
+    private AbstractMode current = null;
 
     public SourcePanel(WallToWallPanel parent) {
         super("", parent);
@@ -57,7 +57,7 @@ public class SourcePanel extends WallToWallPanel implements StatusChangeHandler{
         }
     }
 
-    private DeejaydMode getMode(String name) {
+    private AbstractMode getMode(String name) {
         if (name.equals("playlist")) {
             return new PlaylistMode(this);
         } else if (name.equals("webradio")) {

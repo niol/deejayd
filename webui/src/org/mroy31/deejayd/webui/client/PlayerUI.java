@@ -24,7 +24,8 @@ import java.util.HashMap;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.common.widgets.PlayerWidget;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
@@ -32,15 +33,12 @@ import org.mroy31.deejayd.webui.widgets.SliderBar;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.Timer;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -49,8 +47,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class PlayerUI extends PlayerWidget
-        implements ClickHandler, StatusChangeHandler {
+public class PlayerUI extends PlayerWidget implements StatusChangeHandler {
 
     private static PlayerUIUiBinder uiBinder = GWT
             .create(PlayerUIUiBinder.class);
@@ -59,9 +56,6 @@ public class PlayerUI extends PlayerWidget
     @UiField(provided = true) final WebuiResources resources;
     @UiField SliderBar volumeBar;
     @UiField Button playToggleButton;
-    @UiField Button stopButton;
-    @UiField Button nextButton;
-    @UiField Button previousButton;
 
     @UiField FlowPanel playingPanel;
     @UiField HorizontalPanel seekPanel;
@@ -78,42 +72,13 @@ public class PlayerUI extends PlayerWidget
     private String currentTime = "";
     private VideoOptions videoOptions;
 
-    private class SeekTimer extends Timer {
-        private int value;
-        public SeekTimer(int seekTime) {
-            value = seekTime;
-        }
-
-        @Override
-        public void run() {
-            ui.rpc.seek(value, new DefaultRpcCallback(ui));
-        }
-    }
-    private SeekTimer seekTimer = null;
-
-    private class VolumeTimer extends Timer {
-        private int value;
-        public VolumeTimer(int volume) {
-            value = volume;
-        }
-
-        @Override
-        public void run() {
-            ui.rpc.setVolume(value, new DefaultRpcCallback(ui));
-        }
-    }
-    private VolumeTimer volumeTimer = null;
-
     public PlayerUI(WebuiLayout webui) {
+        super(webui);
+
         this.ui = webui;
         this.resources = webui.resources;
 
         initWidget(uiBinder.createAndBindUi(this));
-        // add player buttons handlers
-        playToggleButton.addClickHandler(this);
-        stopButton.addClickHandler(this);
-        nextButton.addClickHandler(this);
-        previousButton.addClickHandler(this);
         // add volume change handler
         volumeBar.setStepSize(5);
         volumeBar.addValueChangeHandler(new ValueChangeHandler<Double>() {
@@ -127,11 +92,7 @@ public class PlayerUI extends PlayerWidget
                 volumeTimer.schedule(200);
             }
         });
-        seekPanel.setSpacing(2);
-        seekPanel.setCellVerticalAlignment(playingTime,
-                HorizontalPanel.ALIGN_MIDDLE);
         // add playing change handler
-        playingTime.addClickHandler(this);
         seekBar.setStepSize(10);
         seekBar.addValueChangeHandler(new ValueChangeHandler<Double>() {
             public void onValueChange(ValueChangeEvent<Double> event) {
@@ -146,7 +107,6 @@ public class PlayerUI extends PlayerWidget
             }
         });
         // init video options
-        optionButton.addClickHandler(this);
         videoOptions = new VideoOptions(ui);
 
         // add status change handler
@@ -157,37 +117,29 @@ public class PlayerUI extends PlayerWidget
         return new SliderBar(0, 100, resources);
     }
 
-    public void onClick(ClickEvent event) {
-        Widget sender = (Widget) event.getSource();
-        DefaultRpcCallback callback = new DefaultRpcCallback(ui);
-        if (sender == playToggleButton) {
-            ui.rpc.playToggle(callback);
-        } else if (sender == stopButton) {
-            ui.rpc.stop(callback);
-        } else if (sender == nextButton) {
-            ui.rpc.next(callback);
-        } else if (sender == previousButton) {
-            ui.rpc.previous(callback);
-        } else if (sender == playingTime) {
-            seekBar.setVisible(!seekBar.isVisible());
-            if (seekBar.isVisible()) {
-                seekBar.drawKnob();
-            }
-        } else if (sender == optionButton) {
-            if (videoOptions.isShowing()) {
-                videoOptions.hide();
-            } else {
-                videoOptions.setPopupPositionAndShow(
-                        new PopupPanel.PositionCallback() {
-                            public void setPosition(int offsetWidth,
-                                    int offsetHeight) {
-                                int left = optionButton.getAbsoluteLeft() +
-                                    optionButton.getOffsetWidth();
-                                int top = optionButton.getAbsoluteTop();
-                                videoOptions.setPopupPosition(left, top);
-                      }
-                });
-            }
+    @UiHandler("playingTime")
+    public void playingButtonHandler(ClickEvent event) {
+        seekBar.setVisible(!seekBar.isVisible());
+        if (seekBar.isVisible()) {
+            seekBar.drawKnob();
+        }
+    }
+
+    @UiHandler("optionButton")
+    public void optionButtonHandler(ClickEvent event) {
+        if (videoOptions.isShowing()) {
+            videoOptions.hide();
+        } else {
+            videoOptions.setPopupPositionAndShow(
+                    new PopupPanel.PositionCallback() {
+                        public void setPosition(int offsetWidth,
+                                int offsetHeight) {
+                            int left = optionButton.getAbsoluteLeft() +
+                                optionButton.getOffsetWidth();
+                            int top = optionButton.getAbsoluteTop();
+                            videoOptions.setPopupPosition(left, top);
+                  }
+            });
         }
     }
 
@@ -215,7 +167,7 @@ public class PlayerUI extends PlayerWidget
             String[] times = status.get("time").split(":");
             if (!status.get("current").equals(this.current)) {
                 videoOptions.hide();
-                ui.rpc.getCurrent(new CurrentCallback(ui));
+                updateCurrent();
                 this.current = status.get("current");
                 seekBar.setMaxValue(Integer.parseInt(times[1]));
                 this.currentTime = "";
@@ -223,7 +175,7 @@ public class PlayerUI extends PlayerWidget
                 String[] currentState = this.current.split(":");
                 if (currentState[2].equals("webradio")
                         || currentState[2].equals("video")) {
-                    ui.rpc.getCurrent(new CurrentCallback(ui));
+                    updateCurrent();
                 }
             }
             playingPanel.setVisible(true);
@@ -236,46 +188,34 @@ public class PlayerUI extends PlayerWidget
         }
     }
 
-    @Override
-    protected void formatCurrentTitle(JSONObject media) {
-        String title = "";
-        String desc = "";
-        String type = media.get("type").isString().stringValue();
+    private void updateCurrent() {
+        ui.rpc.getCurrent(new AnswerHandler<Media>() {
 
-        optionButton.setVisible(type.equals("video"));
-        if (type.equals("song")) {
-            String length = media.get("length").isString().stringValue();
-            title = media.get("title").isString().stringValue() + " (" +
-                DeejaydUtils.formatTime(Integer.parseInt(length)) + ")";
-            JSONString artist = media.get("artist").isString();
-            JSONString album = media.get("album").isString();
-            if (artist != null) {
-                desc += artist.stringValue()+" - ";
-            }
-            if (album != null) {
-                desc += "<b>"+album.stringValue()+"<b>";
-            }
+            public void onAnswer(Media answer) {
+                playingTitle.setHTML(answer.formatTitle());
+                playingDesc.setHTML(answer.formatDesc());
+                optionButton.setVisible(answer.isVideo());
 
-            // get cover
-            int mediaId = (int) Math.round(
-                    media.get("media_id").isNumber().doubleValue());
-            ui.rpc.getCover(mediaId, new CoverCallback(ui));
-        } else if (type.equals("video")) {
-            String length = media.get("length").isString().stringValue();
-            title = media.get("title").isString().stringValue() + " (" +
-                DeejaydUtils.formatTime(Integer.parseInt(length)) + ")";
-            setVideoOptions(media);
-        } else if (type.equals("webradio")) {
-            title = media.get("title").isString().stringValue();
-            if (media.get("song-title") != null) {
-                title +=" -- "+media.get("song-title").isString().stringValue();
+                if (answer.isSong()) {
+                    // get cover
+                    ui.rpc.getCover(answer.getMediaId(),
+                            new AnswerHandler<HashMap<String,String>>() {
+                        public void onAnswer(HashMap<String, String> answer) {
+                            if (!answer.containsKey("cover")) {
+                                coverPanel.setVisible(false);
+                                return;
+                            }
+                            String cover = answer.get("cover");
+                            String url = GWT.getHostPageBaseURL()+"../"+cover;
+                            coverImage.setUrl(url);
+                            coverPanel.setVisible(true);
+                        }
+                    });
+                } else if (answer.isVideo()) {
+                    setVideoOptions(answer);
+                }
             }
-            if (media.get("uri") != null) {
-                desc = media.get("uri").isString().stringValue();
-            }
-        }
-        playingTitle.setHTML(title);
-        playingDesc.setHTML(desc);
+        });
     }
 
     protected void clearPlayingArea() {
@@ -284,39 +224,22 @@ public class PlayerUI extends PlayerWidget
         coverPanel.setVisible(false);
     }
 
-    @Override
-    protected void updateCover(JSONString cover) {
-        if (cover != null) {
-            String url = GWT.getHostPageBaseURL()+"../"+cover.stringValue();
-            coverImage.setUrl(url);
-            coverPanel.setVisible(true);
-        }
-    }
+    protected void setVideoOptions(Media media) {
+        videoOptions.setAVOffset((long) media.getIntAttr("av_offset"));
+        videoOptions.setZoom((long) media.getIntAttr("zoom"));
+        videoOptions.setAspectRatio(media.getStrAttr("aspect_ratio"));
 
-    protected void setVideoOptions(JSONObject media) {
-        long avOffset = (long) media.get("av_offset").isNumber().doubleValue();
-        videoOptions.setAVOffset(avOffset);
-        long zoom = (long) media.get("zoom").isNumber().doubleValue();
-        videoOptions.setZoom(zoom);
-        String aspectRatio = media.get("aspect_ratio").isString().stringValue();
-        videoOptions.setAspectRatio(aspectRatio);
-
-        boolean hasAudioChannel = media.get("audio") != null;
-        videoOptions.setAudioChannelEnabled(hasAudioChannel);
-        if (hasAudioChannel) {
-            String value = Integer.toString(
-                    (int)media.get("audio_idx").isNumber().doubleValue());
-            videoOptions.setAudioChannels(media.get("audio").isArray(), value);
+        videoOptions.setAudioChannelEnabled(media.hasAttr("audio"));
+        if (media.hasAttr("audio")) {
+            String value = media.getStrAttr("audio_idx");
+            videoOptions.setAudioChannels(media.getArrayAttr("audio"), value);
         }
 
-        boolean hasSubChannel = media.get("subtitle") != null;
-        videoOptions.setSubChannelEnabled(hasSubChannel);
-        if (hasSubChannel) {
-            String value = Integer.toString(
-                    (int)media.get("subtitle_idx").isNumber().doubleValue());
-            videoOptions.setSubChannels(media.get("subtitle").isArray(), value);
-            videoOptions.setSubOffset(
-                    (long)media.get("sub_offset").isNumber().doubleValue());
+        videoOptions.setSubChannelEnabled(media.hasAttr("subtitle"));
+        if (media.hasAttr("subtitle")) {
+            String value = media.getStrAttr("subtitle_idx");
+            videoOptions.setSubChannels(media.getArrayAttr("subtitle"), value);
+            videoOptions.setSubOffset((long) media.getIntAttr("sub_offset"));
         }
     }
 }

@@ -20,47 +20,20 @@
 
 package org.mroy31.deejayd.mobile.sources;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.mobile.client.SourcePanel;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 
-public class PlaylistMode extends DefaultDeejaydMode {
+public class PlaylistMode extends DefaultMode {
     private OptionPanel optionPanel = new OptionPanel("playlist", hideCtxCmd);
 
     public PlaylistMode(SourcePanel manager) {
         super("playlist", manager);
-    }
-
-    @Override
-    public MediaList initMediaList() {
-        return new MediaList("playlist", new MediaListFormater() {
-            public Widget formatRow(JSONObject media) {
-                String title = media.get("title").isString().stringValue() +
-                        " ("+DeejaydUtils.formatTime(Integer.parseInt(
-                             media.get("length").isString().stringValue()))+")";
-                String desc = "";
-                JSONString artist = media.get("artist").isString();
-                JSONString album = media.get("album").isString();
-                if (artist != null) {
-                    desc += artist.stringValue()+" - ";
-                }
-                if (album != null) {
-                    desc += "<b>"+album.stringValue()+"<b>";
-                }
-                return new MediaItem(
-                        (int) media.get("id").isNumber().doubleValue(),
-                        title, desc);
-            }
-        });
     }
 
     @Override
@@ -98,7 +71,7 @@ public class PlaylistMode extends DefaultDeejaydMode {
         clear.addStyleName(ui.resources.mobileCss().clear());
         clear.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
-                ui.rpc.plsModeClear(new DefaultRpcCallback(ui));
+                ui.rpc.plsModeClear();
             }
         });
         toolbar.add(clear);
@@ -108,10 +81,16 @@ public class PlaylistMode extends DefaultDeejaydMode {
         shuffle.addStyleName(ui.resources.mobileCss().shuffle());
         shuffle.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
-                ui.rpc.plsModeShuffle(new DefaultRpcCallback(ui));
+                ui.rpc.plsModeShuffle();
             }
         });
         toolbar.add(shuffle);
+    }
+
+    @Override
+    public void onStatusChange(StatusChangeEvent event) {
+        super.onStatusChange(event);
+        optionPanel.update(event.getStatus());
     }
 }
 

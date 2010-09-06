@@ -18,13 +18,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.sources;
+package org.mroy31.deejayd.common.rpc.callbacks;
 
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.user.client.ui.Widget;
+public interface AnswerHandler<T> {
 
-public interface MediaListFormater {
-    public Widget formatRow(JSONObject media);
+    /**
+     * Called when we received a correct answer from RPC request
+     * @param answer : the answer received from the RPC request
+     */
+    public void onAnswer(T answer);
 }
 
 //vim: ts=4 sw=4 expandtab

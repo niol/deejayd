@@ -22,7 +22,6 @@ package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.webui.medialist.WebradioRenderer;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -100,10 +99,9 @@ public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
     public void onClick(ClickEvent event) {
         Widget sender = (Widget) event.getSource();
         if (sender == wbClear) {
-            ui.rpc.wbModeClear(new DefaultRpcCallback(ui));
+            ui.rpc.wbModeClear();
         } else if (sender == wbRemove) {
-            ui.rpc.wbModeRemove(mediaList.getSelection(),
-                    new DefaultRpcCallback(ui));
+            ui.rpc.wbModeRemove(mediaList.getSelection(), null);
         } else if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
                 mediaList.goTo(currentPlayingPos);

@@ -27,13 +27,12 @@ import org.mroy31.deejayd.common.events.LibraryChangeEvent;
 import org.mroy31.deejayd.common.events.LibraryChangeHandler;
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatsChangeHandler;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
@@ -43,7 +42,7 @@ public class LibraryManager extends Composite implements StatsChangeHandler,
     private DeejaydUIWidget ui;
     private String libraryType;
     private int lastUpdate = -1;
-    private int updateId = -1;
+    private String updateId = "";
     private HashMap<String, String> messages;
 
     private Button updateButton;
@@ -51,35 +50,28 @@ public class LibraryManager extends Composite implements StatsChangeHandler,
     Timer updateTimer = new Timer() {
         @Override
         public void run() {
-            ui.rpc.getStatus(new GenericRpcCallback() {
+            ui.rpc.getStatus(new AnswerHandler<HashMap<String,String>>() {
 
-                @Override
-                public void setError(String error) {
-                    ui.setError(error);
-                }
-
-                @Override
-                public void onCorrectAnswer(JSONValue data) {
-                    JSONValue idValue = data.isObject()
-                            .get(libraryType+"_updating_db");
-                    JSONValue errorMsg = data.isObject()
-                            .get(libraryType+"_updating_error");
-                    if (idValue == null) {
+                public void onAnswer(HashMap<String, String> answer) {
+                    if (!answer.containsKey(libraryType+"_updating_db")) {
                         // library update is finished
                         stopUpdate();
                         fireEvent(new LibraryChangeEvent(libraryType));
                         ui.setMessage(messages.get("confirmation"));
-                    } else if (errorMsg != null ) {
-                        // Library update has failed, disply error msg
+                    } else if (answer.containsKey(
+                            libraryType+"_updating_error")) {
+                        // Library update has failed, display error msg
                         stopUpdate();
-                        ui.setError(errorMsg.isString().stringValue());
+                        ui.setMessage(answer.get(libraryType+"_updating_error"),
+                                "error");
                     } else {
-                        int id = (int) idValue.isNumber().doubleValue();
-                        if (updateId != id) {
+                        String id = answer.get(libraryType+"_updating_db");
+                        if (!updateId.equals(id)) {
                             // a new update has begun
                             updateId = id;
                         }
                     }
+
                 }
 
                 private void stopUpdate() {
@@ -106,11 +98,11 @@ public class LibraryManager extends Composite implements StatsChangeHandler,
     public void onStatsChange(StatsChangeEvent event) {
         HashMap<String, String> stats = event.getStats();
         int id = Integer.parseInt(stats.get("_library_update"));
-        if (lastUpdate != -1 && lastUpdate != id && updateId != -1) {
+        if (lastUpdate != -1 && lastUpdate != id && !updateId.equals("")) {
             fireEvent(new LibraryChangeEvent(libraryType));
         }
         lastUpdate = id;
-        updateId = -1;
+        updateId = "";
     }
 
     public HandlerRegistration addLibraryChangeHandler(
@@ -119,19 +111,11 @@ public class LibraryManager extends Composite implements StatsChangeHandler,
     }
 
     public void onClick(ClickEvent event) {
-        ui.rpc.libUpdate(libraryType, new GenericRpcCallback() {
+        ui.rpc.libUpdate(libraryType, new AnswerHandler<HashMap<String,String>>() {
 
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
+            public void onAnswer(HashMap<String, String> answer) {
+                updateId = answer.get(libraryType+"_updating_db");
 
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                updateId = (int) data.isObject()
-                                     .get(libraryType+"_updating_db")
-                                     .isNumber()
-                                     .doubleValue();
                 updateButton.setText(messages.get("loading"));
                 updateButton.setEnabled(false);
                 updateTimer.scheduleRepeating(800);

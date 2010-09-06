@@ -21,7 +21,7 @@
 package org.mroy31.deejayd.mobile.sources;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
 import org.mroy31.deejayd.mobile.widgets.ListPanel;
 import org.mroy31.deejayd.mobile.widgets.LoadingWidget;
@@ -34,7 +34,7 @@ import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 
-public class DvdMode extends DeejaydMode {
+public class DvdMode extends AbstractMode {
     private final MobileLayout ui = MobileLayout.getInstance();
     private int sourceId = -1;
     private ListPanel mediaList = new ListPanel();
@@ -52,12 +52,7 @@ public class DvdMode extends DeejaydMode {
         if (id != sourceId) {
             mediaList.clear();
             mediaList.add(new LoadingWidget());
-            ui.rpc.send("dvd.get", new JSONArray(), new GenericRpcCallback() {
-
-                @Override
-                public void setError(String error) {
-                    ui.setError(error);
-                }
+            ui.rpc.send("dvd.get", new JSONArray(), new AbstractRpcCallback() {
 
                 @Override
                 public void onCorrectAnswer(JSONValue data) {

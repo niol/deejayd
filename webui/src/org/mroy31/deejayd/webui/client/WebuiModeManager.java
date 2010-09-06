@@ -68,7 +68,7 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
         }
 
         public void onFailure(Throwable reason) {
-            ui.setError("Unable to load mode");
+            ui.setMessage("Unable to load mode", "error");
         }
 
         public void onSuccess() {
@@ -81,7 +81,7 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
                 try {
                     currentMode = getMode(status.get("mode"));
                 } catch (ModeException ex) {
-                    ui.setError("Unable to init current mode");
+                    ui.setMessage("Unable to init current mode", "error");
                     return;
 
                 }

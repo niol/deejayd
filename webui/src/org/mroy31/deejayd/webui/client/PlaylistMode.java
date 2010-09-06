@@ -20,8 +20,7 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.events.DragLeaveEvent;
 import org.mroy31.deejayd.webui.events.DragOverEvent;
@@ -32,7 +31,6 @@ import org.mroy31.deejayd.webui.widgets.NewPlsDialog;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -48,27 +46,22 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
     private Button plsSave;
 
     private int currentOverRow = -1;
-
-    private class PlsCallback extends DefaultRpcCallback {
-        public PlsCallback(DeejaydUIWidget ui) { super(ui); }
-
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            WebuiLayout layout = (WebuiLayout) ui;
-            PlaylistPanel p = (PlaylistPanel)
-                    layout.panelManager.getCurrentPanel();
-            p.buildPlsList();
-
-            layout.setMessage(layout.i18nConstants.plsSaveMsg());
-        }
-    }
     private NewPlsDialog saveDg;
 
     public PlaylistMode(WebuiLayout webui) {
         super("playlist", webui, true, true);
         saveDg = new NewPlsDialog(new NewPlsDialog.PlsCommand() {
             public void execute(String plsName) {
-                ui.rpc.plsModeSave(plsName, new PlsCallback(ui));
+                ui.rpc.plsModeSave(plsName, new AnswerHandler<Boolean>() {
+
+                    public void onAnswer(Boolean answer) {
+                        PlaylistPanel p = (PlaylistPanel)
+                                ui.panelManager.getCurrentPanel();
+                        p.buildPlsList();
+
+                        ui.setMessage(ui.i18nConstants.plsSaveMsg());
+                    }
+                });
             }
         });
         mediaList.setOption(true, new SongRenderer(ui, "playlist", loadLabel));
@@ -77,8 +70,7 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
             public void onDrop(DropEvent event, int row) {
                 String[] data = event.dataTransfert().getData().split("-");
                 if (data[0].equals("playlist")) {
-                    ui.rpc.plsModeMove(new String[] {data[1]}, row,
-                            new DefaultRpcCallback(ui));
+                    ui.rpc.plsModeMove(new String[] {data[1]}, row, null);
                     if (currentOverRow != -1) {
                         mediaList.getRowFormatter().removeStyleName(
                                 currentOverRow,
@@ -193,12 +185,11 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
     public void onClick(ClickEvent event) {
         Widget sender = (Widget) event.getSource();
         if (sender == plsShuffle) {
-            ui.rpc.plsModeShuffle(new DefaultRpcCallback(ui));
+            ui.rpc.plsModeShuffle();
         } else if (sender == plsClear) {
-            ui.rpc.plsModeClear(new DefaultRpcCallback(ui));
+            ui.rpc.plsModeClear();
         } else if (sender == plsRemove) {
-            ui.rpc.plsModeRemove(mediaList.getSelection(),
-                    new DefaultRpcCallback(ui));
+            ui.rpc.plsModeRemove(mediaList.getSelection(), null);
         } else if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
                 mediaList.goTo(currentPlayingPos);

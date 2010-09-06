@@ -23,7 +23,9 @@ package org.mroy31.deejayd.mobile.sources;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.FileDirList;
+import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
 import org.mroy31.deejayd.mobile.resources.MobileResources;
 import org.mroy31.deejayd.mobile.widgets.ListPanel;
@@ -33,9 +35,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
@@ -189,16 +189,9 @@ public class AudioLibrary extends Composite implements ClickHandler {
 
         rootPath.setText(rootDir);
         rootPath.setVisible(!rootDir.equals(""));
-        ui.rpc.libGetDirectory("audio", rootDir, new GenericRpcCallback() {
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
+        ui.rpc.libGetDirectory("audio",rootDir,new AnswerHandler<FileDirList>(){
 
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject answer = data.isObject();
-
+            public void onAnswer(FileDirList answer) {
                 if (!rootDir.equals("")) {
                     HashMap<String,String> root = new HashMap<String,String>();
                     root.put("type", "directory");
@@ -207,26 +200,20 @@ public class AudioLibrary extends Composite implements ClickHandler {
                     filesList.add(root);
                 }
 
-                JSONArray dirs = answer.get("directories").isArray();
-                for (int idx=0; idx<dirs.size(); idx++) {
+                for (String dir : answer.getDirectories()) {
                     HashMap<String,String> dAttrs = new HashMap<String,String>();
                     dAttrs.put("type", "directory");
-                    dAttrs.put("title", dirs.get(idx).isString().stringValue());
-                    dAttrs.put("path", buildPath(rootDir,
-                            dirs.get(idx).isString().stringValue()));
+                    dAttrs.put("title", dir);
+                    dAttrs.put("path", buildPath(rootDir, dir));
                     filesList.add(dAttrs);
                 }
 
-                JSONArray files = answer.get("files").isArray();
-                for (int idx=0; idx<files.size(); idx++) {
+                for (Media file : answer.getFiles()) {
                     HashMap<String,String> fAttrs = new HashMap<String,String>();
-                    JSONObject fInfos = files.get(idx).isObject();
-
                     fAttrs.put("type", "file");
-                    fAttrs.put("title",
-                            fInfos.get("filename").isString().stringValue());
+                    fAttrs.put("title", file.getStrAttr("filename"));
                     fAttrs.put("path", buildPath(rootDir,
-                            fInfos.get("filename").isString().stringValue()));
+                            file.getStrAttr("filename")));
                     filesList.add(fAttrs);
                 }
 
@@ -257,15 +244,9 @@ public class AudioLibrary extends Composite implements ClickHandler {
             }
             if (selection.size() > 0) {
                 ui.rpc.plsModeLoadPath(selection, -1,
-                        new GenericRpcCallback() {
+                        new AnswerHandler<Boolean>() {
 
-                            @Override
-                            public void setError(String error) {
-                                ui.setError(error);
-                            }
-
-                            @Override
-                            public void onCorrectAnswer(JSONValue data) {
+                            public void onAnswer(Boolean answer) {
                                 resetSelection();
                                 ui.setMessage(ui.i18nConst.plsAddMsg());
                                 ui.update();

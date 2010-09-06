@@ -22,6 +22,7 @@ package org.mroy31.deejayd.mobile.client;
 
 import java.util.HashMap;
 
+import org.mroy31.deejayd.common.rpc.callbacks.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.mobile.i18n.MobileConstants;
 import org.mroy31.deejayd.mobile.resources.MobileResources;
@@ -92,6 +93,16 @@ public class MobileLayout extends DeejaydUIWidget {
     }
 
     public MobileLayout() {
+        this.rpc.addRpcHandler(new RpcHandler() {
+
+            public void onRpcStop() {}
+            public void onRpcStart() {}
+
+            public void onRpcError(String error) {
+                setMessage(error, "error");
+            }
+        });
+
         resources.mobileCss().ensureInjected();
         panel.addStyleName(resources.mobileCss().mainBody());
 

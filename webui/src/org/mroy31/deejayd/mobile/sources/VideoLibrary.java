@@ -23,8 +23,8 @@ package org.mroy31.deejayd.mobile.sources;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.FileDirList;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
 import org.mroy31.deejayd.mobile.resources.MobileResources;
 import org.mroy31.deejayd.mobile.widgets.ListPanel;
@@ -33,9 +33,6 @@ import org.mroy31.deejayd.mobile.widgets.LoadingWidget;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -69,8 +66,7 @@ public class VideoLibrary extends Composite implements ClickHandler {
                 select.addStyleName(ui.resources.mobileCss().button());
                 select.addClickHandler(new ClickHandler() {
                     public void onClick(ClickEvent event) {
-                        ui.rpc.videoModeSet(path, "directory",
-                                new DefaultRpcCallback(ui));
+                        ui.rpc.videoModeSet(path, "directory", null);
                         closeCommand.execute();
                     }
                 });
@@ -149,16 +145,9 @@ public class VideoLibrary extends Composite implements ClickHandler {
 
         rootPath.setText(rootDir);
         rootPath.setVisible(!rootDir.equals(""));
-        ui.rpc.libGetDirectory("video", rootDir, new GenericRpcCallback() {
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
+        ui.rpc.libGetDirectory("video", rootDir, new AnswerHandler<FileDirList>(){
 
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject answer = data.isObject();
-
+            public void onAnswer(FileDirList answer) {
                 if (!rootDir.equals("")) {
                     HashMap<String,String> root = new HashMap<String,String>();
                     root.put("title", "..");
@@ -166,12 +155,10 @@ public class VideoLibrary extends Composite implements ClickHandler {
                     dirList.add(root);
                 }
 
-                JSONArray dirs = answer.get("directories").isArray();
-                for (int idx=0; idx<dirs.size(); idx++) {
+                for (String dir : answer.getDirectories()) {
                     HashMap<String,String> dAttrs = new HashMap<String,String>();
-                    dAttrs.put("title", dirs.get(idx).isString().stringValue());
-                    dAttrs.put("path", buildPath(rootDir,
-                            dirs.get(idx).isString().stringValue()));
+                    dAttrs.put("title", dir);
+                    dAttrs.put("path", buildPath(rootDir, dir));
                     dirList.add(dAttrs);
                 }
 
@@ -182,6 +169,7 @@ public class VideoLibrary extends Composite implements ClickHandler {
                 pagerPanel.setVisible(pageNumber > 1);
                 displayPage(1);
             }
+
         });
     }
 

@@ -20,8 +20,6 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -42,7 +40,7 @@ public class DvdPanel extends WebuiPanel {
 
         reloadButton = new Button(ui.i18nConstants.reload(),new ClickHandler() {
             public void onClick(ClickEvent event) {
-                ui.rpc.dvdModeReload(new DefaultRpcCallback(ui));
+                ui.rpc.dvdModeReload();
             }
         });
         reloadButton.setWidth("100%");

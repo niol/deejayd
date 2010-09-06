@@ -21,11 +21,11 @@
 package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LoadingWidget;
 
@@ -35,10 +35,6 @@ import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.http.client.Request;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -84,22 +80,6 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
     private String categorie = null;
     private HashMap<String, Boolean> sourceList = new HashMap<String, Boolean>();
 
-    private class SourceRpcCallback extends DefaultRpcCallback {
-        public SourceRpcCallback(DeejaydUIWidget ui) { super(ui); }
-
-        @Override
-        protected void onJSONRPCError(Request request, String code, String msg){
-            super.onJSONRPCError(request, code, msg);
-            // set source to default value
-            updatePanel();
-        }
-
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            ui.update();
-        }
-    }
-
     private class OnSourceChange implements ChangeHandler {
         private WebuiLayout ui;
 
@@ -110,32 +90,7 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         public void onChange(ChangeEvent event) {
             String source = sourceListBox.getValue(
                     sourceListBox.getSelectedIndex());
-            ui.rpc.wbModeSetSource(source, new SourceRpcCallback(ui));
-        }
-    }
-
-    private class WbAddCallback extends DefaultRpcCallback {
-        public WbAddCallback(DeejaydUIWidget ui) {super(ui);}
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            nameInput.setValue("");
-            urlInput.setValue("");
-            ui.update();
-        }
-    }
-
-    private class WbSourceListCallback extends DefaultRpcCallback {
-        public WbSourceListCallback(WebuiLayout ui) {super(ui);}
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            JSONObject list = data.isObject();
-            for (String key : list.keySet()) {
-                boolean hasCat = list.get(key).isBoolean().booleanValue();
-                sourceList.put(key, hasCat);
-                sourceListBox.addItem(getSourceName(key), key);
-            }
-            sourceListBox.addChangeHandler(new OnSourceChange((WebuiLayout)ui));
-            updatePanel();
+            ui.rpc.wbModeSetSource(source, null);
         }
     }
 
@@ -149,41 +104,10 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         }
 
         public void onClick(ClickEvent event) {
-            this.ui.rpc.wbModeSetSourceCategorie(value,
-                    new DefaultRpcCallback(ui));
+            this.ui.rpc.wbModeSetSourceCategorie(value, null);
         }
 
     }
-
-    private class WbCategoriesListCallback extends DefaultRpcCallback {
-        public WbCategoriesListCallback(WebuiLayout ui) {super(ui);}
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            categoriesList.clear();
-            JSONArray list = data.isArray();
-            Label currentCat = null;
-            for (int idx=0; idx<list.size(); idx++) {
-                String cat = list.get(idx).isString().stringValue();
-                Label lab = new Label(cat);
-                lab.getElement().setId("wb-cat-"+cat);
-                lab.addStyleName(resources.webuiCss().wbCategorieItem());
-                if ((idx%2) == 0) {
-                    lab.addStyleName(resources.webuiCss().oddRow());
-                }
-                if (cat.equals(categorie)) {
-                    currentCat = lab;
-                    lab.addStyleName(resources.webuiCss().currentItem());
-                }
-                lab.addClickHandler(new SelectCatHandler((WebuiLayout)ui, cat));
-                categoriesList.add(lab);
-            }
-
-            if (currentCat != null) {
-                categoriesScrollPanel.ensureVisible(currentCat);
-            }
-        }
-    }
-
 
     /**
      * WebuiPanel constructor
@@ -221,7 +145,14 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
                 String name = nameInput.getValue();
                 String url = urlInput.getValue();
                 if (!name.equals("") && !url.equals("")) {
-                    ui.rpc.wbModeAdd(name, url, new WbAddCallback(ui));
+                    ui.rpc.wbModeAdd(name, url, new AnswerHandler<Boolean>() {
+
+                        public void onAnswer(Boolean answer) {
+                            nameInput.setValue("");
+                            urlInput.setValue("");
+                            ui.update();
+                        }
+                    });
                 }
             }
         });
@@ -244,7 +175,18 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
             // add current source in sourceList
             source = status.get("webradiosource");
             categorie = status.get("webradiosourcecat");
-            ui.rpc.wbModeGetSources(new WbSourceListCallback(ui));
+            ui.rpc.wbModeGetSources(new AnswerHandler<HashMap<String,String>>() {
+
+                public void onAnswer(HashMap<String, String> answer) {
+                    for (String key : answer.keySet()) {
+                        boolean hasCat = Boolean.parseBoolean(answer.get(key));
+                        sourceList.put(key, hasCat);
+                        sourceListBox.addItem(getSourceName(key), key);
+                    }
+                    sourceListBox.addChangeHandler(new OnSourceChange((WebuiLayout)ui));
+                    updatePanel();
+                }
+            });
         } else if (!source.equals(status.get("webradiosource"))) {
             source = status.get("webradiosource");
             categorie = status.get("webradiosourcecat");
@@ -286,7 +228,39 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
             categoriesList.add(new LoadingWidget(
                     ui.i18nConstants.wbLoadingCategories(), resources));
             ui.rpc.wbModeGetSourceCategories(source,
-                    new WbCategoriesListCallback(ui));
+                    new AnswerHandler<List<String>>() {
+
+                        public void onAnswer(List<String> answer) {
+                            categoriesList.clear();
+                            Label currentCat = null;
+                            int idx = 0;
+                            for (String cat : answer) {
+                                Label lab = new Label(cat);
+                                lab.getElement().setId("wb-cat-"+cat);
+                                lab.addStyleName(
+                                        resources.webuiCss().wbCategorieItem());
+                                if ((idx%2) == 0) {
+                                    lab.addStyleName(
+                                            resources.webuiCss().oddRow());
+                                }
+                                if (cat.equals(categorie)) {
+                                    currentCat = lab;
+                                    lab.addStyleName(
+                                            resources.webuiCss().currentItem());
+                                }
+                                lab.addClickHandler(
+                                        new SelectCatHandler((WebuiLayout)ui,
+                                                cat));
+                                categoriesList.add(lab);
+
+                                ++idx;
+                            }
+
+                            if (currentCat != null) {
+                                categoriesScrollPanel.ensureVisible(currentCat);
+                            }
+                        }
+                    });
         }
     }
 

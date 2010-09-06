@@ -132,7 +132,6 @@ public class VolumeSlider extends Composite
         }
     }
 
-
     public void slideToX(int x) {
         if (x > 0) {
             Element lineElement = sliderBar.getElement();
@@ -193,10 +192,8 @@ public class VolumeSlider extends Composite
         int knobWidth = slider.getOffsetWidth();
         int knobLeftOffset = (int) (getKnobPercent() * lineWidth)
                 - (knobWidth / 2);
-        knobLeftOffset = Math.min(knobLeftOffset,
-                lineWidth - (knobWidth / 2) - 1);
-        DOM.setStyleAttribute(slider.getElement(), "left",
-                knobLeftOffset + "px");
+        knobLeftOffset = Math.min(knobLeftOffset, lineWidth-(knobWidth/2)-1);
+        DOM.setStyleAttribute(slider.getElement(), "left", knobLeftOffset+"px");
     }
 }
 

@@ -69,7 +69,7 @@ public class WebuiPanelManager extends Composite
         }
 
         public void onFailure(Throwable reason) {
-            ui.setError("Unable to load mode");
+            ui.setMessage("Unable to load mode", "error");
         }
 
         public void onSuccess() {
@@ -83,7 +83,7 @@ public class WebuiPanelManager extends Composite
                 try {
                     currentPanel = getPanel(status.get("mode"));
                 } catch (ModeException ex) {
-                    ui.setError("Unable to init current mode");
+                    ui.setMessage("Unable to init current mode", "error");
                     return;
 
                 }

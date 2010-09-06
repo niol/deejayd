@@ -18,26 +18,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.sources;
+package org.mroy31.deejayd.common.rpc.callbacks;
 
-import org.mroy31.deejayd.mobile.client.SourcePanel;
+import com.google.gwt.json.client.JSONValue;
 
-import com.google.gwt.user.client.ui.HorizontalPanel;
+public class AckCallback extends AbstractRpcCallback {
+    final private AnswerHandler<Boolean> handler;
 
-
-public class WebradioMode extends DefaultMode {
-
-    public WebradioMode(SourcePanel manager) {
-        super("webradio", manager);
+    public AckCallback(AnswerHandler<Boolean> handler) {
+        this.handler = handler;
     }
 
     @Override
-    public String getTitle() {
-        return ui.i18nConst.webradio();
+    public void onCorrectAnswer(JSONValue data) {
+        handler.onAnswer(true);
     }
 
-    @Override
-    public void initToolbar(HorizontalPanel toolbar) {}
 }
 
 //vim: ts=4 sw=4 expandtab

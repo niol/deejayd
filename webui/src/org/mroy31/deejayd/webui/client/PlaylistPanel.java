@@ -20,10 +20,14 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import java.util.List;
+
 import org.mroy31.deejayd.common.events.LibraryChangeEvent;
 import org.mroy31.deejayd.common.events.LibraryChangeHandler;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.FileDirList;
+import org.mroy31.deejayd.common.rpc.types.Media;
+import org.mroy31.deejayd.common.rpc.types.Playlist;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.widgets.LoadingWidget;
@@ -35,7 +39,6 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONString;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
@@ -216,18 +219,12 @@ public class PlaylistPanel extends WebuiPanel
         }
     }
 
-    private class DirFileCallback extends DefaultRpcCallback {
-        public DirFileCallback(DeejaydUIWidget ui) {	super(ui); }
+    private AnswerHandler<FileDirList> dirFileCb = new AnswerHandler<FileDirList>() {
 
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            JSONArray files = data.isObject().get("files").isArray();
-            JSONArray dirs = data.isObject().get("directories").isArray();
-            String root = data.isObject().get("root").isString().stringValue();
-
+        public void onAnswer(FileDirList answer) {
             // build root value
             navBar.clear();
-            if (!root.equals("")) {
+            if (!answer.getRootPath().equals("")) {
                 class navClickHandler implements ClickHandler {
                     private int idx;
                     private String[] rootPart;
@@ -249,7 +246,7 @@ public class PlaylistPanel extends WebuiPanel
                         buildDirFileList(path);
                     }
                 }
-                String[] rootPart = root.split("/");
+                String[] rootPart = answer.getRootPath().split("/");
                 // set root button
                 Button rootButton = new Button(" / ");
                 rootButton.addClickHandler(new navClickHandler(-1, rootPart));
@@ -262,47 +259,25 @@ public class PlaylistPanel extends WebuiPanel
             }
 
             dirPanel.clear();
-            for (int i=0; i<dirs.size(); i++) {
-                String dir = dirs.get(i).isString().stringValue();
-                dirPanel.add(new DirectoryItem(dir, root));
+            for (String dir : answer.getDirectories()) {
+                dirPanel.add(new DirectoryItem(dir, answer.getRootPath()));
             }
 
-            for (int i=0; i<files.size(); i++) {
-                String filename = files.get(i).isObject().get("filename")
-                                    .isString().stringValue();
-                dirPanel.add(new AudioItem(filename, root));
+            for (Media m : answer.getFiles()) {
+                String filename = m.getStrAttr("filename");
+                dirPanel.add(new AudioItem(filename, answer.getRootPath()));
             }
         }
+    };
 
-    }
-
-    private class SearchCallback extends DefaultRpcCallback {
-        public SearchCallback(DeejaydUIWidget ui) {	super(ui); }
-
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            JSONArray medias = data.isObject().get("medias").isArray();
-
-            searchPanel.clear();
-            for (int i=0; i<medias.size(); i++) {
-                String filename = medias.get(i).isObject().get("filename")
-                        .isString().stringValue();
-                int mediaId = (int) medias.get(i).isObject().get("media_id")
-                        .isNumber().doubleValue();
-                searchPanel.add(new AudioItem(filename, mediaId));
-            }
-        }
-    }
-
-    private class PanelDefaultCallback extends DefaultRpcCallback {
+    private class DefaultCallback implements AnswerHandler<Boolean> {
         private VerticalPanel panel;
-        public PanelDefaultCallback(DeejaydUIWidget ui, VerticalPanel panel) {
-            super(ui);
+
+        public DefaultCallback(VerticalPanel panel) {
             this.panel = panel;
         }
 
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
+        public void onAnswer(Boolean answer) {
             ui.update();
             // disable checkbox
             for (int idx=0; idx<panel.getWidgetCount(); idx++) {
@@ -310,34 +285,9 @@ public class PlaylistPanel extends WebuiPanel
                 item.getCheckBox().setValue(false);
             }
         }
-    }
 
-    private class PlsListCallback extends DefaultRpcCallback {
-        public PlsListCallback(DeejaydUIWidget ui) {	super(ui); }
+    };
 
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            JSONArray list = data.isObject().get("medias").isArray();
-            for (int i=0; i<list.size(); i++) {
-                String plsName = list.get(i).isObject().get("name")
-                        .isString().stringValue();
-                String plsType = list.get(i).isObject().get("type")
-                        .isString().stringValue();
-                int plsId = (int) list.get(i).isObject().get("id")
-                        .isNumber().doubleValue();
-                plsPanel.add(new PlaylistItem(plsName, plsType, plsId));
-            }
-        }
-    }
-
-    private class PlsEraseCallback extends DefaultRpcCallback {
-        public PlsEraseCallback(DeejaydUIWidget ui) { super(ui); }
-
-        @Override
-        public void onCorrectAnswer(JSONValue data) {
-            buildPlsList();
-        }
-    }
 /***************************************************************************/
 /***************************************************************************/
     public PlaylistPanel(WebuiLayout webui) {
@@ -442,31 +392,37 @@ public class PlaylistPanel extends WebuiPanel
                         resources));
                 ui.rpc.libSearch("audio", pattern,
                         searchType.getValue(searchType.getSelectedIndex()),
-                        new SearchCallback(ui));
+                        new AnswerHandler<FileDirList>() {
+
+                            public void onAnswer(FileDirList answer) {
+                                searchPanel.clear();
+                                for (Media m : answer.getFiles()) {
+                                    String filename = m.getStrAttr("filename");
+                                    int mediaId = m.getIntAttr("media_id");
+                                    searchPanel.add(new AudioItem(filename, mediaId));
+                                }
+                            }
+                        });
             }
         } else if (source == dirLoadButton) {
             JSONArray sel = getSelection(dirPanel);
             if (sel.size() > 0) {
-                ui.rpc.plsModeLoadPath(sel, -1, new PanelDefaultCallback(ui,
-                        dirPanel));
+                ui.rpc.plsModeLoadPath(sel, -1, new DefaultCallback(dirPanel));
             }
         } else if (source == dirLoadQueueButton) {
             JSONArray sel = getSelection(dirPanel);
             if (sel.size() > 0) {
-                ui.rpc.queueLoadPath(sel, -1, new PanelDefaultCallback(ui,
-                        dirPanel));
+                ui.rpc.queueLoadPath(sel, -1, new DefaultCallback(dirPanel));
             }
         } else if (source == searchLoadButton) {
             JSONArray sel = getSelection(searchPanel);
             if (sel.size() > 0) {
-                ui.rpc.plsModeLoadIds(sel, -1, new PanelDefaultCallback(ui,
-                        searchPanel));
+                ui.rpc.plsModeLoadIds(sel, -1, new DefaultCallback(searchPanel));
             }
         } else if (source == searchLoadQueueButton) {
             JSONArray sel = getSelection(searchPanel);
             if (sel.size() > 0) {
-                ui.rpc.queueLoadPath(sel, -1, new PanelDefaultCallback(ui,
-                        searchPanel));
+                ui.rpc.queueLoadPath(sel, -1, new DefaultCallback(searchPanel));
             }
         } else if (source == searchClearButton) {
             searchPanel.clear();
@@ -474,14 +430,12 @@ public class PlaylistPanel extends WebuiPanel
         } else if (source == plsLoadButton) {
             JSONArray sel = getSelection(plsPanel);
             if (sel.size() > 0) {
-                ui.rpc.plsModeLoadPls(sel, -1, new PanelDefaultCallback(ui,
-                        plsPanel));
+                ui.rpc.plsModeLoadPls(sel, -1, new DefaultCallback(plsPanel));
             }
         } else if (source == plsLoadQueueButton) {
             JSONArray sel = getSelection(plsPanel);
             if (sel.size() > 0) {
-                ui.rpc.queueModeLoadPls(sel, -1, new PanelDefaultCallback(ui,
-                        plsPanel));
+                ui.rpc.queueModeLoadPls(sel, -1, new DefaultCallback(plsPanel));
             }
         } else if (source == plsRemoveButton) {
             JSONArray sel = getSelection(plsPanel);
@@ -489,7 +443,12 @@ public class PlaylistPanel extends WebuiPanel
                 boolean confirm = Window.confirm(
                         ui.i18nMessages.plsEraseConfirm(sel.size()));
                 if (confirm) {
-                    ui.rpc.recPlsErase(sel, new PlsEraseCallback(ui));
+                    ui.rpc.recPlsErase(sel, new AnswerHandler<Boolean>() {
+
+                        public void onAnswer(Boolean answer) {
+                            buildPlsList();
+                        }
+                    });
                 }
             }
         }
@@ -497,7 +456,17 @@ public class PlaylistPanel extends WebuiPanel
 
     public void buildPlsList() {
         plsPanel.clear();
-        ui.rpc.recPlsList(new PlsListCallback(ui));
+        ui.rpc.recPlsList(new AnswerHandler<List<Playlist>>() {
+
+            public void onAnswer(List<Playlist> answer) {
+                for (Playlist pls : answer) {
+                    String plsName = pls.getName();
+                    String plsType = pls.getType();
+                    int plsId = pls.getId();
+                    plsPanel.add(new PlaylistItem(plsName, plsType, plsId));
+                }
+            }
+        });
     }
 
     private void buildDirFileList() {
@@ -507,8 +476,7 @@ public class PlaylistPanel extends WebuiPanel
     private void buildDirFileList(String dir) {
         dirPanel.clear();
         dirPanel.add(new LoadingWidget(ui.i18nConstants.loading(), resources));
-        ui.rpc.libGetDirectory("audio",
-                dir, new DirFileCallback(ui));
+        ui.rpc.libGetDirectory("audio", dir, dirFileCb);
     }
 
     private JSONArray getSelection(VerticalPanel panel) {

@@ -18,7 +18,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.rpc;
+package org.mroy31.deejayd.common.rpc.callbacks;
 
 import java.util.ArrayList;
 
@@ -30,11 +30,8 @@ import com.google.gwt.json.client.JSONParser;
 import com.google.gwt.json.client.JSONValue;
 
 
-public abstract class GenericRpcCallback implements RpcCallback {
+public abstract class AbstractRpcCallback implements RpcCallback {
     private ArrayList<RpcHandler> handlers;
-
-    public abstract void onCorrectAnswer(JSONValue data);
-    public abstract void setError(String error);
 
     public void onResponseReceived(Request request, Response response) {
         for (RpcHandler h : handlers)
@@ -43,7 +40,7 @@ public abstract class GenericRpcCallback implements RpcCallback {
         if (200 == response.getStatusCode()) {
             // parse JSON answer
             try {
-                JSONObject answer = JSONParser.parse(response.getText())
+                JSONObject answer = JSONParser.parseStrict(response.getText())
                   .isObject();
 
                 if (answer != null) {
@@ -71,17 +68,7 @@ public abstract class GenericRpcCallback implements RpcCallback {
     }
 
     public void onError(Request request, Throwable exception) {
-        for (RpcHandler h : handlers)
-            h.onRpcStop();
         this.setError("Server error response");
-    }
-
-    /**
-       * Called when a {@link org.mroy31.deejayd.rpc.Rpc} return an
-       * error.
-       */
-    protected void onJSONRPCError(Request request, String code, String msg) {
-        this.setError("Server return an JSON error "+code+" - "+msg);
     }
 
     public void onRequestError() {
@@ -93,6 +80,22 @@ public abstract class GenericRpcCallback implements RpcCallback {
     public void setRpcHandlers(ArrayList<RpcHandler> handlers) {
         this.handlers = handlers;
     }
+
+    public abstract void onCorrectAnswer(JSONValue data);
+
+    protected void setError(String error) {
+        for (RpcHandler h : handlers)
+            h.onRpcError(error);
+    }
+
+    /**
+     * Called when a {@link org.mroy31.deejayd.rpc.Rpc} return an
+     * error.
+     */
+     protected void onJSONRPCError(Request request, String code, String msg) {
+         this.setError("Server return an JSON error "+code+" - "+msg);
+     }
+
 }
 
 //vim: ts=4 sw=4 expandtab

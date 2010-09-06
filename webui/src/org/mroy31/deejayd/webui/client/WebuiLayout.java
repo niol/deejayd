@@ -25,8 +25,8 @@ import java.util.HashMap;
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.RpcHandler;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.callbacks.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.events.DragLeaveEvent;
@@ -49,9 +49,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -177,8 +175,7 @@ public class WebuiLayout extends DeejaydUIWidget
         modeList.addChangeHandler(new ChangeHandler() {
             public void onChange(ChangeEvent event) {
                 String mode = modeList.getValue(modeList.getSelectedIndex());
-                rpc.setMode(mode,
-                        new DefaultRpcCallback(WebuiLayout.getInstance()));
+                rpc.setMode(mode, null);
             }
         });
 
@@ -189,8 +186,7 @@ public class WebuiLayout extends DeejaydUIWidget
         queueRandom.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
             public void onValueChange(ValueChangeEvent<Boolean> event) {
                 String playorder = event.getValue() ? "random" : "inorder";
-                instance.rpc.setOption("queue", "playorder", playorder
-                        , new DefaultRpcCallback(WebuiLayout.getInstance()));
+                instance.rpc.setOption("queue", "playorder", playorder, null);
             }
         });
         queueClear.setText(i18nConstants.clear());
@@ -205,12 +201,11 @@ public class WebuiLayout extends DeejaydUIWidget
             public void onDrop(DropEvent event, int row) {
                 String[] data = event.dataTransfert().getData().split("-");
                 if (data[0].equals("queue")) {
-                    rpc.queueMove(new String[] {data[1]}, row,
-                            new DefaultRpcCallback(instance));
+                    rpc.queueMove(new String[] {data[1]}, row, null);
                 } else {
                     JSONArray sel = new JSONArray();
                     sel.set(0, new JSONString(data[2]));
-                    rpc.queueLoadIds(sel, row, new DefaultRpcCallback(instance));
+                    rpc.queueLoadIds(sel, row, null);
                 }
                 if (queueOverRow != -1) {
                     queueList.getRowFormatter().removeStyleName(
@@ -286,10 +281,9 @@ public class WebuiLayout extends DeejaydUIWidget
             queueToolbar.setVisible(!queueOpen);
             queueOpen = !queueOpen;
         } else if (source == queueRemove) {
-            rpc.queueRemove(queueList.getSelection(),
-                    new DefaultRpcCallback(this));
+            rpc.queueRemove(queueList.getSelection(), null);
         } else if (source == queueClear) {
-            rpc.queueClear(new DefaultRpcCallback(this));
+            rpc.queueClear();
         }
     }
 
@@ -312,6 +306,10 @@ public class WebuiLayout extends DeejaydUIWidget
             public void onRpcStart() {
                 loading.setVisible(true);
             }
+
+            public void onRpcError(String error) {
+                setMessage(error, "error");
+            }
         });
 
         // init audio library
@@ -325,14 +323,11 @@ public class WebuiLayout extends DeejaydUIWidget
         audioLibrary = new LibraryManager(this, "audio", messages);
 
         // load mode list
-        class Callback extends DefaultRpcCallback {
-            public Callback(DeejaydUIWidget ui) {super(ui);}
+        rpc.getModeList(new AnswerHandler<HashMap<String,String>>() {
 
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject list = data.isObject();
-                for (String key : list.keySet()) {
-                    boolean av = list.get(key).isBoolean().booleanValue();
+            public void onAnswer(HashMap<String, String> answer) {
+                for (String key : answer.keySet()) {
+                    boolean av = Boolean.valueOf(answer.get(key));
                     if (av) {
                         modeList.addItem(getSourceTitle(key), key);
                         if (key.equals("video")) {
@@ -350,41 +345,21 @@ public class WebuiLayout extends DeejaydUIWidget
                         }
                     }
                 }
-
                 update();
             }
-        }
-        rpc.getModeList(new Callback(this));
+        });
     }
 
     @Override
     public void update() {
         super.update();
 
-        class StatsCallback extends DefaultRpcCallback {
-            public StatsCallback(DeejaydUIWidget ui) {super(ui);}
+        this.rpc.getStats(new AnswerHandler<HashMap<String,String>>() {
 
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject obj = data.isObject();
-                // create a java map with stats
-                HashMap<String, String> stats = new HashMap<String, String>();
-                for (String key : obj.keySet()) {
-                    JSONValue value = obj.get(key);
-                    if (value.isString() != null) {
-                        stats.put(key, value.isString().stringValue());
-                    } else if (value.isNumber() != null) {
-                        int number = (int) value.isNumber().doubleValue();
-                        stats.put(key, Integer.toString(number));
-                    } else if (value.isBoolean() != null) {
-                        stats.put(key,
-                            Boolean.toString(value.isBoolean().booleanValue()));
-                    }
-                }
+            public void onAnswer(HashMap<String, String> stats) {
                 fireEvent(new StatsChangeEvent(stats));
             }
-        }
-        this.rpc.getStats(new StatsCallback(this));
+        });
     }
 
     private String getSourceTitle(String source) {

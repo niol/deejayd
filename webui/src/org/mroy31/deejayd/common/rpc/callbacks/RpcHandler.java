@@ -18,15 +18,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.sources;
+package org.mroy31.deejayd.common.rpc.callbacks;
 
-import org.mroy31.deejayd.common.events.StatusChangeHandler;
+public interface RpcHandler {
 
-import com.google.gwt.user.client.ui.Composite;
+    /**
+     * Called when the rpc command has been sent
+     */
+    public void onRpcStart();
 
-public abstract class DeejaydMode extends Composite implements StatusChangeHandler{
-    @Override
-    abstract public String getTitle();
+    /**
+     * Called when the rpc command has been terminated
+     * (An answer has been received or an error occured)
+     */
+    public void onRpcStop();
+
+    /**
+     * Called when an error occurs in the RPC process
+     * @param error : error message
+     */
+    public void onRpcError(String error);
 }
 
 //vim: ts=4 sw=4 expandtab

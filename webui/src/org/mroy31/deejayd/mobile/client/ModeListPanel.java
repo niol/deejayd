@@ -20,12 +20,12 @@
 
 package org.mroy31.deejayd.mobile.client;
 
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import java.util.HashMap;
+
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.mobile.widgets.ListPanel;
 import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Composite;
@@ -59,15 +59,8 @@ public class ModeListPanel extends WallToWallPanel {
             super.onBrowserEvent(event);
             switch (DOM.eventGetType(event)) {
                 case Event.ONCLICK:
-                    ui.rpc.setMode(mode, new GenericRpcCallback() {
-
-                        @Override
-                        public void setError(String error) {
-                            ui.setError(error);
-                        }
-
-                        @Override
-                        public void onCorrectAnswer(JSONValue data) {
+                    ui.rpc.setMode(mode, new AnswerHandler<Boolean>() {
+                        public void onAnswer(Boolean answer) {
                             ui.update();
                             showChild();
                         }
@@ -81,21 +74,11 @@ public class ModeListPanel extends WallToWallPanel {
         super("Mode List", null);
 
         // build mode list
-        ui.rpc.getModeList(new GenericRpcCallback() {
-
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
+        ui.rpc.getModeList(new AnswerHandler<HashMap<String,String>>() {
+            public void onAnswer(HashMap<String, String> list) {
                 ListPanel panel = new ListPanel();
-                JSONObject list = data.isObject();
-
                 for (String key : list.keySet()) {
-                    boolean av = list.get(key).isBoolean().booleanValue();
-                    if (av) {
+                    if (list.get(key).equals("true")) {
                         panel.add(new ModeItem(key));
                     }
                 }

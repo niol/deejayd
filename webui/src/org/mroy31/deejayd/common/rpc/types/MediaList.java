@@ -18,22 +18,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.rpc;
+package org.mroy31.deejayd.common.rpc.types;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import com.google.gwt.http.client.RequestCallback;
 
-/**
- * The primary interface a caller must implement to receive a response to a
- * {@link org.mroy31.deejayd.rpc.Rpc}.
- * @author Mickaël ROYER
- *
- */
-public interface RpcCallback extends RequestCallback {
-    /**
-     * Called when we can not send HTTP Request
-     */
-    void onRequestError();
-    void setRpcHandlers(ArrayList<RpcHandler> handlers);
+public class MediaList {
+    private List<Media> mediaList;
+    private MediaFilter filter;
+
+    public void setMediaList(List<Media> list) {
+        this.mediaList = list;
+    }
+
+    public void setFilter(MediaFilter filter) {
+        this.filter = filter;
+    }
+
+    public List<Media> getMediaList() {
+        return mediaList;
+    }
+
+    public MediaFilter getFilter() {
+        return filter;
+    }
 }
+
+//vim: ts=4 sw=4 expandtab

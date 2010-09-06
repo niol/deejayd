@@ -18,11 +18,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.rpc;
+package org.mroy31.deejayd.common.rpc.callbacks;
 
-public interface RpcHandler {
-    public void onRpcStart();
-    public void onRpcStop();
+import java.util.ArrayList;
+
+import com.google.gwt.http.client.RequestCallback;
+
+/**
+ * The primary interface a caller must implement to receive a response to a
+ * {@link org.mroy31.deejayd.rpc.Rpc}.
+ * @author Mickaël ROYER
+ *
+ */
+public interface RpcCallback extends RequestCallback {
+
+    /**
+     * Called when we can not send HTTP Request
+     */
+    void onRequestError();
+
+    /**
+     * Set handler list
+     * @param handlers
+     */
+    void setRpcHandlers(ArrayList<RpcHandler> handlers);
 }
-
-//vim: ts=4 sw=4 expandtab

@@ -22,8 +22,8 @@ package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.events.LibraryChangeEvent;
 import org.mroy31.deejayd.common.events.LibraryChangeHandler;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.FileDirList;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
 
@@ -32,8 +32,6 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.FocusEvent;
 import com.google.gwt.event.dom.client.FocusHandler;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.DOM;
@@ -83,8 +81,7 @@ public class VideoPanel extends WebuiPanel
           super.onBrowserEvent(event);
           switch (DOM.eventGetType(event)) {
               case Event.ONCLICK:
-                  ui.rpc.videoModeSet(getPath(), "directory",
-                        new DefaultRpcCallback(ui));
+                  ui.rpc.videoModeSet(getPath(), "directory", null);
                   break;
           }
         }
@@ -136,15 +133,9 @@ public class VideoPanel extends WebuiPanel
         if (source == searchButton) {
             if (!searchEntry.getValue().equals("")) {
                 ui.rpc.videoModeSet(searchEntry.getValue(), "search",
-                        new GenericRpcCallback() {
+                        new AnswerHandler<Boolean>() {
 
-                            @Override
-                            public void setError(String error) {
-                                ui.setError(error);
-                            }
-
-                            @Override
-                            public void onCorrectAnswer(JSONValue data) {
+                            public void onAnswer(Boolean answer) {
                                 searchEntry.setValue("");
                                 searchButton.setFocus(false);
                                 ui.update();
@@ -166,22 +157,14 @@ public class VideoPanel extends WebuiPanel
     }
 
     private void buildTree(final String rPath, final TreeItem parent) {
-        ui.rpc.libGetDirectory("video", rPath, new GenericRpcCallback() {
+        ui.rpc.libGetDirectory("video", rPath, new AnswerHandler<FileDirList>() {
 
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONArray dirs = data.isObject().get("directories").isArray();
-                for (int idx=0; idx<dirs.size(); idx++) {
-                    String d = dirs.get(idx).isString().stringValue();
-                    TreeItem item = new TreeItem(new VideoTreeItem(d, rPath));
+            public void onAnswer(FileDirList answer) {
+                for (String dir : answer.getDirectories()) {
+                    TreeItem item = new TreeItem(new VideoTreeItem(dir, rPath));
                     parent.addItem(item);
 
-                    String path = rPath.equals("") ? d : rPath+"/"+d;
+                    String path = rPath.equals("") ? dir : rPath+"/"+dir;
                     buildTree(path, item);
                 }
             }

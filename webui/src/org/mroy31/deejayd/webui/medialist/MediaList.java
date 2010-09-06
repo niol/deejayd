@@ -22,8 +22,8 @@ package org.mroy31.deejayd.webui.medialist;
 
 import java.util.ArrayList;
 
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.rpc.MediaFilter;
+import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
+import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.events.DragLeaveEvent;
 import org.mroy31.deejayd.webui.events.DragLeaveHandler;
@@ -200,12 +200,7 @@ public class MediaList extends Composite {
         mediaList.removeAllRows();
         mediaList.setWidget(0, 0, new Image(resources.loading()));
         mediaList.setText(0, 2, ui.i18nConstants.loading());
-        ui.rpc.send(source+".get", new JSONArray(), new GenericRpcCallback() {
-
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
+        ui.rpc.send(source+".get", new JSONArray(), new AbstractRpcCallback() {
 
             @Override
             public void onCorrectAnswer(JSONValue data) {

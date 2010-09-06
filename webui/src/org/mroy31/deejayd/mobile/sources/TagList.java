@@ -21,21 +21,18 @@
 package org.mroy31.deejayd.mobile.sources;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import org.mroy31.deejayd.common.rpc.BasicFilter;
-import org.mroy31.deejayd.common.rpc.ComplexFilter;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-import org.mroy31.deejayd.common.rpc.GenericRpcCallback;
-import org.mroy31.deejayd.common.rpc.MediaFilter;
-import org.mroy31.deejayd.common.rpc.NullRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.rpc.types.BasicFilter;
+import org.mroy31.deejayd.common.rpc.types.ComplexFilter;
+import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
 import org.mroy31.deejayd.mobile.widgets.ListPanel;
 import org.mroy31.deejayd.mobile.widgets.LoadingWidget;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -60,21 +57,11 @@ public class TagList extends Composite {
         panel.add(title);
         panel.add(list);
         initWidget(panel);
-        ui.rpc.panelModeGetTags(new GenericRpcCallback() {
+        ui.rpc.panelModeGetTags(new AnswerHandler<List<String>>() {
 
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONArray list = data.isArray();
-                for (int idx=0; idx<list.size(); idx++) {
-                    String tag = list.get(idx).isString().stringValue();
+            public void onAnswer(List<String> answer) {
+                for (String tag : answer)
                     tagList.add(tag);
-                }
-
                 // set first tag list
                 setTagList(0);
             }
@@ -88,15 +75,9 @@ public class TagList extends Composite {
         list.add(new LoadingWidget());
         title.setText(getTagTitle(tag));
 
-        ui.rpc.audioLibTagList(tag, filter, new GenericRpcCallback() {
+        ui.rpc.audioLibTagList(tag, filter, new AnswerHandler<List<String>>() {
 
-            @Override
-            public void setError(String error) {
-                ui.setError(error);
-            }
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
+            public void onAnswer(List<String> answer) {
                 list.clear();
                 Label allLabel = new Label(ui.i18nConst.all());
                 allLabel.addStyleName(ui.resources.mobileCss().tagListItem());
@@ -112,9 +93,7 @@ public class TagList extends Composite {
                 });
                 list.add(allLabel);
 
-                JSONArray tList = data.isArray();
-                for (int idx=0; idx<tList.size(); idx++) {
-                    final String t = tList.get(idx).isString().stringValue();
+                for (final String t : answer) {
                     Label tLabel = new Label(getTagValue(t));
                     tLabel.addStyleName(ui.resources.mobileCss().tagListItem());
                     tLabel.addClickHandler(new ClickHandler() {
@@ -134,13 +113,12 @@ public class TagList extends Composite {
     }
 
     private void updatePanel() {
-        ui.rpc.panelModeClearAll(new NullRpcCallback(ui));
+        ui.rpc.panelModeClearAll();
         for (MediaFilter f : filter.getFilters()) {
             ui.rpc.panelModeSetFilter(f.isBasic().getTag(),
-                    new String[] {f.isBasic().getPattern()},
-                    new NullRpcCallback(ui));
+                    new String[] {f.isBasic().getPattern()},null);
         }
-        ui.rpc.panelModeSetActiveList("panel", "", new DefaultRpcCallback(ui));
+        ui.rpc.panelModeSetActiveList("panel", "", null);
         finishCmd.execute();
     }
 

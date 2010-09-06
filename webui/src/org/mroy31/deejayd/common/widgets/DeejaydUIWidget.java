@@ -28,19 +28,21 @@ import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatsChangeHandler;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.common.rpc.Rpc;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
 
 public abstract class DeejaydUIWidget extends Composite
         implements HasStatusChangeHandlers, HasStatsChangeHandlers {
-    public final Rpc rpc = new Rpc();
+    public final Rpc rpc = new Rpc(new AnswerHandler<String>() {
+        public void onAnswer(String cmd) {
+            update();
+        }
+    });
 
     protected abstract class Message extends Composite {
 
@@ -71,40 +73,16 @@ public abstract class DeejaydUIWidget extends Composite
         return addHandler(handler, StatsChangeEvent.getType());
     }
 
-    public void setError(String error) {
-        setMessage(error, "error");
-    }
-
     public void setMessage(String message) {
         setMessage(message, "information");
     }
 
     public void update() {
-        class StatusCallback extends DefaultRpcCallback {
-            public StatusCallback(DeejaydUIWidget ui) {super(ui);}
-
-            @Override
-            public void onCorrectAnswer(JSONValue data) {
-                JSONObject obj = data.isObject();
-                // create a java map with status
-                HashMap<String, String> status = new HashMap<String, String>();
-                for (String key : obj.keySet()) {
-                    JSONValue value = obj.get(key);
-                    if (value.isString() != null) {
-                        status.put(key, value.isString().stringValue());
-                    } else if (value.isNumber() != null) {
-                        int number = (int) value.isNumber().doubleValue();
-                        status.put(key, Integer.toString(number));
-                    } else if (value.isBoolean() != null) {
-                        status.put(key,
-                            Boolean.toString(value.isBoolean().booleanValue()));
-                    }
-                }
-
+        this.rpc.getStatus(new AnswerHandler<HashMap<String,String>>() {
+            public void onAnswer(HashMap<String, String> status) {
                 fireEvent(new StatusChangeEvent(status));
             }
-        }
-        this.rpc.getStatus(new StatusCallback(this));
+        });
     }
 
     abstract public void setMessage(String message, String type);

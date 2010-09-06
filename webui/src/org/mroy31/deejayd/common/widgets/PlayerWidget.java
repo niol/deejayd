@@ -20,41 +20,63 @@
 
 package org.mroy31.deejayd.common.widgets;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
-
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONString;
-import com.google.gwt.json.client.JSONValue;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Composite;
 
 public abstract class PlayerWidget extends Composite {
+    protected final DeejaydUIWidget privateUI;
 
-    /*
-     * RPC callbacks
-     */
-    protected class CoverCallback extends DefaultRpcCallback {
-        public CoverCallback(DeejaydUIWidget ui) {super(ui);}
+    protected class SeekTimer extends Timer {
+        private int value;
+        public SeekTimer(int seekTime) {
+            value = seekTime;
+        }
 
         @Override
-        public void onCorrectAnswer(JSONValue data) {
-            JSONString cover = data.isObject().get("cover").isString();
-            updateCover(cover);
+        public void run() {
+            privateUI.rpc.seek(value, null);
         }
     }
+    protected SeekTimer seekTimer = null;
 
-    protected class CurrentCallback extends DefaultRpcCallback {
-        public CurrentCallback(DeejaydUIWidget ui) {super(ui);}
+    protected class VolumeTimer extends Timer {
+        private int value;
+        public VolumeTimer(int volume) {
+            value = volume;
+        }
 
         @Override
-        public void onCorrectAnswer(JSONValue data) {
-            JSONObject media = data.isObject().get("medias")
-                                   .isArray().get(0).isObject();
-            formatCurrentTitle(media);
+        public void run() {
+            privateUI.rpc.setVolume(value, null);
         }
     }
+    protected VolumeTimer volumeTimer = null;
 
-    abstract protected void updateCover(JSONString cover);
-    abstract protected void formatCurrentTitle(JSONObject media);
+    public PlayerWidget(DeejaydUIWidget ui) {
+        this.privateUI = ui;
+    }
+
+    @UiHandler("playToggleButton")
+    public void playButtonHandler(ClickEvent event) {
+        privateUI.rpc.playToggle();
+    }
+
+    @UiHandler("stopButton")
+    public void stopButtonHandler(ClickEvent event) {
+        privateUI.rpc.stop();
+    }
+
+    @UiHandler("nextButton")
+    public void nextButtonHandler(ClickEvent event) {
+        privateUI.rpc.next();
+    }
+
+    @UiHandler("previousButton")
+    public void previousButtonHandler(ClickEvent event) {
+        privateUI.rpc.previous();
+    }
 }
 
 //vim: ts=4 sw=4 expandtab

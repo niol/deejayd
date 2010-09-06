@@ -18,26 +18,41 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.common.rpc;
+package org.mroy31.deejayd.common.rpc.callbacks;
 
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
+import java.util.ArrayList;
 
+import org.mroy31.deejayd.common.rpc.types.Media;
+import org.mroy31.deejayd.common.rpc.types.MediaList;
+
+import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONValue;
 
-public class NullRpcCallback extends GenericRpcCallback {
-    DeejaydUIWidget ui;
+/**
+ * callback from command who return a media list
+ * @author Mickaël Royer
+ *
+ */
+public class MediaListCallback extends AbstractRpcCallback {
+    private final AnswerHandler<MediaList> handler;
 
-    public NullRpcCallback(DeejaydUIWidget ui) {
-       this.ui = ui;
+    public MediaListCallback(AnswerHandler<MediaList> handler) {
+        this.handler = handler;
     }
 
     @Override
-    public void onCorrectAnswer(JSONValue data) {}
+    public void onCorrectAnswer(JSONValue data) {
+        MediaList ans = new MediaList();
 
-    @Override
-    public void setError(String error) {
-        ui.setError(error);
+        ArrayList<Media> songList = new ArrayList<Media>();
+        JSONArray list = data.isObject().get("medias").isArray();
+        for (int idx=0; idx<list.size(); idx++)
+            songList.add(new Media(list.get(idx).isObject()));
+        ans.setMediaList(songList);
+
+        handler.onAnswer(ans);
     }
+
 }
 
 //vim: ts=4 sw=4 expandtab

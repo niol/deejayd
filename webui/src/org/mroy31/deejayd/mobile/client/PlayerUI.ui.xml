@@ -4,14 +4,15 @@
   xmlns:mobile="urn:import:org.mroy31.deejayd.mobile.widgets">
 
   <ui:with field="resources"
-        type="org.mroy31.deejayd.mobile.resources.MobileResources"/>
+           type="org.mroy31.deejayd.mobile.resources.MobileResources"/>
 
   <g:FlowPanel width="100%" addStyleNames="{resources.mobileCss.center}">
     <g:FlowPanel width="100%" addStyleNames="{resources.mobileCss.center}">
       <g:HorizontalPanel ui:field="seekBarPanel" width="100%"
             addStyleNames="{resources.mobileCss.seekBar}">
-        <mobile:TimeSeekBar ui:field="seekBar">
-        </mobile:TimeSeekBar>
+        <g:cell horizontalAlignment="ALIGN_CENTER">
+          <mobile:TimeSeekBar ui:field="seekBar"></mobile:TimeSeekBar>
+        </g:cell>
       </g:HorizontalPanel>
 
       <g:FlowPanel addStyleNames="{resources.mobileCss.coverImg}">

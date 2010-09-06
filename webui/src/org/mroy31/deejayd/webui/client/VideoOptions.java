@@ -22,7 +22,6 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.webui.widgets.ValueSpinner;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -74,7 +73,7 @@ public class VideoOptions extends PopupPanel
             } else if (source == subOffset) {
                 optName = "sub_offset";
             }
-            ui.rpc.setPlayerOption(optName, value, new DefaultRpcCallback(ui));
+            ui.rpc.setPlayerOption(optName, value, null);
 
         }
     }
@@ -197,8 +196,7 @@ public class VideoOptions extends PopupPanel
             optionName = "sub_lang";
         }
         ui.rpc.setPlayerOption(optionName,
-                source.getValue(source.getSelectedIndex()),
-                new DefaultRpcCallback(ui));
+                source.getValue(source.getSelectedIndex()), null);
     }
 
     private void selectListBoxItem(ListBox list, String value) {

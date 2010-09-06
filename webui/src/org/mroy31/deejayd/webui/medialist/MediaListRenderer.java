@@ -20,7 +20,6 @@
 
 package org.mroy31.deejayd.webui.medialist;
 
-import org.mroy31.deejayd.common.rpc.DefaultRpcCallback;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.widgets.RatingWidget;
 
@@ -48,8 +47,7 @@ public abstract class MediaListRenderer {
             public void onValueChange(ValueChangeEvent<Integer> event) {
                 RatingWidget source = (RatingWidget) event.getSource();
                 int[] ids = {source.getMediaId()};
-                ui.rpc.setRating(ids, event.getValue(),
-                        new DefaultRpcCallback(ui));
+                ui.rpc.setRating(ids, event.getValue(), null);
             }
     };
 
@@ -64,7 +62,7 @@ public abstract class MediaListRenderer {
         }
 
         public void onClick(ClickEvent event) {
-            ui.rpc.goTo(id, source, new DefaultRpcCallback(ui));
+            ui.rpc.goTo(id, source, null);
         }
     }
 

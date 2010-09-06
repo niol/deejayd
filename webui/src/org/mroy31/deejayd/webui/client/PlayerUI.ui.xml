@@ -4,25 +4,25 @@
   xmlns:webui="urn:import:org.mroy31.deejayd.webui.widgets">
   <ui:with field="resources" type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
 
-    <g:HorizontalPanel>
+  <g:HorizontalPanel>
     <g:FlowPanel styleName="{resources.webuiCss.playerButtonsBlock}">
        <g:HorizontalPanel width="100%">
            <g:Button ui:field="previousButton"
                        styleName="{resources.webuiCss.previousButton}
                                   {resources.webuiCss.iconOnlyButton}">
-             </g:Button>
+           </g:Button>
            <g:Button ui:field="playToggleButton"
                      styleName="{resources.webuiCss.playButton}
                                 {resources.webuiCss.iconOnlyButton}">
            </g:Button>
            <g:Button ui:field="stopButton"
-                       styleName="{resources.webuiCss.stopButton}
-                                  {resources.webuiCss.iconOnlyButton}">
-             </g:Button>
-             <g:Button ui:field="nextButton"
-                       styleName="{resources.webuiCss.nextButton}
-                                  {resources.webuiCss.iconOnlyButton}">
-             </g:Button>
+                     styleName="{resources.webuiCss.stopButton}
+                                {resources.webuiCss.iconOnlyButton}">
+           </g:Button>
+           <g:Button ui:field="nextButton"
+                     styleName="{resources.webuiCss.nextButton}
+                                {resources.webuiCss.iconOnlyButton}">
+           </g:Button>
        </g:HorizontalPanel>
        <webui:SliderBar ui:field="volumeBar"></webui:SliderBar>
     </g:FlowPanel>
@@ -33,11 +33,15 @@
                ui:field="playingTitle"></g:HTML>
        <g:HTML styleName="{resources.webuiCss.playingDesc}"
                ui:field="playingDesc"></g:HTML>
-       <g:HorizontalPanel ui:field="seekPanel">
+       <g:HorizontalPanel ui:field="seekPanel" spacing="2">
+         <g:cell verticalAlignment="ALIGN_MIDDLE">
            <g:Button addStyleNames="{resources.webuiCss.playingTime}"
                      ui:field="playingTime">00:00 --></g:Button>
+         </g:cell>
+         <g:cell>
            <webui:SliderBar visible="false" ui:field="seekBar">
            </webui:SliderBar>
+         </g:cell>
        </g:HorizontalPanel>
        <g:Button ui:field="optionButton">
           Advanced Options

@@ -21,46 +21,19 @@
 package org.mroy31.deejayd.mobile.sources;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
-import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.mobile.client.SourcePanel;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 
-public class PanelMode extends DefaultDeejaydMode {
+public class PanelMode extends DefaultMode {
     private OptionPanel optionPanel = new OptionPanel("panel", hideCtxCmd);
 
     public PanelMode(SourcePanel manager) {
         super("panel", manager);
-    }
-
-    @Override
-    public MediaList initMediaList() {
-        return new MediaList("panel", new MediaListFormater() {
-            public Widget formatRow(JSONObject media) {
-                String title = media.get("title").isString().stringValue() +
-                        " ("+DeejaydUtils.formatTime(Integer.parseInt(
-                             media.get("length").isString().stringValue()))+")";
-                String desc = "";
-                JSONString artist = media.get("artist").isString();
-                JSONString album = media.get("album").isString();
-                if (artist != null) {
-                    desc += artist.stringValue()+" - ";
-                }
-                if (album != null) {
-                    desc += "<b>"+album.stringValue()+"<b>";
-                }
-                return new MediaItem(
-                        (int) media.get("id").isNumber().doubleValue(),
-                        title, desc);
-            }
-        });
     }
 
     @Override
