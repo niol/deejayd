@@ -556,8 +556,8 @@ public class Rpc {
         send("panel.setActiveList", args, handler);
     }
 
-    public void panelModeClearAll() {
-        send("panel.clearAll");
+    public void panelModeClearAll(AnswerHandler<Boolean> handler) {
+        send("panel.clearAll", new JSONArray(), handler);
     }
 
     public void panelModeSetSearch(String tag, String value,

@@ -203,7 +203,7 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
         if (sender == searchClearButton) {
             ui.rpc.panelModeClearSearch();
         } else if (sender == chooseAllButton) {
-            ui.rpc.panelModeClearAll();
+            ui.rpc.panelModeClearAll(null);
         } else if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
                 mediaList.goTo(currentPlayingPos);

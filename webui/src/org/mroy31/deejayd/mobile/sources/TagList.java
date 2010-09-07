@@ -113,13 +113,27 @@ public class TagList extends Composite {
     }
 
     private void updatePanel() {
-        ui.rpc.panelModeClearAll();
-        for (MediaFilter f : filter.getFilters()) {
-            ui.rpc.panelModeSetFilter(f.isBasic().getTag(),
-                    new String[] {f.isBasic().getPattern()},null);
+        class Callback implements AnswerHandler<Boolean> {
+            int idx = 0;
+
+            public Callback(int idx) {
+                this.idx = idx;
+            }
+
+            public void onAnswer(Boolean answer) {
+                if (idx < filter.getFilters().length) {
+                    MediaFilter f = filter.getFilters()[idx];
+                    ui.rpc.panelModeSetFilter(f.isBasic().getTag(),
+                            new String[] {f.isBasic().getPattern()},
+                            new Callback(idx+1));
+                } else {
+                    ui.rpc.panelModeSetActiveList("panel", "", null);
+                    finishCmd.execute();
+                }
+            }
         }
-        ui.rpc.panelModeSetActiveList("panel", "", null);
-        finishCmd.execute();
+
+        ui.rpc.panelModeClearAll(new Callback(0));
     }
 
     private String getTagValue(String pattern) {
