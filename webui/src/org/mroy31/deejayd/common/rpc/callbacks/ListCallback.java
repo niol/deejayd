@@ -20,7 +20,7 @@
 
 package org.mroy31.deejayd.common.rpc.callbacks;
 
-import java.util.ArrayList;
+import java.util.AbstractList;
 import java.util.List;
 
 import com.google.gwt.json.client.JSONArray;
@@ -34,13 +34,20 @@ public class ListCallback extends AbstractRpcCallback {
     }
 
     @Override
-    public void onCorrectAnswer(JSONValue data) {
-        ArrayList<String> ans = new ArrayList<String>();
+    public void onCorrectAnswer(final JSONValue data) {
+        handler.onAnswer(new AbstractList<String>() {
+            JSONArray list = data.isArray();
 
-        JSONArray list = data.isArray();
-        for (int idx=0; idx< list.size(); idx++)
-            ans.add(list.get(idx).isString().stringValue());
-        handler.onAnswer(ans);
+            @Override
+            public String get(int index) {
+                return list.get(index).isString().stringValue();
+            }
+
+            @Override
+            public int size() {
+                return list.size();
+            }
+        });
     }
 
 }

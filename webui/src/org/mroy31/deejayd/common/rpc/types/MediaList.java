@@ -20,14 +20,17 @@
 
 package org.mroy31.deejayd.common.rpc.types;
 
+import java.util.AbstractList;
 import java.util.List;
+
+import com.google.gwt.json.client.JSONArray;
 
 
 public class MediaList {
-    private List<Media> mediaList;
+    private JSONArray mediaList;
     private MediaFilter filter;
 
-    public void setMediaList(List<Media> list) {
+    public void setMediaList(JSONArray list) {
         this.mediaList = list;
     }
 
@@ -36,7 +39,18 @@ public class MediaList {
     }
 
     public List<Media> getMediaList() {
-        return mediaList;
+        return new AbstractList<Media>() {
+
+            @Override
+            public Media get(int index) {
+                return new Media(mediaList.get(index).isObject());
+            }
+
+            @Override
+            public int size() {
+                return mediaList.size();
+            }
+        };
     }
 
     public MediaFilter getFilter() {

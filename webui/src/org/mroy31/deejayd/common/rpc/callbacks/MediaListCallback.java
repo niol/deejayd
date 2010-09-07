@@ -20,13 +20,9 @@
 
 package org.mroy31.deejayd.common.rpc.callbacks;
 
-import java.util.ArrayList;
-
-import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.common.rpc.types.MediaList;
 
-import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONValue;
 
 /**
@@ -45,12 +41,7 @@ public class MediaListCallback extends AbstractRpcCallback {
     public void onCorrectAnswer(JSONValue data) {
         MediaList ans = new MediaList();
 
-        ArrayList<Media> mList = new ArrayList<Media>();
-        JSONArray list = data.isObject().get("medias").isArray();
-        for (int idx=0; idx<list.size(); idx++)
-            mList.add(new Media(list.get(idx).isObject()));
-        ans.setMediaList(mList);
-
+        ans.setMediaList(data.isObject().get("medias").isArray());
         JSONValue filter = data.isObject().get("filter");
         if (filter.isObject() != null)
             ans.setFilter(MediaFilter.parse(filter.isObject()));

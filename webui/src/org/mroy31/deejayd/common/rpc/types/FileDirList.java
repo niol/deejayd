@@ -20,7 +20,7 @@
 
 package org.mroy31.deejayd.common.rpc.types;
 
-import java.util.ArrayList;
+import java.util.AbstractList;
 import java.util.List;
 
 import com.google.gwt.json.client.JSONArray;
@@ -28,33 +28,41 @@ import com.google.gwt.json.client.JSONObject;
 
 public class FileDirList {
     private final JSONObject fileDirList;
-    private ArrayList<String> directories;
-    private ArrayList<Media> files;
 
     public FileDirList(JSONObject answer) {
         this.fileDirList = answer;
     }
 
     public List<String> getDirectories() {
-        if (directories == null) {
-            JSONArray list  = this.fileDirList.get("directories").isArray();
-            directories = new ArrayList<String>();
+        return new AbstractList<String>() {
 
-            for (int idx=0; idx<list.size(); idx++)
-                directories.add(list.get(idx).isString().stringValue());
-        }
-        return directories;
+            @Override
+            public String get(int index) {
+                return fileDirList.get("directories").isArray().get(index)
+                        .isString().stringValue();
+            }
+
+            @Override
+            public int size() {
+                return fileDirList.get("directories").isArray().size();
+            }
+        };
     }
 
     public List<Media> getFiles() {
-        if (files == null) {
-            JSONArray list  = this.fileDirList.get("files").isArray();
-            files = new ArrayList<Media>();
+        return new AbstractList<Media>() {
+            JSONArray list  = fileDirList.get("files").isArray();
 
-            for (int idx=0; idx<list.size(); idx++)
-                files.add(new Media(list.get(idx).isObject()));
-        }
-        return files;
+            @Override
+            public Media get(int index) {
+                return new Media(list.get(index).isObject());
+            }
+
+            @Override
+            public int size() {
+                return list.size();
+            }
+        };
     }
 
     public String getRootPath() {
