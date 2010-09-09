@@ -1,3 +1,10 @@
+deejayd (0.9.0-3) unstable; urgency=low
+
+  * Simplify debian/rules by removing per-python-version targets which are
+    not needed (Closes: #587326).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 09 Sep 2010 20:18:42 +0200
+
 deejayd (0.9.0-2) unstable; urgency=low
 
   * Xorg related scripts : fix auth files created in / by passing -t to mktemp.

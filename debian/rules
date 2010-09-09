@@ -7,20 +7,11 @@
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
-PYVERS=$(shell pyversions -vr)
-
-build: $(PYVERS:%=build-python%)
-
-build-python%:
-	touch $@
-
-install: build $(PYVERS:%=install-python%)
-
-install-python%:
+install:
 	dh_clean -k -i
 	dh_clean -k -s
-	python$* setup.py install --no-compile\
-			--root $(CURDIR)/debian/tmp --install-layout=deb
+	python setup.py install --no-compile\
+		--root $(CURDIR)/debian/tmp --install-layout=deb
 
 	# Fixing example conffile location
 	mkdir -p $(CURDIR)/debian/tmp/etc/X11/Xsession.d
@@ -37,14 +28,11 @@ install-python%:
 	dh_install --sourcedir=$(CURDIR)/debian/tmp
 	dh_installdirs
 
-clean: $(PYVERS:%=clean-python%)
-
-clean-python%:
+clean:
 	dh_testdir
 	dh_testroot
 
-	rm -f build-python*
-	python$* setup.py clean --all
+	python setup.py clean --all
 	find $(CURDIR) -name '*pyc' -exec rm -f {} \;
 
 	dh_clean
