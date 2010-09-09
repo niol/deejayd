@@ -178,9 +178,9 @@ class _DeejaydMainJSONRPC(_DeejaydJSONRPC):
   * time : _int_:_int_ position:length of the current media file
   * mode : [playlist-webradio-video] the current mode
   * audio_updating_db : _int_ show when a audio library update is in progress
-  * audio_updating_error : _string_ error message that apppears when the audio library update has failed
+  * audio_updating_error : _string_ error message that appears when the audio library update has failed
   * video_updating_db : _int_ show when a video library update is in progress
-  * video_updating_error : _string_ error message that apppears when the video library update has failed"""
+  * video_updating_error : _string_ error message that appears when the video library update has failed"""
         return dict(self.deejayd_core.get_status(objanswer = False))
 
     @returns_answer('dict')
