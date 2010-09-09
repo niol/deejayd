@@ -1,6 +1,7 @@
 deejayd (0.10.0-3~mobilefix+1) UNRELEASED; urgency=low
 
   * Add patch for Android mobile web ui fix.
+  * Update policy to 3.9.1 (nothing to do).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 05 Jul 2010 19:46:36 +0000
 
