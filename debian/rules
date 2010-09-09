@@ -20,8 +20,7 @@ install-python%:
 	dh_clean -k -i
 	dh_clean -k -s
 	python$* setup.py install --no-compile\
-			--root $(CURDIR)/debian/tmp\
-			--prefix usr
+			--root $(CURDIR)/debian/tmp --install-layout=deb
 
 	# Fixing example conffile location
 	mkdir -p $(CURDIR)/debian/tmp/etc/X11/Xsession.d
