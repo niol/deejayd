@@ -36,6 +36,6 @@ class Fault(DeejaydError):
     def __init__(self, code, message):
         super(Fault, self).__init__()
         self.code = code
-        self.message = message
+        self._message = message
 
 # vim: ts=4 sw=4 expandtab

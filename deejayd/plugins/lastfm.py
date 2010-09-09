@@ -32,7 +32,7 @@ class AudioScrobblerFatalError(DeejaydError): pass
 class AudioScrobblerError(DeejaydError):
 
     def __init__(self, msg):
-        self.message = _("AudioScrobbler Error: %s") % str_encode(msg)
+        self._message = _("AudioScrobbler Error: %s") % str_decode(msg)
 
 
 class AudioScrobblerPlugin:

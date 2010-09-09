@@ -23,23 +23,28 @@ import locale
 class DeejaydError(Exception):
     """General purpose error structure."""
 
+    def __init__(self, *args, **kwargs):
+        super(DeejaydError, self).__init__(*args, **kwargs)
+        self._message = args[0]
+
     # Handle unicode messages, what Exceptions cannot. See Python issue at
     # http://bugs.python.org/issue2517
     def __str__(self):
-        if type(self.message) is unicode:
+        if type(self._message) is unicode:
             try:
-                return str(self.message.encode(locale.getpreferredencoding()))
+                return str(self._message.encode(locale.getpreferredencoding()))
             except UnicodeError:
                 # perharps prefered encoding not correctly set, force to UTF-8
-                return str(self.message.encode("utf-8"))
+                return str(self._message.encode("utf-8"))
         else:
-            return str(self.message)
+            return str(self._message)
 
     def __unicode__(self):
-        if type(self.message) is unicode:
-            return self.message
+        if type(self._message) is unicode:
+            return self._message
         else:
-            return unicode(self.message)
+            return unicode(self._message)
+
 
 class DeejaydAnswer(object):
     """General purpose core answer container."""
