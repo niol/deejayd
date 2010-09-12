@@ -34,8 +34,7 @@ METHOD_NOT_CALLABLE   = -32604
 class Fault(DeejaydError):
     """Indicates an JSON-RPC fault package."""
     def __init__(self, code, message):
-        super(Fault, self).__init__()
+        super(Fault, self).__init__(message)
         self.code = code
-        self._message = message
 
 # vim: ts=4 sw=4 expandtab
