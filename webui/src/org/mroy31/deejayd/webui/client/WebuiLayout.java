@@ -21,7 +21,11 @@
 package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
+import java.util.List;
 
+import org.mroy31.deejayd.common.events.DragLeaveEvent;
+import org.mroy31.deejayd.common.events.DragOverEvent;
+import org.mroy31.deejayd.common.events.DropEvent;
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
@@ -29,14 +33,11 @@ import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.callbacks.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.webui.events.DragLeaveEvent;
-import org.mroy31.deejayd.webui.events.DragOverEvent;
-import org.mroy31.deejayd.webui.events.DropEvent;
+import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.Pager;
+import org.mroy31.deejayd.webui.cellview.SongList;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 import org.mroy31.deejayd.webui.i18n.WebuiMessages;
-import org.mroy31.deejayd.webui.medialist.MediaList;
-import org.mroy31.deejayd.webui.medialist.MediaListDropCommand;
-import org.mroy31.deejayd.webui.medialist.SongRenderer;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.widgets.WebuiSplitLayoutPanel;
@@ -48,8 +49,6 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -72,6 +71,7 @@ public class WebuiLayout extends DeejaydUIWidget
     static private WebuiLayout instance;
     public LibraryManager audioLibrary;
     public LibraryManager videoLibrary;
+
     private boolean queueOpen = false;
     private int queueId = -1;
     private int queueOverRow = -1;
@@ -151,7 +151,7 @@ public class WebuiLayout extends DeejaydUIWidget
     @UiField CheckBox queueRandom;
     @UiField Button queueRemove;
     @UiField Button queueClear;
-    @UiField Label queueLoading;
+    @UiField(provided = true) final Pager queuePager;
     @UiField(provided = true) public final WebuiResources resources;
 
     static public WebuiLayout getInstance() {
@@ -164,6 +164,7 @@ public class WebuiLayout extends DeejaydUIWidget
         // load ressources
         resources = GWT.create(WebuiResources.class);
         resources.webuiCss().ensureInjected();
+        queuePager = new Pager(this);
 
         initWidget(uiBinder.createAndBindUi(this));
         loading.setResource(resources.loading());
@@ -193,23 +194,22 @@ public class WebuiLayout extends DeejaydUIWidget
         queueClear.addClickHandler(this);
         queueRemove.setText(i18nConstants.remove());
         queueRemove.addClickHandler(this);
-        DOM.setStyleAttribute(queueLoading.getElement(), "paddingLeft", "10px");
-        queueList = new MediaList(this, "queue");
-        queueList.setOption(true,new SongRenderer(this, "queue", queueLoading));
-        queueList.addDragDropCommand(new MediaListDropCommand() {
+        DOM.setStyleAttribute(queuePager.getElement(), "paddingLeft", "10px");
+        queueList = new SongList(this, "queue", 20);
+        queueList.setPager(queuePager);
+        queueList.addDnDCommand(new MediaList.DnDCommand() {
 
             public void onDrop(DropEvent event, int row) {
                 String[] data = event.dataTransfert().getData().split("-");
                 if (data[0].equals("queue")) {
-                    rpc.queueMove(new String[] {data[1]}, row, null);
+                    List<String> ids = DeejaydUtils.getIds(data, "id");
+                    rpc.queueMove(ids, row, null);
                 } else {
-                    JSONArray sel = new JSONArray();
-                    sel.set(0, new JSONString(data[2]));
-                    rpc.queueLoadIds(sel, row, null);
+                    List<String> ids = DeejaydUtils.getIds(data, "media_id");
+                    rpc.queueLoadIds(ids, row, null);
                 }
                 if (queueOverRow != -1) {
-                    queueList.getRowFormatter().removeStyleName(
-                            queueOverRow,
+                    queueList.getRow(queueOverRow).removeClassName(
                             resources.webuiCss().mlRowOver());
                     queueOverRow = -1;
                 }
@@ -217,12 +217,11 @@ public class WebuiLayout extends DeejaydUIWidget
 
             public void onDragOver(DragOverEvent event, int row) {
                 if (row != queueOverRow) {
-                    if (queueOverRow != -1) {
-                        queueList.getRowFormatter().removeStyleName(
-                            queueOverRow, resources.webuiCss().mlRowOver());
-                    }
+                    if (queueOverRow != -1)
+                        queueList.getRow(queueOverRow).removeClassName(
+                                resources.webuiCss().mlRowOver());
                     if (row != -1 )
-                        queueList.getRowFormatter().addStyleName(row,
+                        queueList.getRow(row).addClassName(
                                 resources.webuiCss().mlRowOver());
                     queueOverRow = row;
                 }
@@ -230,13 +229,12 @@ public class WebuiLayout extends DeejaydUIWidget
 
             public void onDragLeave(DragLeaveEvent event) {
                 if (queueOverRow != -1) {
-                    queueList.getRowFormatter().removeStyleName(
-                            queueOverRow, resources.webuiCss().mlRowOver());
+                    queueList.getRow(queueOverRow).removeClassName(
+                            resources.webuiCss().mlRowOver());
                     queueOverRow = -1;
                 }
             }
         });
-
 
         // Init Mode Panel
         panelManager = new WebuiPanelManager(this);
@@ -395,7 +393,6 @@ public class WebuiLayout extends DeejaydUIWidget
         // update queue medialist
         int id = Integer.parseInt(status.get("queue"));
         if (queueId != id) {
-            queueList.update();
             // update desc
             int lg = Integer.parseInt(status.get("queuelength"));
             int tmlg = Integer.parseInt(status.get("queuetimelength"));
@@ -409,6 +406,7 @@ public class WebuiLayout extends DeejaydUIWidget
             }
 
             queueId = id;
+            queueList.onStatusChange(event);
         }
         // update queue state
         queueRandom.setValue(

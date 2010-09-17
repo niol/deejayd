@@ -1,7 +1,8 @@
 <!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
 <ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
   xmlns:g="urn:import:com.google.gwt.user.client.ui"
-  xmlns:webui="urn:import:org.mroy31.deejayd.webui.medialist">
+  xmlns:c="urn:import:com.google.gwt.user.cellview.client"
+  xmlns:webui="urn:import:org.mroy31.deejayd.webui.cellview">
   <ui:with field="resources"
         type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
 
@@ -22,10 +23,8 @@
 
        <g:center>
            <webui:ScrollMediaPanel ui:field="mediaListPanel">
-               <webui:MediaTable cellSpacing='0' cellPadding='0'
-                   styleName="{style.table}"
-                   ui:field="mediaList">
-               </webui:MediaTable>
+               <c:DeejaydCellTable styleName="{style.table}" ui:field="mediaList">
+               </c:DeejaydCellTable>
            </webui:ScrollMediaPanel>
        </g:center>
   </g:DockLayoutPanel>

@@ -55,11 +55,12 @@ public class MediaListProvider implements StatusChangeHandler {
         if (id != sourceId) {
             sourceId = id;
             int l = Integer.parseInt(event.getStatus().get(source+"length"));
-            dataProvider.updateRowCount(l, true);
 
-            Range[] ranges = dataProvider.getRanges();
-            for (final Range range : ranges)
-                updateMediasOnRange(range);
+            for (HasData<Media> display : dataProvider.getDataDisplays()) {
+                Range range = new Range(0, display.getVisibleRange().getLength());
+                display.setVisibleRangeAndClearData(range, true);
+            }
+            dataProvider.updateRowCount(l, true);
         }
     }
 

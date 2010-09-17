@@ -20,17 +20,20 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import java.util.List;
+
+import org.mroy31.deejayd.common.events.DragLeaveEvent;
+import org.mroy31.deejayd.common.events.DragOverEvent;
+import org.mroy31.deejayd.common.events.DropEvent;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.webui.events.DragLeaveEvent;
-import org.mroy31.deejayd.webui.events.DragOverEvent;
-import org.mroy31.deejayd.webui.events.DropEvent;
-import org.mroy31.deejayd.webui.medialist.MediaListDropCommand;
-import org.mroy31.deejayd.webui.medialist.SongRenderer;
+import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.SongList;
 import org.mroy31.deejayd.webui.widgets.NewPlsDialog;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -64,17 +67,17 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
                 });
             }
         });
-        mediaList.setOption(true, new SongRenderer(ui, "playlist", loadLabel));
-        mediaList.addDragDropCommand(new MediaListDropCommand() {
+        mediaList.addDnDCommand(new MediaList.DnDCommand() {
 
             public void onDrop(DropEvent event, int row) {
                 String[] data = event.dataTransfert().getData().split("-");
                 if (data[0].equals("playlist")) {
-                    ui.rpc.plsModeMove(new String[] {data[1]}, row, null);
+                    List<String> ids = DeejaydUtils.getIds(data, "id");
+                    ui.rpc.plsModeMove(ids, row, null);
                     if (currentOverRow != -1) {
-                        mediaList.getRowFormatter().removeStyleName(
-                                currentOverRow,
-                                ui.resources.webuiCss().mlRowOver());
+                        mediaList.getRow(currentOverRow)
+                            .removeClassName(
+                                    ui.resources.webuiCss().mlRowOver());
                         currentOverRow = -1;
                     }
                 }
@@ -85,12 +88,12 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
                 if (data[0].equals("playlist")) {
                     if (row != currentOverRow) {
                         if (currentOverRow != -1) {
-                            mediaList.getRowFormatter().removeStyleName(
-                                currentOverRow,
-                                ui.resources.webuiCss().mlRowOver());
+                            mediaList.getRow(currentOverRow)
+                                .removeClassName(
+                                        ui.resources.webuiCss().mlRowOver());
                         }
                         if (row != -1 )
-                            mediaList.getRowFormatter().addStyleName(row,
+                            mediaList.getRow(row).addClassName(
                                     ui.resources.webuiCss().mlRowOver());
                         currentOverRow = row;
                     }
@@ -99,12 +102,17 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
 
             public void onDragLeave(DragLeaveEvent event) {
                 if (currentOverRow != -1) {
-                    mediaList.getRowFormatter().removeStyleName(
-                        currentOverRow, ui.resources.webuiCss().mlRowOver());
+                    mediaList.getRow(currentOverRow).removeClassName(
+                            ui.resources.webuiCss().mlRowOver());
                     currentOverRow = -1;
                 }
             }
         });
+    }
+
+    @Override
+    @UiFactory MediaList makeMediaList() {
+        return new SongList(ui, "playlist", MediaList.DEFAULT_PAGE_SIZE);
     }
 
     @Override
@@ -192,7 +200,7 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
             ui.rpc.plsModeRemove(mediaList.getSelection(), null);
         } else if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
-                mediaList.goTo(currentPlayingPos);
+                mediaList.scrollTo(currentPlayingPos);
             }
         } else if (sender == plsSave) {
             saveDg.center();

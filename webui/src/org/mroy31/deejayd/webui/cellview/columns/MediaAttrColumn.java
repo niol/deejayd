@@ -18,14 +18,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.client;
+package org.mroy31.deejayd.webui.cellview.columns;
 
-import java.util.HashMap;
+import org.mroy31.deejayd.common.rpc.types.Media;
+import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 
-public interface WebuiModeInterface {
-    public void removeFromParent();
-    public String getSourceName();
-    public void onStatusChange(HashMap<String, String> status);
+import com.google.gwt.cell.client.TextCell;
+import com.google.gwt.user.cellview.client.Column;
+
+
+public class MediaAttrColumn extends Column<Media, String> {
+    private final String attr;
+
+    public MediaAttrColumn(String attr) {
+        super(new TextCell());
+        this.attr = attr;
+    }
+
+    @Override
+    public String getValue(Media object) {
+        if (attr.equals("length"))
+            return DeejaydUtils.formatTime(object.getIntAttr(attr));
+        return object.getStrAttr(attr);
+    }
 }
 
 //vim: ts=4 sw=4 expandtab

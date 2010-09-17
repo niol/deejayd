@@ -18,34 +18,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.events;
+package org.mroy31.deejayd.common.events;
 
-import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.user.client.Element;
 
-public class DataTransfert extends JavaScriptObject {
+public class DragEnterEvent extends DragDropEvent<DragEnterHandler> {
+    private static final Type<DragEnterHandler> TYPE =
+        new Type<DragEnterHandler>("dragenter", new DragEnterEvent());
 
-    protected DataTransfert() {}
+    public static Type<DragEnterHandler> getType() {
+        return TYPE;
+    }
 
-    public final native void setData(String data) /*-{
-      this.setData("text/plain", data);
-    }-*/;
+    @Override
+    public Type<DragEnterHandler> getAssociatedType() {
+        return TYPE;
+    }
 
-    public final native String getData() /*-{
-        return this.getData("text/plain");
-    }-*/;
-
-    public final native void setDragImage(Element elt) /*-{
-        this.setDragImage(elt, 0, 0);
-    }-*/;
-
-    public final native void setEffectAllowed(String effect) /*-{
-        this.effectAlowed = effect;
-    }-*/;
-
-    public final native void setDropEffect(String effect) /*-{
-        this.dropEffect = effect;
-    }-*/;
+    @Override
+    protected void dispatch(DragEnterHandler handler) {
+        handler.onDragEnter(this);
+    }
 
 }
 

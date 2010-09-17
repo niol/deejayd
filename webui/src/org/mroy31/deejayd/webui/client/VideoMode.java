@@ -21,10 +21,12 @@
 package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.webui.medialist.VideoRenderer;
+import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.VideoList;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -37,7 +39,11 @@ public class VideoMode extends DefaultWebuiMode implements ClickHandler {
 
     public VideoMode(WebuiLayout webui) {
         super("video", webui, true, true);
-        mediaList.setOption(false, new VideoRenderer(ui, "video", loadLabel));
+    }
+
+    @Override
+    @UiFactory MediaList makeMediaList() {
+        return new VideoList(ui);
     }
 
     @Override
@@ -83,7 +89,7 @@ public class VideoMode extends DefaultWebuiMode implements ClickHandler {
         Widget sender = (Widget) event.getSource();
         if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
-                mediaList.goTo(currentPlayingPos);
+                mediaList.scrollTo(currentPlayingPos);
             }
         }
     }

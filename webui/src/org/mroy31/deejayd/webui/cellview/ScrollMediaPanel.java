@@ -18,17 +18,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.medialist;
+package org.mroy31.deejayd.webui.cellview;
 
-import org.mroy31.deejayd.webui.events.DragEnterEvent;
-import org.mroy31.deejayd.webui.events.DragEnterHandler;
-import org.mroy31.deejayd.webui.events.DragLeaveEvent;
-import org.mroy31.deejayd.webui.events.DragLeaveHandler;
-import org.mroy31.deejayd.webui.events.DragOverEvent;
-import org.mroy31.deejayd.webui.events.DragOverHandler;
-import org.mroy31.deejayd.webui.events.DropEvent;
-import org.mroy31.deejayd.webui.events.DropHandler;
-import org.mroy31.deejayd.webui.events.HasDropHandlers;
+import org.mroy31.deejayd.common.events.DragEnterEvent;
+import org.mroy31.deejayd.common.events.DragEnterHandler;
+import org.mroy31.deejayd.common.events.DragLeaveEvent;
+import org.mroy31.deejayd.common.events.DragLeaveHandler;
+import org.mroy31.deejayd.common.events.DragOverEvent;
+import org.mroy31.deejayd.common.events.DragOverHandler;
+import org.mroy31.deejayd.common.events.DropEvent;
+import org.mroy31.deejayd.common.events.DropHandler;
+import org.mroy31.deejayd.common.events.HasDropHandlers;
 
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.ScrollPanel;

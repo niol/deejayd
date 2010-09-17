@@ -23,19 +23,20 @@ package org.mroy31.deejayd.webui.client;
 import java.util.HashMap;
 import java.util.List;
 
+import org.mroy31.deejayd.common.events.DragEnterEvent;
+import org.mroy31.deejayd.common.events.DragEnterHandler;
+import org.mroy31.deejayd.common.events.DragLeaveEvent;
+import org.mroy31.deejayd.common.events.DragLeaveHandler;
+import org.mroy31.deejayd.common.events.DragOverEvent;
+import org.mroy31.deejayd.common.events.DragOverHandler;
+import org.mroy31.deejayd.common.events.DropEvent;
+import org.mroy31.deejayd.common.events.DropHandler;
+import org.mroy31.deejayd.common.events.HasDropHandlers;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.Playlist;
-import org.mroy31.deejayd.webui.events.DragEnterEvent;
-import org.mroy31.deejayd.webui.events.DragEnterHandler;
-import org.mroy31.deejayd.webui.events.DragLeaveEvent;
-import org.mroy31.deejayd.webui.events.DragLeaveHandler;
-import org.mroy31.deejayd.webui.events.DragOverEvent;
-import org.mroy31.deejayd.webui.events.DragOverHandler;
-import org.mroy31.deejayd.webui.events.DropEvent;
-import org.mroy31.deejayd.webui.events.DropHandler;
-import org.mroy31.deejayd.webui.events.HasDropHandlers;
+import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.widgets.LoadingWidget;
@@ -135,12 +136,12 @@ public class NavigationPanel extends WebuiPanel
             if (type.equals("static")) {
                 addDragEnterHandler(new DragEnterHandler() {
                     public void onDragEnter(DragEnterEvent event) {
-                        addStyleName(ui.resources.webuiCss().mlRowOver());
+                        addStyleName(ui.resources.webuiCss().plsRowOver());
                     }
                 });
                 addDragLeaveHandler(new DragLeaveHandler() {
                     public void onDragLeave(DragLeaveEvent event) {
-                        removeStyleName(ui.resources.webuiCss().mlRowOver());
+                        removeStyleName(ui.resources.webuiCss().plsRowOver());
                     }
                 });
                 addDragOverHandler(new DragOverHandler() {
@@ -151,10 +152,11 @@ public class NavigationPanel extends WebuiPanel
                 addDropHandler(new DropHandler() {
                     public void onDrop(DropEvent event) {
                         event.preventDefault();
-                        removeStyleName(ui.resources.webuiCss().mlRowOver());
+                        removeStyleName(ui.resources.webuiCss().plsRowOver());
                         String[] data = event.dataTransfert()
                                              .getData().split("-");
-                        ui.rpc.recPlsStaticAdd(plsId,new String[]{data[2]},null);
+                        List<String> ids = DeejaydUtils.getIds(data,"media_id");
+                        ui.rpc.recPlsStaticAdd(plsId, ids,null);
                     }
                 });
             }

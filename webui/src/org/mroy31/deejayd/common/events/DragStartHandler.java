@@ -18,13 +18,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.events;
+package org.mroy31.deejayd.common.events;
 
 import com.google.gwt.event.shared.EventHandler;
 
-public interface DragLeaveHandler extends EventHandler {
+public interface DragStartHandler extends EventHandler {
 
-    void onDragLeave(DragLeaveEvent event);
+    void onDragStart(DragStartEvent event);
 
 }
 

@@ -20,12 +20,13 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import java.util.HashMap;
-
-import org.mroy31.deejayd.webui.medialist.WebradioRenderer;
+import org.mroy31.deejayd.common.events.StatusChangeEvent;
+import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.WebradioList;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -39,14 +40,17 @@ public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
 
     public WebradioMode(WebuiLayout ui) {
         super("webradio", ui, false, false);
-        mediaList.setOption(true,
-                new WebradioRenderer(ui, "webradio", loadLabel));
     }
 
     @Override
-    public void onStatusChange(HashMap<String, String> status) {
-        super.onStatusChange(status);
-        boolean en = status.get("webradiosource").equals("local");
+    @UiFactory MediaList makeMediaList() {
+        return new WebradioList(ui);
+    }
+
+    @Override
+    public void onStatusChange(StatusChangeEvent event) {
+        super.onStatusChange(event);
+        boolean en = event.getStatus().get("webradiosource").equals("local");
         wbClear.setEnabled(en);
         wbRemove.setEnabled(en);
     }
@@ -104,7 +108,7 @@ public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
             ui.rpc.wbModeRemove(mediaList.getSelection(), null);
         } else if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
-                mediaList.goTo(currentPlayingPos);
+                mediaList.scrollTo(currentPlayingPos);
             }
         }
     }

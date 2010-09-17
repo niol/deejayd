@@ -36,10 +36,9 @@
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>
-  <source path='events'/>
   <source path='resources'/>
   <source path='i18n'/>
   <source path='widgets'/>
-  <source path="medialist"/>
+  <source path="cellview"/>
 
 </module>

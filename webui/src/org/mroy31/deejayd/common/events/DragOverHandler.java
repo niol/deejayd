@@ -18,17 +18,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.medialist;
+package org.mroy31.deejayd.common.events;
 
-import org.mroy31.deejayd.webui.events.DragLeaveEvent;
-import org.mroy31.deejayd.webui.events.DragOverEvent;
-import org.mroy31.deejayd.webui.events.DropEvent;
+import com.google.gwt.event.shared.EventHandler;
 
-public interface MediaListDropCommand {
+public interface DragOverHandler extends EventHandler {
 
-    public void onDragOver(DragOverEvent event, int row);
-    public void onDragLeave(DragLeaveEvent event);
-    public void onDrop(DropEvent event, int row);
+    void onDragOver(DragOverEvent event);
 
 }
 

@@ -294,7 +294,7 @@ public class Rpc {
         send("recpls.get", args, new MediaListCallback(handler));
     }
 
-    public void recPlsStaticAdd(String plsId, String[] ids,
+    public void recPlsStaticAdd(String plsId, List<String> ids,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
@@ -360,7 +360,7 @@ public class Rpc {
         send("playlist.clear");
     }
 
-    public void plsModeRemove(String[] ids, AnswerHandler<Boolean> handler) {
+    public void plsModeRemove(List<String> ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
         int idx = 0;
@@ -372,7 +372,7 @@ public class Rpc {
         send("playlist.remove", args, handler);
     }
 
-    public void plsModeMove(String[] ids, int pos,
+    public void plsModeMove(List<String> ids, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
@@ -448,7 +448,7 @@ public class Rpc {
         send("webradio.setSourceCategorie", args, handler);
     }
 
-    public void wbModeRemove(String[] ids, AnswerHandler<Boolean> handler) {
+    public void wbModeRemove(List<String> ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
         int idx = 0;
@@ -482,7 +482,7 @@ public class Rpc {
         send("queue.clear");
     }
 
-    public void queueRemove(String[] ids, AnswerHandler<Boolean> handler) {
+    public void queueRemove(List<String> ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
         int idx = 0;
@@ -494,7 +494,7 @@ public class Rpc {
         send("queue.remove", args, handler);
     }
 
-    public void queueMove(String[] ids, int pos,
+    public void queueMove(List<String> ids, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         JSONArray jsonIds = new JSONArray();
@@ -517,8 +517,12 @@ public class Rpc {
         send("queue.addPath", args, handler);
     }
 
-    public void queueLoadIds(JSONArray sel, int pos,
+    public void queueLoadIds(List<String> ids, int pos,
             AnswerHandler<Boolean> handler) {
+        JSONArray sel = new JSONArray();
+        for (String id : ids)
+            sel.set(sel.size(), new JSONString(id));
+
         JSONArray args = new JSONArray();
         args.set(0, sel);
         if (pos != -1)

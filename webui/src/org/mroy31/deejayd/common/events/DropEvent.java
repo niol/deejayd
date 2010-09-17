@@ -18,13 +18,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.events;
+package org.mroy31.deejayd.common.events;
 
-import com.google.gwt.event.shared.EventHandler;
 
-public interface DragOverHandler extends EventHandler {
 
-    void onDragOver(DragOverEvent event);
+public class DropEvent extends DragDropEvent<DropHandler> {
+    private static final Type<DropHandler> TYPE =
+        new Type<DropHandler>("drop", new DropEvent());
+
+
+    public static Type<DropHandler> getType() {
+        return TYPE;
+    }
+
+    @Override
+    public Type<DropHandler> getAssociatedType() {
+        return TYPE;
+    }
+
+    @Override
+    protected void dispatch(DropHandler handler) {
+        handler.onDrop(this);
+    }
 
 }
 

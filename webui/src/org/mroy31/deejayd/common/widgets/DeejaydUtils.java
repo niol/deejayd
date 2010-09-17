@@ -22,88 +22,99 @@ package org.mroy31.deejayd.common.widgets;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.mroy31.deejayd.common.i18n.CommonI18nMessages;
 
 public class DeejaydUtils {
-	public static String formatTime(int time) {
-		if (time > 3600) {
-			// hours:minutes:seconds
-			int hours = (int) time/3600;
-			int mins = (int) (time%3600)/60;
-			int secs = (int) time%60;
-			return Integer.toString(hours)+":"+getDoubleDigit(mins)+":"
-					+getDoubleDigit(secs);
-		} else {
-			// minutes:seconds
-			int mins = (int) time/60;
-			int secs = (int) time%60;
-			return Integer.toString(mins)+":"+getDoubleDigit(secs);
-		}
-	}
+    public static String formatTime(int time) {
+        if (time > 3600) {
+            // hours:minutes:seconds
+            int hours = (int) time/3600;
+            int mins = (int) (time%3600)/60;
+            int secs = (int) time%60;
+            return Integer.toString(hours)+":"+getDoubleDigit(mins)+":"
+                    +getDoubleDigit(secs);
+        } else {
+            // minutes:seconds
+            int mins = (int) time/60;
+            int secs = (int) time%60;
+            return Integer.toString(mins)+":"+getDoubleDigit(secs);
+        }
+    }
 
-	public static String formatTimeLong(int time, CommonI18nMessages messages) {
-		int[] dividors = new int[5];
-		dividors[0] = 60;
-		dividors[1] = 60;
-		dividors[2] = 24;
-		dividors[3] = 365;
-		dividors[4] = 60;
-		
-		String[] divDescs = new String[5];
-		divDescs[0] = "second";
-		divDescs[1] = "minute";
-		divDescs[2] = "hour";
-		divDescs[3] = "day";
-		divDescs[4] = "year";
+    public static String formatTimeLong(int time, CommonI18nMessages messages) {
+        int[] dividors = new int[5];
+        dividors[0] = 60;
+        dividors[1] = 60;
+        dividors[2] = 24;
+        dividors[3] = 365;
+        dividors[4] = 60;
 
-		int unit = 0;
-		ArrayList<String> timeStr = new ArrayList<String>();
-		for (int i=0; i<5; i++) {
-			int div = dividors[i];
-			if (time < 1)
-				break;
-			if (div == 0) {
-				unit = time;
-				time = 0;
-			} else {
-				unit = (int) time % div;
-				time = (int) time / div;
-			}
-			if (unit > 0) {
-				String desc = "";
-				if (divDescs[i] == "second")
-					desc = messages.seconds(unit);
-				else if (divDescs[i] == "minute")
-					desc = messages.minutes(unit);
-				else if (divDescs[i] == "hour")
-					desc = messages.hours(unit);
-				else if (divDescs[i] == "day")
-					desc = messages.days(unit);
-				else if (divDescs[i] == "year")
-					desc = messages.years(unit);
-				
-				timeStr.add(desc);
-			}
-		}
-		Collections.reverse(timeStr);
-		if (timeStr.size() > 2)
-			timeStr.remove(timeStr.size()-1);
-		String result = "";
-		for (String str : timeStr) {
-			if (!result.equals(""))
-				result += ", ";
-			result += str;
-		}
-		return result;
-	}
+        String[] divDescs = new String[5];
+        divDescs[0] = "second";
+        divDescs[1] = "minute";
+        divDescs[2] = "hour";
+        divDescs[3] = "day";
+        divDescs[4] = "year";
 
-	/**
-	 * get a double digit int from a single
-	 * @param i
-	 * @return
-	 */
-	private static String getDoubleDigit(int i) {
+        int unit = 0;
+        ArrayList<String> timeStr = new ArrayList<String>();
+        for (int i=0; i<5; i++) {
+            int div = dividors[i];
+            if (time < 1)
+                break;
+            if (div == 0) {
+                unit = time;
+                time = 0;
+            } else {
+                unit = (int) time % div;
+                time = (int) time / div;
+            }
+            if (unit > 0) {
+                String desc = "";
+                if (divDescs[i] == "second")
+                    desc = messages.seconds(unit);
+                else if (divDescs[i] == "minute")
+                    desc = messages.minutes(unit);
+                else if (divDescs[i] == "hour")
+                    desc = messages.hours(unit);
+                else if (divDescs[i] == "day")
+                    desc = messages.days(unit);
+                else if (divDescs[i] == "year")
+                    desc = messages.years(unit);
+
+                timeStr.add(desc);
+            }
+        }
+        Collections.reverse(timeStr);
+        if (timeStr.size() > 2)
+            timeStr.remove(timeStr.size()-1);
+        String result = "";
+        for (String str : timeStr) {
+            if (!result.equals(""))
+                result += ", ";
+            result += str;
+        }
+        return result;
+    }
+
+    public static List<String> getIds(String[] dragData, String type) {
+        ArrayList<String> ans = new ArrayList<String>();
+        for (int idx=1; idx<dragData.length; idx++) {
+            String[] value = dragData[idx].split("/");
+            int t = type.equals("id") ? 0 : 1;
+            ans.add(value[t]);
+        }
+
+        return ans;
+    }
+    /**
+     * get a double digit int from a single
+     * @param i
+     * @return
+     */
+    private static String getDoubleDigit(int i) {
         String newI = null;
         switch (i) {
         case 0:
@@ -140,7 +151,7 @@ public class DeejaydUtils {
                 newI = Integer.toString(i);
         }
         return newI;
-	}
+    }
 }
 
 //vim: ts=4 sw=4 expandtab

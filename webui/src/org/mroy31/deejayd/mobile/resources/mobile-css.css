@@ -205,7 +205,7 @@ body {
   .listPanel li, .listPanel .listItem {
     background: literal("-moz-linear-gradient(top,rgb(76, 77, 78), rgb(64, 65, 66))");
   }
-  .listPanel li:first-child, .listPanel table:first-child {
+  .listPanel li:first-child {
     -moz-border-radius-topleft: 8px 8px;
     -moz-border-radius-topright: 8px 8px;
   }
@@ -223,7 +223,7 @@ body {
   .listPanel li, .listPanel .listItem {
     background: literal("-webkit-gradient(linear, 0% 0, 0% 100%,from(rgb(76, 77, 78)), to(rgb(64, 65, 66)))");
   }
-  .listPanel li:first-child, .listPanel table:first-child {
+  .listPanel li:first-child {
     -webkit-border-top-left-radius: 8px 8px;
     -webkit-border-top-right-radius: 8px 8px;
   }

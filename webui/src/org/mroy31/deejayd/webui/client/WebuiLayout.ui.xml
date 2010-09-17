@@ -2,7 +2,8 @@
 <ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
   xmlns:g="urn:import:com.google.gwt.user.client.ui"
   xmlns:webui="urn:import:org.mroy31.deejayd.webui.client"
-  xmlns:webuiW="urn:import:org.mroy31.deejayd.webui.widgets">
+  xmlns:webuiW="urn:import:org.mroy31.deejayd.webui.widgets"
+  xmlns:webuiM="urn:import:org.mroy31.deejayd.webui.cellview">
   <ui:with field="resources" type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
 
   <g:DockLayoutPanel ui:field="mainPanel">
@@ -46,8 +47,7 @@
                             {resources.webuiCss.queueToolbarButton}">
                     </g:Button>
                     <g:CheckBox ui:field="queueRandom"></g:CheckBox>
-                    <g:Label styleName="{resources.webuiCss.toolbarDescLabel}"
-                        ui:field="queueLoading"></g:Label>
+                    <webuiM:Pager ui:field="queuePager"></webuiM:Pager>
                 </g:HorizontalPanel>
             </g:HorizontalPanel>
 

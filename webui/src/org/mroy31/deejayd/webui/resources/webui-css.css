@@ -31,7 +31,7 @@
 .modeList {position: absolute; top: 0px; right: 0px; height: 24px;}
 .bold {font-weight: bold;}
 .italic{font-style: italic;}
-.currentItem { font-weight: bold; background-color: #FBEE99;}
+.currentItem { font-weight: bold; background-color: #FBEE99 !important;}
 .fixedTable { table-layout: fixed; width: 100%; }
 .iconAndTextButton {
   padding: 2px;
@@ -54,7 +54,6 @@
   overflow: hidden;
   white-space: nowrap;
   width: 100%;
-  text-overflow: ellipsis;
 }
 @if user.agent gecko1_8 gecko {
   .textOverflow { -moz-binding: url('style/mozbinding.xml#ellipsis'); }
@@ -65,7 +64,7 @@
 /*
  * Medialist
  */
-.mlRowOver { background-color: #888;}
+.mlRowOver td { border-top: 2px solid #88b0f2;}
 
 /*
  * Messages
@@ -170,12 +169,22 @@
 .tagPanelSelectedItem { background-color: #ccc; }
 
 /*
- * Magic Playlist
+ * Playlist
  */
 .rulesList {
   border: 2px solid #D0E4F6;
   padding: 3px;
   margin-bottom: 2px;
 }
+.plsRowOver { background-color: #88b0f2; }
+
+/*
+ * Pager
+ */
+@sprite .goFirst {gwt-image: "goFirst";}
+@sprite .goPrevious {gwt-image: "goPrevious";}
+@sprite .goNext {gwt-image: "goNext";}
+@sprite .goLast {gwt-image: "goLast";}
+.pagerDesc {text-style: italic; }
 
 /*vim: ts=4 sw=4 expandtab*/

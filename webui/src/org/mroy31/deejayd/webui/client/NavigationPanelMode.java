@@ -23,12 +23,14 @@ package org.mroy31.deejayd.webui.client;
 import java.util.HashMap;
 import java.util.List;
 
+import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.webui.medialist.MediaList;
-import org.mroy31.deejayd.webui.medialist.SongRenderer;
+import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.Pager;
+import org.mroy31.deejayd.webui.cellview.SongList;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.TagList;
 import org.mroy31.deejayd.webui.widgets.WebuiSplitLayoutPanel;
@@ -58,7 +60,7 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
-public class NavigationPanelMode extends WebuiMode implements ClickHandler {
+public class NavigationPanelMode extends AbstractWebuiMode implements ClickHandler {
     private HashMap<String, TagList> tagMap = new HashMap<String, TagList>();
     private String currentSource = "";
     private String updatedTag = null;
@@ -100,8 +102,8 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
     @UiField Button searchClearButton;
     @UiField Button chooseAllButton;
     @UiField Label descLabel;
-    @UiField Label loadLabel;
     @UiField Button goToCurrent;
+    @UiField(provided = true) final Pager pager;
     @UiField(provided = true) final WebuiResources resources;
     HorizontalPanel tagListPanel = new HorizontalPanel();
     WebuiSplitLayoutPanel panelLayout = new WebuiSplitLayoutPanel();
@@ -110,12 +112,13 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
     public NavigationPanelMode(WebuiLayout webui) {
         super("panel", webui, true, true);
         this.resources = webui.resources;
+        this.pager = new Pager(webui);
 
         initWidget(uiBinder.createAndBindUi(this));
         panelLayout.addNorth(tagListPanel, 150);
         tagListPanel.setWidth("100%"); tagListPanel.setHeight("100%");
-        mediaList = new MediaList(ui, getSourceName());
-        mediaList.setOption(false, new SongRenderer(ui, "panel", loadLabel));
+        mediaList = new SongList(ui, "panel", MediaList.DEFAULT_PAGE_SIZE);
+        mediaList.setPager(pager);
         panelLayout.add(mediaList);
         mainPanel.add(panelLayout);
 
@@ -170,10 +173,6 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
         });
     }
 
-    @UiFactory MediaList makeMediaList() {
-        return new MediaList(ui, getSourceName());
-    }
-
     @UiFactory HorizontalPanel makeHPanel() {
         HorizontalPanel panel = new HorizontalPanel();
         panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
@@ -206,13 +205,15 @@ public class NavigationPanelMode extends WebuiMode implements ClickHandler {
             ui.rpc.panelModeClearAll(null);
         } else if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
-                mediaList.goTo(currentPlayingPos);
+                mediaList.scrollTo(currentPlayingPos);
             }
         }
     }
 
     @Override
-    protected void customUpdate() {
+    public void onStatusChange(StatusChangeEvent event) {
+        super.onStatusChange(event);
+
         ui.rpc.panelModeActiveList(new AnswerHandler<HashMap<String, String>>(){
 
             public void onAnswer(HashMap<String, String> answer) {

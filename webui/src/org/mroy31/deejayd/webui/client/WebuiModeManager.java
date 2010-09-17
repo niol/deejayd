@@ -36,6 +36,11 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class WebuiModeManager extends Composite implements StatusChangeHandler {
 
+    public static interface Mode extends StatusChangeHandler {
+         public void removeFromParent();
+            public String getSourceName();
+    }
+
     class ModeException extends Exception {
         private static final long serialVersionUID = 1L;
     }
@@ -49,7 +54,7 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
     @UiField(provided = true) final WebuiResources resources;
 
     private WebuiLayout ui;
-    private WebuiModeInterface currentMode;
+    private Mode currentMode;
 
     public WebuiModeManager(WebuiLayout ui) {
         this.resources = ui.resources;
@@ -61,10 +66,10 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
     }
 
     private class ModeAsyncCallback implements RunAsyncCallback {
-        private HashMap<String, String> status;
+        private StatusChangeEvent event;
 
-        public ModeAsyncCallback(HashMap<String, String> status) {
-            this.status = status;
+        public ModeAsyncCallback(StatusChangeEvent event) {
+            this.event = event;
         }
 
         public void onFailure(Throwable reason) {
@@ -72,6 +77,7 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
         }
 
         public void onSuccess() {
+            HashMap<String, String> status = event.getStatus();
             if (currentMode == null
                     || !currentMode.getSourceName().equals(status.get("mode"))) {
                 deckPanel.showWidget(0);
@@ -88,10 +94,10 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
                 deckPanel.add((Widget) currentMode);
                 deckPanel.showWidget(1);
             }
-            currentMode.onStatusChange(status);
+            currentMode.onStatusChange(event);
         }
 
-        private WebuiModeInterface getMode(String sourceName)
+        private Mode getMode(String sourceName)
                 throws ModeException {
             if (sourceName.equals("playlist")) {
                 return new PlaylistMode(ui);
@@ -109,8 +115,7 @@ public class WebuiModeManager extends Composite implements StatusChangeHandler {
     }
 
     public void onStatusChange(StatusChangeEvent event) {
-        HashMap<String, String> status = event.getStatus();
-        GWT.runAsync(new ModeAsyncCallback(status));
+        GWT.runAsync(new ModeAsyncCallback(event));
     }
 }
 

@@ -1,7 +1,7 @@
 <!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
 <ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
   xmlns:g="urn:import:com.google.gwt.user.client.ui"
-  xmlns:webui="urn:import:org.mroy31.deejayd.webui.medialist"
+  xmlns:webui="urn:import:org.mroy31.deejayd.webui.cellview"
   xmlns:widgets="urn:import:org.mroy31.deejayd.webui.widgets">
   <ui:with field="resources"
         type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
@@ -35,9 +35,7 @@
                 </g:HorizontalPanel>
 
                 <g:HorizontalPanel ui:field="rightBottomToolbar">
-                    <g:Label ui:field="loadLabel"
-                        styleName="{resources.webuiCss.toolbarDescLabel}">
-                    </g:Label>
+                    <webui:Pager ui:field="pager"></webui:Pager>
                 </g:HorizontalPanel>
             </g:HorizontalPanel>
        </g:south>

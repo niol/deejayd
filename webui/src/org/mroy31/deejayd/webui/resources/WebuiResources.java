@@ -94,8 +94,16 @@ public interface WebuiResources extends ClientBundle {
         String tagPanelItem();
         String tagPanelSelectedItem();
 
-        // Magic Playlist
+        // Playlist
         String rulesList();
+        String plsRowOver();
+
+        // Pager
+        String goFirst();
+        String goPrevious();
+        String pagerDesc();
+        String goNext();
+        String goLast();
     }
 
     @Source("webui-css.css")
@@ -205,6 +213,14 @@ public interface WebuiResources extends ClientBundle {
     ImageResource arrowUpPressed();
 
     ImageResource drag();
+
+    ImageResource goFirst();
+
+    ImageResource goLast();
+
+    ImageResource goNext();
+
+    ImageResource goPrevious();
 }
 
 //vim: ts=4 sw=4 expandtab

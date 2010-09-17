@@ -73,6 +73,9 @@ public abstract class DefaultMode extends AbstractMode
 
         @Override
         public void render(Media value, Object key, StringBuilder sb) {
+            if (value == null)
+                return;
+
             sb.append("<table cellspacing='0' cellpadding='0' class='");
             sb.append(ui.resources.mobileCss().listItem()+"' ");
             sb.append("style='width=100%';>");

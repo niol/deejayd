@@ -20,7 +20,8 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import org.mroy31.deejayd.webui.medialist.MediaList;
+import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.Pager;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
 import com.google.gwt.core.client.GWT;
@@ -28,10 +29,9 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
-public abstract class DefaultWebuiMode extends WebuiMode {
+public abstract class DefaultWebuiMode extends AbstractWebuiMode {
 
     private static WebuiModeUiBinder uiBinder = GWT
             .create(WebuiModeUiBinder.class);
@@ -42,7 +42,7 @@ public abstract class DefaultWebuiMode extends WebuiMode {
     @UiField HorizontalPanel leftBottomToolbar;
     @UiField HorizontalPanel rightBottomToolbar;
     @UiField HorizontalPanel topToolbar;
-    @UiField Label loadLabel;
+    @UiField(provided = true) final Pager pager;
     @UiField(provided = true) final WebuiResources resources;
 
 
@@ -50,8 +50,10 @@ public abstract class DefaultWebuiMode extends WebuiMode {
             boolean hasPlayorder, boolean hasRepeat) {
         super(source, webui, hasPlayorder, hasRepeat);
         this.resources = webui.resources;
+        this.pager = new Pager(webui);
         initWidget(uiBinder.createAndBindUi(this));
 
+        mediaList.setPager(pager);
         bottomToolbar.setCellHorizontalAlignment(rightBottomToolbar,
                 HorizontalPanel.ALIGN_RIGHT);
         buildTopToolbar(topToolbar);
@@ -59,7 +61,7 @@ public abstract class DefaultWebuiMode extends WebuiMode {
     }
 
     @UiFactory MediaList makeMediaList() {
-        return new MediaList(ui, getSourceName());
+        return null;
     }
 
     @UiFactory HorizontalPanel makeHPanel() {
@@ -73,9 +75,6 @@ public abstract class DefaultWebuiMode extends WebuiMode {
     public MediaList getMediaList() {
         return mediaList;
     }
-
-    @Override
-    protected void customUpdate() {}
 
     /*
      * Abstract methods

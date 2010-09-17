@@ -18,10 +18,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.widgets;
+package org.mroy31.deejayd.webui.cellview;
 
-import org.mroy31.deejayd.mobile.client.MobileLayout;
-import org.mroy31.deejayd.mobile.resources.MobileResources;
+import org.mroy31.deejayd.webui.client.WebuiLayout;
+import org.mroy31.deejayd.webui.resources.WebuiResources;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -33,16 +33,15 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
 public class Pager extends AbstractPager {
-    private final MobileLayout ui = MobileLayout.getInstance();
 
-    private static MediaListUiBinder uiBinder = GWT
-            .create(MediaListUiBinder.class);
-    interface MediaListUiBinder extends UiBinder<Widget, Pager> {}
+    private static PagerUiBinder uiBinder = GWT.create(PagerUiBinder.class);
+    interface PagerUiBinder extends UiBinder<Widget, Pager> {}
 
     @UiField Label pageDesc;
-    @UiField(provided = true) final MobileResources resources = ui.resources;
+    @UiField(provided = true) final WebuiResources resources;
 
-    public Pager() {
+    public Pager(WebuiLayout ui) {
+        resources = ui.resources;
         initWidget(uiBinder.createAndBindUi(this));
     }
 
@@ -71,8 +70,11 @@ public class Pager extends AbstractPager {
     @Override
     protected void onRangeOrRowCountChanged() {
         setVisible(getPageCount() > 1);
-        pageDesc.setText(Integer.toString(getPage()+1)+"/"+
-                Integer.toString(getPageCount()));
+        int end = Math.min(getDisplay().getRowCount(),
+                getPageStart()+getPageSize());
+        pageDesc.setText(Integer.toString(getPageStart())+"-"
+                +Integer.toString(end)+" / "
+                +Integer.toString(getDisplay().getRowCount()));
     }
 }
 

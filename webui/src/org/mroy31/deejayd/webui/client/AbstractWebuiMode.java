@@ -22,7 +22,8 @@ package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
 
-import org.mroy31.deejayd.webui.medialist.MediaList;
+import org.mroy31.deejayd.common.events.StatusChangeEvent;
+import org.mroy31.deejayd.webui.cellview.MediaList;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -33,8 +34,8 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 
-public abstract class WebuiMode extends Composite
-        implements WebuiModeInterface {
+public abstract class AbstractWebuiMode extends Composite
+        implements WebuiModeManager.Mode {
     protected String sourceName;
     protected WebuiLayout ui;
     protected int currentPlayingPos = -1;
@@ -46,7 +47,7 @@ public abstract class WebuiMode extends Composite
     public boolean hasRepeat;
     protected CheckBox repeatCk;
 
-    public WebuiMode(String source, WebuiLayout webui,
+    public AbstractWebuiMode(String source, WebuiLayout webui,
             boolean hasPlayorder, boolean hasRepeat) {
         this.ui = webui;
         this.sourceName = source;
@@ -58,10 +59,10 @@ public abstract class WebuiMode extends Composite
         return sourceName;
     }
 
-    public void onStatusChange(HashMap<String, String> status) {
+    public void onStatusChange(StatusChangeEvent event) {
+        HashMap<String, String> status = event.getStatus();
         int id = Integer.parseInt(status.get(getSourceName()));
         if (mediaId != id) {
-            getMediaList().update();
             int length = Integer.parseInt(status.get(getSourceName()+"length"));
             int timelength = -1;
             if (status.get(getSourceName()+"timelength") != null) {
@@ -70,6 +71,8 @@ public abstract class WebuiMode extends Composite
             }
             setDescription(length, timelength);
             mediaId = id;
+
+            getMediaList().onStatusChange(event);
         }
         setCurrentPlaying(status);
 
@@ -92,8 +95,6 @@ public abstract class WebuiMode extends Composite
                 repeatCk.setValue(value);
             }
         }
-
-        customUpdate();
     }
 
     protected ListBox makePlayorderWidget() {
@@ -155,7 +156,6 @@ public abstract class WebuiMode extends Composite
     /*
      * Abstract methods
      */
-    abstract protected void customUpdate();
     abstract public MediaList getMediaList();
     abstract protected void setDescription(int length, int timelength);
 }

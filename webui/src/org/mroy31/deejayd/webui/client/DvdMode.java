@@ -20,8 +20,7 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import java.util.HashMap;
-
+import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
@@ -45,7 +44,7 @@ import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.Widget;
 
-public class DvdMode extends Composite implements WebuiModeInterface {
+public class DvdMode extends Composite implements WebuiModeManager.Mode {
     private WebuiLayout webui;
     private int dvdId;
 
@@ -144,8 +143,8 @@ public class DvdMode extends Composite implements WebuiModeInterface {
         return "dvd";
     }
 
-    public void onStatusChange(HashMap<String, String> status) {
-        int id = Integer.parseInt(status.get("dvd"));
+    public void onStatusChange(StatusChangeEvent event) {
+        int id = Integer.parseInt(event.getStatus().get("dvd"));
         if (id != dvdId) {
             dvdTree.clear();
             dvdTree.addItem(new LoadingWidget(webui.i18nConstants.loading(),

@@ -18,17 +18,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.events;
+package org.mroy31.deejayd.common.events;
 
-import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.event.shared.HasHandlers;
 
-public interface HasDropHandlers extends HasHandlers {
+public class DragLeaveEvent extends DragDropEvent<DragLeaveHandler> {
+    private static final Type<DragLeaveHandler> TYPE =
+        new Type<DragLeaveHandler>("dragleave", new DragLeaveEvent());
 
-    HandlerRegistration addDragEnterHandler(DragEnterHandler handler);
-    HandlerRegistration addDragLeaveHandler(DragLeaveHandler handler);
-    HandlerRegistration addDragOverHandler(DragOverHandler handler);
-    HandlerRegistration addDropHandler(DropHandler handler);
+    public static Type<DragLeaveHandler> getType() {
+        return TYPE;
+    }
+
+    @Override
+    public Type<DragLeaveHandler> getAssociatedType() {
+        return TYPE;
+    }
+
+    @Override
+    protected void dispatch(DragLeaveHandler handler) {
+        handler.onDragLeave(this);
+    }
 
 }
 
