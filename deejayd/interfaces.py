@@ -25,7 +25,8 @@ class DeejaydError(Exception):
 
     def __init__(self, *args, **kwargs):
         super(DeejaydError, self).__init__(*args, **kwargs)
-        self._message = args[0]
+        if len(args) > 0:
+            self._message = args[0]
 
     # Handle unicode messages, what Exceptions cannot. See Python issue at
     # http://bugs.python.org/issue2517
