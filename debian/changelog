@@ -7,8 +7,9 @@ deejayd (0.9.0-3) unstable; urgency=low
     used because of the big useless builddep on libxine-dev) (Closes: #575118).
   * Update policy to 3.9.0: Handle djc binary package removal with
     Breaks/Replaces instead of Conflicts.
+  * Fix spelling mistake in deejayd.conf manual page (usefull → useful).
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 20 Sep 2010 15:33:32 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 20 Sep 2010 15:38:40 +0200
 
 deejayd (0.9.0-2) unstable; urgency=low
 
