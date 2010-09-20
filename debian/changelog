@@ -5,8 +5,10 @@ deejayd (0.9.0-3) unstable; urgency=low
   * Update Vcs-* fields in debian/control te reflect Hg switch.
   * Depend on libxine1-x instead of libxine1 for deejayd-xine (dh_xine is *NOT*
     used because of the big useless builddep on libxine-dev) (Closes: #575118).
+  * Update policy to 3.9.0: Handle djc binary package removal with
+    Breaks/Replaces instead of Conflicts.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 09 Sep 2010 20:18:42 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 20 Sep 2010 15:33:32 +0200
 
 deejayd (0.9.0-2) unstable; urgency=low
 
