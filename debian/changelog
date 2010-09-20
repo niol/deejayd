@@ -1,13 +1,24 @@
+deejayd (0.9.0-4) unstable; urgency=low
+
+  * Add missing ${misc:Depends} dependency to all binary packages.
+  * Depend on libxine1-x instead of libxine1 for deejayd-xine (dh_xine is *NOT*
+    used because of the big useless builddep on libxine-dev) (Closes: #575118).
+  * Fix spelling mistake in deejayd.conf manual page (usefull → useful).
+  * Update Vcs-* fields in debian/control te reflect Hg switch.
+  * Update policy to 3.9.1: Handle djc binary package removal with
+    Breaks/Replaces instead of Conflicts.
+  * Fix override disparity of binary package deejayd-xine by allocating it to
+    section 'video'.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 20 Sep 2010 21:18:57 +0200
+
 deejayd (0.9.0-3) unstable; urgency=low
 
   * Simplify debian/rules by removing per-python-version targets which are
     not needed (Closes: #587326).
-  * Update Vcs-* fields in debian/control te reflect Hg switch.
-  * Depend on libxine1-x instead of libxine1 for deejayd-xine (dh_xine is *NOT*
-    used because of the big useless builddep on libxine-dev) (Closes: #575118).
-  * Update policy to 3.9.0: Handle djc binary package removal with
-    Breaks/Replaces instead of Conflicts.
-  * Fix spelling mistake in deejayd.conf manual page (usefull → useful).
+  * Drop the 'current' keyword in the 'XS-Python-Version' debian/control
+    field to ensure compatibility with newer Python versions without
+    rebuilding.
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 20 Sep 2010 15:38:40 +0200
 
