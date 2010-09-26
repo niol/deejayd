@@ -31,15 +31,14 @@ import org.mroy31.deejayd.common.events.DropEvent;
 import org.mroy31.deejayd.common.events.DropHandler;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
+import org.mroy31.deejayd.common.provider.MediaListProvider;
 import org.mroy31.deejayd.common.rpc.types.Media;
-import org.mroy31.deejayd.common.widgets.MediaListProvider;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -55,9 +54,8 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.RangeChangeEvent;
-import com.google.gwt.view.client.SelectionModel;
 
-public class MediaList extends Composite implements StatusChangeHandler {
+public class AbstractMediaList extends Composite implements StatusChangeHandler {
     private WebuiLayout ui;
 
     public static interface DnDCommand {
@@ -72,20 +70,19 @@ public class MediaList extends Composite implements StatusChangeHandler {
 
     private static NewMediaListUiBinder uiBinder = GWT
             .create(NewMediaListUiBinder.class);
-    interface NewMediaListUiBinder extends UiBinder<Widget, MediaList> {}
+    interface NewMediaListUiBinder extends UiBinder<Widget, AbstractMediaList> {}
 
     @UiField(provided = true) DeejaydCellTable<Media> mediaList;
     @UiField FlexTable header;
     @UiField ScrollMediaPanel mediaListPanel;
 
-    protected SelectionModel<Media> selModel;
+    protected DeejaydSelModel<Media> selModel;
     private MediaListProvider provider;
     private int columnCount = 0;
     private int spanCount = 0;
-    private int selColumnPos = 0;
 
-    public MediaList(final WebuiLayout ui, final String source,
-                int pageSize, SelectionModel<Media> selectionModel) {
+    public AbstractMediaList(final WebuiLayout ui, final String source,
+                int pageSize, DeejaydSelModel<Media> selectionModel) {
         this.ui = ui;
 
         mediaList = new DeejaydCellTable<Media>(pageSize);
@@ -190,6 +187,10 @@ public class MediaList extends Composite implements StatusChangeHandler {
         ++columnCount;
     }
 
+    public DeejaydSelModel<Media> getSelectionModel() {
+        return selModel;
+    }
+
     public List<String> getSelection() {
         ArrayList<String> sel = new ArrayList<String>();
         if (selModel != null) {
@@ -233,9 +234,8 @@ public class MediaList extends Composite implements StatusChangeHandler {
         if (selModel == null)
             return;
 
-        selColumnPos = columnCount;
         // add column with checkbox to select row
-        final Column<Media, Boolean> checkColumn = new Column<Media, Boolean>(
+        Column<Media, Boolean> checkColumn = new Column<Media, Boolean>(
                 new CheckboxCell(true)) {
 
             @Override
@@ -256,16 +256,8 @@ public class MediaList extends Composite implements StatusChangeHandler {
         allCk.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
             public void onValueChange(ValueChangeEvent<Boolean> event) {
-                int idx = 0;
-                for (Media m : mediaList.getDisplayedItems()) {
-                    selModel.setSelected(m, event.getValue());
-                    Element cell = Element.as(mediaList.getRowElement(idx)
-                            .getChild(selColumnPos));
-                    InputElement input = cell.getFirstChildElement()
-                        .getFirstChildElement().cast();
-                    input.setChecked(event.getValue());
-                    ++idx;
-                }
+                selModel.setSelected(mediaList.getDisplayedItems(),
+                        event.getValue());
             }
         });
         addColumn(checkColumn, allCk, "30px");

@@ -34,8 +34,6 @@ import org.mroy31.deejayd.mobile.widgets.LoadingWidget;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
@@ -235,12 +233,11 @@ public class AudioLibrary extends Composite implements ClickHandler {
     public void onClick(ClickEvent event) {
         Widget source = (Widget) event.getSource();
         if (source == loadButton) {
-            JSONArray selection = new JSONArray();
+            ArrayList<String> selection = new ArrayList<String>();
             for (int idx=0; idx<list.getWidgetCount(); idx++) {
                 Item item = (Item) list.getWidget(idx);
                 if (item.isSelected())
-                    selection.set(selection.size(),
-                            new JSONString(item.getPath()));
+                    selection.add(item.getPath());
             }
             if (selection.size() > 0) {
                 ui.rpc.plsModeLoadPath(selection, -1,

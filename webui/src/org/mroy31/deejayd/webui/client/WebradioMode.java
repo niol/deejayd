@@ -21,7 +21,7 @@
 package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
-import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.WebradioList;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -43,7 +43,7 @@ public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
     }
 
     @Override
-    @UiFactory MediaList makeMediaList() {
+    @UiFactory AbstractMediaList makeMediaList() {
         return new WebradioList(ui);
     }
 

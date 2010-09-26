@@ -43,7 +43,7 @@ public class MediaListCallback extends AbstractRpcCallback {
 
         ans.setMediaList(data.isObject().get("medias").isArray());
         JSONValue filter = data.isObject().get("filter");
-        if (filter.isObject() != null)
+        if (filter != null && filter.isObject() != null)
             ans.setFilter(MediaFilter.parse(filter.isObject()));
 
         handler.onAnswer(ans);

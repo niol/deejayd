@@ -21,8 +21,9 @@
 package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.VideoList;
+import org.mroy31.deejayd.webui.widgets.RatingButton;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -35,6 +36,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class VideoMode extends DefaultWebuiMode implements ClickHandler {
 
     private Label description;
+    private RatingButton rating;
     private Button goToCurrent;
 
     public VideoMode(WebuiLayout webui) {
@@ -42,12 +44,17 @@ public class VideoMode extends DefaultWebuiMode implements ClickHandler {
     }
 
     @Override
-    @UiFactory MediaList makeMediaList() {
+    @UiFactory AbstractMediaList makeMediaList() {
         return new VideoList(ui);
     }
 
     @Override
     void buildBottomToolbar(HorizontalPanel toolbar) {
+        if (rating == null) {
+            rating = new RatingButton(ui, mediaList.getSelectionModel());
+        }
+        toolbar.add(rating);
+
         if (goToCurrent == null) {
             goToCurrent = new Button(ui.i18nConstants.goCurrentVideo());
             goToCurrent.setStyleName(

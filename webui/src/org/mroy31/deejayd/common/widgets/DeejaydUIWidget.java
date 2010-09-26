@@ -22,8 +22,11 @@ package org.mroy31.deejayd.common.widgets;
 
 import java.util.HashMap;
 
+import org.mroy31.deejayd.common.events.HasPlsListChangeHandlers;
 import org.mroy31.deejayd.common.events.HasStatsChangeHandlers;
 import org.mroy31.deejayd.common.events.HasStatusChangeHandlers;
+import org.mroy31.deejayd.common.events.PlsListChangeEvent;
+import org.mroy31.deejayd.common.events.PlsListChangeHandler;
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatsChangeHandler;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
@@ -37,7 +40,8 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
 
 public abstract class DeejaydUIWidget extends Composite
-        implements HasStatusChangeHandlers, HasStatsChangeHandlers {
+        implements HasStatusChangeHandlers, HasStatsChangeHandlers,
+                   HasPlsListChangeHandlers {
     public final Rpc rpc = new Rpc(new AnswerHandler<String>() {
         public void onAnswer(String cmd) {
             update();
@@ -73,6 +77,11 @@ public abstract class DeejaydUIWidget extends Composite
         return addHandler(handler, StatsChangeEvent.getType());
     }
 
+    public HandlerRegistration addPlsListChangeHandler(
+            PlsListChangeHandler handler) {
+        return addHandler(handler, PlsListChangeEvent.getType());
+    }
+
     public void setMessage(String message) {
         setMessage(message, "information");
     }
@@ -83,6 +92,10 @@ public abstract class DeejaydUIWidget extends Composite
                 fireEvent(new StatusChangeEvent(status));
             }
         });
+    }
+
+    public void updatePlsList() {
+        fireEvent(new PlsListChangeEvent());
     }
 
     abstract public void setMessage(String message, String type);

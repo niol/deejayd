@@ -47,6 +47,9 @@ public class DataTransfert extends JavaScriptObject {
         this.dropEffect = effect;
     }-*/;
 
+    public final native String getDropEffect() /*-{
+        return this.dropEffect;
+    }-*/;
 }
 
 //vim: ts=4 sw=4 expandtab

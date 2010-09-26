@@ -29,12 +29,11 @@ import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.view.client.MultiSelectionModel;
 
-public class VideoList extends MediaList {
+public class VideoList extends AbstractMediaList {
 
     public VideoList(WebuiLayout ui) {
-        super(ui, "video", DEFAULT_PAGE_SIZE, new MultiSelectionModel<Media>());
+        super(ui, "video", DEFAULT_PAGE_SIZE, new DeejaydSelModel<Media>());
         WebuiConstants i18n = ui.i18nConstants;
 
         addSelectionColumn();

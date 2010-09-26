@@ -21,6 +21,7 @@
 package org.mroy31.deejayd.webui.cellview.columns;
 
 import org.mroy31.deejayd.common.events.DragStartEvent;
+import org.mroy31.deejayd.webui.cellview.DeejaydSelModel;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;
@@ -35,7 +36,7 @@ public class GrippyCell<T> extends AbstractCell<String> {
     private final String imgHtml;
 
     public GrippyCell(DeejaydCellTable<T> view, ImageResource img) {
-        super("dragstart", "mousedown", "mouseup");
+        super("dragstart", "dragend");
         imgHtml = AbstractImagePrototype.create(img).getHTML();
 
         this.view = view;
@@ -43,8 +44,8 @@ public class GrippyCell<T> extends AbstractCell<String> {
 
     @Override
     public void render(String value, Object key, StringBuilder sb) {
-        sb.append("<span style='draggable:true; margin:0px 4px;");
-        sb.append(" cursor:move'>");
+        sb.append("<span draggable='true' style='-webkit-user-drag: element;");
+        sb.append(" margin:0px 4px; cursor:move;'>");
         sb.append(imgHtml);
         sb.append("</span>");
     }
@@ -53,23 +54,30 @@ public class GrippyCell<T> extends AbstractCell<String> {
     public void onBrowserEvent(Element parent, String value, Object key,
               NativeEvent event, ValueUpdater<String> valueUpdater) {
         if ("dragstart".equals(event.getType())) {
-            Boolean needCheck = false;
             for (T item : view.getDisplayedItems()) {
                 String v = (String) view.getKeyProvider().getKey(item);
                 if (view.getSelectionModel().isSelected(item)
                             && !v.equals(key))
-                    value += "-" + v;
+                    value += "///" + v;
                 else if (v.equals(key)
                         && !view.getSelectionModel().isSelected(item)) {
-                    needCheck = true;
+                    // the row is not selected, disable the drag action
+                    event.preventDefault();
+                    return;
                 }
             }
             DragStartEvent evt = new DragStartEvent();
             evt.setNativeEvent(event);
             evt.dataTransfert().setData(value);
+        } else if ("dragend".equals(event.getType())) {
+            DragStartEvent evt = new DragStartEvent();
+            evt.setNativeEvent(event);
+            if (!evt.dataTransfert().getDropEffect().equals("none")) {
+                @SuppressWarnings("unchecked")
+                DeejaydSelModel<T> sel = (DeejaydSelModel<T>) view.getSelectionModel();
+                sel.clearSelection();
+            }
 
-            if (needCheck)
-                valueUpdater.update("true");
         }
     }
 

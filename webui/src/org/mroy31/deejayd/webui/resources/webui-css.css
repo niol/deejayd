@@ -135,6 +135,7 @@
 @sprite .saveButton {gwt-image: "save";}
 @sprite .searchButton {gwt-image: "search";}
 @sprite .editButton {gwt-image: "edit";}
+@sprite .ratingButton {gwt-image: "star";}
 
 /*
  * Webradio Panel

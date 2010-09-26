@@ -20,6 +20,7 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -47,8 +48,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
@@ -211,8 +210,8 @@ public class NavigationPanel extends WebuiPanel
         public PlsRemoveHandler(String pls) { this.pls = pls; }
 
         public void onClick(ClickEvent event) {
-            JSONArray sel = new JSONArray();
-            sel.set(0, new JSONString(pls));
+            ArrayList<String> sel = new ArrayList<String>();
+            sel.add(pls);
             boolean confirm = Window.confirm(
                     ui.i18nMessages.plsEraseConfirm(sel.size()));
             if (confirm) {

@@ -80,6 +80,7 @@ public interface WebuiResources extends ClientBundle {
         String saveButton();
         String searchButton();
         String editButton();
+        String ratingButton();
 
         // Queue
         String queueButton();

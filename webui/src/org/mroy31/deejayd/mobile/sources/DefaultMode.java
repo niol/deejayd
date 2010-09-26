@@ -22,10 +22,10 @@ package org.mroy31.deejayd.mobile.sources;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
+import org.mroy31.deejayd.common.provider.MediaListProvider;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.common.widgets.MediaListProvider;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
 import org.mroy31.deejayd.mobile.client.SourcePanel;
 import org.mroy31.deejayd.mobile.widgets.Pager;

@@ -28,10 +28,11 @@ import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.Pager;
 import org.mroy31.deejayd.webui.cellview.SongList;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
+import org.mroy31.deejayd.webui.widgets.RatingButton;
 import org.mroy31.deejayd.webui.widgets.TagList;
 import org.mroy31.deejayd.webui.widgets.WebuiSplitLayoutPanel;
 
@@ -103,24 +104,27 @@ public class NavigationPanelMode extends AbstractWebuiMode implements ClickHandl
     @UiField Button chooseAllButton;
     @UiField Label descLabel;
     @UiField Button goToCurrent;
+    @UiField(provided = true) final RatingButton ratingButton;
     @UiField(provided = true) final Pager pager;
     @UiField(provided = true) final WebuiResources resources;
     HorizontalPanel tagListPanel = new HorizontalPanel();
     WebuiSplitLayoutPanel panelLayout = new WebuiSplitLayoutPanel();
-    MediaList mediaList;
+    AbstractMediaList mediaList;
 
     public NavigationPanelMode(WebuiLayout webui) {
         super("panel", webui, true, true);
         this.resources = webui.resources;
         this.pager = new Pager(webui);
+        mediaList = new SongList(ui, "panel", AbstractMediaList.DEFAULT_PAGE_SIZE);
+        ratingButton = new RatingButton(ui, mediaList.getSelectionModel());
 
         initWidget(uiBinder.createAndBindUi(this));
         panelLayout.addNorth(tagListPanel, 150);
         tagListPanel.setWidth("100%"); tagListPanel.setHeight("100%");
-        mediaList = new SongList(ui, "panel", MediaList.DEFAULT_PAGE_SIZE);
         mediaList.setPager(pager);
         panelLayout.add(mediaList);
         mainPanel.add(panelLayout);
+
 
         topToolbar.setCellHorizontalAlignment(descLabel,
                 HorizontalPanel.ALIGN_RIGHT);
@@ -181,7 +185,7 @@ public class NavigationPanelMode extends AbstractWebuiMode implements ClickHandl
     }
 
     @Override
-    public MediaList getMediaList() {
+    public AbstractMediaList getMediaList() {
         return mediaList;
     }
 

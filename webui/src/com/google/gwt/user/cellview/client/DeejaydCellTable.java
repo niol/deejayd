@@ -225,6 +225,9 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         return DEFAULT_RESOURCES;
     }
 
+    private boolean dependsOnSelection;
+    private boolean handlesSelection;
+
     private boolean cellIsEditing;
     private final TableColElement colgroup;
 
@@ -360,6 +363,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
      */
     public void addColumn(Column<T, ?> col) {
         columns.add(col);
+        updateDependsOnSelection();
 
         // Sink events used by the new column.
         Set<String> consumedEvents = new HashSet<String>();
@@ -529,6 +533,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
                     "The specified column index is out of bounds.");
         }
         columns.remove(index);
+        updateDependsOnSelection();
         scheduleRedraw();
 
         // We don't unsink events because other handlers or user code may have sunk
@@ -597,7 +602,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
 
     @Override
     boolean dependsOnSelection() {
-        return false;
+      return dependsOnSelection;
     }
 
     @Override
@@ -730,6 +735,23 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
                 .getCells().getItem(0);
         td.setColSpan(Math.max(1, columns.size()));
         setVisible(tbodyLoading, visible);
+    }
+
+    /**
+     * Update the dependsOnSelection and handlesSelection booleans.
+     */
+    private void updateDependsOnSelection() {
+      dependsOnSelection = false;
+      handlesSelection = false;
+      for (Column<T, ?> column : columns) {
+        Cell<?> cell = column.getCell();
+        if (cell.dependsOnSelection()) {
+          dependsOnSelection = true;
+        }
+        if (cell.handlesSelection()) {
+          handlesSelection = true;
+        }
+      }
     }
 }
 

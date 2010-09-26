@@ -14,7 +14,8 @@
        </g:north>
 
        <g:center>
-            <webui:MediaList ui:field="mediaList"></webui:MediaList>
+            <webui:AbstractMediaList ui:field="mediaList">
+            </webui:AbstractMediaList>
        </g:center>
 
        <g:south size="22">

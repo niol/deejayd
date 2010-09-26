@@ -20,43 +20,22 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import java.util.List;
-
-import org.mroy31.deejayd.common.events.LibraryChangeEvent;
-import org.mroy31.deejayd.common.events.LibraryChangeHandler;
-import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
-import org.mroy31.deejayd.common.rpc.types.FileDirList;
-import org.mroy31.deejayd.common.rpc.types.Media;
-import org.mroy31.deejayd.common.rpc.types.Playlist;
+import org.mroy31.deejayd.webui.cellview.AudioLibView;
+import org.mroy31.deejayd.webui.cellview.AudioSearchView;
+import org.mroy31.deejayd.webui.cellview.PlsListView;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.LibraryManager;
-import org.mroy31.deejayd.webui.widgets.LoadingWidget;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.CheckBox;
-import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.HasVerticalAlignment;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
-import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class PlaylistPanel extends WebuiPanel
-        implements ClickHandler, LibraryChangeHandler {
+public class PlaylistPanel extends WebuiPanel {
 
     private static PlaylistPanelUiBinder uiBinder = GWT
             .create(PlaylistPanelUiBinder.class);
@@ -64,238 +43,26 @@ public class PlaylistPanel extends WebuiPanel
 
     @UiField(provided = true) final LibraryManager updateButton;
     @UiField TabLayoutPanel tabPanel;
+
     @UiField Label dirHeader;
+    @UiField(provided = true) AudioLibView audioLibView;
     @UiField Label searchHeader;
+    @UiField(provided = true) AudioSearchView audioSearchView;
     @UiField Label plsHeader;
-    @UiField CheckBox dirSelectAll;
-    @UiField CheckBox searchSelectAll;
-    @UiField CheckBox plsSelectAll;
-
-    @UiField HorizontalPanel navBar;
-    @UiField VerticalPanel dirPanel;
-    @UiField VerticalPanel searchPanel;
-    @UiField VerticalPanel plsPanel;
-
-    @UiField TextBox searchPattern;
-    @UiField ListBox searchType;
-    @UiField Button searchButton;
-
-    @UiField Button dirLoadButton;
-    @UiField Button dirLoadQueueButton;
-    @UiField Button searchLoadButton;
-    @UiField Button searchLoadQueueButton;
-    @UiField Button searchClearButton;
-    @UiField Button plsLoadButton;
-    @UiField Button plsLoadQueueButton;
-    @UiField Button plsRemoveButton;
+    @UiField(provided = true)  PlsListView plsListView;
     @UiField(provided = true) final WebuiResources resources;
 
     private WebuiLayout ui;
 
-    private interface PanelItem {
-        public CheckBox getCheckBox();
-        public String getValue();
-    }
-
-    private class PlaylistItem extends Composite implements PanelItem {
-        private CheckBox ck;
-        private String value;
-
-        public PlaylistItem(String name, String type, int id) {
-            this.value = Integer.toString(id);
-
-            HorizontalPanel item = new HorizontalPanel();
-            item.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
-            item.setSpacing(3);
-
-            ck = new CheckBox();
-            ck.setFormValue(value);
-            item.add(ck);
-
-            Image img = new Image(resources.playlist());
-            if (type.equals("magic")) {
-                img = new Image(resources.magicPlaylist());
-            }
-            item.add(img);
-
-            item.add(new Label(name));
-            initWidget(item);
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public CheckBox getCheckBox() {
-            return ck;
-        }
-    }
-
-    private class DirectoryItem extends Composite implements PanelItem {
-        private String path;
-        private CheckBox ck;
-
-        public DirectoryItem(String dir, String root) {
-            path = dir;
-            if (!root.equals("")) {
-                path = root + "/" + dir;
-            }
-            HorizontalPanel item = new HorizontalPanel();
-            item.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
-            item.setSpacing(3);
-
-            ck = new CheckBox();
-            ck.setFormValue(path);
-            item.add(ck);
-
-            Image img = new Image(resources.folder());
-            item.add(img);
-
-            Label dirName = new Label(dir);
-            dirName.addStyleName(resources.webuiCss().pointerCursor());
-            dirName.addClickHandler(new ClickHandler() {
-                public void onClick(ClickEvent event) {
-                    buildDirFileList(path);
-                }
-            });
-            item.add(dirName);
-
-            initWidget(item);
-        }
-
-        public String getValue() {
-            return path;
-        }
-
-        public CheckBox getCheckBox() {
-            return ck;
-        }
-    }
-
-    private class AudioItem extends Composite implements PanelItem {
-        private String value;
-        private CheckBox ck;
-
-        public AudioItem(String fileName, String root) {
-            value = fileName;
-            if (!root.equals("")) {
-                value = root + "/" + fileName;
-            }
-
-            HorizontalPanel item = buildItem(fileName);
-            initWidget(item);
-        }
-
-        public AudioItem(String fileName, int mediaId) {
-            value = Integer.toString(mediaId);
-
-            HorizontalPanel item = buildItem(fileName);
-            initWidget(item);
-        }
-
-        public CheckBox getCheckBox() {
-            return ck;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        private HorizontalPanel buildItem(String fileName) {
-            HorizontalPanel item = new HorizontalPanel();
-            item.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
-            item.setSpacing(3);
-
-            ck = new CheckBox();
-            ck.setFormValue(value);
-            item.add(ck);
-
-            Image img = new Image(resources.audio());
-            item.add(img);
-
-            item.add(new Label(fileName));
-
-            return item;
-        }
-    }
-
-    private AnswerHandler<FileDirList> dirFileCb = new AnswerHandler<FileDirList>() {
-
-        public void onAnswer(FileDirList answer) {
-            // build root value
-            navBar.clear();
-            if (!answer.getRootPath().equals("")) {
-                class navClickHandler implements ClickHandler {
-                    private int idx;
-                    private String[] rootPart;
-
-                    public navClickHandler(int idx, String[] rootPart) {
-                        this.idx = idx;
-                        this.rootPart = rootPart;
-                    }
-
-                    public void onClick(ClickEvent event) {
-                        String path = "";
-                        for (int j=0; j<idx+1 ; j++) {
-                            if (path.equals("")) {
-                                path = rootPart[j];
-                            } else {
-                                path += "/"+rootPart[j];
-                            }
-                        }
-                        buildDirFileList(path);
-                    }
-                }
-                String[] rootPart = answer.getRootPath().split("/");
-                // set root button
-                Button rootButton = new Button(" / ");
-                rootButton.addClickHandler(new navClickHandler(-1, rootPart));
-                navBar.add(rootButton);
-                for (int i=0; i<rootPart.length; i++) {
-                    Button pathButton = new Button(rootPart[i]);
-                    pathButton.addClickHandler(new navClickHandler(i, rootPart));
-                    navBar.add(pathButton);
-                }
-            }
-
-            dirPanel.clear();
-            for (String dir : answer.getDirectories()) {
-                dirPanel.add(new DirectoryItem(dir, answer.getRootPath()));
-            }
-
-            for (Media m : answer.getFiles()) {
-                String filename = m.getStrAttr("filename");
-                dirPanel.add(new AudioItem(filename, answer.getRootPath()));
-            }
-        }
-    };
-
-    private class DefaultCallback implements AnswerHandler<Boolean> {
-        private VerticalPanel panel;
-
-        public DefaultCallback(VerticalPanel panel) {
-            this.panel = panel;
-        }
-
-        public void onAnswer(Boolean answer) {
-            ui.update();
-            // disable checkbox
-            for (int idx=0; idx<panel.getWidgetCount(); idx++) {
-                PanelItem item = (PanelItem) panel.getWidget(idx);
-                item.getCheckBox().setValue(false);
-            }
-        }
-
-    };
-
-/***************************************************************************/
-/***************************************************************************/
     public PlaylistPanel(WebuiLayout webui) {
         super("playlist");
 
         this.resources = webui.resources;
         this.updateButton = webui.audioLibrary;
         this.ui = webui;
+        this.audioLibView = new AudioLibView(webui);
+        this.audioSearchView = new AudioSearchView(webui);
+        this.plsListView = new PlsListView(webui);
 
         initWidget(uiBinder.createAndBindUi(this));
         // set header label
@@ -303,194 +70,15 @@ public class PlaylistPanel extends WebuiPanel
         searchHeader.setText(ui.i18nConstants.search());
         plsHeader.setText(ui.i18nConstants.playlists());
 
-        // set directory part
-        dirLoadButton.setText(ui.i18nConstants.add());
-        dirLoadButton.addClickHandler(this);
-        dirLoadQueueButton.setText(ui.i18nConstants.addQueue());
-        dirLoadQueueButton.addClickHandler(this);
-        dirSelectAll.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                boolean value = dirSelectAll.getValue();
-                for (int idx=0; idx<dirPanel.getWidgetCount(); idx++) {
-                    PanelItem pn = (PanelItem) dirPanel.getWidget(idx);
-                    CheckBox ck = (CheckBox) pn.getCheckBox();
-                    ck.setValue(value);
-                }
-            }
-        });
-        ui.audioLibrary.addLibraryChangeHandler(this);
-
-        // set search part
-        searchButton.setText(ui.i18nConstants.search());
-        searchButton.addClickHandler(this);
-        searchPattern.setVisibleLength(12);
-        searchType.addItem(ui.i18nConstants.all(), "all");
-        searchType.addItem(ui.i18nConstants.title(), "title");
-        searchType.addItem(ui.i18nConstants.artist(), "artist");
-        searchType.addItem(ui.i18nConstants.album(), "album");
-        searchLoadButton.setText(ui.i18nConstants.add());
-        searchLoadButton.addClickHandler(this);
-        searchLoadQueueButton.setText(ui.i18nConstants.addQueue());
-        searchLoadQueueButton.addClickHandler(this);
-        searchClearButton.setText(ui.i18nConstants.clearSearch());
-        searchClearButton.addClickHandler(this);
-        searchSelectAll.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                boolean value = searchSelectAll.getValue();
-                for (int idx=0; idx<searchPanel.getWidgetCount(); idx++) {
-                    PanelItem pn = (PanelItem) searchPanel.getWidget(idx);
-                    CheckBox ck = (CheckBox) pn.getCheckBox();
-                    ck.setValue(value);
-                }
-            }
-        });
-
-        // set pls part
-        plsLoadButton.setText(ui.i18nConstants.add());
-        plsLoadButton.addClickHandler(this);
-        plsLoadQueueButton.setText(ui.i18nConstants.addQueue());
-        plsLoadQueueButton.addClickHandler(this);
-        plsRemoveButton.setText(ui.i18nConstants.remove());
-        plsRemoveButton.addClickHandler(this);
-        plsSelectAll.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                boolean value = plsSelectAll.getValue();
-                for (int idx=0; idx<plsPanel.getWidgetCount(); idx++) {
-                    PanelItem pn = (PanelItem) plsPanel.getWidget(idx);
-                    CheckBox ck = (CheckBox) pn.getCheckBox();
-                    ck.setValue(value);
-                }
-            }
-        });
-
-
         tabPanel.addSelectionHandler(new SelectionHandler<Integer>() {
             public void onSelection(SelectionEvent<Integer> event) {
-                if (event.getSelectedItem().equals(1)) {
-                    searchPattern.setFocus(true);
-                    searchPattern.selectAll();
-                }
+                if (event.getSelectedItem().equals(1))
+                    audioSearchView.focus();
             }
         });
 
-        buildDirFileList();
-        buildPlsList();
     }
 
-
-    public void onLibraryChange(LibraryChangeEvent event) {
-        buildDirFileList();
-    }
-
-    public void onClick(ClickEvent event) {
-        Widget source = (Widget) event.getSource();
-        if (source == searchButton) {
-            String pattern = searchPattern.getValue();
-            if (pattern != "") {
-                searchPanel.clear();
-                searchPanel.add(new LoadingWidget(ui.i18nConstants.loading(),
-                        resources));
-                ui.rpc.libSearch("audio", pattern,
-                        searchType.getValue(searchType.getSelectedIndex()),
-                        new AnswerHandler<FileDirList>() {
-
-                            public void onAnswer(FileDirList answer) {
-                                searchPanel.clear();
-                                for (Media m : answer.getFiles()) {
-                                    String filename = m.getStrAttr("filename");
-                                    int mediaId = m.getIntAttr("media_id");
-                                    searchPanel.add(new AudioItem(filename, mediaId));
-                                }
-                            }
-                        });
-            }
-        } else if (source == dirLoadButton) {
-            JSONArray sel = getSelection(dirPanel);
-            if (sel.size() > 0) {
-                ui.rpc.plsModeLoadPath(sel, -1, new DefaultCallback(dirPanel));
-            }
-        } else if (source == dirLoadQueueButton) {
-            JSONArray sel = getSelection(dirPanel);
-            if (sel.size() > 0) {
-                ui.rpc.queueLoadPath(sel, -1, new DefaultCallback(dirPanel));
-            }
-        } else if (source == searchLoadButton) {
-            JSONArray sel = getSelection(searchPanel);
-            if (sel.size() > 0) {
-                ui.rpc.plsModeLoadIds(sel, -1, new DefaultCallback(searchPanel));
-            }
-        } else if (source == searchLoadQueueButton) {
-            JSONArray sel = getSelection(searchPanel);
-            if (sel.size() > 0) {
-                ui.rpc.queueLoadPath(sel, -1, new DefaultCallback(searchPanel));
-            }
-        } else if (source == searchClearButton) {
-            searchPanel.clear();
-            searchPattern.setValue("");
-        } else if (source == plsLoadButton) {
-            JSONArray sel = getSelection(plsPanel);
-            if (sel.size() > 0) {
-                ui.rpc.plsModeLoadPls(sel, -1, new DefaultCallback(plsPanel));
-            }
-        } else if (source == plsLoadQueueButton) {
-            JSONArray sel = getSelection(plsPanel);
-            if (sel.size() > 0) {
-                ui.rpc.queueModeLoadPls(sel, -1, new DefaultCallback(plsPanel));
-            }
-        } else if (source == plsRemoveButton) {
-            JSONArray sel = getSelection(plsPanel);
-            if (sel.size() > 0) {
-                boolean confirm = Window.confirm(
-                        ui.i18nMessages.plsEraseConfirm(sel.size()));
-                if (confirm) {
-                    ui.rpc.recPlsErase(sel, new AnswerHandler<Boolean>() {
-
-                        public void onAnswer(Boolean answer) {
-                            buildPlsList();
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    public void buildPlsList() {
-        plsPanel.clear();
-        ui.rpc.recPlsList(new AnswerHandler<List<Playlist>>() {
-
-            public void onAnswer(List<Playlist> answer) {
-                for (Playlist pls : answer) {
-                    String plsName = pls.getName();
-                    String plsType = pls.getType();
-                    int plsId = pls.getId();
-                    plsPanel.add(new PlaylistItem(plsName, plsType, plsId));
-                }
-            }
-        });
-    }
-
-    private void buildDirFileList() {
-        buildDirFileList("");
-    }
-
-    private void buildDirFileList(String dir) {
-        dirPanel.clear();
-        dirPanel.add(new LoadingWidget(ui.i18nConstants.loading(), resources));
-        ui.rpc.libGetDirectory("audio", dir, dirFileCb);
-    }
-
-    private JSONArray getSelection(VerticalPanel panel) {
-        JSONArray selection = new JSONArray();
-        int i=0;
-        for (int idx=0; idx<panel.getWidgetCount(); idx++) {
-            PanelItem item = (PanelItem) panel.getWidget(idx);
-            if (item.getCheckBox().getValue()) {
-                selection.set(i, new JSONString(item.getValue()));
-                i++;
-            }
-        }
-        return selection;
-    }
 }
 
 //vim: ts=4 sw=4 expandtab

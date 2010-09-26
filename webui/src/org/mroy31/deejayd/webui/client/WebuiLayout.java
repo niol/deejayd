@@ -20,6 +20,7 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,7 +34,7 @@ import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.callbacks.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.Pager;
 import org.mroy31.deejayd.webui.cellview.SongList;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
@@ -86,7 +87,7 @@ public class WebuiLayout extends DeejaydUIWidget
     WebuiSplitLayoutPanel modePanel;
     WebuiModeManager modeManager;
     WebuiPanelManager panelManager;
-    MediaList queueList;
+    AbstractMediaList queueList;
 
     private class WebuiMessage extends Message {
 
@@ -197,29 +198,45 @@ public class WebuiLayout extends DeejaydUIWidget
         DOM.setStyleAttribute(queuePager.getElement(), "paddingLeft", "10px");
         queueList = new SongList(this, "queue", 20);
         queueList.setPager(queuePager);
-        queueList.addDnDCommand(new MediaList.DnDCommand() {
-
-            public void onDrop(DropEvent event, int row) {
-                String[] data = event.dataTransfert().getData().split("-");
-                if (data[0].equals("queue")) {
-                    List<String> ids = DeejaydUtils.getIds(data, "id");
-                    rpc.queueMove(ids, row, null);
-                } else {
-                    List<String> ids = DeejaydUtils.getIds(data, "media_id");
-                    rpc.queueLoadIds(ids, row, null);
-                }
+        queueList.addDnDCommand(new AbstractMediaList.DnDCommand() {
+            private void unselectCurrenRow() {
                 if (queueOverRow != -1) {
-                    queueList.getRow(queueOverRow).removeClassName(
-                            resources.webuiCss().mlRowOver());
+                    queueList.getRow(queueOverRow)
+                        .removeClassName(resources.webuiCss().mlRowOver());
                     queueOverRow = -1;
                 }
             }
 
+            public void onDrop(DropEvent event, int row) {
+                String[] data = event.dataTransfert().getData().split("///");
+                if (data[0].equals("queue")) {
+                    List<String> ids = DeejaydUtils.getIds(data, "id");
+                    rpc.queueMove(ids, row, null);
+                } else if (data[0].equals("playlist") || data[0].equals("panel")) {
+                    List<String> ids = DeejaydUtils.getIds(data, "media_id");
+                    rpc.queueLoadIds(ids, row, null);
+                } else if (data[0].equals("audiolib")) {
+                    ArrayList<String> paths = new ArrayList<String>();
+                    for (int idx=1; idx<data.length; idx++)
+                        paths.add(data[idx]);
+                    rpc.queueLoadPath(paths, row, null);
+                } else if (data[0].equals("audiosearch")) {
+                    ArrayList<String> ids = new ArrayList<String>();
+                    for (int idx=1; idx<data.length; idx++)
+                        ids.add(data[idx]);
+                    rpc.queueLoadIds(ids, row, null);
+                } else if (data[0].equals("recpls")) {
+                    ArrayList<String> ids = new ArrayList<String>();
+                    for (int idx=1; idx<data.length; idx++)
+                        ids.add(data[idx]);
+                    rpc.queueModeLoadPls(ids, row, null);
+                }
+                unselectCurrenRow();
+            }
+
             public void onDragOver(DragOverEvent event, int row) {
                 if (row != queueOverRow) {
-                    if (queueOverRow != -1)
-                        queueList.getRow(queueOverRow).removeClassName(
-                                resources.webuiCss().mlRowOver());
+                    unselectCurrenRow();
                     if (row != -1 )
                         queueList.getRow(row).addClassName(
                                 resources.webuiCss().mlRowOver());
@@ -228,11 +245,7 @@ public class WebuiLayout extends DeejaydUIWidget
             }
 
             public void onDragLeave(DragLeaveEvent event) {
-                if (queueOverRow != -1) {
-                    queueList.getRow(queueOverRow).removeClassName(
-                            resources.webuiCss().mlRowOver());
-                    queueOverRow = -1;
-                }
+                unselectCurrenRow();
             }
         });
 

@@ -126,16 +126,10 @@ public class Rpc {
         send("setmode", args, handler);
     }
 
-    public void setRating(int[] mediaIds, int rating,
+    public void setRating(List<String> sel, int rating,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        JSONArray jsonMediaIds = new JSONArray();
-        int idx = 0;
-        for (int id : mediaIds) {
-            jsonMediaIds.set(idx, new JSONNumber(id));
-            idx ++;
-        }
-        args.set(0, jsonMediaIds);
+        args.set(0, listToArray(sel));
         args.set(1, new JSONNumber(rating));
         send("setRating", args, handler);
     }
@@ -252,11 +246,11 @@ public class Rpc {
     }
 
     public void libSearch(String library, String pattern,
-            String type, AnswerHandler<FileDirList> handler) {
+            String type, AnswerHandler<MediaList> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(pattern));
         args.set(1, new JSONString(type));
-        send(library+"lib.search", args, new FileDirListCallback(handler));
+        send(library+"lib.search", args, new MediaListCallback(handler));
     }
 
     public void audioLibTagList(String tag, MediaFilter filter,
@@ -274,9 +268,9 @@ public class Rpc {
         send("recpls.list", new JSONArray(), new PlsListCallback(handler));
     }
 
-    public void recPlsErase(JSONArray ids, AnswerHandler<Boolean> handler) {
+    public void recPlsErase(List<String> sel, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        args.set(0, ids);
+        args.set(0, listToArray(sel));
         send("recpls.erase", args, handler);
     }
 
@@ -362,52 +356,40 @@ public class Rpc {
 
     public void plsModeRemove(List<String> ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        JSONArray jsonIds = new JSONArray();
-        int idx = 0;
-        for (String id : ids) {
-            jsonIds.set(idx, new JSONString(id));
-            idx ++;
-        }
-        args.set(0, jsonIds);
+        args.set(0, listToArray(ids));
         send("playlist.remove", args, handler);
     }
 
     public void plsModeMove(List<String> ids, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        JSONArray jsonIds = new JSONArray();
-        int idx = 0;
-        for (String id : ids) {
-            jsonIds.set(idx, new JSONString(id));
-            idx ++;
-        }
-        args.set(0, jsonIds);
+        args.set(0, listToArray(ids));
         args.set(1, new JSONNumber(pos));
         send("playlist.move", args, handler);
     }
 
-    public void plsModeLoadPath(JSONArray sel, int pos,
+    public void plsModeLoadPath(List<String> sel, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        args.set(0, sel);
+        args.set(0, listToArray(sel));
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
         send("playlist.addPath", args, handler);
     }
 
-    public void plsModeLoadIds(JSONArray sel, int pos,
+    public void plsModeLoadIds(List<String> sel, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        args.set(0, sel);
+        args.set(0, listToArray(sel));
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
         send("playlist.addIds", args, handler);
     }
 
-    public void plsModeLoadPls(JSONArray sel, int pos,
+    public void plsModeLoadPls(List<String> sel, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-         args.set(0, sel);
+         args.set(0, listToArray(sel));
          if (pos != -1)
              args.set(1, new JSONNumber(pos));
          send("playlist.loads", args, handler);
@@ -450,13 +432,7 @@ public class Rpc {
 
     public void wbModeRemove(List<String> ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        JSONArray jsonIds = new JSONArray();
-        int idx = 0;
-        for (String id : ids) {
-            jsonIds.set(idx, new JSONString(id));
-            idx ++;
-        }
-        args.set(0, jsonIds);
+        args.set(0, listToArray(ids));
         send("webradio.localRemove", args, handler);
     }
 
@@ -484,34 +460,22 @@ public class Rpc {
 
     public void queueRemove(List<String> ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        JSONArray jsonIds = new JSONArray();
-        int idx = 0;
-        for (String id : ids) {
-            jsonIds.set(idx, new JSONString(id));
-            idx ++;
-        }
-        args.set(0, jsonIds);
+        args.set(0, listToArray(ids));
         send("queue.remove", args, handler);
     }
 
     public void queueMove(List<String> ids, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        JSONArray jsonIds = new JSONArray();
-        int idx = 0;
-        for (String id : ids) {
-            jsonIds.set(idx, new JSONString(id));
-            idx ++;
-        }
-        args.set(0, jsonIds);
+        args.set(0, listToArray(ids));
         args.set(1, new JSONNumber(pos));
         send("queue.move", args, handler);
     }
 
-    public void queueLoadPath(JSONArray sel, int pos,
+    public void queueLoadPath(List<String> sel, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        args.set(0, sel);
+        args.set(0, listToArray(sel));
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
         send("queue.addPath", args, handler);
@@ -519,21 +483,17 @@ public class Rpc {
 
     public void queueLoadIds(List<String> ids, int pos,
             AnswerHandler<Boolean> handler) {
-        JSONArray sel = new JSONArray();
-        for (String id : ids)
-            sel.set(sel.size(), new JSONString(id));
-
         JSONArray args = new JSONArray();
-        args.set(0, sel);
+        args.set(0, listToArray(ids));
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
         send("queue.addIds", args, handler);
     }
 
-    public void queueModeLoadPls(JSONArray sel, int pos,
+    public void queueModeLoadPls(List<String> sel, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-         args.set(0, sel);
+         args.set(0, listToArray(sel));
          if (pos != -1)
              args.set(1, new JSONNumber(pos));
          send("queue.loads", args, handler);
@@ -628,6 +588,14 @@ public class Rpc {
     public void dvdGetInfo(RpcCallback callback) {
         send("dvd.get", new JSONArray(), callback);
     }
+
+    private JSONArray listToArray(List<String> list) {
+        JSONArray ans = new JSONArray();
+        for (String item : list)
+            ans.set(ans.size(), new JSONString(item));
+        return ans;
+    }
+
 }
 
 //vim: ts=4 sw=4 expandtab

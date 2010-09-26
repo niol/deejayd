@@ -20,6 +20,7 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.mroy31.deejayd.common.events.DragLeaveEvent;
@@ -27,9 +28,10 @@ import org.mroy31.deejayd.common.events.DragOverEvent;
 import org.mroy31.deejayd.common.events.DropEvent;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
-import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.SongList;
 import org.mroy31.deejayd.webui.widgets.NewPlsDialog;
+import org.mroy31.deejayd.webui.widgets.RatingButton;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -42,6 +44,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
 
     private Label description;
+    private RatingButton rating;
     private Button plsShuffle;
     private Button plsClear;
     private Button plsRemove;
@@ -58,40 +61,53 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
                 ui.rpc.plsModeSave(plsName, new AnswerHandler<Boolean>() {
 
                     public void onAnswer(Boolean answer) {
-                        PlaylistPanel p = (PlaylistPanel)
-                                ui.panelManager.getCurrentPanel();
-                        p.buildPlsList();
-
+                        // refresh pls list
+                        ui.updatePlsList();
                         ui.setMessage(ui.i18nConstants.plsSaveMsg());
                     }
                 });
             }
         });
-        mediaList.addDnDCommand(new MediaList.DnDCommand() {
-
-            public void onDrop(DropEvent event, int row) {
-                String[] data = event.dataTransfert().getData().split("-");
-                if (data[0].equals("playlist")) {
-                    List<String> ids = DeejaydUtils.getIds(data, "id");
-                    ui.rpc.plsModeMove(ids, row, null);
-                    if (currentOverRow != -1) {
-                        mediaList.getRow(currentOverRow)
-                            .removeClassName(
-                                    ui.resources.webuiCss().mlRowOver());
-                        currentOverRow = -1;
-                    }
+        mediaList.addDnDCommand(new AbstractMediaList.DnDCommand() {
+            private void unselectCurrenRow() {
+                if (currentOverRow != -1) {
+                    mediaList.getRow(currentOverRow)
+                        .removeClassName(
+                                ui.resources.webuiCss().mlRowOver());
+                    currentOverRow = -1;
                 }
             }
 
-            public void onDragOver(DragOverEvent event, int row) {
-                String[] data = event.dataTransfert().getData().split("-");
+            public void onDrop(DropEvent event, int row) {
+                String[] data = event.dataTransfert().getData().split("///");
                 if (data[0].equals("playlist")) {
+                    List<String> ids = DeejaydUtils.getIds(data, "id");
+                    ui.rpc.plsModeMove(ids, row, null);
+                } else if (data[0].equals("audiolib")) {
+                    ArrayList<String> paths = new ArrayList<String>();
+                    for (int idx=1; idx<data.length; idx++)
+                        paths.add(data[idx]);
+                    ui.rpc.plsModeLoadPath(paths, row, null);
+                } else if (data[0].equals("audiosearch")) {
+                    ArrayList<String> ids = new ArrayList<String>();
+                    for (int idx=1; idx<data.length; idx++)
+                        ids.add(data[idx]);
+                    ui.rpc.plsModeLoadIds(ids, row, null);
+                } else if (data[0].equals("recpls")) {
+                    ArrayList<String> ids = new ArrayList<String>();
+                    for (int idx=1; idx<data.length; idx++)
+                        ids.add(data[idx]);
+                    ui.rpc.plsModeLoadPls(ids, row, null);
+                }
+                unselectCurrenRow();
+            }
+
+            public void onDragOver(DragOverEvent event, int row) {
+                String[] data = event.dataTransfert().getData().split("///");
+                if (data[0].equals("playlist") || data[0].equals("audiolib") ||
+                        data[0].equals("audiosearch") || data[0].equals("recpls")) {
                     if (row != currentOverRow) {
-                        if (currentOverRow != -1) {
-                            mediaList.getRow(currentOverRow)
-                                .removeClassName(
-                                        ui.resources.webuiCss().mlRowOver());
-                        }
+                        unselectCurrenRow();
                         if (row != -1 )
                             mediaList.getRow(row).addClassName(
                                     ui.resources.webuiCss().mlRowOver());
@@ -101,18 +117,14 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
             }
 
             public void onDragLeave(DragLeaveEvent event) {
-                if (currentOverRow != -1) {
-                    mediaList.getRow(currentOverRow).removeClassName(
-                            ui.resources.webuiCss().mlRowOver());
-                    currentOverRow = -1;
-                }
+                unselectCurrenRow();
             }
         });
     }
 
     @Override
-    @UiFactory MediaList makeMediaList() {
-        return new SongList(ui, "playlist", MediaList.DEFAULT_PAGE_SIZE);
+    @UiFactory AbstractMediaList makeMediaList() {
+        return new SongList(ui, "playlist", AbstractMediaList.DEFAULT_PAGE_SIZE);
     }
 
     @Override
@@ -130,6 +142,11 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
 
     @Override
     public void buildBottomToolbar(HorizontalPanel toolbar) {
+        if (rating == null) {
+            rating = new RatingButton(ui, mediaList.getSelectionModel());
+        }
+        toolbar.add(rating);
+
         if (plsShuffle == null) {
             plsShuffle = new Button(ui.i18nConstants.shuffle());
             plsShuffle.setStyleName(

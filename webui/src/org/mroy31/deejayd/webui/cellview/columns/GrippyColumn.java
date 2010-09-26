@@ -21,19 +21,17 @@
 package org.mroy31.deejayd.webui.cellview.columns;
 
 import com.google.gwt.cell.client.FieldUpdater;
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
 
 public class GrippyColumn<T> extends Column<T, String> {
-    private final String source;
+    private final String initVal;
     private final DeejaydCellTable<T> view;
 
-    public GrippyColumn(String source, DeejaydCellTable<T> v, ImageResource grippy) {
+    public GrippyColumn(String initVal, DeejaydCellTable<T> v, ImageResource grippy) {
         super(new GrippyCell<T>(v, grippy));
-        this.source = source;
+        this.initVal = initVal;
         this.view = v;
 
         setFieldUpdater(new FieldUpdater<T, String>() {
@@ -41,18 +39,13 @@ public class GrippyColumn<T> extends Column<T, String> {
             public void update(int index, T object, String value) {
                 Boolean v = value.equals("true");
                 view.getSelectionModel().setSelected(object, v);
-                // select input checkbox
-                Element cell = Element.as(view.getRowElement(index).getChild(1));
-                InputElement input = cell.getFirstChildElement()
-                    .getFirstChildElement().cast();
-                input.setChecked(v);
             }
         });
     }
 
     @Override
     public String getValue(T object) {
-        return source+"-"+(String) view.getKeyProvider().getKey(object);
+        return initVal+"///"+(String) view.getKeyProvider().getKey(object);
     }
 
 }

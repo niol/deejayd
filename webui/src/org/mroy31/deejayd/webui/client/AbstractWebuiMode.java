@@ -23,7 +23,7 @@ package org.mroy31.deejayd.webui.client;
 import java.util.HashMap;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
-import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -156,7 +156,7 @@ public abstract class AbstractWebuiMode extends Composite
     /*
      * Abstract methods
      */
-    abstract public MediaList getMediaList();
+    abstract public AbstractMediaList getMediaList();
     abstract protected void setDescription(int length, int timelength);
 }
 

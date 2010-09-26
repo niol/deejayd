@@ -6,4 +6,5 @@
   <source path="rpc"/>
   <source path="widgets"/>
   <source path="events"/><source path="i18n"></source>
+	<source path="provider"></source>
 </module>

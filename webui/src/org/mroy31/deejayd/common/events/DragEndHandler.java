@@ -20,32 +20,12 @@
 
 package org.mroy31.deejayd.common.events;
 
-import com.google.gwt.event.shared.GwtEvent;
-import com.google.gwt.event.shared.HasHandlers;
+import com.google.gwt.event.shared.EventHandler;
 
-public class PlsListChangeEvent extends GwtEvent<PlsListChangeHandler>{
-    public static final Type<PlsListChangeHandler> TYPE = new Type<PlsListChangeHandler>();
+public interface DragEndHandler extends EventHandler {
 
+    void onDragEnd(DragEndEvent event);
 
-    @Override
-    protected void dispatch(PlsListChangeHandler handler) {
-        handler.onPlsListChange(this);
-    }
-
-    @Override
-    public final Type<PlsListChangeHandler> getAssociatedType() {
-        return TYPE;
-    }
-
-    public static Type<PlsListChangeHandler> getType() {
-        return TYPE;
-    }
-
-    public static <S extends HasPlsListChangeHandlers & HasHandlers>
-        void fire(S source) {
-        PlsListChangeEvent event = new PlsListChangeEvent();
-        source.fireEvent(event);
-    }
 }
 
 //vim: ts=4 sw=4 expandtab

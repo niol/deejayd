@@ -1,0 +1,45 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+  xmlns:g="urn:import:com.google.gwt.user.client.ui"
+  xmlns:c="urn:import:com.google.gwt.user.cellview.client"
+  xmlns:webui="urn:import:org.mroy31.deejayd.webui.cellview">
+  <ui:with field="resources"
+        type="org.mroy31.deejayd.webui.resources.WebuiResources"/>
+
+  <ui:style>
+    .table {
+            table-layout: fixed;
+            width: 100%;
+        }
+  </ui:style>
+
+  <g:DockLayoutPanel>
+       <g:north size="22">
+           <g:FlowPanel width="100%" styleName="{resources.webuiCss.toolbar}">
+             <g:HorizontalPanel ui:field="navBar"></g:HorizontalPanel>
+           </g:FlowPanel>
+       </g:north>
+
+       <g:center>
+           <g:ScrollPanel ui:field="listPanel">
+               <c:DeejaydCellTable styleName="{style.table}" ui:field="list">
+               </c:DeejaydCellTable>
+           </g:ScrollPanel>
+       </g:center>
+
+       <g:south size="22">
+          <g:FlowPanel width="100%" styleName="{resources.webuiCss.toolbar}">
+           <g:HorizontalPanel height="24px" ui:field="dirToolbar">
+             <g:CheckBox ui:field="selectAll"></g:CheckBox>
+             <g:Button styleName="{resources.webuiCss.modeToolbarButton}
+                      {resources.webuiCss.addButton}" ui:field="loadButton">
+             </g:Button>
+             <g:Button styleName="{resources.webuiCss.modeToolbarButton}
+                      {resources.webuiCss.addButton}"
+                      ui:field="loadQueueButton"></g:Button>
+           </g:HorizontalPanel>
+          </g:FlowPanel>
+       </g:south>
+  </g:DockLayoutPanel>
+
+</ui:UiBinder>

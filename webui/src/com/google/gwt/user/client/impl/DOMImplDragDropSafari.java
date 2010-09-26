@@ -57,6 +57,7 @@ public class DOMImplDragDropSafari extends DOMImplSafari {
 
     // Drag and drop events
     case "dragstart": return 0x1000000;
+    case "dragend": return 0x20000000;
     case "dragover": return 0x2000000;
     case "dragenter": return 0x4000000;
     case "dragleave": return 0x8000000;
@@ -117,6 +118,13 @@ protected native void sinkEventsImpl(Element elem, int bits) /*-{
             elem.addEventListener("dragstart", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
         } else {
             elem.removeEventListener("dragstart", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
+        }
+    }
+    if (chMask & 0x20000000) {
+        if (bits & 0x20000000) {
+            elem.addEventListener("dragend", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
+        } else {
+            elem.removeEventListener("dragend", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
         }
     }
     if (chMask & 0x2000000) {

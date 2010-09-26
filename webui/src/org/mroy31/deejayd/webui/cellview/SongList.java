@@ -27,12 +27,11 @@ import org.mroy31.deejayd.webui.cellview.columns.RatingColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.view.client.MultiSelectionModel;
 
-public class SongList extends MediaList {
+public class SongList extends AbstractMediaList {
 
     public SongList(WebuiLayout ui, String source, int pageSize) {
-        super(ui, source, pageSize, new MultiSelectionModel<Media>());
+        super(ui, source, pageSize, new DeejaydSelModel<Media>());
 
         addColumn(new GrippyColumn<Media>(source, mediaList, ui.resources.drag()),
                 new Label(""), "15px");

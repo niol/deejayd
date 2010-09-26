@@ -28,12 +28,11 @@ import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.view.client.MultiSelectionModel;
 
-public class WebradioList extends MediaList {
+public class WebradioList extends AbstractMediaList {
 
     public WebradioList(WebuiLayout ui) {
-        super(ui, "webradio", DEFAULT_PAGE_SIZE, new MultiSelectionModel<Media>());
+        super(ui, "webradio", DEFAULT_PAGE_SIZE, new DeejaydSelModel<Media>());
 
         addSelectionColumn();
         addColumn(new MediaAttrColumn("title"),

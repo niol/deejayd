@@ -28,6 +28,8 @@
             <g:HorizontalPanel height="100%" ui:field="bottomToolbar"
                     width="100%" styleName="{resources.webuiCss.toolbar}">
                 <g:HorizontalPanel ui:field="leftBottomToolbar">
+                    <widgets:RatingButton ui:field="ratingButton">
+                    </widgets:RatingButton>
                     <g:Button ui:field="goToCurrent"
                         styleName="{resources.webuiCss.modeToolbarButton}
                                    {resources.webuiCss.gotoButton}">

@@ -20,7 +20,7 @@
 
 package org.mroy31.deejayd.webui.client;
 
-import org.mroy31.deejayd.webui.cellview.MediaList;
+import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.Pager;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
@@ -37,7 +37,7 @@ public abstract class DefaultWebuiMode extends AbstractWebuiMode {
             .create(WebuiModeUiBinder.class);
     interface WebuiModeUiBinder extends UiBinder<Widget, DefaultWebuiMode> {}
 
-    @UiField MediaList mediaList;
+    @UiField AbstractMediaList mediaList;
     @UiField HorizontalPanel bottomToolbar;
     @UiField HorizontalPanel leftBottomToolbar;
     @UiField HorizontalPanel rightBottomToolbar;
@@ -60,7 +60,7 @@ public abstract class DefaultWebuiMode extends AbstractWebuiMode {
         buildBottomToolbar(leftBottomToolbar);
     }
 
-    @UiFactory MediaList makeMediaList() {
+    @UiFactory AbstractMediaList makeMediaList() {
         return null;
     }
 
@@ -72,7 +72,7 @@ public abstract class DefaultWebuiMode extends AbstractWebuiMode {
     }
 
     @Override
-    public MediaList getMediaList() {
+    public AbstractMediaList getMediaList() {
         return mediaList;
     }
 
