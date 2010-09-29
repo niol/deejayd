@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.mroy31.deejayd.common.events.DragLeaveEvent;
-import org.mroy31.deejayd.common.events.DragOverEvent;
 import org.mroy31.deejayd.common.events.DropEvent;
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
@@ -234,7 +232,7 @@ public class WebuiLayout extends DeejaydUIWidget
                 unselectCurrenRow();
             }
 
-            public void onDragOver(DragOverEvent event, int row) {
+            public void onDragOver(int row) {
                 if (row != queueOverRow) {
                     unselectCurrenRow();
                     if (row != -1 )
@@ -244,7 +242,7 @@ public class WebuiLayout extends DeejaydUIWidget
                 }
             }
 
-            public void onDragLeave(DragLeaveEvent event) {
+            public void onDragLeave(int row) {
                 unselectCurrenRow();
             }
         });

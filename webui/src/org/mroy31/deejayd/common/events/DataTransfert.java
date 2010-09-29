@@ -21,7 +21,6 @@
 package org.mroy31.deejayd.common.events;
 
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.user.client.Element;
 
 public class DataTransfert extends JavaScriptObject {
 
@@ -35,8 +34,22 @@ public class DataTransfert extends JavaScriptObject {
         return this.getData("text/plain");
     }-*/;
 
-    public final native void setDragImage(Element elt) /*-{
-        this.setDragImage(elt, 0, 0);
+    public final native void setDragImage(String text) /*-{
+        var value = text;
+        var img = document.createElement("img");
+
+        // create img canvas
+        var canvas = document.createElementNS("http://www.w3.org/1999/xhtml","html:canvas");
+        canvas.width = 100; canvas.height = 20;
+
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle    = '#000';
+        ctx.font         = 'italic 12px sans-serif';
+        ctx.textBaseline = 'top';
+        ctx.fillText(value, 0, 0, 95);
+
+        img.src = canvas.toDataURL();
+        this.setDragImage(img, -10, 0);
     }-*/;
 
     public final native void setEffectAllowed(String effect) /*-{

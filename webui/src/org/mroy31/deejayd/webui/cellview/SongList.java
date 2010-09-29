@@ -21,21 +21,39 @@
 package org.mroy31.deejayd.webui.cellview;
 
 import org.mroy31.deejayd.common.rpc.types.Media;
+import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.cellview.columns.MediaAttrColumn;
 import org.mroy31.deejayd.webui.cellview.columns.RatingColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Label;
 
 public class SongList extends AbstractMediaList {
 
-    public SongList(WebuiLayout ui, String source, int pageSize) {
+    public SongList(final WebuiLayout ui, String source, int pageSize) {
         super(ui, source, pageSize, new DeejaydSelModel<Media>());
 
-        addColumn(new GrippyColumn<Media>(source, mediaList, ui.resources.drag()),
-                new Label(""), "15px");
-        addSelectionColumn();
+        CheckBox allCk = new CheckBox();
+        allCk.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+            public void onValueChange(ValueChangeEvent<Boolean> event) {
+                selModel.setSelected(mediaList.getDisplayedItems(),
+                        event.getValue());
+            }
+        });
+        addColumn(new GrippyColumn<Media>(source, mediaList,
+                ui.resources.webuiCss().grippyCell(),
+                new GrippyCell.DragStartMessage() {
+
+                    public String onDragStart(int count) {
+                        return ui.i18nMessages.songsDesc(count);
+                    }
+        }), allCk, "24px");
+
         addColumn(new MediaAttrColumn("tracknumber"), new Label("#"), "40px");
         addColumn(new MediaAttrColumn("title"),
                 new Label(ui.i18nConstants.title()), 2);

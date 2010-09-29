@@ -318,7 +318,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         }
 
         // Sink events.
-        sinkEvents(Event.ONCLICK | Event.ONDBLCLICK);
+        sinkEvents(Event.ONDBLCLICK | Event.ONMOUSEDOWN | Event.ONMOUSEUP);
     }
 
     /**
@@ -468,6 +468,17 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         if ("dblclick".equals(eventType) && rowCmd != null) {
             rowCmd.execute(value);
             return;
+        } else if ("mouseup".equals(eventType)) {
+            if (getSelectionModel() != null && !event.getMetaKey()) {
+                for (T item : getDisplayedItems()) {
+                    getSelectionModel().setSelected(item, false);
+                }
+                getSelectionModel().setSelected(value, true);
+            }
+        } else if ("mousedown".equals(eventType)) {
+            if (getSelectionModel() != null && event.getMetaKey())
+                getSelectionModel().setSelected(value,
+                        !getSelectionModel().isSelected(value));
         }
 
         fireEventToCell(event, eventType, tableCell, value, col, row);

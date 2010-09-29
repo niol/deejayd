@@ -26,12 +26,11 @@ import java.util.List;
 import org.mroy31.deejayd.common.provider.RecordPlsProvider;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.Playlist;
+import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
-import com.google.gwt.cell.client.CheckboxCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -102,26 +101,14 @@ public class PlsListView extends Composite {
 
      // add columns
         list.addColumn(new GrippyColumn<Playlist>("recpls", list,
-                ui.resources.drag()));
-        list.setColumnWidth(0, "15px");
+                ui.resources.webuiCss().grippyCell(),
+                new GrippyCell.DragStartMessage() {
 
-        final Column<Playlist, Boolean> checkColumn = new Column<Playlist, Boolean>(
-                new CheckboxCell(true)) {
-
-            @Override
-            public Boolean getValue(Playlist object) {
-                return selModel.isSelected(object);
-              }
-        };
-        checkColumn.setFieldUpdater(new FieldUpdater<Playlist, Boolean>() {
-
-            public void update(int index, Playlist object, Boolean value) {
-                // Called when the user clicks on a checkbox.
-                selModel.setSelected(object, value);
-            }
-        });
-        list.addColumn(checkColumn);
-        list.setColumnWidth(1, "30px");
+                    public String onDragStart(int count) {
+                        return ui.i18nMessages.plsCount(count);
+                    }
+        }));
+        list.setColumnWidth(0, "20px");
 
         list.addColumn(new Column<Playlist, ImageResource>(
                 new ImageResourceCell()) {
@@ -135,7 +122,7 @@ public class PlsListView extends Composite {
             }
 
         });
-        list.setColumnWidth(2, "30px");
+        list.setColumnWidth(1, "30px");
 
         list.addColumn(new TextColumn<Playlist>() {
 

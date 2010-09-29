@@ -36,6 +36,12 @@ public class LibraryProvider implements LibraryChangeHandler {
     private final DeejaydUIWidget ui;
     private final String libType;
 
+    public static interface PathChangeHandler {
+        public void onPathChange(String path);
+    }
+    private ArrayList<PathChangeHandler> handlers =
+        new ArrayList<PathChangeHandler>();
+
     public static class LibraryItem {
         private String path;
         private String type;
@@ -100,6 +106,10 @@ public class LibraryProvider implements LibraryChangeHandler {
             updateItemList(path);
     }
 
+    public void addPathChangeHandler(PathChangeHandler handler) {
+        handlers.add(handler);
+    }
+
     public void onLibraryChange(LibraryChangeEvent event) {
         updateItemList("");
     }
@@ -118,6 +128,10 @@ public class LibraryProvider implements LibraryChangeHandler {
 
                 dataProvider.updateRowCount(currentList.size(), true);
                 dataProvider.updateRowData(0, currentList);
+
+                for (PathChangeHandler handler : handlers) {
+                    handler.onPathChange(answer.getRootPath());
+                }
             }
         });
     }

@@ -21,7 +21,6 @@
 package org.mroy31.deejayd.webui.cellview.columns;
 
 import com.google.gwt.cell.client.FieldUpdater;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
 
@@ -29,8 +28,9 @@ public class GrippyColumn<T> extends Column<T, String> {
     private final String initVal;
     private final DeejaydCellTable<T> view;
 
-    public GrippyColumn(String initVal, DeejaydCellTable<T> v, ImageResource grippy) {
-        super(new GrippyCell<T>(v, grippy));
+    public GrippyColumn(String initVal, DeejaydCellTable<T> v, String cls,
+            GrippyCell.DragStartMessage msg) {
+        super(new GrippyCell<T>(v, cls, msg));
         this.initVal = initVal;
         this.view = v;
 

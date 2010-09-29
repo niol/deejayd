@@ -7,9 +7,9 @@
 .cell div {
   overflow: hidden;
   white-space: nowrap;
-  width: 100%;
   -moz-binding: url('style/mozbinding.xml#ellipsis');
   text-overflow: ellipsis;
+  cursor: default;
 }
 
 .evenRow {

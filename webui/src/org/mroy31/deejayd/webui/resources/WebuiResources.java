@@ -54,6 +54,7 @@ public interface WebuiResources extends ClientBundle {
         String msgError();
 
         /* Medialist */
+        String grippyCell();
         String mlRowOver();
 
         /* player buttons */

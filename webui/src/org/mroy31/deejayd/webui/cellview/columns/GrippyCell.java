@@ -27,26 +27,30 @@ import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
-import com.google.gwt.user.client.ui.AbstractImagePrototype;
 
 public class GrippyCell<T> extends AbstractCell<String> {
     private final DeejaydCellTable<T> view;
-    private final String imgHtml;
+    private final String className;
 
-    public GrippyCell(DeejaydCellTable<T> view, ImageResource img) {
+    public static interface DragStartMessage {
+        public String onDragStart(int count);
+    }
+    private DragStartMessage msg;
+
+    public GrippyCell(DeejaydCellTable<T> view, String className,
+            DragStartMessage msg) {
         super("dragstart", "dragend");
-        imgHtml = AbstractImagePrototype.create(img).getHTML();
-
+        this.className = className;
         this.view = view;
+        this.msg = msg;
     }
 
     @Override
     public void render(String value, Object key, StringBuilder sb) {
-        sb.append("<span draggable='true' style='-webkit-user-drag: element;");
-        sb.append(" margin:0px 4px; cursor:move;'>");
-        sb.append(imgHtml);
+        sb.append("<span style='margin-left:6px;margin-right:6px;'>");
+        sb.append("<img draggable=\"true\" class='"+className+"' ");
+        sb.append(" src=\"./deejayd_webui/clear.cache.gif\"><img>");
         sb.append("</span>");
     }
 
@@ -54,21 +58,28 @@ public class GrippyCell<T> extends AbstractCell<String> {
     public void onBrowserEvent(Element parent, String value, Object key,
               NativeEvent event, ValueUpdater<String> valueUpdater) {
         if ("dragstart".equals(event.getType())) {
+            boolean needCheck = false;
+            int selCount = 0;
             for (T item : view.getDisplayedItems()) {
                 String v = (String) view.getKeyProvider().getKey(item);
-                if (view.getSelectionModel().isSelected(item)
-                            && !v.equals(key))
-                    value += "///" + v;
+                if (view.getSelectionModel().isSelected(item)) {
+                    ++selCount;
+                    if (!v.equals(key))
+                        value += "///" + v;
+                }
                 else if (v.equals(key)
                         && !view.getSelectionModel().isSelected(item)) {
-                    // the row is not selected, disable the drag action
-                    event.preventDefault();
-                    return;
+                    ++selCount;
+                    needCheck = true;
                 }
             }
             DragStartEvent evt = new DragStartEvent();
             evt.setNativeEvent(event);
             evt.dataTransfert().setData(value);
+            evt.dataTransfert().setDragImage(msg.onDragStart(selCount));
+
+            if (needCheck)
+                valueUpdater.update("true");
         } else if ("dragend".equals(event.getType())) {
             DragStartEvent evt = new DragStartEvent();
             evt.setNativeEvent(event);

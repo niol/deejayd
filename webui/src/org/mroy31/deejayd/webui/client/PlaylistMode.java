@@ -23,8 +23,6 @@ package org.mroy31.deejayd.webui.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mroy31.deejayd.common.events.DragLeaveEvent;
-import org.mroy31.deejayd.common.events.DragOverEvent;
 import org.mroy31.deejayd.common.events.DropEvent;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
@@ -102,21 +100,17 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
                 unselectCurrenRow();
             }
 
-            public void onDragOver(DragOverEvent event, int row) {
-                String[] data = event.dataTransfert().getData().split("///");
-                if (data[0].equals("playlist") || data[0].equals("audiolib") ||
-                        data[0].equals("audiosearch") || data[0].equals("recpls")) {
-                    if (row != currentOverRow) {
-                        unselectCurrenRow();
-                        if (row != -1 )
-                            mediaList.getRow(row).addClassName(
-                                    ui.resources.webuiCss().mlRowOver());
-                        currentOverRow = row;
-                    }
+            public void onDragOver(int row) {
+                if (row != currentOverRow) {
+                    unselectCurrenRow();
+                    if (row != -1 )
+                        mediaList.getRow(row).addClassName(
+                                ui.resources.webuiCss().mlRowOver());
+                    currentOverRow = row;
                 }
             }
 
-            public void onDragLeave(DragLeaveEvent event) {
+            public void onDragLeave(int row) {
                 unselectCurrenRow();
             }
         });

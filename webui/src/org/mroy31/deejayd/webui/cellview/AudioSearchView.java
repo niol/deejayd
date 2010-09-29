@@ -26,12 +26,11 @@ import java.util.List;
 import org.mroy31.deejayd.common.provider.LibrarySearchProvider;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.Media;
+import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
-import com.google.gwt.cell.client.CheckboxCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -112,26 +111,14 @@ public class AudioSearchView extends Composite {
 
      // add columns
         list.addColumn(new GrippyColumn<Media>("audiosearch", list,
-                ui.resources.drag()));
-        list.setColumnWidth(0, "15px");
+                ui.resources.webuiCss().grippyCell(),
+                new GrippyCell.DragStartMessage() {
 
-        final Column<Media, Boolean> checkColumn = new Column<Media, Boolean>(
-                new CheckboxCell(true)) {
-
-            @Override
-            public Boolean getValue(Media object) {
-                return selModel.isSelected(object);
-              }
-        };
-        checkColumn.setFieldUpdater(new FieldUpdater<Media, Boolean>() {
-
-            public void update(int index, Media object, Boolean value) {
-                // Called when the user clicks on a checkbox.
-                selModel.setSelected(object, value);
-            }
-        });
-        list.addColumn(checkColumn);
-        list.setColumnWidth(1, "30px");
+                    public String onDragStart(int count) {
+                        return ui.i18nMessages.songsDesc(count);
+                    }
+        }));
+        list.setColumnWidth(0, "20px");
 
         list.addColumn(new Column<Media, ImageResource>(
                 new ImageResourceCell()) {
@@ -142,7 +129,7 @@ public class AudioSearchView extends Composite {
             }
 
         });
-        list.setColumnWidth(2, "30px");
+        list.setColumnWidth(1, "30px");
 
         list.addColumn(new TextColumn<Media>() {
 

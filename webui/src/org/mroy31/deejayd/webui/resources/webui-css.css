@@ -65,6 +65,12 @@
  * Medialist
  */
 .mlRowOver td { border-top: 2px solid #88b0f2;}
+@sprite .grippyCell {
+  gwt-image: "drag";
+  padding-left: 6px;
+  padding-right: 6px;
+  cursor:move;
+}
 
 /*
  * Messages

@@ -26,6 +26,14 @@ import com.google.gwt.i18n.client.LocalizableResource.DefaultLocale;
 @DefaultLocale("en")
 public interface WebuiMessages extends CommonI18nMessages {
 
+    @DefaultMessage("{0,number} Playlists")
+    @PluralText({"one", "1 Playlist"})
+    String plsCount(@PluralCount int number);
+
+    @DefaultMessage("{0,number} Paths")
+    @PluralText({"one", "1 Path"})
+    String pathCount(@PluralCount int number);
+
     @DefaultMessage("{0,number} Songs")
     @PluralText({"one", "1 Song"})
     String songsDesc(@PluralCount int number);

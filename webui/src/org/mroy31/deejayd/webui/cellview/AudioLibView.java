@@ -28,13 +28,12 @@ import org.mroy31.deejayd.common.events.LibraryChangeHandler;
 import org.mroy31.deejayd.common.provider.LibraryProvider;
 import org.mroy31.deejayd.common.provider.LibraryProvider.LibraryItem;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
-import com.google.gwt.cell.client.AbstractCell;
-import com.google.gwt.cell.client.CheckboxCell;
-import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -47,7 +46,6 @@ import com.google.gwt.user.cellview.client.AbstractPager;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
@@ -103,6 +101,12 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
         });
 
         provider = new LibraryProvider(ui, "audio");
+        provider.addPathChangeHandler(new LibraryProvider.PathChangeHandler() {
+
+            public void onPathChange(String path) {
+                updateNavBar(path);
+            }
+        });
         provider.getDataProvider().addDataDisplay(list);
         list.setSelectionModel(selModel);
 
@@ -113,46 +117,26 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
 
         // add columns
         list.addColumn(new GrippyColumn<LibraryProvider.LibraryItem>("audiolib",
-                list, ui.resources.drag()));
-        list.setColumnWidth(0, "15px");
+                list, ui.resources.webuiCss().grippyCell(),
+                new GrippyCell.DragStartMessage() {
 
-        final Column<LibraryItem, Boolean> checkColumn = new Column<LibraryItem, Boolean>(
-                new CheckboxCell(true)) {
-
-            @Override
-            public Boolean getValue(LibraryItem object) {
-                return selModel.isSelected(object);
-              }
-        };
-        checkColumn.setFieldUpdater(new FieldUpdater<LibraryItem, Boolean>() {
-
-            public void update(int index, LibraryItem object, Boolean value) {
-                // Called when the user clicks on a checkbox.
-                selModel.setSelected(object, value);
-            }
-        });
-        list.addColumn(checkColumn);
-        list.setColumnWidth(1, "30px");
-
-        list.addColumn(new Column<LibraryProvider.LibraryItem, String>(
-                new AbstractCell<String>() {
-
-                    @Override
-                    public void render(String value, Object key,
-                            StringBuilder sb) {
-                        ImageResource img = value.equals("file") ?
-                                ui.resources.audio() : ui.resources.folder();
-                        sb.append(AbstractImagePrototype.create(img).getHTML());
+                    public String onDragStart(int count) {
+                        return ui.i18nMessages.pathCount(count);
                     }
-                }) {
+                }));
+        list.setColumnWidth(0, "20px");
+
+        list.addColumn(new Column<LibraryProvider.LibraryItem, ImageResource>(
+                new ImageResourceCell()) {
 
             @Override
-            public String getValue(LibraryItem object) {
-                return object.getType();
+            public ImageResource getValue(LibraryItem object) {
+                return object.getType().equals("file") ?
+                        ui.resources.audio() : ui.resources.folder();
             }
 
         });
-        list.setColumnWidth(2, "30px");
+        list.setColumnWidth(1, "30px");
 
         list.addColumn(new TextColumn<LibraryProvider.LibraryItem>() {
 
@@ -217,7 +201,6 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
 
     private void setPath(String path) {
         provider.setPath(path);
-        updateNavBar(path);
     }
 
     private void updateNavBar(String path) {

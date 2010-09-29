@@ -50,6 +50,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
@@ -85,6 +86,14 @@ public class NavigationPanel extends WebuiPanel
 
     private class PlsItem extends Composite implements HasDropHandlers {
         private String plsId;
+        private Timer dragLeaveTimer = new Timer() {
+
+            @Override
+            public void run() {
+                removeStyleName(ui.resources.webuiCss().plsRowOver());
+            }
+
+        };
 
         public PlsItem(Playlist pls) {
             String type = pls.getType();
@@ -133,18 +142,15 @@ public class NavigationPanel extends WebuiPanel
 
             initWidget(item);
             if (type.equals("static")) {
-                addDragEnterHandler(new DragEnterHandler() {
-                    public void onDragEnter(DragEnterEvent event) {
-                        addStyleName(ui.resources.webuiCss().plsRowOver());
-                    }
-                });
                 addDragLeaveHandler(new DragLeaveHandler() {
                     public void onDragLeave(DragLeaveEvent event) {
-                        removeStyleName(ui.resources.webuiCss().plsRowOver());
+                        dragLeaveTimer.schedule(100);
                     }
                 });
                 addDragOverHandler(new DragOverHandler() {
                     public void onDragOver(DragOverEvent event) {
+                        dragLeaveTimer.cancel();
+                        addStyleName(ui.resources.webuiCss().plsRowOver());
                         event.preventDefault();
                     }
                 });

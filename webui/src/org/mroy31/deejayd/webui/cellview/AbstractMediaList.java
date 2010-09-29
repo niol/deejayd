@@ -46,7 +46,9 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.cellview.client.AbstractPager;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
+import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlexTable;
@@ -60,11 +62,26 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
 
     public static interface DnDCommand {
 
-        public void onDragOver(DragOverEvent event, int row);
-        public void onDragLeave(DragLeaveEvent event);
+        public void onDragOver(int row);
+        public void onDragLeave(int row);
         public void onDrop(DropEvent event, int row);
 
     }
+
+    private class DragLeaveCommand extends Timer {
+        private final Command cmd;
+
+        public DragLeaveCommand(Command cmd) {
+            this.cmd = cmd;
+        }
+
+        @Override
+        public void run() {
+            cmd.execute();
+        }
+
+    }
+    private DragLeaveCommand dragLeaveScheduled;
 
     public static int DEFAULT_PAGE_SIZE = 50;
 
@@ -111,7 +128,6 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
             this.selModel = selectionModel;
             mediaList.setSelectionModel(selModel);
         }
-
         initWidget(uiBinder.createAndBindUi(this));
     }
 
@@ -139,7 +155,11 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
                 event.stopPropagation();
 
                 int row = mediaList.findRow(Event.as(event.getNativeEvent()));
-                cmd.onDragOver(event, row);
+                if (dragLeaveScheduled != null) {
+                    dragLeaveScheduled.cancel();
+                    dragLeaveScheduled = null;
+                }
+                cmd.onDragOver(row);
             }
         };
         mediaList.addDragOverHandler(dragOverHandler);
@@ -148,8 +168,17 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
         DragLeaveHandler dragLeaveHandler = new DragLeaveHandler() {
 
             public void onDragLeave(DragLeaveEvent event) {
+                event.preventDefault();
                 event.stopPropagation();
-                cmd.onDragLeave(event);
+
+                final int row = mediaList.findRow(Event.as(event.getNativeEvent()));
+                dragLeaveScheduled = new DragLeaveCommand(new Command() {
+
+                    public void execute() {
+                        cmd.onDragLeave(row);
+                    }
+                });
+                dragLeaveScheduled.schedule(100);
             }
         };
         mediaList.addDragLeaveHandler(dragLeaveHandler);
