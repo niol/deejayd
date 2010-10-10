@@ -247,7 +247,7 @@ if __name__ == "__main__":
             from deejayd import webui
         except ImportError:
             log.err(_("Webui does not seem to be installed, disabling."))
-            config.set("webui", "enabled", False)
+            config.set("webui", "enabled", "no")
         else:
             service = True
             htdocs_dir = None
