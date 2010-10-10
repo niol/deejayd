@@ -29,14 +29,27 @@ import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
+import com.google.gwt.view.client.Range;
 
 public class LibrarySearchProvider {
     private final DeejaydUIWidget ui;
     private final String libType;
+    private ArrayList<Media> currentList = new ArrayList<Media>();
     private AsyncDataProvider<Media> dataProvider=new AsyncDataProvider<Media>() {
 
         @Override
-        protected void onRangeChanged(HasData<Media> display) {}
+        protected void onRangeChanged(HasData<Media> display) {
+            Range rg = display.getVisibleRange();
+            if (currentList.size() > rg.getStart()) {
+                int toIdx = Math.min(currentList.size()-1,
+                        rg.getStart()+rg.getLength());
+                dataProvider.updateRowData(rg.getStart(),
+                        currentList.subList(rg.getStart(), toIdx));
+            } else {
+                dataProvider.updateRowData(rg.getStart(),
+                        new ArrayList<Media>());
+            }
+        }
 
     };
 
@@ -53,15 +66,19 @@ public class LibrarySearchProvider {
         ui.rpc.libSearch(libType, pattern, type, new AnswerHandler<MediaList>() {
 
             public void onAnswer(MediaList answer) {
+                currentList = new ArrayList<Media>(answer.getMediaList());
+
                 dataProvider.updateRowCount(answer.getMediaList().size(), true);
-                dataProvider.updateRowData(0, answer.getMediaList());
+                dataProvider.updateRowData(0, currentList);
             }
         });
     }
 
     public void clear() {
+        currentList.clear();
+
         dataProvider.updateRowCount(0, true);
-        dataProvider.updateRowData(0, new ArrayList<Media>());
+        dataProvider.updateRowData(0, currentList);
     }
 }
 

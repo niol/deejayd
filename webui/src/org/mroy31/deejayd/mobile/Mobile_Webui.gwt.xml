@@ -73,5 +73,5 @@
   <source path='resources'/>
   <source path='sources'/>
   <source path='i18n'/>
-  <source path='widgets'/>
+  <source path='widgets'/><source path="library"></source>
 </module>

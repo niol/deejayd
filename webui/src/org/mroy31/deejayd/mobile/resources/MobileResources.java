@@ -20,14 +20,14 @@
 
 package org.mroy31.deejayd.mobile.resources;
 
-import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.DataResource;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.resources.client.ImageResource.ImageOptions;
 import com.google.gwt.resources.client.ImageResource.RepeatStyle;
+import com.google.gwt.user.cellview.client.DeejaydCellTable;
 
-public interface MobileResources extends ClientBundle {
+public interface MobileResources extends DeejaydCellTable.Resources {
 
     interface MobileCss extends CssResource {
         String mainBody();
@@ -115,7 +115,10 @@ public interface MobileResources extends ClientBundle {
         String reverse();
     }
 
-    @Source("mobile-css.css")
+    @Source("MobileCellTable.css")
+    DeejaydCellTable.Style cellTableStyle();
+
+    @Source("MobileCss.css")
     MobileCss mobileCss();
 
     ImageResource loading();

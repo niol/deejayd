@@ -21,7 +21,7 @@
 package org.mroy31.deejayd.webui.cellview.columns;
 
 import org.mroy31.deejayd.common.events.DragStartEvent;
-import org.mroy31.deejayd.webui.cellview.DeejaydSelModel;
+import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;
@@ -44,6 +44,11 @@ public class GrippyCell<T> extends AbstractCell<String> {
         this.className = className;
         this.view = view;
         this.msg = msg;
+    }
+
+    @Override
+    public boolean handlesSelection() {
+        return true;
     }
 
     @Override

@@ -28,6 +28,7 @@ import org.mroy31.deejayd.common.events.LibraryChangeHandler;
 import org.mroy31.deejayd.common.provider.LibraryProvider;
 import org.mroy31.deejayd.common.provider.LibraryProvider.LibraryItem;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;

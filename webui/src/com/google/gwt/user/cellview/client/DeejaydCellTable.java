@@ -468,14 +468,14 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         if ("dblclick".equals(eventType) && rowCmd != null) {
             rowCmd.execute(value);
             return;
-        } else if ("mouseup".equals(eventType)) {
+        } else if (handlesSelection && "mouseup".equals(eventType)) {
             if (getSelectionModel() != null && !event.getMetaKey()) {
                 for (T item : getDisplayedItems()) {
                     getSelectionModel().setSelected(item, false);
                 }
                 getSelectionModel().setSelected(value, true);
             }
-        } else if ("mousedown".equals(eventType)) {
+        } else if (handlesSelection && "mousedown".equals(eventType)) {
             if (getSelectionModel() != null && event.getMetaKey())
                 getSelectionModel().setSelected(value,
                         !getSelectionModel().isSelected(value));

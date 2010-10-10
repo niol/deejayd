@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.Media;
-import org.mroy31.deejayd.webui.cellview.DeejaydSelModel;
+import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 
 import com.google.gwt.core.client.Scheduler;

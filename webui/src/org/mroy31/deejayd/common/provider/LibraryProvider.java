@@ -31,10 +31,12 @@ import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
+import com.google.gwt.view.client.Range;
 
 public class LibraryProvider implements LibraryChangeHandler {
     private final DeejaydUIWidget ui;
     private final String libType;
+    private final boolean withParentItem;
 
     public static interface PathChangeHandler {
         public void onPathChange(String path);
@@ -45,28 +47,27 @@ public class LibraryProvider implements LibraryChangeHandler {
     public static class LibraryItem {
         private String path;
         private String type;
-        private Media file;
-        private String dir;
+        private String label;
 
         public LibraryItem(String root, String dir) {
+            this(root, dir, dir);
+        }
+
+        public LibraryItem(String root, String dir, String label) {
             this.type = "directory";
             this.path = root.equals("") ? dir : root + "/" + dir;
-            this.dir = dir;
+            this.label = label;
         }
 
         public LibraryItem(String root, Media m) {
             this.type = "file";
             this.path = root.equals("") ? m.getStrAttr("filename") :
                 root + "/" + m.getStrAttr("filename");
-            this.file = m;
+            this.label = m.getStrAttr("filename");
         }
 
         public String getLabel() {
-            if ("directory".equals(type))
-                return dir;
-            else if ("file".equals(type))
-                return file.getStrAttr("filename");
-            return "";
+            return label;
         }
 
         public String getPath() {
@@ -84,13 +85,29 @@ public class LibraryProvider implements LibraryChangeHandler {
 
         @Override
         protected void onRangeChanged(HasData<LibraryItem> display) {
+            Range rg = display.getVisibleRange();
+            if (currentList.size() > rg.getStart()) {
+                int toIdx = Math.min(currentList.size()-1,
+                        rg.getStart()+rg.getLength());
+                dataProvider.updateRowData(rg.getStart(),
+                        currentList.subList(rg.getStart(), toIdx));
+            } else {
+                dataProvider.updateRowData(rg.getStart(),
+                        new ArrayList<LibraryItem>());
+            }
         }
 
     };
 
     public LibraryProvider(DeejaydUIWidget ui, String libType) {
+        this(ui, libType, false);
+    }
+
+    public LibraryProvider(DeejaydUIWidget ui, String libType,
+            boolean parentItem) {
         this.ui = ui;
         this.libType = libType;
+        this.withParentItem = parentItem;
     }
 
     public AsyncDataProvider<LibraryItem> getDataProvider() {
@@ -121,10 +138,16 @@ public class LibraryProvider implements LibraryChangeHandler {
 
             public void onAnswer(FileDirList answer) {
                 currentList.clear();
+                if (!currentPath.equals("") && withParentItem)
+                    currentList.add(new LibraryItem("", getParentPath(), ".."));
+
                 for (String dir : answer.getDirectories())
                     currentList.add(new LibraryItem(currentPath, dir));
-                for (Media m : answer.getFiles())
-                    currentList.add(new LibraryItem(currentPath, m));
+
+                if ("audio".equals(libType)) {
+                    for (Media m : answer.getFiles())
+                        currentList.add(new LibraryItem(currentPath, m));
+                }
 
                 dataProvider.updateRowCount(currentList.size(), true);
                 dataProvider.updateRowData(0, currentList);
@@ -134,6 +157,21 @@ public class LibraryProvider implements LibraryChangeHandler {
                 }
             }
         });
+    }
+
+    private String getParentPath() {
+        if (!currentPath.equals("")) {
+            String[] paths = currentPath.split("/");
+            String path = "";
+            if (paths.length > 1) {
+                path = paths[0];
+                for (int idx=1; idx<(paths.length-1); idx++)
+                    path += "/"+paths[idx];
+            }
+
+            return path;
+        }
+        return "";
     }
 }
 

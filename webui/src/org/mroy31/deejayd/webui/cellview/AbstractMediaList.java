@@ -33,6 +33,7 @@ import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.provider.MediaListProvider;
 import org.mroy31.deejayd.common.rpc.types.Media;
+import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 
 import com.google.gwt.cell.client.CheckboxCell;

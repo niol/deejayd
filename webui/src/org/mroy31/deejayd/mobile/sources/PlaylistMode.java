@@ -22,6 +22,7 @@ package org.mroy31.deejayd.mobile.sources;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.mobile.client.SourcePanel;
+import org.mroy31.deejayd.mobile.library.AudioLibrary;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;

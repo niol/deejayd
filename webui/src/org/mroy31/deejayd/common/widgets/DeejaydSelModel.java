@@ -18,7 +18,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.cellview;
+package org.mroy31.deejayd.common.widgets;
 
 import java.util.HashMap;
 import java.util.HashSet;
