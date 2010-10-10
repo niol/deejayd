@@ -55,7 +55,7 @@ public class GrippyCell<T> extends AbstractCell<String> {
     public void render(String value, Object key, StringBuilder sb) {
         sb.append("<span style='margin-left:6px;margin-right:6px;'>");
         sb.append("<img draggable=\"true\" class='"+className+"' ");
-        sb.append(" src=\"./deejayd_webui/clear.cache.gif\"><img>");
+        sb.append(" src=\"./deejayd_webui/clear.cache.gif\"></img>");
         sb.append("</span>");
     }
 
