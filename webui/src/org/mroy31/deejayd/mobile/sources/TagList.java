@@ -122,10 +122,12 @@ public class TagList extends Composite {
 
             public void onAnswer(Boolean answer) {
                 if (idx < filter.getFilters().length) {
+                    ArrayList<String> values = new ArrayList<String>();
+
                     MediaFilter f = filter.getFilters()[idx];
+                    values.add(f.isBasic().getPattern());
                     ui.rpc.panelModeSetFilter(f.isBasic().getTag(),
-                            new String[] {f.isBasic().getPattern()},
-                            new Callback(idx+1));
+                            values, new Callback(idx+1));
                 } else {
                     ui.rpc.panelModeSetActiveList("panel", "", null);
                     finishCmd.execute();
