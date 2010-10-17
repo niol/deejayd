@@ -536,7 +536,7 @@ public class Rpc {
         send("panel.clearSearch");
     }
 
-    public void panelModeSetFilter(String tag, String[] values,
+    public void panelModeSetFilter(String tag, List<String> values,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(tag));

@@ -74,20 +74,21 @@ public class AudioSearchView extends Composite {
     @UiField(provided = true) final WebuiResources resources;
 
     private int PAGE_SIZE = 500;
-    private DeejaydSelModel<Media> selModel = new DeejaydSelModel<Media>();
+    private DeejaydSelModel<Media> selModel;
     private LibrarySearchProvider provider;
 
     public AudioSearchView(WebuiLayout webui) {
         this.ui = webui;
         this.resources = ui.resources;
 
-        list = new DeejaydCellTable<Media>(PAGE_SIZE);
-        list.setKeyProvider(new ProvidesKey<Media>() {
+        ProvidesKey<Media> keyProvider = new ProvidesKey<Media>() {
 
             public Object getKey(Media item) {
                 return item.getStrAttr("media_id");
             }
-        });
+        };
+        selModel = new DeejaydSelModel<Media>(keyProvider);
+        list = new DeejaydCellTable<Media>(PAGE_SIZE, keyProvider);
         list.addRangeChangeHandler(new RangeChangeEvent.Handler() {
 
             public void onRangeChange(RangeChangeEvent event) {
@@ -139,6 +140,8 @@ public class AudioSearchView extends Composite {
                 return object.getStrAttr("filename");
             }
         });
+
+        provider.clear();
     }
 
     public void focus() {

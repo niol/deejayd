@@ -73,7 +73,7 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
     @UiField(provided = true) final WebuiResources resources;
 
     private int PAGE_SIZE = 500;
-    protected DeejaydSelModel<LibraryItem> selModel = new DeejaydSelModel<LibraryItem>();
+    protected DeejaydSelModel<LibraryItem> selModel;
     private LibraryProvider provider;
 
 
@@ -81,13 +81,14 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
         this.ui = ui;
         this.resources = ui.resources;
 
-        list = new DeejaydCellTable<LibraryItem>(PAGE_SIZE);
-        list.setKeyProvider(new ProvidesKey<LibraryItem>() {
+        ProvidesKey<LibraryItem> kProv = new ProvidesKey<LibraryItem>() {
 
             public Object getKey(LibraryItem item) {
                 return item.getPath();
             }
-        });
+        };
+        selModel = new DeejaydSelModel<LibraryItem>(kProv);
+        list = new DeejaydCellTable<LibraryItem>(PAGE_SIZE, kProv);
         list.setRowCommand(new DeejaydCellTable.RowCommand<LibraryItem>() {
 
             public void execute(LibraryItem object) {

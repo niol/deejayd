@@ -32,8 +32,12 @@ import org.mroy31.deejayd.mobile.widgets.Pager;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.safehtml.client.SafeHtmlTemplates;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.CellList;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Window;
@@ -43,6 +47,19 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 
 public abstract class DefaultMode extends AbstractMode
         implements StatusChangeHandler {
+
+    interface Template extends SafeHtmlTemplates {
+        @Template("<table style=\"width=100%;\" cellspacing=\"0\" cellpadding=\"0\" class=\"{1}\"><tbody><tr>{0}</tr></tbody></table>")
+        SafeHtml tbody(SafeHtml rowHtml, String classes);
+
+        @Template("<td width=\"100%\" style=\"vertical-align: middle;\">{0}</td>")
+        SafeHtml td(SafeHtml contents);
+
+        @Template("<div style=\"width:{1};\">{0}</div>")
+        SafeHtml div(SafeHtml contents, String width);
+    }
+    private static final Template TEMPLATE = GWT.create(Template.class);
+
     protected static MobileLayout ui = MobileLayout.getInstance();
     protected SourcePanel manager;
     protected String name;
@@ -72,24 +89,18 @@ public abstract class DefaultMode extends AbstractMode
         }
 
         @Override
-        public void render(Media value, Object key, StringBuilder sb) {
+        public void render(Media value, Object key, SafeHtmlBuilder sb) {
             if (value == null)
                 return;
 
-            sb.append("<table cellspacing='0' cellpadding='0' class='");
-            sb.append(ui.resources.mobileCss().listItem()+"' ");
-            sb.append("style='width=100%';>");
-            sb.append("<tbody><tr>");
-
-            sb.append("<td width='100%' style='vertical-align: middle;'>");
-            sb.append("<div style='width: "+ITEM_WIDTH+"px;'>");
+            SafeHtmlBuilder tdBuilder = new SafeHtmlBuilder();
             String title = value.getTitle(); String desc = "";
             if (value.isSong()) {
                 title += " ("+DeejaydUtils.formatTime(value.getIntAttr("length"))+")";
                 if (value.hasAttr("artist"))
                     desc = value.getStrAttr("artist")+" - ";
                 if (value.hasAttr("album"))
-                    desc += "<b>"+value.getStrAttr("album")+"</b>";
+                    desc += value.getStrAttr("album");
             } else if (value.isVideo()) {
                 title += " ("+DeejaydUtils.formatTime(value.getIntAttr("length"))+")";
                 desc = value.getStrAttr("videowidth") + " - " +
@@ -97,17 +108,23 @@ public abstract class DefaultMode extends AbstractMode
             } else if (value.isWebradio()) {
                 // TODO
             }
-            sb.append("<div class='"+ui.resources.mobileCss().mListTitle()+
-                    "'>"+title+"</div>");
-            sb.append("<div class='"+ui.resources.mobileCss().mListDesc()+
-                    "'>"+desc+"</div>");
-            sb.append("</div></td>");
+            String titleClass = ui.resources.mobileCss().mListTitle();
+            tdBuilder.appendHtmlConstant("<div class='"+titleClass+"'>")
+                     .appendEscaped(title)
+                     .appendHtmlConstant("</div>");
+            String descClass = ui.resources.mobileCss().mListDesc();
+            tdBuilder.appendHtmlConstant("<div class='"+descClass+"'>")
+                     .appendEscaped(desc)
+                     .appendHtmlConstant("</div>");
 
-            sb.append("<td>");
-            sb.append(AbstractImagePrototype.create(ui.resources.chevron()).getHTML());
-            sb.append("<td>");
+            SafeHtmlBuilder trBuilder = new SafeHtmlBuilder();
+            trBuilder.append(TEMPLATE.td(TEMPLATE.div(tdBuilder.toSafeHtml(),
+                    ITEM_WIDTH+"px")));
+            trBuilder.appendHtmlConstant("<td>"+AbstractImagePrototype
+                    .create(ui.resources.chevron()).getHTML()+"</td>");
 
-            sb.append("</tr></tbody></table>");
+            sb.append(TEMPLATE.tbody(trBuilder.toSafeHtml(),
+                    ui.resources.mobileCss().listItem()));
         }
     };
 

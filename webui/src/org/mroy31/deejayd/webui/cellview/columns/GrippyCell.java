@@ -27,6 +27,7 @@ import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
 
 public class GrippyCell<T> extends AbstractCell<String> {
@@ -52,11 +53,11 @@ public class GrippyCell<T> extends AbstractCell<String> {
     }
 
     @Override
-    public void render(String value, Object key, StringBuilder sb) {
-        sb.append("<span style='margin-left:6px;margin-right:6px;'>");
-        sb.append("<img draggable=\"true\" class='"+className+"' ");
-        sb.append(" src=\"./deejayd_webui/clear.cache.gif\"></img>");
-        sb.append("</span>");
+    public void render(String value, Object key, SafeHtmlBuilder sb) {
+        sb.appendHtmlConstant("<span style='margin-left:6px;margin-right:6px;'>");
+        sb.appendHtmlConstant("<img draggable=\"true\" src=\"./deejayd_webui/clear.cache.gif\" class=\""+className+"\">")
+          .appendHtmlConstant("</img>")
+          .appendHtmlConstant("</span>");
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.mroy31.deejayd.common.rpc.types.Media;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
 
@@ -33,17 +34,17 @@ public class RatingColumn extends Column<Media, Integer> {
         super(new AbstractCell<Integer>() {
 
             @Override
-            public void render(Integer value, Object key, StringBuilder sb) {
+            public void render(Integer value, Object key, SafeHtmlBuilder sb) {
                 String img = AbstractImagePrototype.create(star).getHTML();
 
-                sb.append("<div style='display:inline-block'>");
+                sb.appendHtmlConstant("<div style='display:inline-block'>");
                 for (int idx=1; idx<5; idx++) {
-                    sb.append("<span");
-                    if (value<idx)
-                        sb.append(" style='opacity:0.4'");
-                    sb.append(">").append(img).append("</span>");
+                    String style = value<idx ? " style='opacity:0.4'" : "";
+                    sb.appendHtmlConstant("<span"+style+">")
+                      .appendHtmlConstant(img)
+                      .appendHtmlConstant("</span>");
                 }
-                sb.append("</div>");
+                sb.appendHtmlConstant("</div>");
             }
         });
     }

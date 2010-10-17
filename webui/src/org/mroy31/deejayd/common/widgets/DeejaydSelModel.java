@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SelectionModel.AbstractSelectionModel;
 
@@ -42,6 +43,10 @@ public class DeejaydSelModel<T> extends AbstractSelectionModel<T> {
     private final HashMap<Object, T> selectedSet = new HashMap<Object, T>();
 
     private final HashMap<T, Boolean> selectionChanges = new HashMap<T, Boolean>();
+
+    public DeejaydSelModel(ProvidesKey<T> keyProvider) {
+        super(keyProvider);
+    }
 
     /**
      * Get the set of selected items as a copy.

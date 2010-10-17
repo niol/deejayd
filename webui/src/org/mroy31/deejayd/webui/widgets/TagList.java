@@ -21,8 +21,8 @@
 package org.mroy31.deejayd.webui.widgets;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
@@ -30,7 +30,6 @@ import org.mroy31.deejayd.webui.resources.WebuiResources;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.logical.shared.HasValueChangeHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
@@ -41,7 +40,6 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Label;
@@ -50,9 +48,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class TagList extends Composite
-        implements HasValueChangeHandlers<String[]>, HasValue<String[]> {
+        implements HasValueChangeHandlers<List<String>>, HasValue<List<String>> {
     private WebuiLayout ui;
-    private boolean ctrlKey = false;
     private ArrayList<String> values = new ArrayList<String>();
     private HashMap<String, Label> labelMap = new HashMap<String, Label>();
 
@@ -69,18 +66,12 @@ public class TagList extends Composite
 
         public ItemClickHandler(String value) { this.value = value; }
         public void onClick(ClickEvent event) {
-            if (value.equals("__all__")) {
-                String[] result = {value};
-                setValue(result);
-            } else if (ctrlKey) {
-                ArrayList<String> selected =
-                    new ArrayList<String>(Arrays.asList(getValue()));
-                selected.add(value);
-                setValue(selected.toArray(new String[0]));
-            } else {
-                String[] result = {value};
-                setValue(result);
-            }
+            ArrayList<String> selected = new ArrayList<String>();
+            if (event.isMetaKeyDown())
+                selected.addAll(values);
+
+            selected.add(value);
+            setValue(selected);
         }
     }
 
@@ -92,8 +83,6 @@ public class TagList extends Composite
         setWidth("100%"); setHeight("100%");
         DOM.setStyleAttribute(title.getElement(), "textAlign", "center");
         title.setText(tag);
-
-        sinkEvents(Event.MOUSEEVENTS | Event.KEYEVENTS);
     }
 
     public void setLoading() {
@@ -145,36 +134,20 @@ public class TagList extends Composite
         return panel;
     }
 
-    @Override
-    public void onBrowserEvent(Event event) {
-        super.onBrowserEvent(event);
-        switch (DOM.eventGetType(event)) {
-            case Event.ONKEYDOWN:
-                switch (DOM.eventGetKeyCode(event)) {
-                    case KeyCodes.KEY_CTRL:
-                        ctrlKey = true;
-                }
-                break;
-            case Event.ONKEYUP:
-                ctrlKey = false;
-                break;
-        }
-    }
-
     public HandlerRegistration addValueChangeHandler(
-            ValueChangeHandler<String[]> handler) {
+            ValueChangeHandler<List<String>> handler) {
         return addHandler(handler, ValueChangeEvent.getType());
     }
 
-    public String[] getValue() {
-        return values.toArray(new String[0]);
+    public List<String> getValue() {
+        return values;
     }
 
-    public void setValue(String[] value) {
+    public void setValue(List<String> value) {
         setValue(value, true);
     }
 
-    public void setValue(String[] value, boolean fireEvents) {
+    public void setValue(List<String> value, boolean fireEvents) {
         // unselected items
         for (String v : values) {
             labelMap.get(v).removeStyleName(
@@ -189,7 +162,7 @@ public class TagList extends Composite
         }
 
         if (fireEvents) {
-            ValueChangeEvent.fire(this, value);
+            ValueChangeEvent.fire(this, values);
         }
     }
 

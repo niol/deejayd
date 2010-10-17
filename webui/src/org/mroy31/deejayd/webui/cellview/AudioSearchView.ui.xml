@@ -28,7 +28,7 @@
       </g:north>
       <g:center>
           <g:ScrollPanel ui:field="listPanel">
-           <c:DeejaydCellTable ui:field="list"></c:DeejaydCellTable>
+           <c:DeejaydCellTable styleName="{style.table}" ui:field="list"></c:DeejaydCellTable>
           </g:ScrollPanel>
       </g:center>
       <g:south size="22">

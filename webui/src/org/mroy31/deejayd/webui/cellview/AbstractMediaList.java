@@ -100,16 +100,18 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
     private int spanCount = 0;
 
     public AbstractMediaList(final WebuiLayout ui, final String source,
-                int pageSize, DeejaydSelModel<Media> selectionModel) {
+                int pageSize, Boolean hasSelection) {
         this.ui = ui;
 
-        mediaList = new DeejaydCellTable<Media>(pageSize);
-        mediaList.setKeyProvider(new ProvidesKey<Media>() {
+        ProvidesKey<Media> keyProvider = new ProvidesKey<Media>() {
 
             public Object getKey(Media item) {
                 return item.getStrAttr("id")+"/"+item.getStrAttr("media_id");
             }
-        });
+        };
+        if (hasSelection)
+            selModel = new DeejaydSelModel<Media>(keyProvider);
+        mediaList = new DeejaydCellTable<Media>(pageSize, keyProvider);
         mediaList.setRowCommand(new DeejaydCellTable.RowCommand<Media>() {
 
             public void execute(Media object) {
@@ -125,8 +127,7 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
 
         provider = new MediaListProvider(ui, source);
         provider.getDataProvider().addDataDisplay(mediaList);
-        if (selectionModel != null) {
-            this.selModel = selectionModel;
+        if (this.selModel != null) {
             mediaList.setSelectionModel(selModel);
         }
         initWidget(uiBinder.createAndBindUi(this));

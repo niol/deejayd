@@ -31,6 +31,7 @@ import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -84,11 +85,12 @@ public class VideoLibrary extends AbstractLibrary {
 
                     @Override
                     public void render(String value, Object key,
-                            StringBuilder sb) {
-                        sb.append("<button class='");
-                        sb.append(ui.resources.mobileCss().button());
-                        sb.append("'>"+ui.i18nConst.select());
-                        sb.append("</button>");
+                            SafeHtmlBuilder sb) {
+                        sb.appendHtmlConstant("<button class='");
+                        sb.appendEscaped(ui.resources.mobileCss().button());
+                        sb.appendHtmlConstant("'>");
+                        sb.appendEscaped(ui.i18nConst.select());
+                        sb.appendHtmlConstant("</button>");
                     }
 
                     @Override

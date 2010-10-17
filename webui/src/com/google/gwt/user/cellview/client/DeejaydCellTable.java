@@ -53,6 +53,9 @@ import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.resources.client.ImageResource.ImageOptions;
 import com.google.gwt.resources.client.ImageResource.RepeatStyle;
+import com.google.gwt.safehtml.client.SafeHtmlTemplates;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.HasDataPresenter.LoadingState;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
@@ -126,6 +129,23 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         String selectedRow();
     }
 
+    interface Template extends SafeHtmlTemplates {
+        @Template("<div class=\"{0}\"/>")
+        SafeHtml loading(String loading);
+
+        @Template("<table><tbody>{0}</tbody></table>")
+        SafeHtml tbody(SafeHtml rowHtml);
+
+        @Template("<td class=\"{0}\"><div style=\"outline:none;\">{1}</div></td>")
+        SafeHtml td(String classes, SafeHtml contents);
+
+        @Template("<td class=\"{0}\" colspan=\"{1}\"><div style=\"outline:none;\">{2}</div></td>")
+        SafeHtml tdWithColSpan(String classes, int colspan, SafeHtml contents);
+
+        @Template("<tr onclick=\"\" class=\"{0}\">{1}</tr>")
+        SafeHtml tr(String classes, SafeHtml contents);
+    }
+
     /**
      * Implementation of {@link DeejaydCellTable}.
      */
@@ -143,7 +163,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
          * @return the section element
          */
         protected TableSectionElement convertToSectionElement(
-                DeejaydCellTable<?> table, String sectionTag, String rowHtml) {
+                DeejaydCellTable<?> table, String sectionTag, SafeHtml rowHtml) {
             // Attach an event listener so we can catch synchronous load events from
             // cached images.
             DOM.setEventListener(tmpElem, table);
@@ -152,9 +172,12 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
             // IE doesn't support innerHtml on a TableSection or Table element, so we
             // generate the entire table.
             sectionTag = sectionTag.toLowerCase();
-            String innerHtml = "<table><" + sectionTag + ">" + rowHtml + "</"
-            + sectionTag + "></table>";
-            tmpElem.setInnerHTML(innerHtml);
+            if ("tbody".equals(sectionTag)) {
+                tmpElem.setInnerHTML(template.tbody(rowHtml).asString());
+            } else {
+                throw new IllegalArgumentException("Invalid table section tag: "
+                        + sectionTag);
+            }
             TableElement tableElem = tmpElem.getFirstChildElement().cast();
 
             // Detach the event listener.
@@ -163,10 +186,6 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
             // Get the section out of the table.
             if ("tbody".equals(sectionTag)) {
                 return tableElem.getTBodies().getItem(0);
-            } else if ("thead".equals(sectionTag)) {
-                return tableElem.getTHead();
-            } else if ("tfoot".equals(sectionTag)) {
-                return tableElem.getTFoot();
             }
             throw new IllegalArgumentException(
                     "Invalid table section tag: " + sectionTag);
@@ -179,8 +198,8 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
          * @param section the {@link TableSectionElement} to replace
          * @param html the html to render
          */
-        protected void replaceAllRows(
-                DeejaydCellTable<?> table, TableSectionElement section, String html) {
+        protected void replaceAllRows(DeejaydCellTable<?> table,
+                TableSectionElement section, SafeHtml html) {
             // If the widget is not attached, attach an event listener so we can catch
             // synchronous load events from cached images.
             if (!table.isAttached()) {
@@ -188,7 +207,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
             }
 
             // Render the html.
-            section.setInnerHTML(html);
+            section.setInnerHTML(html.asString());
 
             // Detach the event listener.
             if (!table.isAttached()) {
@@ -211,6 +230,8 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
      */
     private static final int DEFAULT_PAGESIZE = 100;
 
+    private static Template template;
+
     private static Resources DEFAULT_RESOURCES;
 
     /**
@@ -230,11 +251,12 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
 
     private boolean cellIsEditing;
     private final TableColElement colgroup;
+    private final HashMap<Integer, String> rowStyles =
+        new HashMap<Integer, String>();
 
     private final List<Column<T, ?>> columns = new ArrayList<Column<T, ?>>();
     private final HashMap<Integer, Integer> columnsSpan =
-            new HashMap<Integer, Integer>();
-    private final HashMap<Integer, String> rowStyles = new HashMap<Integer, String>();
+        new HashMap<Integer, Integer>();
 
     /**
      * Indicates whether or not the scheduled redraw has been cancelled.
@@ -283,17 +305,45 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
     }
 
     /**
-     * Constructs a table with the given page size with the specified
-     * {@link Resources}.
+     * Constructs a table with the given page size.
      *
      * @param pageSize the page size
      * @param resources the resources to use for this widget
      */
     public DeejaydCellTable(final int pageSize, Resources resources) {
-        super(Document.get().createTableElement(), pageSize);
+        this(pageSize, resources, null);
+    }
+
+    /**
+     * Constructs a table with the given page size with the specified
+     * {@link Resources}.
+     *
+     * @param pageSize the page size
+     * @param keyProvider an instance of ProvidesKey<T>, or null if the record
+     *          object should act as its own key
+     */
+    public DeejaydCellTable(final int pageSize, ProvidesKey<T> keyProvider) {
+        this(pageSize, getDefaultResources(), keyProvider);
+    }
+
+    /**
+     * Constructs a table with the given page size with the specified
+     * {@link Resources}.
+     *
+     * @param pageSize the page size
+     * @param resources the resources to use for this widget
+     * @param keyProvider an instance of ProvidesKey<T>, or null if the record
+     *          object should act as its own key
+     */
+    public DeejaydCellTable(final int pageSize, Resources resources,
+            ProvidesKey<T> keyProvider) {
+        super(Document.get().createTableElement(), pageSize, keyProvider);
 
         if (TABLE_IMPL == null) {
             TABLE_IMPL = GWT.create(Impl.class);
+        }
+        if (template == null) {
+            template = GWT.create(Template.class);
         }
         this.style = resources.cellTableStyle();
         this.style.ensureInjected();
@@ -329,6 +379,10 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         this.rowCmd = cmd;
     }
 
+    /**
+     * Sets the object used to determine how a row is styled; the change will take
+     * effect the next time that the table is rendered.
+     */
     public void setRowStyle(int row, String style) {
         rowStyles.put(row, style);
         Range range = getVisibleRange();
@@ -361,7 +415,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
     /**
      * Adds a column to the table
      */
-    public void addColumn(Column<T, ?> col) {
+     public void addColumn(Column<T, ?> col) {
         columns.add(col);
         updateDependsOnSelection();
 
@@ -376,394 +430,405 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         CellBasedWidgetImpl.get().sinkEvents(this, consumedEvents);
 
         scheduleRedraw();
-    }
+     }
 
-    /**
-     * Add a style name to the {@link TableColElement} at the specified index,
-     * creating it if necessary.
-     *
-     * @param index the column index
-     * @param styleName the style name to add
-     */
-    public void addColumnStyleName(int index, String styleName) {
-        ensureTableColElement(index).addClassName(styleName);
-    }
+     /**
+      * Add a style name to the {@link TableColElement} at the specified index,
+      * creating it if necessary.
+      *
+      * @param index the column index
+      * @param styleName the style name to add
+      */
+     public void addColumnStyleName(int index, String styleName) {
+         ensureTableColElement(index).addClassName(styleName);
+     }
 
-    /**
-     * Set width to the {@link TableColElement} at the specified index,
-     * creating it if necessary.
-     *
-     * @param index the column index
-     * @param width width of the column
-     */
-    public void setColumnWidth(int index, String width) {
-        ensureTableColElement(index).setWidth(width);
-    }
+     /**
+      * Set width to the {@link TableColElement} at the specified index,
+      * creating it if necessary.
+      *
+      * @param index the column index
+      * @param width width of the column
+      */
+     public void setColumnWidth(int index, String width) {
+         ensureTableColElement(index).setWidth(width);
+     }
 
-    /**
-     * Set colspan to the {@link TableColElement} at the specified index,
-     * creating it if necessary.
-     *
-     * @param index the column index
-     * @param span colspan of the column
-     */
-    public void setColumnSpan(int index, int span) {
-        columnsSpan.put(index, span);
-        scheduleRedraw();
-    }
+     /**
+      * Set colspan to the {@link TableColElement} at the specified index,
+      * creating it if necessary.
+      *
+      * @param index the column index
+      * @param span colspan of the column
+      */
+     public void setColumnSpan(int index, int span) {
+         columnsSpan.put(index, span);
+         scheduleRedraw();
+     }
 
-    public int getHeight() {
-        int height = getClientHeight(tbody);
-        return height;
-    }
+     public int getHeight() {
+         int height = getClientHeight(tbody);
+         return height;
+     }
 
-    /**
-     * Get the {@link TableRowElement} for the specified row. If the row element
-     * has not been created, null is returned.
-     *
-     * @param row the row index
-     * @return the row element, or null if it doesn't exists
-     * @throws IndexOutOfBoundsException if the row index is outside of the
-     *           current page
-     */
-    public TableRowElement getRowElement(int row) {
-        checkRowBounds(row);
-        NodeList<TableRowElement> rows = tbody.getRows();
-        return rows.getLength() > row ? rows.getItem(row) : null;
-    }
+     /**
+      * Get the {@link TableRowElement} for the specified row. If the row element
+      * has not been created, null is returned.
+      *
+      * @param row the row index
+      * @return the row element, or null if it doesn't exists
+      * @throws IndexOutOfBoundsException if the row index is outside of the
+      *           current page
+      */
+     public TableRowElement getRowElement(int row) {
+         checkRowBounds(row);
+         NodeList<TableRowElement> rows = tbody.getRows();
+         return rows.getLength() > row ? rows.getItem(row) : null;
+     }
 
-    @Override
-    public void onBrowserEvent(Event event) {
-        CellBasedWidgetImpl.get().onBrowserEvent(this, event);
-        super.onBrowserEvent(event);
+     @Override
+     public void onBrowserEvent2(Event event) {
+         String eventType = event.getType();
 
-        String eventType = event.getType();
+         // Find the cell where the event occurred.
+         EventTarget eventTarget = event.getEventTarget();
+         TableCellElement tableCell = null;
+         if (eventTarget != null && Element.is(eventTarget)) {
+             tableCell = findNearestParentCell(Element.as(eventTarget));
+         }
+         if (tableCell == null) {
+             return;
+         }
 
-        // Find the cell where the event occurred.
-        EventTarget eventTarget = event.getEventTarget();
-        TableCellElement tableCell = null;
-        if (eventTarget != null && Element.is(eventTarget)) {
-            tableCell = findNearestParentCell(Element.as(eventTarget));
-        }
-        if (tableCell == null) {
-            return;
-        }
+         // Determine if we are in the header, footer, or body. Its possible that
+         // the table has been refreshed before the current event fired (ex. change
+         // event refreshes before mouseup fires), so we need to check each parent
+         // element.
+         Element trElem = tableCell.getParentElement();
+         if (trElem == null) {
+             return;
+         }
+         TableRowElement tr = TableRowElement.as(trElem);
 
-        // Determine if we are in the header, footer, or body. Its possible that
-        // the table has been refreshed before the current event fired (ex. change
-        // event refreshes before mouseup fires), so we need to check each parent
-        // element.
-        Element trElem = tableCell.getParentElement();
-        if (trElem == null) {
-            return;
-        }
-        TableRowElement tr = TableRowElement.as(trElem);
+         // Forward the event to the column.
+         int col = tableCell.getCellIndex();
+         // Update the hover state.
+         int row = tr.getSectionRowIndex();
 
-        // Forward the event to the column.
-        int col = tableCell.getCellIndex();
-        // Update the hover state.
-        int row = tr.getSectionRowIndex();
+         T value = getDisplayedItem(row);
+         if ("dblclick".equals(eventType) && rowCmd != null) {
+             rowCmd.execute(value);
+             return;
+         } else if (handlesSelection && "mouseup".equals(eventType)) {
+             if (getSelectionModel() != null && !event.getMetaKey()) {
+                 for (T item : getDisplayedItems()) {
+                     getSelectionModel().setSelected(item, false);
+                 }
+                 getSelectionModel().setSelected(value, true);
+             }
+         } else if (handlesSelection && "mousedown".equals(eventType)) {
+             if (getSelectionModel() != null && event.getMetaKey())
+                 getSelectionModel().setSelected(value,
+                         !getSelectionModel().isSelected(value));
+         }
 
-        T value = getDisplayedItem(row);
-        if ("dblclick".equals(eventType) && rowCmd != null) {
-            rowCmd.execute(value);
-            return;
-        } else if (handlesSelection && "mouseup".equals(eventType)) {
-            if (getSelectionModel() != null && !event.getMetaKey()) {
-                for (T item : getDisplayedItems()) {
-                    getSelectionModel().setSelected(item, false);
-                }
-                getSelectionModel().setSelected(value, true);
-            }
-        } else if (handlesSelection && "mousedown".equals(eventType)) {
-            if (getSelectionModel() != null && event.getMetaKey())
-                getSelectionModel().setSelected(value,
-                        !getSelectionModel().isSelected(value));
-        }
+         fireEventToCell(event, eventType, tableCell, value, col, row);
+     }
 
-        fireEventToCell(event, eventType, tableCell, value, col, row);
-    }
+     public int findRow(Event event) {
+         // Find the cell where the event occurred.
+         EventTarget eventTarget = event.getEventTarget();
+         TableCellElement tableCell = null;
+         if (eventTarget != null && Element.is(eventTarget)) {
+             tableCell = findNearestParentCell(Element.as(eventTarget));
+         }
+         if (tableCell == null) {
+             return -1;
+         }
 
-    public int findRow(Event event) {
-        // Find the cell where the event occurred.
-        EventTarget eventTarget = event.getEventTarget();
-        TableCellElement tableCell = null;
-        if (eventTarget != null && Element.is(eventTarget)) {
-            tableCell = findNearestParentCell(Element.as(eventTarget));
-        }
-        if (tableCell == null) {
-            return -1;
-        }
+         Element trElem = tableCell.getParentElement();
+         if (trElem == null) {
+             return -1;
+         }
+         TableRowElement tr = TableRowElement.as(trElem);
+         return tr.getSectionRowIndex();
+     }
 
-        Element trElem = tableCell.getParentElement();
-        if (trElem == null) {
-            return -1;
-        }
-        TableRowElement tr = TableRowElement.as(trElem);
-        return tr.getSectionRowIndex();
-    }
+     public HandlerRegistration addDragEnterHandler(DragEnterHandler handler) {
+         return addDomHandler(handler, DragEnterEvent.getType());
+     }
 
-    public HandlerRegistration addDragEnterHandler(DragEnterHandler handler) {
-        return addDomHandler(handler, DragEnterEvent.getType());
-    }
+     public HandlerRegistration addDragLeaveHandler(DragLeaveHandler handler) {
+         return addDomHandler(handler, DragLeaveEvent.getType());
+     }
 
-    public HandlerRegistration addDragLeaveHandler(DragLeaveHandler handler) {
-        return addDomHandler(handler, DragLeaveEvent.getType());
-    }
+     public HandlerRegistration addDragOverHandler(DragOverHandler handler) {
+         return addDomHandler(handler, DragOverEvent.getType());
+     }
 
-    public HandlerRegistration addDragOverHandler(DragOverHandler handler) {
-        return addDomHandler(handler, DragOverEvent.getType());
-    }
+     public HandlerRegistration addDropHandler(DropHandler handler) {
+         return addDomHandler(handler, DropEvent.getType());
+     }
 
-    public HandlerRegistration addDropHandler(DropHandler handler) {
-        return addDomHandler(handler, DropEvent.getType());
-    }
+     /**
+      * Remove a column.
+      *
+      * @param col the column to remove
+      */
+     public void removeColumn(Column<T, ?> col) {
+         int index = columns.indexOf(col);
+         if (index < 0) {
+             throw new IllegalArgumentException(
+                     "The specified column is not part of this table.");
+         }
+         removeColumn(index);
+     }
 
-    /**
-     * Remove a column.
-     *
-     * @param col the column to remove
-     */
-    public void removeColumn(Column<T, ?> col) {
-        int index = columns.indexOf(col);
-        if (index < 0) {
-            throw new IllegalArgumentException(
-                    "The specified column is not part of this table.");
-        }
-        removeColumn(index);
-    }
+     /**
+      * Remove a column.
+      *
+      * @param index the column index
+      */
+     public void removeColumn(int index) {
+         if (index < 0 || index >= columns.size()) {
+             throw new IndexOutOfBoundsException(
+                     "The specified column index is out of bounds.");
+         }
+         columns.remove(index);
+         updateDependsOnSelection();
+         scheduleRedraw();
 
-    /**
-     * Remove a column.
-     *
-     * @param index the column index
-     */
-    public void removeColumn(int index) {
-        if (index < 0 || index >= columns.size()) {
-            throw new IndexOutOfBoundsException(
-                    "The specified column index is out of bounds.");
-        }
-        columns.remove(index);
-        updateDependsOnSelection();
-        scheduleRedraw();
+         // We don't unsink events because other handlers or user code may have sunk
+         // them intentionally.
+     }
 
-        // We don't unsink events because other handlers or user code may have sunk
-        // them intentionally.
-    }
+     /**
+      * Remove a style from the {@link TableColElement} at the specified index.
+      *
+      * @param index the column index
+      * @param styleName the style name to remove
+      */
+     public void removeColumnStyleName(int index, String styleName) {
+         if (index >= colgroup.getChildCount()) {
+             return;
+         }
+         ensureTableColElement(index).removeClassName(styleName);
+     }
 
-    /**
-     * Remove a style from the {@link TableColElement} at the specified index.
-     *
-     * @param index the column index
-     * @param styleName the style name to remove
-     */
-    public void removeColumnStyleName(int index, String styleName) {
-        if (index >= colgroup.getChildCount()) {
-            return;
-        }
-        ensureTableColElement(index).removeClassName(styleName);
-    }
+     @Override
+     public void setSelected(Element elem, boolean selected) {
+         setStyleName(elem, style.selectedRow(), selected);
+     }
 
-    @Override
-    protected void renderRowValues(StringBuilder sb, List<T> values, int start,
-            SelectionModel<? super T> selectionModel) {
+     @Override
+     protected void renderRowValues(SafeHtmlBuilder sb, List<T> values, int start,
+             SelectionModel<? super T> selectionModel) {
 
-        ProvidesKey<T> keyProvider = getKeyProvider();
-        String evenRowStyle = style.evenRow();
-        String oddRowStyle = style.oddRow();
-        String cellStyle = style.cell();
-        String selectedRowStyle = " " + style.selectedRow();
-        int length = values.size();
-        int end = start + length;
-        for (int i = start; i < end; i++) {
-            T value = values.get(i - start);
-            boolean isSelected = (selectionModel == null || value == null)
-            ? false : selectionModel.isSelected(value);
-            sb.append("<tr onclick='' class='");
-            sb.append(i % 2 == 0 ? evenRowStyle : oddRowStyle);
-            if (isSelected) {
-                sb.append(selectedRowStyle);
-            }
-            if (rowStyles.containsKey(i)) {
-                sb.append(" "+rowStyles.get(i));
-            }
-            sb.append("'>");
-            int curColumn = 0;
-            for (Column<T, ?> column : columns) {
-                sb.append("<td class='").append(cellStyle).append("'");
-                if (columnsSpan.containsKey(curColumn)) {
-                    sb.append(" colspan='");
-                    sb.append(columnsSpan.get(curColumn)).append("'");
-                }
-                sb.append("><div>");
-                if (value != null) {
-                    column.render(value, keyProvider, sb);
-                }
-                sb.append("</div></td>");
-                curColumn++;
-            }
-            sb.append("</tr>");
-        }
-    }
+         ProvidesKey<T> keyProvider = getKeyProvider();
+         String evenRowStyle = style.evenRow();
+         String oddRowStyle = style.oddRow();
+         String cellStyle = style.cell();
+         String selectedRowStyle = " " + style.selectedRow();
+         int length = values.size();
+         int end = start + length;
+         for (int i = start; i < end; i++) {
+             T value = values.get(i - start);
+             boolean isSelected = (selectionModel == null || value == null)
+                     ? false : selectionModel.isSelected(value);
+             boolean isEven = i % 2 == 0;
+             String trClasses = isEven ? evenRowStyle : oddRowStyle;
+             if (isSelected) {
+               trClasses += selectedRowStyle;
+             }
 
-    @Override
-    Element convertToElements(String html) {
-        return TABLE_IMPL.convertToSectionElement(DeejaydCellTable.this, "tbody", html);
-    }
+             if (rowStyles.containsKey(i)) {
+                 trClasses += " "+rowStyles.get(i);
+             }
 
-    @Override
-    boolean dependsOnSelection() {
-      return dependsOnSelection;
-    }
+             SafeHtmlBuilder trBuilder = new SafeHtmlBuilder();
+             int curColumn = 0;
+             for (Column<T, ?> column : columns) {
+                 SafeHtmlBuilder cellBuilder = new SafeHtmlBuilder();
+                 if (value != null) {
+                   column.render(value, keyProvider, cellBuilder);
+                 }
 
-    @Override
-    Element getChildContainer() {
-        return tbody;
-    }
+                 if (columnsSpan.containsKey(curColumn)) {
+                     trBuilder.append(template.tdWithColSpan(cellStyle,
+                             columnsSpan.get(curColumn),
+                             cellBuilder.toSafeHtml()));
+                 } else {
+                     trBuilder.append(template.td(cellStyle,
+                             cellBuilder.toSafeHtml()));
+                 }
 
-    @Override
-    void onUpdateSelection() {
-    }
+                 curColumn++;
+             }
 
-    @Override
-    void replaceAllChildren(List<T> values, String html) {
-        // Cancel any pending redraw.
-        if (redrawScheduled) {
-            redrawCancelled = true;
-        }
-        TABLE_IMPL.replaceAllRows(
-                DeejaydCellTable.this, tbody, CellBasedWidgetImpl.get().processHtml(html));
-    }
+             sb.append(template.tr(trClasses, trBuilder.toSafeHtml()));
+         }
+     }
 
-    @Override
-    void setLoadingState(LoadingState state) {
-        setLoadingIconVisible(state == LoadingState.LOADING);
-    }
+     @Override
+     protected Element convertToElements(SafeHtml html) {
+         return TABLE_IMPL.convertToSectionElement(DeejaydCellTable.this, "tbody", html);
+     }
 
-    @Override
-    public void setSelected(Element elem, boolean selected) {
-        setStyleName(elem, style.selectedRow(), selected);
-    }
+     @Override
+     protected boolean dependsOnSelection() {
+         return dependsOnSelection;
+     }
 
-    /**
-     * Check if a cell consumes the specified event type.
-     *
-     * @param cell the cell
-     * @param eventType the event type to check
-     * @return true if consumed, false if not
-     */
-    private boolean cellConsumesEventType(Cell<?> cell, String eventType) {
-        Set<String> consumedEvents = cell.getConsumedEvents();
-        return consumedEvents != null && consumedEvents.contains(eventType);
-    }
+     @Override
+     protected Element getChildContainer() {
+         return tbody;
+     }
 
-    /**
-     * Get the {@link TableColElement} at the specified index, creating it if
-     * necessary.
-     *
-     * @param index the column index
-     * @return the {@link TableColElement}
-     */
-    private TableColElement ensureTableColElement(int index) {
-        // Ensure that we have enough columns.
-        for (int i = colgroup.getChildCount(); i <= index; i++) {
-            colgroup.appendChild(Document.get().createColElement());
-        }
-        return colgroup.getChild(index).cast();
-    }
+     @Override
+     protected void onUpdateSelection() {
+     }
 
-    /**
-     * Find the cell that contains the element. Note that the TD element is not
-     * the parent. The parent is the div inside the TD cell.
-     *
-     * @param elem the element
-     * @return the parent cell
-     */
-    private TableCellElement findNearestParentCell(Element elem) {
-        while ((elem != null) && (elem != table)) {
-            // TODO: We need is() implementations in all Element subclasses.
-            // This would allow us to use TableCellElement.is() -- much cleaner.
-            String tagName = elem.getTagName();
-            if ("td".equalsIgnoreCase(tagName) || "th".equalsIgnoreCase(tagName)) {
-                return elem.cast();
-            }
-            elem = elem.getParentElement();
-        }
-        return null;
-    }
+     @Override
+     protected void replaceAllChildren(List<T> values, SafeHtml html) {
+         // Cancel any pending redraw.
+         if (redrawScheduled) {
+             redrawCancelled = true;
+         }
+         TABLE_IMPL.replaceAllRows(DeejaydCellTable.this, tbody,
+                    CellBasedWidgetImpl.get().processHtml(html));
+     }
 
-    /**
-     * Fire an event to the Cell within the specified {@link TableCellElement}.
-     */
-    @SuppressWarnings("unchecked")
-    private <C> void fireEventToCell(Event event, String eventType,
-            TableCellElement tableCell, T value, int col, int row) {
-        Column<T, C> column = (Column<T, C>) columns.get(col);
-        Cell<C> cell = column.getCell();
-        if (cellConsumesEventType(cell, eventType)) {
-            C cellValue = column.getValue(value);
-            ProvidesKey<T> providesKey = getKeyProvider();
-            Object key = providesKey == null ? value : providesKey.getKey(value);
-            Element parentElem = tableCell.getFirstChildElement();
-            boolean cellWasEditing = cell.isEditing(parentElem, cellValue, key);
-            column.onBrowserEvent(
-                    parentElem, getPageStart() + row, value, event, providesKey);
-            cellIsEditing = cell.isEditing(parentElem, cellValue, key);
-            if (cellWasEditing && !cellIsEditing) {
-                resetFocus();
-            }
-        }
-    }
+     @Override
+     protected void setLoadingState(LoadingState state) {
+         setLoadingIconVisible(state == LoadingState.LOADING);
+     }
 
-    private native int getClientHeight(Element element) /*-{
+     @Override
+     protected Element getKeyboardSelectedElement() {
+         return null;
+     }
+
+     @Override
+     protected boolean isKeyboardNavigationSuppressed() {
+         return true;
+     }
+
+     @Override
+     protected boolean resetFocusOnCell() {
+         return false;
+     }
+
+     @Override
+     protected void setKeyboardSelected(int index, boolean selected,
+             boolean stealFocus) {
+     }
+     /**
+      * Get the {@link TableColElement} at the specified index, creating it if
+      * necessary.
+      *
+      * @param index the column index
+      * @return the {@link TableColElement}
+      */
+     private TableColElement ensureTableColElement(int index) {
+         // Ensure that we have enough columns.
+         for (int i = colgroup.getChildCount(); i <= index; i++) {
+             colgroup.appendChild(Document.get().createColElement());
+         }
+         return colgroup.getChild(index).cast();
+     }
+
+     /**
+      * Find the cell that contains the element. Note that the TD element is not
+      * the parent. The parent is the div inside the TD cell.
+      *
+      * @param elem the element
+      * @return the parent cell
+      */
+     private TableCellElement findNearestParentCell(Element elem) {
+         while ((elem != null) && (elem != table)) {
+             // TODO: We need is() implementations in all Element subclasses.
+             // This would allow us to use TableCellElement.is() -- much cleaner.
+             String tagName = elem.getTagName();
+             if ("td".equalsIgnoreCase(tagName) || "th".equalsIgnoreCase(tagName)) {
+                 return elem.cast();
+             }
+             elem = elem.getParentElement();
+         }
+         return null;
+     }
+
+     /**
+      * Fire an event to the Cell within the specified {@link TableCellElement}.
+      */
+     @SuppressWarnings("unchecked")
+     private <C> void fireEventToCell(Event event, String eventType,
+             TableCellElement tableCell, T value, int col, int row) {
+         Column<T, C> column = (Column<T, C>) columns.get(col);
+         Cell<C> cell = column.getCell();
+         if (cellConsumesEventType(cell, eventType)) {
+             C cellValue = column.getValue(value);
+             ProvidesKey<T> providesKey = getKeyProvider();
+             Object key = providesKey == null ? value : providesKey.getKey(value);
+             Element parentElem = tableCell.getFirstChildElement();
+             boolean cellWasEditing = cell.isEditing(parentElem, cellValue, key);
+             column.onBrowserEvent(
+                     parentElem, getPageStart() + row, value, event, providesKey);
+             cellIsEditing = cell.isEditing(parentElem, cellValue, key);
+             if (cellWasEditing && !cellIsEditing) {
+                 resetFocusOnCell();
+             }
+         }
+     }
+
+     private native int getClientHeight(Element element) /*-{
     return element.clientHeight;
   }-*/;
 
-    /**
-     * Schedule a redraw for the end of the event loop.
-     */
-    private void scheduleRedraw() {
-        redrawCancelled = false;
-        if (!redrawScheduled) {
-            redrawScheduled = true;
-            Scheduler.get().scheduleFinally(redrawCommand);
-        }
-    }
+     /**
+      * Schedule a redraw for the end of the event loop.
+      */
+     private void scheduleRedraw() {
+         redrawCancelled = false;
+         if (!redrawScheduled) {
+             redrawScheduled = true;
+             Scheduler.get().scheduleFinally(redrawCommand);
+         }
+     }
 
-    /**
-     * Show or hide the loading icon.
-     *
-     * @param visible true to show, false to hide.
-     */
-    private void setLoadingIconVisible(boolean visible) {
-        // Clear the current data.
-        if (visible) {
-            tbody.setInnerText("");
-        }
+     /**
+      * Show or hide the loading icon.
+      *
+      * @param visible true to show, false to hide.
+      */
+     private void setLoadingIconVisible(boolean visible) {
+         // Clear the current data.
+         if (visible) {
+             tbody.setInnerText("");
+         }
 
-        // Update the colspan.
-        TableCellElement td = tbodyLoading.getRows().getItem(0)
-                .getCells().getItem(0);
-        td.setColSpan(Math.max(1, columns.size()));
-        setVisible(tbodyLoading, visible);
-    }
+         // Update the colspan.
+         TableCellElement td = tbodyLoading.getRows().getItem(0)
+         .getCells().getItem(0);
+         td.setColSpan(Math.max(1, columns.size()));
+         setVisible(tbodyLoading, visible);
+     }
 
-    /**
-     * Update the dependsOnSelection and handlesSelection booleans.
-     */
-    private void updateDependsOnSelection() {
-      dependsOnSelection = false;
-      handlesSelection = false;
-      for (Column<T, ?> column : columns) {
-        Cell<?> cell = column.getCell();
-        if (cell.dependsOnSelection()) {
-          dependsOnSelection = true;
-        }
-        if (cell.handlesSelection()) {
-          handlesSelection = true;
-        }
-      }
-    }
+     /**
+      * Update the dependsOnSelection and handlesSelection booleans.
+      */
+     private void updateDependsOnSelection() {
+         dependsOnSelection = false;
+         handlesSelection = false;
+         for (Column<T, ?> column : columns) {
+             Cell<?> cell = column.getCell();
+             if (cell.dependsOnSelection()) {
+                 dependsOnSelection = true;
+             }
+             if (cell.handlesSelection()) {
+                 handlesSelection = true;
+             }
+         }
+     }
 }
 
 //vim: ts=4 sw=4 expandtab

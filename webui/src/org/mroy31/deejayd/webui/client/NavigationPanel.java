@@ -159,7 +159,7 @@ public class NavigationPanel extends WebuiPanel
                         event.preventDefault();
                         removeStyleName(ui.resources.webuiCss().plsRowOver());
                         String[] data = event.dataTransfert()
-                                             .getData().split("-");
+                                             .getData().split("///");
                         List<String> ids = DeejaydUtils.getIds(data,"media_id");
                         ui.rpc.recPlsStaticAdd(plsId, ids,null);
                     }

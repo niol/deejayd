@@ -21,7 +21,6 @@
 package org.mroy31.deejayd.webui.cellview;
 
 import org.mroy31.deejayd.common.rpc.types.Media;
-import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.cellview.columns.MediaAttrColumn;
@@ -36,7 +35,7 @@ import com.google.gwt.user.client.ui.Label;
 public class SongList extends AbstractMediaList {
 
     public SongList(final WebuiLayout ui, String source, int pageSize) {
-        super(ui, source, pageSize, new DeejaydSelModel<Media>());
+        super(ui, source, pageSize, true);
 
         CheckBox allCk = new CheckBox();
         allCk.addValueChangeHandler(new ValueChangeHandler<Boolean>() {

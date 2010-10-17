@@ -32,6 +32,7 @@ import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
 import com.google.gwt.user.client.Window;
@@ -43,7 +44,7 @@ abstract class AbstractLibrary extends Composite {
     final MobileLayout ui = MobileLayout.getInstance();
 
     DeejaydSelModel<LibraryProvider.LibraryItem> selModel =
-            new DeejaydSelModel<LibraryProvider.LibraryItem>();
+            new DeejaydSelModel<LibraryProvider.LibraryItem>(null);
     LibraryProvider provider;
     int PAGE_SIZE = 20;
 
@@ -99,20 +100,21 @@ abstract class AbstractLibrary extends Composite {
                 new AbstractCell<String>("click") {
 
                     @Override
-                    public void render(String value, Object key,
-                            StringBuilder sb) {
-                        if (value != null) {
-                              sb.append(value);
-                        }
-                    }
-
-                    @Override
                     public void onBrowserEvent(Element parent, String value,
                             Object key, NativeEvent event,
                             ValueUpdater<String> valueUpdater) {
                         String path = ((LibraryProvider.LibraryItem) key)
                                 .getPath();
                         provider.setPath(path);
+                    }
+
+                    @Override
+                    public void render(String value, Object key,
+                            SafeHtmlBuilder sb) {
+                        if (value != null) {
+                            sb.appendEscaped(value);
+
+                      }
                     }
                 }) {
 
@@ -128,22 +130,21 @@ abstract class AbstractLibrary extends Composite {
                 new AbstractCell<ImageResource>("click") {
 
                     @Override
-                    public void render(ImageResource value, Object key,
-                            StringBuilder sb) {
-                        if (value != null) {
-                              sb.append(AbstractImagePrototype
-                                      .create(value).getHTML());
-                        }
-
-                    }
-
-                    @Override
                     public void onBrowserEvent(Element parent, ImageResource value,
                             Object key, NativeEvent event,
                             ValueUpdater<ImageResource> valueUpdater) {
                         String path = ((LibraryProvider.LibraryItem) key)
                                 .getPath();
                         provider.setPath(path);
+                    }
+
+                    @Override
+                    public void render(ImageResource value, Object key,
+                            SafeHtmlBuilder sb) {
+                        if (value != null) {
+                            sb.appendEscaped(AbstractImagePrototype
+                                    .create(value).getHTML());
+                      }
                     }
                 }) {
 

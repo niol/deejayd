@@ -21,7 +21,6 @@
 package org.mroy31.deejayd.webui.cellview;
 
 import org.mroy31.deejayd.common.rpc.types.Media;
-import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
 import org.mroy31.deejayd.webui.cellview.columns.MediaAttrColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 
@@ -33,7 +32,7 @@ import com.google.gwt.user.client.ui.Label;
 public class WebradioList extends AbstractMediaList {
 
     public WebradioList(WebuiLayout ui) {
-        super(ui, "webradio", DEFAULT_PAGE_SIZE, new DeejaydSelModel<Media>());
+        super(ui, "webradio", DEFAULT_PAGE_SIZE, true);
 
         addSelectionColumn();
         addColumn(new MediaAttrColumn("title"),

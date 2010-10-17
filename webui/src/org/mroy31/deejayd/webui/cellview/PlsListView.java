@@ -70,20 +70,21 @@ public class PlsListView extends Composite {
     @UiField(provided = true) final WebuiResources resources;
 
     private int PAGE_SIZE = 500;
-    private DeejaydSelModel<Playlist> selModel = new DeejaydSelModel<Playlist>();
+    private DeejaydSelModel<Playlist> selModel;
     private RecordPlsProvider provider;
 
     public PlsListView(WebuiLayout webui) {
         this.ui = webui;
         this.resources = webui.resources;
 
-        list = new DeejaydCellTable<Playlist>(PAGE_SIZE);
-        list.setKeyProvider(new ProvidesKey<Playlist>() {
+        ProvidesKey<Playlist> keyProvider = new ProvidesKey<Playlist>() {
 
             public Object getKey(Playlist item) {
                 return Integer.toString(item.getId());
             }
-        });
+        };
+        selModel = new DeejaydSelModel<Playlist>(keyProvider);
+        list = new DeejaydCellTable<Playlist>(PAGE_SIZE, keyProvider);
         list.addRangeChangeHandler(new RangeChangeEvent.Handler() {
 
             public void onRangeChange(RangeChangeEvent event) {

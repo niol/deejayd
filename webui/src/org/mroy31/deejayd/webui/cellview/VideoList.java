@@ -21,7 +21,6 @@
 package org.mroy31.deejayd.webui.cellview;
 
 import org.mroy31.deejayd.common.rpc.types.Media;
-import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
 import org.mroy31.deejayd.webui.cellview.columns.MediaAttrColumn;
 import org.mroy31.deejayd.webui.cellview.columns.RatingColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
@@ -34,7 +33,7 @@ import com.google.gwt.user.client.ui.Label;
 public class VideoList extends AbstractMediaList {
 
     public VideoList(WebuiLayout ui) {
-        super(ui, "video", DEFAULT_PAGE_SIZE, new DeejaydSelModel<Media>());
+        super(ui, "video", DEFAULT_PAGE_SIZE, true);
         WebuiConstants i18n = ui.i18nConstants;
 
         addSelectionColumn();

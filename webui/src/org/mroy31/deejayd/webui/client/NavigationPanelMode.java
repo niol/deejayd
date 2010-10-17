@@ -71,14 +71,14 @@ public class NavigationPanelMode extends AbstractWebuiMode implements ClickHandl
     interface NavigationPanelModeUiBinder extends
             UiBinder<Widget, NavigationPanelMode> {}
 
-    private class TagChangeHandler implements ValueChangeHandler<String[]> {
+    private class TagChangeHandler implements ValueChangeHandler<List<String>> {
         private String tag;
         public TagChangeHandler(String tag) {this.tag = tag; }
 
-        public void onValueChange(ValueChangeEvent<String[]> event) {
+        public void onValueChange(ValueChangeEvent<List<String>> event) {
             updatedTag = tag;
-            String[] value = event.getValue();
-            if (value[0].equals("__all__")) {
+            List<String> value = event.getValue();
+            if (value.get(0).equals("__all__")) {
                 ui.rpc.panelModeRemoveFilter(tag, null);
             } else {
                 ui.rpc.panelModeSetFilter(tag, value, null);
