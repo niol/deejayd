@@ -27,6 +27,7 @@ import org.mroy31.deejayd.common.provider.RecordPlsProvider;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.Playlist;
 import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
+import org.mroy31.deejayd.webui.cellview.columns.CkSelColumn;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
@@ -80,7 +81,8 @@ public class PlsListView extends Composite {
         ProvidesKey<Playlist> keyProvider = new ProvidesKey<Playlist>() {
 
             public Object getKey(Playlist item) {
-                return Integer.toString(item.getId());
+                // always do a null check
+                return (item == null) ? 0 : Integer.toString(item.getId());
             }
         };
         selModel = new DeejaydSelModel<Playlist>(keyProvider);
@@ -101,7 +103,10 @@ public class PlsListView extends Composite {
         loadQueueButton.setText(ui.i18nConstants.addQueue());
         removeButton.setText(ui.i18nConstants.remove());
 
-     // add columns
+        // add columns
+        list.addColumn(new CkSelColumn<Playlist>(list));
+        list.setColumnWidth(0, "22px");
+
         list.addColumn(new GrippyColumn<Playlist>("recpls", list,
                 ui.resources.webuiCss().grippyCell(),
                 new GrippyCell.DragStartMessage() {
@@ -110,7 +115,7 @@ public class PlsListView extends Composite {
                         return ui.i18nMessages.plsCount(count);
                     }
         }));
-        list.setColumnWidth(0, "20px");
+        list.setColumnWidth(1, "20px");
 
         list.addColumn(new Column<Playlist, ImageResource>(
                 new ImageResourceCell()) {
@@ -124,7 +129,7 @@ public class PlsListView extends Composite {
             }
 
         });
-        list.setColumnWidth(1, "30px");
+        list.setColumnWidth(2, "30px");
 
         list.addColumn(new TextColumn<Playlist>() {
 

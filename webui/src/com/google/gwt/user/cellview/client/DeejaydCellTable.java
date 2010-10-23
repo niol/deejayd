@@ -217,15 +217,6 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
     }
 
     /**
-     * interface to execute an action when user dblclick on a row
-     */
-    public static interface RowCommand<T> {
-
-        public void execute(T object);
-    }
-    private RowCommand<T> rowCmd;
-
-    /**
      * The default page size.
      */
     private static final int DEFAULT_PAGESIZE = 100;
@@ -368,15 +359,8 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         }
 
         // Sink events.
-        sinkEvents(Event.ONDBLCLICK | Event.ONMOUSEDOWN | Event.ONMOUSEUP);
-    }
-
-    /**
-     * set command to execute when user dblclick on a row
-     * @param cmd command to execute
-     */
-    public void setRowCommand(RowCommand<T> cmd) {
-        this.rowCmd = cmd;
+        Set<String> eventTypes = new HashSet<String>();
+        CellBasedWidgetImpl.get().sinkEvents(this, eventTypes);
     }
 
     /**
@@ -516,22 +500,6 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
          int row = tr.getSectionRowIndex();
 
          T value = getDisplayedItem(row);
-         if ("dblclick".equals(eventType) && rowCmd != null) {
-             rowCmd.execute(value);
-             return;
-         } else if (handlesSelection && "mouseup".equals(eventType)) {
-             if (getSelectionModel() != null && !event.getMetaKey()) {
-                 for (T item : getDisplayedItems()) {
-                     getSelectionModel().setSelected(item, false);
-                 }
-                 getSelectionModel().setSelected(value, true);
-             }
-         } else if (handlesSelection && "mousedown".equals(eventType)) {
-             if (getSelectionModel() != null && event.getMetaKey())
-                 getSelectionModel().setSelected(value,
-                         !getSelectionModel().isSelected(value));
-         }
-
          fireEventToCell(event, eventType, tableCell, value, col, row);
      }
 

@@ -27,6 +27,7 @@ import org.mroy31.deejayd.common.provider.LibrarySearchProvider;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
+import org.mroy31.deejayd.webui.cellview.columns.CkSelColumn;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
@@ -84,7 +85,8 @@ public class AudioSearchView extends Composite {
         ProvidesKey<Media> keyProvider = new ProvidesKey<Media>() {
 
             public Object getKey(Media item) {
-                return item.getStrAttr("media_id");
+                // Always do a null check
+                return (item == null) ? "" : item.getStrAttr("media_id");
             }
         };
         selModel = new DeejaydSelModel<Media>(keyProvider);
@@ -111,7 +113,10 @@ public class AudioSearchView extends Composite {
         loadQueueButton.setText(ui.i18nConstants.addQueue());
         clearButton.setText(ui.i18nConstants.clearSearch());
 
-     // add columns
+        // add columns
+        list.addColumn(new CkSelColumn<Media>(list));
+        list.setColumnWidth(0, "22px");
+
         list.addColumn(new GrippyColumn<Media>("audiosearch", list,
                 ui.resources.webuiCss().grippyCell(),
                 new GrippyCell.DragStartMessage() {
@@ -120,7 +125,7 @@ public class AudioSearchView extends Composite {
                         return ui.i18nMessages.songsDesc(count);
                     }
         }));
-        list.setColumnWidth(0, "20px");
+        list.setColumnWidth(1, "20px");
 
         list.addColumn(new Column<Media, ImageResource>(
                 new ImageResourceCell()) {
@@ -131,7 +136,7 @@ public class AudioSearchView extends Composite {
             }
 
         });
-        list.setColumnWidth(1, "30px");
+        list.setColumnWidth(2, "30px");
 
         list.addColumn(new TextColumn<Media>() {
 

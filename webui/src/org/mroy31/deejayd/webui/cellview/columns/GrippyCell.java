@@ -48,11 +48,6 @@ public class GrippyCell<T> extends AbstractCell<String> {
     }
 
     @Override
-    public boolean handlesSelection() {
-        return true;
-    }
-
-    @Override
     public void render(String value, Object key, SafeHtmlBuilder sb) {
         sb.appendHtmlConstant("<span style='margin-left:6px;margin-right:6px;'>");
         sb.appendHtmlConstant("<img draggable=\"true\" src=\"./deejayd_webui/clear.cache.gif\" class=\""+className+"\">")
@@ -94,7 +89,6 @@ public class GrippyCell<T> extends AbstractCell<String> {
                 DeejaydSelModel<T> sel = (DeejaydSelModel<T>) view.getSelectionModel();
                 sel.clearSelection();
             }
-
         }
     }
 

@@ -22,16 +22,37 @@ package org.mroy31.deejayd.webui.cellview.columns;
 
 import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.webui.client.WebuiLayout;
 
-import com.google.gwt.cell.client.TextCell;
+import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.ValueUpdater;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
 
 
 public class MediaAttrColumn extends Column<Media, String> {
     private final String attr;
 
-    public MediaAttrColumn(String attr) {
-        super(new TextCell());
+    public MediaAttrColumn(String attr, final WebuiLayout ui) {
+        super(new AbstractCell<String>("dblclick") {
+
+            @Override
+            public void render(String value, Object key, SafeHtmlBuilder sb) {
+                sb.appendEscaped(value);
+            }
+
+            @Override
+            public void onBrowserEvent(Element parent, String value, Object key,
+                      NativeEvent event, ValueUpdater<String> valueUpdater) {
+                event.preventDefault();
+
+                // key == id/media_id
+                String[] ids = ((String) key).split("/");
+                ui.rpc.goTo(Integer.parseInt(ids[0]), null);
+            }
+        });
         this.attr = attr;
     }
 

@@ -108,7 +108,7 @@ public interface WebuiResources extends ClientBundle {
         String goLast();
     }
 
-    @Source("webui-css.css")
+    @Source("WebuiCss.css")
     WebuiCss webuiCss();
 
     @Source("play.png")
@@ -223,6 +223,10 @@ public interface WebuiResources extends ClientBundle {
     ImageResource goNext();
 
     ImageResource goPrevious();
+
+    @Source("SelectedBackground.png")
+    @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
+    ImageResource selectedBackground();
 }
 
 //vim: ts=4 sw=4 expandtab

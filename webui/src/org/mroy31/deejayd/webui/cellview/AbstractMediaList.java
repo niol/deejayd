@@ -34,10 +34,9 @@ import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.provider.MediaListProvider;
 import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
+import org.mroy31.deejayd.webui.cellview.columns.CkSelColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 
-import com.google.gwt.cell.client.CheckboxCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -87,7 +86,7 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
     public static int DEFAULT_PAGE_SIZE = 50;
 
     private static NewMediaListUiBinder uiBinder = GWT
-            .create(NewMediaListUiBinder.class);
+    .create(NewMediaListUiBinder.class);
     interface NewMediaListUiBinder extends UiBinder<Widget, AbstractMediaList> {}
 
     @UiField(provided = true) DeejaydCellTable<Media> mediaList;
@@ -100,24 +99,19 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
     private int spanCount = 0;
 
     public AbstractMediaList(final WebuiLayout ui, final String source,
-                int pageSize, Boolean hasSelection) {
+            int pageSize, Boolean hasSelection) {
         this.ui = ui;
 
         ProvidesKey<Media> keyProvider = new ProvidesKey<Media>() {
 
             public Object getKey(Media item) {
-                return item.getStrAttr("id")+"/"+item.getStrAttr("media_id");
+                // Always do a null check
+                return (item == null) ? "" : item.getStrAttr("id")+"/"+item.getStrAttr("media_id");
             }
         };
         if (hasSelection)
             selModel = new DeejaydSelModel<Media>(keyProvider);
         mediaList = new DeejaydCellTable<Media>(pageSize, keyProvider);
-        mediaList.setRowCommand(new DeejaydCellTable.RowCommand<Media>() {
-
-            public void execute(Media object) {
-                ui.rpc.goTo(object.getId(), source, null);
-            }
-        });
         mediaList.addRangeChangeHandler(new RangeChangeEvent.Handler() {
 
             public void onRangeChange(RangeChangeEvent event) {
@@ -256,7 +250,7 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
         } else {
             try {
                 ensureVisibleImpl(mediaListPanel.getElement(),
-                    (Element) mediaList.getRowElement(row-range.getStart()));
+                        (Element) mediaList.getRowElement(row-range.getStart()));
             } catch (IndexOutOfBoundsException e) {}
         }
     }
@@ -264,23 +258,6 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
     protected void addSelectionColumn() {
         if (selModel == null)
             return;
-
-        // add column with checkbox to select row
-        Column<Media, Boolean> checkColumn = new Column<Media, Boolean>(
-                new CheckboxCell(true)) {
-
-            @Override
-            public Boolean getValue(Media object) {
-                return selModel.isSelected(object);
-              }
-            };
-        checkColumn.setFieldUpdater(new FieldUpdater<Media, Boolean>() {
-
-            public void update(int index, Media object, Boolean value) {
-                // Called when the user clicks on a checkbox.
-                selModel.setSelected(object, value);
-            }
-        });
 
         // add a checkbox in the header to select/unselect all rows
         CheckBox allCk = new CheckBox();
@@ -291,7 +268,7 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
                         event.getValue());
             }
         });
-        addColumn(checkColumn, allCk, "30px");
+        addColumn(new CkSelColumn<Media>(mediaList), allCk, "25px");
     }
 
     private native void ensureVisibleImpl(Element scroll, Element e) /*-{

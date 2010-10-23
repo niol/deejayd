@@ -35,7 +35,7 @@ public class WebradioList extends AbstractMediaList {
         super(ui, "webradio", DEFAULT_PAGE_SIZE, true);
 
         addSelectionColumn();
-        addColumn(new MediaAttrColumn("title"),
+        addColumn(new MediaAttrColumn("title", ui),
                 new Label(ui.i18nConstants.title()), 2);
         addColumn(new Column<Media, String>(new TextCell()) {
 

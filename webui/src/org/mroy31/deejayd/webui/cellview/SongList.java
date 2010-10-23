@@ -27,9 +27,6 @@ import org.mroy31.deejayd.webui.cellview.columns.MediaAttrColumn;
 import org.mroy31.deejayd.webui.cellview.columns.RatingColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Label;
 
 public class SongList extends AbstractMediaList {
@@ -37,14 +34,7 @@ public class SongList extends AbstractMediaList {
     public SongList(final WebuiLayout ui, String source, int pageSize) {
         super(ui, source, pageSize, true);
 
-        CheckBox allCk = new CheckBox();
-        allCk.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
-
-            public void onValueChange(ValueChangeEvent<Boolean> event) {
-                selModel.setSelected(mediaList.getDisplayedItems(),
-                        event.getValue());
-            }
-        });
+        addSelectionColumn();
         addColumn(new GrippyColumn<Media>(source, mediaList,
                 ui.resources.webuiCss().grippyCell(),
                 new GrippyCell.DragStartMessage() {
@@ -52,18 +42,18 @@ public class SongList extends AbstractMediaList {
                     public String onDragStart(int count) {
                         return ui.i18nMessages.songsDesc(count);
                     }
-        }), allCk, "24px");
+        }), new Label(""), "24px");
 
-        addColumn(new MediaAttrColumn("tracknumber"), new Label("#"), "40px");
-        addColumn(new MediaAttrColumn("title"),
+        addColumn(new MediaAttrColumn("tracknumber", ui), new Label("#"), "40px");
+        addColumn(new MediaAttrColumn("title", ui),
                 new Label(ui.i18nConstants.title()), 2);
-        addColumn(new MediaAttrColumn("artist"),
+        addColumn(new MediaAttrColumn("artist", ui),
                 new Label(ui.i18nConstants.artist()));
-        addColumn(new MediaAttrColumn("album"),
+        addColumn(new MediaAttrColumn("album", ui),
                 new Label(ui.i18nConstants.album()));
-        addColumn(new MediaAttrColumn("genre"),
+        addColumn(new MediaAttrColumn("genre", ui),
                 new Label(ui.i18nConstants.genre()));
-        addColumn(new MediaAttrColumn("length"),
+        addColumn(new MediaAttrColumn("length", ui),
                 new Label(ui.i18nConstants.length()), "50px");
         addColumn(new RatingColumn(ui.resources.star()),
                 new Label(ui.i18nConstants.rating()), "70px");

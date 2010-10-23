@@ -29,24 +29,33 @@ import org.mroy31.deejayd.common.provider.LibraryProvider;
 import org.mroy31.deejayd.common.provider.LibraryProvider.LibraryItem;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydSelModel;
+import org.mroy31.deejayd.webui.cellview.columns.CkSelColumn;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 
-import com.google.gwt.cell.client.ImageResourceCell;
+import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.AbstractPager;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
-import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
@@ -58,6 +67,24 @@ import com.google.gwt.view.client.RangeChangeEvent;
 
 public class AudioLibView extends Composite implements LibraryChangeHandler {
     private WebuiLayout ui;
+
+    private class PathUpdater<C> implements FieldUpdater<LibraryItem, C> {
+
+        public void update(int index, LibraryItem object, C value) {
+            if ("directory".equals(object.getType()))
+                setPath(object.getPath());
+        }
+
+    }
+
+    private abstract class LibraryColumn<C> extends Column<LibraryItem, C> {
+
+        public LibraryColumn(Cell<C> cell) {
+            super(cell);
+            setFieldUpdater(new PathUpdater<C>());
+        }
+
+    }
 
     private static AudioLibViewUiBinder uiBinder = GWT
             .create(AudioLibViewUiBinder.class);
@@ -84,17 +111,12 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
         ProvidesKey<LibraryItem> kProv = new ProvidesKey<LibraryItem>() {
 
             public Object getKey(LibraryItem item) {
-                return item.getPath();
+                // Always do a null check.
+                return (item == null) ? "" : item.getPath();
             }
         };
         selModel = new DeejaydSelModel<LibraryItem>(kProv);
         list = new DeejaydCellTable<LibraryItem>(PAGE_SIZE, kProv);
-        list.setRowCommand(new DeejaydCellTable.RowCommand<LibraryItem>() {
-
-            public void execute(LibraryItem object) {
-                setPath(object.getPath());
-            }
-        });
         list.addRangeChangeHandler(new RangeChangeEvent.Handler() {
 
             public void onRangeChange(RangeChangeEvent event) {
@@ -118,6 +140,9 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
         ui.audioLibrary.addLibraryChangeHandler(this);
 
         // add columns
+        list.addColumn(new CkSelColumn<LibraryProvider.LibraryItem>(list));
+        list.setColumnWidth(0, "22px");
+
         list.addColumn(new GrippyColumn<LibraryProvider.LibraryItem>("audiolib",
                 list, ui.resources.webuiCss().grippyCell(),
                 new GrippyCell.DragStartMessage() {
@@ -126,10 +151,32 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
                         return ui.i18nMessages.pathCount(count);
                     }
                 }));
-        list.setColumnWidth(0, "20px");
+        list.setColumnWidth(1, "20px");
 
-        list.addColumn(new Column<LibraryProvider.LibraryItem, ImageResource>(
-                new ImageResourceCell()) {
+        list.addColumn(new LibraryColumn<ImageResource>(
+                new AbstractCell<ImageResource>("dblclick"){
+
+                    @Override
+                    public void render(ImageResource value, Object key,
+                            SafeHtmlBuilder sb) {
+                        if (value != null) {
+                              SafeHtml html = SafeHtmlUtils.fromTrustedString(
+                                      AbstractImagePrototype.create(
+                                              value).getHTML());
+                              sb.append(html);
+                            }
+                    }
+
+                    @Override
+                    public void onBrowserEvent(Element parent,
+                            ImageResource value, Object key,
+                            NativeEvent event,
+                            ValueUpdater<ImageResource> valueUpdater) {
+                        event.preventDefault();
+
+                        valueUpdater.update(value);
+                    }
+                }) {
 
             @Override
             public ImageResource getValue(LibraryItem object) {
@@ -138,14 +185,35 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
             }
 
         });
-        list.setColumnWidth(1, "30px");
+        list.setColumnWidth(2, "30px");
 
-        list.addColumn(new TextColumn<LibraryProvider.LibraryItem>() {
+        list.addColumn(new LibraryColumn<String>(
+                new AbstractCell<String>("dblclick"){
+
+                    @Override
+                    public void render(String value, Object key,
+                            SafeHtmlBuilder sb) {
+                        if (value != null) {
+                              sb.appendEscaped(value);
+                            }
+                    }
+
+                    @Override
+                    public void onBrowserEvent(Element parent,
+                            String value, Object key,
+                            NativeEvent event,
+                            ValueUpdater<String> valueUpdater) {
+                        event.preventDefault();
+
+                        valueUpdater.update(value);
+                    }
+                }) {
 
             @Override
             public String getValue(LibraryItem object) {
                 return object.getLabel();
             }
+
         });
 
         provider.onLibraryChange(null);

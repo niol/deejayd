@@ -37,10 +37,10 @@ public class VideoList extends AbstractMediaList {
         WebuiConstants i18n = ui.i18nConstants;
 
         addSelectionColumn();
-        addColumn(new MediaAttrColumn("title"), new Label(i18n.title()), 2);
-        addColumn(new MediaAttrColumn("videowidth"), new Label(i18n.width()), "40px");
-        addColumn(new MediaAttrColumn("videoheight"), new Label(i18n.height()), "40px");
-        addColumn(new MediaAttrColumn("length"), new Label(i18n.length()), "50px");
+        addColumn(new MediaAttrColumn("title", ui), new Label(i18n.title()), 2);
+        addColumn(new MediaAttrColumn("videowidth", ui), new Label(i18n.width()), "40px");
+        addColumn(new MediaAttrColumn("videoheight", ui), new Label(i18n.height()), "40px");
+        addColumn(new MediaAttrColumn("length", ui), new Label(i18n.length()), "50px");
         addColumn(new Column<Media, String>(new TextCell()) {
 
             @Override

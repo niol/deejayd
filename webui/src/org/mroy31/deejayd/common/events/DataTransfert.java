@@ -35,20 +35,8 @@ public class DataTransfert extends JavaScriptObject {
     }-*/;
 
     public final native void setDragImage(String text) /*-{
-        var value = text;
         var img = document.createElement("img");
-
-        // create img canvas
-        var canvas = document.createElementNS("http://www.w3.org/1999/xhtml","html:canvas");
-        canvas.width = 100; canvas.height = 20;
-
-        var ctx = canvas.getContext("2d");
-        ctx.fillStyle    = '#000';
-        ctx.font         = 'italic 12px sans-serif';
-        ctx.textBaseline = 'top';
-        ctx.fillText(value, 0, 0, 95);
-
-        img.src = canvas.toDataURL();
+        img.src = "../style/copy.png";
         this.setDragImage(img, -10, 0);
     }-*/;
 

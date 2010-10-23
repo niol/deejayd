@@ -21,6 +21,10 @@
 /*
  * General
  */
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
 .blueToolbar { background-color: #D0E4F6; }
 @sprite .blueToolbarBg{ gwt-image: "blueToolbarBg";}
 @sprite .toolbar {gwt-image: "toolbarBg";}
@@ -172,8 +176,12 @@
   padding: 0px 0px 3px 10px;
   border-bottom: 1px solid #E8EEF7;
   cursor: pointer;
+  height: 16px; line-heigth: 16px;
 }
-.tagPanelSelectedItem { background-color: #ccc; }
+@sprite .tagPanelSelectedItem {
+  gwt-image: "selectedBackground"; height: 16px;
+  color: white;
+}
 
 /*
  * Playlist
