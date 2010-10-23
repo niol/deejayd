@@ -33,6 +33,7 @@ import com.google.gwt.user.cellview.client.Column;
 
 
 public class MediaAttrColumn extends Column<Media, String> {
+    private WebuiLayout ui;
     private final String attr;
 
     public MediaAttrColumn(String attr, final WebuiLayout ui) {
@@ -54,12 +55,17 @@ public class MediaAttrColumn extends Column<Media, String> {
             }
         });
         this.attr = attr;
+        this.ui = ui;
     }
 
     @Override
     public String getValue(Media object) {
         if (attr.equals("length"))
             return DeejaydUtils.formatTime(object.getIntAttr(attr));
+        else if (attr.equals("external_subtitle")) {
+            return object.getStrAttr("external_subtitle").equals("") ?
+                    ui.i18nConstants.no() : ui.i18nConstants.yes();
+        }
         return object.getStrAttr(attr);
     }
 }

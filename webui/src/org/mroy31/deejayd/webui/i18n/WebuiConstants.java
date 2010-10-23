@@ -254,6 +254,12 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Video")
     String videoMode();
+
+    @DefaultStringValue("Yes")
+    String yes();
+
+    @DefaultStringValue("No")
+    String no();
 }
 
 // vim: ts=4 sw=4 expandtab

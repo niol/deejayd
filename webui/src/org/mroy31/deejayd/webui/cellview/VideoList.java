@@ -20,14 +20,11 @@
 
 package org.mroy31.deejayd.webui.cellview;
 
-import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.webui.cellview.columns.MediaAttrColumn;
 import org.mroy31.deejayd.webui.cellview.columns.RatingColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 
-import com.google.gwt.cell.client.TextCell;
-import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.client.ui.Label;
 
 public class VideoList extends AbstractMediaList {
@@ -41,14 +38,7 @@ public class VideoList extends AbstractMediaList {
         addColumn(new MediaAttrColumn("videowidth", ui), new Label(i18n.width()), "40px");
         addColumn(new MediaAttrColumn("videoheight", ui), new Label(i18n.height()), "40px");
         addColumn(new MediaAttrColumn("length", ui), new Label(i18n.length()), "50px");
-        addColumn(new Column<Media, String>(new TextCell()) {
-
-            @Override
-            public String getValue(Media object) {
-                return "";
-            }
-
-        }, new Label(i18n.subtitle()), "65px");
+        addColumn(new MediaAttrColumn("external_subtitle", ui), new Label(i18n.subtitle()), "65px");
         addColumn(new RatingColumn(ui.resources.star()),
                 new Label(i18n.rating()));
     }
