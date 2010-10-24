@@ -484,10 +484,6 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
              return;
          }
 
-         // Determine if we are in the header, footer, or body. Its possible that
-         // the table has been refreshed before the current event fired (ex. change
-         // event refreshes before mouseup fires), so we need to check each parent
-         // element.
          Element trElem = tableCell.getParentElement();
          if (trElem == null) {
              return;
@@ -496,7 +492,6 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
 
          // Forward the event to the column.
          int col = tableCell.getCellIndex();
-         // Update the hover state.
          int row = tr.getSectionRowIndex();
 
          T value = getDisplayedItem(row);
