@@ -27,9 +27,9 @@ import org.mroy31.deejayd.mobile.events.HasAnimationHandlers;
 import org.mroy31.deejayd.mobile.widgets.impl.WallToWallPanelImpl;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
@@ -103,8 +103,8 @@ public abstract class WallToWallPanel extends Composite
         } else {
             impl.hideContextPanel(this);
         }
-        DeferredCommand.addPause();
-        DeferredCommand.addCommand(new ScrollToCommand(null));
+        Scheduler.get().scheduleDeferred(null); // add pause
+        Scheduler.get().scheduleDeferred(new ScrollToCommand(null));
     }
 
     public void setChild(WallToWallPanel ch) {
@@ -120,14 +120,14 @@ public abstract class WallToWallPanel extends Composite
 
     public void showParent() {
         impl.showParent(this, parent);
-        DeferredCommand.addPause();
-        DeferredCommand.addCommand(new ScrollToCommand(null));
+        Scheduler.get().scheduleDeferred(null); // add pause
+        Scheduler.get().scheduleDeferred(new ScrollToCommand(null));
     }
 
     public void showChild() {
         impl.showChild(this, child);
-        DeferredCommand.addPause();
-        DeferredCommand.addCommand(new ScrollToCommand(null));
+        Scheduler.get().scheduleDeferred(null); // add pause
+        Scheduler.get().scheduleDeferred(new ScrollToCommand(null));
     }
 
     public void add(Widget w) {

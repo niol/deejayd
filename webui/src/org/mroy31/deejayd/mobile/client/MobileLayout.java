@@ -30,10 +30,10 @@ import org.mroy31.deejayd.mobile.widgets.ScrollToCommand;
 import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -107,7 +107,7 @@ public class MobileLayout extends DeejaydUIWidget {
         panel.addStyleName(resources.mobileCss().mainBody());
 
         initWidget(panel);
-        DeferredCommand.addCommand(new Command() {
+        Scheduler.get().scheduleDeferred(new Command() {
             public void execute() {
                 ModeListPanel modeList = new ModeListPanel();
                 walls.put("modeList", modeList);
@@ -124,13 +124,13 @@ public class MobileLayout extends DeejaydUIWidget {
                 player.addStyleName(resources.mobileCss().currentWall());
             }
         });
-        DeferredCommand.addCommand(new Command() {
+        Scheduler.get().scheduleDeferred(new Command() {
             public void execute() {
                 update();
             }
         });
-        DeferredCommand.addPause();
-        DeferredCommand.addCommand(new ScrollToCommand(null));
+        Scheduler.get().scheduleDeferred(null); // add pause
+        Scheduler.get().scheduleDeferred(new ScrollToCommand(null));
     }
 
     public WallToWallPanel getWallPanel(String name) {
