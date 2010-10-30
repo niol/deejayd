@@ -58,7 +58,7 @@ import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.RangeChangeEvent;
 
 public class AbstractMediaList extends Composite implements StatusChangeHandler {
-    private WebuiLayout ui;
+    protected WebuiLayout ui;
 
     public static interface DnDCommand {
 
@@ -94,7 +94,7 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
     @UiField ScrollMediaPanel mediaListPanel;
 
     protected DeejaydSelModel<Media> selModel;
-    private MediaListProvider provider;
+    protected MediaListProvider provider;
     private int columnCount = 0;
     private int spanCount = 0;
 

@@ -21,6 +21,7 @@
 package org.mroy31.deejayd.webui.cellview;
 
 import org.mroy31.deejayd.common.rpc.types.Media;
+import org.mroy31.deejayd.common.rpc.types.MediaListSort;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyCell;
 import org.mroy31.deejayd.webui.cellview.columns.GrippyColumn;
 import org.mroy31.deejayd.webui.cellview.columns.MediaAttrColumn;
@@ -29,17 +30,11 @@ import org.mroy31.deejayd.webui.client.WebuiLayout;
 
 import com.google.gwt.user.client.ui.Label;
 
-public class SongList extends AbstractMediaList {
+public class SortSongList extends SortMediaList {
 
-    public SongList(WebuiLayout ui, String source, int pageSize) {
-        this(ui, source, pageSize, false);
-    }
+    public SortSongList(final WebuiLayout ui, String source, int pageSize) {
+        super(ui, source, pageSize);
 
-    public SongList(final WebuiLayout ui, String source, int pageSize,
-            boolean sort) {
-        super(ui, source, pageSize, true);
-
-        addSelectionColumn();
         addColumn(new GrippyColumn<Media>(source, mediaList,
                 ui.resources.webuiCss().grippyCell(),
                 new GrippyCell.DragStartMessage() {
@@ -51,18 +46,33 @@ public class SongList extends AbstractMediaList {
 
         addColumn(new MediaAttrColumn("tracknumber", ui), new Label("#"), "40px");
 
-        addColumn(new MediaAttrColumn("title", ui),
-                new Label(ui.i18nConstants.title()), 2);
-        addColumn(new MediaAttrColumn("artist", ui),
-                new Label(ui.i18nConstants.artist()));
-        addColumn(new MediaAttrColumn("album", ui),
-                new Label(ui.i18nConstants.album()));
-        addColumn(new MediaAttrColumn("genre", ui),
-                new Label(ui.i18nConstants.genre()));
+        sortCols.put("title", new HeaderCol(ui, ui.i18nConstants.title(), "title"));
+        addColumn(new MediaAttrColumn("title", ui), sortCols.get("title"), 2);
+
+        sortCols.put("artist", new HeaderCol(ui, ui.i18nConstants.artist(), "artist"));
+        addColumn(new MediaAttrColumn("artist", ui), sortCols.get("artist"));
+
+        sortCols.put("album", new HeaderCol(ui, ui.i18nConstants.album(), "album"));
+        addColumn(new MediaAttrColumn("album", ui), sortCols.get("album"));
+
+        sortCols.put("genre", new HeaderCol(ui, ui.i18nConstants.genre(), "genre"));
+        addColumn(new MediaAttrColumn("genre", ui), sortCols.get("genre"));
+
         addColumn(new MediaAttrColumn("length", ui),
                 new Label(ui.i18nConstants.length()), "50px");
+
+        sortCols.put("rating", new HeaderCol(ui, ui.i18nConstants.rating(), "rating"));
         addColumn(new RatingColumn(ui.resources.star()),
-                new Label(ui.i18nConstants.rating()), "70px");
+                sortCols.get("rating"), "70px");
+    }
+
+    @Override
+    void updateSort(String tag, String value) {
+        MediaListSort sort = new MediaListSort();
+        if (!"unsorted".equals(value))
+            sort.add(new MediaListSort.TagSort(tag, value));
+
+        ui.rpc.panelModeSetSort(sort, null);
     }
 
 }

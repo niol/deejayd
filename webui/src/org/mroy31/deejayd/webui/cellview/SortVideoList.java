@@ -20,6 +20,7 @@
 
 package org.mroy31.deejayd.webui.cellview;
 
+import org.mroy31.deejayd.common.rpc.types.MediaListSort;
 import org.mroy31.deejayd.webui.cellview.columns.MediaAttrColumn;
 import org.mroy31.deejayd.webui.cellview.columns.RatingColumn;
 import org.mroy31.deejayd.webui.client.WebuiLayout;
@@ -27,20 +28,36 @@ import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 
 import com.google.gwt.user.client.ui.Label;
 
-public class VideoList extends AbstractMediaList {
+public class SortVideoList extends SortMediaList {
 
-    public VideoList(WebuiLayout ui) {
-        super(ui, "video", DEFAULT_PAGE_SIZE, true);
+    public SortVideoList(WebuiLayout ui) {
+        super(ui, "video", DEFAULT_PAGE_SIZE);
         WebuiConstants i18n = ui.i18nConstants;
 
-        addSelectionColumn();
-        addColumn(new MediaAttrColumn("title", ui), new Label(i18n.title()), 2);
-        addColumn(new MediaAttrColumn("videowidth", ui), new Label(i18n.width()), "40px");
-        addColumn(new MediaAttrColumn("videoheight", ui), new Label(i18n.height()), "40px");
-        addColumn(new MediaAttrColumn("length", ui), new Label(i18n.length()), "50px");
-        addColumn(new MediaAttrColumn("external_subtitle", ui), new Label(i18n.subtitle()), "65px");
+        sortCols.put("title", new HeaderCol(ui, i18n.title(), "title"));
+        addColumn(new MediaAttrColumn("title", ui), sortCols.get("title"), 2);
+
+        addColumn(new MediaAttrColumn("videowidth", ui),
+                new Label(i18n.width()), "40px");
+        addColumn(new MediaAttrColumn("videoheight", ui),
+                new Label(i18n.height()), "40px");
+        addColumn(new MediaAttrColumn("external_subtitle", ui),
+                new Label(i18n.subtitle()), "65px");
+        addColumn(new MediaAttrColumn("length", ui),
+                new Label(i18n.length()), "50px");
+
+        sortCols.put("rating", new HeaderCol(ui, i18n.rating(), "rating"));
         addColumn(new RatingColumn(ui.resources.star()),
-                new Label(i18n.rating()));
+                sortCols.get("rating"), "70px");
+    }
+
+    @Override
+    void updateSort(String tag, String value) {
+        MediaListSort sort = new MediaListSort();
+        if (!"unsorted".equals(value))
+            sort.add(new MediaListSort.TagSort(tag, value));
+
+        ui.rpc.videoModeSetSort(sort, null);
     }
 
 }

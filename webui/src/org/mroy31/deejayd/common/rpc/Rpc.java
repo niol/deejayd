@@ -39,6 +39,7 @@ import org.mroy31.deejayd.common.rpc.types.FileDirList;
 import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.common.rpc.types.MediaList;
+import org.mroy31.deejayd.common.rpc.types.MediaListSort;
 import org.mroy31.deejayd.common.rpc.types.Playlist;
 
 import com.google.gwt.core.client.GWT;
@@ -557,6 +558,14 @@ public class Rpc {
         send("panel.removeFilter", args, handler);
     }
 
+    public void panelModeSetSort(MediaListSort sort,
+            AnswerHandler<Boolean> handler) {
+        JSONArray args = new JSONArray();
+        args.set(0, sort.toJSON());
+
+        send("panel.setSort", args, handler);
+    }
+
     public void panelModeBuildPanel(String updatedTag, RpcCallback callback) {
         JSONArray args = new JSONArray();
         if (updatedTag != null) {
@@ -575,6 +584,14 @@ public class Rpc {
         args.set(0, new JSONString(value));
         args.set(1, new JSONString(type));
         send("video.set", args, handler);
+    }
+
+    public void videoModeSetSort(MediaListSort sort,
+            AnswerHandler<Boolean> handler) {
+        JSONArray args = new JSONArray();
+        args.set(0, sort.toJSON());
+
+        send("video.sort", args, handler);
     }
 
     /*

@@ -22,6 +22,7 @@ package org.mroy31.deejayd.common.rpc.callbacks;
 
 import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.common.rpc.types.MediaList;
+import org.mroy31.deejayd.common.rpc.types.MediaListSort;
 
 import com.google.gwt.json.client.JSONValue;
 
@@ -42,9 +43,14 @@ public class MediaListCallback extends AbstractRpcCallback {
         MediaList ans = new MediaList();
 
         ans.setMediaList(data.isObject().get("medias").isArray());
+
         JSONValue filter = data.isObject().get("filter");
         if (filter != null && filter.isObject() != null)
             ans.setFilter(MediaFilter.parse(filter.isObject()));
+
+        JSONValue sort = data.isObject().get("sort");
+        if (sort != null && sort.isArray() != null)
+            ans.setSort(MediaListSort.parse(sort.isArray()));
 
         handler.onAnswer(ans);
     }

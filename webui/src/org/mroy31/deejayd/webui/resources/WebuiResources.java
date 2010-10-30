@@ -227,6 +227,10 @@ public interface WebuiResources extends ClientBundle {
     @Source("SelectedBackground.png")
     @ImageOptions(repeatStyle = RepeatStyle.Horizontal)
     ImageResource selectedBackground();
+
+	ImageResource ascArraw();
+
+	ImageResource descArraw();
 }
 
 //vim: ts=4 sw=4 expandtab

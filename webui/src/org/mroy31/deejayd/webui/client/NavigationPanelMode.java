@@ -30,7 +30,7 @@ import org.mroy31.deejayd.common.rpc.types.MediaFilter;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.Pager;
-import org.mroy31.deejayd.webui.cellview.SongList;
+import org.mroy31.deejayd.webui.cellview.SortSongList;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
 import org.mroy31.deejayd.webui.widgets.RatingButton;
 import org.mroy31.deejayd.webui.widgets.TagList;
@@ -115,7 +115,7 @@ public class NavigationPanelMode extends AbstractWebuiMode implements ClickHandl
         super("panel", webui, true, true);
         this.resources = webui.resources;
         this.pager = new Pager(webui);
-        mediaList = new SongList(ui, "panel", AbstractMediaList.DEFAULT_PAGE_SIZE);
+        mediaList = new SortSongList(ui, "panel", AbstractMediaList.DEFAULT_PAGE_SIZE);
         ratingButton = new RatingButton(ui, mediaList.getSelectionModel());
 
         initWidget(uiBinder.createAndBindUi(this));

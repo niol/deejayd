@@ -22,7 +22,7 @@ package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
-import org.mroy31.deejayd.webui.cellview.VideoList;
+import org.mroy31.deejayd.webui.cellview.SortVideoList;
 import org.mroy31.deejayd.webui.widgets.RatingButton;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -45,7 +45,7 @@ public class VideoMode extends DefaultWebuiMode implements ClickHandler {
 
     @Override
     @UiFactory AbstractMediaList makeMediaList() {
-        return new VideoList(ui);
+        return new SortVideoList(ui);
     }
 
     @Override

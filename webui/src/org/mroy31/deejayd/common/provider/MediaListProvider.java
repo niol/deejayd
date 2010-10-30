@@ -20,11 +20,14 @@
 
 package org.mroy31.deejayd.common.provider;
 
+import java.util.ArrayList;
+
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.rpc.types.MediaList;
+import org.mroy31.deejayd.common.rpc.types.MediaListSort;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 
 import com.google.gwt.view.client.AsyncDataProvider;
@@ -35,6 +38,11 @@ import com.google.gwt.view.client.Range;
 public class MediaListProvider implements StatusChangeHandler {
     private final DeejaydUIWidget ui;
     private final String source;
+
+    public static interface SortUpdateHandler {
+        public void onSortUpdate(MediaListSort sort);
+    }
+    private ArrayList<SortUpdateHandler> sortHandlers = new ArrayList<SortUpdateHandler>();
 
     private int sourceId = -1;
     private AsyncDataProvider<Media> dataProvider = new AsyncDataProvider<Media>() {
@@ -69,6 +77,10 @@ public class MediaListProvider implements StatusChangeHandler {
         return dataProvider;
     }
 
+    public void addSortUpdateHandler(SortUpdateHandler handler) {
+        sortHandlers.add(handler);
+    }
+
     private void updateMediasOnRange(final Range range) {
         ui.rpc.modeGetMedia(source, range.getStart(),
                 range.getLength(), new AnswerHandler<MediaList>() {
@@ -76,6 +88,12 @@ public class MediaListProvider implements StatusChangeHandler {
             public void onAnswer(MediaList answer) {
                 dataProvider.updateRowData(range.getStart(),
                         answer.getMediaList());
+
+                if (range.getStart() == 0) { // perharps a ml update
+                    for (SortUpdateHandler handler : sortHandlers) {
+                        handler.onSortUpdate(answer.getSort());
+                    }
+                }
             }
         });
     }

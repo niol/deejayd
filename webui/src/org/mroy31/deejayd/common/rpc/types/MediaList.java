@@ -29,6 +29,7 @@ import com.google.gwt.json.client.JSONArray;
 public class MediaList {
     private JSONArray mediaList;
     private MediaFilter filter;
+    private MediaListSort sort;
 
     public void setMediaList(JSONArray list) {
         this.mediaList = list;
@@ -36,6 +37,10 @@ public class MediaList {
 
     public void setFilter(MediaFilter filter) {
         this.filter = filter;
+    }
+
+    public void setSort(MediaListSort sort) {
+        this.sort = sort;
     }
 
     public List<Media> getMediaList() {
@@ -55,6 +60,10 @@ public class MediaList {
 
     public MediaFilter getFilter() {
         return filter;
+    }
+
+    public MediaListSort getSort() {
+        return sort;
     }
 }
 
