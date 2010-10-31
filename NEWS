@@ -4,6 +4,7 @@ New features and significant updates in version...
 0.11.0 (2010-XX-XX)
 -------------------
   * Replace XUL ui with a new webui built with Google Web Toolkit
+  * In the same way, replace mobile webui with a new one based on GWT
 
 0.10.0 (2010-03-31)
 --------------------
