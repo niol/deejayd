@@ -86,9 +86,8 @@ public class VideoLibrary extends AbstractLibrary {
                     @Override
                     public void render(String value, Object key,
                             SafeHtmlBuilder sb) {
-                        sb.appendHtmlConstant("<button class='");
-                        sb.appendEscaped(ui.resources.mobileCss().button());
-                        sb.appendHtmlConstant("'>");
+                        sb.appendHtmlConstant("<button class='"+
+                                ui.resources.mobileCss().button()+"'>");
                         sb.appendEscaped(ui.i18nConst.select());
                         sb.appendHtmlConstant("</button>");
                     }

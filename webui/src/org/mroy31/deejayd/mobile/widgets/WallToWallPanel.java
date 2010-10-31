@@ -103,7 +103,6 @@ public abstract class WallToWallPanel extends Composite
         } else {
             impl.hideContextPanel(this);
         }
-        Scheduler.get().scheduleDeferred(null); // add pause
         Scheduler.get().scheduleDeferred(new ScrollToCommand(null));
     }
 
@@ -120,13 +119,11 @@ public abstract class WallToWallPanel extends Composite
 
     public void showParent() {
         impl.showParent(this, parent);
-        Scheduler.get().scheduleDeferred(null); // add pause
         Scheduler.get().scheduleDeferred(new ScrollToCommand(null));
     }
 
     public void showChild() {
         impl.showChild(this, child);
-        Scheduler.get().scheduleDeferred(null); // add pause
         Scheduler.get().scheduleDeferred(new ScrollToCommand(null));
     }
 

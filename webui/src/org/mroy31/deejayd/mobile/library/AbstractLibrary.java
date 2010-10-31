@@ -142,7 +142,7 @@ abstract class AbstractLibrary extends Composite {
                     public void render(ImageResource value, Object key,
                             SafeHtmlBuilder sb) {
                         if (value != null) {
-                            sb.appendEscaped(AbstractImagePrototype
+                            sb.appendHtmlConstant(AbstractImagePrototype
                                     .create(value).getHTML());
                       }
                     }

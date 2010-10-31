@@ -129,7 +129,6 @@ public class MobileLayout extends DeejaydUIWidget {
                 update();
             }
         });
-        Scheduler.get().scheduleDeferred(null); // add pause
         Scheduler.get().scheduleDeferred(new ScrollToCommand(null));
     }
 
