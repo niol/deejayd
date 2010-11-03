@@ -59,9 +59,6 @@ class XinePlayer(UnknownPlayer):
         # init vars
         self.__supports_gapless = self.__xine.has_gapless()
 
-        self.__audio_volume = 100
-        self.__video_volume = 100
-
         self.__window = None
         self.__stream = None
         self.__osd = None
@@ -246,27 +243,7 @@ class XinePlayer(UnknownPlayer):
     def _player_get_slang(self):
         return self.__stream.get_param(xine.Stream.XINE_PARAM_SPU_CHANNEL)
 
-    def get_volume(self):
-        if self.current_is_video():
-            return self.__video_volume
-        else:
-            return self.__audio_volume
-
-    def set_volume(self, vol, sig = True):
-        new_volume = min(100, int(vol))
-        if self.current_is_video():
-            self.__video_volume = new_volume
-        else:
-            self.__audio_volume = new_volume
-
-        # replaygain support
-        vol = self.get_volume()
-        if self._replaygain and self._media_file is not None:
-            try: scale = self._media_file.replay_gain()
-            except AttributeError: pass # replaygain not supported
-            else:
-                vol = max(0.0, min(4.0, float(vol)/100.0 * scale))
-                vol = min(100, int(vol * 100))
+    def _set_volume(self, vol, sig = True):
         if self.__stream:
             self.__stream.set_volume(vol)
         if sig:
@@ -309,10 +286,6 @@ class XinePlayer(UnknownPlayer):
         if self.supported_extensions == None:
             self.supported_extensions = self.__xine.get_supported_extensions()
         return format.strip(".") in self.supported_extensions
-
-    def current_is_video(self):
-        return self._media_file is not None\
-               and self._media_file['type'] == 'video'
 
     def close(self):
         UnknownPlayer.close(self)

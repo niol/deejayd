@@ -34,7 +34,6 @@ class GstreamerPlayer(UnknownPlayer):
 
     def __init__(self, db, plugin_manager, config):
         UnknownPlayer.__init__(self, db, plugin_manager, config)
-        self.__volume = 100
 
         # Open a Audio pipeline
         pipeline =  self.config.get("gstreamer", "audio_output")
@@ -152,26 +151,16 @@ class GstreamerPlayer(UnknownPlayer):
         self.start_play()
 
         # replaygain reset
-        self.set_volume(self.__volume, sig=False)
+        self.set_volume(self.get_volume(), sig=False)
 
         if sig: self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
 
-    def get_volume(self):
-        return self.__volume
-
-    def set_volume(self, vol, sig=True):
-        self.__volume = min(100, int(vol))
-        v = float(self.__volume)/100
-        # replaygain support
-        if self._replaygain and self._media_file is not None:
-            try: scale = self._media_file.replay_gain()
-            except AttributeError: pass # replaygain not supported
-            else:
-                v = max(0.0, min(4.0, v * scale))
-                v = float(min(100, int(v * 100)))/100
+    def _set_volume(self, vol, sig=True):
+        v = float(vol)/100
         self.bin.set_property('volume', v)
-        if sig: self.dispatch_signame('player.status')
+        if sig:
+            self.dispatch_signame('player.status')
 
     def get_position(self):
         if gst.STATE_NULL != self.__get_gst_state() and \
