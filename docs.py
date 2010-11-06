@@ -175,6 +175,12 @@ All data between the client and server is encoded in UTF-8.
 
 %(answer)s
 
+== Separator ==
+
+Commands and Responses always finish with the separator `ENDJSON\\n`.
+So a command is interpreted by deejayd server only if it finish with this
+separator.
+
 == Specific Objects ==
 
 === Mediafilter Objects ===
@@ -184,6 +190,16 @@ an method argument or receive with an answer. An example is given here.
 {{{
 `%(filter)s`
 }}}
+
+=== Sort Objects ===
+
+Sort object has been serialized in a specific way to be passed as
+an method argument or receive with an answer. An example is given here.
+{{{
+`[["tag1", "ascending"], ["tag2", "descending"]]`
+}}}
+
+Possible sort values are : "ascending" and "descending".
 
 === Signal Objects ===
 
