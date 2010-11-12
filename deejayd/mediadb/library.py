@@ -73,7 +73,8 @@ class _Library(SignalingComponent):
         self._path = self.fs_charset2unicode(os.path.abspath(path))
         # test library path
         if not os.path.isdir(self._path):
-            msg = _("Unable to find directory %s") % self._encode(self._path)
+            msg = _("Unable to find directory %s") \
+                    % self.fs_charset2unicode(self._path)
             raise NotFoundException(msg)
 
         # Connection to the database
@@ -422,7 +423,7 @@ class _Library(SignalingComponent):
         except Exception, ex:
             log.err(_("Unable to get infos from %s, see traceback")%file_path)
             log.err("------------------Traceback lines--------------------")
-            log.err(self._encode(traceback.format_exc()))
+            log.err(self.fs_charset2unicode(traceback.format_exc()))
             log.err("-----------------------------------------------------")
             return None
         return file_info
