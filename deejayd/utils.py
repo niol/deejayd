@@ -24,14 +24,18 @@ def quote_uri(path):
         path = path.encode('utf-8')
     return "file://%s" % urllib.quote(path)
 
-def str_encode(data, charset = 'utf-8', errors='strict'):
+def str_decode(data, charset='utf-8', errors='strict'):
+    """
+    Decode the string given a supplied charset into a unicode string, and
+    log errors.
+    """
     if type(data) is unicode: return data
     try: rs = data.decode(charset, errors)
     except UnicodeError:
-        log.err(_("%s string has wrong characters, skip it") %\
-          data.decode(charset, "ignore").encode("utf-8","ignore"))
-        raise UnicodeError
-    return unicode(rs)
+        log.err(_("'%s' string has badly encoded characters") %\
+                data.decode(charset, "replace"))
+        raise
+    return rs
 
 def format_time(time):
     """Turn a time value in seconds into hh:mm:ss or mm:ss."""
