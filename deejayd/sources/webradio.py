@@ -58,8 +58,9 @@ class WbLocalSource(object):
             else:
                 raise SourceError(_("Given url %s is not supported") % url)
 
+
         # save webradio
-        self.db.add_webradio(name, needed_urls)
+        self.db.add_webradio(name, set(needed_urls))
         self.__load()
 
     def delete(self, webradio_ids):
