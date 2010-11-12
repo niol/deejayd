@@ -31,7 +31,7 @@ import com.google.gwt.user.client.ui.Label;
 
 public class WebradioList extends AbstractMediaList {
 
-    public WebradioList(WebuiLayout ui) {
+    public WebradioList(final WebuiLayout ui) {
         super(ui, "webradio", DEFAULT_PAGE_SIZE, true);
 
         addSelectionColumn();
@@ -47,9 +47,10 @@ public class WebradioList extends AbstractMediaList {
                     value = object.getStrAttr("url");
                 } else if (urlType.equals("urls")) {
                     JSONArray urls = object.getArrayAttr("urls");
-                    for (int i=0; i<urls.size(); i++) {
-                        value += urls.get(i).isString().stringValue()+"<br/>";
-                    }
+                    if (urls.size() == 1)
+                        value = urls.get(0).isString().stringValue();
+                    else
+                        value=ui.i18nMessages.urlCount(urls.size());
                 }
                 return value;
             }

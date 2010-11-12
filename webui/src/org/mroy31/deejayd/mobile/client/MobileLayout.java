@@ -25,6 +25,7 @@ import java.util.HashMap;
 import org.mroy31.deejayd.common.rpc.callbacks.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.mobile.i18n.MobileConstants;
+import org.mroy31.deejayd.mobile.i18n.MobileMessages;
 import org.mroy31.deejayd.mobile.resources.MobileResources;
 import org.mroy31.deejayd.mobile.widgets.ScrollToCommand;
 import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
@@ -43,6 +44,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class MobileLayout extends DeejaydUIWidget {
     static private MobileLayout instance;
     public final MobileConstants i18nConst = GWT.create(MobileConstants.class);
+    public final MobileMessages i18nMsg = GWT.create(MobileMessages.class);
     public final MobileResources resources = GWT.create(MobileResources.class);
 
     private class MobileMessage extends Message {

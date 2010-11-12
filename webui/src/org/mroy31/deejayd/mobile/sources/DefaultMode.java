@@ -35,6 +35,7 @@ import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -106,7 +107,15 @@ public abstract class DefaultMode extends AbstractMode
                 desc = value.getStrAttr("videowidth") + " - " +
                         value.getStrAttr("videoheight");
             } else if (value.isWebradio()) {
-                // TODO
+                if ("pls".equals(value.getStrAttr("url-type")))
+                    desc = value.getStrAttr("url");
+                else if ("urls".equals(value.getStrAttr("url-type"))) {
+                    JSONArray urls = value.getArrayAttr("urls");
+                    if (urls.size() == 1)
+                        desc = urls.get(0).isString().stringValue();
+                    else
+                        desc=ui.i18nMsg.urlCount(urls.size());
+                }
             }
             String titleClass = ui.resources.mobileCss().mListTitle();
             tdBuilder.appendHtmlConstant("<div class='"+titleClass+"'>")
