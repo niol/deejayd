@@ -26,7 +26,7 @@ from zope.interface import implements
 from deejayd.interfaces import DeejaydError
 from deejayd.ui import log
 from deejayd.plugins import IPlayerPlugin, PluginError
-from deejayd.utils import str_encode
+from deejayd.utils import str_decode
 
 class AudioScrobblerFatalError(DeejaydError): pass
 class AudioScrobblerError(DeejaydError):
@@ -79,8 +79,8 @@ class AudioScrobblerPlugin:
             url_handle = urllib2.urlopen(request)
         except urllib2.HTTPError, error:
             err_msg = _("Unable to connect to server: %s - %s")
-            code = str_encode(error.code, errors="ignore")
-            msg = str_encode(error.msg, errors="ignore")
+            code = str_decode(error.code, errors="ignore")
+            msg = str_decode(error.msg, errors="ignore")
             raise AudioScrobblerError(err_msg % (code, msg))
         except urllib2.URLError, error:
             args = getattr(error.reason, 'args', None)
@@ -92,8 +92,8 @@ class AudioScrobblerPlugin:
                 elif len(args) == 2:
                     code = str(error.reason.args[0])
                     message = error.reason.args[1]
-            code = str_encode(code, errors="ignore")
-            message = str_encode(message, errors="ignore")
+            code = str_decode(code, errors="ignore")
+            message = str_decode(message, errors="ignore")
             err_msg = _("Unable to connect to server: %s - %s")
             raise AudioScrobblerError(err_msg % (code, message))
 
