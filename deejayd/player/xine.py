@@ -98,7 +98,7 @@ class XinePlayer(UnknownPlayer):
                         {"lang": _("Audio channel %d") % (i+1,), "ix": i})
             self._media_file["audio"] = audio_channels
 
-        needs_video = self.current_is_video()
+        needs_video = self._media_file["type"] == "video"
         if self.__stream:
             stream_should_change = (needs_video and\
                                     not self.__stream.has_video())\
@@ -139,7 +139,7 @@ class XinePlayer(UnknownPlayer):
                 raise ex
 
         if self.__window:
-            self.__window.show(self.current_is_video())
+            self.__window.show(needs_video)
 
         # init video information
         if needs_video:
