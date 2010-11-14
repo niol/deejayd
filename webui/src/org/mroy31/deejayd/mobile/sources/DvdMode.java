@@ -22,6 +22,8 @@ package org.mroy31.deejayd.mobile.sources;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
 import org.mroy31.deejayd.mobile.widgets.ListPanel;
 import org.mroy31.deejayd.mobile.widgets.LoadingWidget;
@@ -31,16 +33,32 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 
 public class DvdMode extends AbstractMode {
     private final MobileLayout ui = MobileLayout.getInstance();
     private int sourceId = -1;
     private ListPanel mediaList = new ListPanel();
+    private HorizontalPanel toolbar = new HorizontalPanel();
 
     public DvdMode() {
+        toolbar.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+        toolbar.setSpacing(5);
+        Button reload = new Button();
+        reload.addStyleName(ui.resources.mobileCss().playerButton());
+        reload.addStyleName(ui.resources.mobileCss().shuffle());
+        reload.addClickHandler(new ClickHandler() {
+            public void onClick(ClickEvent event) {
+                ui.rpc.dvdModeReload();
+            }
+        });
+        toolbar.add(reload);
+
         FlowPanel panel = new FlowPanel();
+        panel.add(toolbar);
         panel.add(mediaList);
         initWidget(panel);
 
@@ -75,10 +93,19 @@ public class DvdMode extends AbstractMode {
     }
 
     private void addRow(final JSONObject track, int idx) {
-        Label l = new Label(ui.i18nConst.title()+" "+Integer.toString(idx));
+        Label l = new Label(ui.i18nConst.title()+" "+Integer.toString(idx)+
+                " ("+DeejaydUtils.formatTime((int) track.get("length").
+                         isNumber().doubleValue())+")");
         l.addStyleName(ui.resources.mobileCss().dvdTrack());
         l.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
+                ui.rpc.goTo((int) track.get("ix").isNumber().doubleValue(),
+                        new AnswerHandler<Boolean>() {
+                    public void onAnswer(Boolean answer) {
+                        ui.update();
+                        ui.getWallPanel("currentMode").showChild();
+                    }
+                });
             }
         });
 
