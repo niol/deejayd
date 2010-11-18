@@ -220,10 +220,10 @@ if __name__ == "__main__":
         from deejayd.core import DeejayDaemonCore
         deejayd_core = DeejayDaemonCore(config)
     except Exception, ex:
-        from deejayd.utils import str_encode
+        from deejayd.utils import str_decode
         log.err(\
             _("Unable to launch deejayd core, see traceback for more details"))
-        log.msg(str_encode(traceback.format_exc()))
+        log.msg(str_decode(traceback.format_exc()))
         sys.exit(1)
 
     service = False

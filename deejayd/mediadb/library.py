@@ -25,7 +25,7 @@ import kaa.metadata
 from deejayd.interfaces import DeejaydError
 from deejayd.component import SignalingComponent
 from deejayd.mediadb import formats
-from deejayd.utils import quote_uri, str_encode
+from deejayd.utils import quote_uri, str_decode
 from deejayd import database, mediafilters
 from deejayd.ui import log
 
@@ -39,8 +39,8 @@ def inotify_action(func):
     def inotify_action_func(*__args, **__kw):
         self = __args[0]
         try:
-            name = self._encode(__args[1])
-            path = self._encode(__args[2])
+            name = self.fs_charset2unicode(__args[1])
+            path = self.fs_charset2unicode(__args[2])
         except UnicodeError:
             return
 
@@ -70,7 +70,7 @@ class _Library(SignalingComponent):
         self._changes_cb = {}
         self._changes_cb_id = 0
 
-        self._path = os.path.abspath(path)
+        self._path = self.fs_charset2unicode(os.path.abspath(path))
         # test library path
         if not os.path.isdir(self._path):
             msg = _("Unable to find directory %s") % self._encode(self._path)
@@ -87,8 +87,12 @@ class _Library(SignalingComponent):
 
         self.watcher = None
 
-    def _encode(self, data):
-        return str_encode(data, self._fs_charset)
+    def fs_charset2unicode(self, path, errors='strict'):
+        """
+        This function translate file paths from the filesystem encoded form to
+        unicode for internal processing.
+        """
+        return str_decode(path, self._fs_charset, errors)
 
     def _build_supported_extension(self, player):
         raise NotImplementedError
@@ -113,7 +117,7 @@ class _Library(SignalingComponent):
         dirs = []
         for dir_id, dir_path in dirs_rsp:
             root, d = os.path.split(dir_path.rstrip("/"))
-            if d != "" and root == self._encode(dir):
+            if d != "" and root == self.fs_charset2unicode(dir):
                 dirs.append(d)
         return {'files': files_rsp, 'dirs': dirs}
 
@@ -235,6 +239,8 @@ class _Library(SignalingComponent):
         return False
 
     def _update_dir(self, dir, force = False, dispatch_signal = True):
+        dir = self.fs_charset2unicode(dir)
+
         # dirname/filename : (id, lastmodified)
         library_files = dict([(os.path.join(it[1],it[3]), (it[2],it[4]))\
             for it in self.db_con.get_all_files(dir,self.type)])
@@ -303,8 +309,11 @@ class _Library(SignalingComponent):
 
         changes = []
         for root, dirs, files in os.walk(walk_root):
-            try: root = self._encode(root)
+            try:
+                root = self.fs_charset2unicode(root)
             except UnicodeError: # skip this directory
+                log.info("Directory %s skipped because of unhandled characters."\
+                         % self.fs_charset2unicode(root, 'replace'))
                 continue
 
             try: dir_id = library_dirs[root]
@@ -315,14 +324,17 @@ class _Library(SignalingComponent):
 
             # search symlinks
             for dir in dirs:
-                try: dir = self._encode(dir)
+                try:
+                    dir = self.fs_charset2unicode(dir)
+                    dir_path = os.path.join(root, dir)
                 except UnicodeError: # skip this directory
+                    log.info("Directory %s skipped because of unhandled characters."\
+                             % self.fs_charset2unicode(dir_path, 'replace'))
                     continue
                 # Walk only symlinks that aren't in library root or in one of
                 # the additional known root paths which consist in already
                 # crawled and out-of-main-root directories
                 # (i.e. other symlinks).
-                dir_path = os.path.join(root, dir)
                 if os.path.islink(dir_path):
                     if not self.is_in_a_root(dir_path, forbidden_roots):
                         forbidden_roots.append(os.path.realpath(dir_path))
@@ -338,8 +350,11 @@ class _Library(SignalingComponent):
                                  dispatch_signal))
 
             # else update files
-            changes.extend(self.update_files(root, dir_id, files,
-                                        library_files, force, dispatch_signal))
+            dir_changes = self.update_files(root, dir_id,
+                                            map(self.fs_charset2unicode, files),
+                                            library_files,
+                                            force, dispatch_signal)
+            changes.extend(dir_changes)
 
         return changes
 
@@ -356,9 +371,7 @@ class _Library(SignalingComponent):
                      force = False, dispatch_signal=True):
         changes = []
         for file in files:
-            try: file = self._encode(file)
-            except UnicodeError: # skip this file
-                continue
+            assert type(file) is unicode
 
             file_path = os.path.join(root, file)
             try:
@@ -600,9 +613,7 @@ class AudioLibrary(_Library):
         changes = []
         if len(files): cover = self.__find_cover(root)
         for file in files:
-            try: file = self._encode(file)
-            except UnicodeError: # skip this file
-                continue
+            assert type(file) is unicode
 
             file_path = os.path.join(root, file)
             try:

@@ -72,10 +72,10 @@ except Exception, ex:
     try: deejayd_core.close()
     except:
         pass
-    from deejayd.utils import str_encode
+    from deejayd.utils import str_decode
     err = "Unable to launch deejayd core, see traceback for more details"
     log.msg(err)
-    log.msg(str_encode(traceback.format_exc()))
+    log.msg(str_decode(traceback.format_exc()))
     os.write(2, 'stopped\n')
     sys.exit()
 
