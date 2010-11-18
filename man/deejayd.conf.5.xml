@@ -243,12 +243,10 @@ bind_addresses = 192.168.51.2, 10.0.0.3
       </varlistentry>
 
       <varlistentry>
-        <term>refresh</term>
+        <term>lang</term>
         <listitem>
-          <para>Automatic refreshing time for the webui (in seconds). This is
-          the delay after which your browser will be asked to reload the web ui
-          state (song position, current song, etc). Set to
-          <parameter>0</parameter> to disable this automatic reloading.
+          <para>Lang of the webui. Available langs are :
+          <parameter>en</parameter>, <parameter>fr</parameter>.
           </para>
         </listitem>
       </varlistentry>
