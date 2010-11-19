@@ -8,7 +8,7 @@ Description:
 ------------
 deejayd is an media player written in python and based on twisted.
 So, it is a network daemon which can be controlled with a client application
-like MPD. The protocol used to control deejayd is an XML protocol.
+like MPD. The protocol used to control deejayd is a JSON-RPC protocol.
 Documentation of this protocol can be found in source archive (doc directory)
 
 Clients:
@@ -26,8 +26,9 @@ Clients:
       url to use this interface : http://host:webuiport/webui/
   * mobile-webui :
     --------
-      It is a web based client also built with GWT optimized for mobile device
-      url to use this interface : http://host:webuiport/m/
+      It is a web based client also built with GWT but optimized
+      for mobile device. url to use this interface :
+      http://host:webuiport/m/
 
 Requirements:
 -------------
