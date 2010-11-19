@@ -175,7 +175,6 @@ class build_webui(Command):
     def clean(self):
         if os.path.isfile(self.build_file) and self.ant is not None:
             self.spawn((self.ant, "-f", self.build_file, "clean"))
-            os.unlink(self.build_file)
 
 
 class deejayd_build(distutils_build):
