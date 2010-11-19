@@ -421,10 +421,10 @@ class _Library(SignalingComponent):
             log.info(_("File %s not supported") % file_path)
             return None
         except Exception, ex:
-            log.err(_("Unable to get infos from %s, see traceback")%file_path)
-            log.err("------------------Traceback lines--------------------")
-            log.err(self.fs_charset2unicode(traceback.format_exc()))
-            log.err("-----------------------------------------------------")
+            log.info(_("Unable to get infos from %s, see traceback")%file_path)
+            log.info("------------------Traceback lines--------------------")
+            log.info(self.fs_charset2unicode(traceback.format_exc()))
+            log.info("-----------------------------------------------------")
             return None
         return file_info
 
