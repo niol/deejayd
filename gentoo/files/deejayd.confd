@@ -1,5 +1,0 @@
-# /etc/conf.d/deejayd: config file for /etc/init.d/deejayd
-
-# see deejayd --help
-# for valid cmdline options
-DEEJAYD_OPTS="-u deejayd -g audio,cdrom"
