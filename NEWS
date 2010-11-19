@@ -7,6 +7,7 @@ New features and significant updates in version...
   * In the same way, replace mobile webui with a new one based on GWT
   * Set volume by media type (song, video, webradio) and save all volume
     states when deejayd quit
+  * Several bug fixes
 
 0.10.0 (2010-03-31)
 --------------------

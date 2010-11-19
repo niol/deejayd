@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <project name="Deejayd_webui" default="build" basedir=".">
+  <!-- use to access to environment variables -->
+  <property environment="ENV"/>
   <!-- Arguments to gwtc and devmode targets -->
   <property name="gwt.args" value="" />
 
   <!-- Configure path to GWT SDK -->
-  <property name="gwt.sdk" location="TO BE COMPLETED" />
+  <property name="gwt.sdk" location="${ENV.GWT_SDK}" />
 
   <path id="project.class.path">
     <pathelement location="war/WEB-INF/classes"/>

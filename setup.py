@@ -145,39 +145,21 @@ class build_webui(Command):
         self.gwt = None
         self.ant_target = None
 
-        self.build_tpl = os.path.join(self.webui_directory, "build.xml.tpl")
         self.build_file = os.path.join(self.webui_directory, "build.xml")
 
     def finalize_options(self):
-        if self.gwt is None:
-            self.gwt = self.__find_gwt()
+        if self.gwt is not None:
+            os.environ["GWT_SDK"] = self.gwt
         if self.ant_target is None:
             self.ant_target = "builddist"
 
-    def __find_gwt(self):
-        # First, try to see if GWT_SDK env var has been set
-        if "GWT_SDK" in os.environ.keys():
-            return os.environ["GWT_SDK"]
-        # finally, try to find gwt sdk in default java classpath
-        # TODO
-        return None
-
     def run(self):
-        if self.gwt is None:
+        if "GWT_SDK" not in os.environ.keys():
+            # TODO : try to find gwt sdk in default java classpath
             raise DistutilsOptionError("No GWT SDK found to build webui")
         if self.ant is None:
             raise DistutilsOptionError(\
                     "ant program not found, we can't build webui")
-
-        # construct build.xml file
-        document = minidom.parse(self.build_tpl)
-        properties = document.getElementsByTagName("property")
-        for property in properties:
-            p_name = property.getAttribute("name")
-            if p_name == "gwt.sdk":
-                property.setAttribute("location", os.path.abspath(self.gwt))
-                break
-        output = document.writexml(open(self.build_file, "w"), encoding="utf-8")
 
         cmd = (self.ant, "-f", self.build_file, self.ant_target)
         self.spawn(cmd)
