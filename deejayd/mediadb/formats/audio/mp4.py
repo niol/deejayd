@@ -51,7 +51,7 @@ class Mp4File(_AudioFile):
         for tag, name in self.__tupletranslate.iteritems():
             try:
                 cur, total = mp4_info[tag][0]
-                if total: self[name] = "%02d/%02d" % (cur, total)
+                if total: infos[name] = "%02d/%02d" % (cur, total)
                 else: infos[name] = "%02d" % cur
             except: infos[name] = '';
 
