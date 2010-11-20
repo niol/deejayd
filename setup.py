@@ -161,6 +161,7 @@ class build_webui(Command):
             raise DistutilsOptionError(\
                     "ant program not found, we can't build webui")
 
+        os.environ["GWT_SDK"] = os.path.abspath(os.environ["GWT_SDK"])
         cmd = (self.ant, "-f", self.build_file, self.ant_target)
         self.spawn(cmd)
 
