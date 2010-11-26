@@ -3,10 +3,11 @@ user:        Mickael Royer <mickael.royer@gmail.com>
 date:        Wed Apr 21 13:04:30 2010 +0200
 summary:     [library] Correctly encode root path to avoid UnicodeError exception
 
-diff --git a/deejayd/mediadb/library.py b/deejayd/mediadb/library.py
---- a/deejayd/mediadb/library.py
-+++ b/deejayd/mediadb/library.py
-@@ -70,7 +70,7 @@
+Index: deejayd/deejayd/mediadb/library.py
+===================================================================
+--- deejayd.orig/deejayd/mediadb/library.py	2010-11-26 15:21:00.300359155 +0100
++++ deejayd/deejayd/mediadb/library.py	2010-11-26 15:24:32.424861663 +0100
+@@ -70,10 +70,11 @@
          self._changes_cb = {}
          self._changes_cb_id = 0
  
@@ -14,5 +15,18 @@ diff --git a/deejayd/mediadb/library.py b/deejayd/mediadb/library.py
 +        self._path = os.path.abspath(self._encode(path))
          # test library path
          if not os.path.isdir(self._path):
-             msg = _("Unable to find directory %s") % self._encode(self._path)
-
+-            msg = _("Unable to find directory %s") % self._encode(self._path)
++            msg = _("Unable to find directory %s") \
++                    % self.fs_charset2unicode(self._path)
+             raise NotFoundException(msg)
+ 
+         # Connection to the database
+@@ -409,7 +410,7 @@
+         except Exception, ex:
+             log.err(_("Unable to get infos from %s, see traceback")%file_path)
+             log.err("------------------Traceback lines--------------------")
+-            log.err(self._encode(traceback.format_exc()))
++            log.err(self.fs_charset2unicode(traceback.format_exc()))
+             log.err("-----------------------------------------------------")
+             return None
+         return file_info
