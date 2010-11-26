@@ -16,5 +16,5 @@ usr/lib/python*/*-packages/deejayd/ui/*
 usr/lib/python*/*-packages/deejayd/database/*
 usr/share/locale/*/LC_MESSAGES/deejayd.mo
 etc/deejayd.conf
-etc/deejayd.xinitrc
-etc/X11/Xsession.d/50deejayd_steal-session
+debian/deejayd.xinitrc etc
+debian/50deejayd_steal-session etc/X11/Xsession.d/
