@@ -1,9 +1,12 @@
-deejayd (0.10.0-3~mobilefix+1) UNRELEASED; urgency=low
+deejayd (0.10.0-3~test+2) UNRELEASED; urgency=low
 
-  * Add patch for Android mobile web ui fix.
   * Update policy to 3.9.1 (nothing to do).
+  * Add more upstream bug fixes.
+  * Add patch for Android mobile web ui fix.
+  * Simplify a lot debian/rules thanks to debhelper 7.
+  * Add upstream feature : save volume by media type.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 05 Jul 2010 19:46:36 +0000
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Fri, 26 Nov 2010 22:24:09 +0100
 
 deejayd (0.10.0-2) unstable; urgency=low
 
