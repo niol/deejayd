@@ -102,6 +102,7 @@ div.right { right: 4px; }
 #playing-block #playing-cover {
     z-index: 0;
     height: 311px;
+    width: 311px;
 }
 #playing-control {
     position: fixed; left: 0px; top: 301px;

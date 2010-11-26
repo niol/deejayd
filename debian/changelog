@@ -1,9 +1,9 @@
-deejayd (0.10.0-3~ufix+1) UNRELEASED; urgency=low
+deejayd (0.10.0-3~mobilefix+1) UNRELEASED; urgency=low
 
   * Add patch for Android mobile web ui fix.
-  * Add experimental patch to try to fixe library issues.
+  * Update policy to 3.9.1 (nothing to do).
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Thu, 30 Sep 2010 14:26:01 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 05 Jul 2010 19:46:36 +0000
 
 deejayd (0.10.0-2) unstable; urgency=low
 

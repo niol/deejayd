@@ -326,7 +326,7 @@ class XinePlayer(UnknownPlayer):
         driver_name = self.config.get("xine", "audio_output")
         try:
             audio_port = xine.AudioDriver(self.__xine, driver_name)
-        except xine.XineError:
+        except xine.xineError:
             raise PlayerError(_("Unable to open audio driver"))
 
         # open video driver
@@ -392,11 +392,7 @@ class XinePlayer(UnknownPlayer):
                     self._media_file["uri"] = \
                             self._media_file["urls"]\
                                 [self._media_file["url-index"]].encode("utf-8")
-                    try:
-                        self.start_play()
-                    except PlayerError:
-                        # This stream is really dead, all its mirrors
-                        pass
+                    self.start_play()
                 return False
             else:
                 try: self._media_file.played()

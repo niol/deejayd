@@ -18,6 +18,7 @@
 
 import os, threading, traceback, Queue
 from deejayd.ui import log
+from deejayd.utils import str_encode
 import pyinotify
 
 #############################################################################
@@ -92,8 +93,8 @@ class _LibraryWatcher(threading.Thread):
                     self.__record_changes.extend(changes)
                     self.__need_update = True
             except Exception, ex:
-                path = os.path.join(event.path, event.name)
-                path = library.fs_charset2unicode(path)
+                path = str_encode(os.path.join(event.path, event.name),
+                                  errors='replace')
                 log.err(_("Inotify problem for '%s', see traceback") % path)
                 log.err("------------------Traceback lines--------------------")
                 log.err(traceback.format_exc())
@@ -116,15 +117,18 @@ class _LibraryWatcher(threading.Thread):
             return file_path in library.get_root_paths()
 
     def __execute(self, type, library, event):
-        path = library.fs_charset2unicode(event.path)
-        name = library.fs_charset2unicode(event.name)
-        # A decoding error would be raised and logged.
+        # first be sure that path are correct
+        try:
+            path = library._encode(event.path)
+            name = library._encode(event.name)
+        except UnicodeError: # skip this event
+            return False
 
         if type == "create":
             if self.__occured_on_dirlink(library, event):
                 return library.add_directory(path, name, True)
             elif not self.is_on_dir(event):
-                return library.add_file(path, name)
+                self.__created_files.append((path, name))
         elif type == "delete":
             if self.__occured_on_dirlink(library, event):
                 return library.remove_directory(path, name, True)

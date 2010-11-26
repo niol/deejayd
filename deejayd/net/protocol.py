@@ -26,7 +26,7 @@ from deejayd import __version__
 from deejayd.interfaces import DeejaydSignal
 from deejayd.mediafilters import *
 from deejayd.ui import log
-from deejayd.utils import str_decode
+from deejayd.utils import str_encode
 from deejayd.rpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.rpc.jsonparsers import loads_request
 from deejayd.rpc.jsonbuilders import JSONRPCResponse, DeejaydJSONSignal
@@ -73,7 +73,7 @@ class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydTcpJSONRPC):
             try: result = function(*args)
             except Exception, ex:
                 if not isinstance(ex, Fault):
-                    log.err(str_decode(traceback.format_exc()))
+                    log.err(str_encode(traceback.format_exc()))
                     result = Fault(self.FAILURE, _("error, see deejayd log"))
                 else:
                     result = ex
