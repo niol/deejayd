@@ -31,6 +31,7 @@ from twisted.internet import defer, protocol, reactor
 from twisted.web import http
 
 from deejayd.ui import log
+from deejayd.utils import str_decode
 from deejayd.rpc import Fault
 from deejayd.rpc.jsonparsers import loads_request
 from deejayd.rpc.jsonbuilders import JSONRPCResponse
@@ -91,7 +92,11 @@ class JSONRPC(resource.Resource, deejayd_protocol.DeejaydHttpJSONRPC):
     def render(self, request):
         request.content.seek(0, 0)
         # Unmarshal the JSON-RPC data
-        content = request.content.read()
+        try: content = str_decode(request.content.read())
+        except UnicodeError:
+            return Fault(self.FAILURE, "Unable to decode JSON-RPC Request")
+
+        log.debug("JSON-RPC Request : %s" % content)
         try:
             parsed = loads_request(content)
             args, functionPath = parsed['params'], parsed["method"]
@@ -117,6 +122,7 @@ class JSONRPC(resource.Resource, deejayd_protocol.DeejaydHttpJSONRPC):
         ans = JSONRPCResponse(result, id).to_json()
         request.setHeader("content-length", str(len(ans)))
         request.write(ans)
+        log.debug("JSON-RPC Request : %s" % ans)
         request.finish()
 
     def _ebRender(self, failure, id):

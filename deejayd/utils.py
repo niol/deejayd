@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import urllib
+import urllib, unicodedata
 from deejayd.ui import log
 
 def quote_uri(path):
@@ -29,13 +29,15 @@ def str_decode(data, charset='utf-8', errors='strict'):
     Decode the string given a supplied charset into a unicode string, and
     log errors.
     """
-    if type(data) is unicode: return data
-    try: rs = data.decode(charset, errors)
-    except UnicodeError:
-        log.err(_("'%s' string has badly encoded characters") %\
-                data.decode(charset, "replace"))
-        raise
-    return rs
+    if type(data) is unicode:
+        rs = data
+    else:
+        try: rs = unicode(data.decode(charset, errors))
+        except UnicodeError:
+            log.err(_("'%s' string has badly encoded characters") %\
+                    data.decode(charset, "replace"))
+            raise
+    return unicodedata.normalize("NFC", rs)
 
 def format_time(time):
     """Turn a time value in seconds into hh:mm:ss or mm:ss."""
