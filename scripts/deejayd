@@ -212,8 +212,9 @@ if __name__ == "__main__":
     setEnv(options)
     startLog(options)
 
+    import traceback
     from twisted.internet.error import CannotListenError
-    from twisted.python import log
+    from deejayd.ui import log
 
     # start core
     try:
@@ -223,7 +224,9 @@ if __name__ == "__main__":
         from deejayd.utils import str_decode
         log.err(\
             _("Unable to launch deejayd core, see traceback for more details"))
-        log.msg(str_decode(traceback.format_exc()))
+        log.err("----Traceback lines----")
+        log.err(str_decode(traceback.format_exc()))
+        log.err("-----------------------")
         sys.exit(1)
 
     service = False
@@ -245,9 +248,13 @@ if __name__ == "__main__":
     if config.getboolean("webui","enabled"):
         try:
             from deejayd import webui
-        except ImportError:
+        except ImportError, ex:
+            from deejayd.utils import str_decode
             log.err(_("Webui does not seem to be installed, disabling."))
             config.set("webui", "enabled", "no")
+            log.err("----Traceback lines----")
+            log.err(str_decode(traceback.format_exc()))
+            log.err("-----------------------")
         else:
             service = True
             htdocs_dir = None
