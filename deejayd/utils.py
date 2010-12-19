@@ -32,12 +32,12 @@ def str_decode(data, charset='utf-8', errors='strict'):
     if type(data) is unicode:
         rs = data
     else:
-        try: rs = unicode(data.decode(charset, errors))
+        try: rs = data.decode(charset, errors)
         except UnicodeError:
             log.err(_("'%s' string has badly encoded characters") %\
                     data.decode(charset, "replace"))
             raise
-    return unicodedata.normalize("NFC", rs)
+    return unicodedata.normalize("NFD", rs)
 
 def format_time(time):
     """Turn a time value in seconds into hh:mm:ss or mm:ss."""
