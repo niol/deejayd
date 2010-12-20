@@ -143,9 +143,9 @@ def setEnv(options):
 
     if options.daemon:
         daemonize()
-    # Store the pid
-    removePID(options.pidfile)
-    open(options.pidfile,'wb').write(str(os.getpid()))
+        # Store the pid
+        removePID(options.pidfile)
+        open(options.pidfile,'wb').write(str(os.getpid()))
 
     if options.gid:
         gids = options.gid.split(',')
