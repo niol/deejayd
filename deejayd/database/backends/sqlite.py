@@ -19,6 +19,7 @@
 from os import path
 from threading import local
 from deejayd.ui import log
+from deejayd.utils import str_decode
 
 try: from sqlite3 import dbapi2 as sqlite # python 2.5
 except ImportError:
@@ -34,11 +35,10 @@ except ImportError:
 LOCK_TIMEOUT = 600
 DatabaseError = sqlite.DatabaseError
 
-def str_encode(data):
-    if isinstance(data, unicode):
-        return data.encode("utf-8")
-    return data
-
+def str_adapt(data):
+    try: return str_decode(data)
+    except UnicodeError:
+        return data
 
 class DatabaseWrapper(local):
 
@@ -54,7 +54,7 @@ class DatabaseWrapper(local):
                 error = _("Could not connect to sqlite database %s.")%self._file
                 log.err(error, fatal = True)
             # configure connection
-            sqlite.register_adapter(str,str_encode)
+            sqlite.register_adapter(str, str_adapt)
 
         return self.connection.cursor(factory = SQLiteCursorWrapper)
 
