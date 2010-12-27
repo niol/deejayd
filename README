@@ -1,8 +1,8 @@
 deejayd
 ===========
 
-Actual version : 0.11.0 (not yet released)
-------------------------------------------
+Actual version : 0.11.0 (2010-12-27)
+------------------------------------
 
 Description:
 ------------
@@ -27,7 +27,8 @@ Clients:
   * mobile-webui :
     --------
       It is a web based client also built with GWT but optimized
-      for mobile device. url to use this interface :
+      for mobile device. url to use this interface once you have activate
+      webui in configuration file is :
       http://host:webuiport/m/
 
 Requirements:
@@ -37,7 +38,8 @@ Requirements:
     * simplejson (http://code.google.com/p/simplejson/),
       it is include in python >= 2.6.0
     * pysqlite >= 2.2 (http://www.initd.org/tracker/pysqlite/wiki/pysqlite)
-       for sqlite database support
+      for sqlite database support
+      it is include in python >= 2.5.0
     * mysql-python >= 1.2.1 (http://sourceforge.net/projects/mysql-python)
        for mysql database support
     * mutagen >= 1.6

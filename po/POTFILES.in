@@ -13,6 +13,8 @@ deejayd/player/__init__.py
 deejayd/player/_base.py
 deejayd/player/xine.py
 deejayd/player/gstreamer.py
+deejayd/plugins/lastfm.py
+deejayd/plugins/shoutcast.py
 deejayd/sources/__init__.py
 deejayd/sources/_base.py
 deejayd/sources/_medialist.py
@@ -26,8 +28,8 @@ deejayd/sources/webradio.py
 deejayd/ui/log.py
 deejayd/rpc/protocol.py
 deejayd/rpc/jsonrpc.py
-deejayd/rpc/rdfbuilder.py
 deejayd/webui/__init__.py
-deejayd/webui/xul.py
+deejayd/webui/jsonrpc.py
 deejayd/webui/mobile.py
+deejayd/webui/webui.py
 scripts/deejayd

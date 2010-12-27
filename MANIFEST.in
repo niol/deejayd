@@ -7,8 +7,6 @@ include TODO
 include prepare.sh
 include docs.py
 include deejayd/ui/defaults.conf
-include gentoo/*
-include gentoo/files/*
 recursive-include data/htdocs *
 include po/*po
 include po/POTFILES.in
