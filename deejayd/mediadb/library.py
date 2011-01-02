@@ -19,8 +19,6 @@
 
 import os, sys, threading, traceback, base64, locale, hashlib
 from twisted.internet import threads, reactor
-import kaa.metadata
-
 
 from deejayd.interfaces import DeejaydError
 from deejayd.component import SignalingComponent
@@ -546,6 +544,10 @@ class AudioLibrary(_Library):
         return {"mime": mime, "cover": base64.b64decode(image), "id": cover_id}
 
     def __extract_cover(self, cover_path):
+        # import kaa.metadata in the last moment to avoid to launch thread too
+        # early
+        import kaa.metadata
+
         if os.path.getsize(cover_path) > 512*1024:
             return None # file too large (> 512k)
 

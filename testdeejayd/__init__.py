@@ -138,6 +138,10 @@ class TestCaseWithServer(TestCaseWithAudioAndVideoData):
             connection.commit()
             connection.close()
 
+        # disable all plugins for tests
+        config.set('general', 'enabled_plugins', '')
+
+        config.set('database', 'db_name', self.dbfilename)
         self.tmp_dir = None
         if config.getboolean("webui","enabled"):
             # define a tmp directory

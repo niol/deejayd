@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
+import kaa
 
 from testdeejayd import TestCaseWithAudioAndVideoData
 from testdeejayd.coreinterface import InterfaceTests, InterfaceSubscribeTests
@@ -36,6 +37,7 @@ class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests,
         self.dbfilename = '/tmp/testdeejayddb-' +\
                           self.testdata.getRandomString() + '.db'
 
+        config.set('general', 'enabled_plugins', '')
         config.set('general', 'activated_modes',\
                 'playlist,panel,webradio,video,dvd')
         config.set('database', 'db_type', 'sqlite')
@@ -51,11 +53,15 @@ class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests,
         config.set('xine','video_output',"none")
 
         self.deejayd = DeejayDaemonCore(config)
+
         self.deejayd.audio_library._update()
         self.deejayd.video_library._update()
 
     def tearDown(self):
         self.deejayd.close()
+        # be sure that all kaa thread are stopped
+        kaa.main.stop()
+
         os.unlink(self.dbfilename)
         TestCaseWithAudioAndVideoData.tearDown(self)
 

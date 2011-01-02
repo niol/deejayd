@@ -192,11 +192,38 @@ if __name__ == "__main__":
     if options.kill:
         killDeejayd(options.pidfile)
         sys.exit()
+    config = DeejaydConfig()
+
+    setEnv(options)
+    startLog(options)
+
+    import traceback
+    from twisted.internet.error import CannotListenError
+    from deejayd.ui import log
+    from deejayd.utils import str_decode
+
+    def abort(exception = None, msg = None):
+        if msg is not None:
+            log.err(msg)
+        if exception is not None:
+            log.err("----Traceback lines----")
+            log.err(str_decode(traceback.format_exc()))
+            log.err("-----------------------")
+
+        sys.exit(1)
+
+    # start core
+    try:
+        from deejayd.core import DeejayDaemonCore
+        deejayd_core = DeejayDaemonCore(config)
+    except Exception, ex:
+        abort(msg =\
+            _("Unable to launch deejayd core, see traceback for more details"),
+            exception = ex)
 
     ###################
     # install reactor
     ##################
-    config = DeejaydConfig()
     media_backend = config.get("general", "media_backend")
     if media_backend == "gstreamer":
         # Install glib2 reactor
@@ -208,26 +235,6 @@ if __name__ == "__main__":
     import kaa
     kaa.main.select_notifier('twisted')
     ###############################################################
-
-    setEnv(options)
-    startLog(options)
-
-    import traceback
-    from twisted.internet.error import CannotListenError
-    from deejayd.ui import log
-
-    # start core
-    try:
-        from deejayd.core import DeejayDaemonCore
-        deejayd_core = DeejayDaemonCore(config)
-    except Exception, ex:
-        from deejayd.utils import str_decode
-        log.err(\
-            _("Unable to launch deejayd core, see traceback for more details"))
-        log.err("----Traceback lines----")
-        log.err(str_decode(traceback.format_exc()))
-        log.err("-----------------------")
-        sys.exit(1)
 
     service = False
     # net service
@@ -241,8 +248,8 @@ if __name__ == "__main__":
             try: reactor.listenTCP(port, factory, interface=bind_address)
             except CannotListenError, err:
                 deejayd_core.close()
-                log.err(str(err))
-                sys.exit(1)
+                kaa.main.stop()
+                abort(msg = str(err))
 
     # webui service
     if config.getboolean("webui","enabled"):
@@ -270,23 +277,25 @@ if __name__ == "__main__":
                                   options.webui_logfile, htdocs_dir)
             except webui.DeejaydWebError, err:
                 deejayd_core.close()
-                log.err(err)
-                sys.exit(1)
+                kaa.main.stop()
+                abort(msg = str(err))
 
             port = config.getint("webui","port")
             for bind_address in config.get_bind_addresses('webui'):
                 try: reactor.listenTCP(port, site, interface=bind_address)
                 except CannotListenError, err:
                     deejayd_core.close()
-                    log.err(str(err))
-                    sys.exit(1)
+                    abort(msg = str(err))
 
     # launch reactor
     if not service:
         deejayd_core.close()
-        log.err(_("No service has been activated"))
-        sys.exit(1)
-    reactor.addSystemEventTrigger('after','shutdown',deejayd_core.close)
+        kaa.main.stop()
+        abort(msg = _("No service has been activated"))
+
+    # launch reactor
+    from twisted.internet import reactor
+    reactor.addSystemEventTrigger('before','shutdown',deejayd_core.close)
     reactor.run()
 
 # vim: ts=4 sw=4 expandtab

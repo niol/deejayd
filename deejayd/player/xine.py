@@ -18,7 +18,6 @@
 
 import os
 from os import path
-import kaa.metadata
 from twisted.internet import reactor
 from pytyxi import xine
 
@@ -33,6 +32,13 @@ class XinePlayer(UnknownPlayer):
     xine_plugins = None
 
     def __init__(self, db, plugin_manager, config):
+        # init main instance
+        try:
+            self.__xine = xine.XinePlayer()
+        except xine.XineError:
+            raise PlayerError(_("Unable to init a xine instance"))
+        self.__supports_gapless = self.__xine.has_gapless()
+
         UnknownPlayer.__init__(self, db, plugin_manager, config)
         self.__xine_options = {
             "video": self.config.get("xine", "video_output"),
@@ -50,15 +56,7 @@ class XinePlayer(UnknownPlayer):
             }
         self.__default_aspect_ratio = "auto"
 
-        # init main instance
-        try:
-            self.__xine = xine.XinePlayer()
-        except xine.XineError:
-            raise PlayerError(_("Unable to init a xine instance"))
-
         # init vars
-        self.__supports_gapless = self.__xine.has_gapless()
-
         self.__window = None
         self.__stream = None
         self.__osd = None
@@ -436,6 +434,10 @@ class DvdParser:
         self.__mine_stream = self.__xine.stream_new(None, None)
 
     def get_dvd_info(self):
+        # import kaa.metadata in the last moment to avoid to launch thread too
+        # early
+        import kaa.metadata
+
         kaa_infos = kaa.metadata.parse(self.DEVICE)
         if kaa_infos is None:
             raise PlayerError(_("Unable to identify dvd device"))

@@ -23,6 +23,7 @@ from deejayd.interfaces import DeejaydError,\
                                DeejaydFileList,\
                                DeejaydMediaList, DeejaydDvdInfo
 from deejayd.ui.config import DeejaydConfig
+from deejayd.ui import log
 from deejayd import mediafilters, player, sources, mediadb, database, plugins
 
 # Exception imports
@@ -477,6 +478,7 @@ class DeejayDaemonCore(deejayd.interfaces.DeejaydCore):
 
         # start inotify thread when we are sure that all init stuff are ok
         if self.watcher:
+            log.debug(_("Start inotify threads"))
             self.watcher.start()
 
     def close(self):

@@ -16,7 +16,10 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, threading, traceback, Queue
+
+import os, traceback, Queue
+
+from deejayd.thread import DeejaydThread
 from deejayd.ui import log
 import pyinotify
 
@@ -70,11 +73,10 @@ class InotifyWatcher(pyinotify.ProcessEvent):
         pass
 
 
-class _LibraryWatcher(threading.Thread):
+class _LibraryWatcher(DeejaydThread):
 
     def __init__(self, db, queue):
-        threading.Thread.__init__(self)
-        self.should_stop = threading.Event()
+        super(_LibraryWatcher, self).__init__()
         self.__db = db
         self.__queue = queue
         self.__created_files = []
@@ -150,10 +152,6 @@ class _LibraryWatcher(threading.Thread):
 
         return False
 
-    def close(self):
-        self.should_stop.set()
-        threading.Thread.join(self)
-
 
 class LibraryWatcher(_LibraryWatcher):
 
@@ -169,11 +167,10 @@ class LibraryWatcherOLD(_LibraryWatcher):
 
 #############################################################################
 
-class _DeejaydInotify(threading.Thread):
+class _DeejaydInotify(DeejaydThread):
 
     def __init__(self, db, audio_library, video_library):
-        threading.Thread.__init__(self)
-        self.should_stop = threading.Event()
+        super(_DeejaydInotify, self).__init__()
 
         self.__audio_library = audio_library
         self.__video_library = video_library
@@ -221,10 +218,6 @@ class _DeejaydInotify(threading.Thread):
                 notifier.read_events()
         lib_watcher.close()
         notifier.stop()
-
-    def close(self):
-        self.should_stop.set()
-        threading.Thread.join(self)
 
 
 class DeejaydInotify(_DeejaydInotify):

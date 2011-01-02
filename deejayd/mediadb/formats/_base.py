@@ -18,7 +18,6 @@
 
 import os
 from deejayd.utils import quote_uri
-import kaa.metadata
 
 
 class _MediaFile(object):
@@ -84,6 +83,10 @@ class _VideoFile(_MediaFile):
         return title.title()
 
     def parse(self, file):
+        # import kaa.metadata in the last moment to avoid to launch thread too
+        # early
+        import kaa.metadata
+
         infos = _MediaFile.parse(self, file)
         infos.update({
                 "audio_channels": "0",

@@ -111,7 +111,7 @@ def printReady():
     os.write(2, 'ready\n')
 
 reactor.addSystemEventTrigger('after', 'startup', printReady)
-reactor.addSystemEventTrigger('after', 'shutdown', deejayd_core.close)
+reactor.addSystemEventTrigger('before', 'shutdown', deejayd_core.close)
 reactor.run()
 
 

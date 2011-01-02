@@ -17,13 +17,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import urllib, urllib2, time, ConfigParser
-import threading, Queue
+import Queue
 try: from hashlib import md5
 except ImportError: # python < 2.5
     from md5 import md5
 
 from zope.interface import implements
 from deejayd.interfaces import DeejaydError
+from deejayd.thread import DeejaydThread
 from deejayd.ui import log
 from deejayd.plugins import IPlayerPlugin, PluginError
 from deejayd.utils import str_decode
@@ -35,7 +36,7 @@ class AudioScrobblerError(DeejaydError):
         self._message = _("AudioScrobbler Error: %s") % str_decode(msg)
 
 
-class AudioScrobblerPlugin:
+class AudioScrobblerPlugin(DeejaydThread):
     implements(IPlayerPlugin)
     NAME="audioscrobbler"
 
@@ -46,13 +47,14 @@ class AudioScrobblerPlugin:
     AUDIOSCROBBLER_WAIT_INTERVAL=30
 
     def __init__(self, config):
+        super(AudioScrobblerPlugin, self).__init__()
+
         self.enabled = True
         self.authenticated = False
         self.last_request = None
         self.session_id = None
         self.nowplaying_url = None
         self.submit_url = None
-        self.should_stop = threading.Event()
 
         self.queue = Queue.Queue()
         try:
@@ -63,16 +65,11 @@ class AudioScrobblerPlugin:
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             raise PluginError(_("Lastfm configuration has not been set."))
         # start thread
-        self.thread = threading.Thread(target=self.run)
-        self.thread.setDaemon(True)     # exit if only this thread is left
-        self.thread.start()
+        self.start()
 
     def on_media_played(self, media):
         if self.enabled and media["type"] == "song":
             self.queue.put((media, self.__get_stamp(media)))
-
-    def close(self):
-        self.should_stop.set()
 
     def __open_request(self, request):
         try:
