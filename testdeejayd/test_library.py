@@ -19,6 +19,12 @@
 """
 Deejayd DB testing module
 """
+# Use threading.Thread class for this test instead of twisted thread API
+# else we can not launch inotify thread without launch twisted reactor
+import kaa
+import deejayd.thread
+deejayd.thread.switch_to_python_thread()
+
 import os,time
 from testdeejayd import TestCaseWithAudioData, TestCaseWithVideoData
 from deejayd import database, mediafilters, plugins
@@ -44,16 +50,19 @@ class _TestDeejayDBLibrary(object):
         config.set('xine','video_output',"none")
 
         self.db = database.init(config)
-        player = xine.XinePlayer(self.db, plugins.PluginManager(config), config)
-        player.init_video_support()
+        self.player = xine.XinePlayer(self.db, \
+                plugins.PluginManager(config), config)
+        self.player.init_video_support()
 
-        self.library = self.__class__.library_class(self.db, player, \
+        self.library = self.__class__.library_class(self.db, self.player, \
                                                     self.testdata.getRootDir())
         self.library._update()
 
         self.do_update = True
 
     def tearDown(self):
+        self.player.close()
+        self.library.close()
         self.db.close()
         os.remove(self.dbfilename)
 
@@ -319,6 +328,8 @@ class TestInotifySupport(TestCaseWithAudioData, _TestDeejayDBLibrary):
 
     def tearDown(self):
         self.watcher.close()
+        # be sure all kaa thread are finished
+        kaa.main.stop()
 
         _TestDeejayDBLibrary.tearDown(self)
         TestCaseWithAudioData.tearDown(self)

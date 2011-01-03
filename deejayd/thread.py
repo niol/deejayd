@@ -19,11 +19,12 @@
 import threading
 from twisted.internet import reactor
 
+__all__ = ['DeejaydThread', 'switch_to_python_thread']
 
-class DeejaydThread(object):
+class _DeejaydThread(object):
 
     def __init__(self):
-        super(DeejaydThread, self).__init__()
+        super(_DeejaydThread, self).__init__()
         self.should_stop = threading.Event()
 
     def start(self):
@@ -34,5 +35,27 @@ class DeejaydThread(object):
 
     def close(self):
         self.should_stop.set()
+
+
+class _PythonThread(threading.Thread):
+
+    def __init__(self):
+        super(_PythonThread, self).__init__()
+        self.should_stop = threading.Event()
+
+    def run(self):
+        raise NotImplementedError
+
+    def close(self):
+        if self.isAlive():
+            self.should_stop.set()
+            self.join()
+
+
+DeejaydThread = _DeejaydThread
+
+def switch_to_python_thread():
+    global DeejaydThread
+    DeejaydThread = _PythonThread
 
 # vim: ts=4 sw=4 expandtab
