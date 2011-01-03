@@ -1,6 +1,6 @@
 [general]
 log = info
-activated_modes = playlist,panel,webradio,video,dvd
+activated_modes = playlist,panel,webradio,video
 fullscreen = no
 replaygain = yes
 media_backend = xine

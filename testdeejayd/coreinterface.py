@@ -564,16 +564,17 @@ class InterfaceTests:
 
     def testDvd(self):
         """ Test dvd commands"""
-        if self.video_support:
-            status = self.deejayd.get_status().get_contents()
-            dvd_id = status["dvd"]
+        # disable test if video support or dvd mode are disabled
+        modes = self.deejayd.get_mode().get_contents()
+        if not self.video_support or not modes["dvd"]:
+            return True
 
-            self.deejayd.dvd_reload().get_contents()
-            status = self.deejayd.get_status().get_contents()
-            self.assertEqual(status["dvd"], dvd_id + 1)
-        else:
-            ans = self.deejayd.dvd_reload()
-            self.assertRaises(DeejaydError, ans.get_contents)
+        status = self.deejayd.get_status().get_contents()
+        dvd_id = status["dvd"]
+
+        self.deejayd.dvd_reload().get_contents()
+        status = self.deejayd.get_status().get_contents()
+        self.assertEqual(status["dvd"], dvd_id + 1)
 
     def test_mediadb_list(self):
         """Test db queries for tags listing."""
@@ -637,7 +638,7 @@ class InterfaceSubscribeTests:
         """Checks that player.status signals are broadcasted."""
 
         trigger_list = ((self.deejayd.play_toggle, ()),
-                        (self.deejayd.set_option, ("playlist", 'repeat', 1)),
+                        (self.deejayd.set_option, ("playlist", 'repeat', True)),
                         (self.deejayd.set_option, ('panel', "playorder",\
                                                    "random")),
                         (self.deejayd.set_volume, (51, )),
@@ -777,14 +778,14 @@ class InterfaceSubscribeTests:
 
         wr_list = self.deejayd.get_webradios()
         test_wr_name = self.testdata.getRandomString()
-        test_wr_urls = 'http://' + self.testdata.getRandomString(50)
+        test_wr_urls = ['http://' + self.testdata.getRandomString(50)]
 
         self.generic_sub_bcast_test('webradio.listupdate',
                                     wr_list.add_webradio,
                                     (test_wr_name, test_wr_urls))
 
         retrieved_wr = [wr for wr in wr_list.get().get_medias()\
-                           if wr['title'] == test_wr_name + '-1'][0]
+                           if wr['title'] == test_wr_name][0]
         self.generic_sub_bcast_test('webradio.listupdate',
                                     wr_list.delete_webradio,
                                     (retrieved_wr['id'], ))
@@ -805,7 +806,9 @@ class InterfaceSubscribeTests:
 
     def test_sub_broadcast_dvd_update(self):
         """Checks that dvd.update signals are broadcasted."""
-        if not self.video_support:
+        # disable test if video support or dvd mode are disabled
+        modes = self.deejayd.get_mode().get_contents()
+        if not self.video_support or not modes["dvd"]:
             return True
         self.generic_sub_bcast_test('dvd.update', self.deejayd.dvd_reload, ())
 
