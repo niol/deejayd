@@ -40,17 +40,17 @@ public class MediaAttrColumn extends Column<Media, String> {
         super(new AbstractCell<String>("dblclick") {
 
             @Override
-            public void render(String value, Object key, SafeHtmlBuilder sb) {
+            public void render(Context context, String value, SafeHtmlBuilder sb) {
                 sb.appendEscaped(value);
             }
 
             @Override
-            public void onBrowserEvent(Element parent, String value, Object key,
+            public void onBrowserEvent(Context context, Element parent, String value,
                       NativeEvent event, ValueUpdater<String> valueUpdater) {
                 event.preventDefault();
 
                 // key == id/media_id
-                String[] ids = ((String) key).split("/");
+                String[] ids = ((String) context.getKey()).split("/");
                 ui.rpc.goTo(Integer.parseInt(ids[0]), null);
             }
         });

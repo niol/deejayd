@@ -34,7 +34,7 @@ public class RatingColumn extends Column<Media, Integer> {
         super(new AbstractCell<Integer>() {
 
             @Override
-            public void render(Integer value, Object key, SafeHtmlBuilder sb) {
+            public void render(Context context, Integer value, SafeHtmlBuilder sb) {
                 String img = AbstractImagePrototype.create(star).getHTML();
 
                 sb.appendHtmlConstant("<div style='display:inline-block'>");

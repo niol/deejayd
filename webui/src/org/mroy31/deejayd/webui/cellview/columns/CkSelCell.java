@@ -46,7 +46,7 @@ public class CkSelCell extends AbstractCell<Boolean> {
      }
 
      @Override
-     public void render(Boolean value, Object key, SafeHtmlBuilder sb) {
+     public void render(Context context, Boolean value, SafeHtmlBuilder sb) {
          if (value)
              sb.append(INPUT_CHECKED);
          else
@@ -54,8 +54,8 @@ public class CkSelCell extends AbstractCell<Boolean> {
      }
 
      @Override
-     public void onBrowserEvent(Element parent, Boolean value, Object key,
-         NativeEvent event, ValueUpdater<Boolean> valueUpdater) {
+     public void onBrowserEvent(Context context, Element parent, Boolean value,
+              NativeEvent event, ValueUpdater<Boolean> valueUpdater) {
          InputElement input = parent.getFirstChild().cast();
          Boolean isChecked = input.isChecked();
 

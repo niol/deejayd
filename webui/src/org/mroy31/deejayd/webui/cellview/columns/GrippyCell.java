@@ -48,7 +48,7 @@ public class GrippyCell<T> extends AbstractCell<String> {
     }
 
     @Override
-    public void render(String value, Object key, SafeHtmlBuilder sb) {
+    public void render(Context context, String value, SafeHtmlBuilder sb) {
         sb.appendHtmlConstant("<span style='margin-left:6px;margin-right:6px;'>");
         sb.appendHtmlConstant("<img draggable=\"true\" src=\"./deejayd_webui/clear.cache.gif\" class=\""+className+"\">")
           .appendHtmlConstant("</img>")
@@ -56,19 +56,19 @@ public class GrippyCell<T> extends AbstractCell<String> {
     }
 
     @Override
-    public void onBrowserEvent(Element parent, String value, Object key,
+    public void onBrowserEvent(Context context, Element parent, String value,
               NativeEvent event, ValueUpdater<String> valueUpdater) {
         if ("dragstart".equals(event.getType())) {
             boolean needCheck = false;
             int selCount = 0;
-            for (T item : view.getDisplayedItems()) {
+            for (T item : view.getVisibleItems()) {
                 String v = (String) view.getKeyProvider().getKey(item);
                 if (view.getSelectionModel().isSelected(item)) {
                     ++selCount;
-                    if (!v.equals(key))
+                    if (!v.equals(context.getKey()))
                         value += "///" + v;
                 }
-                else if (v.equals(key)
+                else if (v.equals(context.getKey())
                         && !view.getSelectionModel().isSelected(item)) {
                     ++selCount;
                     needCheck = true;

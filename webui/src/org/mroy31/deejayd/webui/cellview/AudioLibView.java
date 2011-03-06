@@ -157,7 +157,7 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
                 new AbstractCell<ImageResource>("dblclick"){
 
                     @Override
-                    public void render(ImageResource value, Object key,
+                    public void render(Context context, ImageResource value,
                             SafeHtmlBuilder sb) {
                         if (value != null) {
                               SafeHtml html = SafeHtmlUtils.fromTrustedString(
@@ -168,9 +168,8 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
                     }
 
                     @Override
-                    public void onBrowserEvent(Element parent,
-                            ImageResource value, Object key,
-                            NativeEvent event,
+                    public void onBrowserEvent(Context context, Element parent,
+                            ImageResource value, NativeEvent event,
                             ValueUpdater<ImageResource> valueUpdater) {
                         event.preventDefault();
 
@@ -191,7 +190,7 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
                 new AbstractCell<String>("dblclick"){
 
                     @Override
-                    public void render(String value, Object key,
+                    public void render(Context context, String value,
                             SafeHtmlBuilder sb) {
                         if (value != null) {
                               sb.appendEscaped(value);
@@ -199,9 +198,8 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
                     }
 
                     @Override
-                    public void onBrowserEvent(Element parent,
-                            String value, Object key,
-                            NativeEvent event,
+                    public void onBrowserEvent(Context context, Element parent,
+                            String value, NativeEvent event,
                             ValueUpdater<String> valueUpdater) {
                         event.preventDefault();
 
@@ -249,7 +247,7 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
 
     @UiHandler("selectAll")
     public void selectAllHandler(ValueChangeEvent<Boolean> event) {
-        selModel.setSelected(list.getDisplayedItems(), event.getValue());
+        selModel.setSelected(list.getVisibleItems(), event.getValue());
     }
 
     public void onLibraryChange(LibraryChangeEvent event) {
@@ -261,7 +259,7 @@ public class AudioLibView extends Composite implements LibraryChangeHandler {
     private List<String> getSelection() {
         ArrayList<String> sel = new ArrayList<String>();
         if (selModel != null) {
-            for (LibraryItem item : list.getDisplayedItems()) {
+            for (LibraryItem item : list.getVisibleItems()) {
                 if (selModel.isSelected(item))
                     sel.add(item.getPath());
             }

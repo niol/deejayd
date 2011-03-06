@@ -88,7 +88,7 @@ public class AudioLibrary extends AbstractLibrary {
                         new AnswerHandler<Boolean>() {
 
                             public void onAnswer(Boolean answer) {
-                                selModel.setSelected(list.getDisplayedItems(),
+                                selModel.setSelected(list.getVisibleItems(),
                                         false);
                                 ui.setMessage(ui.i18nConst.plsAddMsg());
                                 ui.update();

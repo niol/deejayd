@@ -24,23 +24,23 @@ import com.google.gwt.i18n.client.Messages;
 public interface CommonI18nMessages extends Messages {
 
     @DefaultMessage("{0,number} seconds")
-    @PluralText({"one", "1 second"})
+    @AlternateMessage({"one", "1 second"})
     String seconds(@PluralCount int seconds);
 
     @DefaultMessage("{0,number} minutes")
-    @PluralText({"one", "1 minute"})
+    @AlternateMessage({"one", "1 minute"})
     String minutes(@PluralCount int minutes);
 
     @DefaultMessage("{0,number} hours")
-    @PluralText({"one", "1 hour"})
+    @AlternateMessage({"one", "1 hour"})
     String hours(@PluralCount int hours);
 
     @DefaultMessage("{0,number} days")
-    @PluralText({"one", "1 day"})
+    @AlternateMessage({"one", "1 day"})
     String days(@PluralCount int days);
 
     @DefaultMessage("{0,number} years")
-    @PluralText({"one", "1 year"})
+    @AlternateMessage({"one", "1 year"})
     String years(@PluralCount int years);
 }
 

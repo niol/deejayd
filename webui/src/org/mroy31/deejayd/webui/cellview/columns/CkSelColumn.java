@@ -48,7 +48,7 @@ public class CkSelColumn<T> extends Column<T, Boolean> {
             public void onSelectionChange(SelectionChangeEvent event) {
 
                 int idx = 0;
-                for (T m : list.getDisplayedItems()) {
+                for (T m : list.getVisibleItems()) {
                     TableRowElement elt = list.getRowElement(idx);
                     InputElement input = elt.getFirstChild().getFirstChild().getFirstChild().cast();
                     if (list.getSelectionModel().isSelected(m) != input.isChecked())

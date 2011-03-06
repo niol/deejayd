@@ -27,31 +27,31 @@ import com.google.gwt.i18n.client.LocalizableResource.DefaultLocale;
 public interface MobileMessages extends CommonI18nMessages {
 
     @DefaultMessage("{0,number} Playlists")
-    @PluralText({"one", "1 Playlist"})
+    @AlternateMessage({"one", "1 Playlist"})
     String plsCount(@PluralCount int number);
 
     @DefaultMessage("{0,number} Urls")
-    @PluralText({"one", "1 Url"})
+    @AlternateMessage({"one", "1 Url"})
     String urlCount(@PluralCount int number);
 
     @DefaultMessage("{0,number} Songs")
-    @PluralText({"one", "1 Song"})
+    @AlternateMessage({"one", "1 Song"})
     String songsDesc(@PluralCount int number);
 
     @DefaultMessage("{0,number} Webradios")
-    @PluralText({"one", "1 Webradio"})
+    @AlternateMessage({"one", "1 Webradio"})
     String webradiosDesc(@PluralCount int number);
 
     @DefaultMessage("{0,number} Videos")
-    @PluralText({"one", "1 Video"})
+    @AlternateMessage({"one", "1 Video"})
     String videosDesc(@PluralCount int number);
 
     @DefaultMessage("Are you sure you want to erase these {0,number} playlists ?")
-    @PluralText({"one", "Are you sure you want to erase this playlist ?"})
+    @AlternateMessage({"one", "Are you sure you want to erase this playlist ?"})
     String plsEraseConfirm(@PluralCount int number);
 
     @DefaultMessage("{0,number} Tracks")
-    @PluralText({"one", "1 Track"})
+    @AlternateMessage({"one", "1 Track"})
     String tracksDesc(@PluralCount int number);
 
     @DefaultMessage("Track {0,number}")
@@ -61,7 +61,7 @@ public interface MobileMessages extends CommonI18nMessages {
     String dvdChapter(int idx);
 
     @DefaultMessage("{0,number}/{1,number} items loaded")
-    @PluralText({"one", "1/{1,number} item loaded"})
+    @AlternateMessage({"one", "1/{1,number} item loaded"})
     String itemLoadedDesc(@PluralCount int number, int total);
 }
 
