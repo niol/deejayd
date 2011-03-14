@@ -6,7 +6,7 @@
 
 
 %:
-	dh $@
+	dh $@ --with python2
 
 override_dh_install:
 	# Fixing example conffile location as dh_install cannot rename
@@ -25,5 +25,5 @@ override_dh_installinit:
 	# Inspired by gdm packaging
 	dh_installinit --name=deejayd-xserver -u"defaults 30 01"
 
-override_dh_pysupport:
-	dh_pysupport -Ndeejayd-webui-extension
+override_dh_python2:
+	dh_python2 -Ndeejayd-webui-extension
