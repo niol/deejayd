@@ -1,4 +1,4 @@
-deejayd (0.10.0-3~test+2) UNRELEASED; urgency=low
+deejayd (0.10.0-3) unstable; urgency=low
 
   * Add more upstream bug fixes.
   * Add patch for Android mobile web ui fix.
@@ -8,7 +8,7 @@ deejayd (0.10.0-3~test+2) UNRELEASED; urgency=low
   * Use dh_python2 (Closes: #616787).
   * Drop end dates in debian/copyright in order to avoid further updates.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 29 Nov 2010 11:12:21 +0100
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 15 Mar 2011 22:56:31 +0100
 
 deejayd (0.10.0-2) unstable; urgency=low
 
