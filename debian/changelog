@@ -1,3 +1,9 @@
+deejayd (0.10.0-3+1) unstable; urgency=low
+
+  * Add upstream inotify fixes.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 22 Mar 2011 23:08:31 +0100
+
 deejayd (0.10.0-3) unstable; urgency=low
 
   * Add more upstream bug fixes.
