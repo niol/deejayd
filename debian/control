@@ -23,7 +23,7 @@ Recommends: python-pyinotify (>= 0.6.0)
 Suggests: deejayd-webui,
           xserver-xorg, xauth, x11-utils, x11-common,
           python-zope.interface
-Breaks: deejayd-client (<< 0.8.4), ${python:Breaks}
+Breaks: deejayd-client (<< 0.8.4)
 Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
  through the network using XML messages.
@@ -36,7 +36,6 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          deejayd (= ${binary:Version}), logrotate,
          python-twisted-web, libjs-jquery
-Breaks: ${python:Breaks}
 Description: Web interface for deejayd
  This package provides, in order to control your deejayd server:
     - a XUL web interface and,
@@ -47,7 +46,7 @@ Description: Web interface for deejayd
 Package: deejayd-client
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-simplejson | python (>= 2.6)
-Breaks: djc (<= 0.8.1), ${python:Breaks}
+Breaks: djc (<= 0.8.1)
 Replaces: djc
 Description: Client library and command line tool to access the deejayd server
  This package provides easy to use classes to manipulate the deejayd server,
@@ -63,7 +62,6 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          python-ctypes (>= 1.0.0) | python (>= 2.5),
          libxine1-x, libx11-6, libxext6
-Breaks: ${python:Breaks}
 Description: Deejayd XINE backend
  The deejayd media backend using the XINE library.
 
@@ -72,7 +70,6 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          gstreamer0.10-plugins-base, python-gst0.10
 Recommends: gstreamer0.10-gnomevfs, lsdvd
-Breaks: ${python:Breaks}
 Description: Deejayd GStreamer backend
  The deejayd media backend using the GStreamer library.
 

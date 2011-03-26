@@ -1,8 +1,9 @@
 deejayd (0.10.0-3+1) unstable; urgency=low
 
   * Add upstream inotify fixes.
+  * Remove ${python:Breaks} which is not used anymore in dh_python2.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 22 Mar 2011 23:08:31 +0100
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sat, 26 Mar 2011 23:42:53 +0100
 
 deejayd (0.10.0-3) unstable; urgency=low
 
