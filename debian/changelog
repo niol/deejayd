@@ -1,13 +1,18 @@
-deejayd (0.11.0-1~pre+1) unstable; urgency=low
+deejayd (0.11.0-1~pre+1) UNRELEASED; urgency=low
 
-  * New upstream version.
+  * New upstream version:
+        - Drop patches which have been integrated upstream.
+        - Drop deejayd-webui-extension binary package which is not required
+          anymore.
+        - Patch build dir to add built webui in order to avoid GWT build
+          dependency for now. This means that this won't go in Debian as is.
   * Fix debian/copyright as the gentoo packaging has been removed from the
     upstream package.
-  * Drop patches which have been integrated upstream.
   * Add upstream inotify fixes.
+  * Update to policy 3.9.2.0 (nothing to do).
   * Remove ${python:Breaks} which is not used anymore in dh_python2.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 02 May 2011 12:37:08 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 02 May 2011 20:59:50 +0200
 
 deejayd (0.10.0-3) unstable; urgency=low
 
