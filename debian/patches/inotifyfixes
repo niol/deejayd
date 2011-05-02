@@ -1,7 +1,7 @@
 Index: deejayd/deejayd/database/queries.py
 ===================================================================
---- deejayd.orig/deejayd/database/queries.py	2010-09-20 21:15:31.000000000 +0200
-+++ deejayd/deejayd/database/queries.py	2011-03-22 23:07:18.464149868 +0100
+--- deejayd.orig/deejayd/database/queries.py	2011-05-02 14:13:28.070142133 +0200
++++ deejayd/deejayd/database/queries.py	2011-05-02 14:14:06.154643120 +0200
 @@ -189,11 +189,13 @@
          cursor.execute(query,(dir+u"%%", type))
  
@@ -20,9 +20,9 @@ Index: deejayd/deejayd/database/queries.py
          files = []
 Index: deejayd/deejayd/mediadb/inotify.py
 ===================================================================
---- deejayd.orig/deejayd/mediadb/inotify.py	2011-03-22 23:04:20.052108862 +0100
-+++ deejayd/deejayd/mediadb/inotify.py	2011-03-22 23:07:18.492108994 +0100
-@@ -120,6 +120,11 @@
+--- deejayd.orig/deejayd/mediadb/inotify.py	2011-05-02 14:13:28.082141800 +0200
++++ deejayd/deejayd/mediadb/inotify.py	2011-05-02 14:14:06.178641377 +0200
+@@ -122,6 +122,11 @@
          name = library.fs_charset2unicode(event.name)
          # A decoding error would be raised and logged.
  
@@ -34,7 +34,7 @@ Index: deejayd/deejayd/mediadb/inotify.py
          if type == "create":
              if self.__occured_on_dirlink(library, event):
                  return library.add_directory(path, name, True)
-@@ -190,16 +195,17 @@
+@@ -187,16 +192,17 @@
      def watch_dir(self, dir_path, library):
          if self.is_watched(dir_path):
              raise ValueError('dir %s is already watched' % dir_path)
@@ -58,9 +58,9 @@ Index: deejayd/deejayd/mediadb/inotify.py
          notifier = self.notifier(self.__wm)
 Index: deejayd/deejayd/mediadb/library.py
 ===================================================================
---- deejayd.orig/deejayd/mediadb/library.py	2011-03-22 23:04:20.019608901 +0100
-+++ deejayd/deejayd/mediadb/library.py	2011-03-22 23:07:18.492108994 +0100
-@@ -172,6 +172,14 @@
+--- deejayd.orig/deejayd/mediadb/library.py	2011-05-02 14:13:28.082141800 +0200
++++ deejayd/deejayd/mediadb/library.py	2011-05-02 14:14:06.182642758 +0200
+@@ -170,6 +170,14 @@
              root_paths.append(dirlink)
          return root_paths
  
