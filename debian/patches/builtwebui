@@ -1,0 +1,21 @@
+Index: deejayd/setup.py
+===================================================================
+--- deejayd.orig/setup.py	2011-05-02 14:38:59.602643707 +0200
++++ deejayd/setup.py	2011-05-02 14:42:41.122142161 +0200
+@@ -154,16 +154,11 @@
+             self.ant_target = "builddist"
+ 
+     def run(self):
+-        if "GWT_SDK" not in os.environ.keys():
+-            # TODO : try to find gwt sdk in default java classpath
+-            raise DistutilsOptionError("No GWT SDK found to build webui")
+         if self.ant is None:
+             raise DistutilsOptionError(\
+                     "ant program not found, we can't build webui")
+ 
+-        os.environ["GWT_SDK"] = os.path.abspath(os.environ["GWT_SDK"])
+         cmd = (self.ant, "-f", self.build_file, self.ant_target)
+-        self.spawn(cmd)
+ 
+         if self.ant_target == "builddist":
+             wdir = os.path.join("build", "webui")
