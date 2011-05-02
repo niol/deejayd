@@ -1,0 +1,19 @@
+changeset:   1549:99edecb6a727
+parent:      1542:8ac1ba1c56e0
+user:        Mickael Royer <mickael.royer@gmail.com>
+date:        Wed Apr 21 12:54:13 2010 +0200
+summary:     [lastfm] fix possible UnicodeDecode error
+
+diff --git a/deejayd/plugins/lastfm.py b/deejayd/plugins/lastfm.py
+--- a/deejayd/plugins/lastfm.py
++++ b/deejayd/plugins/lastfm.py
+@@ -185,7 +185,7 @@
+                 self.enabled = False
+                 break
+             except AudioScrobblerError, ex: # log error and try later
+-                log.err(str(ex))
++                log.err(ex)
+             else:
+                 tracks = []
+                 if not self.queue.empty():
+

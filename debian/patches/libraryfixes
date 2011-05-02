@@ -1,0 +1,319 @@
+changeset:   1550:f11e7ad893a2
+user:        Mickael Royer <mickael.royer@gmail.com>
+date:        Wed Apr 21 13:04:30 2010 +0200
+summary:     [library] Correctly encode root path to avoid UnicodeError exception
+
+Index: deejayd/deejayd/mediadb/library.py
+===================================================================
+--- deejayd.orig/deejayd/mediadb/library.py	2011-03-08 09:03:53.000000000 +0100
++++ deejayd/deejayd/mediadb/library.py	2011-03-10 16:27:42.508157867 +0100
+@@ -25,7 +25,7 @@
+ from deejayd.interfaces import DeejaydError
+ from deejayd.component import SignalingComponent
+ from deejayd.mediadb import formats
+-from deejayd.utils import quote_uri, str_encode
++from deejayd.utils import quote_uri, str_decode
+ from deejayd import database, mediafilters
+ from deejayd.ui import log
+ 
+@@ -39,8 +39,8 @@
+     def inotify_action_func(*__args, **__kw):
+         self = __args[0]
+         try:
+-            name = self._encode(__args[1])
+-            path = self._encode(__args[2])
++            name = self.fs_charset2unicode(__args[1])
++            path = self.fs_charset2unicode(__args[2])
+         except UnicodeError:
+             return
+ 
+@@ -70,10 +70,11 @@
+         self._changes_cb = {}
+         self._changes_cb_id = 0
+ 
+-        self._path = os.path.abspath(path)
++        self._path = self.fs_charset2unicode(os.path.abspath(path))
+         # test library path
+         if not os.path.isdir(self._path):
+-            msg = _("Unable to find directory %s") % self._encode(self._path)
++            msg = _("Unable to find directory %s") \
++                    % self.fs_charset2unicode(self._path)
+             raise NotFoundException(msg)
+ 
+         # Connection to the database
+@@ -87,8 +88,12 @@
+ 
+         self.watcher = None
+ 
+-    def _encode(self, data):
+-        return str_encode(data, self._fs_charset)
++    def fs_charset2unicode(self, path, errors='strict'):
++        """
++        This function translate file paths from the filesystem encoded form to
++        unicode for internal processing.
++        """
++        return str_decode(path, self._fs_charset, errors)
+ 
+     def _build_supported_extension(self, player):
+         raise NotImplementedError
+@@ -113,7 +118,7 @@
+         dirs = []
+         for dir_id, dir_path in dirs_rsp:
+             root, d = os.path.split(dir_path.rstrip("/"))
+-            if d != "" and root == self._encode(dir):
++            if d != "" and root == self.fs_charset2unicode(dir):
+                 dirs.append(d)
+         return {'files': files_rsp, 'dirs': dirs}
+ 
+@@ -235,6 +240,8 @@
+         return False
+ 
+     def _update_dir(self, dir, force = False, dispatch_signal = True):
++        dir = self.fs_charset2unicode(dir)
++
+         # dirname/filename : (id, lastmodified)
+         library_files = dict([(os.path.join(it[1],it[3]), (it[2],it[4]))\
+             for it in self.db_con.get_all_files(dir,self.type)])
+@@ -303,8 +310,11 @@
+ 
+         changes = []
+         for root, dirs, files in os.walk(walk_root):
+-            try: root = self._encode(root)
++            try:
++                root = self.fs_charset2unicode(root)
+             except UnicodeError: # skip this directory
++                log.info("Directory %s skipped because of unhandled characters."\
++                         % self.fs_charset2unicode(root, 'replace'))
+                 continue
+ 
+             try: dir_id = library_dirs[root]
+@@ -315,14 +325,17 @@
+ 
+             # search symlinks
+             for dir in dirs:
+-                try: dir = self._encode(dir)
++                try:
++                    dir = self.fs_charset2unicode(dir)
++                    dir_path = os.path.join(root, dir)
+                 except UnicodeError: # skip this directory
++                    log.info("Directory %s skipped because of unhandled characters."\
++                             % self.fs_charset2unicode(dir_path, 'replace'))
+                     continue
+                 # Walk only symlinks that aren't in library root or in one of
+                 # the additional known root paths which consist in already
+                 # crawled and out-of-main-root directories
+                 # (i.e. other symlinks).
+-                dir_path = os.path.join(root, dir)
+                 if os.path.islink(dir_path):
+                     if not self.is_in_a_root(dir_path, forbidden_roots):
+                         forbidden_roots.append(os.path.realpath(dir_path))
+@@ -338,8 +351,11 @@
+                                  dispatch_signal))
+ 
+             # else update files
+-            changes.extend(self.update_files(root, dir_id, files,
+-                                        library_files, force, dispatch_signal))
++            dir_changes = self.update_files(root, dir_id,
++                                            map(self.fs_charset2unicode, files),
++                                            library_files,
++                                            force, dispatch_signal)
++            changes.extend(dir_changes)
+ 
+         return changes
+ 
+@@ -356,9 +372,7 @@
+                      force = False, dispatch_signal=True):
+         changes = []
+         for file in files:
+-            try: file = self._encode(file)
+-            except UnicodeError: # skip this file
+-                continue
++            assert type(file) is unicode
+ 
+             file_path = os.path.join(root, file)
+             try:
+@@ -409,7 +423,7 @@
+         except Exception, ex:
+             log.err(_("Unable to get infos from %s, see traceback")%file_path)
+             log.err("------------------Traceback lines--------------------")
+-            log.err(self._encode(traceback.format_exc()))
++            log.err(self.fs_charset2unicode(traceback.format_exc()))
+             log.err("-----------------------------------------------------")
+             return None
+         return file_info
+@@ -600,9 +614,7 @@
+         changes = []
+         if len(files): cover = self.__find_cover(root)
+         for file in files:
+-            try: file = self._encode(file)
+-            except UnicodeError: # skip this file
+-                continue
++            assert type(file) is unicode
+ 
+             file_path = os.path.join(root, file)
+             try:
+Index: deejayd/deejayd/mediadb/inotify.py
+===================================================================
+--- deejayd.orig/deejayd/mediadb/inotify.py	2010-11-26 22:40:24.000000000 +0100
++++ deejayd/deejayd/mediadb/inotify.py	2011-03-10 16:27:42.504157086 +0100
+@@ -18,7 +18,6 @@
+ 
+ import os, threading, traceback, Queue
+ from deejayd.ui import log
+-from deejayd.utils import str_encode
+ import pyinotify
+ 
+ #############################################################################
+@@ -93,8 +92,8 @@
+                     self.__record_changes.extend(changes)
+                     self.__need_update = True
+             except Exception, ex:
+-                path = str_encode(os.path.join(event.path, event.name),
+-                                  errors='replace')
++                path = os.path.join(event.path, event.name)
++                path = library.fs_charset2unicode(path)
+                 log.err(_("Inotify problem for '%s', see traceback") % path)
+                 log.err("------------------Traceback lines--------------------")
+                 log.err(traceback.format_exc())
+@@ -117,18 +116,15 @@
+             return file_path in library.get_root_paths()
+ 
+     def __execute(self, type, library, event):
+-        # first be sure that path are correct
+-        try:
+-            path = library._encode(event.path)
+-            name = library._encode(event.name)
+-        except UnicodeError: # skip this event
+-            return False
++        path = library.fs_charset2unicode(event.path)
++        name = library.fs_charset2unicode(event.name)
++        # A decoding error would be raised and logged.
+ 
+         if type == "create":
+             if self.__occured_on_dirlink(library, event):
+                 return library.add_directory(path, name, True)
+             elif not self.is_on_dir(event):
+-                self.__created_files.append((path, name))
++                return library.add_file(path, name)
+         elif type == "delete":
+             if self.__occured_on_dirlink(library, event):
+                 return library.remove_directory(path, name, True)
+Index: deejayd/deejayd/net/protocol.py
+===================================================================
+--- deejayd.orig/deejayd/net/protocol.py	2010-11-26 22:40:24.000000000 +0100
++++ deejayd/deejayd/net/protocol.py	2011-03-10 16:27:42.528156948 +0100
+@@ -26,7 +26,7 @@
+ from deejayd.interfaces import DeejaydSignal
+ from deejayd.mediafilters import *
+ from deejayd.ui import log
+-from deejayd.utils import str_encode
++from deejayd.utils import str_decode
+ from deejayd.rpc import Fault, DEEJAYD_PROTOCOL_VERSION
+ from deejayd.rpc.jsonparsers import loads_request
+ from deejayd.rpc.jsonbuilders import JSONRPCResponse, DeejaydJSONSignal
+@@ -73,7 +73,7 @@
+             try: result = function(*args)
+             except Exception, ex:
+                 if not isinstance(ex, Fault):
+-                    log.err(str_encode(traceback.format_exc()))
++                    log.err(str_decode(traceback.format_exc()))
+                     result = Fault(self.FAILURE, _("error, see deejayd log"))
+                 else:
+                     result = ex
+Index: deejayd/deejayd/plugins/lastfm.py
+===================================================================
+--- deejayd.orig/deejayd/plugins/lastfm.py	2011-03-10 16:26:47.995657449 +0100
++++ deejayd/deejayd/plugins/lastfm.py	2011-03-10 16:27:42.528156948 +0100
+@@ -26,7 +26,7 @@
+ from deejayd.interfaces import DeejaydError
+ from deejayd.ui import log
+ from deejayd.plugins import IPlayerPlugin, PluginError
+-from deejayd.utils import str_encode
++from deejayd.utils import str_decode
+ 
+ class AudioScrobblerFatalError(DeejaydError): pass
+ class AudioScrobblerError(DeejaydError):
+@@ -79,8 +79,8 @@
+             url_handle = urllib2.urlopen(request)
+         except urllib2.HTTPError, error:
+             err_msg = _("Unable to connect to server: %s - %s")
+-            code = str_encode(error.code, errors="ignore")
+-            msg = str_encode(error.msg, errors="ignore")
++            code = str_decode(error.code, errors="ignore")
++            msg = str_decode(error.msg, errors="ignore")
+             raise AudioScrobblerError(err_msg % (code, msg))
+         except urllib2.URLError, error:
+             args = getattr(error.reason, 'args', None)
+@@ -92,8 +92,8 @@
+                 elif len(args) == 2:
+                     code = str(error.reason.args[0])
+                     message = error.reason.args[1]
+-            code = str_encode(code, errors="ignore")
+-            message = str_encode(message, errors="ignore")
++            code = str_decode(code, errors="ignore")
++            message = str_decode(message, errors="ignore")
+             err_msg = _("Unable to connect to server: %s - %s")
+             raise AudioScrobblerError(err_msg % (code, message))
+ 
+Index: deejayd/deejayd/utils.py
+===================================================================
+--- deejayd.orig/deejayd/utils.py	2010-11-26 22:40:24.000000000 +0100
++++ deejayd/deejayd/utils.py	2011-03-10 16:27:42.528156948 +0100
+@@ -24,14 +24,18 @@
+         path = path.encode('utf-8')
+     return "file://%s" % urllib.quote(path)
+ 
+-def str_encode(data, charset = 'utf-8', errors='strict'):
++def str_decode(data, charset='utf-8', errors='strict'):
++    """
++    Decode the string given a supplied charset into a unicode string, and
++    log errors.
++    """
+     if type(data) is unicode: return data
+     try: rs = data.decode(charset, errors)
+     except UnicodeError:
+-        log.err(_("%s string has wrong characters, skip it") %\
+-          data.decode(charset, "ignore").encode("utf-8","ignore"))
+-        raise UnicodeError
+-    return unicode(rs)
++        log.err(_("'%s' string has badly encoded characters") %\
++                data.decode(charset, "replace"))
++        raise
++    return rs
+ 
+ def format_time(time):
+     """Turn a time value in seconds into hh:mm:ss or mm:ss."""
+Index: deejayd/scripts/deejayd
+===================================================================
+--- deejayd.orig/scripts/deejayd	2010-11-26 22:40:24.000000000 +0100
++++ deejayd/scripts/deejayd	2011-03-10 16:27:42.531658374 +0100
+@@ -220,10 +220,10 @@
+         from deejayd.core import DeejayDaemonCore
+         deejayd_core = DeejayDaemonCore(config)
+     except Exception, ex:
+-        from deejayd.utils import str_encode
++        from deejayd.utils import str_decode
+         log.err(\
+             _("Unable to launch deejayd core, see traceback for more details"))
+-        log.msg(str_encode(traceback.format_exc()))
++        log.msg(str_decode(traceback.format_exc()))
+         sys.exit(1)
+ 
+     service = False
+Index: deejayd/scripts/testserver
+===================================================================
+--- deejayd.orig/scripts/testserver	2010-11-26 22:40:24.000000000 +0100
++++ deejayd/scripts/testserver	2011-03-10 16:27:42.531658374 +0100
+@@ -72,10 +72,10 @@
+     try: deejayd_core.close()
+     except:
+         pass
+-    from deejayd.utils import str_encode
++    from deejayd.utils import str_decode
+     err = "Unable to launch deejayd core, see traceback for more details"
+     log.msg(err)
+-    log.msg(str_encode(traceback.format_exc()))
++    log.msg(str_decode(traceback.format_exc()))
+     os.write(2, 'stopped\n')
+     sys.exit()
+ 

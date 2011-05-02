@@ -4,80 +4,26 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-# This has to be exported to make some magic below work.
-export DH_OPTIONS
 
-PYVERS=$(shell pyversions -vr)
+%:
+	dh $@ --with python2
 
-ifeq ($(PYVERS), 2.5)
-	# --install-layout=deb does not exist in python << 2.6
-	DISTUTILSINSTLAYOUT =
-else
-	DISTUTILSINSTLAYOUT = --install-layout=deb
-endif
-
-build: $(PYVERS:%=build-python%)
-
-build-python%:
-	touch $@
-
-install: build $(PYVERS:%=install-python%)
-
-install-python%:
-	dh_clean -k -i
-	dh_clean -k -s
-	python$* setup.py install --no-compile\
-			--root $(CURDIR)/debian/tmp $(DISTUTILSINSTLAYOUT)
-
-	# Fixing example conffile location
-	mkdir -p $(CURDIR)/debian/tmp/etc/X11/Xsession.d
+override_dh_install:
+	# Fixing example conffile location as dh_install cannot rename
+	mkdir -p $(CURDIR)/debian/tmp/etc
 	cp -a $(CURDIR)/deejayd/ui/defaults.conf\
 	      $(CURDIR)/debian/tmp/etc/deejayd.conf
-	cp -a $(CURDIR)/debian/deejayd.xinitrc\
-	      $(CURDIR)/debian/tmp/etc/deejayd.xinitrc
-	cp -a $(CURDIR)/debian/50deejayd_steal-session\
-	      $(CURDIR)/debian/tmp/etc/X11/Xsession.d
 
 	# Removing jquery embedded copy, see debian/deejayd-webui.links
 	rm $(CURDIR)/debian/tmp/usr/share/deejayd/htdocs/js/lib/jquery.js
 
-	dh_install --sourcedir=$(CURDIR)/debian/tmp
-	dh_installdirs
+	dh_install
 
-clean: $(PYVERS:%=clean-python%)
-
-clean-python%:
-	dh_testdir
-	dh_testroot
-
-	rm -f build-python*
-	python$* setup.py clean --all
-	find $(CURDIR) -name '*pyc' -exec rm -f {} \;
-
-	dh_clean
-
-binary-indep: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs
-	dh_installdocs
-	dh_pycentral -Ndeejayd-webui-extension
-	dh_installlogrotate
+override_dh_installinit:
 	# Inspired by mpd packaging, so that ALSA scripts can run first
 	dh_installinit -u"defaults 30 15"
 	# Inspired by gdm packaging
 	dh_installinit --name=deejayd-xserver -u"defaults 30 01"
-	dh_installman
-	dh_link
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
 
-binary-arch: build install
-
-binary: binary-arch binary-indep
-
-.PHONY: build clean binary-indep binary-arch binary install
+override_dh_python2:
+	dh_python2 -Ndeejayd-webui-extension

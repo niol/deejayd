@@ -1,26 +1,67 @@
 deejayd (0.11.0-1~pre+1) unstable; urgency=low
 
+  * New upstream version.
   * Fix debian/copyright as the gentoo packaging has been removed from the
     upstream package.
+  * Drop patches which have been integrated upstream.
+  * Add upstream inotify fixes.
+  * Remove ${python:Breaks} which is not used anymore in dh_python2.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Fri, 26 Nov 2010 08:28:06 +0100
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 02 May 2011 12:37:08 +0200
 
-deejayd (0.10.0-1) unstable; urgency=low
+deejayd (0.10.0-3) unstable; urgency=low
+
+  * Add more upstream bug fixes.
+  * Add patch for Android mobile web ui fix.
+  * Simplify a lot debian/rules thanks to debhelper 7.
+  * Add upstream feature : save volume by media type.
+  * Add patch for XUL ext compatibility with Firefox 4.
+  * Use dh_python2 (Closes: #616787).
+  * Drop end dates in debian/copyright in order to avoid further updates.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 15 Mar 2011 22:56:31 +0100
+
+deejayd (0.10.0-2) unstable; urgency=low
+
+  * Add the ability to disable the deejayd initscript in /etc/default/deejayd.
+  * Switch to dpkg-source 3.0 (quilt) format
+  * Add some upstream bugfixes.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 28 Jun 2010 22:14:35 +0200
+
+deejayd (0.10.0-1) UNRELEASED; urgency=low
 
   * New upstream version.
-  * Fix override disparity of binary package deejayd-xine by allocating it to
-    section 'video'.
-  * Add missing ${misc:Depends} dependency to all binary packages.
   * Make deejayd-xserver init script depend on x11-common in the start
     sequence.
-  * Update to policy 3.8.4 (nothing to do).
   * Add suggests of python-zope.interface for plugins.
-  * Update Vcs-* fields in debian/control to reflect Hg switch.
-  * Depend on libxine1-x instead of libxine1 for deejayd-xine (dh_xine is *NOT*
-    used because of the big useless builddep on libxine-dev) (Closes: #575118).
   * Add debian source format 1.0 .
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sat, 03 Apr 2010 16:29:15 +0200
+
+deejayd (0.9.0-4) unstable; urgency=low
+
+  * Add missing ${misc:Depends} dependency to all binary packages.
+  * Depend on libxine1-x instead of libxine1 for deejayd-xine (dh_xine is *NOT*
+    used because of the big useless builddep on libxine-dev) (Closes: #575118).
+  * Fix spelling mistake in deejayd.conf manual page (usefull → useful).
+  * Update Vcs-* fields in debian/control te reflect Hg switch.
+  * Update policy to 3.9.1: Handle djc binary package removal with
+    Breaks/Replaces instead of Conflicts.
+  * Fix override disparity of binary package deejayd-xine by allocating it to
+    section 'video'.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 20 Sep 2010 21:18:57 +0200
+
+deejayd (0.9.0-3) unstable; urgency=low
+
+  * Simplify debian/rules by removing per-python-version targets which are
+    not needed (Closes: #587326).
+  * Drop the 'current' keyword in the 'XS-Python-Version' debian/control
+    field to ensure compatibility with newer Python versions without
+    rebuilding.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 20 Sep 2010 15:38:40 +0200
 
 deejayd (0.9.0-2) unstable; urgency=low
 

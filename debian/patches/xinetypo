@@ -1,0 +1,18 @@
+changeset:   1541:8ab0f35eeebf
+user:        Alexandre Rossi <alexandre.rossi@gmail.com>
+date:        Tue Apr 06 23:02:47 2010 +0200
+summary:     [xine] fix typo in xine init exception handling
+
+diff --git a/deejayd/player/xine.py b/deejayd/player/xine.py
+--- a/deejayd/player/xine.py
++++ b/deejayd/player/xine.py
+@@ -326,7 +326,7 @@
+         driver_name = self.config.get("xine", "audio_output")
+         try:
+             audio_port = xine.AudioDriver(self.__xine, driver_name)
+-        except xine.xineError:
++        except xine.XineError:
+             raise PlayerError(_("Unable to open audio driver"))
+ 
+         # open video driver
+
