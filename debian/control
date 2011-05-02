@@ -5,7 +5,7 @@ Maintainer: Alexandre Rossi <alexandre.rossi@gmail.com>
 Build-Depends: debhelper (>= 7.0.50~), python (>= 2.6.6-3)
 Build-Depends-Indep: python-support (>= 0.5.3), gettext, xsltproc, docbook-xsl,
                      ant (>= 1.7.0)
-Standards-Version: 3.9.1.0
+Standards-Version: 3.9.2.0
 X-Python-Version: >= 2.4
 Homepage: http://mroy31.dyndns.org/~roy/projects/deejayd
 Vcs-Hg: http://mroy31.dyndns.org/repository/deejayd
