@@ -72,10 +72,3 @@ Depends: ${misc:Depends}, ${python:Depends},
 Recommends: gstreamer0.10-gnomevfs, lsdvd
 Description: Deejayd GStreamer backend
  The deejayd media backend using the GStreamer library.
-
-Package: deejayd-webui-extension
-Architecture: all
-Depends: ${misc:Depends}, iceweasel
-Description: Deejayd web user interface Iceweasel extension
- The Deejayd Iceweasel browser extension provides a richer user interface to
- use as a client to the Deejayd server.

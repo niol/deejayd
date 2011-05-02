@@ -14,9 +14,6 @@ override_dh_install:
 	cp -a $(CURDIR)/deejayd/ui/defaults.conf\
 	      $(CURDIR)/debian/tmp/etc/deejayd.conf
 
-	# Removing jquery embedded copy, see debian/deejayd-webui.links
-	rm $(CURDIR)/debian/tmp/usr/share/deejayd/htdocs/js/lib/jquery.js
-
 	dh_install
 
 override_dh_installinit:
