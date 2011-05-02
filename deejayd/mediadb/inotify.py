@@ -122,6 +122,11 @@ class _LibraryWatcher(DeejaydThread):
         name = library.fs_charset2unicode(event.name)
         # A decoding error would be raised and logged.
 
+        # Raised events use real paths, and in the libraries, paths follow
+        # symlinks on directories. Therefore, paths must be fixed to use
+        # symlinks before being passed on to the library.
+        path = library.library_path(path)
+
         if type == "create":
             if self.__occured_on_dirlink(library, event):
                 return library.add_directory(path, name, True)
@@ -187,16 +192,17 @@ class _DeejaydInotify(DeejaydThread):
     def watch_dir(self, dir_path, library):
         if self.is_watched(dir_path):
             raise ValueError('dir %s is already watched' % dir_path)
-        wdd = self.__wm.add_watch(dir_path, self.EVENT_MASK,
+        realpath = os.path.realpath(dir_path)
+        wdd = self.__wm.add_watch(realpath, self.EVENT_MASK,
                       proc_fun=InotifyWatcher(library,self.__queue), rec=True,
                       auto_add=True)
-        self.__watched_dirs[dir_path] = wdd
+        self.__watched_dirs[dir_path] = (realpath, wdd, )
 
     def stop_watching_dir(self, dir_path):
         if self.is_watched(dir_path):
-            wdd = self.__watched_dirs[dir_path]
+            (realpath, wdd, ) = self.__watched_dirs[dir_path]
             del self.__watched_dirs[dir_path]
-            self.__wm.rm_watch(wdd[dir_path], rec=True)
+            self.__wm.rm_watch(wdd[realpath], rec=True)
 
     def run(self):
         notifier = self.notifier(self.__wm)

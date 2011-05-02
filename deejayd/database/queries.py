@@ -189,11 +189,13 @@ class DatabaseQueries(object):
         cursor.execute(query,(dir+u"%%", type))
 
     @query_decorator("fetchall")
-    def get_all_dirlinks(self, cursor, dirlink, type = 'audio'):
+    def get_all_dirlinks(self, cursor, dir, type = 'audio'):
+        if not dir[:-1] == '/': dir = dir+ u'/'
+
         query = "SELECT DISTINCT id,name FROM library_dir\
             WHERE name LIKE %s AND type='dirlink' AND lib_type = %s\
             ORDER BY name"
-        cursor.execute(query,(dirlink+u"%%", type))
+        cursor.execute(query,(dir+u"%%", type))
 
     def _medialist_answer(self, answer, infos = []):
         files = []

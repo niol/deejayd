@@ -170,6 +170,14 @@ class _Library(SignalingComponent):
             root_paths.append(dirlink)
         return root_paths
 
+    def library_path(self, realpath):
+        for root in self.get_root_paths():
+            if os.path.islink(root):
+                realroot = os.path.realpath(root)
+                if realpath.startswith(realroot):
+                    return os.path.join(root, realpath[len(realroot)+1:])
+        return realpath
+
     def get_status(self):
         status = []
         if not self._update_end:
