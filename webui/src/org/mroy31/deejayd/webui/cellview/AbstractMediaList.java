@@ -219,7 +219,7 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
     public List<String> getSelection() {
         ArrayList<String> sel = new ArrayList<String>();
         if (selModel != null) {
-            for (Media m : mediaList.getDisplayedItems()) {
+            for (Media m : mediaList.getVisibleItems()) {
                 if (selModel.isSelected(m))
                     sel.add(m.getStrAttr("id"));
             }
@@ -264,7 +264,7 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
         allCk.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
             public void onValueChange(ValueChangeEvent<Boolean> event) {
-                selModel.setSelected(mediaList.getDisplayedItems(),
+                selModel.setSelected(mediaList.getVisibleItems(),
                         event.getValue());
             }
         });

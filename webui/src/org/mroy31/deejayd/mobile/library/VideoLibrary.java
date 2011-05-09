@@ -84,7 +84,7 @@ public class VideoLibrary extends AbstractLibrary {
                 new AbstractCell<String>("click") {
 
                     @Override
-                    public void render(String value, Object key,
+                    public void render(Context context, String value,
                             SafeHtmlBuilder sb) {
                         sb.appendHtmlConstant("<button class='"+
                                 ui.resources.mobileCss().button()+"'>");
@@ -93,8 +93,8 @@ public class VideoLibrary extends AbstractLibrary {
                     }
 
                     @Override
-                    public void onBrowserEvent(Element parent, String value,
-                            Object key, NativeEvent event,
+                    public void onBrowserEvent(Context context, Element parent,
+                            String value, NativeEvent event,
                             ValueUpdater<String> valueUpdater) {
                         ui.rpc.videoModeSet(value, "directory", null);
                         closeCommand.execute();

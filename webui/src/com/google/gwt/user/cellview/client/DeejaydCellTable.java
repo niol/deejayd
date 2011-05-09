@@ -36,6 +36,7 @@ import org.mroy31.deejayd.common.events.DropHandler;
 import org.mroy31.deejayd.common.events.HasDropHandlers;
 
 import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.dom.client.Document;
@@ -371,11 +372,11 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         rowStyles.put(row, style);
         Range range = getVisibleRange();
         if (row >= range.getStart() && row < range.getStart()+range.getLength()) {
-             try {
-                 getRowElement(row-range.getStart()).addClassName(style);
-             } catch (IndexOutOfBoundsException e) {
-                 return;
-             }
+            try {
+                getRowElement(row-range.getStart()).addClassName(style);
+            } catch (IndexOutOfBoundsException e) {
+                return;
+            }
         }
     }
 
@@ -385,7 +386,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
             if (row >= rg.getStart() && row < rg.getStart()+rg.getLength()) {
                 try {
                     getRowElement(row-rg.getStart())
-                        .removeClassName(rowStyles.get(row));
+                    .removeClassName(rowStyles.get(row));
                 } catch (IndexOutOfBoundsException e) {}
             }
             rowStyles.remove(row);
@@ -494,8 +495,11 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
          int col = tableCell.getCellIndex();
          int row = tr.getSectionRowIndex();
 
-         T value = getDisplayedItem(row);
-         fireEventToCell(event, eventType, tableCell, value, col, row);
+         T value = getVisibleItem(row);
+         Context context = new Context(row + getPageStart(), col,
+                 getValueKey(value));
+         fireEventToCell(event, eventType, tableCell, value, context,
+                 columns.get(col));
      }
 
      public int findRow(Event event) {
@@ -587,7 +591,6 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
      protected void renderRowValues(SafeHtmlBuilder sb, List<T> values, int start,
              SelectionModel<? super T> selectionModel) {
 
-         ProvidesKey<T> keyProvider = getKeyProvider();
          String evenRowStyle = style.evenRow();
          String oddRowStyle = style.oddRow();
          String cellStyle = style.cell();
@@ -597,11 +600,11 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
          for (int i = start; i < end; i++) {
              T value = values.get(i - start);
              boolean isSelected = (selectionModel == null || value == null)
-                     ? false : selectionModel.isSelected(value);
+             ? false : selectionModel.isSelected(value);
              boolean isEven = i % 2 == 0;
              String trClasses = isEven ? evenRowStyle : oddRowStyle;
              if (isSelected) {
-               trClasses += selectedRowStyle;
+                 trClasses += selectedRowStyle;
              }
 
              if (rowStyles.containsKey(i)) {
@@ -613,7 +616,8 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
              for (Column<T, ?> column : columns) {
                  SafeHtmlBuilder cellBuilder = new SafeHtmlBuilder();
                  if (value != null) {
-                   column.render(value, keyProvider, cellBuilder);
+                     Cell.Context ctx = new Cell.Context(i, curColumn, getValueKey(value));
+                     column.render(ctx, value, cellBuilder);
                  }
 
                  if (columnsSpan.containsKey(curColumn)) {
@@ -658,7 +662,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
              redrawCancelled = true;
          }
          TABLE_IMPL.replaceAllRows(DeejaydCellTable.this, tbody,
-                    CellBasedWidgetImpl.get().processHtml(html));
+                 CellBasedWidgetImpl.get().processHtml(html));
      }
 
      @Override
@@ -723,20 +727,16 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
      /**
       * Fire an event to the Cell within the specified {@link TableCellElement}.
       */
-     @SuppressWarnings("unchecked")
      private <C> void fireEventToCell(Event event, String eventType,
-             TableCellElement tableCell, T value, int col, int row) {
-         Column<T, C> column = (Column<T, C>) columns.get(col);
+              TableCellElement tableCell, T value, Context context,
+              Column<T, C> column) {
          Cell<C> cell = column.getCell();
          if (cellConsumesEventType(cell, eventType)) {
              C cellValue = column.getValue(value);
-             ProvidesKey<T> providesKey = getKeyProvider();
-             Object key = providesKey == null ? value : providesKey.getKey(value);
              Element parentElem = tableCell.getFirstChildElement();
-             boolean cellWasEditing = cell.isEditing(parentElem, cellValue, key);
-             column.onBrowserEvent(
-                     parentElem, getPageStart() + row, value, event, providesKey);
-             cellIsEditing = cell.isEditing(parentElem, cellValue, key);
+             boolean cellWasEditing = cell.isEditing(context, parentElem, cellValue);
+             column.onBrowserEvent(context, parentElem, value, event);
+             cellIsEditing = cell.isEditing(context, parentElem, cellValue);
              if (cellWasEditing && !cellIsEditing) {
                  resetFocusOnCell();
              }

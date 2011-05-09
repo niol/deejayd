@@ -79,7 +79,7 @@ public abstract class DefaultMode extends AbstractMode
     private AbstractCell<Media> cell = new AbstractCell<Media>(new String[] {"click"}) {
 
         @Override
-        public void onBrowserEvent(Element parent, Media value, Object key,
+        public void onBrowserEvent(Context context, Element parent, Media value,
                   NativeEvent event, ValueUpdater<Media> valueUpdater) {
             ui.rpc.goTo(value.getId(), new AnswerHandler<Boolean>() {
                 public void onAnswer(Boolean answer) {
@@ -90,7 +90,7 @@ public abstract class DefaultMode extends AbstractMode
         }
 
         @Override
-        public void render(Media value, Object key, SafeHtmlBuilder sb) {
+        public void render(Context context, Media value, SafeHtmlBuilder sb) {
             if (value == null)
                 return;
 

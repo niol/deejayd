@@ -185,13 +185,13 @@ public class PlsListView extends Composite {
 
     @UiHandler("selectAll")
     public void selectAllHandler(ValueChangeEvent<Boolean> event) {
-        selModel.setSelected(list.getDisplayedItems(), event.getValue());
+        selModel.setSelected(list.getVisibleItems(), event.getValue());
     }
 
     private List<String> getSelection() {
         ArrayList<String> sel = new ArrayList<String>();
         if (selModel != null) {
-            for (Playlist item : list.getDisplayedItems()) {
+            for (Playlist item : list.getVisibleItems()) {
                 if (selModel.isSelected(item))
                     sel.add(Integer.toString(item.getId()));
             }
