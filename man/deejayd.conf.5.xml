@@ -251,6 +251,23 @@ bind_addresses = 192.168.51.2, 10.0.0.3
         </listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>root_url</term>
+        <listitem>
+          <para>Root URL for the webui. This defines where the webui is
+          located in the embedded web server. Default is
+          <filename>/</filename>.</para>
+          <example>
+            <title>root_url = /p/dj</title>
+            <para>This value will make your webui available at
+            <filename>http://media:6880/p/dj/</filename>.</para>
+          </example>
+          <para>This can be used if you want to make your webui available in
+          a subdirectory of another web server, e.g. a reverse proxy using
+          <command>apache2</command>.</para>
+        </listitem>
+      </varlistentry>
+
     </variablelist>
   </refsect1>
 

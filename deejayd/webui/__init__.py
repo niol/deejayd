@@ -18,7 +18,7 @@
 
 import os,shutil
 from twisted.web import static,server
-from twisted.web.resource import Resource
+from twisted.web.resource import Resource, NoResource
 
 from deejayd.interfaces import DeejaydError
 from deejayd.ui import log
@@ -32,6 +32,34 @@ from deejayd.webui.mobile import build as mobile_build
 
 
 class DeejaydWebError(DeejaydError): pass
+
+
+class DeejaydRootRedirector(Resource):
+
+    def __init__(self, root_url, webui_handler):
+        Resource.__init__(self)
+
+        self.root_url = root_url
+        self.webui_handler = webui_handler
+
+    def getChild(self, name, request):
+        if name == '': return self
+
+        prepath = '/%s/' % '/'.join(request.prepath)
+        if prepath.startswith(self.root_url):
+            # In webui
+            return self.webui_handler
+        elif request.path.startswith(self.root_url):
+            # Right path to the webui
+            return self
+        else:
+            return NoResource()
+
+    def render_GET(self, request):
+        if request.path == '/':
+            request.redirect(self.root_url)
+            return 'redirected'
+
 
 class DeejaydMainHandler(Resource):
 
@@ -145,6 +173,14 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
 
     main_handler.putChild("m", mobile_handler)
 
-    return SiteWithCustomLogging(main_handler, logPath=webui_logfile)
+    root_url = config.get('webui', 'root_url')
+    root_url = root_url[-1] == '/' and root_url or root_url + '/'
+    if root_url == '/':
+        root = main_handler
+    else:
+        root = DeejaydRootRedirector(root_url, main_handler)
+
+    return SiteWithCustomLogging(root, logPath=webui_logfile)
+
 
 # vim: ts=4 sw=4 expandtab
