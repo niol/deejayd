@@ -57,7 +57,7 @@ import com.google.gwt.resources.client.ImageResource.RepeatStyle;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.user.cellview.client.HasDataPresenter.LoadingState;
+import com.google.gwt.user.cellview.client.LoadingStateChangeEvent.LoadingState;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.view.client.ProvidesKey;
@@ -362,6 +362,14 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
         // Sink events.
         Set<String> eventTypes = new HashSet<String>();
         CellBasedWidgetImpl.get().sinkEvents(this, eventTypes);
+
+        // add handler on loading events
+        addLoadingStateChangeHandler(new LoadingStateChangeEvent.Handler() {
+
+            public void onLoadingStateChanged(LoadingStateChangeEvent event) {
+                setLoadingIconVisible(event.getLoadingState() == LoadingState.LOADING);
+            }
+        });
     }
 
     /**
@@ -663,11 +671,6 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
          }
          TABLE_IMPL.replaceAllRows(DeejaydCellTable.this, tbody,
                  CellBasedWidgetImpl.get().processHtml(html));
-     }
-
-     @Override
-     protected void setLoadingState(LoadingState state) {
-         setLoadingIconVisible(state == LoadingState.LOADING);
      }
 
      @Override

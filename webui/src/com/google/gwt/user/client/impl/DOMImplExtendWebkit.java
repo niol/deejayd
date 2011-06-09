@@ -27,7 +27,7 @@ import com.google.gwt.user.client.Element;
  *
  * @author Mickaël Royer
  */
-class DOMImplExtendSafari extends DOMImplSafari {
+class DOMImplExtendWebkit extends DOMImplWebkit {
 
   @Override
   public native int eventGetTypeInt(String eventType) /*-{

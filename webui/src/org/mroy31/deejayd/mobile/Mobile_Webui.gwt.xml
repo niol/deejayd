@@ -31,14 +31,14 @@
     </none>
   </set-property>
 
-  <replace-with class="com.google.gwt.user.client.impl.DOMImplExtendSafari">
+  <replace-with class="com.google.gwt.user.client.impl.DOMImplExtendWebkit">
     <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
     <all>
       <when-property-is name="user.agent" value="safari"/>
       <when-property-is name="mobile.user.agent" value="none"/>
     </all>
   </replace-with>
-  <replace-with class="com.google.gwt.user.client.impl.DOMImplMobileSafari">
+  <replace-with class="com.google.gwt.user.client.impl.DOMImplMobileWebkit">
     <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
     <all>
       <when-property-is name="user.agent" value="safari"/>
@@ -55,7 +55,7 @@
   </replace-with>
 
   <!-- disable animation for mobile for now -->
-  <replace-with class="org.mroy31.deejayd.mobile.widgets.impl.WallToWallPanelSafariImpl">
+  <replace-with class="org.mroy31.deejayd.mobile.widgets.impl.WallToWallPanelWebkitImpl">
     <when-type-is class="org.mroy31.deejayd.mobile.widgets.impl.WallToWallPanelImpl"/>
     <all>
       <when-property-is name="user.agent" value="safari"/>

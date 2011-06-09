@@ -26,7 +26,7 @@ import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 
 import com.google.gwt.event.shared.HandlerRegistration;
 
-public class WallToWallPanelSafariImpl extends WallToWallPanelImpl {
+public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
     private HandlerRegistration animHandlerReg;
     private HandlerRegistration contextHandlerReg;
 

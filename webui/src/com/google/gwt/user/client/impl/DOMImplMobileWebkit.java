@@ -23,15 +23,14 @@ package com.google.gwt.user.client.impl;
 import com.google.gwt.user.client.Element;
 
 /**
- * Add handling for drag and drop events to standard DOM impl used by Mozilla.
+ * Add handling for touch events to standard DOM impl used by Safari.
  *
  * @author Mickaël Royer
  */
+class DOMImplMobileWebkit extends DOMImplWebkit {
 
-public class DOMImplDragDropSafari extends DOMImplSafari {
-
-    @Override
-    public native int eventGetTypeInt(String eventType) /*-{
+  @Override
+  public native int eventGetTypeInt(String eventType) /*-{
     switch (eventType) {
     case "blur": return 0x01000;
     case "change": return 0x00400;
@@ -55,18 +54,19 @@ public class DOMImplDragDropSafari extends DOMImplSafari {
     case "contextmenu": return 0x40000;
     case "paste": return 0x80000;
 
-    // Drag and drop events
-    case "dragstart": return 0x1000000;
-    case "dragend": return 0x20000000;
-    case "dragover": return 0x2000000;
-    case "dragenter": return 0x4000000;
-    case "dragleave": return 0x8000000;
-    case "drop": return 0x10000000;
+    // Handle touch events.
+    case "touchstart": return 0x100000;
+    case "touchmove": return 0x200000;
+    case "touchcancel": return 0x400000;
+    case "touchend": return 0x800000;
+
+    // Animation events
+    case "webkitAnimationEnd": return 0x1000000;
     }
   }-*/;
 
   @Override
-protected native void sinkEventsImpl(Element elem, int bits) /*-{
+  protected native void sinkEventsImpl(Element elem, int bits) /*-{
     var chMask = (elem.__eventBits || 0) ^ bits;
     elem.__eventBits = bits;
     if (!chMask) return;
@@ -112,47 +112,22 @@ protected native void sinkEventsImpl(Element elem, int bits) /*-{
     if (chMask & 0x80000) elem.onpaste       = (bits & 0x80000) ?
         @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent : null;
 
-    // Handle drag and drop events.
+    // Handle touch events.
+    if (chMask & 0x100000) elem.ontouchstart = (bits & 0x100000) ?
+        @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent : null;
+    if (chMask & 0x200000) elem.ontouchmove = (bits & 0x200000) ?
+        @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent : null;
+    if (chMask & 0x400000) elem.ontouchcancel = (bits & 0x400000) ?
+        @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent : null;
+    if (chMask & 0x800000) elem.ontouchend = (bits & 0x800000) ?
+        @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent : null;
+
+    // Handle animation events.
     if (chMask & 0x1000000) {
         if (bits & 0x1000000) {
-            elem.addEventListener("dragstart", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
+            elem.addEventListener("webkitAnimationEnd", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
         } else {
-            elem.removeEventListener("dragstart", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        }
-    }
-    if (chMask & 0x20000000) {
-        if (bits & 0x20000000) {
-            elem.addEventListener("dragend", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        } else {
-            elem.removeEventListener("dragend", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        }
-    }
-    if (chMask & 0x2000000) {
-        if (bits & 0x2000000) {
-            elem.addEventListener("dragover", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        } else {
-            elem.removeEventListener("dragover", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        }
-    }
-    if (chMask & 0x4000000) {
-        if (bits & 0x4000000) {
-            elem.addEventListener("dragenter", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        } else {
-            elem.removeEventListener("dragenter", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        }
-    }
-    if (chMask & 0x8000000) {
-        if (bits & 0x8000000) {
-            elem.addEventListener("dragleave", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        } else {
-            elem.removeEventListener("dragleave", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        }
-    }
-    if (chMask & 0x10000000) {
-        if (bits & 0x10000000) {
-            elem.addEventListener("drop", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
-        } else {
-            elem.removeEventListener("drop", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
+            elem.removeEventListener("webkitAnimationEnd", @com.google.gwt.user.client.impl.DOMImplStandard::dispatchEvent, true);
         }
     }
   }-*/;
