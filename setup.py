@@ -257,10 +257,10 @@ if __name__ == "__main__":
                      "deejayd.mediadb.formats",
                      "deejayd.mediadb.formats.audio",\
                      "deejayd.mediadb.formats.video","deejayd.player",\
-                     "deejayd.sources","deejayd.ui","deejayd.rpc",\
+                     "deejayd.sources","deejayd.ui","deejayd.jsonrpc",\
                      "deejayd.database","deejayd.database.upgrade",\
                      "deejayd.database.backends","deejayd.plugins",\
-                     "deejayd.webui","pytyxi"],
+                     "deejayd.webui","deejayd.playlist","pytyxi"],
            package_data={'deejayd.ui': ['defaults.conf'],},
            data_files= build_data_files_list(),
            cmdclass={"build": deejayd_build,
