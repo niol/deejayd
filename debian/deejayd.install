@@ -6,6 +6,7 @@ usr/lib/python*/*-packages/deejayd/xmlobject.py
 usr/lib/python*/*-packages/deejayd/thread.py
 usr/lib/python*/*-packages/deejayd/net/protocol.py
 usr/lib/python*/*-packages/deejayd/mediadb/*
+usr/lib/python*/*-packages/deejayd/playlist/*
 usr/lib/python*/*-packages/deejayd/player/__init__.py
 usr/lib/python*/*-packages/deejayd/player/_base.py
 usr/lib/python*/*-packages/deejayd/plugins/*.py
