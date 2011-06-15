@@ -23,7 +23,7 @@ except ImportError: # python < 2.5
     from md5 import md5
 
 from zope.interface import implements
-from deejayd.interfaces import DeejaydError
+from deejayd import DeejaydError
 from deejayd.thread import DeejaydThread
 from deejayd.ui import log
 from deejayd.plugins import IPlayerPlugin, PluginError

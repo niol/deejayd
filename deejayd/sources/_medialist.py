@@ -45,7 +45,11 @@ class SimpleMediaList(object):
         return ans
 
     def get(self, start = 0, stop = None):
-        stop = stop or len(self._order)
+        if stop is None:
+            stop = len(self._order)
+        else:
+            stop = min(stop, len(self._order))
+        start = min(start, stop)
         return map(self._set_media_ans, self._order[start:stop],\
                     range(start, stop))
 

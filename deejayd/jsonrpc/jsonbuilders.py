@@ -16,12 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import time
 from datetime import datetime
+from deejayd.jsonrpc import *
+import time
 try: import json # python 2.6
 except ImportError: # if python < 2.6, require simplejson
     import simplejson as json
-from deejayd.rpc import *
 
 
 class JSONRPCEncoder(json.JSONEncoder):

@@ -16,11 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
+from deejayd.jsonrpc.interfaces import VideoSourceModule, jsonrpc_module
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._base import _BaseSortedLibSource, SourceError
 from deejayd import mediafilters
 
+@jsonrpc_module(VideoSourceModule)
 class VideoSource(_BaseSortedLibSource):
     SUBSCRIPTIONS = {
             "mediadb.mupdate": "cb_library_changes",
@@ -40,9 +41,9 @@ class VideoSource(_BaseSortedLibSource):
         else:
             self._sorts = list(self.db.get_magic_medialist_sorts(ml_id)) or []
             self._media_list.set(self._get_playlist_content(ml_id))
-            self.set_sorts(self._sorts)
+            self.set_sort(self._sorts)
 
-    def set(self, type, value):
+    def set(self, value, type):
         need_sort = False
         if type == "directory":
             try: video_list = self.library.get_all_files(value)
@@ -51,7 +52,7 @@ class VideoSource(_BaseSortedLibSource):
             need_sort = True
         elif type == "search":
             sorts = self._sorts + self.__class__.default_sorts
-            video_list = self.library.search(\
+            video_list = self.library.search_with_filter(\
                 mediafilters.Contains("title",value), sorts)
         else:
             raise SourceError(_("type %s not supported") % type)

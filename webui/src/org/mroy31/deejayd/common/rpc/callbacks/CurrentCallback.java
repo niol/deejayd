@@ -13,8 +13,7 @@ public class CurrentCallback extends AbstractRpcCallback {
 
     @Override
     public void onCorrectAnswer(JSONValue data) {
-        JSONValue current = data.isObject().get("medias").isArray().get(0);
-        handler.onAnswer(new Media(current.isObject()));
+        handler.onAnswer(new Media(data.isObject()));
     }
 
 }

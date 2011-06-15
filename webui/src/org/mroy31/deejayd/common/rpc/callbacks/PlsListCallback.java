@@ -39,7 +39,7 @@ public class PlsListCallback extends AbstractRpcCallback {
     public void onCorrectAnswer(JSONValue data) {
         ArrayList<Playlist> ans = new ArrayList<Playlist>();
 
-        JSONArray list = data.isObject().get("medias").isArray();
+        JSONArray list = data.isArray();
         for (int idx=0; idx<list.size(); idx++)
             ans.add(new Playlist(list.get(idx).isObject()));
         handler.onAnswer(ans);

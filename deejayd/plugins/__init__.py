@@ -18,7 +18,7 @@
 
 import os, glob, ConfigParser
 from zope.interface import Interface, Attribute
-from deejayd.interfaces import DeejaydError
+from deejayd import DeejaydError
 
 class PluginError(DeejaydError): pass
 

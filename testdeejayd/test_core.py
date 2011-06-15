@@ -28,9 +28,12 @@ from deejayd.core import DeejayDaemonCore
 from deejayd.ui.config import DeejaydConfig
 
 
-class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests,
-                                              InterfaceSubscribeTests):
+class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests):
+#                                              InterfaceSubscribeTests):
     """Test the deejayd daemon core."""
+
+    def assertAckCmd(self, cmd_res):
+        self.assertEqual(cmd_res, None)
 
     def setUp(self):
         TestCaseWithAudioAndVideoData.setUp(self)
@@ -54,8 +57,8 @@ class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests,
         config.set('xine','video_output',"none")
 
         self.deejayd = DeejayDaemonCore(config)
-        self.deejayd.audio_library._update()
-        self.deejayd.video_library._update()
+        self.deejayd.audiolib._update()
+        self.deejayd.videolib._update()
 
         self.is_running = True
 
@@ -67,22 +70,6 @@ class TestCore(TestCaseWithAudioAndVideoData, InterfaceTests,
 
         os.unlink(self.dbfilename)
         TestCaseWithAudioAndVideoData.tearDown(self)
-
-    def test_objanswer_mechanism(self):
-        """Test the objanswer mechanism to disable DeejaydAnswer objects in returns parameters."""
-        known_mode = 'playlist'
-
-        # objanswer mechanism on (default)
-        ans = self.deejayd.set_mode(known_mode)
-        self.failUnless(ans.get_contents())
-        ans = self.deejayd.get_status()
-        self.assertEqual(ans.get_contents()['mode'], known_mode)
-
-        # objanswer mechanism off
-        ans = self.deejayd.set_mode(known_mode, objanswer=False)
-        self.failUnless(ans == None)
-        ans = self.deejayd.get_status(objanswer=False)
-        self.assertEqual(ans['mode'], known_mode)
 
     def test_sub_broadcast_mediadb_aupdate(self):
         """Checks that mediadb.aupdate signals are broadcasted."""

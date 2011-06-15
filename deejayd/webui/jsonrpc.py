@@ -23,19 +23,138 @@ http://cheeseshop.python.org/pypi/simplejson
 from __future__ import nested_scopes
 
 # System Imports
-import urlparse
+import os, re
 
 # Sibling Imports
 from twisted.web import resource, server
-from twisted.internet import defer, protocol, reactor
-from twisted.web import http
+from twisted.internet import defer
 
+from deejayd import DeejaydError
+from deejayd.component import JSONRpcComponent
 from deejayd.ui import log
 from deejayd.utils import str_decode
-from deejayd.rpc import Fault
-from deejayd.rpc.jsonparsers import loads_request
-from deejayd.rpc.jsonbuilders import JSONRPCResponse
-from deejayd.rpc import protocol as deejayd_protocol
+from deejayd.mediafilters import And
+from deejayd.jsonrpc import Fault
+from deejayd.jsonrpc.interfaces import jsonrpc_module, WebModule
+from deejayd.jsonrpc.jsonparsers import loads_request
+from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, Get_json_filter
+
+
+@jsonrpc_module(WebModule)
+class WebRpcModule(JSONRpcComponent):
+
+    def __init__(self, core, tmp_dir):
+        super(WebRpcModule, self).__init__()
+        self.deejayd_core = core
+        self._tmp_dir = tmp_dir
+
+    def __find_ids(self, pattern):
+        ids = []
+        for file in os.listdir(self._tmp_dir):
+            if re.compile("^%s-[0-9]+" % pattern).search(file):
+                t = file.split("-")[1] # id.ext
+                t = t.split(".")
+                try : ids.append(int(t[0]))
+                except ValueError: pass
+        return ids
+
+    def write_cover(self, mid):
+        """ Record requested cover in the temp directory """
+        try:
+            cover = self.deejayd_core.audiolib.get_cover(mid)
+        except (TypeError, DeejaydError, KeyError):
+            return {"cover": None}
+
+        cover_ids = self.__find_ids("cover")
+        ext = cover["mime"] == "image/jpeg" and "jpg" or "png"
+        filename = "cover-%s.%s" % (str(cover["id"]), ext)
+        if cover["id"] not in cover_ids:
+            file_path = os.path.join(self._tmp_dir,filename)
+            fd = open(file_path, "w")
+            fd.write(cover["cover"])
+            fd.close()
+            os.chmod(file_path,0644)
+            # erase unused cover files
+            for id in cover_ids:
+                try:
+                    os.unlink(os.path.join(self._tmp_dir,\
+                            "cover-%s.jpg" % id))
+                    os.unlink(os.path.join(self._tmp_dir,\
+                            "cover-%s.png" % id))
+                except OSError:
+                    pass
+        return {"cover": os.path.join('tmp', filename), "mime": cover["mime"]}
+
+    def build_panel(self, updated_tag = None):
+        """ Build panel list """
+        panel = self.deejayd_core.panel
+        library = self.deejayd_core.audiolib
+
+        medias, filters, sort = panel.get()
+        try: filter_list = filters.filterlist
+        except (TypeError, AttributeError):
+            filter_list = []
+
+        answer = {"panels": {}}
+        panel_filter = And()
+        # find search filter
+        for ft in filter_list:
+            if ft.type == "basic" and ft.get_name() == "contains":
+                panel_filter.combine(ft)
+                answer["search"] = Get_json_filter(ft).dump()
+                break
+            elif ft.type == "complex" and ft.get_name() == "or":
+                panel_filter.combine(ft)
+                answer["search"] = Get_json_filter(ft).dump()
+                break
+
+        # find panel filter list
+        for ft in filter_list:
+            if ft.type == "complex" and ft.get_name() == "and":
+                filter_list = ft
+                break
+
+        tag_list = panel.get_tags()
+        try: idx = tag_list.index(updated_tag)
+        except ValueError:
+            pass
+        else:
+            tag_list = tag_list[idx+1:]
+
+        for t in panel.get_tags():
+            selected = []
+
+            for ft in filter_list: # OR filter
+                try: tag = ft[0].tag
+                except (IndexError, TypeError): # bad filter
+                    continue
+                if tag == t:
+                    selected = [t_ft.pattern for t_ft in ft]
+                    tag_filter = ft
+                    break
+
+            if t in tag_list:
+                list = library.tag_list(t, panel_filter)
+                items = [{"name": _("All"), "value":"__all__", \
+                    "class":"list-all", "sel":str(selected==[]).lower()}]
+                if t == "various_artist" and "__various__" in list:
+                    items.append({"name": _("Various Artist"),\
+                        "value":"__various__",\
+                        "class":"list-unknown",\
+                        "sel":str("__various__" in selected).lower()})
+                items.extend([{"name": l,"value":l,\
+                    "sel":str(l in selected).lower(), "class":""}\
+                    for l in list if l != "" and l != "__various__"])
+                if "" in list:
+                    items.append({"name": _("Unknown"), "value":"",\
+                        "class":"list-unknown",\
+                        "sel":str("" in selected).lower()})
+                answer["panels"][t] = items
+            # add filter for next panel
+            if len(selected) > 0:
+                panel_filter.combine(tag_filter)
+
+        return answer
 
 
 class Handler:
@@ -64,7 +183,7 @@ class Handler:
         self.result.errback(NotImplementedError("Implement run() in subclasses"))
 
 
-class JSONRPC(resource.Resource, deejayd_protocol.DeejaydHttpJSONRPC):
+class JSONRpcResource(resource.Resource):
     """A resource that implements JSON-RPC.
 
     Methods published can return JSON-RPC serializable results, Faults,
@@ -84,10 +203,10 @@ class JSONRPC(resource.Resource, deejayd_protocol.DeejaydHttpJSONRPC):
 
     isLeaf = 1
 
-    def __init__(self, deejayd):
-        super(JSONRPC, self).__init__()
-        self.subHandlers = {}
+    def __init__(self, deejayd, tmp_dir):
+        resource.Resource.__init__(self)
         self.deejayd_core = deejayd
+        self.deejayd_core.put_sub_handler('web', WebRpcModule(deejayd, tmp_dir))
 
     def render(self, request):
         request.content.seek(0, 0)
@@ -99,8 +218,8 @@ class JSONRPC(resource.Resource, deejayd_protocol.DeejaydHttpJSONRPC):
         log.debug("JSON-RPC Request : %s" % content)
         try:
             parsed = loads_request(content)
-            args, functionPath = parsed['params'], parsed["method"]
-            function = self._getFunction(functionPath)
+            args, function_path = parsed['params'], parsed["method"]
+            function = self.deejayd_core.get_function(function_path)
         except Fault, f:
             try: id = parsed["id"]
             except:
@@ -131,6 +250,6 @@ class JSONRPC(resource.Resource, deejayd_protocol.DeejaydHttpJSONRPC):
         log.err(failure)
         return Fault(self.FAILURE, "error")
 
-__all__ = ["JSONRPC", "Handler"]
+__all__ = ["JSONRpcResource", "Handler"]
 
 # vim: ts=4 sw=4 expandtab

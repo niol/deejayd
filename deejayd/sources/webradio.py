@@ -18,6 +18,7 @@
 
 from zope.interface import implements
 from twisted.internet import threads
+from deejayd.jsonrpc.interfaces import WebradioSourceModule, jsonrpc_module
 from deejayd.sources._base import _BaseSource, SimpleMediaList, SourceError
 from deejayd.plugins import IWebradioPlugin
 from deejayd.utils import get_uris_from_pls, get_uris_from_m3u
@@ -78,6 +79,7 @@ class WbLocalSource(object):
         return self.__streams.values()
 
 
+@jsonrpc_module(WebradioSourceModule)
 class WebradioSource(_BaseSource):
     name = "webradio"
     _default_state = {"id": 1, "source": "local", "source-cat": ""}
@@ -140,12 +142,11 @@ class WebradioSource(_BaseSource):
             self._state["source-cat"] = categorie
             self.dispatch_signame('webradio.listupdate')
 
-    def add(self, urls, name):
+    def local_add(self, name, urls):
         self.wb_sources["local"].add(urls, name)
         self.__reload_local_source()
-        return True
 
-    def delete(self, ids):
+    def local_delete(self, ids):
         webradio_ids = []
         for id in ids:
             wb = self._media_list.get_item(id)
@@ -155,12 +156,10 @@ class WebradioSource(_BaseSource):
 
         self.wb_sources["local"].delete(webradio_ids)
         self.__reload_local_source()
-        return True
 
-    def clear(self):
+    def local_clear(self):
         self.wb_sources["local"].clear()
         self.__reload_local_source()
-        return True
 
     def get_status(self):
         return [

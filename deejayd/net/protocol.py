@@ -23,16 +23,19 @@ from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
 
 from deejayd import __version__
-from deejayd.interfaces import DeejaydSignal
+from deejayd import DeejaydSignal
 from deejayd.mediafilters import *
 from deejayd.ui import log
 from deejayd.utils import str_decode
-from deejayd.rpc import Fault, DEEJAYD_PROTOCOL_VERSION
-from deejayd.rpc.jsonparsers import loads_request
-from deejayd.rpc.jsonbuilders import JSONRPCResponse, DeejaydJSONSignal
-from deejayd.rpc import protocol as deejayd_protocol
+from deejayd.component import JSONRpcComponent
+from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
+from deejayd.jsonrpc.interfaces import jsonrpc_module, TcpModule
+from deejayd.jsonrpc.jsonparsers import loads_request
+from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, DeejaydJSONSignal
 
-class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydTcpJSONRPC):
+
+@jsonrpc_module(TcpModule)
+class DeejaydProtocol(LineReceiver, JSONRpcComponent):
     NOT_FOUND = 8001
     FAILURE = 8002
     delimiter = 'ENDJSON\n'
@@ -43,6 +46,8 @@ class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydTcpJSONRPC):
         self.subHandlers = {}
         self.deejayd_core = deejayd_core
         self.manager = protocol_manager
+
+        self.__need_to_close = False
 
     def connectionMade(self):
         self.send_buffer("OK DEEJAYD %s protocol %d\n" %
@@ -56,14 +61,15 @@ class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydTcpJSONRPC):
         # DEBUG Informations
         log.debug(line)
 
-        need_to_close = False
         try:
             parsed = loads_request(line)
-            args, functionPath = parsed['params'], parsed["method"]
-            function = self._getFunction(functionPath)
-            if parsed["method"] == "close":
-                # close the connection after send answer
-                need_to_close = True
+            args, function_path = parsed['params'], parsed["method"]
+            if function_path.startswith("tcp"):
+                # it's a command linked with this tcp connection
+                method = function_path.split(self.separator, 1)[1]
+                function = self.get_function(method)
+            else:
+                function = self.deejayd_core.get_function(function_path)
         except Fault, f:
             try: id = parsed["id"]
             except:
@@ -80,7 +86,7 @@ class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydTcpJSONRPC):
             ans = JSONRPCResponse(result, parsed["id"])
 
         self.send_buffer(ans.to_json()+self.delimiter)
-        if need_to_close:
+        if self.__need_to_close:
             self.transport.loseConnection()
 
     def send_buffer(self, buf):
@@ -93,12 +99,17 @@ class DeejaydProtocol(LineReceiver, deejayd_protocol.DeejaydTcpJSONRPC):
         log.err(_("Request too long, close the connection"))
         self.transport.loseConnection()
 
-    def set_signaled(self, signal_name):
-        self.manager.set_signaled(self, signal_name)
+    #
+    # rpc commands linked with a TCP connection
+    #
+    def set_subscription(self, signal, value):
+        if value is False:
+            self.manager.set_not_signaled(self, signal)
+        elif value is True:
+            self.manager.set_signaled(self, signal)
 
-    def set_not_signaled(self, signal_name):
-        self.manager.set_not_signaled(self, signal_name)
-
+    def close(self):
+        self.__need_to_close = True
 
 class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
@@ -115,9 +126,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def buildProtocol(self, addr):
         p = self.protocol(self.deejayd_core, self)
-        p = deejayd_protocol.build_protocol(self.deejayd_core, p)
-        # set specific signal subhandler
-        p = deejayd_protocol.set_signal_subhandler(self.deejayd_core, p)
+
         p.factory = self
         return p
 

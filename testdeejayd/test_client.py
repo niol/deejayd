@@ -21,11 +21,9 @@ import threading
 
 from testdeejayd import TestCaseWithServer
 
-from testdeejayd.server import TestServer
 from testdeejayd.coreinterface import InterfaceTests, InterfaceSubscribeTests
 from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, \
-                               DeejayDaemonHTTP, DeejaydError, \
-                               DeejaydWebradioList
+                               DeejayDaemonHTTP
 
 
 class TestHTTPClient(TestCaseWithServer):
@@ -39,11 +37,14 @@ class TestHTTPClient(TestCaseWithServer):
 
     def testPing(self):
         """Ping server with a http connection"""
-        self.failUnless(self.deejayd.ping().get_contents())
+        self.failUnless(self.deejayd.ping())
 
 
 class TestSyncClient(TestCaseWithServer, InterfaceTests):
     """Test the DeejaydClient library in synchroneous mode."""
+
+    def assertAckCmd(self, cmd_res):
+        self.assertEqual(cmd_res, True)
 
     def setUp(self):
         TestCaseWithServer.setUp(self)
@@ -57,7 +58,7 @@ class TestSyncClient(TestCaseWithServer, InterfaceTests):
 
     def testPing(self):
         """Ping server"""
-        self.failUnless(self.deejayd.ping().get_contents())
+        self.failUnless(self.deejayd.ping())
 
 
 class TestAsyncClient(TestCaseWithServer, InterfaceSubscribeTests):
@@ -87,7 +88,7 @@ class TestAsyncClient(TestCaseWithServer, InterfaceSubscribeTests):
     def test_ping(self):
         """Ping server asynchroneously"""
         ans = self.deejayd.ping()
-        self.failUnless(ans.get_contents(),
+        self.failUnless(ans.wait_for_answer(),
                         'Server did not respond well to ping.')
 
     def test_answer_callback(self):
@@ -110,9 +111,9 @@ class TestAsyncClient(TestCaseWithServer, InterfaceSubscribeTests):
         cb_called = threading.Event()
         def tcb(answer):
             cb_called.set()
-            self.pl = answer.get_medias()
+            self.pl = answer["medias"]
 
-        djpl = self.deejayd.get_playlist()
+        djpl = self.deejayd.playlist
         djpl.get().add_callback(tcb)
 
         cb_called.wait(4)
@@ -126,13 +127,13 @@ class TestAsyncClient(TestCaseWithServer, InterfaceSubscribeTests):
 
         def tcb_status(answer):
             cb_called.set()
-            self.status = answer.get_contents()
+            self.status = answer
             self.should_stop = True
 
         def cb_update_status(answer):
             self.deejayd.get_status().add_callback(tcb_status)
 
-        djpl.add_path(self.test_audiodata.getRandomSongPaths(1)[0]).\
+        djpl.add_path(self.test_audiodata.getRandomSongPaths(1)).\
                 add_callback(cb_update_status)
 
         while not self.should_stop:
@@ -156,8 +157,8 @@ class TestAsyncClient(TestCaseWithServer, InterfaceSubscribeTests):
         def third_cb(answer):
             thirdcb_called.set()
 
-        self.deejayd.get_audio_dir("").add_callback(first_cb)
-        self.deejayd.get_playlist_list().add_callback(second_cb)
+        self.deejayd.audiolib.get_dir_content().add_callback(first_cb)
+        self.deejayd.recpls.get_list().add_callback(second_cb)
         self.deejayd.ping().add_callback(third_cb)
 
         firstcb_called.wait(2)
@@ -175,8 +176,8 @@ class TestAsyncClient(TestCaseWithServer, InterfaceSubscribeTests):
         client2 = self.get_another_client()
         client2.connect('localhost', self.serverPort)
 
-        self.failUnless(self.deejayd.ping().get_contents())
-        self.failUnless(client2.ping().get_contents())
+        self.failUnless(self.deejayd.ping().wait_for_answer())
+        self.failUnless(client2.ping().wait_for_answer())
 
     def test_subscription_another_client(self):
         """Checks that a subscription is broadcasted to another client who did not orignate the event trigger."""

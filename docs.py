@@ -23,43 +23,44 @@ Use to create documentation of the protocol
 """
 
 # init translation
-import gettext
+import gettext, inspect
 from deejayd.ui.i18n import DeejaydTranslations
 try: t = gettext.translation("deejayd", class_=DeejaydTranslations)
 except IOError:
     t = DeejaydTranslations()
 t.install()
 
-from twisted.python import reflect
 from deejayd.mediafilters import *
-from deejayd.interfaces import DeejaydSignal
-from deejayd.rpc import protocol
-from deejayd.rpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
+from deejayd import DeejaydSignal
+from deejayd.jsonrpc import interfaces
+from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
                                      Get_json_filter, DeejaydJSONSignal
 
 common_request = [
         {"prefix": "", "desc": "General Commands",\
-                       "object": protocol._DeejaydMainJSONRPC},
+                       "object": interfaces.CoreModule},
+        {"prefix": "introspection.", "desc": "Introspection Commands",\
+                       "object": interfaces.IntrospectionModule},
         {"prefix": "player.", "desc": "Player Commands",\
-                       "object": protocol.DeejaydPlayerJSONRPC},
+                       "object": interfaces.VideoPlayerModule},
         {"prefix": "audiolib.", "desc": "Audio Library Commands",\
-                       "object": protocol.DeejaydAudioLibraryJSONRPC},
+                       "object": interfaces.LibraryModule},
         {"prefix": "videolib.", "desc": "Video Library Commands",\
-                       "object": protocol.DeejaydVideoLibraryJSONRPC},
+                       "object": interfaces.LibraryModule},
         {"prefix": "playlist.", "desc": "Playlist Mode Commands",\
-                       "object": protocol.DeejaydPlaylistModeJSONRPC},
+                       "object": interfaces.PlaylistSourceModule},
         {"prefix": "panel.", "desc": "Panel Mode Commands",\
-                       "object": protocol.DeejaydPanelModeJSONRPC},
+                       "object": interfaces.PanelSourceModule},
         {"prefix": "video.", "desc": "Video Mode Commands",\
-                       "object": protocol.DeejaydVideoModeJSONRPC},
+                       "object": interfaces.VideoSourceModule},
         {"prefix": "webradio.", "desc": "Webradio Mode Commands",\
-                       "object": protocol.DeejaydWebradioModeJSONRPC},
+                       "object": interfaces.WebradioSourceModule},
         {"prefix": "dvd.", "desc": "Dvd Mode Commands",\
-                       "object": protocol.DeejaydDvdModeJSONRPC},
+                       "object": interfaces.DvdSourceModule},
         {"prefix": "queue.", "desc": "Queue Commands",\
-                       "object": protocol.DeejaydQueueJSONRPC},
+                       "object": interfaces.QueueModule},
         {"prefix": "recpls.", "desc": "Recorded Playlist Commands",\
-                       "object": protocol.DeejaydRecordedPlaylistJSONRPC},
+                       "object": interfaces.RecordedPlaylistModule},
     ]
 
 class WikiFormat:
@@ -100,8 +101,13 @@ With response types equals to:
 """ % JSONRPCResponse("deejayd_response", "id").to_pretty_json()
 
     def formatSectionDoc(self, section):
-        cmds = reflect.prefixedMethodNames(section["object"], 'jsonrpc_')
-        cmds = [getattr(section["object"], 'jsonrpc_%s'%cmd) for cmd in cmds]
+        cmds = []
+        for c_name in dir(section["object"]):
+            if not c_name.startswith("__"):
+                try: c = getattr(section["object"], c_name)
+                except AttributeError:
+                    continue
+                if inspect.isclass(c): cmds.append(c)
         return """
 === `%(section)s` ===
 
@@ -115,7 +121,7 @@ With response types equals to:
     def formatCommandDoc(self, cmd, prefix = ""):
         args = ''
 
-        command_args = cmd.params or []
+        command_args = getattr(cmd, "args", [])
         for arg in command_args:
             props = []
 
@@ -137,10 +143,10 @@ With response types equals to:
 
         rvalues = None
         try:
-            if isinstance(cmd.answer_type, list):
-                rvalues = cmd.answer_type
+            if isinstance(cmd.answer, list):
+                rvalues = cmd.answer
             else:
-                rvalues = [cmd.answer_type]
+                rvalues = [cmd.answer]
         except AttributeError:
             rvalues = ['ack']
 
@@ -152,7 +158,7 @@ Arguments :
 %(args)s
 Expected return value : ''`%(rvalues)s`''
 
-""" % { 'name'    : prefix+cmd.__name__[8:],
+""" % { 'name'    : prefix+cmd.__name__,
         'desc'    : cmd.__doc__.strip('\n'),
         'args'    : args,
         'rvalues' : rvalues }
@@ -216,17 +222,9 @@ An example is given here.
 
 == Http Specific Commands ==
 
-=== General Commands ===
-
-%(serverinfo_cmd)s
-
 %(web_commands)s
 
-== TCP Specific Commands ==
-
-=== General Commands ===
-
-%(close_cmd)s
+== TCP commands ==
 
 %(tcp_commands)s
 """ % {
@@ -238,17 +236,13 @@ An example is given here.
         "web_commands": self.formatSectionDoc({\
                 "prefix": "web.",
                 "desc": "Commands specific to webui",
-                "object": protocol.DeejaydWebJSONRPC,
+                "object": interfaces.WebModule,
             }),
         "tcp_commands": self.formatSectionDoc({\
-                "prefix": "signal.",
-                "desc": "Signal subscription commands",
-                "object": protocol.DeejaydSignalJSONRPC,
+                "prefix": "tcp.",
+                "desc": "TCP Specific commands (ex: signal commands)",
+                "object": interfaces.TcpModule,
             }),
-        "serverinfo_cmd": self.formatCommandDoc(\
-                protocol.DeejaydHttpJSONRPC.jsonrpc_serverInfo),
-        "close_cmd": self.formatCommandDoc(\
-                protocol.DeejaydTcpJSONRPC.jsonrpc_close),
     }
 
 if __name__ == "__main__":

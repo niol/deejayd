@@ -23,17 +23,20 @@ pygst.require('0.10')
 import gobject
 import gst
 import gst.interfaces
-
 from ConfigParser import NoOptionError
+
+from deejayd.jsonrpc.interfaces import PlayerModule, jsonrpc_module
 from deejayd.player import PlayerError
-from deejayd.player._base import *
+from deejayd.player._base import _BasePlayer, PLAYER_PAUSE,\
+                                 PLAYER_PLAY, PLAYER_STOP
 from deejayd.ui import log
 
-class GstreamerPlayer(UnknownPlayer):
-    name = 'gstreamer'
+@jsonrpc_module(PlayerModule)
+class GstreamerPlayer(_BasePlayer):
+    NAME = 'gstreamer'
 
     def __init__(self, db, plugin_manager, config):
-        UnknownPlayer.__init__(self, db, plugin_manager, config)
+        super(GstreamerPlayer, self).__init__(db, plugin_manager, config)
 
         # Open a Audio pipeline
         pipeline =  self.config.get("gstreamer", "audio_output")
@@ -60,9 +63,6 @@ class GstreamerPlayer(UnknownPlayer):
         bus.add_signal_watch()
         bus.connect('message', self.on_message)
 
-    def init_video_support(self):
-        raise NotImplementedError
-
     def on_message(self, bus, message):
         if message.type == gst.MESSAGE_EOS:
             if self._media_file["type"] == "webradio":
@@ -73,7 +73,7 @@ class GstreamerPlayer(UnknownPlayer):
                     self._media_file["uri"] = \
                             self._media_file["urls"]\
                                 [self._media_file["url-index"]].encode("utf-8")
-                    self.start_play()
+                    self.play()
                 return False
             elif self._media_file:
                 try: self._media_file.played()
@@ -90,8 +90,8 @@ class GstreamerPlayer(UnknownPlayer):
 
         return True
 
-    def start_play(self):
-        super(GstreamerPlayer, self).start_play()
+    def play(self):
+        super(GstreamerPlayer, self).play()
         if not self._media_file: return
 
         def open_uri(uri):
@@ -101,7 +101,8 @@ class GstreamerPlayer(UnknownPlayer):
             state = None
 
             while state_ret == gst.STATE_CHANGE_ASYNC and timeout > 0:
-                state_ret,state,pending_state = self.bin.get_state(1 * gst.SECOND)
+                state_ret,state,pending_state = self.bin.get_state(\
+                        1 * gst.SECOND)
                 timeout -= 1
 
             if state_ret != gst.STATE_CHANGE_SUCCESS:
@@ -148,7 +149,7 @@ class GstreamerPlayer(UnknownPlayer):
         sig = self.get_state() == PLAYER_STOP and True or False
         self.stop()
         self._media_file = new_file
-        self.start_play()
+        self.play()
 
         # replaygain reset
         self.set_volume(self.get_volume(), sig=False)

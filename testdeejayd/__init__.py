@@ -103,7 +103,7 @@ class TestCaseWithServer(TestCaseWithAudioAndVideoData):
         current_dir = os.path.dirname(__file__)
         DeejaydConfig.custom_conf = os.path.join(current_dir,\
                 "profiles", self.profiles)
-        config = DeejaydConfig()
+        config = DeejaydConfig(force_parse = True)
         config.set('mediadb', 'music_directory',\
                 self.test_audiodata.getRootDir())
         config.set('mediadb', 'video_directory',\

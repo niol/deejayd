@@ -20,7 +20,7 @@ try: import json # python 2.6
 except ImportError: # if python < 2.6, require simplejson
     import simplejson as json
 from deejayd.mediafilters import *
-from deejayd.rpc import *
+from deejayd.jsonrpc import *
 
 
 def loads_request(string, **kws):

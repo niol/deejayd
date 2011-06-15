@@ -25,9 +25,9 @@ class DeejaydConfig:
     __user_conf = '~/.deejayd.conf'
     __config = None
 
-    def __init__(self):
+    def __init__(self, force_parse = False):
 
-        if DeejaydConfig.__config == None:
+        if DeejaydConfig.__config == None or force_parse:
             DeejaydConfig.__config = ConfigParser.SafeConfigParser()
 
             default_config_path = os.path.abspath(os.path.dirname(__file__))

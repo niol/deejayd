@@ -16,10 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from deejayd.jsonrpc.interfaces import PanelSourceModule, jsonrpc_module
 from deejayd.mediafilters import *
 from deejayd.sources._base import _BaseSortedLibSource, SourceError
 from deejayd.ui import log
 
+@jsonrpc_module(PanelSourceModule)
 class PanelSource(_BaseSortedLibSource):
     SUBSCRIPTIONS = {
             "playlist.update": "cb_playlist_update",
@@ -92,7 +94,7 @@ class PanelSource(_BaseSortedLibSource):
 
         if self._state["panel-type"] == "panel":
             sorts = self._sorts + self.__class__.default_sorts
-            medias = self.library.search(self.__filter, sorts)
+            medias = self.library.search_with_filter(self.__filter, sorts)
             self._media_list.set(medias)
             self.__update_current()
             self.dispatch_signame(self.__class__.source_signal)
@@ -106,11 +108,11 @@ class PanelSource(_BaseSortedLibSource):
                     raise SourceError(_("Playlist with id %s not found")\
                             % str(pl_id))
                 self._state["panel-type"] = "panel";
-                medias = self.library.search(self.__filter, sorts)
+                medias = self.library.search_with_filter(self.__filter, sorts)
             else:
                 need_sort = True
         elif type == "panel":
-            medias = self.library.search(self.__filter, sorts)
+            medias = self.library.search_with_filter(self.__filter, sorts)
         else:
             raise TypeError
         self._media_list.set(medias)
@@ -124,10 +126,10 @@ class PanelSource(_BaseSortedLibSource):
             except ValueError:
                 self._current["id"] = -1
 
-    def get_panel_tags(self):
+    def get_tags(self):
         return self.__panel_tags
 
-    def set_panel_filters(self, tag, values):
+    def set_filter(self, tag, values):
         if tag not in self.__panel_tags:
             raise SourceError(_("Tag '%s' not supported") % tag)
         if not values:
@@ -141,7 +143,7 @@ class PanelSource(_BaseSortedLibSource):
         self.__panel[tag] = filter
 
         # remove filter for panels at the right of this tag
-        for tg in reversed(self.get_panel_tags()):
+        for tg in reversed(self.get_tags()):
             if tg == tag: break
             try: del self.__panel[tg]
             except KeyError:
@@ -149,13 +151,13 @@ class PanelSource(_BaseSortedLibSource):
 
         self.__update_panel_filters()
 
-    def remove_panel_filters(self, tag):
+    def remove_filter(self, tag):
         try: del self.__panel[tag]
         except KeyError:
             pass
         self.__update_panel_filters()
 
-    def clear_panel_filters(self):
+    def clear_filters(self):
         self.__panel = {}
         self.__update_panel_filters()
 
@@ -177,11 +179,15 @@ class PanelSource(_BaseSortedLibSource):
             self.__search = None
             self.__update_panel_filters()
 
+    def clear_all_filters(self):
+        self.__search, self.__panel = None, {}
+        self.__update_panel_filters()
+
     def get_active_list(self):
         return {"type": self._state["panel-type"],\
                  "value": self._state["panel-value"]}
 
-    def set_active_list(self, type, pl_id):
+    def set_active_list(self, type, pl_id = None):
         if type == self._state["panel-type"]\
                 and pl_id == self._state["panel-value"]:
             return # we do not need to update panel

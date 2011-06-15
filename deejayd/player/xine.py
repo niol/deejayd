@@ -16,18 +16,21 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
-from os import path
 from twisted.internet import reactor
 from pytyxi import xine
 
+from deejayd.jsonrpc.interfaces import jsonrpc_module, VideoPlayerModule
 from deejayd.player import PlayerError
-from deejayd.player._base import *
+from deejayd.player._base import _BasePlayer, PLAYER_PAUSE,\
+                                 PLAYER_PLAY, PLAYER_STOP
 from deejayd.ui import log
 
 
-class XinePlayer(UnknownPlayer):
-    name = "xine"
+@jsonrpc_module(VideoPlayerModule)
+class XinePlayer(_BasePlayer):
+    NAME = "xine"
+    VIDEO_SUPPORT = True
+
     supported_extensions = None
     xine_plugins = None
 
@@ -39,7 +42,7 @@ class XinePlayer(UnknownPlayer):
             raise PlayerError(_("Unable to init a xine instance"))
         self.__supports_gapless = self.__xine.has_gapless()
 
-        UnknownPlayer.__init__(self, db, plugin_manager, config)
+        super(XinePlayer, self).__init__(db, plugin_manager, config)
         self.__xine_options = {
             "video": self.config.get("xine", "video_output"),
             "display" : self.config.get("xine", "video_display"),
@@ -61,8 +64,8 @@ class XinePlayer(UnknownPlayer):
         self.__stream = None
         self.__osd = None
 
-    def start_play(self):
-        super(XinePlayer, self).start_play()
+    def play(self):
+        super(XinePlayer, self).play()
         if not self._media_file: return
 
         # format correctly the uri
@@ -170,7 +173,7 @@ class XinePlayer(UnknownPlayer):
         self._media_file = new_file
         if gapless and self.__supports_gapless:
             self.__stream.set_param(xine.Stream.XINE_PARAM_GAPLESS_SWITCH, 1)
-        self.start_play()
+        self.play()
         if gapless and self.__supports_gapless:
             self.__stream.set_param(xine.Stream.XINE_PARAM_GAPLESS_SWITCH, 0)
 
@@ -286,7 +289,7 @@ class XinePlayer(UnknownPlayer):
         return format.strip(".") in self.supported_extensions
 
     def close(self):
-        UnknownPlayer.close(self)
+        super(XinePlayer, self).close()
         self.__xine.destroy()
 
     def _create_stream(self, has_video = True):
@@ -364,7 +367,7 @@ class XinePlayer(UnknownPlayer):
                             self._media_file["urls"]\
                                 [self._media_file["url-index"]].encode("utf-8")
                     try:
-                        self.start_play()
+                        self.play()
                     except PlayerError:
                         # This stream is really dead, all its mirrors
                         pass

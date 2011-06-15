@@ -22,54 +22,133 @@ import sys
 from optparse import OptionParser
 import socket
 
-from deejayd.net.client import DeejayDaemonSync,DeejaydError,\
-                               DeejaydStaticPlaylist,\
-                               DeejaydWebradioList,DeejaydPlaylistMode,\
-                               DeejaydQueue,ConnectError
+from deejayd.net.client import DeejayDaemonSync, DeejaydError,\
+                               ConnectError, camelcase_to_underscore
 
 class DjcError(Exception): pass
+
+# Decorators
+def command(cmd_path, cmd_args = [], cmd_ans = "ack"):
+    def command_instance(func):
+        def command_func(self, __args):
+            __new_args = list(__args)
+            # verify args
+            for idx, arg in enumerate(cmd_args):
+                try: value = __args[idx]
+                except IndexError:
+                    if arg["req"] is True:
+                        raise DjcError("Arg %s is required" % arg["name"])
+                else:
+                    if arg['type'] == "int":
+                        try: value = int(value)
+                        except (ValueError,TypeError):
+                            raise DjcError("Arg %s is not an int" % arg["name"])
+                    elif arg['type'] == "bool":
+                        value = value.lower() in ("on", "true", "1")
+                    elif arg['type'] in ("int-list", "list"):
+                        value = value.split(",")
+                        if arg['type'] == "int-list":
+                            try: value = map(int, value)
+                            except (ValueError,TypeError):
+                                raise DjcError("Arg %s is not an int-list"\
+                                        % arg["name"])
+                    __new_args[idx] = value
+
+            # find the right client func
+            m_path = cmd_path.split(".", 1)
+            if len(m_path) == 1:
+                func = getattr(self.server, camelcase_to_underscore(m_path[0]))
+            else:
+                module = getattr(self.server, m_path[0])
+                func = getattr(module, camelcase_to_underscore(m_path[1]))
+
+            ans = func(*__new_args)
+            if cmd_ans == "dict":
+                for key, value in ans.items():
+                    print key, ':', value
+            elif cmd_ans == "fileAndDirList":
+                for dir in ans["directories"]: print "directory:", dir
+                for file in ans["files"]: print "file:", file["filename"]
+            elif cmd_ans == "media":
+                if ans is None:
+                    print "No media"
+                else:
+                    for (k, v) in ans.items():
+                        print "%s: %s" % (k, v)
+
+        command_func.__name__ = func.__name__
+        command_func.__doc__ = func.__doc__
+        return command_func
+    return command_instance
 
 class AvailableCommands:
 
     def __init__(self, server):
         self.server = server
 
+    @command("ping")
     def ping(self, args):
         """Ping server using the protocol"""
-        self.server.ping().get_contents()
 
+    @command("setMode", cmd_args=[{"name":"mode", "type":"string", "req":True}])
+    def set_mode(self, args):
+        """Set active mode to argument value. ex: djc set_mode webradio"""
+
+    @command("getStatus", cmd_ans = "dict")
+    def status(self, args):
+        """Get full deejayd status"""
+
+    @command("getStats", cmd_ans = "dict")
+    def stats(self, args):
+        """Get audio/video library stats"""
+
+    @command("player.playToggle")
     def playtoggle(self, args):
         """Toggle play/pause"""
-        self.server.play_toggle().get_contents()
 
+    @command("player.stop")
     def stop(self, args):
         """Stop player"""
-        self.server.stop().get_contents()
 
+    @command("player.previous")
     def previous(self, args):
         """Previous element in player"""
-        self.server.previous().get_contents()
 
+    @command("player.next")
     def next(self, args):
         """Next element in player"""
-        self.server.next().get_contents()
 
-    def seek(self, args):
-        """Set the position in the stream to argument value"""
-        try: pos = int(args[0])
-        except (ValueError, IndexError):
-            raise DjcError('Bad command line')
-        self.server.seek(pos).get_contents()
-
+    @command("player.getPlaying", cmd_ans = "media")
     def current(self, args):
         """Return the current playing media (if it exists)"""
-        cur = self.server.get_current().get_medias()
-        if len(cur) == 0:
-            print "No current media"
-        else:
-            media = cur[0]
-            for (k, v) in media.items():
-                print "%s: %s" % (k, v)
+
+    SEEK_STEP = 10
+
+    def seek(self, args):
+        """Set the position in the stream to argument value
+             if preceeded with 'up'|'down', (in|dea)crease volume with value.
+             'up'|'down' only also works."""
+        status = self.server.get_status()
+        if status["state"] == "stop":
+            return
+
+        try:
+            if args[0] in ['up', 'down']:
+                pos = int(status["time"].split(":")[0])
+                try:
+                    possible_delta = int(args[1])
+                except IndexError:
+                    possible_delta = AvailableCommands.SEEK_STEP
+                if args[0] == 'up':
+                    pos += possible_delta
+                elif args[0] == 'down':
+                    pos -= possible_delta
+            else:
+                pos = int(args[0])
+            self.server.player.seek(pos)
+        except (ValueError, IndexError):
+            raise DjcError('Bad command line')
+
 
     VOLUME_STEP = 10
 
@@ -90,487 +169,37 @@ class AvailableCommands:
                     volume -= possible_delta
             else:
                 volume = int(args[0])
-            self.server.set_volume(volume).get_contents()
+            self.server.player.set_volume(volume)
         except (ValueError, IndexError):
             raise DjcError('Bad command line')
 
-    def set_option(self, args):
-        """Set option to argument value for a given source.
-           ex: djc set_option playlist playorder random
-           ex: djc set_option playlist repeat 0 (or 1)"""
-        try:
-            source = args[0]
-            option_name = args[1]
-            option_value = args[2]
-        except (ValueError, IndexError):
-            raise DjcError('Bad command line')
-
-        if option_name == 'repeat':
-            try: option_value = bool(int(option_value))
-            except ValueError:
-                raise DjcError('for repeat option, value has to be 0 or 1')
-        self.server.set_option(source,option_name,option_value).get_contents()
-
-    def set_mode(self, args):
-        """Set active mode to argument value. ex: djc set_mode webradio"""
-        try: mode = args[0]
-        except IndexError:
-            raise DjcError('You need to choose a mode')
-        else:
-            self.server.set_mode(mode).get_contents()
-
-    def player_option(self, args):
-        """set player option
-           ex: djc player_option option_name option_value
-           option_name can be : sub_offset, av_offset, audio_lang, sub_lang"""
-        try:
-            opt_name = args[0]
-            opt_value = args[1]
-        except IndexError:
-            raise DjcError('Usage: djc player_option option_name option_value')
-        else:
-            self.server.set_player_option(opt_name, opt_value).get_contents()
-
-    def status(self, args):
-        """Get full deejayd status"""
-        for (key, value) in self.server.get_status().items():
-            print key, ':', value
-
-    def stats(self, args):
-        """Get audio/video library stats"""
-        for (key, value) in self.server.get_stats().items():
-            print key, ':', value
-
+    @command("audiolib.update",
+            cmd_args={"name":"force", "type":"bool", "req":False},
+            cmd_ans="dict")
     def audio_update(self, args):
         """Update audio library"""
-        force = False
-        try:
-            force_value = args[0]
-            if force_value.lower() == "force": force = True
-        except IndexError:
-            pass
-        for (key, value) in self.server.update_audio_library(force).items():
-            print key, ':', value
 
+    @command("audiolib.getDirContent",
+            cmd_args=[{"name":"dir", "type":"string", "req":False}],
+            cmd_ans="fileAndDirList")
     def get_audio_dir(self, args):
         """Get the content of an directory in audio library.
            ex: djc get_audio_dir "dirname"
            if no dirname has been entered, return root directory content"""
-        try: dirname = args[0]
-        except IndexError: dirname = ""
 
-        rsp = self.server.get_audio_dir(dirname)
-        for dir in rsp.get_directories(): print "directory:", dir
-        for file in rsp.get_files(): print "file:", file["filename"]
-
-    def audio_search(self, args):
-        """Search in audio library
-           ex: djc audio_search type search_txt
-           type has to be in ('all','artist','album','genre','title')"""
-        try: type = args[0]
-        except IndexError:
-            raise DjcError('You need to enter a search type')
-        try: search_txt = args[1]
-        except IndexError:
-            raise DjcError('You need to enter a search text')
-        rsp = self.server.audio_search(search_txt, type)
-        for m in rsp.get_medias():
-            print m["media_id"], "|" ,m["filename"]
-
-# Video commands
+    @command("videolib.update",
+            cmd_args={"name":"force", "type":"bool", "req":False},
+            cmd_ans="dict")
     def video_update(self, args):
         """Update video library"""
-        force = False
-        try:
-            force_value = args[0]
-            if force_value.lower() == "force": force = True
-        except IndexError:
-            pass
-        for (key, value) in self.server.update_video_library(force).items():
-            print key, ':', value
 
+    @command("videolib.getDirContent",
+            cmd_args=[{"name":"dir", "type":"string", "req":False}],
+            cmd_ans="fileAndDirList")
     def get_video_dir(self, args):
         """Get the content of an directory in video library.
            ex: djc get_video_dir "dirname"
            if no dirname has been entered, return root directory content"""
-        try: dirname = args[0]
-        except IndexError: dirname = ""
-
-        rsp = self.server.get_video_dir(dirname)
-        for dir in rsp.get_directories(): print "directory:", dir
-        for file in rsp.get_files(): print "file:", file["filename"]
-
-    def video_info(self, args):
-        """ Get video list's content """
-        contents = self.server.get_video().get()
-        if contents.get_sort() is not None:
-            print "############ Sort ############"
-            sorts = contents.get_sort()
-            for s in sorts:
-                print "  * %s - %s" % s
-        print "############ Video List ############"
-        for media in contents.get_medias():
-            print media["pos"], '|', media["title"], '|',\
-                  media["videowidth"], '|',\
-                  media["videoheight"], '|', media["id"]
-
-    def set_video(self, args):
-        """Update the video list
-           ex: djc set_video "type" "value"
-           type must be :
-             * directory to set content of dir "value" as video list
-             * search to set result of search "value" as video list"""
-        try: type = args[0]
-        except IndexError:
-            raise DjcError('You have to choose a type')
-        try: value = args[1]
-        except IndexError:
-            raise DjcError('You have to enter a value')
-        self.server.get_video().set(value, type).get_contents()
-
-# Queue commands
-    def queue_info(self, args):
-        """ Get queue's content """
-        contents = DeejaydQueue(self.server).get()
-        for media in contents.get_medias():
-            print media["pos"], '|', media["title"], '|',\
-              media["artist"], '|',\
-              media["album"], '|', media["id"]
-
-    def queue_clear(self, args):
-        """ clear queue """
-        DeejaydQueue(self.server).clear().get_contents()
-
-    def queue_add(self, args):
-        """ add audio dirs/files to queue
-            ex: djc queue_add path1,path2 """
-        try: item = args[0]
-        except IndexError:
-            raise DjcError('You have to enter dirs/files')
-        else: items = item.split(",")
-        DeejaydQueue(self.server).add_paths(items).get_contents()
-
-    def queue_loadpls(self, args):
-        """ load playlist in the queue
-            ex: djc queue_loadpls playlist_id1,playlist_id2"""
-        try: playlist = args[0]
-        except IndexError:
-            raise DjcError('You have to enter playlist names')
-        pl_ids = playlist.split(",")
-        queue_obj = DeejaydQueue(self.server)
-        queue_obj.load_playlists(pl_ids).get_contents()
-
-    def queue_remove(self, args):
-        """ remove songs from queue
-            ex: djc queue_remove song_id1,song_id2 """
-        try: item = args[0]
-        except IndexError:
-            raise DjcError('Enter song_id please')
-        else:
-            ids = item.split(",")
-            try: ids = [int(id) for id in ids]
-            except ValueError:
-                raise DjcError("song_id has to be an integer")
-        DeejaydQueue(self.server).del_songs(ids).get_contents()
-
-# Recorded Playlist commands
-    def recorded_playlist_info(self, args):
-        """ get content of a recorded playlist
-            usage : djc recorded_playlist_info pl_id"""
-        try: pl_id = int(args[0])
-        except (IndexError, TypeError):
-            raise DjcError('You have to enter a playlist id')
-        pls_list = self.server.get_playlist_list()
-        pls_infos = None
-        for pls in pls_list.get_medias():
-            if int(pls["id"]) == pl_id:
-                pls_infos = pls
-                break
-        if pls_infos is None:
-            raise DjcError('Playlist with id %s not found' % str(pl_id))
-        pls = self.server.get_recorded_playlist(pls_infos["id"],\
-                pls_infos["name"], pls_infos["type"])
-        ans = pls.get()
-        if pls.type == 'magic':
-            print "############ Properties ############"
-            props = pls.get_properties().get_contents()
-            for k, v in props.items(): print "%s: %s" % (k, v)
-        if ans.get_filter() is not None:
-            print "############ Filters ############"
-            for ft in ans.get_filter():
-                print str(ft)
-        print "############ Songs ############"
-        for media in pls.get().get_medias():
-            print media["title"], '|', media["artist"], '|', media["album"]
-
-    def playlist_erase(self, args):
-        """ Erase a recorded playlist
-            usage : djc playlist_erase pl_id"""
-        try: pl_id = args[0]
-        except IndexError:
-            raise DjcError('You have to enter a playlist name')
-        self.server.erase_playlist([pl_id]).get_contents()
-
-    def playlist_list(self, args):
-        """ Return list of recorded playlist """
-        contents = self.server.get_playlist_list()
-        for media in contents.get_medias():
-            print "%d : %s (%s)" % (int(media["id"]) ,media["name"],\
-                                    media["type"])
-
-# Playlist Mode commands
-    def playlist_save(self, args):
-        """ Save current playlist
-            usage : djc playlist_save pl_name"""
-        try: pl_name = args[0]
-        except IndexError:
-            raise DjcError('You have to enter a playlist name')
-        ans = DeejaydPlaylistMode(self.server).save(pl_name)
-        print "The current playlist has been saved with id %s" %\
-            ans["playlist_id"]
-
-    def playlist_info(self, args):
-        """ Get current playlist's content
-            ex: djc playlist_info"""
-        for media in DeejaydPlaylistMode(self.server).get().get_medias():
-            print media["pos"], '|', media["title"], '|', media["artist"], '|',\
-                  media["album"], '|', media["id"]
-
-    def playlist_clear(self, args):
-        """ clear current playlist
-            ex: djc playlist_clear
-            if no name has been entered, clear the current pl"""
-        DeejaydPlaylistMode(self.server).clear().get_contents()
-
-    def playlist_shuffle(self, args):
-        """ shuffle current playlist
-            ex: djc playlist_shuffle"""
-        DeejaydPlaylistMode(self.server).shuffle().get_contents()
-
-    def playlist_add(self, args):
-        """ add dirs/files to current playlist
-            ex: djc playlist_add path1,path2"""
-        try: item = args[0]
-        except IndexError:
-            raise DjcError('You have to enter dirs/files')
-        items = item.split(",")
-        DeejaydPlaylistMode(self.server).add_paths(items).get_contents()
-
-    def playlist_load(self, args):
-        """ load playlist in the current playlist
-            ex: djc playlist_load playlist_id1,playlist_id2"""
-        try: playlist = args[0]
-        except IndexError:
-            raise DjcError('You have to enter playlist names')
-        pl_ids = playlist.split(",")
-        DeejaydPlaylistMode(self.server).loads(pl_ids).get_contents()
-
-    def playlist_remove(self, args):
-        """ remove songs from current playlist
-            ex: djc playlist_remove song_id1,song_id2"""
-        try: item = args[0]
-        except IndexError:
-            raise DjcError('Enter song_id please')
-        ids = item.split(",")
-        try: ids = [int(id) for id in ids]
-        except ValueError:
-            raise DjcError("song_id has to be an integer")
-        DeejaydPlaylistMode(self.server).del_songs(ids).get_contents()
-
-# Panel commands
-    def panel_info(self, args):
-        """ Get current panel's content
-            ex: djc panel_info"""
-        panel = self.server.get_panel()
-        ans = panel.get()
-        if ans.get_filter() is not None:
-            print "############ Filter ############"
-            search, panels = None, []
-            for ft in ans.get_filter():
-                if ft.type == "basic" and ft.get_name() == "contains":
-                    search = "%s contains '%s'" % (ft.tag, ft.pattern)
-                elif ft.type == "complex" and ft.get_name() == "or":
-                    search = "%s equals to '%s'" % ("all", ft[0].pattern)
-                elif ft.type == "complex" and ft.get_name() == "and":
-                    for panel_ft in ft:
-                        tag = panel_ft[0].tag
-                        values = [value_ft.pattern for value_ft in panel_ft]
-                        panels.append({"tag":tag, "values": ",".join(values)})
-            if search is not None:
-                print "  * search filter : %s" % search
-            for pn in panels:
-                print "  * panel filter : %s in (%s)"%(pn["tag"], pn["values"])
-        if ans.get_sort() is not None:
-            print "############ Sort ############"
-            sorts = ans.get_sort()
-            for s in sorts:
-                print "  * %s - %s" % s
-        print "############ Song List ############"
-        for media in ans.get_medias():
-            print media["pos"], '|', media["title"], '|', media["artist"], '|',\
-                  media["album"], '|', media["id"]
-
-    def panel_tags(self, args):
-        """ List tags used in panel mode
-            ex: djc panel_tags"""
-        panel = self.server.get_panel()
-        tag_list = panel.get_panel_tags().get_contents()
-        print "############ Tag List ############"
-        print " | ".join(tag_list)
-
-    def panel_get_active(self, args):
-        """ Return panel active list
-            ex: djc panel_get_active"""
-        panel = self.server.get_panel()
-        active = panel.get_active_list().get_contents()
-        value = "panel"
-        if active["type"] == "playlist":
-            value = "playlist '%s'" % active["value"]
-        print "Active panel list : %s" % value
-
-    def panel_set_active(self, args):
-        """ Set panel active list
-            ex: djc panel_set_active panel
-            ex: djc panel_set_active playlist pls_name"""
-        panel = self.server.get_panel()
-        try:
-            type = args[0]
-            if type not in ('playlist', 'panel'):
-                raise DjcError('Bad command line')
-        except IndexError:
-            raise DjcError('Bad command line')
-        value = "0"
-        if type == 'playlist':
-            try: value = int(args[1])
-            except (IndexError, ValueError, TypeError):
-                raise DjcError('Bad command line')
-        panel.set_active_list(type, value).get_contents()
-
-    def panel_set_filter(self, args):
-        """ Set a panel filter
-            ex: djc panel_set_filter genre rock
-            ex: djc panel_set_filter artist artist1,artist2"""
-        panel = self.server.get_panel()
-        try:
-            tag = args[0]
-            values = args[1].split(",")
-        except IndexError:
-            raise DjcError('Bad command line')
-        panel.set_panel_filters(tag, values).get_contents()
-
-    def panel_remove_filter(self, args):
-        """ Remove a panel filter
-            ex: djc panel_remove_filter artist"""
-        panel = self.server.get_panel()
-        try: tag = args[0]
-        except IndexError:
-            raise DjcError('Bad command line')
-        panel.remove_panel_filters(tag).get_contents()
-
-    def panel_clear_filter(self, args):
-        """ Clear panel filters
-            ex: djc panel_clear_filter"""
-        panel = self.server.get_panel()
-        panel.clear_panel_filters().get_contents()
-
-    def panel_set_search(self, args):
-        """ Set search filter
-            ex: djc panel_set_search genre rock
-            ex: djc panel_set_search artist ben"""
-        panel = self.server.get_panel()
-        try:
-            tag = args[0]
-            value = args[1]
-        except IndexError:
-            raise DjcError('Bad command line')
-        panel.set_search_filter(tag, value).get_contents()
-
-    def panel_clear_search(self, args):
-        """ Clear panel search filter
-            ex: djc panel_clear_search"""
-        panel = self.server.get_panel()
-        panel.clear_search_filter().get_contents()
-
-    def panel_sort(self, args):
-        """ Sort Panel Medialist
-            ex: djc panel_sort artist descending
-            ex: djc panel_sort title ascending"""
-        panel = self.server.get_panel()
-        try:
-            tag = args[0]
-            direction = args[1]
-        except IndexError:
-            raise DjcError('Bad command line')
-        panel.set_sorts([(tag, direction)]).get_contents()
-
-# Webradio commands
-    def webradio_list(self, args):
-        """ List webradios """
-        wrs = DeejaydWebradioList(self.server).get()
-        for wr in wrs.get_medias():
-            if wr["url-type"] == "urls":
-                url = " | ".join(wr["urls"])
-            else:
-                url = wr["url"]
-            print wr["title"],"|",url,"|",wr["id"]
-
-    def webradio_setSource(self, args):
-        """ Set the current source for webradio mode """
-        try:
-            source = args[0]
-        except IndexError:
-            raise DjcError('Bad command line')
-        wr = DeejaydWebradioList(self.server)
-        wr.set_source(source).get_contents()
-
-    def webradio_localAdd(self, args):
-        """Add a webradio in the local source.ex: djc add_webradio wr_name urls.
-        Url has been separated by ","."""
-        try:
-            wr_name = args[0]
-            wr_urls = args[1]
-        except IndexError:
-            raise DjcError('Bad command line')
-        wr = DeejaydWebradioList(self.server)
-        wr.add_webradio(wr_name,wr_url.split(",")).get_contents()
-
-    def webradio_localClear(self, args):
-        """Erase all webradios from the local source"""
-        DeejaydWebradioList(self.server).clear().get_contents()
-
-    def webradio_localDelete(self, args):
-        """Erase webradio(s) from the local source
-           ex: djc webradio_erase wr_id1,wr_id2"""
-        try: item = args[0]
-        except IndexError:
-            raise DjcError('Enter webradio_id please')
-        else:
-            ids = item.split(",")
-            try: ids = [int(id) for id in ids]
-            except ValueError:
-                raise DjcError("webradio_id has to be an integer")
-        wr = DeejaydWebradioList(self.server)
-        wr.delete_webradios(ids).get_contents()
-
-# dvd commands
-    def dvd_reload(self, args):
-        """Reload the dvd"""
-        ans = self.server.dvd_reload()
-        ans.get_contents()
-
-    def dvd_get_content(self, args):
-        """Get contents of the current dvd"""
-        ans = self.server.get_dvd_content()
-        dvd_content = ans.get_dvd_contents()
-        print """
-DVD content
-title : %s
-longest_track : %s
-""" % (dvd_content["title"],dvd_content["longest_track"])
-        for t in dvd_content["track"]:
-            print """
-  track : %s (%s)
-""" % (t['ix'], t['length'])
 
 
 def get_cmds():

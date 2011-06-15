@@ -4,8 +4,6 @@ usr/lib/python*/*-packages/deejayd/component.py
 usr/lib/python*/*-packages/deejayd/utils.py
 usr/lib/python*/*-packages/deejayd/xmlobject.py
 usr/lib/python*/*-packages/deejayd/thread.py
-usr/lib/python*/*-packages/deejayd/rpc/protocol.py
-usr/lib/python*/*-packages/deejayd/rpc/jsonrpc.py
 usr/lib/python*/*-packages/deejayd/net/protocol.py
 usr/lib/python*/*-packages/deejayd/mediadb/*
 usr/lib/python*/*-packages/deejayd/player/__init__.py

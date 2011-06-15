@@ -17,13 +17,15 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-from deejayd.component import SignalingComponent
+from deejayd.component import SignalingComponent, JSONRpcComponent
+from deejayd.jsonrpc.interfaces import DvdSourceModule, jsonrpc_module
 from deejayd.player._base import PlayerError
 from deejayd.player.xine import DvdParser
 
 class DvdError(Exception): pass
 
-class DvdSource(SignalingComponent):
+@jsonrpc_module(DvdSourceModule)
+class DvdSource(SignalingComponent, JSONRpcComponent):
     name = "dvd"
 
     def __init__(self, db, config):

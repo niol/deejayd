@@ -90,7 +90,7 @@ public class PlaylistMode extends DefaultWebuiMode implements ClickHandler {
                     ArrayList<String> ids = new ArrayList<String>();
                     for (int idx=1; idx<data.length; idx++)
                         ids.add(data[idx]);
-                    ui.rpc.plsModeLoadIds(ids, row, null);
+                    ui.rpc.plsModeLoadSongs(ids, row, null);
                 } else if (data[0].equals("recpls")) {
                     ArrayList<String> ids = new ArrayList<String>();
                     for (int idx=1; idx<data.length; idx++)

@@ -19,8 +19,8 @@
 import cPickle as pickle
 
 from deejayd import mediafilters
-from deejayd.interfaces import DeejaydError
-from deejayd.component import SignalingComponent
+from deejayd import DeejaydError
+from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._medialist import *
 from deejayd.sources._playorder import orders
@@ -29,7 +29,7 @@ from deejayd.sources._playorder import orders
 class SourceError(DeejaydError): pass
 
 
-class _BaseSource(SignalingComponent):
+class _BaseSource(SignalingComponent, JSONRpcComponent):
     name = "unknown"
     _default_state = {"id": 1}
 
@@ -49,8 +49,13 @@ class _BaseSource(SignalingComponent):
     def get_recorded_id(self):
         return self._state["id"]
 
+    def get(self, start = 0, stop = None):
+        medias, filter, sort = self.get_content(start, stop)
+        return {"medias": medias, "filter": filter, "sort": sort}
+
     def get_content(self, start = 0, stop = None):
-        return self._media_list.get(start, stop)
+        # medias, filter (None if useless), sort (None if useless)
+        return self._media_list.get(start, stop), None, None
 
     def get_current(self):
         return self._current
@@ -62,7 +67,7 @@ class _BaseSource(SignalingComponent):
         self._current = self._playorder.set_explicit(self._media_list, id)
         return self._current
 
-    def delete(self, ids):
+    def remove(self, ids):
         if not self._media_list.delete(ids):
             raise SourceError(_("Unable to delete selected ids"))
         self._media_list.reload_item_pos(self._current)
@@ -140,7 +145,7 @@ class _BaseLibrarySource(_BaseSource):
                 else:
                     limit = None
                 filter.filterlist = self.db.get_magic_medialist_filters(pl_id)
-                return self.library.search(filter, sorts, limit)
+                return self.library.search_with_filter(filter, sorts, limit)
         except TypeError:
             raise SourceError(_("Playlist %s does not exist.") % str(pl_id))
 
@@ -193,7 +198,7 @@ class _BaseLibrarySource(_BaseSource):
 class _BaseSortedLibSource(_BaseLibrarySource):
     medialist_type = "sorted"
 
-    def set_sorts(self, sorts):
+    def set_sort(self, sorts):
         for (tag, direction) in sorts:
             if tag not in self.sort_tags:
                 raise SourceError(_("Tag '%s' not supported for sort") % tag)
@@ -252,8 +257,8 @@ class _BaseAudioLibSource(_BaseLibrarySource):
         self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)
 
-    def delete(self, ids):
-        super(_BaseAudioLibSource, self).delete(ids)
+    def remove(self, ids):
+        super(_BaseAudioLibSource, self).remove(ids)
         self.dispatch_signame(self.source_signal)
 
     def clear(self):

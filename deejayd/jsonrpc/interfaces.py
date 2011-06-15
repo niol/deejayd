@@ -1,0 +1,775 @@
+# Deejayd, a media player daemon
+# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+from deejayd import DeejaydError
+from deejayd.jsonrpc import *
+from deejayd.jsonrpc.jsonbuilders import Get_json_filter
+from deejayd.jsonrpc.jsonparsers import Parse_json_filter
+import inspect
+
+def underscore_to_camelcase(s):
+    """Take the underscore-separated string s and return a camelCase
+    equivalent.  Initial and final underscores are preserved, and medial
+    pairs of underscores are turned into a single underscore."""
+    def camelcase_words(words):
+        first_word_passed = False
+        for word in words:
+            if not word:
+                yield "_"
+                continue
+            if first_word_passed:
+                yield word.capitalize()
+            else:
+                yield word.lower()
+            first_word_passed = True
+    return ''.join(camelcase_words(s.split('_')))
+
+
+#
+# decorators and misc functions for rpc modules
+#
+def build_signature(answer, args):
+    p_dict = {
+            "list": "array",
+            "int-list": "array",
+            "dict": "object",
+            "string": "string",
+            "int": "number",
+            "bool": "boolean",
+            "filter": "object",
+            "sort": "array",
+    }
+    if args:
+        signature = []
+        opt_params = [p_dict[p["type"]] for p in args if not p["req"]]
+        for i in range(len(opt_params)+1):
+            s = ["object"]
+            s.extend([p_dict[p["type"]] for p in args if p["req"]])
+            s.extend(opt_params[:i])
+            signature.append(s)
+    else:
+        signature = [["object"]]
+
+    return signature
+
+def build_help(cmd):
+    args = getattr(cmd, "args", [])
+    answer = getattr(cmd, "answer", 'ack')
+
+    p_desc = "\nNo arguments"
+    if len(args) > 0:
+        p_desc = "\nArguments : \n%s" %\
+            "\n".join(["  * name '%s', type '%s', required '%s'" %\
+                (a["name"], a["type"], a["req"]) for a in args])
+    return """
+Description :
+%(description)s
+Answer type : %(answer)s %(p_desc)s""" % {\
+            "description": cmd.__doc__,\
+            "answer": answer,\
+            "p_desc": p_desc,\
+        }
+
+def verify_arguments(__args, args):
+    __new_args = list(__args)
+    for idx, arg in enumerate(args):
+        try: value = __args[idx+1]
+        except IndexError:
+            if arg["req"] is True:
+                raise Fault(INVALID_METHOD_PARAMS,\
+                    _("Arg %s is required") % arg["name"])
+        else:
+            if arg['type'] == "int":
+                try: value = int(value)
+                except (ValueError,TypeError):
+                    raise Fault(INVALID_METHOD_PARAMS,\
+                        _("Arg %s is not an int") % arg["name"])
+            elif arg['type'] in ("bool", "list", "dict"):
+                types = {"bool": bool, "dict": dict, "list": list}
+                if not isinstance(value, types[arg['type']]):
+                    raise Fault(INVALID_METHOD_PARAMS,\
+                        _("Arg %s has wrong type") % arg["name"])
+            elif arg['type'] == "int-list":
+                if not isinstance(value, list):
+                    raise Fault(INVALID_METHOD_PARAMS,\
+                        _("Arg %s is not a list") % arg["name"])
+                try: value = map(int, value)
+                except (ValueError,TypeError):
+                    raise Fault(INVALID_METHOD_PARAMS,\
+                      _("Arg %s is not an int-list") % arg["name"])
+            elif arg['type'] == 'filter':
+                print "filter, value", value
+                if value is not None:
+                    value = Parse_json_filter(value)
+            __new_args[idx+1] = value
+    return __new_args
+
+def jsonrpc_func(cmd_name, rpc_cmd, func):
+    def new_func(*args, **kwargs):
+        args = verify_arguments(args, getattr(rpc_cmd, "args", []))
+        try: res = func(*args, **kwargs)
+        except DeejaydError, ex:
+            raise Fault(INTERNAL_ERROR, unicode(ex))
+        type = getattr(rpc_cmd, "answer", "ack")
+        if type == "mediaList":
+            if res["filter"] is not None:
+                res["filter"] = Get_json_filter(res["filter"]).dump()
+        elif type == "dict":
+            res = dict(res)
+        elif type == "ack":
+            res = True
+
+        return {"answer": res, "type": type}
+    new_func.__doc__ = func.__doc__
+    new_func.__name__ = cmd_name
+    new_func.__signature__ = {
+                        "answer": getattr(rpc_cmd, "answer", "ack"),
+                        "args": getattr(rpc_cmd, "args", [])
+                    }
+
+    return new_func
+
+def jsonrpc_module(module):
+    def impl_func(orig_cls):
+        for attr in dir(orig_cls):
+            try: m = getattr(orig_cls, attr)
+            except AttributeError:
+                continue
+
+            if inspect.ismethod(m):
+                camel_case_attr = underscore_to_camelcase(attr)
+                rpc_cmd = getattr(module, camel_case_attr, None)
+                if inspect.isclass(rpc_cmd):
+                    func = m.__func__
+                    cmd_name = "jsonrpc_%s" % camel_case_attr
+                    setattr(orig_cls, cmd_name,
+                            jsonrpc_func(cmd_name, rpc_cmd, func))
+        return orig_cls
+
+    return impl_func
+
+#
+# Rpc modules
+#
+
+class IntrospectionModule(object):
+    """Implement a JSON-RPC Introspection API.
+
+    By default, the methodHelp method returns the 'help' method attribute,
+    if it exists, otherwise the __doc__ method attribute, if it exists,
+    otherwise the empty string.
+
+    To enable the methodSignature method, add a 'signature' method attribute
+    containing a list of lists. See methodSignature's documentation for the
+    format. Note the type strings should be JSON-RPC types, not Python types.
+    """
+
+    class listMethods:
+        """Return a list of the method names implemented by this server."""
+        answer = 'list'
+
+    class getMethodHelp:
+        """Return a documentation string describing the use of the given method."""
+        answer = 'string'
+        args = [{"name":"method","type":"string","req":True}]
+
+    class getMethodSignature:
+        """Return a list of type signatures.
+
+        Each type signature is a list of the form [rtype, type1, type2, ...]
+        where rtype is the return type and typeN is the type of the Nth
+        argument. If no signature information is available, the empty
+        string is returned.
+        """
+        answer = 'list'
+        args = [{"name":"method","type":"string","req":True}]
+
+class CoreModule(object):
+
+    class ping:
+        """Does nothing, just replies with an acknowledgement that the command was received"""
+
+    class getServerInfo:
+        """Return deejayd server informations :
+  * server_version : deejayd server version
+  * protocol_version : protocol version"""
+        answer = 'dict'
+
+    class setMode:
+        """Change the player mode. Possible values are :
+  * playlist : to manage and listen songs in playlist
+  * panel : to manage and listen songs in panel mode (like itunes)
+  * video : to manage and wath video file
+  * dvd : to wath dvd
+  * webradio : to manage and listen webradios"""
+        args = [{"name":"mode","type":"string","req":True}]
+
+    class getModes:
+        """For each available source, shows if it is activated or not.
+   The answer consists in :
+  * playlist : _bool_ true or false
+  * panel : _bool_ true or false
+  * webradio : _bool_ true or false (media backend has to be abble to read url streams)
+  * video : _bool_ true or false (needs video dependencies, X display and needs to be activated in configuration)
+  * dvd : _bool_ true or false (media backend has to be able to read dvd)"""
+        answer = 'dict'
+
+    class getStatus:
+        """Return status of deejayd. Given informations are :
+  * playlist : _int_ id of the current playlist
+  * playlistlength : _int_ length of the current playlist
+  * playlisttimelength : _int_ time length of the current playlist
+  * playlistrepeat : _bool_ false (not activated) or true (activated)
+  * playlistplayorder : inorder | random | onemedia | random-weighted
+  * webradio : _int_ id of the current webradio list
+  * webradiolength : _int_ number of recorded webradio
+  * webradiosource : _str_ current source for webradio streams
+  * webradiosourcecat : _str_ current categorie for webradio
+  * queue : _int_ id of the current queue
+  * queuelength : _int_ length of the current queue
+  * queuetimelength : _int_ time length of the current queue
+  * queueplayorder : _str_ inorder | random
+  * video : _int_ id of the current video list
+  * videolength : _int_ length of the current video list
+  * videotimelength : _int_ time length of the current video list
+  * videorepeat : _bool_ false (not activated) or true (activated)
+  * videoplayorder : inorder | random | onemedia | random-weighted
+  * dvd : _int_ id of the current dvd
+  * dvdlength : _int_ number of tracks on the current dvd
+  * volume : `[0-100]` current volume value
+  * state : [play-pause-stop] the current state of the player
+  * current : _int_:_int_:_str_ current media pos : current media file id : playing source name
+  * time : _int_:_int_ position:length of the current media file
+  * mode : [playlist-webradio-video] the current mode
+  * audio_updating_db : _int_ show when a audio library update is in progress
+  * audio_updating_error : _string_ error message that appears when the audio library update has failed
+  * video_updating_db : _int_ show when a video library update is in progress
+  * video_updating_error : _string_ error message that appears when the video library update has failed"""
+        answer = 'dict'
+
+    class getStats:
+        """Return statistical informations :
+  * audio_library_update : UNIX time of the last audio library update
+  * video_library_update : UNIX time of the last video library update
+  * videos : number of videos known by the database
+  * songs : number of songs known by the database
+  * artists : number of artists in the database
+  * albums : number of albums in the database"""
+        answer = 'dict'
+
+    class setOption:
+        """Set player options "name" to "value" for mode "source", Available options are :
+  * playorder (_str_: inorder, onemedia, random or random-weighted)
+  * repeat (_bool_: True or False)"""
+        args = [
+            {"name":"source", "type":"string", "req":True},\
+            {"name":"option_name", "type":"string","req":True},\
+            {"name":"option_value","type":"string","req":True}
+        ]
+
+    class setRating:
+        """Set rating of media file with ids equal to media_id for library 'type' """
+        args = [\
+            {"name":"ids", "type":"int-list", "req": True},\
+            {"name": "value", "type": "int", "req": True},\
+            {"name": "type", "type": "string", "req": False}
+        ]
+
+class TcpModule:
+
+    class close:
+        """Close the connection with the server"""
+
+    class setSubscription:
+        """Set subscribtion to "signal" signal notifications to "value" which should be 0 or 1."""
+        args = [
+            {"name":"signal", "type":"string", "req":True},\
+            {"name":"value", "type":"bool", "req":True}
+        ]
+
+class WebModule:
+
+    class writeCover:
+        """ Record requested cover in the temp directory """
+        answer = 'dict'
+        args = [{"name":"mid","type":"int","req":True}]
+
+    class buildPanel:
+        """ Build panel list """
+        answer = 'dict'
+        args = [{"name":"updated_tag","type":"string","req":False}]
+
+class LibraryModule:
+
+    class update:
+        """Update the library.
+  * 'type'_updating_db : the id of this task. It appears in the status until the update are completed."""
+        answer = 'dict'
+        args = [{"name":"force","type":"bool","req":False}]
+
+    class getDirContent:
+        """List the files of the directory supplied as argument."""
+        answer = 'fileAndDirList'
+        args = [{"name":"directory","type":"string","req":False}]
+
+    class search:
+        """Search files in library where "type" contains "pattern" content."""
+        answer = 'list'
+        args = [
+            {"name":"pattern", "type":"string", "req":True},\
+            {"name":"type","type":"string","req":False}
+        ]
+
+    class tagList:
+        """ List all the possible values for a tag according to the optional filter argument."""
+        answer = 'list'
+        args=[
+            {"name":"tag", "type":"string", "req":True},
+            {"name":"filter","type":"filter","req":False}
+        ]
+
+class PlayerModule(object):
+
+    class playToggle:
+        """Toggle play/pause."""
+
+    class play:
+        """Start playing."""
+
+    class pause:
+        """Pause playing."""
+
+    class stop:
+        """Stop playing."""
+
+    class next:
+        """Go to next song/webradio/video."""
+
+    class previous:
+        """Go to previous song/webradio/video."""
+
+    class setVolume:
+        """Set volume to "volume". The volume range is 0-100."""
+        args = [{ "name": "volume",
+            "type": "int",
+            "desc": "new value of volume",
+            "req": True, }
+        ]
+
+    class seek:
+        """Seeks to the position "pos" (in seconds) of the current media set relative argument to true to set new pos in relative way"""
+        args = [
+          { "name": "pos",
+            "type": "int",
+            "desc": "new position in the media file ",
+            "req": True, },
+          { "name": "absolute",
+            "type": "boolean",
+            "desc": "set to true to set new pos in relative way",
+            "req": False, },
+        ]
+
+    class goTo:
+        """Begin playing at media file with id "id" or toggle play/pause."""
+        args = [
+          { "name": "id",
+            "type": "int",
+            "desc": "id of media file to play",
+            "req": True, },
+          { "name": "id_type",
+            "type": "str",
+            "desc": "id type to use : 'pos' or 'id' (default)",
+            "req": False, },
+          { "name": "source",
+            "type": "str",
+            "desc": "source to use",
+            "req": False, },
+        ]
+
+    class getPlaying:
+        """Return informations on the current song/webradio/video. Raise an error if no media is playing"""
+        answer = "dict"
+
+
+class VideoPlayerModule(PlayerModule):
+
+    class setVideoOption:
+        """Set player video option for the current media. Possible options are :
+  * zoom : set zoom (video only), min=-85, max=400
+  * audio_lang : select audio channel (video only)
+  * sub_lang : select subtitle channel (video only)
+  * av_offset : set audio/video offset (video only)
+  * sub_offset : set subtitle/video offset (video only)
+  * aspect_ratio : set video aspect ratio (video only), available values are :
+    * auto
+    * 1:1
+    * 16:9
+    * 4:3
+    * 2.11:1 (for DVB)"""
+        args = [
+          { "name": "option",
+            "type": "str",
+            "desc": "option's name",
+            "req": True, },
+          { "name": "value",
+            "type": "str",
+            "desc": "option's value",
+            "req": True, },
+        ]
+
+class PlaylistSourceModule(object):
+
+    class get:
+        """Return the content of this mode."""
+        answer = "mediaList"
+        args = [
+            { "name":"first",
+              "type":"int",
+              "req":False},\
+            { "name":"length",
+              "type":"int",
+              "req":False}
+        ]
+
+    class clear:
+        """Clear the current playlist."""
+
+    class shuffle:
+        """Shuffle the current playlist."""
+
+    class save:
+        """Save the current playlist to "pls_name" in the database.
+  * playlist_id : id of the recorded playlist"""
+        answer = "dict"
+        args = [{"name":"pls_name", "type":"string", "req":True}]
+
+    class loadPlaylist:
+        """Load recorded playlist at a specific position"""
+        args = [
+            {"name":"pl_ids", "type":"int-list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+    class addPath:
+        """Load files or directories passed as arguments ("paths") at the position "pos" in the current playlist."""
+        args = [
+            {"name":"paths", "type":"list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+    class addSong:
+        """Load files with id passed as arguments ("ids") at the position "pos" in the current playlist."""
+        args = [
+            {"name":"ids", "type":"int-list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+    class remove:
+        """Remove songs with ids passed as argument ("ids") from the current playlist"""
+        args = [{"name":"ids","type":"int-list","req":True}]
+
+    class move:
+        """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)"""
+        args = [
+            {"name":"ids", "type":"int-list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+class WebradioSourceModule(object):
+
+    class get:
+        """Return the content of this mode."""
+        answer = "mediaList"
+        args = [
+            { "name":"first",
+              "type":"int",
+              "req":False},\
+            { "name":"length",
+              "type":"int",
+              "req":False}
+        ]
+
+    class getAvailableSources:
+        """Return list of available sources for webradio mode as source_name: has_categories"""
+        answer = 'dict'
+
+    class getSourceCategories:
+        """Return list of categories for webradio source 'source_name'"""
+        answer = 'list'
+        args = [{"name":"source_name","type":"string","req":True}]
+
+    class setSource:
+        """Set current source to 'source_name'"""
+        args = [{"name":"source_name","type":"string","req":True}]
+
+    class setSourceCategorie:
+        """Set categorie to 'categorie' for current source"""
+        args = [{"name":"categorie","type":"string","req":True}]
+
+    class localClear:
+        """Remove all recorded webradios from the 'local' source."""
+
+    class localDelete:
+        """Remove webradios with id in "ids" from the 'local' source."""
+        args = [{"name":"ids","type":"int-list","req":True}]
+
+    class localAdd:
+        """Add a webradio in 'local' source. Its name is "name" and the url of the webradio is "url". You can pass a playlist for "url" argument (.pls and .m3u format are supported)."""
+        args=[
+            {"name":"name","type":"string","req":True},
+            {"name":"url", "type":"list", "req":True}
+        ]
+
+class PanelSourceModule(object):
+
+    class get:
+        """Return the content of this mode."""
+        answer = "mediaList"
+        args = [
+            { "name":"first",
+              "type":"int",
+              "req":False},\
+            { "name":"length",
+              "type":"int",
+              "req":False}
+        ]
+
+    class getTags:
+        """Return tag list used in panel mode."""
+        answer = 'list'
+
+    class getActiveList:
+        """Return active list in panel mode
+         * type : 'playlist' if playlist is choosen as active medialist 'panel' if panel navigation is active
+         * value : if 'playlist' is selected, used playlist id"""
+        answer = 'dict'
+
+    class setActiveList:
+        """Set the active list in panel mode"""
+        args = [
+            {"name":"type", "type":"string", "req":True},\
+            {"name":"value", "type":"int", "req":False}
+        ]
+
+    class setFilter:
+        """Set a filter for panel mode"""
+        args = [
+            {"name":"tag", "type":"string", "req":True},\
+            {"name":"values", "type":"list", "req":True}
+        ]
+
+    class removeFilter:
+        """Remove a filter for panel mode"""
+        args = [{"name":"tag", "type":"string", "req":True},]
+
+    class clearFilters:
+        """Clear filters for panel mode"""
+
+    class setSearchFilter:
+        """Set search filter in panel mode"""
+        args = [
+            {"name":"tag", "type":"string", "req":True},\
+            {"name":"value", "type":"string", "req":True}
+        ]
+
+    class clearSearchFilter:
+        """Clear search filter in panel mode"""
+
+    class clearAllFilters:
+        """Clear search filter and panel filters"""
+
+    class setSort:
+        """Sort active medialist in panel mode"""
+        args = [{"name":"sort","type":"sort","req":True},]
+
+class VideoSourceModule(object):
+
+    class get:
+        """Return the content of this mode."""
+        answer = "mediaList"
+        args = [
+            { "name":"first",
+              "type":"int",
+              "req":False},\
+            { "name":"length",
+              "type":"int",
+              "req":False}
+        ]
+
+    class set:
+        """Set content of video mode"""
+        args = [
+            {"name":"value", "type":"string", "req":True},\
+            {"name":"type","type":"string","req":False}
+        ]
+
+    class setSort:
+        """Sort active medialist in video mode"""
+        args = [{"name":"sort","type":"sort","req":True},]
+
+class DvdSourceModule(object):
+
+    class get:
+        """Get the content of the current dvd."""
+        answer = 'dvdInfo'
+
+    class reload:
+        """Load the content of the dvd player."""
+
+class QueueModule(object):
+
+    class get:
+        """Return the content of this mode."""
+        answer = "mediaList"
+        args = [
+            { "name":"first",
+              "type":"int",
+              "req":False},\
+            { "name":"length",
+              "type":"int",
+              "req":False}
+        ]
+
+    class clear:
+        """Clear the queue"""
+
+    class loadPlaylist:
+        """Load recorded playlist at a specific position"""
+        args = [
+            {"name":"pl_ids", "type":"int-list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+    class addPath:
+        """Load files or directories passed as arguments ("paths") at the position "pos" in the current playlist."""
+        args = [
+            {"name":"paths", "type":"list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+    class addSong:
+        """Load files with id passed as arguments ("ids") at the position "pos" in the current playlist."""
+        args = [
+            {"name":"ids", "type":"int-list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+    class remove:
+        """Remove songs with ids passed as argument ("ids") from the current playlist"""
+        args = [{"name":"ids","type":"int-list","req":True}]
+
+    class move:
+        """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)"""
+        args = [
+            {"name":"ids", "type":"int-list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+class RecordedPlaylistModule(object):
+
+    class getList:
+        """Return the list of recorded playlists."""
+        answer = "list"
+
+    class create:
+        """Create recorded playlist. The answer consist on
+  * pl_id : id of the created playlist
+  * name : name of the created playlist
+  * type : type of the created playlist"""
+        answer = 'dict'
+        args = [
+            {"name":"name", "type":"string", "req":True},\
+            {"name":"type","type":"string","req":True}
+        ]
+
+    class erase:
+        """Erase recorded playlists passed as arguments."""
+        args = [{"name":"pl_ids", "type":"int-list", "req":True}]
+
+    class getContent:
+        """Return the content of a recorded playlist."""
+        answer = 'mediaList'
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},\
+            {"name":"first", "type":"int", "req":False},\
+            {"name":"length","type":"int","req":False}
+        ]
+
+    class staticAdd:
+        """Add songs in a recorded static playlist. Argument 'type' has to be 'path' (default) or 'id'"""
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},\
+            {"name":"values", "type":"list", "req":True},\
+            {"name":"type","type":"string","req":False}
+        ]
+
+    class magicAddFilter:
+        """Add a filter in recorded magic playlist."""
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},\
+            {"name":"filter","type":"filter","req":True}
+        ]
+
+    class magicRemoveFilter:
+        """Remove a filter from recorded magic playlist."""
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},\
+            {"name":"filter","type":"filter","req":True}
+        ]
+
+    class magicClearFilter:
+        """Remove all filter from recorded magic playlist."""
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},\
+        ]
+
+    class magicGetProperties:
+        """Get properties of a magic playlist
+  * use-or-filter: if equal to 1, use "Or" filter instead of "And" (0 or 1)
+  * use-limit: limit or not number of songs in the playlist (0 or 1)
+  * limit-value: number of songs for this playlist (integer)
+  * limit-sort-value: when limit is active sort playlist with this tag
+  * limit-sort-direction: sort direction for limit (ascending or descending)"""
+        answer = 'dict'
+        args = [{"name":"pl_id", "type":"int", "req":True}]
+
+    class magicSetProperty:
+        """Set a property for a magic playlist."""
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},\
+            {"name":"key", "type":"string","req":True},\
+            {"name":"value", "type":"string", "req":True}
+        ]
+
+
+JSONRPC_MODULES = {
+    "core": CoreModule,
+    "player": VideoPlayerModule,
+    "playlist": PlaylistSourceModule,
+    "panel": PanelSourceModule,
+    "webradio": WebradioSourceModule,
+    "video": VideoSourceModule,
+    "dvd": DvdSourceModule,
+    "queue": QueueModule,
+    "recpls": RecordedPlaylistModule,
+    "audiolib": LibraryModule,
+    "videolib": LibraryModule,
+    "tcp": TcpModule,
+}
+
+# vim: ts=4 sw=4 expandtab

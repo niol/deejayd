@@ -20,12 +20,11 @@ import os,shutil
 from twisted.web import static,server
 from twisted.web.resource import Resource, NoResource
 
-from deejayd.interfaces import DeejaydError
+from deejayd import DeejaydError
 from deejayd.ui import log
 
 # jsonrpc import
-from deejayd.webui.jsonrpc import JSONRPC
-from deejayd.rpc.protocol import build_protocol, set_web_subhandler
+from deejayd.webui.jsonrpc import JSONRpcResource
 
 from deejayd.webui.webui import build as webui_build
 from deejayd.webui.mobile import build as mobile_build
@@ -148,9 +147,7 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
     # main handler
     main_handler = DeejaydMainHandler()
     # json-rpc handler
-    rpc_handler = JSONRPC(deejayd_core)
-    rpc_handler = build_protocol(deejayd_core, rpc_handler)
-    rpc_handler = set_web_subhandler(deejayd_core, tmp_dir, rpc_handler)
+    rpc_handler = JSONRpcResource(deejayd_core, tmp_dir)
     main_handler.putChild("rpc",rpc_handler)
     # tmp dir
     main_handler.putChild("tmp",static.File(tmp_dir))

@@ -110,21 +110,21 @@ public class Rpc {
     }
 
     public void getStatus(AnswerHandler<HashMap<String, String>> handler) {
-        send("status", new JSONArray(), new DictCallback(handler));
+        send("getStatus", new JSONArray(), new DictCallback(handler));
     }
 
     public void getStats(AnswerHandler<HashMap<String, String>> handler) {
-        send("stats", new JSONArray(), new DictCallback(handler));
+        send("getStats", new JSONArray(), new DictCallback(handler));
     }
 
     public void getModeList(AnswerHandler<HashMap<String, String>> handler) {
-        send("availablemodes", new JSONArray(), new DictCallback(handler));
+        send("getModes", new JSONArray(), new DictCallback(handler));
     }
 
     public void setMode(String mode, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(mode));
-        send("setmode", args, handler);
+        send("setMode", args, handler);
     }
 
     public void setRating(List<String> sel, int rating,
@@ -180,7 +180,7 @@ public class Rpc {
     }
 
     public void getCurrent(AnswerHandler<Media> handler) {
-        send("player.current", new JSONArray(), new CurrentCallback(handler));
+        send("player.getPlaying", new JSONArray(),new CurrentCallback(handler));
     }
 
     public void seek(int pos, AnswerHandler<Boolean> handler) {
@@ -205,7 +205,7 @@ public class Rpc {
     public void goTo(int id, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(id));
-        send("player.goto", args, handler);
+        send("player.goTo", args, handler);
     }
 
     public void goTo(int id, String source, AnswerHandler<Boolean> handler) {
@@ -213,7 +213,7 @@ public class Rpc {
         args.set(0, new JSONNumber(id));
         args.set(1, new JSONString("id"));
         args.set(2, new JSONString(source));
-        send("player.goto", args, handler);
+        send("player.goTo", args, handler);
     }
 
     public void goTo(String id, AnswerHandler<Boolean> handler) {
@@ -221,14 +221,14 @@ public class Rpc {
         args.set(0, new JSONString(id));
         args.set(1, new JSONString("dvd_id"));
         args.set(2, new JSONString("dvd"));
-        send("player.goto", args, handler);
+        send("player.goTo", args, handler);
     }
 
     public void getCover(int mediaId,
             AnswerHandler<HashMap<String,String>> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONNumber(mediaId));
-        send("web.writecover", args, new DictCallback(handler));
+        send("web.writeCover", args, new DictCallback(handler));
     }
 
     /*
@@ -238,7 +238,7 @@ public class Rpc {
             AnswerHandler<FileDirList> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(dir));
-        send(library+"lib.getDir", args, new FileDirListCallback(handler));
+        send(library+"lib.getDirContent", args, new FileDirListCallback(handler));
     }
 
     public void libUpdate(String library,
@@ -259,14 +259,14 @@ public class Rpc {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(tag));
         args.set(1, filter.toJSON());
-        send("audiolib.taglist", args, new ListCallback(handler));
+        send("audiolib.tagList", args, new ListCallback(handler));
     }
 
     /*
      * Recorded playlist commands
      */
     public void recPlsList(AnswerHandler<List<Playlist>> handler) {
-        send("recpls.list", new JSONArray(), new PlsListCallback(handler));
+        send("recpls.getList", new JSONArray(), new PlsListCallback(handler));
     }
 
     public void recPlsErase(List<String> sel, AnswerHandler<Boolean> handler) {
@@ -286,7 +286,7 @@ public class Rpc {
     public void recPlsGet(String plsId,AnswerHandler<MediaList> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(plsId));
-        send("recpls.get", args, new MediaListCallback(handler));
+        send("recpls.getContent", args, new MediaListCallback(handler));
     }
 
     public void recPlsStaticAdd(String plsId, List<String> ids,
@@ -378,13 +378,13 @@ public class Rpc {
         send("playlist.addPath", args, handler);
     }
 
-    public void plsModeLoadIds(List<String> sel, int pos,
+    public void plsModeLoadSongs(List<String> sel, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, listToArray(sel));
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
-        send("playlist.addIds", args, handler);
+        send("playlist.addSong", args, handler);
     }
 
     public void plsModeLoadPls(List<String> sel, int pos,
@@ -393,7 +393,7 @@ public class Rpc {
          args.set(0, listToArray(sel));
          if (pos != -1)
              args.set(1, new JSONNumber(pos));
-         send("playlist.loads", args, handler);
+         send("playlist.loadPlaylist", args, handler);
     }
 
     public void plsModeSave(String plsName, AnswerHandler<Boolean> handler) {
@@ -434,7 +434,7 @@ public class Rpc {
     public void wbModeRemove(List<String> ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, listToArray(ids));
-        send("webradio.localRemove", args, handler);
+        send("webradio.localDelete", args, handler);
     }
 
     public void wbModeClear() {
@@ -482,13 +482,13 @@ public class Rpc {
         send("queue.addPath", args, handler);
     }
 
-    public void queueLoadIds(List<String> ids, int pos,
+    public void queueLoadSongs(List<String> ids, int pos,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, listToArray(ids));
         if (pos != -1)
             args.set(1, new JSONNumber(pos));
-        send("queue.addIds", args, handler);
+        send("queue.addSong", args, handler);
     }
 
     public void queueModeLoadPls(List<String> sel, int pos,
@@ -497,7 +497,7 @@ public class Rpc {
          args.set(0, listToArray(sel));
          if (pos != -1)
              args.set(1, new JSONNumber(pos));
-         send("queue.loads", args, handler);
+         send("queue.loadPlaylist", args, handler);
     }
 
     /*
@@ -506,23 +506,24 @@ public class Rpc {
 
     public void panelModeActiveList(
             AnswerHandler<HashMap<String,String>> handler) {
-        send("panel.activeList", new JSONArray(), new DictCallback(handler));
+        send("panel.getActiveList", new JSONArray(), new DictCallback(handler));
     }
 
     public void panelModeGetTags(AnswerHandler<List<String>> handler) {
-        send("panel.tags", new JSONArray(), new ListCallback(handler));
+        send("panel.getTags", new JSONArray(), new ListCallback(handler));
     }
 
     public void panelModeSetActiveList(String mode, String pls,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(mode));
-        args.set(1, new JSONString(pls));
+        if (!pls.equals(""))
+            args.set(1, new JSONNumber(Integer.parseInt(pls)));
         send("panel.setActiveList", args, handler);
     }
 
     public void panelModeClearAll(AnswerHandler<Boolean> handler) {
-        send("panel.clearAll", new JSONArray(), handler);
+        send("panel.clearAllFilters", new JSONArray(), handler);
     }
 
     public void panelModeSetSearch(String tag, String value,
@@ -530,11 +531,11 @@ public class Rpc {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(tag));
         args.set(1, new JSONString(value));
-        send("panel.setSearch", args, handler);
+        send("panel.setSearchFilter", args, handler);
     }
 
     public void panelModeClearSearch() {
-        send("panel.clearSearch");
+        send("panel.clearSearchFilter");
     }
 
     public void panelModeSetFilter(String tag, List<String> values,
@@ -591,7 +592,7 @@ public class Rpc {
         JSONArray args = new JSONArray();
         args.set(0, sort.toJSON());
 
-        send("video.sort", args, handler);
+        send("video.setSort", args, handler);
     }
 
     /*

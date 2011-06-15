@@ -16,25 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.interfaces import DeejaydError
+class _Playlist(object):
 
-# Deejayd protocol version number
-DEEJAYD_PROTOCOL_VERSION = 4
-
-# from specification
-# http://groups.google.com/group/json-rpc/web/json-rpc-1-2-proposal
-NOT_WELLFORMED_ERROR  = -32700
-INVALID_JSONRPC       = -32600
-METHOD_NOT_FOUND      = -32601
-INVALID_METHOD_PARAMS = -32602
-INTERNAL_ERROR        = -32603
-METHOD_NOT_CALLABLE   = -32604
-
-
-class Fault(DeejaydError):
-    """Indicates an JSON-RPC fault package."""
-    def __init__(self, code, message):
-        super(Fault, self).__init__(message)
-        self.code = code
+    def __init__(self, db, audio_library, id, name):
+        self.db = db
+        self.library = audio_library
+        self.pl_id = id
+        self.name = name
 
 # vim: ts=4 sw=4 expandtab

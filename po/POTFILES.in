@@ -1,4 +1,3 @@
-deejayd/interfaces.py
 deejayd/core.py
 deejayd/utils.py
 deejayd/database/__init__.py
@@ -26,9 +25,10 @@ deejayd/sources/queue.py
 deejayd/sources/video.py
 deejayd/sources/webradio.py
 deejayd/ui/log.py
-deejayd/rpc/protocol.py
-deejayd/rpc/jsonrpc.py
+deejayd/jsonrpc/interfaces.py
+deejayd/jsonrpc/jsonbuilders.py
 deejayd/webui/__init__.py
+deejayd/webui/jsonparsers.py
 deejayd/webui/jsonrpc.py
 deejayd/webui/mobile.py
 deejayd/webui/webui.py

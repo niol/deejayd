@@ -52,7 +52,6 @@ class _TestDeejayDBLibrary(object):
         self.db = database.init(config)
         self.player = xine.XinePlayer(self.db, \
                 plugins.PluginManager(config), config)
-        self.player.init_video_support()
 
         self.library = self.__class__.library_class(self.db, self.player, \
                                                     self.testdata.getRootDir())
@@ -117,10 +116,10 @@ class _TestDeejayDBLibrary(object):
                     (root,str(allContents)))
 
             # First, verify directory list
-            self.assertEqual(len(contents["dirs"]), len(dirs))
+            self.assertEqual(len(contents["directories"]), len(dirs))
             for dir in dirs:
-                self.assert_(dir in contents["dirs"],
-                    "'%s' is in directory tree but was not found in DB %s in current root '%s'" % (dir,str(contents["dirs"]),root))
+                self.assert_(dir in contents["directories"],
+                    "'%s' is in directory tree but was not found in DB %s in current root '%s'" % (dir,str(contents["directories"]),root))
 
             # then, verify file list
             self.assertEqual(len(contents["files"]), len(files))
@@ -285,7 +284,7 @@ class TestAudioLibrary(TestCaseWithAudioData, _TestDeejayDBLibrary):
     def testSearchFile(self):
         """Search a file in audio library"""
         filter = mediafilters.Contains("genre", self.testdata.getRandomString())
-        self.assertEqual([], self.library.search(filter))
+        self.assertEqual([], self.library.search_with_filter(filter))
 
         searched_genre = self.testdata.getRandomGenre()
         filter = mediafilters.Contains("genre", searched_genre)
@@ -294,7 +293,8 @@ class TestAudioLibrary(TestCaseWithAudioData, _TestDeejayDBLibrary):
             if searched_genre == media.tags['genre']:
                 matched_medias_uri.append(media.tags['uri'])
 
-        found_items_uri = [x['uri'] for x in self.library.search(filter)]
+        found_items_uri = [x['uri'] \
+                for x in self.library.search_with_filter(filter)]
 
         self.assertEqual(len(matched_medias_uri), len(found_items_uri))
 

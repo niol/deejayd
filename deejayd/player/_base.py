@@ -16,23 +16,26 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os,subprocess
 import cPickle as pickle
 
-from deejayd.component import SignalingComponent
+from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.plugins import PluginError, IPlayerPlugin
 from deejayd.player import PlayerError
 from deejayd.ui import log
-from deejayd.utils import get_uris_from_pls, get_uris_from_m3u
+from deejayd.utils import get_uris_from_pls
+
+
+__all__ = ['PLAYER_PLAY', 'PLAYER_PAUSE', 'PLAYER_STOP', '_BasePlayer']
 
 PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-class UnknownPlayer(SignalingComponent):
+class _BasePlayer(SignalingComponent, JSONRpcComponent):
+    VIDEO_SUPPORT = False
 
     def __init__(self, db, plugin_manager, config):
-        SignalingComponent.__init__(self)
+        super(_BasePlayer, self).__init__()
         self.config = config
         self.db = db
         # Init plugins
@@ -63,6 +66,7 @@ class UnknownPlayer(SignalingComponent):
         source = self.db.get_state("current_source")
         if media_pos != -1 and source not in ("queue", "none", 'webradio'):
             self._media_file = self._source.get(media_pos, "pos", source)
+
         # Update state
         state = self.db.get_state("state")
         if state != PLAYER_STOP and source != 'webradio':
@@ -74,25 +78,22 @@ class UnknownPlayer(SignalingComponent):
                 self.stop()
             else:
                 if self._media_file and self._media_file["source"] != "queue":
-                    self.set_position(int(self.db.get_state("current_pos")))
+                    self.seek(int(self.db.get_state("current_pos")))
         if state == PLAYER_PAUSE:
             self.pause()
 
-    def init_video_support(self):
-        self._video_support = True
-        self._fullscreen = self.config.getboolean("general", "fullscreen")
-
-    def set_source(self,source):
+    def set_source(self, source):
         self._source = source
 
-    def play(self):
+    def play_toggle(self):
         if self.get_state() == PLAYER_STOP:
             file = self._media_file or self._source.get_current()
             self._change_file(file)
         elif self.get_state() in (PLAYER_PAUSE, PLAYER_PLAY):
             self.pause()
 
-    def start_play(self):
+
+    def play(self):
         if not self._media_file: return
         if self._media_file["type"] == "webradio":
             if self._media_file["url-type"] == "pls":
@@ -125,8 +126,8 @@ class UnknownPlayer(SignalingComponent):
     def previous(self):
         self._change_file(self._source.previous())
 
-    def go_to(self,nb,type,source = None):
-        self._change_file(self._source.get(nb,type,source))
+    def go_to(self, nb, type = 'id', source = None):
+        self._change_file(self._source.get(nb, type, source))
 
     def get_volume(self):
         return self.__volume[self.__get_vol_type()]
@@ -167,7 +168,7 @@ class UnknownPlayer(SignalingComponent):
     def get_position(self):
         raise NotImplementedError
 
-    def set_position(self, pos, relative = False):
+    def seek(self, pos, relative = False):
         if relative and self.get_state()!="stop"\
                 and self._media_file["type"]!="webradio":
             cur_pos = self.get_position()
@@ -180,7 +181,7 @@ class UnknownPlayer(SignalingComponent):
     def get_state(self):
         raise NotImplementedError
 
-    def set_option(self, name, value):
+    def set_video_option(self, name, value):
         if not self._media_file or self._media_file["type"] != "video" or\
                                    self.get_state() == PLAYER_STOP:
             return
@@ -193,7 +194,15 @@ class UnknownPlayer(SignalingComponent):
             "zoom": self.set_zoom,
             "aspect_ratio": self.set_aspectratio,
             }
-        options[name](value)
+        if name not in ("aspect_ratio",):
+            try: value = int(value)
+            except (ValueError, TypeError):
+                raise PlayerError(_("Value %s not allowed for this option")\
+                        % str(value))
+
+        try: options[name](value)
+        except KeyError:
+            raise PlayerError(_("Video option %s is not known") % name)
 
     def set_zoom(self, zoom):
         raise NotImplementedError
@@ -246,7 +255,9 @@ class UnknownPlayer(SignalingComponent):
             self._media_file["subtitle_idx"] = self._player_get_slang()
 
     def get_playing(self):
-        return self.get_state() != PLAYER_STOP and self._media_file or None
+        if self.is_playing():
+            return self._media_file
+        raise PlayerError(_("No media file is currently playing"))
 
     def is_playing(self):
         return self.get_state() != PLAYER_STOP

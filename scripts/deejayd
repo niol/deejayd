@@ -212,6 +212,16 @@ if __name__ == "__main__":
 
         sys.exit(1)
 
+    ###################
+    # install reactor
+    ##################
+    media_backend = config.get("general", "media_backend")
+    if media_backend == "gstreamer":
+        # Install glib2 reactor
+        from twisted.internet import glib2reactor
+        glib2reactor.install()
+    from twisted.internet import reactor
+
     # start core
     try:
         from deejayd.core import DeejayDaemonCore
@@ -221,16 +231,6 @@ if __name__ == "__main__":
             _("Unable to launch deejayd core, see traceback for more details"),
             exception = ex)
 
-    ###################
-    # install reactor
-    ##################
-    media_backend = config.get("general", "media_backend")
-    if media_backend == "gstreamer":
-        # Install glib2 reactor
-        from twisted.internet import glib2reactor
-        glib2reactor.install()
-
-    from twisted.internet import reactor
     # use twisted loop for kaa
     import kaa
     kaa.main.select_notifier('twisted')

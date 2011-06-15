@@ -212,7 +212,7 @@ public class WebuiLayout extends DeejaydUIWidget
                     rpc.queueMove(ids, row, null);
                 } else if (data[0].equals("playlist") || data[0].equals("panel")) {
                     List<String> ids = DeejaydUtils.getIds(data, "media_id");
-                    rpc.queueLoadIds(ids, row, null);
+                    rpc.queueLoadSongs(ids, row, null);
                 } else if (data[0].equals("audiolib")) {
                     ArrayList<String> paths = new ArrayList<String>();
                     for (int idx=1; idx<data.length; idx++)
@@ -222,7 +222,7 @@ public class WebuiLayout extends DeejaydUIWidget
                     ArrayList<String> ids = new ArrayList<String>();
                     for (int idx=1; idx<data.length; idx++)
                         ids.add(data[idx]);
-                    rpc.queueLoadIds(ids, row, null);
+                    rpc.queueLoadSongs(ids, row, null);
                 } else if (data[0].equals("recpls")) {
                     ArrayList<String> ids = new ArrayList<String>();
                     for (int idx=1; idx<data.length; idx++)

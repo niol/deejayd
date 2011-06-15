@@ -16,9 +16,10 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import random
-from deejayd.sources._base import _BaseAudioLibSource, SourceError
+from deejayd.jsonrpc.interfaces import QueueModule, jsonrpc_module
+from deejayd.sources._base import _BaseAudioLibSource
 
+@jsonrpc_module(QueueModule)
 class QueueSource(_BaseAudioLibSource):
     base_medialist = "__djqueue__"
     name = "queue"

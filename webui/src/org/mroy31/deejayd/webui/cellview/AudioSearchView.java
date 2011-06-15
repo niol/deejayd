@@ -171,7 +171,7 @@ public class AudioSearchView extends Composite {
 
     @UiHandler("loadButton")
     public void loadButtonHandler(ClickEvent event) {
-        ui.rpc.plsModeLoadIds(getSelection(), -1, new AnswerHandler<Boolean>() {
+        ui.rpc.plsModeLoadSongs(getSelection(), -1, new AnswerHandler<Boolean>() {
 
             public void onAnswer(Boolean answer) {
                 ui.update();
@@ -183,7 +183,7 @@ public class AudioSearchView extends Composite {
 
     @UiHandler("loadQueueButton")
     public void loadQueueButtonHandler(ClickEvent event) {
-        ui.rpc.queueLoadIds(getSelection(), -1, new AnswerHandler<Boolean>() {
+        ui.rpc.queueLoadSongs(getSelection(), -1, new AnswerHandler<Boolean>() {
 
             public void onAnswer(Boolean answer) {
                 ui.update();

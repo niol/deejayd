@@ -17,14 +17,15 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -*- coding: utf-8 -*-
 
-import os, sys, threading, traceback, base64, locale, hashlib
+import os, sys, threading, traceback, base64, hashlib
 from twisted.internet import threads, reactor
 
-from deejayd.interfaces import DeejaydError
-from deejayd.component import SignalingComponent
+from deejayd import DeejaydError
+from deejayd.component import SignalingComponent, JSONRpcComponent
+from deejayd.jsonrpc.interfaces import LibraryModule, jsonrpc_module
 from deejayd.mediadb import formats
 from deejayd.utils import quote_uri, str_decode
-from deejayd import database, mediafilters
+from deejayd import mediafilters
 from deejayd.ui import log
 
 class NotFoundException(DeejaydError):pass
@@ -47,13 +48,13 @@ def inotify_action(func):
     return inotify_action_func
 
 
-class _Library(SignalingComponent):
+class _Library(SignalingComponent, JSONRpcComponent):
     common_attr = ("filename","uri","type","title","length")
     persistent_attr = ("rating","skipcount","playcount","lastplayed")
     type = None
 
     def __init__(self, db_connection, player, path, fs_charset="utf-8"):
-        SignalingComponent.__init__(self)
+        super(_Library, self).__init__()
 
         # init Parms
         self.media_attr = []
@@ -104,34 +105,39 @@ class _Library(SignalingComponent):
                 attrs = {"type": "update", "id": file_id})
         self.db_con.connection.commit()
 
-    def get_dir_content(self, dir):
-        dir = os.path.join(self._path, dir).rstrip("/")
-        files_rsp = self.db_con.get_dir_content(dir,\
+    def get_dir_content(self, dir = ""):
+        abs_dir = os.path.join(self._path, dir).rstrip("/")
+        files_rsp = self.db_con.get_dir_content(abs_dir,\
             infos = self.media_attr, type = self.type)
-        dirs_rsp = self.db_con.get_dir_list(dir, self.type)
-        if len(files_rsp) == 0 and len(dirs_rsp) == 0 and dir != self._path:
+        dirs_rsp = self.db_con.get_dir_list(abs_dir, self.type)
+        if len(files_rsp) == 0 and len(dirs_rsp) == 0 and abs_dir != self._path:
             # nothing found for this directory
-            raise NotFoundException
+            raise NotFoundException(_("Unable to find '%s' folder in library")%\
+                                    dir)
 
         dirs = []
         for dir_id, dir_path in dirs_rsp:
             root, d = os.path.split(dir_path.rstrip("/"))
-            if d != "" and root == self.fs_charset2unicode(dir):
+            if d != "" and root == self.fs_charset2unicode(abs_dir):
                 dirs.append(d)
-        return {'files': files_rsp, 'dirs': dirs}
+        return {'files': files_rsp, 'directories': dirs, 'root': dir}
 
     def get_dir_files(self,dir):
         dir = os.path.join(self._path, dir).rstrip("/")
         files_rsp = self.db_con.get_dir_content(dir,\
             infos = self.media_attr, type = self.type)
-        if len(files_rsp) == 0 and dir != self._path: raise NotFoundException
+        if len(files_rsp) == 0 and dir != self._path:
+            raise NotFoundException(_("Unable to find '%s' folder in library")%\
+                                    dir)
         return files_rsp
 
     def get_all_files(self,dir):
         dir = os.path.join(self._path, dir).rstrip("/")
         files_rsp = self.db_con.get_alldir_files(dir,\
             infos = self.media_attr, type = self.type)
-        if len(files_rsp) == 0 and dir != self._path: raise NotFoundException
+        if len(files_rsp) == 0 and dir != self._path:
+            raise NotFoundException(_("Unable to find '%s' folder in library")%\
+                                    dir)
         return files_rsp
 
     def get_file(self,file):
@@ -141,7 +147,8 @@ class _Library(SignalingComponent):
             infos = self.media_attr, type = self.type)
         if len(files_rsp) == 0:
             # this file is not found
-            raise NotFoundException
+            raise NotFoundException(_("Unable to find '%s' file in library")%\
+                                    dir)
         return files_rsp
 
     def get_file_withids(self,file_ids):
@@ -151,7 +158,7 @@ class _Library(SignalingComponent):
             raise NotFoundException
         return files_rsp
 
-    def search(self, filter, ords = [], limit = None):
+    def search_with_filter(self, filter, ords = [], limit = None):
         ft = mediafilters.And()
         ft.combine(mediafilters.Equals("type", self.__class__.search_type))
         if filter is not None:
@@ -159,6 +166,20 @@ class _Library(SignalingComponent):
 
         return self.db_con.search(ft, infos = self.media_attr, orders=ords,\
                 limit = limit)
+
+    def search(self, pattern, type = 'all'):
+        if type not in ('all','title','genre','filename','artist','album'):
+            raise DeejaydError(_('Type %s is not supported') % (type,))
+        if type == "all":
+            filter = mediafilters.Or()
+            for tag in ('title','genre','artist','album'):
+                filter.combine(mediafilters.Contains(tag, pattern))
+        else:
+            filter = mediafilters.Contains(type, pattern)
+        return self.search_with_filter(filter, mediafilters.DEFAULT_AUDIO_SORT)
+
+    def tag_list(self, tag, filter = None):
+        return [x[0] for x in self.db_con.list_tags(tag, filter)]
 
     def get_root_path(self):
         return self._path
@@ -218,9 +239,10 @@ class _Library(SignalingComponent):
 
                 self.defered.unpause()
             self.dispatch_signame(self.update_signal_name)
-            return self._update_id
 
-        return 0
+            return [(self.type+"_updating_db", self._update_id)]
+
+        raise DeejaydError(_("A library update is already running"))
 
     def is_in_root(self, path, root=None):
         """Checks if a directory is physically in the supplied root (the library root by default)."""
@@ -535,6 +557,7 @@ class _Library(SignalingComponent):
             path = os.path.dirname(path)
 
 
+@jsonrpc_module(LibraryModule)
 class AudioLibrary(_Library):
     type = "audio"
     search_type = "song"
@@ -727,6 +750,7 @@ class AudioLibrary(_Library):
     ###########################################################
 
 
+@jsonrpc_module(LibraryModule)
 class VideoLibrary(_Library):
     type = "video"
     search_type = "video"

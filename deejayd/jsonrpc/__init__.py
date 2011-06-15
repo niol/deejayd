@@ -16,26 +16,25 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.jsonrpc.interfaces import PlaylistSourceModule, jsonrpc_module
-from deejayd.sources._base import _BaseAudioLibSource
+from deejayd import DeejaydError
 
-@jsonrpc_module(PlaylistSourceModule)
-class PlaylistSource(_BaseAudioLibSource):
-    SUBSCRIPTIONS = {
-            "mediadb.mupdate": "cb_library_changes",
-            }
-    base_medialist = "__djcurrent__"
-    name = "playlist"
-    source_signal = 'player.plupdate'
+# Deejayd protocol version number
+DEEJAYD_PROTOCOL_VERSION = 4
 
-    def shuffle(self):
-        self._media_list.shuffle(self._current)
-        if self._current: self._current["pos"] = 0
-        self.dispatch_signame(self.__class__.source_signal)
+# from specification
+# http://groups.google.com/group/json-rpc/web/json-rpc-1-2-proposal
+NOT_WELLFORMED_ERROR  = -32700
+INVALID_JSONRPC       = -32600
+METHOD_NOT_FOUND      = -32601
+INVALID_METHOD_PARAMS = -32602
+INTERNAL_ERROR        = -32603
+METHOD_NOT_CALLABLE   = -32604
 
-    def save(self, playlist_name):
-        id = self.db.set_static_medialist(playlist_name, self._media_list.get())
-        self.dispatch_signame('playlist.listupdate')
-        return {"playlist_id": id}
+
+class Fault(DeejaydError):
+    """Indicates an JSON-RPC fault package."""
+    def __init__(self, code, message):
+        super(Fault, self).__init__(message)
+        self.code = code
 
 # vim: ts=4 sw=4 expandtab
