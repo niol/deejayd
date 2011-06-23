@@ -194,12 +194,16 @@ public class Rpc {
         send("player.seek", args, handler);
     }
 
+    public void getAvailableVideoOptions(AnswerHandler<HashMap<String, String>> handler) {
+        send("player.getAvailableVideoOptions", new JSONArray(), new DictCallback(handler));
+    }
+
     public void setPlayerOption(String optionName, String optionValue,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(optionName));
         args.set(1, new JSONString(optionValue));
-        send("player.setPlayerOption", args, handler);
+        send("player.setVideoOption", args, handler);
     }
 
     public void goTo(int id, AnswerHandler<Boolean> handler) {

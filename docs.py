@@ -42,7 +42,7 @@ common_request = [
         {"prefix": "introspection.", "desc": "Introspection Commands",\
                        "object": interfaces.IntrospectionModule},
         {"prefix": "player.", "desc": "Player Commands",\
-                       "object": interfaces.VideoPlayerModule},
+                       "object": interfaces.PlayerModule},
         {"prefix": "audiolib.", "desc": "Audio Library Commands",\
                        "object": interfaces.LibraryModule},
         {"prefix": "videolib.", "desc": "Video Library Commands",\

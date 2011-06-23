@@ -23,7 +23,7 @@
 import ctypes, os
 import locale
 import _xinelib as xinelib
-import x11
+from pytyx11 import x11
 
 
 class XineError(Exception): pass

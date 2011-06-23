@@ -20,7 +20,7 @@ from deejayd import DeejaydError
 from deejayd.ui import log
 
 
-AVAILABLE_BACKENDS = ('xine', 'gstreamer', )
+AVAILABLE_BACKENDS = ('xine', 'gstreamer',)
 
 
 class PlayerError(DeejaydError):pass

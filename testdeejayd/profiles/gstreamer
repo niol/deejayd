@@ -1,9 +1,11 @@
 [general]
 log = info
-activated_modes = playlist,panel,webradio
-fullscreen = no
+activated_modes = playlist,panel,webradio,video
 replaygain = yes
 media_backend = gstreamer
+
+[video]
+fullscreen = no
 
 [net]
 enabled = yes
@@ -26,4 +28,5 @@ filesystem_charset = utf-8
 panel_tags = genre,various_artist,album
 
 [gstreamer]
-audio_output = fake
+audio_output = fakesink
+video_output = fakesink

@@ -21,7 +21,11 @@ import ctypes
 
 
 try:
-    _libX11 = ctypes.cdll.LoadLibrary('libX11.so.6')
+    if sys.platform == 'linux2':
+        _libX11 = ctypes.cdll.LoadLibrary('libX11.so.6')
+    elif sys.platform == 'darwin':
+        # FIXME: should find a means to configure path
+        _libX11 = ctypes.cdll.LoadLibrary('/opt/local/lib/libX11.6.dylib')
 except (ImportError, OSError), e:
     raise ImportError, e
 

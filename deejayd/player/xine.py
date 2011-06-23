@@ -19,17 +19,25 @@
 from twisted.internet import reactor
 from pytyxi import xine
 
-from deejayd.jsonrpc.interfaces import jsonrpc_module, VideoPlayerModule
+from deejayd.jsonrpc.interfaces import jsonrpc_module, PlayerModule
 from deejayd.player import PlayerError
 from deejayd.player._base import _BasePlayer, PLAYER_PAUSE,\
                                  PLAYER_PLAY, PLAYER_STOP
 from deejayd.ui import log
 
 
-@jsonrpc_module(VideoPlayerModule)
+@jsonrpc_module(PlayerModule)
 class XinePlayer(_BasePlayer):
     NAME = "xine"
-    VIDEO_SUPPORT = True
+    supported_options = (\
+            "audio_lang",
+            "sub_lang",
+            "av_offset",
+            "sub_offset",
+            "zoom",
+            "aspect_ratio"\
+        )
+    default_channels = [{"lang": "none", "ix": -2}, {"lang": "auto", "ix": -1}]
 
     supported_extensions = None
     xine_plugins = None
@@ -45,9 +53,7 @@ class XinePlayer(_BasePlayer):
         super(XinePlayer, self).__init__(db, plugin_manager, config)
         self.__xine_options = {
             "video": self.config.get("xine", "video_output"),
-            "display" : self.config.get("xine", "video_display"),
-            "osd_support" : self.config.getboolean("xine", "osd_support"),
-            "osd_font_size" : self.config.getint("xine", "osd_font_size"),
+            "audio": self.config.get("xine", "audio_output"),
             "software_mixer": self.config.getboolean("xine", "software_mixer"),
             }
         self.__video_aspects = {
@@ -55,9 +61,7 @@ class XinePlayer(_BasePlayer):
                 "1:1": xine.Stream.XINE_VO_ASPECT_SQUARE,
                 "4:3": xine.Stream.XINE_VO_ASPECT_4_3,
                 "16:9": xine.Stream.XINE_VO_ASPECT_ANAMORPHIC,
-                "2.11:1": xine.Stream.XINE_VO_ASPECT_DVB,
             }
-        self.__default_aspect_ratio = "auto"
 
         # init vars
         self.__window = None
@@ -74,39 +78,19 @@ class XinePlayer(_BasePlayer):
         if "chapter" in self._media_file.keys() and \
                     self._media_file["chapter"] != -1:
             uri += ".%d" % self._media_file["chapter"]
-        # load subtitle
-        if "external_subtitle" in self._media_file and \
-                self._media_file["external_subtitle"].startswith("file://"):
+        # load external subtitle
+        if self._has_external_subtitle():
             # external subtitle
             uri += "#subtitle:%s" \
                     % self._media_file["external_subtitle"].encode("utf-8")
-            self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
-                                            {"lang": "auto", "ix": -1},\
-                                            {"lang": "external", "ix":0}]
-        elif "subtitle_channels" in self._media_file.keys() and\
-                int(self._media_file["subtitle_channels"]) > 0:
-            self._media_file["subtitle"] = [{"lang": "none", "ix": -2},\
-                    {"lang": "auto", "ix": -1}]
-            for i in range(int(self._media_file["subtitle_channels"])):
-                self._media_file["subtitle"].append(\
-                    {"lang": _("Sub channel %d") % (i+1,), "ix": i})
-        # audio channels
-        if "audio_channels" in self._media_file.keys() and \
-                int(self._media_file["audio_channels"]) > 1:
-            audio_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
-            for i in range(int(self._media_file["audio_channels"])):
-                audio_channels.append(\
-                        {"lang": _("Audio channel %d") % (i+1,), "ix": i})
-            self._media_file["audio"] = audio_channels
 
         needs_video = self._media_file["type"] == "video"
+        stream_should_change = True
         if self.__stream:
             stream_should_change = (needs_video and\
                                     not self.__stream.has_video())\
                                 or (not needs_video and
                                     self.__stream.has_video())
-        else:
-            stream_should_change = True
         if stream_should_change:
             self._create_stream(needs_video)
 
@@ -141,26 +125,7 @@ class XinePlayer(_BasePlayer):
 
         if self.__window:
             self.__window.show(needs_video)
-
-        # init video information
-        if needs_video:
-            self._media_file["av_offset"] = 0
-            self._media_file["zoom"] = 100
-            if "audio" in self._media_file:
-                self._media_file["audio_idx"] = self.__stream.get_param(\
-                        xine.Stream.XINE_PARAM_AUDIO_CHANNEL_LOGICAL)
-            else:
-                self._player_set_alang(-1) # auto audio channel
-            if "subtitle" in self._media_file:
-                self._media_file["sub_offset"] = 0
-                self._media_file["subtitle_idx"] = self.__stream.get_param(\
-                        xine.Stream.XINE_PARAM_SPU_CHANNEL)
-            else:
-                self._player_set_slang(-1) # auto subtitle channel
-                try: del self._media_file["sub_offset"]
-                except KeyError: pass
-            # set video aspect ration to default value
-            self.set_aspectratio(self.__default_aspect_ratio)
+        self._init_video_information()
 
     def _change_file(self, new_file, gapless = False):
         sig = self.get_state() == PLAYER_STOP and True or False
@@ -193,12 +158,6 @@ class XinePlayer(_BasePlayer):
         else: return
         self.dispatch_signame('player.status')
 
-    def stop(self):
-        if self.get_state() != PLAYER_STOP:
-            self._source.queue_reset()
-            self._change_file(None)
-            self.dispatch_signame('player.status')
-
     def set_zoom(self, zoom):
         if zoom > xine.Stream.XINE_VO_ZOOM_MAX\
         or zoom < xine.Stream.XINE_VO_ZOOM_MIN:
@@ -206,29 +165,18 @@ class XinePlayer(_BasePlayer):
         self.__stream.set_param(xine.Stream.XINE_PARAM_VO_ZOOM_X, zoom)
         self.__stream.set_param(xine.Stream.XINE_PARAM_VO_ZOOM_Y, zoom)
         self._media_file["zoom"] = zoom
-        self._osd_set(_("Zoom: %d percent") % zoom)
+        self.osd(_("Zoom: %d percent") % zoom)
 
-    def set_aspectratio(self, aspect_ratio):
-        try: asp = self.__video_aspects[aspect_ratio]
-        except KeyError:
-            raise PlayerError(_("Video aspect ration %s is not known.")\
-                    % aspect_ratio)
-        self.__default_aspect_ratio = aspect_ratio
-        self._media_file["aspect_ratio"] = self.__default_aspect_ratio
+    def _player_set_aspectratio(self, aspect_ratio):
+        asp = self.__video_aspects[aspect_ratio]
         if self.__stream.has_video():
             self.__stream.set_param(xine.Stream.XINE_PARAM_VO_ASPECT_RATIO, asp)
 
-    def set_avoffset(self, offset):
+    def _player_set_avoffset(self, offset):
         self.__stream.set_param(xine.Stream.XINE_PARAM_AV_OFFSET, offset * 90)
-        self._media_file["av_offset"] = offset
-        self._osd_set(_("Audio/Video offset: %d ms") % offset)
 
-    def set_suboffset(self, offset):
-        if "subtitle" in self._media_file.keys():
-            self.__stream.set_param(xine.Stream.XINE_PARAM_SPU_OFFSET,
-                                    offset * 90)
-            self._media_file["sub_offset"] = offset
-            self._osd_set(_("Subtitle offset: %d ms") % offset)
+    def _player_set_suboffset(self, offset):
+        self.__stream.set_param(xine.Stream.XINE_PARAM_SPU_OFFSET, offset * 90)
 
     def _player_set_alang(self,lang_idx):
         self.__stream.set_param(xine.Stream.XINE_PARAM_AUDIO_CHANNEL_LOGICAL,
@@ -245,11 +193,7 @@ class XinePlayer(_BasePlayer):
         return self.__stream.get_param(xine.Stream.XINE_PARAM_SPU_CHANNEL)
 
     def _set_volume(self, vol, sig = True):
-        if self.__stream:
-            self.__stream.set_volume(vol)
-        if sig:
-            self._osd_set("Volume: %d" % self.get_volume())
-            self.dispatch_signame('player.status')
+        if self.__stream: self.__stream.set_volume(vol)
 
     def get_position(self):
         if not self.__stream: return 0
@@ -264,7 +208,6 @@ class XinePlayer(_BasePlayer):
                                     xine.Stream.XINE_SPEED_PAUSE)
         elif state == PLAYER_PLAY:
             self.__stream.play(0, pos)
-        self.dispatch_signame('player.status')
 
     def get_state(self):
         if not self.__stream: return PLAYER_STOP
@@ -297,20 +240,19 @@ class XinePlayer(_BasePlayer):
             self._destroy_stream()
 
         # open audio driver
-        driver_name = self.config.get("xine", "audio_output")
+        driver_name = self.__xine_options["audio"]
         try:
             audio_port = xine.AudioDriver(self.__xine, driver_name)
         except xine.XineError:
             raise PlayerError(_("Unable to open audio driver"))
 
         # open video driver
-        if has_video and self._video_support\
-                 and self.__xine_options["video"] != "none":
+        if has_video and self.__xine_options["video"] != "none":
             try:
                 video_port = xine.VideoDriver(self.__xine,
-                                              self.__xine_options["video"],
-                                              self.__xine_options["display"],
-                                              self._fullscreen)
+                                          self.__xine_options["video"],
+                                          self._video_options["display"],
+                                          self._video_options["fullscreen"])
             except xine.XineError:
                 msg = _("Unable to open video driver")
                 log.err(msg)
@@ -324,9 +266,8 @@ class XinePlayer(_BasePlayer):
         self.__stream = self.__xine.stream_new(audio_port, video_port)
         self.__stream.set_software_mixer(self.__xine_options["software_mixer"])
 
-        if video_port and self.__xine_options["osd_support"]:
-            self.__osd = self.__stream.osd_new(\
-                                       self.__xine_options["osd_font_size"])
+        if video_port and self._video_options["osd"]:
+            self.__osd = self.__stream.osd_new(self._video_options["osd_size"])
 
         # add event listener
         self.__stream.add_event_callback(self._event_callback)

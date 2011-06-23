@@ -100,17 +100,6 @@ activated_modes = playlist, panel, webradio, video
       </varlistentry>
 
       <varlistentry>
-        <term>fullscreen</term>
-        <listitem>
-          <para>Fullscreen video. This is mainly a debugging configuration
-          value and you want this to be set to <parameter>yes</parameter> if
-          you use the video mode. Set this to <parameter>no</parameter> if you
-          want to be able to control deejayd using some graphical client on
-          the same display.</para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>replaygain</term>
         <listitem>
           <para>Replaygain support, <parameter>yes</parameter> or
@@ -400,6 +389,54 @@ panel_tags = genre,artist,album
   </refsect1>
 
   <refsect1>
+    <title>video section</title>
+
+    <para>This section defines the <parameter>video</parameter> section
+        configuration values. Those options are specific to the video media
+        playback in deejayd.
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term>fullscreen</term>
+        <listitem>
+          <para>Fullscreen video. This is mainly a debugging configuration
+          value and you want this to be set to <parameter>yes</parameter> if
+          you use the video mode. Set this to <parameter>no</parameter> if you
+          want to be able to control deejayd using some graphical client on
+          the same display.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>display</term>
+        <listitem>
+          <para>The X display to play the video to.
+          Usually <parameter>:0.0</parameter>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>osd_support</term>
+        <listitem>
+          <para>On-screen display enabled <parameter>yes</parameter> or
+          <parameter>no</parameter>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>osd_font_size</term>
+        <listitem>
+          <para>The On-screen display font size, an integer.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
     <title>gstreamer section</title>
 
     <para>This section defines the <parameter>gstreamer</parameter> section
@@ -411,21 +448,30 @@ panel_tags = genre,artist,album
       <varlistentry>
         <term>audio_output</term>
         <listitem>
-          <para>The output device to use. This is usually one among
-            <parameter>auto</parameter>,
-            <parameter>alsa</parameter>,
-            <parameter>oss</parameter>,
-            <parameter>esd</parameter>, etc.
+          <para>The audio output sink to use in gstreamer. This is usually
+                one among
+            <parameter>autoaudiosink (default)</parameter>,
+            <parameter>alsasink</parameter>,
+            <parameter>pulsesink</parameter>, etc.
+          </para>
+          <para>you can also set option for this sink. For example,
+              if you want to use alsa driver and set sound card device :
+              alsasink device=mydevice
           </para>
         </listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>alsa_card</term>
+        <term>video_output</term>
         <listitem>
-          <para>Optionnaly, the alsa card to output to,
-          e.g. <parameter>hw:2</parameter>.
-          This is useful if you have more than one soundcard.</para>
+          <para>The video output sink to use in gstreamer. This is usually
+                one among
+            <parameter>autovideosink (default)</parameter>,
+            <parameter>ximagesink</parameter>,
+            <parameter>xvimagesink</parameter>, etc.
+          </para>
+          <para>you can also set option for this sink.
+          </para>
         </listitem>
       </varlistentry>
 
@@ -477,31 +523,6 @@ panel_tags = genre,artist,album
             <parameter>xv</parameter>,
             <parameter>x</parameter>, etc.
           </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>video_display</term>
-        <listitem>
-          <para>The X display to play the video to.
-          Usually <parameter>:0.0</parameter>.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>osd_support</term>
-        <listitem>
-          <para>On-screen display enabled <parameter>yes</parameter> or
-          <parameter>no</parameter>.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>osd_font_size</term>
-        <listitem>
-          <para>The On-screen display font size, an integer.</para>
         </listitem>
       </varlistentry>
 

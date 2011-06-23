@@ -405,8 +405,11 @@ class PlayerModule(object):
         """Return informations on the current song/webradio/video. Raise an error if no media is playing"""
         answer = "dict"
 
-
-class VideoPlayerModule(PlayerModule):
+    class getAvailableVideoOptions:
+        """Get video options supported by the active player. the answer is a dict of option_name=is_supported where
+    * option_name is in this list : "audio_lang", "sub_lang", "av_offset", "sub_offset", "zoom", "aspect_ratio"
+    * is_supported is a boolean equals to True if the option is supported by the player"""
+        answer = "dict"
 
     class setVideoOption:
         """Set player video option for the current media. Possible options are :
@@ -759,7 +762,7 @@ class RecordedPlaylistModule(object):
 
 JSONRPC_MODULES = {
     "core": CoreModule,
-    "player": VideoPlayerModule,
+    "player": PlayerModule,
     "playlist": PlaylistSourceModule,
     "panel": PanelSourceModule,
     "webradio": WebradioSourceModule,

@@ -70,12 +70,6 @@ class SourceFactory(SignalingComponent):
         else:
             log.info(_("Webradio support disabled"))
 
-        # init video support in player
-        if "video" in activated_sources or "dvd" in activated_sources:
-            if not player.VIDEO_SUPPORT:
-                msg = _("player '%s' don't support video playback, either disable video and dvd mode or change your player to have video support.")
-                log.err(msg % player.name, fatal = True)
-
         # Video
         if "video" in activated_sources:
             from deejayd.sources import video

@@ -21,7 +21,11 @@ import ctypes
 
 
 try:
-    _libXext = ctypes.cdll.LoadLibrary('libXext.so.6')
+    if sys.platform == 'linux2':
+        _libXext = ctypes.cdll.LoadLibrary('libXext.so.6')
+    elif sys.platform == 'darwin':
+        # FIXME: should find a means to configure path
+        _libXext = ctypes.cdll.LoadLibrary('/opt/local/lib/libXext.6.dylib')
 except (ImportError, OSError), e:
     raise ImportError, e
 

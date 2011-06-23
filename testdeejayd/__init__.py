@@ -165,7 +165,7 @@ class TestCaseWithServer(TestCaseWithAudioAndVideoData):
         self.webServerPort = config.getint('webui', 'port')
 
         # update video_support var
-        self.video_support = config.get("general","media_backend")!="gstreamer"
+        self.video_support = True
 
     def tearDown(self):
         self.testserver.stop()

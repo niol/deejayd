@@ -32,7 +32,16 @@ PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
 class _BasePlayer(SignalingComponent, JSONRpcComponent):
-    VIDEO_SUPPORT = False
+    options = (\
+            "audio_lang",
+            "sub_lang",
+            "av_offset",
+            "sub_offset",
+            "zoom",
+            "aspect_ratio"\
+        )
+    supported_options = []
+    default_channels = []
 
     def __init__(self, db, plugin_manager, config):
         super(_BasePlayer, self).__init__()
@@ -47,11 +56,20 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
                 log.err(_("Unable to init %s plugin: %s")%(plugin.NAME, err))
 
         # Initialise var
-        self._video_support = False
         self._source = None
         self._media_file = None
         self._replaygain = config.getboolean("general","replaygain")
         self.__volume = {"song": 100, "video": 100, "webradio": 100}
+
+        # get video options
+        self._video_options = {
+                "display": self.config.get("video", "display"),
+                "fullscreen": self.config.getboolean("video", "fullscreen"),
+                "osd": self.config.getboolean("video", "osd_support"),
+                "osd_size": self.config.getint("video", "osd_font_size"),
+            }
+        self._aspect_ratios = ("auto", "1:1", "4:3", "16:9")
+        self._default_aspect_ratio = "auto"
 
     def load_state(self):
         # Restore volume
@@ -92,7 +110,6 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
         elif self.get_state() in (PLAYER_PAUSE, PLAYER_PLAY):
             self.pause()
 
-
     def play(self):
         if not self._media_file: return
         if self._media_file["type"] == "webradio":
@@ -115,7 +132,10 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
         raise NotImplementedError
 
     def stop(self):
-        raise NotImplementedError
+        if self.get_state() != PLAYER_STOP:
+            self._source.queue_reset()
+            self._change_file(None)
+            self.dispatch_signame('player.status')
 
     def next(self):
         if self.get_state() != PLAYER_STOP:
@@ -148,6 +168,9 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
 
         # specific player implementation
         self._set_volume(vol, sig)
+        if sig:
+            self.dispatch_signame('player.status')
+            self.osd("Volume: %d" % self.get_volume())
 
     def _set_volume(self, v, sig = True):
         raise NotImplementedError
@@ -174,6 +197,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
             cur_pos = self.get_position()
             pos = int(pos) + cur_pos
         self._set_position(pos)
+        self.dispatch_signame('player.status')
 
     def _set_position(self, pos):
         raise NotImplementedError
@@ -181,11 +205,22 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
     def get_state(self):
         raise NotImplementedError
 
-    def set_video_option(self, name, value):
-        if not self._media_file or self._media_file["type"] != "video" or\
-                                   self.get_state() == PLAYER_STOP:
-            return
+    def get_available_video_options(self):
+        ans = {}
+        for opt in self.options:
+            ans[opt] = opt in self.supported_options
+        return ans
 
+    def set_video_option(self, name, value):
+        if name not in self.options:
+            raise PlayerError(_("Video option %s is not known") % name)
+        elif name not in self.supported_options:
+            raise PlayerError(_(\
+                        "Video option %s is not supported by %s player")\
+                               % (name, self.NAME))
+
+        if not self._current_is_video():
+            return
         options = {
             "audio_lang": self.set_alang,
             "sub_lang": self.set_slang,
@@ -199,22 +234,30 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
             except (ValueError, TypeError):
                 raise PlayerError(_("Value %s not allowed for this option")\
                         % str(value))
-
-        try: options[name](value)
-        except KeyError:
-            raise PlayerError(_("Video option %s is not known") % name)
+        options[name](value)
 
     def set_zoom(self, zoom):
         raise NotImplementedError
 
+    def set_aspectratio(self, aspect):
+        if aspect not in self._aspect_ratios:
+            raise PlayerError(_("Video aspect ration %s is not known.")%aspect)
+        self._default_aspect_ratio = aspect
+        if self._current_is_video():
+            self._player_set_aspectratio(aspect)
+            self._media_file["aspect_ratio"] = self._default_aspect_ratio
+
     def set_avoffset(self, offset):
-        raise NotImplementedError
+        if self._current_is_video():
+            self._player_set_avoffset(offset)
+            self._media_file["av_offset"] = offset
+            self.osd(_("Audio/Video offset: %d ms") % offset)
 
     def set_suboffset(self, offset):
-        raise NotImplementedError
-
-    def set_aspectratio(self, aspect):
-        raise NotImplementedError
+        if "subtitle" in self._media_file.keys():
+            self._player_set_suboffset(offset)
+            self._media_file["sub_offset"] = offset
+            self.osd(_("Subtitle offset: %d ms") % offset)
 
     def set_alang(self,lang_idx):
         try: audio_tracks = self._media_file["audio"]
@@ -253,6 +296,13 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
             if not found:
                 raise PlayerError(_("Sub channel %d not found") % lang_idx)
             self._media_file["subtitle_idx"] = self._player_get_slang()
+
+    def osd(self, text):
+        if self._video_options["osd"] and self._current_is_video():
+            self._osd_set(text)
+
+    def _osd_set(self, text):
+        raise NotImplementedError
 
     def get_playing(self):
         if self.is_playing():
@@ -300,5 +350,57 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
         # stop player if necessary
         if self.get_state() != PLAYER_STOP:
             self.stop()
+
+    def _current_is_video(self):
+        return self._media_file is not None and self._media_file['type'] == 'video'
+
+    def _has_external_subtitle(self):
+        return self._media_file is not None \
+            and "external_subtitle" in self._media_file \
+            and self._media_file["external_subtitle"].startswith("file://")
+
+    def _init_video_information(self):
+        if self._current_is_video():
+            # subtitles
+            if self._has_external_subtitle():
+                self._media_file["subtitle"] = list(self.default_channels) + \
+                                               [{"lang": "external", "ix":0}]
+            elif "subtitle_channels" in self._media_file.keys() and\
+                    int(self._media_file["subtitle_channels"]) > 0:
+                self._media_file["subtitle"] = list(self.default_channels)
+                for i in range(int(self._media_file["subtitle_channels"])):
+                    self._media_file["subtitle"].append(\
+                        {"lang": _("Sub channel %d") % (i+1,), "ix": i})
+
+            # audio channels
+            if "audio_channels" in self._media_file.keys() and \
+                    int(self._media_file["audio_channels"]) > 1:
+                audio_channels = list(self.default_channels)
+                for i in range(int(self._media_file["audio_channels"])):
+                    audio_channels.append(\
+                            {"lang": _("Audio channel %d") % (i+1,), "ix": i})
+                self._media_file["audio"] = audio_channels
+
+            self._media_file["av_offset"] = 0
+            self._media_file["zoom"] = 100
+
+            if "audio" in self._media_file:
+                self._media_file["audio_idx"] = self._player_get_alang()
+            else:
+                self._player_set_alang(-1) # auto audio channel
+            if "subtitle" in self._media_file:
+                self._media_file["sub_offset"] = 0
+                self._media_file["subtitle_idx"] = self._player_get_slang()
+            else:
+                self._player_set_slang(-1) # auto subtitle channel
+                try: del self._media_file["sub_offset"]
+                except KeyError: pass
+
+            # set video aspect ration to default value
+            try:
+                self.set_video_option("aspect_ratio",
+                                      self._default_aspect_ratio)
+            except PlayerError: # not supported by the player
+                pass
 
 # vim: ts=4 sw=4 expandtab

@@ -22,6 +22,9 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import java.util.HashMap;
+
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.webui.widgets.ValueSpinner;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -39,6 +42,11 @@ import com.google.gwt.user.client.ui.Widget;
 public class VideoOptions extends PopupPanel
         implements ValueChangeHandler<Long>, ChangeHandler{
     private WebuiLayout ui;
+    private boolean has_avoffset = false;
+    private boolean has_suboffset = false;
+    private boolean has_zoom = false;
+    private boolean has_aspectratio = false;
+
     private FlexTable panel = new FlexTable();
     private ValueSpinner avOffset;
     private ValueSpinner zoom;
@@ -48,7 +56,7 @@ public class VideoOptions extends PopupPanel
     private ListBox audioChannel = new ListBox();
     private int subChannelRow = -1;
     private ListBox subChannel = new ListBox();
-    private ValueSpinner subOffset;
+    private ValueSpinner subOffset = null;
 
     private class ValueChangeCommand extends Timer {
         private Widget source;
@@ -83,47 +91,68 @@ public class VideoOptions extends PopupPanel
         this.ui = webui;
         setWidget(panel);
 
-        // Zoom
-        zoom = new ValueSpinner(ui.resources, 0, -85, 400, 5, 5, true);
-        panel.setText(0, 0, ui.i18nConstants.zoom());
-        panel.setWidget(0, 1, zoom);
-        zoom.addValueChangeHandler(this);
-
-        // aspect ratio
-        aspectRatio.addItem("Auto", "auto");
-        aspectRatio.addItem("1:1");
-        aspectRatio.addItem("16:9");
-        aspectRatio.addItem("4:3");
-        aspectRatio.addItem("DVB (2.11:1)", "2.11:1");
-        panel.setText(1, 0, ui.i18nConstants.aspectRatio());
-        panel.setWidget(1, 1, aspectRatio);
-        aspectRatio.addChangeHandler(this);
-
-        // Audio/Video Offset
-        avOffset = new ValueSpinner(ui.resources, 0, 0, 0, 100, 100, false);
-        panel.setText(2, 0, ui.i18nConstants.avOffset());
-        panel.setWidget(2, 1, avOffset);
-        avOffset.addValueChangeHandler(this);
-
-        // audio channels
         audioChannel.addChangeHandler(this);
-
-        // subtitle channels
-        subOffset = new ValueSpinner(ui.resources, 0, 0, 0, 100, 100, false);
-        subOffset.addValueChangeHandler(this);
         subChannel.addChangeHandler(this);
+
+        final VideoOptions instance = this;
+        ui.rpc.getAvailableVideoOptions(new AnswerHandler<HashMap<String,String>>() {
+
+            public void onAnswer(HashMap<String, String> answer) {
+                int idx = 0;
+
+                has_zoom = Boolean.valueOf(answer.get("zoom"));
+                if (has_zoom) { // zoom
+                    zoom = new ValueSpinner(ui.resources, 0, -85, 400, 5, 5, true);
+                    panel.setText(idx, 0, ui.i18nConstants.zoom());
+                    panel.setWidget(idx, 1, zoom);
+                    zoom.addValueChangeHandler(instance);
+                    idx ++;
+                }
+
+                has_aspectratio = Boolean.valueOf(answer.get("aspect_ration"));
+                if (has_aspectratio) { // aspect ratio
+                    aspectRatio.addItem("Auto", "auto");
+                    aspectRatio.addItem("1:1");
+                    aspectRatio.addItem("16:9");
+                    aspectRatio.addItem("4:3");
+                    aspectRatio.addItem("DVB (2.11:1)", "2.11:1");
+                    panel.setText(idx, 0, ui.i18nConstants.aspectRatio());
+                    panel.setWidget(idx, 1, aspectRatio);
+                    aspectRatio.addChangeHandler(instance);
+                    idx ++;
+                }
+
+                has_avoffset = Boolean.valueOf(answer.get("av_offset"));
+                if (has_avoffset) { // Audio/Video Offset
+                    avOffset = new ValueSpinner(ui.resources, 0, 0, 0, 100, 100, false);
+                    panel.setText(idx, 0, ui.i18nConstants.avOffset());
+                    panel.setWidget(idx, 1, avOffset);
+                    avOffset.addValueChangeHandler(instance);
+                    idx ++;
+                }
+
+                has_suboffset = Boolean.valueOf(answer.get("sub_offset"));
+                if (has_suboffset) { // subtitles Offset
+                    subOffset = new ValueSpinner(ui.resources, 0, 0, 0, 100, 100, false);
+                    subOffset.addValueChangeHandler(instance);
+                }
+            }
+        });
     }
 
     public void setAVOffset(long delta) {
-        avOffset.setValue(delta);
+        if (has_avoffset)
+            avOffset.setValue(delta);
     }
 
     public void setAspectRatio(String value) {
-        selectListBoxItem(aspectRatio, value);
+        if (has_aspectratio)
+            selectListBoxItem(aspectRatio, value);
     }
 
     public void setZoom(long zoomValue) {
-        zoom.setValue(zoomValue);
+        if (has_zoom)
+            zoom.setValue(zoomValue);
     }
 
     public void setAudioChannelEnabled(boolean enabled) {
@@ -153,11 +182,15 @@ public class VideoOptions extends PopupPanel
             panel.setText(subChannelRow, 0, ui.i18nConstants.subChannels());
             panel.setWidget(subChannelRow, 1, subChannel);
 
-            panel.setText(subChannelRow+1, 0, ui.i18nConstants.subOffset());
-            panel.setWidget(subChannelRow+1, 1, subOffset);
+            if (subOffset != null) {
+                panel.setText(subChannelRow+1, 0, ui.i18nConstants.subOffset());
+                panel.setWidget(subChannelRow+1, 1, subOffset);
+            }
         } else if (!enabled && subChannelRow != -1) {
             panel.removeRow(subChannelRow);
-            panel.removeRow(subChannelRow);
+            if (subOffset != null) {
+                panel.removeRow(subChannelRow);
+            }
             subChannelRow = -1;
         }
     }
@@ -173,7 +206,8 @@ public class VideoOptions extends PopupPanel
     }
 
     public void setSubOffset(long offset) {
-        subOffset.setValue(offset);
+        if (has_suboffset)
+            subOffset.setValue(offset);
     }
 
     public void onValueChange(ValueChangeEvent<Long> event) {
