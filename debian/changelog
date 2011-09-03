@@ -1,9 +1,15 @@
-deejayd (0.10.0-3+1) unstable; urgency=low
+deejayd (0.10.0-4) unstable; urgency=low
 
   * Add upstream inotify fixes.
-  * Remove ${python:Breaks} which is not used anymore in dh_python2.
+  * Remove ${python:Breaks} and build dependency on python-support which
+    are not useful anymore with dh_python2.
+  * Update policy to 3.9.2: Nothing to do.
+  * deejayd-webui-extension :
+      - Set compatibility to Firefox 8.
+      - Rename to xul-ext-deejayd-webui per draft policy.
+      - Use mozilla-devscripts for install target (Closes: #638483).
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sat, 26 Mar 2011 23:42:53 +0100
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Sat, 03 Sep 2011 16:07:29 +0200
 
 deejayd (0.10.0-3) unstable; urgency=low
 
