@@ -19,6 +19,9 @@ override_dh_install:
 
 	dh_install
 
+	# Install XUL extension using helper
+	install-xpi -p xul-ext-deejayd-webui extensions/deejayd-webui.xpi
+
 override_dh_installinit:
 	# Inspired by mpd packaging, so that ALSA scripts can run first
 	dh_installinit -u"defaults 30 15"
