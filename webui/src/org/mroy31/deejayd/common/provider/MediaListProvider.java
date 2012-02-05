@@ -69,7 +69,7 @@ public class MediaListProvider implements StatusChangeHandler {
                 Range range = new Range(0, display.getVisibleRange().getLength());
                 display.setVisibleRangeAndClearData(range, true);
             }
-            dataProvider.updateRowCount(l, true);
+            dataProvider.updateRowCount(l, true);          
         }
     }
 
@@ -81,6 +81,14 @@ public class MediaListProvider implements StatusChangeHandler {
         sortHandlers.add(handler);
     }
 
+    public String getSource() {
+    	return this.source;
+    }
+    
+    public int getSourceId() {
+    	return this.sourceId;
+    }
+    
     private void updateMediasOnRange(final Range range) {
         ui.rpc.modeGetMedia(source, range.getStart(),
                 range.getLength(), new AnswerHandler<MediaList>() {

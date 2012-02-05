@@ -25,20 +25,30 @@ import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.TableRowElement;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.view.client.SelectionChangeEvent;
 
 public class CkSelColumn<T> extends Column<T, Boolean> {
     private final DeejaydCellTable<T> list;
+    private final CheckBox allCheckbox;
 
     public CkSelColumn(DeejaydCellTable<T> l) {
+    	this(l, null);
+    }
+    
+    public CkSelColumn(DeejaydCellTable<T> l, CheckBox allCk) {
         super(new CkSelCell());
 
+        this.allCheckbox = allCk;
         this.list = l;
         setFieldUpdater(new FieldUpdater<T, Boolean>() {
 
             public void update(int index, T object, Boolean value) {
                 // Called when the user clicks on a checkbox.
                 list.getSelectionModel().setSelected(object, value);
+                if (allCheckbox != null) { // clear header checkbox if available
+                	allCheckbox.setValue(false);
+                }
             }
         });
 
