@@ -12,10 +12,11 @@
   <!ENTITY dhdate      "<date>June, 30th 2008</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
-  <!ENTITY dhsection   "<manvolnum>5</manvolnum>">
+  <!ENTITY dhsection   "5">
+  <!ENTITY dhsecname   "File formats and conventions">
   <!ENTITY dhemail     "<email>alexandre.rossi@gmail.com</email>">
   <!ENTITY dhusername  "Alexandre Rossi">
-  <!ENTITY dhucpackage "<refentrytitle>DEEJAYD.CONF</refentrytitle>">
+  <!ENTITY dhucpackage "DEEJAYD.CONF">
   <!ENTITY dhpackage   "deejayd.conf">
 
   <!ENTITY debian      "<productname>Debian</productname>">
@@ -35,9 +36,10 @@
     &dhdate;
   </refentryinfo>
   <refmeta>
-    &dhucpackage;
-
-    &dhsection;
+    <refentrytitle>&dhucpackage;</refentrytitle>
+    <manvolnum>&dhsection;</manvolnum>
+    <refmiscinfo class="source">&dhpackage;</refmiscinfo>
+    <refmiscinfo class="manual">&dhsecname;</refmiscinfo>
   </refmeta>
 
   <refnamediv>

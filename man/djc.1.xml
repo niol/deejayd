@@ -36,10 +36,11 @@ and docbook-xsl in your Build-Depends control field.
   <!ENTITY dhdate      "<date>February, 3rd 2008</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
-  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhsection   "1">
+  <!ENTITY dhsecname   "User commands">
   <!ENTITY dhemail     "<email>alexandre.rossi@gmail.com</email>">
   <!ENTITY dhusername  "Alexandre Rossi">
-  <!ENTITY dhucpackage "<refentrytitle>DEEJAYD</refentrytitle>">
+  <!ENTITY dhucpackage "DEEJAYD">
   <!ENTITY dhpackage   "djc">
 
   <!ENTITY debian      "<productname>Debian</productname>">
@@ -59,9 +60,10 @@ and docbook-xsl in your Build-Depends control field.
     &dhdate;
   </refentryinfo>
   <refmeta>
-    &dhucpackage;
-
-    &dhsection;
+    <refentrytitle>&dhucpackage;</refentrytitle>
+    <manvolnum>&dhsection;</manvolnum>
+    <refmiscinfo class="source">&dhpackage;</refmiscinfo>
+    <refmiscinfo class="manual">&dhsecname;</refmiscinfo>
   </refmeta>
   <refnamediv>
     <refname>&dhpackage;</refname>
