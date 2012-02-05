@@ -129,7 +129,15 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
 
     public void onStatusChange(StatusChangeEvent event) {
         mediaList.clearRowStyle();
-        provider.onStatusChange(event);
+        
+        int id = Integer.parseInt(event.getStatus().get(provider.getSource()));
+        if (id != provider.getSourceId()) { // mediaList has to be updated
+        	// clear selection model if available
+            if (selModel != null) {
+            	selModel.clearSelection();
+            }
+        	provider.onStatusChange(event);        	
+        }       
     }
 
     public void addDnDCommand(final DnDCommand cmd) {
@@ -268,7 +276,7 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
                         event.getValue());
             }
         });
-        addColumn(new CkSelColumn<Media>(mediaList), allCk, "25px");
+        addColumn(new CkSelColumn<Media>(mediaList, allCk), allCk, "25px");
     }
 
     private native void ensureVisibleImpl(Element scroll, Element e) /*-{
