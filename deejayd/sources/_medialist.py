@@ -51,7 +51,7 @@ class SimpleMediaList(object):
             stop = min(stop, len(self._order))
         start = min(start, stop)
         return map(self._set_media_ans, self._order[start:stop],\
-                    range(start, stop))
+                   range(start, stop))
 
     def get_item(self, id):
         try: return self._set_media_ans(id, self._order.index(id))
@@ -174,8 +174,10 @@ class _MediaList(SimpleMediaList):
     def update_media(self, new_media):
         ans = False
         for key, m in self._content.items():
-            if m["media_id"] == new_media["media_id"]:
-                self._content[key] = new_media
+            if m["media_id"] == new_media["media_id"]:  
+                # use a copy of new media in case this media appears several
+                # times in the media list             
+                self._content[key] = new_media.copy()
                 ans = True
         if ans: self.list_id += 1
         return ans
