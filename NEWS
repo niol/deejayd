@@ -1,16 +1,19 @@
 
 New features and significant updates in version...
 
-0.12.0 (2011-XX-XX)
+0.12.0 (2012-XX-XX)
 -------------------
-  * Restructure the code to reduce it size
-     WARNING : there are some changes in the JSON-RPC interfaces, see docs
+  * Restructure the code to reduce its size
+     WARNING : there are some changes in the JSON-RPC interface, see docs
   * Rewrite gstreamer player
      * Add video support
      * Add gapless support
     Now, deejayd requires gstreamer >= 0.10.24
   * Add new player command : player.getAvailableVideoOptions to know
     video capabilities of the active player
+  * Rewrite webradio module
+    * replace shoutcast plugin with an icecast plugin
+    * enable use of categories for recorded webradio
 
 
 0.11.0 (2010-12-27)

@@ -225,16 +225,20 @@ public class AbstractMediaList extends Composite implements StatusChangeHandler 
     }
 
     public List<String> getSelection() {
-        ArrayList<String> sel = new ArrayList<String>();
+        return getSelection("id");
+    }
+
+    public List<String> getSelection(String id) {
+    	ArrayList<String> sel = new ArrayList<String>();
         if (selModel != null) {
             for (Media m : mediaList.getVisibleItems()) {
                 if (selModel.isSelected(m))
-                    sel.add(m.getStrAttr("id"));
+                    sel.add(m.getStrAttr(id));
             }
         }
         return sel;
     }
-
+    
     public Element getRow(int row) {
         return mediaList.getRowElement(row);
     }

@@ -371,7 +371,7 @@ public class DeejaydCellTable<T> extends AbstractHasData<T> implements HasDropHa
             }
         });
     }
-
+    
     /**
      * Sets the object used to determine how a row is styled; the change will take
      * effect the next time that the table is rendered.

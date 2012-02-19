@@ -51,7 +51,7 @@ class Index(object):
         self.columns = columns
 
 
-db_schema_version=13
+db_schema_version=14
 db_schema = [
     Table('library_dir', key='id')[
         Column('id', auto_increment=True),
@@ -115,8 +115,19 @@ db_schema = [
           key=('complexfilter_id', 'filter_id'))[
         Column('complexfilter_id', type='int'),
         Column('filter_id', type='int')],
+    Table('webradio_source')[
+        Column('id', auto_increment=True),
+        Column('name'),
+        Index(('name',), unique = True)],
+    Table('webradio_categories')[
+        Column('id', auto_increment=True),
+        Column('source_id', type='int'),
+        Column('name'),
+        Index(('name','source_id'), unique = True)],
     Table('webradio', key='id')[
         Column('id', auto_increment=True),
+        Column('source_id', type='int'),
+        Column('cat_id', type='int'),
         Column('name'),
         Index(('name',), unique = False)],
     Table('webradio_entries', key='id')[
@@ -124,6 +135,12 @@ db_schema = [
         Column('url'),
         Column('webradio_id', type='int'),
         Index(('url', 'webradio_id'))],
+    Table('webradio_stats')[
+        Column('id', auto_increment=True),
+        Column('source_id', type='int'),
+        Column('key'),
+        Column('value'),
+        Index(('key','source_id'), unique = True)],
     Table('stats', key='name')[
         Column('name'),
         Column('value', type='int')],
@@ -147,7 +164,7 @@ db_init_cmds = [
     "INSERT INTO variables VALUES('current_pos','0');",
     "INSERT INTO variables VALUES('state','stop');",
     "INSERT INTO variables VALUES('source','playlist');",
-    "INSERT INTO variables VALUES('database_version','13');",
+    "INSERT INTO variables VALUES('database_version','14');",
     ]
 
 # vim: ts=4 sw=4 expandtab

@@ -1,6 +1,6 @@
 /*
  * Deejayd, a media player daemon
- * Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+ * Copyright (C) 2007-2011 Mickael Royer <mickael.royer@gmail.com>
  *                         Alexandre Rossi <alexandre.rossi@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,16 +21,16 @@
 package org.mroy31.deejayd.webui.client;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+import org.mroy31.deejayd.webui.cellview.WCategoryList;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
-import org.mroy31.deejayd.webui.widgets.LoadingWidget;
+import org.mroy31.deejayd.webui.widgets.NewWbCatDialog;
+import org.mroy31.deejayd.webui.widgets.NewWbDialog;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -38,15 +38,13 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
@@ -56,30 +54,27 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
 
     interface WebradioPanelUiBinder extends UiBinder<Widget, WebradioPanel> { }
 
-    @UiField HorizontalPanel panelHeader;
     @UiField Label panelTitle;
     @UiField ListBox sourceListBox;
-    @UiField DeckPanel deckPanel;
     @UiField HorizontalPanel categoriesToolbar;
-    @UiField ScrollPanel categoriesScrollPanel;
-    @UiField VerticalPanel categoriesList;
-    @UiField Label categoriesTitle;
-
-    @UiField HorizontalPanel formTitlePanel;
-    @UiField Label formTitle;
-    @UiField Label nameLabel;
-    @UiField TextBox nameInput;
-    @UiField Label urlLabel;
-    @UiField TextBox urlInput;
-    @UiField HorizontalPanel buttonPanel;
+    @UiField Button addCatButton;
+    
     @UiField Button addButton;
+    @UiField(provided = true) WCategoryList categoryList;
     @UiField(provided = true) final WebuiResources resources;
 
     private WebuiLayout ui;
     private String source = null;
-    private String categorie = null;
+    private int categorie = -1;
     private HashMap<String, Boolean> sourceList = new HashMap<String, Boolean>();
-
+    private NewWbDialog newWbDialog = new NewWbDialog();
+    private NewWbCatDialog newWbCatDialog = new NewWbCatDialog(new Command() {
+		
+		public void execute() {
+			categoryList.updateList(source, categorie);
+		}
+	});
+    
     private class OnSourceChange implements ChangeHandler {
         private WebuiLayout ui;
 
@@ -94,21 +89,6 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         }
     }
 
-    private class SelectCatHandler implements ClickHandler {
-        private WebuiLayout ui;
-        private String value;
-
-        public SelectCatHandler(WebuiLayout webui, String value) {
-            this.value = value;
-            this.ui = webui;
-        }
-
-        public void onClick(ClickEvent event) {
-            this.ui.rpc.wbModeSetSourceCategorie(value, null);
-        }
-
-    }
-
     /**
      * WebuiPanel constructor
      * @param webui
@@ -117,44 +97,33 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         super("webradio");
         resources = webui.resources;
         ui = webui;
+        categoryList = new WCategoryList(ui);
+        
         initWidget(uiBinder.createAndBindUi(this));
-
-        panelHeader.setCellVerticalAlignment(panelTitle,
-                HorizontalPanel.ALIGN_MIDDLE);
+        
         panelTitle.setText(ui.i18nConstants.wbCurrentSource());
-
-        categoriesToolbar.setCellHorizontalAlignment(categoriesTitle,
-                HorizontalPanel.ALIGN_CENTER);
-        categoriesToolbar.setCellVerticalAlignment(categoriesTitle,
-                HorizontalPanel.ALIGN_MIDDLE);
-        categoriesTitle.setText(ui.i18nConstants.wbCategories());
-
-        formTitlePanel.setCellHorizontalAlignment(formTitle,
-                HorizontalPanel.ALIGN_CENTER);
-        formTitlePanel.setCellVerticalAlignment(formTitle,
-                HorizontalPanel.ALIGN_MIDDLE);
-        formTitle.setText(ui.i18nConstants.wbAdd());
-        nameLabel.setText(ui.i18nConstants.wbName());
-        urlLabel.setText(ui.i18nConstants.wbUrl());
-
-        buttonPanel.setCellHorizontalAlignment(addButton,
-                HorizontalPanel.ALIGN_RIGHT);
-        addButton.setText(ui.i18nConstants.add());
+    
+        addButton.setText(ui.i18nConstants.wbAdd());
         addButton.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                String name = nameInput.getValue();
-                String url = urlInput.getValue();
-                if (!name.equals("") && !url.equals("")) {
-                    ui.rpc.wbModeAdd(name, url, new AnswerHandler<Boolean>() {
 
-                        public void onAnswer(Boolean answer) {
-                            nameInput.setValue("");
-                            urlInput.setValue("");
-                            ui.update();
-                        }
-                    });
-                }
-            }
+			public void onClick(ClickEvent event) {
+				if (categoryList.getCategoryList().size() == 1) {
+					Window.alert(ui.i18nConstants.wbAddError());
+				} else {
+					newWbDialog.updateCategoryList(categoryList.getCategoryList());
+					newWbDialog.show();
+				}
+			}
+        	
+        });
+        
+        addCatButton.setText(ui.i18nConstants.wbAddCat());
+        addCatButton.addClickHandler(new ClickHandler() {
+
+			public void onClick(ClickEvent event) {
+				newWbCatDialog.center();
+			}
+        	
         });
 
         ui.addStatusChangeHandler(this);
@@ -169,12 +138,23 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
         return box;
     }
 
+    private int __updateCategoryValue(HashMap<String, String> status) {
+    	int cat;
+    	try {
+        	cat = Integer.parseInt(status.get("webradiosourcecat"));
+        } catch (Exception e){
+        	cat = -1;
+        }
+    	
+    	return cat;
+    }
+    
     public void onStatusChange(StatusChangeEvent event) {
         HashMap<String, String> status = event.getStatus();
         if (source == null) {
             // add current source in sourceList
             source = status.get("webradiosource");
-            categorie = status.get("webradiosourcecat");
+            categorie = __updateCategoryValue(status);
             ui.rpc.wbModeGetSources(new AnswerHandler<HashMap<String,String>>() {
 
                 public void onAnswer(HashMap<String, String> answer) {
@@ -189,26 +169,15 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
             });
         } else if (!source.equals(status.get("webradiosource"))) {
             source = status.get("webradiosource");
-            categorie = status.get("webradiosourcecat");
+            categorie = __updateCategoryValue(status);
             updatePanel();
-        } else if (sourceList.get(source) &&
-                !status.get("webradiosourcecat").equals(categorie)) {
-            // Select current category
-            if (categorie != null) {
-                Element elt = DOM.getElementById("wb-cat-"+categorie);
-                if (elt != null)
-                    elt.removeClassName(resources.webuiCss().currentItem());
-            }
-            categorie = status.get("webradiosourcecat");
-            Element elt = DOM.getElementById("wb-cat-"+categorie);
-            if (elt != null)
-                elt.addClassName(resources.webuiCss().currentItem());
-        }
-
-        if (source.equals("local")) {
-            deckPanel.showWidget(0);
         } else {
-            deckPanel.showWidget(1);
+        	int cat = __updateCategoryValue(status);
+        	if (cat != categorie) {
+	            // Select current category
+	        	categorie = cat;
+	            categoryList.updateSelectedCategory(categorie);
+        	}
         }
     }
 
@@ -223,54 +192,21 @@ public class WebradioPanel extends WebuiPanel implements StatusChangeHandler {
             }
         }
 
-        if (sourceList.get(source)) { // source has categories, get them
-            categoriesList.clear();
-            categoriesList.add(new LoadingWidget(
-                    ui.i18nConstants.wbLoadingCategories(), resources));
-            ui.rpc.wbModeGetSourceCategories(source,
-                    new AnswerHandler<List<String>>() {
-
-                        public void onAnswer(List<String> answer) {
-                            categoriesList.clear();
-                            Label currentCat = null;
-                            int idx = 0;
-                            for (String cat : answer) {
-                                Label lab = new Label(cat);
-                                lab.getElement().setId("wb-cat-"+cat);
-                                lab.addStyleName(
-                                        resources.webuiCss().wbCategorieItem());
-                                if ((idx%2) == 0) {
-                                    lab.addStyleName(
-                                            resources.webuiCss().oddRow());
-                                }
-                                if (cat.equals(categorie)) {
-                                    currentCat = lab;
-                                    lab.addStyleName(
-                                            resources.webuiCss().currentItem());
-                                }
-                                lab.addClickHandler(
-                                        new SelectCatHandler((WebuiLayout)ui,
-                                                cat));
-                                categoriesList.add(lab);
-
-                                ++idx;
-                            }
-
-                            if (currentCat != null) {
-                                categoriesScrollPanel.ensureVisible(currentCat);
-                            }
-                        }
-                    });
-        }
+        // display form and enable cat button only for local source
+        addButton.setEnabled(source.equals("local"));
+        addCatButton.setEnabled(source.equals("local"));
+        
+        // update categories list
+        categoryList.updateList(source, categorie);       
     }
 
     private String getSourceName(String sourceName) {
         if (sourceName.equals("local")) {
             return ui.i18nConstants.wbLocalSource();
-        } else if (sourceName.equals("shoutcast")) {
-            return ui.i18nConstants.wbShoutcastSource();
+        } else if (sourceName.equals("icecast")) {
+            return ui.i18nConstants.wbIcecastSource();
         }
-        return "";
+        return sourceName;
     }
 }
 

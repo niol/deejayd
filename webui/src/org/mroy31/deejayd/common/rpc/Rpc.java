@@ -416,10 +416,10 @@ public class Rpc {
     }
 
     public void wbModeGetSourceCategories(String source,
-            AnswerHandler<List<String>> handler) {
+            AnswerHandler<HashMap<String, String>> handler) {
         JSONArray args = new JSONArray();
         args.set(0, new JSONString(source));
-        send("webradio.getSourceCategories", args, new ListCallback(handler));
+        send("webradio.getSourceCategories", args, new DictCallback(handler));
     }
 
     public void wbModeSetSource(String source, AnswerHandler<Boolean> handler) {
@@ -428,31 +428,55 @@ public class Rpc {
         send("webradio.setSource", args, handler);
     }
 
-    public void wbModeSetSourceCategorie(String cat,
+    public void wbModeSetSourceCategorie(Integer cat_id,
             AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        args.set(0, new JSONString(cat));
+        if (cat_id == -1)
+        	args.set(0, new JSONObject(null));
+        else
+        	args.set(0, new JSONNumber(cat_id));
         send("webradio.setSourceCategorie", args, handler);
     }
 
-    public void wbModeRemove(List<String> ids, AnswerHandler<Boolean> handler) {
+    public void wbModeAddCategory(String source, String cat, AnswerHandler<HashMap<String,String>> handler) {
         JSONArray args = new JSONArray();
-        args.set(0, listToArray(ids));
-        send("webradio.localDelete", args, handler);
+        args.set(0, new JSONString(source));
+        args.set(1, new JSONString(cat));
+        send("webradio.sourceAddCategorie", args, new DictCallback(handler));
     }
 
-    public void wbModeClear() {
-        send("webradio.localClear");
+    public void wbModeRemoveCategories(String source, List<Integer> ids, AnswerHandler<Boolean> handler) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(source));
+        args.set(1, intListToArray(ids));
+        send("webradio.sourceDeleteCategories", args, handler);
     }
 
-    public void wbModeAdd(String name, String url,
-            AnswerHandler<Boolean> handler) {
+    public void wbModeRemoveWebradios(String source, List<String> ids, AnswerHandler<Boolean> handler) {
         JSONArray args = new JSONArray();
-        args.set(0, new JSONString(name));
+        args.set(0, new JSONString(source));
+        args.set(1, listToArray(ids));
+        send("webradio.sourceDeleteWebradios", args, handler);
+    }
+
+    public void wbModeClearWebradios(String source, AnswerHandler<Boolean> handler) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(source));
+        send("webradio.sourceClearWebradios", args, handler);
+    }
+
+    public void wbModeAddWebradio(String source, String name, String url,
+            String cat, AnswerHandler<Boolean> handler) {
+        JSONArray args = new JSONArray();
+        args.set(0, new JSONString(source));
+        args.set(1, new JSONString(name));
         JSONArray urls = new JSONArray();
         urls.set(0, new JSONString(url));
-        args.set(1, urls);
-        send("webradio.localAdd", args, handler);
+        args.set(2, urls);
+        if (cat != null) {
+            args.set(3, new JSONString(cat));
+        }
+        send("webradio.sourceAddWebradio", args, handler);
     }
 
     /*
@@ -618,6 +642,12 @@ public class Rpc {
         return ans;
     }
 
+    private JSONArray intListToArray(List<Integer> list) {
+        JSONArray ans = new JSONArray();
+        for (Integer item : list)
+            ans.set(ans.size(), new JSONNumber(item));
+        return ans;
+    }
 }
 
 //vim: ts=4 sw=4 expandtab

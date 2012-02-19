@@ -126,6 +126,12 @@ public interface WebuiConstants extends Constants {
     @DefaultStringValue("Add a Webradio")
     String wbAdd();
 
+    @DefaultStringValue("Add a categorie")
+    String wbAddCat();
+
+    @DefaultStringValue("Enter name of the new category")
+    String wbAddCatDialog();
+    
     @DefaultStringValue("Webradio Name:")
     String wbName();
 
@@ -135,11 +141,14 @@ public interface WebuiConstants extends Constants {
     @DefaultStringValue("Recorded Webradios")
     String wbLocalSource();
 
-    @DefaultStringValue("Shoutcast Webradios")
-    String wbShoutcastSource();
+    @DefaultStringValue("Icecast Webradios")
+    String wbIcecastSource();
 
     @DefaultStringValue("Categories")
     String wbCategories();
+    
+    @DefaultStringValue("Category")
+    String wbCategory();
 
     @DefaultStringValue("Go to current webradio")
     String wbGoCurrent();
@@ -147,6 +156,12 @@ public interface WebuiConstants extends Constants {
     @DefaultStringValue("Loading categories list...")
     String wbLoadingCategories();
 
+    @DefaultStringValue("The new webradio has been added.")
+    String wbAddConfirmation();
+    
+    @DefaultStringValue("You have to add a category before try to add a new webradio.")
+    String wbAddError();
+    
     @DefaultStringValue("audio")
     String audio();
 

@@ -17,33 +17,48 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from zope.interface import implements
-from twisted.internet import threads
 from deejayd.jsonrpc.interfaces import WebradioSourceModule, jsonrpc_module
 from deejayd.sources._base import _BaseSource, SimpleMediaList, SourceError
-from deejayd.plugins import IWebradioPlugin
+from deejayd.plugins import IWebradioPlugin, IEditWebradioPlugin, PluginError
 from deejayd.utils import get_uris_from_pls, get_uris_from_m3u
 
 
 class WbLocalSource(object):
-    implements(IWebradioPlugin)
+    implements(IEditWebradioPlugin)
     NAME = "local"
-    HAS_CATEGORIE = False
 
-    def __init__(self, db):
-        self.db = db
-        self.__load()
+    def __init__(self):
+        self.__db = None
+        self.__id = None
 
-    def __load(self):
-        self.__streams = {}
-        for (id, name, url) in self.db.get_webradios():
-            if id not in self.__streams.keys():
-                self.__streams[id] = {"wb_id": id, "title": name,\
+    def set_db_connection(self, connection):
+        self.__db = connection
+        self.__id = self.__db.get_webradio_source(self.NAME)
+
+    def get_categories(self):
+        return dict(self.__db.get_webradio_categories(self.__id))
+
+    def get_webradios(self, cat_id = None):
+        streams = {}
+        for (id, name, url) in self.__db.get_webradios(self.__id, cat_id):
+            if id not in streams.keys():
+                streams[id] = {"wb_id": id, "title": name,\
                         "urls": [url], "url-type": "urls", "uri": "",\
                         "url-index": 0, "type": "webradio"}
             else:
-                self.__streams[id]["urls"].append(url)
+                streams[id]["urls"].append(url)
+        return streams.values()
 
-    def add(self, urls, name):
+    def add_categorie(self, cat):
+        return {
+            "id": self.__db.add_webradio_category(self.__id, cat),
+            "name": cat
+        }
+
+    def remove_categories(self, ids):
+        self.__db.remove_webradio_categories(self.__id, ids)
+
+    def add_webradio(self, name, urls, cat = None):
         needed_urls = []
         for url in urls:
             if url.lower().startswith("http://"):
@@ -58,31 +73,46 @@ class WbLocalSource(object):
                     raise SourceError(_("Given url %s is not supported") % url)
             else:
                 raise SourceError(_("Given url %s is not supported") % url)
+        self.__db.add_webradio(self.__id, name, needed_urls, cat)
 
+    def remove_webradios(self, ids):
+        self.__db.remove_webradios(self.__id, ids)
 
-        # save webradio
-        self.db.add_webradio(name, set(needed_urls))
-        self.__load()
+    def clear_webradios(self):
+        self.__db.clear_webradios(self.__id)
 
-    def delete(self, webradio_ids):
-        self.db.remove_webradios(webradio_ids)
-        self.__load()
+    def get_stats(self):
+        return {
+            "last_webradios_update": "",
+            "last_categories_update": "",
+            "webradio_count": "",
+            "category_count": "",
+        }
 
-    def clear(self):
-        self.db.clear_webradios()
-        self.__streams = {}
+############################################################################
+############################################################################
 
-    def get_categories(self):
-        raise SourceError(_("Categories not supported for this source"))
+def require_editable_source(func):
+    def impl(self, source_name, *args, **kwargs):
+        if source_name not in self.wb_sources.keys():
+            raise SourceError(_("Webradio source %s not supported")%source_name)
+        source = self.wb_sources[source_name]
+        if not IEditWebradioPlugin.providedBy(source):
+            raise SourceError(_("You can not edit this webradio source"))
 
-    def get_streams(self, categorie = None):
-        return self.__streams.values()
+        res = func(self, source_name, *args, **kwargs)
+        if source_name == self._state["source"]:
+            self._reload()
+        return res
+
+    impl.__name__ = func.__name__
+    return impl
 
 
 @jsonrpc_module(WebradioSourceModule)
 class WebradioSource(_BaseSource):
     name = "webradio"
-    _default_state = {"id": 1, "source": "local", "source-cat": ""}
+    _default_state = {"id": 1, "source": "local", "source-cat": None}
 
     def __init__(self, db, plugin_manager):
         _BaseSource.__init__(self, db)
@@ -91,8 +121,10 @@ class WebradioSource(_BaseSource):
         # get plugins
         for plugin in plugin_manager.get_plugins(IWebradioPlugin):
             self.wb_sources[plugin.NAME] = plugin()
+            self.wb_sources[plugin.NAME].set_db_connection(db)
         # get local source from database
-        self.wb_sources["local"] = WbLocalSource(self.db)
+        self.wb_sources["local"] = WbLocalSource()
+        self.wb_sources["local"].set_db_connection(db)
 
         # load current list
         self._media_list = SimpleMediaList(self.get_recorded_id() + 1)
@@ -102,64 +134,64 @@ class WebradioSource(_BaseSource):
             self.__source = self.wb_sources["local"]
             self._state["source"] = "local"
 
-        # defer to thread init to avoid long delay
-        # when we try to connect to shoutcast for example
-        def load():
-            self._media_list.set(\
-                    self.__source.get_streams(self._state["source-cat"]))
-        self.defered = threads.deferToThread(load)
+        try: self._reload(sig = False)
+        except PluginError: # fallback to default
+            self.__source = self.wb_sources["local"]
+            self._state["source"] = "local"
+            self._reload(sig = False)
 
     def get_available_sources(self):
-        return [(s.NAME, s.HAS_CATEGORIE) for s in self.wb_sources.values()]
+        return [(s.NAME, IEditWebradioPlugin.providedBy(s)) \
+                    for s in self.wb_sources.values()]
 
     def set_source(self, source):
         if self._state["source"] != source:
-            try:
-                self.__source = self.wb_sources[source]
+            try: self.__source = self.wb_sources[source]
             except KeyError:
                 raise SourceError(_("Webradio source %s not supported")%source)
-            self._media_list.set(self.__source.get_streams(\
-                    self._state["source-cat"]))
             self._state["source"] = source
+            self._reload()
+
+    def set_source_categorie(self, categorie):
+        if self._state["source-cat"] != categorie:
+            self._media_list.set(self.__source.get_webradios(categorie))
+            self._state["source-cat"] = categorie
             self.dispatch_signame('webradio.listupdate')
 
     def get_source_categories(self, source_name):
         try: source = self.wb_sources[source_name]
         except KeyError:
             raise SourceError(_("Webradio source %s not supported")%source_name)
-        if not source.HAS_CATEGORIE:
-            raise SourceError(_("Categorie not supported for source %s")\
-                              % source_name)
         return source.get_categories()
 
+    def get_source_stats(self, source_name):
+        try: source = self.wb_sources[source_name]
+        except KeyError:
+            raise SourceError(_("Webradio source %s not supported")%source_name)
+        return source.get_stats()
 
-    def set_source_categorie(self, categorie):
-        if not self.__source.HAS_CATEGORIE:
-            raise SourceError(_("Categorie not supported for source %s")\
-                              % categorie)
-        if self._state["source-cat"] != categorie:
-            self._media_list.set(self.__source.get_streams(categorie))
-            self._state["source-cat"] = categorie
-            self.dispatch_signame('webradio.listupdate')
+    @require_editable_source
+    def source_add_categorie(self, source_name, cat):
+        return self.wb_sources[source_name].add_categorie(cat)
 
-    def local_add(self, name, urls):
-        self.wb_sources["local"].add(urls, name)
-        self.__reload_local_source()
+    @require_editable_source
+    def source_delete_categories(self, source_name, cat_ids):
+        self.wb_sources[source_name].remove_categories(cat_ids)
+        if self._state["source"] == source_name \
+                and self._state["source-cat"] in cat_ids:
+            self.set_source_categorie(None)
 
-    def local_delete(self, ids):
-        webradio_ids = []
-        for id in ids:
-            wb = self._media_list.get_item(id)
-            if wb is None:
-                raise SourceError(_("Webradio with id %s not found")%str(id))
-            webradio_ids.append(wb["wb_id"])
+    @require_editable_source
+    def source_add_webradio(self, source_name, name, urls, cat = None):
+        self.wb_sources[source_name].add_webradio(name, urls, cat)
 
-        self.wb_sources["local"].delete(webradio_ids)
-        self.__reload_local_source()
+    @require_editable_source
+    def source_delete_webradios(self, source_name, wb_ids):
+        self.wb_sources[source_name].remove_webradios(wb_ids)
 
-    def local_clear(self):
-        self.wb_sources["local"].clear()
-        self.__reload_local_source()
+    @require_editable_source
+    def source_clear_webradios(self, source_name):
+        self.wb_sources[source_name].clear_webradios()
 
     def get_status(self):
         return [
@@ -169,9 +201,9 @@ class WebradioSource(_BaseSource):
             ("webradiosourcecat", self._state["source-cat"]),
             ]
 
-    def __reload_local_source(self):
-        if self.__source.NAME == "local": # reload the current medialist
-            self._media_list.set(self.__source.get_streams())
+    def _reload(self, sig = True):
+        self._media_list.set(self.__source.get_webradios(self._state["source-cat"]))
+        if sig:
             self.dispatch_signame('webradio.listupdate')
 
 # vim: ts=4 sw=4 expandtab

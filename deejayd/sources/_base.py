@@ -49,12 +49,15 @@ class _BaseSource(SignalingComponent, JSONRpcComponent):
     def get_recorded_id(self):
         return self._state["id"]
 
-    def get(self, start = 0, stop = None):
-        medias, filter, sort = self.get_content(start, stop)
+    def get(self, start = 0, length = None):
+        medias, filter, sort = self.get_content(start, length)
         return {"medias": medias, "filter": filter, "sort": sort}
 
-    def get_content(self, start = 0, stop = None):
+    def get_content(self, start = 0, length = None):
         # medias, filter (None if useless), sort (None if useless)
+        stop = None
+        if length is not None: 
+            stop = start + int(length)
         return self._media_list.get(start, stop), None, None
 
     def get_current(self):

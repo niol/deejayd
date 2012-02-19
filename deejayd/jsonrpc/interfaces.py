@@ -508,32 +508,52 @@ class WebradioSourceModule(object):
         ]
 
     class getAvailableSources:
-        """Return list of available sources for webradio mode as source_name: has_categories"""
+        """Return list of available sources for webradio mode as source_name: is_editable"""
         answer = 'dict'
-
-    class getSourceCategories:
-        """Return list of categories for webradio source 'source_name'"""
-        answer = 'list'
-        args = [{"name":"source_name","type":"string","req":True}]
 
     class setSource:
         """Set current source to 'source_name'"""
+        args = [{"name":"source_name","type":"string","req":True}]
+
+    class getSourceCategories:
+        """Return list of categories for webradio source 'source_name'"""
+        answer = 'dict'
         args = [{"name":"source_name","type":"string","req":True}]
 
     class setSourceCategorie:
         """Set categorie to 'categorie' for current source"""
         args = [{"name":"categorie","type":"string","req":True}]
 
-    class localClear:
-        """Remove all recorded webradios from the 'local' source."""
+    class sourceAddCategorie:
+        """Add a new categorie for the source 'source_name'"""
+        answer = 'dict'
+        args = [
+            {"name":"source_name","type":"string","req":True},
+            {"name":"cat","type":"string","req":True}
+        ]
 
-    class localDelete:
-        """Remove webradios with id in "ids" from the 'local' source."""
-        args = [{"name":"ids","type":"int-list","req":True}]
+    class sourceDeleteCategories:
+        """Remove categories with id in "cat_ids" from the 'source_name' source."""
+        args = [
+            {"name":"source_name","type":"string","req":True},
+            {"name":"cat_ids","type":"int-list","req":True}
+        ]
 
-    class localAdd:
-        """Add a webradio in 'local' source. Its name is "name" and the url of the webradio is "url". You can pass a playlist for "url" argument (.pls and .m3u format are supported)."""
+    class sourceClearWebradios:
+        """Remove all recorded webradios from the 'source_name' source."""
+        args = [{"name":"source_name","type":"string","req":True}]
+
+    class sourceDeleteWebradios:
+        """Remove webradios with id in "ids" from the 'source_name' source."""
+        args = [
+            {"name":"source_name","type":"string","req":True},
+            {"name":"ids","type":"int-list","req":True}
+        ]
+
+    class sourceAddWebradio:
+        """Add a webradio in 'source_name' source. Its name is "name" and the url of the webradio is "url". You can pass a playlist for "url" argument (.pls and .m3u format are supported)."""
         args=[
+            {"name":"source_name","type":"string","req":True},
             {"name":"name","type":"string","req":True},
             {"name":"url", "type":"list", "req":True}
         ]

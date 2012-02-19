@@ -21,6 +21,7 @@
 package org.mroy31.deejayd.webui.client;
 
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.WebradioList;
 
@@ -33,10 +34,15 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
 public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
+	
+	/*
+	 * Private variables
+	 */
     private Label description;
     private Button wbClear;
     private Button wbRemove;
     private Button goToCurrent;
+    private String currentSource;
 
     public WebradioMode(WebuiLayout ui) {
         super("webradio", ui, false, false);
@@ -51,6 +57,7 @@ public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
     public void onStatusChange(StatusChangeEvent event) {
         super.onStatusChange(event);
         boolean en = event.getStatus().get("webradiosource").equals("local");
+        currentSource = event.getStatus().get("webradiosource");
         wbClear.setEnabled(en);
         wbRemove.setEnabled(en);
     }
@@ -103,9 +110,22 @@ public class WebradioMode extends DefaultWebuiMode implements ClickHandler {
     public void onClick(ClickEvent event) {
         Widget sender = (Widget) event.getSource();
         if (sender == wbClear) {
-            ui.rpc.wbModeClear();
+            ui.rpc.wbModeClearWebradios(currentSource, new AnswerHandler<Boolean>() {
+				
+				@Override
+				public void onAnswer(Boolean answer) {
+					ui.update();
+				}
+			});
         } else if (sender == wbRemove) {
-            ui.rpc.wbModeRemove(mediaList.getSelection(), null);
+            ui.rpc.wbModeRemoveWebradios(currentSource, mediaList.getSelection("wb_id"), 
+            		new AnswerHandler<Boolean>() {
+				
+				@Override
+				public void onAnswer(Boolean answer) {
+					ui.update();
+				}
+			});
         } else if (sender == goToCurrent) {
             if (currentPlayingPos != -1) {
                 mediaList.scrollTo(currentPlayingPos);

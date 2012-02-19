@@ -127,14 +127,14 @@ class TestCaseWithServer(TestCaseWithAudioAndVideoData):
                 print "Unable to connect to mysql db"
                 sys.exit(1)
             cursor = connection.cursor()
-           # drop all table
+            # drop all table
             from deejayd.database.schema import db_schema
             for table in db_schema:
                 try:
                     cursor.execute("DROP TABLE `%s`" % table.name)
                 except MySQLdb.DatabaseError:
                     pass
-           # commit changes and close
+            # commit changes and close
             connection.commit()
             connection.close()
 
@@ -172,9 +172,9 @@ class TestCaseWithServer(TestCaseWithAudioAndVideoData):
         if self.dbfilename is not None: # Clean up temporary db file
             os.unlink(self.dbfilename)
         if self.tmp_dir is not None:
-             try: shutil.rmtree(self.tmp_dir)
-             except (IOError, OSError):
-                 pass
+            try: shutil.rmtree(self.tmp_dir)
+            except (IOError, OSError):
+                pass
         os.unlink(self.conf)
         super(TestCaseWithServer, self).tearDown()
 
