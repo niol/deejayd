@@ -17,14 +17,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -*- coding: utf-8 -*-
 
-import os, sys, threading, traceback, base64, hashlib
+import os, threading, traceback, base64, hashlib
 from twisted.internet import threads, reactor
 
 from deejayd import DeejaydError
 from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.jsonrpc.interfaces import LibraryModule, jsonrpc_module
 from deejayd.mediadb import formats
-from deejayd.utils import quote_uri, str_decode
+from deejayd.utils import quote_uri, str_decode, log_traceback
 from deejayd import mediafilters
 from deejayd.ui import log
 
@@ -51,6 +51,8 @@ def inotify_action(func):
 class _Library(SignalingComponent, JSONRpcComponent):
     common_attr = ("filename","uri","type","title","length")
     persistent_attr = ("rating","skipcount","playcount","lastplayed")
+    supported_search_type = []
+    default_search_sort = None
     type = None
 
     def __init__(self, db_connection, player, path, fs_charset="utf-8"):
@@ -58,9 +60,10 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
         # init Parms
         self.media_attr = []
-        for i in self.__class__.common_attr: self.media_attr.append(i)
-        for j in self.__class__.custom_attr: self.media_attr.append(j)
-        for k in self.__class__.persistent_attr: self.media_attr.append(k)
+        for attr_list in [self.__class__.common_attr,\
+                           self.__class__.custom_attr,\
+                           self.__class__.persistent_attr]: 
+            self.media_attr.extend(attr_list)
         self._fs_charset = fs_charset
         self._update_id = 0
         self._update_end = True
@@ -69,7 +72,9 @@ class _Library(SignalingComponent, JSONRpcComponent):
         self._changes_cb = {}
         self._changes_cb_id = 0
 
-        self._path = self.fs_charset2unicode(os.path.abspath(path))
+        try: self._path = self.fs_charset2unicode(os.path.abspath(path))
+        except UnicodeError:
+            raise DeejaydError(_("Root library path has wrong caracters"))
         # test library path
         if not os.path.isdir(self._path):
             msg = _("Unable to find directory %s") \
@@ -78,8 +83,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
         # Connection to the database
         self.db_con = db_connection
-
-        # init a mutex
         self.mutex = threading.Lock()
 
         # build supported extension list
@@ -94,26 +97,17 @@ class _Library(SignalingComponent, JSONRpcComponent):
         """
         return str_decode(path, self._fs_charset, errors)
 
-    def _build_supported_extension(self, player):
-        raise NotImplementedError
-
-    def set_file_info(self, file_id, key, value, allow_create = False):
-        ans = self.db_con.set_media_infos(file_id, {key: value}, allow_create)
-        if not ans:
-            raise NotFoundException
-        self.dispatch_signame('mediadb.mupdate',\
-                attrs = {"type": "update", "id": file_id})
-        self.db_con.connection.commit()
-
+    def _verify_dir_not_empty(self, root, dirs = None, files = None):
+        if len(files) == 0 and len(dirs) == 0 and root != self._path:
+            err = _("Unable to find '%s' folder in library") % root
+            raise NotFoundException(err)
+        
     def get_dir_content(self, dir = ""):
         abs_dir = os.path.join(self._path, dir).rstrip("/")
         files_rsp = self.db_con.get_dir_content(abs_dir,\
             infos = self.media_attr, type = self.type)
         dirs_rsp = self.db_con.get_dir_list(abs_dir, self.type)
-        if len(files_rsp) == 0 and len(dirs_rsp) == 0 and abs_dir != self._path:
-            # nothing found for this directory
-            raise NotFoundException(_("Unable to find '%s' folder in library")%\
-                                    dir)
+        self._verify_dir_not_empty(abs_dir, dirs_rsp, files_rsp)
 
         dirs = []
         for dir_id, dir_path in dirs_rsp:
@@ -122,22 +116,18 @@ class _Library(SignalingComponent, JSONRpcComponent):
                 dirs.append(d)
         return {'files': files_rsp, 'directories': dirs, 'root': dir}
 
-    def get_dir_files(self,dir):
-        dir = os.path.join(self._path, dir).rstrip("/")
-        files_rsp = self.db_con.get_dir_content(dir,\
+    def get_dir_files(self, dir):
+        abs_dir = os.path.join(self._path, dir).rstrip("/")
+        files_rsp = self.db_con.get_dir_content(abs_dir,\
             infos = self.media_attr, type = self.type)
-        if len(files_rsp) == 0 and dir != self._path:
-            raise NotFoundException(_("Unable to find '%s' folder in library")%\
-                                    dir)
+        self._verify_dir_not_empty(abs_dir, [], files_rsp)
         return files_rsp
 
     def get_all_files(self,dir):
-        dir = os.path.join(self._path, dir).rstrip("/")
-        files_rsp = self.db_con.get_alldir_files(dir,\
+        abs_dir = os.path.join(self._path, dir).rstrip("/")
+        files_rsp = self.db_con.get_alldir_files(abs_dir,\
             infos = self.media_attr, type = self.type)
-        if len(files_rsp) == 0 and dir != self._path:
-            raise NotFoundException(_("Unable to find '%s' folder in library")%\
-                                    dir)
+        self._verify_dir_not_empty(abs_dir, [], files_rsp)
         return files_rsp
 
     def get_file(self,file):
@@ -147,8 +137,8 @@ class _Library(SignalingComponent, JSONRpcComponent):
             infos = self.media_attr, type = self.type)
         if len(files_rsp) == 0:
             # this file is not found
-            raise NotFoundException(_("Unable to find '%s' file in library")%\
-                                    dir)
+            err = _("Unable to find '%s' file in library") % file
+            raise NotFoundException(err)
         return files_rsp
 
     def get_file_withids(self,file_ids):
@@ -168,19 +158,30 @@ class _Library(SignalingComponent, JSONRpcComponent):
                 limit = limit)
 
     def search(self, pattern, type = 'all'):
-        if type not in ('all','title','genre','filename','artist','album'):
+        if pattern is None:
+            raise DeejaydError(_("Pattern must be a string"))
+        
+        if type not in self.supported_search_type + ["all"]:
             raise DeejaydError(_('Type %s is not supported') % (type,))
         if type == "all":
             filter = mediafilters.Or()
-            for tag in ('title','genre','artist','album'):
+            for tag in self.supported_search_type:
                 filter.combine(mediafilters.Contains(tag, pattern))
         else:
             filter = mediafilters.Contains(type, pattern)
-        return self.search_with_filter(filter, mediafilters.DEFAULT_AUDIO_SORT)
+        return self.search_with_filter(filter, self.default_search_sort)
 
     def tag_list(self, tag, filter = None):
         return [x[0] for x in self.db_con.list_tags(tag, filter)]
 
+    def set_file_info(self, file_id, key, value, allow_create = False):
+        ans = self.db_con.set_media_infos(file_id, {key: value}, allow_create)
+        if not ans:
+            raise NotFoundException
+        self.dispatch_signame('mediadb.mupdate',\
+                attrs = {"type": "update", "id": file_id})
+        self.db_con.connection.commit()
+        
     def get_root_path(self):
         return self._path
 
@@ -215,6 +216,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
     #
     # Update process
     #
+    
     def update(self, force = False, sync = False):
         if self._update_end:
             self._update_id += 1
@@ -226,21 +228,20 @@ class _Library(SignalingComponent, JSONRpcComponent):
                 self.defered.pause()
 
                 # Add callback functions
-                succ = lambda *x: self.end_update()
-                self.defered.addCallback(succ)
+                self.defered.addCallback(lambda *x: self.end_update())
 
                 # Add errback functions
-                def error_handler(failure,db_class):
+                def error_handler(failure, db_class):
                     # Log the exception to debug pb later
                     failure.printTraceback()
                     db_class.end_update(False)
                     return False
-                self.defered.addErrback(error_handler,self)
+                self.defered.addErrback(error_handler, self)
 
                 self.defered.unpause()
             self.dispatch_signame(self.update_signal_name)
 
-            return [(self.type+"_updating_db", self._update_id)]
+            return dict([(self.type+"_updating_db", self._update_id)])
 
         raise DeejaydError(_("A library update is already running"))
 
@@ -448,11 +449,8 @@ class _Library(SignalingComponent, JSONRpcComponent):
         except (TypeError, KeyError):
             log.info(_("File %s not supported") % file_path)
             return None
-        except Exception, ex:
-            log.info(_("Unable to get infos from %s, see traceback")%file_path)
-            log.info("------------------Traceback lines--------------------")
-            log.info(self.fs_charset2unicode(traceback.format_exc()))
-            log.info("-----------------------------------------------------")
+        except Exception:
+            log_traceback()
             return None
         return file_info
 
@@ -566,7 +564,10 @@ class AudioLibrary(_Library):
                    "replaygain_track_gain","replaygain_track_peak",\
                    "various_artist","discnumber")
     cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg",\
-                  "cover.png", "folder.png", ".folder.png")
+                  "cover.png", "folder.png", ".folder.png",\
+                  "albumart.jpg", "albumart.png")
+    supported_search_type = ['title','genre','filename','artist','album']
+    default_search_sort = mediafilters.DEFAULT_AUDIO_SORT
 
     def get_cover(self, file_id):
         try: (cover_id, mime, image) = self.db_con.get_file_cover(file_id)
@@ -594,8 +595,9 @@ class AudioLibrary(_Library):
             return None
 
         try: fd = open(cover_path)
-        except Exception, ex:
+        except Exception:
             log.info(_("Unable to open cover file %s") % cover_path)
+            log_traceback()
             return None
         rs = fd.read()
         fd.close()
@@ -758,6 +760,8 @@ class VideoLibrary(_Library):
     custom_attr = ("videoheight", "videowidth","external_subtitle",\
             "audio_channels", "subtitle_channels")
     subtitle_ext = (".srt",)
+    supported_search_type = ['title']
+    default_search_sort = mediafilters.DEFAULT_VIDEO_SORT
 
     def set_extra_infos(self, dir, file, file_id):
         file_path = os.path.join(dir, file)

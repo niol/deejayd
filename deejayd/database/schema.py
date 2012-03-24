@@ -115,11 +115,11 @@ db_schema = [
           key=('complexfilter_id', 'filter_id'))[
         Column('complexfilter_id', type='int'),
         Column('filter_id', type='int')],
-    Table('webradio_source')[
+    Table('webradio_source', key='id')[
         Column('id', auto_increment=True),
         Column('name'),
         Index(('name',), unique = True)],
-    Table('webradio_categories')[
+    Table('webradio_categories', key='id')[
         Column('id', auto_increment=True),
         Column('source_id', type='int'),
         Column('name'),
@@ -135,7 +135,7 @@ db_schema = [
         Column('url'),
         Column('webradio_id', type='int'),
         Index(('url', 'webradio_id'))],
-    Table('webradio_stats')[
+    Table('webradio_stats', key='id')[
         Column('id', auto_increment=True),
         Column('source_id', type='int'),
         Column('key'),

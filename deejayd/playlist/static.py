@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2012 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -37,10 +37,25 @@ class StaticPlaylist(_Playlist):
                 except deejayd.mediadb.library.NotFoundException:
                     try: medias = self.library.get_file(path)
                     except deejayd.mediadb.library.NotFoundException:
-                        raise DeejaydError(_('Path %s not found in library') % path)
+                        raise DeejaydError(_('Path %s not found in library')\
+                                % path)
                 for m in medias: ids.append(m["media_id"])
 
         self.db.add_to_static_medialist(self.pl_id, ids)
         self.db.connection.commit()
+
+    def remove(self, values):
+        songs = self.db.get_static_medialist(self.pl_id, infos = [])
+        ids = []
+        for pos, song in enumerate(songs):
+            if pos+1 not in values:
+                ids.append(song["media_id"])
+               
+        self.db.clear_static_medialist(self.pl_id)
+        self.db.add_to_static_medialist(self.pl_id, ids)
+        self.db.connection.commit()
+
+    def clear(self):
+        self.db.clear_static_medialist(self.pl_id)
 
 # vim: ts=4 sw=4 expandtab

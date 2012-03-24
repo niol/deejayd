@@ -59,7 +59,7 @@ class JSONRPCIntrospection(JSONRpcComponent):
 @jsonrpc_module(CoreModule)
 class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, start_inotify=True):
         super(DeejayDaemonCore, self).__init__()
 
         if not config:
@@ -76,14 +76,13 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
             mediadb.init(self.db, self.player, config)
         self.audiolib.register_dispatcher(self)
         self.put_sub_handler('audiolib', self.audiolib)
+        if self.videolib:
+            self.videolib.register_dispatcher(self)
+            self.put_sub_handler('videolib', self.videolib)
 
         self.recpls = DeejaydRecordedPlaylist(self.db, self.audiolib)
         self.recpls.register_dispatcher(self)
         self.put_sub_handler('recpls', self.recpls)
-
-        if self.videolib:
-            self.videolib.register_dispatcher(self)
-            self.put_sub_handler('videolib', self.videolib)
 
         self.sources = sources.init(self.player, self.db, self.audiolib,
                                     self.videolib, self.plugin_manager,
@@ -103,7 +102,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
         self.put_sub_handler('introspection', JSONRPCIntrospection(self))
 
         # start inotify thread when we are sure that all init stuff are ok
-        if self.watcher:
+        if self.watcher and start_inotify:
             log.debug(_("Start inotify threads"))
             self.watcher.start()
 
@@ -112,8 +111,8 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
                     self.videolib,self.db):
             if obj != None: obj.close()
 
-    def ping(self):
-        return True
+    def ping(self): # do nothing
+        pass
 
     def set_option(self, source, option_name, option_value):
         try: self.sources.set_option(source, option_name, option_value)

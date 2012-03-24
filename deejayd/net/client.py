@@ -19,7 +19,7 @@
 """The Deejayd python client library"""
 
 import socket, asyncore, threading
-import sys, inspect, re, new
+import sys, inspect, re, new, os
 
 from Queue import Queue, Empty
 
@@ -57,7 +57,8 @@ def build_command(cmd_name, cmd_args, cmd_doc, prefix):
             if arg["type"] == "filter" and value is not None:
                 try: value = Get_json_filter(value).dump()
                 except:
-                    raise DeejaydError("arg %s is not a valid filter" % arg["name"])
+                    raise DeejaydError("arg %s is not a valid filter"\
+                            % arg["name"])
             request_args.append(value)
         self = args[0]
 
@@ -668,10 +669,11 @@ import httplib
 class DeejayDaemonHTTP(_DeejayDaemon):
     """HTTP deejayd client library."""
 
-    def __init__(self, host, port = 6880):
+    def __init__(self, host, port = 6880, root_url="/"):
         _DeejayDaemon.__init__(self)
         self.host = host
         self.port = port
+        self.url = os.path.join(root_url, "rpc/")
         self.connection = httplib.HTTPConnection(self.host, self.port)
         self.hdrs = {
                 "Content-Type": "text/json",
@@ -681,7 +683,7 @@ class DeejayDaemonHTTP(_DeejayDaemon):
 
     def _send_command(self, cmd):
         # send http request
-        try: self.connection.request("POST", "/rpc/", cmd.to_json(), self.hdrs)
+        try: self.connection.request("POST", self.url, cmd.to_json(), self.hdrs)
         except Exception, ex:
             raise DeejaydError("Unable to send request : %s" % str(ex))
 

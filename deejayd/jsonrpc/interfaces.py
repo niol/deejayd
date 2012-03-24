@@ -100,7 +100,12 @@ def verify_arguments(__args, args):
                     raise Fault(INVALID_METHOD_PARAMS,\
                         _("Arg %s is not an int") % arg["name"])
             elif arg['type'] in ("bool", "list", "dict"):
-                types = {"bool": bool, "dict": dict, "list": list}
+                types = {
+                         "bool": bool, 
+                         "dict": dict, 
+                         "list": list, 
+                         "string": str
+                    }
                 if not isinstance(value, types[arg['type']]):
                     raise Fault(INVALID_METHOD_PARAMS,\
                         _("Arg %s has wrong type") % arg["name"])
@@ -408,17 +413,17 @@ class PlayerModule(object):
     class getAvailableVideoOptions:
         """Get video options supported by the active player. the answer is a dict of option_name=is_supported where
     * option_name is in this list : "audio_lang", "sub_lang", "av_offset", "sub_offset", "zoom", "aspect_ratio"
-    * is_supported is a boolean equals to True if the option is supported by the player"""
+    * is_supported is a boolean equals to True if the option is supported by the player, False else"""
         answer = "dict"
 
     class setVideoOption:
         """Set player video option for the current media. Possible options are :
-  * zoom : set zoom (video only), min=-85, max=400
-  * audio_lang : select audio channel (video only)
-  * sub_lang : select subtitle channel (video only)
-  * av_offset : set audio/video offset (video only)
-  * sub_offset : set subtitle/video offset (video only)
-  * aspect_ratio : set video aspect ratio (video only), available values are :
+  * zoom : set zoom, min=-85, max=400
+  * audio_lang : select audio channel
+  * sub_lang : select subtitle channel
+  * av_offset : set audio/video offset
+  * sub_offset : set subtitle/video offset
+  * aspect_ratio : set video aspect ratio, available values are :
     * auto
     * 1:1
     * 16:9
@@ -706,7 +711,10 @@ class QueueModule(object):
 class RecordedPlaylistModule(object):
 
     class getList:
-        """Return the list of recorded playlists."""
+        """Return the list of recorded playlists as dict with attributes :
+  * pl_id : id of the created playlist
+  * name : name of the created playlist
+  * type : type of the created playlist"""
         answer = "list"
 
     class create:
@@ -733,12 +741,27 @@ class RecordedPlaylistModule(object):
             {"name":"length","type":"int","req":False}
         ]
 
-    class staticAdd:
-        """Add songs in a recorded static playlist. Argument 'type' has to be 'path' (default) or 'id'"""
+    class staticAddMedia:
+        """Add songs in a recorded static playlist. Argument 'type' has to be
+  * 'path' (default) to specify folder/file path in values argument
+  * OR 'id' to specify media ids in values argument"""
         args = [
             {"name":"pl_id", "type":"int", "req":True},\
             {"name":"values", "type":"list", "req":True},\
             {"name":"type","type":"string","req":False}
+        ]
+
+    class staticRemoveMedia:
+        """Remove songs in a recorded static playlist. Argument 'values' specify position of media to remove from the playlist"""
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},\
+            {"name":"values", "type":"list", "req":True},\
+        ]
+
+    class staticClearMedia:
+        """Remove all songs in a recorded static playlist."""
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},\
         ]
 
     class magicAddFilter:

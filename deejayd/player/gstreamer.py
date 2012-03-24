@@ -94,16 +94,17 @@ class GstreamerPlayer(_BasePlayer):
                 except x11.X11Error:
                     raise PlayerError(_("Unable to open video display"))
 
-            try: open_display(self._video_options["display"])
-            except PlayerError, ex: # try to get display with env var
-                try: open_display(os.environ["DISPLAY"])
-                except (PlayerError,KeyError):
-                    self.__destroy_pipeline()
-                    raise ex
+            if self.__gst_options["video_p"] != "fakesink":
+                try: open_display(self._video_options["display"])
+                except PlayerError, ex: # try to get display with env var
+                    try: open_display(os.environ["DISPLAY"])
+                    except (PlayerError,KeyError):
+                        self.__destroy_pipeline()
+                        raise ex
 
-            bus.enable_sync_message_emission()
-            self.__bus_video_id = bus.connect('sync-message::element',\
-                                              self.__sync_message)
+                bus.enable_sync_message_emission()
+                self.__bus_video_id = bus.connect('sync-message::element',\
+                                                  self.__sync_message)
 
             bufbin = gst.Bin()
             self.__osd = gst.element_factory_make('textoverlay')
@@ -137,7 +138,7 @@ class GstreamerPlayer(_BasePlayer):
 
     def __destroy_pipeline(self):
         if self.bin is None: return
-        self.bin.set_state(gst.STATE_NULL)
+        self.__set_gst_state(gst.STATE_NULL)
         bus = self.bin.get_bus()
         bus.disconnect(self.__bus_id)
         if self.__atf_id:
@@ -168,16 +169,7 @@ class GstreamerPlayer(_BasePlayer):
             self.bin.set_property('uri', uri)
             if suburi is not None:
                 self.bin.set_property('suburi', suburi)
-            state_ret = self.bin.set_state(gst.STATE_PLAYING)
-            timeout = 5
-
-            while state_ret == gst.STATE_CHANGE_ASYNC and timeout > 0:
-                state_ret,state,pending_state = self.bin.get_state(1*gst.SECOND)
-                timeout -= 1
-
-            if state_ret != gst.STATE_CHANGE_SUCCESS:
-                msg = _("Unable to play file %s") % uri
-                raise PlayerError(msg)
+            self.__set_gst_state(gst.STATE_PLAYING)
 
         if self._media_file["type"] == "webradio":
             while True:
@@ -225,9 +217,9 @@ class GstreamerPlayer(_BasePlayer):
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
-            self.bin.set_state(gst.STATE_PAUSED)
+            self.__set_gst_state(gst.STATE_PAUSED)
         elif self.get_state() == PLAYER_PAUSE:
-            self.bin.set_state(gst.STATE_PLAYING)
+            self.__set_gst_state(gst.STATE_PLAYING)
         else: return
         self.dispatch_signame('player.status')
 
@@ -277,6 +269,18 @@ class GstreamerPlayer(_BasePlayer):
         else:
             return PLAYER_STOP
 
+    def __set_gst_state(self, gst_state):
+        state_ret = self.bin.set_state(gst_state)
+        timeout = 5
+
+        while state_ret == gst.STATE_CHANGE_ASYNC and timeout > 0:
+            state_ret,state,pending_state = self.bin.get_state(1*gst.SECOND)
+            timeout -= 1
+
+            if state_ret != gst.STATE_CHANGE_SUCCESS:
+                raise PlayerError(_("Unable to change gstreamer state"))
+
+
     def __get_gst_state(self):
         # changestatus,state,_state
         return self.bin.get_state()[1]
@@ -317,7 +321,8 @@ class GstreamerPlayer(_BasePlayer):
 
     def __message(self, bus, message):
         if message.type == gst.MESSAGE_EOS:
-            if self._media_file["type"] == "webradio":
+            if self._media_file is not None and \
+                    self._media_file["type"] == "webradio":
                 # an error happened, try the next url
                 if self._media_file["url-index"] \
                         < len(self._media_file["urls"])-1:
@@ -408,6 +413,10 @@ class GstreamerPlayer(_BasePlayer):
             self.SUPPORTED_MINE_TYPES = []
             factories = gst.type_find_factory_get_list()
             for factory in factories:
+                if factory.get_name() in ("video/mpeg4", "video/x-h264"):
+                    # FIXME for this 2 factories, returned mimetype is strange
+                    # in debian squeeze
+                    self.SUPPORTED_MINE_TYPES.append(factory.get_name())
                 caps = factory.get_caps()
                 if caps is None:
                     continue

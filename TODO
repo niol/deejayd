@@ -6,8 +6,6 @@
 
 * Devscripts dir
 
-* Build testing library once and for all tests for speedups.
-
 * Interlude functionality : save state, play a media, retrieve state. This is
   different from the Queue because it interupts the currently played media and
   restores playback after.

@@ -153,6 +153,8 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
         return self.__volume[self.__get_vol_type()]
 
     def set_volume(self, v, sig = True):
+        if int(v) not in range(0, 101):
+            raise PlayerError(_("Volume value has to be between 0 and 100"))
         new_volume = min(100, int(v))
         type = self.__get_vol_type()
         self.__volume[type] = new_volume
@@ -219,8 +221,6 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
                         "Video option %s is not supported by %s player")\
                                % (name, self.NAME))
 
-        if not self._current_is_video():
-            return
         options = {
             "audio_lang": self.set_alang,
             "sub_lang": self.set_slang,
@@ -234,6 +234,9 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
             except (ValueError, TypeError):
                 raise PlayerError(_("Value %s not allowed for this option")\
                         % str(value))
+
+        if not self._current_is_video():
+            return
         options[name](value)
 
     def set_zoom(self, zoom):
@@ -259,7 +262,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
             self._media_file["sub_offset"] = offset
             self.osd(_("Subtitle offset: %d ms") % offset)
 
-    def set_alang(self,lang_idx):
+    def set_alang(self, lang_idx):
         try: audio_tracks = self._media_file["audio"]
         except KeyError:
             raise PlayerError(_("Current media hasn't multiple audio channel"))
@@ -320,14 +323,14 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
               "%d:%s:%s" % (self._media_file["pos"],\
                     str(self._media_file["id"]), self._media_file["source"])))
 
-        if self.get_state() != PLAYER_STOP:
-            position = self.get_position()
-            if "length" not in self._media_file.keys() or \
+            if self.get_state() != PLAYER_STOP:
+                position = self.get_position()
+                if "length" not in self._media_file.keys() or \
                                               self._media_file["length"] == 0:
-                length = position
-            else:
-                length = int(self._media_file["length"])
-            status.extend([ ("time","%d:%d" % (position, length)) ])
+                    length = position
+                else:
+                    length = int(self._media_file["length"])
+                status.extend([ ("time","%d:%d" % (position, length)) ])
 
         return status
 

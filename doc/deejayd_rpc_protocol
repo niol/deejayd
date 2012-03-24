@@ -325,7 +325,7 @@ Expected return value : ''`['list']`''
 
 Get video options supported by the active player. the answer is a dict of option_name=is_supported where
     * option_name is in this list : "audio_lang", "sub_lang", "av_offset", "sub_offset", "zoom", "aspect_ratio"
-    * is_supported is a boolean equals to True if the option is supported by the player
+    * is_supported is a boolean equals to True if the option is supported by the player, False else
 
 Arguments :
   * ''This command does not accept any argument.''
@@ -428,12 +428,12 @@ Expected return value : ''`['ack']`''
 ==== `player.setVideoOption` ====
 
 Set player video option for the current media. Possible options are :
-  * zoom : set zoom (video only), min=-85, max=400
-  * audio_lang : select audio channel (video only)
-  * sub_lang : select subtitle channel (video only)
-  * av_offset : set audio/video offset (video only)
-  * sub_offset : set subtitle/video offset (video only)
-  * aspect_ratio : set video aspect ratio (video only), available values are :
+  * zoom : set zoom, min=-85, max=400
+  * audio_lang : select audio channel
+  * sub_lang : select subtitle channel
+  * av_offset : set audio/video offset
+  * sub_offset : set subtitle/video offset
+  * aspect_ratio : set video aspect ratio, available values are :
     * auto
     * 1:1
     * 16:9
@@ -869,7 +869,7 @@ Expected return value : ''`['mediaList']`''
 
 ==== `webradio.getAvailableSources` ====
 
-Return list of available sources for webradio mode as source_name: has_categories
+Return list of available sources for webradio mode as source_name: is_editable
 
 Arguments :
   * ''This command does not accept any argument.''
@@ -885,41 +885,7 @@ Return list of categories for webradio source 'source_name'
 Arguments :
   * {{{source_name}}} (Mandatory) : string
 
-Expected return value : ''`['list']`''
-
-
-
-==== `webradio.localAdd` ====
-
-Add a webradio in 'local' source. Its name is "name" and the url of the webradio is "url". You can pass a playlist for "url" argument (.pls and .m3u format are supported).
-
-Arguments :
-  * {{{name}}} (Mandatory) : string
-  * {{{url}}} (Mandatory) : list
-
-Expected return value : ''`['ack']`''
-
-
-
-==== `webradio.localClear` ====
-
-Remove all recorded webradios from the 'local' source.
-
-Arguments :
-  * ''This command does not accept any argument.''
-
-Expected return value : ''`['ack']`''
-
-
-
-==== `webradio.localDelete` ====
-
-Remove webradios with id in "ids" from the 'local' source.
-
-Arguments :
-  * {{{ids}}} (Mandatory) : int-list
-
-Expected return value : ''`['ack']`''
+Expected return value : ''`['dict']`''
 
 
 
@@ -940,6 +906,66 @@ Set categorie to 'categorie' for current source
 
 Arguments :
   * {{{categorie}}} (Mandatory) : string
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `webradio.sourceAddCategorie` ====
+
+Add a new categorie for the source 'source_name'
+
+Arguments :
+  * {{{source_name}}} (Mandatory) : string
+  * {{{cat}}} (Mandatory) : string
+
+Expected return value : ''`['dict']`''
+
+
+
+==== `webradio.sourceAddWebradio` ====
+
+Add a webradio in 'source_name' source. Its name is "name" and the url of the webradio is "url". You can pass a playlist for "url" argument (.pls and .m3u format are supported).
+
+Arguments :
+  * {{{source_name}}} (Mandatory) : string
+  * {{{name}}} (Mandatory) : string
+  * {{{url}}} (Mandatory) : list
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `webradio.sourceClearWebradios` ====
+
+Remove all recorded webradios from the 'source_name' source.
+
+Arguments :
+  * {{{source_name}}} (Mandatory) : string
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `webradio.sourceDeleteCategories` ====
+
+Remove categories with id in "cat_ids" from the 'source_name' source.
+
+Arguments :
+  * {{{source_name}}} (Mandatory) : string
+  * {{{cat_ids}}} (Mandatory) : int-list
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `webradio.sourceDeleteWebradios` ====
+
+Remove webradios with id in "ids" from the 'source_name' source.
+
+Arguments :
+  * {{{source_name}}} (Mandatory) : string
+  * {{{ids}}} (Mandatory) : int-list
 
 Expected return value : ''`['ack']`''
 
@@ -1102,7 +1128,10 @@ Expected return value : ''`['mediaList']`''
 
 ==== `recpls.getList` ====
 
-Return the list of recorded playlists.
+Return the list of recorded playlists as dict with attributes :
+  * pl_id : id of the created playlist
+  * name : name of the created playlist
+  * type : type of the created playlist
 
 Arguments :
   * ''This command does not accept any argument.''
@@ -1175,14 +1204,39 @@ Expected return value : ''`['ack']`''
 
 
 
-==== `recpls.staticAdd` ====
+==== `recpls.staticAddMedia` ====
 
-Add songs in a recorded static playlist. Argument 'type' has to be 'path' (default) or 'id'
+Add songs in a recorded static playlist. Argument 'type' has to be
+  * 'path' (default) to specify folder/file path in values argument
+  * OR 'id' to specify media ids in values argument
 
 Arguments :
   * {{{pl_id}}} (Mandatory) : int
   * {{{values}}} (Mandatory) : list
   * {{{type}}} (Optional) : string
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `recpls.staticClearMedia` ====
+
+Remove all songs in a recorded static playlist.
+
+Arguments :
+  * {{{pl_id}}} (Mandatory) : int
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `recpls.staticRemoveMedia` ====
+
+Remove songs in a recorded static playlist. Argument 'values' specify position of media to remove from the playlist
+
+Arguments :
+  * {{{pl_id}}} (Mandatory) : int
+  * {{{values}}} (Mandatory) : list
 
 Expected return value : ''`['ack']`''
 

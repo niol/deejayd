@@ -58,7 +58,7 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
         self.db, self.library = db, audio_library
 
     def get_list(self):
-        return [{"name": pl, "id":id, "type":type}\
+        return [{"name": pl, "pl_id": id, "type":type}\
             for (id, pl, type) in self.db.get_medialist_list() if not \
             pl.startswith("__") or not pl.endswith("__")]
 
@@ -89,6 +89,8 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
                     }
             for (k, v) in default.items():
                 self.db.set_magic_medialist_property(pl_id, k, v)
+        else:
+            raise DeejaydError(_("playlist type has to be 'static' or 'magic'"))
         self.dispatch_signame('playlist.listupdate')
         return {"pl_id": pl_id, "name": name, "type": type}
 
@@ -97,9 +99,17 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
             self.db.delete_medialist(id)
         if pl_ids: self.dispatch_signame('playlist.listupdate')
 
-    def static_add(self, pl_id, values, type = "path"):
+    def static_add_media(self, pl_id, values, type = "path"):
         PlaylistFactory(self.db, pl_id, self.library).is_static()\
                                                      .add(values, type)
+        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+
+    def static_remove_media(self, pl_id, values):
+        PlaylistFactory(self.db, pl_id, self.library).is_static().remove(values)
+        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+
+    def static_clear_media(self, pl_id):
+        PlaylistFactory(self.db, pl_id, self.library).is_static().clear()
         self.dispatch_signame('playlist.update', {"pl_id": pl_id})
 
     def magic_add_filter(self, pl_id, filter):

@@ -611,6 +611,12 @@ class DatabaseQueries(object):
             (medialist_id, libraryitem_id) VALUES(%s,%s)"
         cursor.executemany(query, [(ml_id, mid) for mid in media_ids])
 
+    @query_decorator("none")
+    def clear_static_medialist(self, cursor, ml_id):
+        query = "DELETE FROM medialist_libraryitem WHERE medialist_id = %s"
+        cursor.execute(query, (ml_id,))
+        self.connection.commit()
+
     @query_decorator("medialist")
     def get_static_medialist(self, cursor, ml_id, infos = []):
         selectquery, joinquery = self._build_media_query(infos)
@@ -648,7 +654,8 @@ class DatabaseQueries(object):
     #
     @query_decorator("none")
     def set_webradio_stats(self, cursor, source, key, value):
-        query = "REPLACE INTO webradio_stats (source_id,key,value)VALUES(%s,%s,%s)"
+        query = "REPLACE INTO webradio_stats\
+                (source_id,key,value)VALUES(%s,%s,%s)"
         cursor.execute(query, (source, key, value))
 
     @query_decorator("fetchone")
@@ -680,21 +687,23 @@ class DatabaseQueries(object):
 
     @query_decorator("none")
     def remove_webradio_categories(self, cursor, source_id, cat_ids):
-        query = "SELECT id FROM webradio WHERE cat_id IN (%s) AND source_id = %s"
+        query = "SELECT id FROM webradio\
+                WHERE cat_id IN (%s) AND source_id = %s"
         cursor.execute(query, (",".join(map(str, cat_ids)), source_id))
         w_ids  = [id for (id,) in cursor.fetchall()]
-        
-        query = "DELETE FROM webradio_categories WHERE id IN (%s) AND source_id = %s"
+
+        query = "DELETE FROM webradio_categories\
+                WHERE id IN (%s) AND source_id = %s"
         cursor.execute(query, (",".join(map(str, cat_ids)), source_id))
         # remove all webradio attached to these categories
         self.remove_webradios(source_id, w_ids)
-        
+
 
     @query_decorator("none")
     def clear_webradio_categories(self, cursor, source_id):
         query = "DELETE FROM webradio_categories WHERE source_id = %s"
         cursor.execute(query, (source_id,))
-        
+
         # remove all webradios
         self.clear_webradios(source_id)
 
@@ -708,7 +717,7 @@ class DatabaseQueries(object):
         if cat_id is not None:
             query += " AND w.cat_id = %s"
             args.append(cat_id)
-        query += "ORDER BY w.id, e.id"
+        query += " ORDER BY w.id, e.id"
         cursor.execute(query, args)
 
     @query_decorator("custom")
@@ -721,7 +730,7 @@ class DatabaseQueries(object):
         query = "INSERT INTO webradio_entries(url, webradio_id)VALUES(%s,%s)"
         cursor.executemany(query, [(url,wid) for url in urls])
         self.connection.commit()
-        
+
         return wid
 
     @query_decorator("none")
@@ -729,16 +738,16 @@ class DatabaseQueries(object):
         query = "INSERT INTO webradio_entries(url, webradio_id)VALUES(%s,%s)"
         cursor.executemany(query, [(url, w_id) for url in urls])
         self.connection.commit()
-        
+
     @query_decorator("none")
     def remove_webradios(self, cursor, source_id, wids):
         query = "DELETE FROM webradio_entries WHERE webradio_id IN \
-            (SELECT id FROM webradio WHERE source_id=%s AND id IN (%s))"       
+            (SELECT id FROM webradio WHERE source_id=%s AND id IN (%s))"
         cursor.execute(query, (source_id, ",".join(map(str, wids))))
-        
+
         query = "DELETE FROM webradio WHERE source_id=%s AND id IN (%s)"
         cursor.execute(query, (source_id, ",".join(map(str, wids))))
-        
+
         self.connection.commit()
 
     @query_decorator("none")

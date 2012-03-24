@@ -191,7 +191,10 @@ class PanelSource(_BaseSortedLibSource):
         if type == self._state["panel-type"]\
                 and pl_id == self._state["panel-value"]:
             return # we do not need to update panel
-        self.__update_active_list(type, pl_id, raise_ex = True)
+        try: 
+            self.__update_active_list(type, pl_id, raise_ex = True)
+        except TypeError:
+            raise SourceError("Unknown panel source")
         self._state["panel-type"] = type
         self._state["panel-value"] = pl_id
         self.__update_current()
