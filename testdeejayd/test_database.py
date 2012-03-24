@@ -17,34 +17,21 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-import os, unittest
-
 from testdeejayd import TestCaseWithData
-
 from deejayd.mediafilters import *
 
 import deejayd.database
-import deejayd.ui.config
 from deejayd.database.dbobjects import SQLizer
 
 
 class TestDatabase(TestCaseWithData):
 
     def setUp(self):
-        super(TestDatabase, self).setUp()
-
-        config = deejayd.ui.config.DeejaydConfig()
-        config.set('database', 'db_type', 'sqlite')
-        dbfilename = self.testdata.getRandomString() + '.db'
-        self.dbfilename = os.path.join('/tmp', dbfilename)
-        config.set('database', 'db_name', self.dbfilename)
-        self.db = deejayd.database.init(config)
-
+        self.db = deejayd.database.init(self.config)
         self.sqlizer = SQLizer()
 
     def tearDown(self):
         self.db.close()
-        os.unlink(self.dbfilename)
 
     def test_basicfilter_save_retrieve(self):
         """Test the saving and retrieval of a basic filter"""

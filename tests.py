@@ -34,11 +34,36 @@ This is the test suite launcher :
       combined on the command line restricted by the same arguments.
       e.g. : ./tests.py list xmlprocessing client
       would list all the tests that are to be run from those test modules.
+    * Test suite has several options :
+      * --player to select media backend : gstreamer(default) or xine
+      * --db to select database backend : sqlite(default) or mysql
+      * --dbopts to specify options to connect to mysql database
 """
 
 import sys, os, glob
+python_version = sys.version_info
+if python_version[0] < 3 and python_version[1] < 7:
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        sys.exit("For python version < 2.7, deejayd tests require unittest2 mpdule")
+else:
+    import unittest
 from optparse import OptionParser
-import unittest
+from copy import copy
+from optparse import Option, OptionValueError
+
+def check_dboptions(option, opt, value):
+    db_options = [opt.split("=") for opt in value.split(";")]
+    try:
+        return dict(db_options)
+    except ValueError:
+        raise OptionValueError("option %s: invalid format: %r" % (opt, value))
+
+class DbOption(Option):
+    TYPES = Option.TYPES + ("dboptions",)
+    TYPE_CHECKER = copy(Option.TYPE_CHECKER)
+    TYPE_CHECKER["dboptions"] = check_dboptions
 
 import testdeejayd
 
@@ -64,15 +89,22 @@ def get_all_tests():
     return [(x, None) for x in glob.glob(get_testfile_from_id("*"))]
 
 usage = "usage: %prog [options] [tests-list]"
-parser = OptionParser(usage=usage)
-parser.add_option("-p","--profile",dest="profile",type="string",\
-    help="testserver profile used for this test suite")
-parser.set_defaults(profile="default")
+parser = OptionParser(option_class=DbOption, usage=usage)
+parser.add_option("-p","--player",dest="player",type="string",\
+    help="media backend used for this test suite")
+parser.add_option("-b","--db",dest="db",type="string",\
+    help="database backend used for this test suite")
+parser.add_option("-o","--dbopts",dest="dbopts",type="dboptions",\
+    help="options to connect to mysql database")
+parser.set_defaults(player="gstreamer", db="sqlite", dbopts={})
 (options, myargs) = parser.parse_args()
 
-# update profiles
-from testdeejayd import TestCaseWithServer
-TestCaseWithServer.profiles = options.profile
+# update options
+from testdeejayd import _DeejaydTest
+_DeejaydTest.media_backend = options.player
+_DeejaydTest.db = options.db
+if options.db == "mysql":
+    _DeejaydTest.db_options = options.dbopts
 
 tests_to_run = None
 list_only = False

@@ -64,14 +64,22 @@ class TestServer:
                 'LANG': os.getenv('LANG')}
         self.__serverProcess = subprocess.Popen(args = args,
                                                 env = env,
-                                                stderr = subprocess.PIPE,
+                                                stderr = subprocess.PIPE,              
                                                 stdout = sys.stdout.fileno(),
                                                 close_fds = True)
+        
+        ready = False
+        while True:
+            line = self.__serverProcess.stderr.readline()
+            if line == 'stopped\n':
+                ready = False
+                break
+            if line == 'ready\n':
+                ready = True
+                break
 
-        firstLine = self.__serverProcess.stderr.readline()
-        if not firstLine == 'ready\n':
+        if not ready:
             # Should not occur
-            print firstLine
             self.stop()
             raise Exception('Reactor does not seem to be ready')
 
