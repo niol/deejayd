@@ -21,6 +21,13 @@
 package org.mroy31.deejayd.mobile.events;
 
 
+import com.google.gwt.event.dom.client.TouchCancelHandler;
+import com.google.gwt.event.dom.client.TouchEndEvent;
+import com.google.gwt.event.dom.client.TouchEndHandler;
+import com.google.gwt.event.dom.client.TouchMoveEvent;
+import com.google.gwt.event.dom.client.TouchMoveHandler;
+import com.google.gwt.event.dom.client.TouchStartEvent;
+import com.google.gwt.event.dom.client.TouchStartHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.event.shared.HasHandlers;
 
@@ -33,6 +40,14 @@ public interface HasTouchHandlers extends HasHandlers {
        */
       HandlerRegistration addTouchStartHandler(TouchStartHandler handler);
 
+      /**
+       * Adds a {@link TouchCancelEvent} handler.
+       *
+       * @param handler the handler
+       * @return the registration for the event
+       */
+      HandlerRegistration addTouchCancelHandler(TouchCancelHandler handler);
+      
       /**
        * Adds a {@link TouchMoveEvent} handler.
        *

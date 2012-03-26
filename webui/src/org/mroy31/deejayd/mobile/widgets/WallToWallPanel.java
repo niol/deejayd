@@ -21,14 +21,10 @@
 package org.mroy31.deejayd.mobile.widgets;
 
 import org.mroy31.deejayd.mobile.client.MobileLayout;
-import org.mroy31.deejayd.mobile.events.AnimationEndEvent;
-import org.mroy31.deejayd.mobile.events.AnimationEndHandler;
-import org.mroy31.deejayd.mobile.events.HasAnimationHandlers;
 import org.mroy31.deejayd.mobile.widgets.impl.WallToWallPanelImpl;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
@@ -42,8 +38,7 @@ import com.google.gwt.user.client.ui.Widget;
  * or alternate command that can be accessed by a second button in the title
  * bar.
  */
-public abstract class WallToWallPanel extends Composite
-        implements HasAnimationHandlers {
+public abstract class WallToWallPanel extends Composite {
     final String TITLE_W = Integer.toString(Window.getClientWidth()-170)+"px";
 
     protected final MobileLayout ui = MobileLayout.getInstance();
@@ -156,11 +151,6 @@ public abstract class WallToWallPanel extends Composite
             Command command, boolean forward) {
         wall.setRightButton(label, command, forward);
      }
-
-    public HandlerRegistration addAnimationEndHandler(
-            AnimationEndHandler handler) {
-        return addDomHandler(handler, AnimationEndEvent.getType());
-    }
 
     /**
      * A short title to be used as the label of the back button.

@@ -23,14 +23,16 @@
 package org.mroy31.deejayd.mobile.widgets.impl;
 
 import org.mroy31.deejayd.mobile.events.HasTouchHandlers;
-import org.mroy31.deejayd.mobile.events.TouchEndEvent;
-import org.mroy31.deejayd.mobile.events.TouchEndHandler;
-import org.mroy31.deejayd.mobile.events.TouchMoveEvent;
-import org.mroy31.deejayd.mobile.events.TouchMoveHandler;
-import org.mroy31.deejayd.mobile.events.TouchStartEvent;
-import org.mroy31.deejayd.mobile.events.TouchStartHandler;
 import org.mroy31.deejayd.mobile.widgets.VolumeSlider;
 
+import com.google.gwt.event.dom.client.TouchCancelEvent;
+import com.google.gwt.event.dom.client.TouchCancelHandler;
+import com.google.gwt.event.dom.client.TouchEndEvent;
+import com.google.gwt.event.dom.client.TouchEndHandler;
+import com.google.gwt.event.dom.client.TouchMoveEvent;
+import com.google.gwt.event.dom.client.TouchMoveHandler;
+import com.google.gwt.event.dom.client.TouchStartEvent;
+import com.google.gwt.event.dom.client.TouchStartHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Composite;
@@ -60,6 +62,11 @@ public class VolumeSliderMobileImpl extends VolumeSliderImpl {
                 TouchStartHandler handler) {
             return addDomHandler(handler, TouchStartEvent.getType());
         }
+        
+        public HandlerRegistration addTouchCancelHandler(
+                TouchCancelHandler handler) {
+            return addDomHandler(handler, TouchCancelEvent.getType());
+        }
 
     }
     private Knob knob = new Knob();
@@ -84,7 +91,7 @@ public class VolumeSliderMobileImpl extends VolumeSliderImpl {
         knob.addTouchMoveHandler(new TouchMoveHandler() {
             public void onTouchMove(TouchMoveEvent event) {
                 if (sliding) {
-                    int x = event.touches().get(0).pageX();
+                    int x = event.getTouches().get(0).getPageX();
                     volSlider.slideToX(x);
                 }
             }

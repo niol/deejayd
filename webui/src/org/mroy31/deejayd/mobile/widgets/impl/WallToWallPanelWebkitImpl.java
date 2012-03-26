@@ -20,21 +20,17 @@
 
 package org.mroy31.deejayd.mobile.widgets.impl;
 
-import org.mroy31.deejayd.mobile.events.AnimationEndEvent;
 import org.mroy31.deejayd.mobile.events.AnimationEndHandler;
+import org.mroy31.deejayd.mobile.events.DeejaydEventsUtils;
 import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 
-import com.google.gwt.event.shared.HandlerRegistration;
-
 public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
-    private HandlerRegistration animHandlerReg;
-    private HandlerRegistration contextHandlerReg;
 
     @Override
     public void showContextPanel(final WallToWallPanel panel) {
-        contextHandlerReg = panel.addAnimationEndHandler(
+        DeejaydEventsUtils.addAnimationEndHandlerOnce(panel.getElement(),
                 new AnimationEndHandler() {
-                    public void onAnimationEnd(AnimationEndEvent event) {
+                    public void onAnimationEnd() {
                         panel.getWall().getContents().setVisible(false);
 
                         panel.getContextPanel().removeStyleName(
@@ -43,8 +39,6 @@ public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
                         panel.removeStyleName(ui.resources.mobileCss().slideup()
                                 +" "+ui.resources.mobileCss().in()+" "+
                                 ui.resources.mobileCss().reverse());
-
-                        contextHandlerReg.removeHandler();
                 }
             });
         panel.getContextPanel().setVisible(true);
@@ -58,16 +52,14 @@ public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
 
     @Override
     public void hideContextPanel(final WallToWallPanel panel) {
-        contextHandlerReg = panel.addAnimationEndHandler(
+    	DeejaydEventsUtils.addAnimationEndHandlerOnce(panel.getElement(),
                 new AnimationEndHandler() {
-                    public void onAnimationEnd(AnimationEndEvent event) {
+                    public void onAnimationEnd() {
                         panel.getContextPanel().removeStyleName(
                                 ui.resources.mobileCss().slideup()
                                 +" "+ui.resources.mobileCss().out()+" "+
                                 ui.resources.mobileCss().reverse());
                         panel.getContextPanel().setVisible(false);
-
-                        contextHandlerReg.removeHandler();
                 }
             });
         panel.getWall().getContents().setVisible(true);
@@ -80,9 +72,9 @@ public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
     @Override
     public void showParent(final WallToWallPanel current, final WallToWallPanel parent) {
         if (parent != null) {
-            animHandlerReg = current.addAnimationEndHandler(
+        	DeejaydEventsUtils.addAnimationEndHandlerOnce(current.getElement(),
                 new AnimationEndHandler() {
-                    public void onAnimationEnd(AnimationEndEvent event) {
+                    public void onAnimationEnd() {
                         current.removeStyleName(ui.resources.mobileCss().currentWall());
                         current.removeStyleName(ui.resources.mobileCss().slide()+" "+
                                 ui.resources.mobileCss().out()+" "+
@@ -90,8 +82,6 @@ public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
                         parent.removeStyleName(ui.resources.mobileCss().slide()
                                 +" "+ui.resources.mobileCss().in()+" "+
                                 ui.resources.mobileCss().reverse());
-
-                        animHandlerReg.removeHandler();
                 }
             });
 
@@ -108,18 +98,14 @@ public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
     @Override
     public void showChild(final WallToWallPanel current, final WallToWallPanel child) {
         if (child != null) {
-            animHandlerReg = current.addAnimationEndHandler(
+        	DeejaydEventsUtils.addAnimationEndHandlerOnce(current.getElement(),
                 new AnimationEndHandler() {
-                    public void onAnimationEnd(AnimationEndEvent event) {
+                    public void onAnimationEnd() {
                         current.removeStyleName(ui.resources.mobileCss().currentWall());
                         current.removeStyleName(ui.resources.mobileCss().slide()
                                 +" "+ui.resources.mobileCss().out());
                         child.removeStyleName(ui.resources.mobileCss().slide()
                                 +" "+ui.resources.mobileCss().in());
-
-
-                        animHandlerReg.removeHandler();
-                        animHandlerReg = null;
                 }
             });
 

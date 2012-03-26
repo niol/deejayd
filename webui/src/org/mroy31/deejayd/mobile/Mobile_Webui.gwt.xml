@@ -31,21 +31,6 @@
     </none>
   </set-property>
 
-  <replace-with class="com.google.gwt.user.client.impl.DOMImplExtendWebkit">
-    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
-    <all>
-      <when-property-is name="user.agent" value="safari"/>
-      <when-property-is name="mobile.user.agent" value="none"/>
-    </all>
-  </replace-with>
-  <replace-with class="com.google.gwt.user.client.impl.DOMImplMobileWebkit">
-    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
-    <all>
-      <when-property-is name="user.agent" value="safari"/>
-      <when-property-is name="mobile.user.agent" value="mobilesafari"/>
-    </all>
-  </replace-with>
-
   <replace-with class="org.mroy31.deejayd.mobile.widgets.impl.VolumeSliderMobileImpl">
     <when-type-is class="org.mroy31.deejayd.mobile.widgets.impl.VolumeSliderImpl"/>
     <all>
