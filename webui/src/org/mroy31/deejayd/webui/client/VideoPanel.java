@@ -24,8 +24,8 @@ import org.mroy31.deejayd.common.events.LibraryChangeEvent;
 import org.mroy31.deejayd.common.events.LibraryChangeHandler;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.types.FileDirList;
+import org.mroy31.deejayd.common.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
-import org.mroy31.deejayd.webui.widgets.LibraryManager;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;

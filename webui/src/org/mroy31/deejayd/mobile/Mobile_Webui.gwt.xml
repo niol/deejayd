@@ -31,8 +31,8 @@
     </none>
   </set-property>
 
-  <replace-with class="org.mroy31.deejayd.mobile.widgets.impl.VolumeSliderMobileImpl">
-    <when-type-is class="org.mroy31.deejayd.mobile.widgets.impl.VolumeSliderImpl"/>
+  <replace-with class="org.mroy31.deejayd.mobile.widgets.impl.SliderMobileImpl">
+    <when-type-is class="org.mroy31.deejayd.mobile.widgets.impl.SliderImpl"/>
     <all>
       <when-property-is name="user.agent" value="safari"/>
       <when-property-is name="mobile.user.agent" value="mobilesafari"/>
@@ -54,9 +54,11 @@
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>
+  <source path='animation'/>
   <source path='events'/>
   <source path='resources'/>
   <source path='sources'/>
   <source path='i18n'/>
-  <source path='widgets'/><source path="library"></source>
+  <source path='widgets'/>
+  <source path="library"/>
 </module>

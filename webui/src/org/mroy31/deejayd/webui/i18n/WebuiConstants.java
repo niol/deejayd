@@ -20,9 +20,9 @@
 
 package org.mroy31.deejayd.webui.i18n;
 
-import com.google.gwt.i18n.client.Constants;
+import org.mroy31.deejayd.common.i18n.CommonI18nConstants;
 
-public interface WebuiConstants extends Constants {
+public interface WebuiConstants extends CommonI18nConstants {
 
     @DefaultStringValue("Play")
     String play();
@@ -89,9 +89,6 @@ public interface WebuiConstants extends Constants {
 
     @DefaultStringValue("Playlists")
     String playlists();
-
-    @DefaultStringValue("All")
-    String all();
 
     @DefaultStringValue("Add")
     String add();

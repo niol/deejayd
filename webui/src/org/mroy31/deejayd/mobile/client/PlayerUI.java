@@ -28,23 +28,28 @@ import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.common.widgets.PlayerWidget;
 import org.mroy31.deejayd.mobile.resources.MobileResources;
 import org.mroy31.deejayd.mobile.widgets.TimeSeekBar;
-import org.mroy31.deejayd.mobile.widgets.VolumeSlider;
+import org.mroy31.deejayd.mobile.widgets.VolumeControl;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
+import com.google.gwt.event.logical.shared.ResizeEvent;
+import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 
 public class PlayerUI extends PlayerWidget {
     private final MobileLayout ui = MobileLayout.getInstance();
+    private PlayerPanel playerPanel;
 
     private static PlayerUIUiBinder uiBinder = GWT
             .create(PlayerUIUiBinder.class);
@@ -54,51 +59,58 @@ public class PlayerUI extends PlayerWidget {
         public void onMediaChange(String title);
     }
     private MediaChangeHandler changeHandler;
+    
+    private VideoOptionsPanel videoOptsPanel = new VideoOptionsPanel();
+    private GoToPanel goToPanel = new GoToPanel();
 
-    @UiField HorizontalPanel seekBarPanel;
+    @UiField FlowPanel optionPanel;
     @UiField TimeSeekBar seekBar;
-    @UiField VolumeSlider volSlider;
+    @UiField VolumeControl volSlider;
     @UiField Image coverImg;
+    @UiField Button videoOptsButton;
+    @UiField Button seekButton;
     @UiField Button playToggleButton;
     @UiField(provided = true) final MobileResources resources = ui.resources;
 
-    public PlayerUI(MediaChangeHandler handler) {
+    public PlayerUI(MediaChangeHandler handler, PlayerPanel playerPanel) {
         super(MobileLayout.getInstance());
+        this.playerPanel = playerPanel;
 
         this.changeHandler = handler;
         initWidget(uiBinder.createAndBindUi(this));
 
         coverImg.addLoadHandler(new LoadHandler() {
             public void onLoad(LoadEvent event) {
-                int size = Math.min(Window.getClientWidth(),
-                        Window.getClientHeight()-140);
-                coverImg.setHeight(Integer.toString(size));
-                coverImg.setWidth(Integer.toString(size));
+                resizeCoverImage();
             }
         });
         coverImg.setResource(ui.resources.missingCover());
+        // resize cover img when window is resized
+        Window.addResizeHandler(new ResizeHandler() {
+			
+			@Override
+			public void onResize(ResizeEvent event) {
+				resizeCoverImage();
+			}
+		});
 
         // Volume slider
         volSlider.addValueChangeHandler(new ValueChangeHandler<Integer>() {
             public void onValueChange(ValueChangeEvent<Integer> event) {
-                if (volumeTimer != null) {
-                    volumeTimer.cancel();
-                }
-                volumeTimer = new VolumeTimer(event.getValue());
-                volumeTimer.schedule(400);
+                volumeTimer.updateValue(event.getValue());
             }
         });
 
         // Time SeekBar
+        seekButton.setText(ui.i18nConst.goTo());
         seekBar.addValueChangeHandler(new ValueChangeHandler<Integer>() {
             public void onValueChange(ValueChangeEvent<Integer> event) {
-                if (seekTimer != null) {
-                    seekTimer.cancel();
-                }
-                seekTimer = new SeekTimer(event.getValue());
-                seekTimer.schedule(250);
+                seekTimer.updateValue(event.getValue());
             }
         });
+        
+        // video options
+        videoOptsButton.setText(ui.i18nConst.videoOption());
     }
 
     public void updateState(String state) {
@@ -111,11 +123,11 @@ public class PlayerUI extends PlayerWidget {
             playToggleButton.removeStyleName(
                     ui.resources.mobileCss().pause());
         }
-        seekBar.setVisible(!state.equals("stop"));
+        optionPanel.setVisible(!state.equals("stop"));
     }
 
     public void updateVolume(int vol) {
-        volSlider.setCurrentValue(vol, false);
+        volSlider.setValue(vol, false);
     }
 
     public void updateCurrent() {
@@ -144,12 +156,14 @@ public class PlayerUI extends PlayerWidget {
                     });
                 } else if (current.isVideo()) {
                     title += " ("+DeejaydUtils.formatTime(current.getIntAttr("length"))+")";
+                    setVideoOptions(current);
                 } else if (current.isWebradio()) {
                     if (current.hasAttr("song-title"))
                         title += " -- " + current.getStrAttr("song-title");
                     if (current.hasAttr("uri"))
                         desc = current.getStrAttr("uri");
                 }
+                videoOptsButton.setVisible(current.isVideo());
 
                 changeHandler.onMediaChange("<b>"+title+"</b><br/><i>"+desc+"</i>");
             }
@@ -160,6 +174,43 @@ public class PlayerUI extends PlayerWidget {
         coverImg.setResource(ui.resources.missingCover());
     }
 
+    @UiHandler("seekButton")
+    void seekButtonHandler(ClickEvent e) {
+    	playerPanel.setContextWidget(ui.i18nConst.goTo(), goToPanel);
+    	playerPanel.setContextVisible(true);
+    }
+    
+    @UiHandler("videoOptsButton")
+    void videoOptsButtonHandler(ClickEvent e) {
+    	playerPanel.setContextWidget(ui.i18nConst.videoOption(), videoOptsPanel);
+    	playerPanel.setContextVisible(true);
+    }
+    
+    protected void setVideoOptions(Media media) {
+        videoOptsPanel.setZoom((long) media.getIntAttr("zoom"));
+        videoOptsPanel.setAspectRatio(media.getStrAttr("aspect_ratio"));
+
+        videoOptsPanel.setAudioChannelEnabled(media.hasAttr("audio"));
+        if (media.hasAttr("audio")) {
+            String value = media.getStrAttr("audio_idx");
+            videoOptsPanel.setAudioChannels(media.getArrayAttr("audio"), value);
+        }
+
+        videoOptsPanel.setSubChannelEnabled(media.hasAttr("subtitle"));
+        if (media.hasAttr("subtitle")) {
+            String value = media.getStrAttr("subtitle_idx");
+            videoOptsPanel.setSubChannels(media.getArrayAttr("subtitle"), value);
+            videoOptsPanel.setSubOffset((long) media.getIntAttr("sub_offset"));
+        }
+    }
+    
+    private void resizeCoverImage() {
+    	int size = Math.min(Window.getClientWidth(),
+                Window.getClientHeight()-140);
+        coverImg.setHeight(Integer.toString(size));
+        coverImg.setWidth(Integer.toString(size));
+    }
+    
 }
 
 //vim: ts=4 sw=4 expandtab

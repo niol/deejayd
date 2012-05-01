@@ -21,24 +21,57 @@
 package org.mroy31.deejayd.mobile.client;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.RunAsyncCallback;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.resources.client.ClientBundle;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.RootPanel;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Mobile_Webui implements EntryPoint {
+	
+	public static interface Resources extends ClientBundle {
+		
+		@Source("ui-loading.gif")
+		ImageResource uiLoading();
+	}
 
     /**
      * This is the entry point method.
      */
     public void onModuleLoad() {
+    	Resources resources = GWT.create(Resources.class);
+    	
         Element errorMsg = DOM.getElementById("errorMsg");
         errorMsg.removeFromParent();
+        
+        final FlowPanel loadingBox = new FlowPanel();
+        loadingBox.addStyleName("loading-box");
+        loadingBox.add(new HTML(AbstractImagePrototype.
+    			create(resources.uiLoading()).getHTML()+"Loading ..."));       
+        RootPanel.get().add(loadingBox);
 
-        MobileLayout panel = MobileLayout.getInstance();
-        RootPanel.get().add(panel);
+        // split code to display load ui return as fast as possible
+        GWT.runAsync(new RunAsyncCallback() {
+        	public void onFailure(Throwable caught) {
+                Window.alert("Code download failed");
+              }
+
+              public void onSuccess() {
+            	  loadingBox.removeFromParent();
+            	  
+            	  MobileLayout panel = MobileLayout.getInstance();
+                  RootPanel.get().add(panel);
+              }
+        });
     }
 }
 

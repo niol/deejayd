@@ -20,11 +20,12 @@
 
 package org.mroy31.deejayd.mobile.i18n;
 
-import com.google.gwt.i18n.client.Constants;
+import org.mroy31.deejayd.common.i18n.CommonI18nConstants;
+
 import com.google.gwt.i18n.client.LocalizableResource.DefaultLocale;
 
 @DefaultLocale("en")
-public interface MobileConstants extends Constants {
+public interface MobileConstants extends CommonI18nConstants {
 
     @DefaultStringValue("Mode List")
     String modeList();
@@ -92,9 +93,6 @@ public interface MobileConstants extends Constants {
     @DefaultStringValue("save")
     String save();
 
-    @DefaultStringValue("All")
-    String all();
-
     @DefaultStringValue("Genre")
     String genre();
 
@@ -103,9 +101,6 @@ public interface MobileConstants extends Constants {
 
     @DefaultStringValue("Album")
     String album();
-
-    @DefaultStringValue("Various artists")
-    String variousArtist();
 
     @DefaultStringValue("Update panels")
     String updatePanel();
@@ -119,11 +114,41 @@ public interface MobileConstants extends Constants {
     @DefaultStringValue("Files has been added to the playlist")
     String plsAddMsg();
 
-    @DefaultStringValue("Unknown")
-    String unknown();
-
     @DefaultStringValue("Select")
     String select();
+    
+    @DefaultStringValue("Video Options")
+    String videoOption();
+    
+    @DefaultStringValue("Go To")
+    String goTo();
+    
+    @DefaultStringValue("Zoom")
+    String zoom();
+    
+    @DefaultStringValue("Ratio aspect")
+    String aspectRatio();
+    
+    @DefaultStringValue("Audio channel")
+    String audioChannel();
+    
+    @DefaultStringValue("Subtitle channel")
+    String subtitleChannel();
+    
+    @DefaultStringValue("Subtitle offset")
+    String subtitleOffset();
+    
+    @DefaultStringValue("With subtitle")
+    String withSubtitle();
+    
+    @DefaultStringValue("Without subtitle")
+    String withoutSubtitle();
+    
+    @DefaultStringValue("On")
+    String on();
+    
+    @DefaultStringValue("Off")
+    String off();
 }
 
 // vim: ts=4 sw=4 expandtab

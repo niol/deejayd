@@ -1,6 +1,6 @@
 /*
  * Deejayd, a media player daemon
- * Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+ * Copyright (C) 2007-2012 Mickael Royer <mickael.royer@gmail.com>
  *                         Alexandre Rossi <alexandre.rossi@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,10 +27,8 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.uibinder.client.UiBinder;
-import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -40,7 +38,6 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class WallPanel extends Composite {
     private final MobileLayout ui = MobileLayout.getInstance();
-    final String TITLE_W = Integer.toString(Window.getClientWidth()-170)+"px";
 
     private static WallPanelUiBinder uiBinder = GWT
             .create(WallPanelUiBinder.class);
@@ -48,23 +45,15 @@ public class WallPanel extends Composite {
 
     @UiField FlowPanel rootPanel;
     @UiField HorizontalPanel header;
+    @UiField FlowPanel rightButtonBox;
+    @UiField FlowPanel leftButtonBox;
+    
     @UiField FlowPanel contents;
     @UiField HTML title;
     @UiField(provided = true) final MobileResources resources = ui.resources;
 
     public WallPanel() {
         initWidget(uiBinder.createAndBindUi(this));
-
-        header.setCellWidth(title, "100%");
-        header.setCellHorizontalAlignment(title, HorizontalPanel.ALIGN_CENTER);
-        title.setWidth(TITLE_W);
-    }
-
-    @UiFactory public HorizontalPanel makeHPanel() {
-        HorizontalPanel hPanel = new HorizontalPanel();
-        hPanel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-
-        return hPanel;
     }
 
     @Override
@@ -97,18 +86,20 @@ public class WallPanel extends Composite {
     public void setLeftButton(String label, final Command cmd) {
         Label l = new Label(label);
         l.addStyleName(resources.mobileCss().button());
+        l.addStyleName(resources.mobileCss().headerButton());
         l.addStyleName(resources.mobileCss().headerBackButton());
         l.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
                 cmd.execute();
             }
         });
-        header.insert(l, 0);
+        leftButtonBox.add(l);
     }
 
     public void setRightButton(String label, final Command cmd, boolean fwd) {
         Label l = new Label(label);
         l.addStyleName(resources.mobileCss().button());
+        l.addStyleName(resources.mobileCss().headerButton());
         if (fwd) {
             l.addStyleName(ui.resources.mobileCss().headerForwardButton());
         }
@@ -117,8 +108,7 @@ public class WallPanel extends Composite {
                 cmd.execute();
             }
         });
-        header.add(l);
-        header.setCellHorizontalAlignment(l, HorizontalPanel.ALIGN_RIGHT);
+        rightButtonBox.add(l);
     }
 
     public void setContextPanel(Widget w) {

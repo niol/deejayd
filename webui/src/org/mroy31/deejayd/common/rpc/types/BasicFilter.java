@@ -57,10 +57,18 @@ public class BasicFilter extends MediaFilter {
         return tag;
     }
 
+    public void setTag(String tag) {
+    	this.tag = tag;
+    }
+    
     public String getPattern() {
         return pattern;
     }
 
+    public void setPattern(String pattern) {
+    	this.pattern = pattern;
+    }
+    
     @Override
     public BasicFilter isBasic() {
         return this;

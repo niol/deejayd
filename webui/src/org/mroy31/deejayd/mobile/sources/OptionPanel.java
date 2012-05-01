@@ -24,11 +24,11 @@ import java.util.HashMap;
 
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
+import org.mroy31.deejayd.mobile.widgets.FlipSwitch;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
@@ -45,7 +45,7 @@ public class OptionPanel extends Composite {
     private Grid optionGrid = new Grid(2, 2);
     private Label rLabel = new Label(ui.i18nConst.repeat());
     private Label pLabel = new Label(ui.i18nConst.playOrder());
-    private CheckBox repeat = new CheckBox();
+    private FlipSwitch repeat = new FlipSwitch();
     private ListBox playorder = new ListBox();
     private Label saveButton = new Label(ui.i18nConst.save());
 

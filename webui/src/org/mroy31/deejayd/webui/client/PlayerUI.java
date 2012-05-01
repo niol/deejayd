@@ -84,12 +84,7 @@ public class PlayerUI extends PlayerWidget implements StatusChangeHandler {
         volumeBar.addValueChangeHandler(new ValueChangeHandler<Double>() {
             public void onValueChange(ValueChangeEvent<Double> event) {
                 int value = (int) Math.round(event.getValue());
-                if (volumeTimer != null) {
-                    volumeTimer.cancel();
-                    volumeTimer = null;
-                }
-                volumeTimer = new VolumeTimer(value);
-                volumeTimer.schedule(200);
+                volumeTimer.updateValue(value);
             }
         });
         // add playing change handler
@@ -97,13 +92,8 @@ public class PlayerUI extends PlayerWidget implements StatusChangeHandler {
         seekBar.addValueChangeHandler(new ValueChangeHandler<Double>() {
             public void onValueChange(ValueChangeEvent<Double> event) {
                 int value = (int) Math.round(event.getValue());
-                if (seekTimer != null) {
-                    seekTimer.cancel();
-                    seekTimer = null;
-                }
                 playingTime.setText(DeejaydUtils.formatTime(value)+"-->");
-                seekTimer = new SeekTimer(value);
-                seekTimer.schedule(200);
+                seekTimer.updateValue(value);
             }
         });
         // init video options

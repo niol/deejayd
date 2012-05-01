@@ -19,9 +19,11 @@
     <c:DeejaydCellTable ui:field="list"></c:DeejaydCellTable>
 
     <g:HorizontalPanel width="100%">
-        <g:Label ui:field="loadButton"
+      <g:cell horizontalAlignment="ALIGN_CENTER">
+        <g:Label width="90%" ui:field="loadButton"
                  addStyleNames="{resources.mobileCss.button}
                                 {resources.mobileCss.center}"></g:Label>
+      </g:cell>
     </g:HorizontalPanel>
   </g:FlowPanel>
 </ui:UiBinder>

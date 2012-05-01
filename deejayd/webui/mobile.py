@@ -55,6 +55,12 @@ def build(config):
           height: 30px; width: 30px;
           padding: 0px; margin:0px;
         }
+        .loading-box {
+          width: %(fullwidth)s;
+          font-size: 15px;
+          font-weight: bold;
+          text-align: center;
+        }
     </style>
   </head>
 
@@ -69,7 +75,7 @@ def build(config):
     <script>
       var errorMsg = document.getElementById("errorMsg");
       if (errorMsg) {
-        setTimeout('errorMsg.style.display = "block";', 3000);
+        setTimeout('errorMsg.style.display = "block";', 5000);
       }
     </script>
 
@@ -82,6 +88,6 @@ def build(config):
 
   </body>
 </html>
-""" % { "lang": config.get("webui", "lang"), "left": "50%" }
+""" % { "lang": config.get("webui", "lang"), "left": "50%", "fullwidth": "100%" }
 
 # vim: ts=4 sw=4 expandtab

@@ -40,7 +40,7 @@ import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class VideoOptions extends PopupPanel
-        implements ValueChangeHandler<Long>, ChangeHandler{
+        implements ValueChangeHandler<Long>, ChangeHandler {
     private WebuiLayout ui;
     private boolean has_avoffset = false;
     private boolean has_suboffset = false;
@@ -109,7 +109,7 @@ public class VideoOptions extends PopupPanel
                     idx ++;
                 }
 
-                has_aspectratio = Boolean.valueOf(answer.get("aspect_ration"));
+                has_aspectratio = Boolean.valueOf(answer.get("aspect_ratio"));
                 if (has_aspectratio) { // aspect ratio
                     aspectRatio.addItem("Auto", "auto");
                     aspectRatio.addItem("1:1");

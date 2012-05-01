@@ -303,7 +303,7 @@ public class Rpc {
         args.set(1, idsArray);
         args.set(2, new JSONString("id"));
 
-        send("recpls.staticAdd", args, handler);
+        send("recpls.staticAddMedia", args, handler);
     }
 
     public void recPlsMagicGetProperties(String plsId,

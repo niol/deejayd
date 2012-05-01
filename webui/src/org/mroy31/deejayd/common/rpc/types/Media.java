@@ -56,7 +56,7 @@ public class Media {
                 return Boolean.toString(attr.isBoolean().booleanValue());
             }
         }
-        return null;
+        return "";
     }
 
     public int getIntAttr(String name) {

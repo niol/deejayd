@@ -20,11 +20,11 @@
 
 package org.mroy31.deejayd.webui.client;
 
+import org.mroy31.deejayd.common.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.cellview.AudioLibView;
 import org.mroy31.deejayd.webui.cellview.AudioSearchView;
 import org.mroy31.deejayd.webui.cellview.PlsListView;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
-import org.mroy31.deejayd.webui.widgets.LibraryManager;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;

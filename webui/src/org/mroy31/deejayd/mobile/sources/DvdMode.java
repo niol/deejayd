@@ -20,28 +20,59 @@
 
 package org.mroy31.deejayd.mobile.sources;
 
+import java.util.ArrayList;
+
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.rpc.callbacks.AbstractRpcCallback;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
-import org.mroy31.deejayd.mobile.widgets.ListPanel;
-import org.mroy31.deejayd.mobile.widgets.LoadingWidget;
 
+import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.ValueUpdater;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONValue;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.user.cellview.client.CellList;
+import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
 
 public class DvdMode extends AbstractMode {
     private final MobileLayout ui = MobileLayout.getInstance();
     private int sourceId = -1;
-    private ListPanel mediaList = new ListPanel();
+    private CellList<JSONObject> mediaList = new CellList<JSONObject>(
+    		new AbstractCell<JSONObject>("click") {
+
+    			@Override
+    			public void onBrowserEvent(Context context, Element parent, JSONObject track,
+    				      NativeEvent event, ValueUpdater<JSONObject> valueUpdater) {
+    				ui.rpc.goTo((int) track.get("ix").isNumber().doubleValue(),
+                            new AnswerHandler<Boolean>() {
+                        public void onAnswer(Boolean answer) {
+                            ui.update();
+                            ui.getWallPanel("currentMode").showChild();
+                        }
+                    });
+    				
+    			}
+    			
+				@Override
+				public void render(com.google.gwt.cell.client.Cell.Context context,
+						JSONObject track, SafeHtmlBuilder sb) {
+					int idx = (int) track.get("ix").isNumber().doubleValue();
+					String label = ui.i18nConst.title()+" "+Integer.toString(idx)+
+    		                " ("+DeejaydUtils.formatTime((int) track.get("length").
+    		                         isNumber().doubleValue())+")";
+					sb.appendEscaped(label);
+				}
+	});
     private HorizontalPanel toolbar = new HorizontalPanel();
 
     public DvdMode() {
@@ -58,6 +89,9 @@ public class DvdMode extends AbstractMode {
         toolbar.add(reload);
 
         FlowPanel panel = new FlowPanel();
+        
+        mediaList.setPageSize(100);
+        mediaList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
         panel.add(toolbar);
         panel.add(mediaList);
         initWidget(panel);
@@ -68,18 +102,17 @@ public class DvdMode extends AbstractMode {
     public void onStatusChange(StatusChangeEvent event) {
         int id = Integer.parseInt(event.getStatus().get("dvd"));
         if (id != sourceId) {
-            mediaList.clear();
-            mediaList.add(new LoadingWidget());
             ui.rpc.send("dvd.get", new JSONArray(), new AbstractRpcCallback() {
 
                 @Override
                 public void onCorrectAnswer(JSONValue data) {
-                    mediaList.clear();
+                	ArrayList<JSONObject> trackObjs = new ArrayList<JSONObject>();
                     JSONArray tracks = data.isObject().get("track").isArray();
                     for (int i = 0; i<tracks.size(); i++) {
                         JSONObject track = tracks.get(i).isObject();
-                        addRow(track, i);
+                        trackObjs.add(track);
                     }
+                    mediaList.setRowData(trackObjs);
                 }
             });
 
@@ -92,25 +125,6 @@ public class DvdMode extends AbstractMode {
         return ui.i18nConst.dvd();
     }
 
-    private void addRow(final JSONObject track, int idx) {
-        Label l = new Label(ui.i18nConst.title()+" "+Integer.toString(idx)+
-                " ("+DeejaydUtils.formatTime((int) track.get("length").
-                         isNumber().doubleValue())+")");
-        l.addStyleName(ui.resources.mobileCss().dvdTrack());
-        l.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                ui.rpc.goTo((int) track.get("ix").isNumber().doubleValue(),
-                        new AnswerHandler<Boolean>() {
-                    public void onAnswer(Boolean answer) {
-                        ui.update();
-                        ui.getWallPanel("currentMode").showChild();
-                    }
-                });
-            }
-        });
-
-        mediaList.add(l);
-    }
 }
 
 //vim: ts=4 sw=4 expandtab

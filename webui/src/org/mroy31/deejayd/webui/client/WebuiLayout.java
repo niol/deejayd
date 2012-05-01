@@ -28,17 +28,19 @@ import org.mroy31.deejayd.common.events.DropEvent;
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
+import org.mroy31.deejayd.common.i18n.CommonI18nConstants;
+import org.mroy31.deejayd.common.i18n.CommonI18nMessages;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 import org.mroy31.deejayd.common.rpc.callbacks.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
+import org.mroy31.deejayd.common.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.cellview.AbstractMediaList;
 import org.mroy31.deejayd.webui.cellview.Pager;
 import org.mroy31.deejayd.webui.cellview.SongList;
 import org.mroy31.deejayd.webui.i18n.WebuiConstants;
 import org.mroy31.deejayd.webui.i18n.WebuiMessages;
 import org.mroy31.deejayd.webui.resources.WebuiResources;
-import org.mroy31.deejayd.webui.widgets.LibraryManager;
 import org.mroy31.deejayd.webui.widgets.WebuiSplitLayoutPanel;
 
 import com.google.gwt.core.client.GWT;
@@ -436,6 +438,16 @@ public class WebuiLayout extends DeejaydUIWidget
             queueState.setResource(resources.stop());
         }
     }
+    
+	@Override
+	public CommonI18nConstants getI18nConstants() {
+		return this.i18nConstants;
+	}
+
+	@Override
+	public CommonI18nMessages getI18nMessages() {
+		return this.i18nMessages;
+	}
 }
 
 //vim: ts=4 sw=4 expandtab

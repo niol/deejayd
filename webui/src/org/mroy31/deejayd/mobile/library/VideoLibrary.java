@@ -38,6 +38,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DeejaydCellTable;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
@@ -86,10 +87,8 @@ public class VideoLibrary extends AbstractLibrary {
                     @Override
                     public void render(Context context, String value,
                             SafeHtmlBuilder sb) {
-                        sb.appendHtmlConstant("<button class='"+
-                                ui.resources.mobileCss().button()+"'>");
-                        sb.appendEscaped(ui.i18nConst.select());
-                        sb.appendHtmlConstant("</button>");
+                    	sb.append(AbstractImagePrototype.
+                    			create(ui.resources.add()).getSafeHtml());
                     }
 
                     @Override
@@ -106,6 +105,7 @@ public class VideoLibrary extends AbstractLibrary {
                         return object.getPath();
                     }
         });
+        l.setColumnWidth(0, "45px");
     }
 }
 

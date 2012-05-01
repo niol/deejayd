@@ -28,6 +28,7 @@ import org.mroy31.deejayd.common.rpc.types.Media;
 import org.mroy31.deejayd.common.widgets.DeejaydUtils;
 import org.mroy31.deejayd.mobile.client.MobileLayout;
 import org.mroy31.deejayd.mobile.client.SourcePanel;
+import org.mroy31.deejayd.mobile.resources.MobileResources;
 import org.mroy31.deejayd.mobile.widgets.Pager;
 
 import com.google.gwt.cell.client.AbstractCell;
@@ -36,39 +37,34 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.json.client.JSONArray;
-import com.google.gwt.safehtml.client.SafeHtmlTemplates;
-import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.user.cellview.client.CellList;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.DeejaydCellTable;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 public abstract class DefaultMode extends AbstractMode
         implements StatusChangeHandler {
-
-    interface Template extends SafeHtmlTemplates {
-        @Template("<table style=\"width=100%;\" cellspacing=\"0\" cellpadding=\"0\" class=\"{1}\"><tbody><tr>{0}</tr></tbody></table>")
-        SafeHtml tbody(SafeHtml rowHtml, String classes);
-
-        @Template("<td width=\"100%\" style=\"vertical-align: middle;\">{0}</td>")
-        SafeHtml td(SafeHtml contents);
-
-        @Template("<div style=\"width:{1};\">{0}</div>")
-        SafeHtml div(SafeHtml contents, String width);
-    }
-    private static final Template TEMPLATE = GWT.create(Template.class);
+	
+	private static DefaultModeUiBinder uiBinder = GWT
+            .create(DefaultModeUiBinder.class);
+    interface DefaultModeUiBinder extends UiBinder<Widget, DefaultMode> {}
+    
+    @UiField HorizontalPanel toolbar;
+    @UiField FlowPanel mediaListPanel;
+    @UiField Pager pager;
+    @UiField(provided = true) final MobileResources resources = ui.resources;
 
     protected static MobileLayout ui = MobileLayout.getInstance();
     protected SourcePanel manager;
     protected String name;
     protected int PAGE_SIZE = 15;
-    protected String ITEM_WIDTH = Integer.toString(Window.getClientWidth()-100);
 
-    protected Pager mediaList;
-    protected HorizontalPanel toolbar = new HorizontalPanel();
     protected Command hideCtxCmd = new Command() {
         public void execute() {
             manager.setContextVisible(false);
@@ -76,7 +72,26 @@ public abstract class DefaultMode extends AbstractMode
     };
 
     private MediaListProvider provider;
-    private AbstractCell<Media> cell = new AbstractCell<Media>(new String[] {"click"}) {
+    private AbstractCell<Media> cCell = new AbstractCell<Media>(new String[] {"click"}) {
+    	
+    	@Override
+        public void onBrowserEvent(Context context, Element parent, Media value,
+                  NativeEvent event, ValueUpdater<Media> valueUpdater) {
+            ui.rpc.goTo(value.getId(), new AnswerHandler<Boolean>() {
+                public void onAnswer(Boolean answer) {
+                    ui.update();
+                    ui.getWallPanel("currentMode").showChild();
+                }
+            });
+        }
+    	
+    	@Override
+        public void render(Context context, Media value, SafeHtmlBuilder sb) {
+    		sb.append(AbstractImagePrototype.
+        			create(ui.resources.chevron()).getSafeHtml());
+    	}
+    };
+    private AbstractCell<Media> titleCell = new AbstractCell<Media>(new String[] {"click"}) {
 
         @Override
         public void onBrowserEvent(Context context, Element parent, Media value,
@@ -94,8 +109,10 @@ public abstract class DefaultMode extends AbstractMode
             if (value == null)
                 return;
 
-            SafeHtmlBuilder tdBuilder = new SafeHtmlBuilder();
             String title = value.getTitle(); String desc = "";
+            String titleClass = ui.resources.mobileCss().mListTitle();
+            String descClass = ui.resources.mobileCss().mListDesc();
+            
             if (value.isSong()) {
                 title += " ("+DeejaydUtils.formatTime(value.getIntAttr("length"))+")";
                 if (value.hasAttr("artist"))
@@ -104,8 +121,18 @@ public abstract class DefaultMode extends AbstractMode
                     desc += value.getStrAttr("album");
             } else if (value.isVideo()) {
                 title += " ("+DeejaydUtils.formatTime(value.getIntAttr("length"))+")";
-                desc = value.getStrAttr("videowidth") + " - " +
+                desc = value.getStrAttr("videowidth") + "x" +
                         value.getStrAttr("videoheight");
+                boolean hasSub = !value.getStrAttr("external_subtitle").equals("");
+                desc += " -- ";
+                if (hasSub)
+                	desc += ui.i18nConst.withSubtitle();
+                else
+                	desc += ui.i18nConst.withoutSubtitle();
+                
+                if (value.getIntAttr("playcount") == 0) {
+                	title = "*"+title;
+            	}
             } else if (value.isWebradio()) {
                 if ("pls".equals(value.getStrAttr("url-type")))
                     desc = value.getStrAttr("url");
@@ -117,27 +144,19 @@ public abstract class DefaultMode extends AbstractMode
                         desc=ui.i18nMsg.urlCount(urls.size());
                 }
             }
-            String titleClass = ui.resources.mobileCss().mListTitle();
-            tdBuilder.appendHtmlConstant("<div class='"+titleClass+"'>")
+            
+            sb.appendHtmlConstant("<div class='"+titleClass+"'>")
                      .appendEscaped(title)
-                     .appendHtmlConstant("</div>");
-            String descClass = ui.resources.mobileCss().mListDesc();
-            tdBuilder.appendHtmlConstant("<div class='"+descClass+"'>")
+                     .appendHtmlConstant("</div>");           
+            sb.appendHtmlConstant("<div class='"+descClass+"'>")
                      .appendEscaped(desc)
                      .appendHtmlConstant("</div>");
-
-            SafeHtmlBuilder trBuilder = new SafeHtmlBuilder();
-            trBuilder.append(TEMPLATE.td(TEMPLATE.div(tdBuilder.toSafeHtml(),
-                    ITEM_WIDTH+"px")));
-            trBuilder.appendHtmlConstant("<td>"+AbstractImagePrototype
-                    .create(ui.resources.chevron()).getHTML()+"</td>");
-
-            sb.append(TEMPLATE.tbody(trBuilder.toSafeHtml(),
-                    ui.resources.mobileCss().listItem()));
         }
     };
 
     public DefaultMode(String name, SourcePanel manager) {
+    	initWidget(uiBinder.createAndBindUi(this));
+    	
         this.manager = manager;
         this.name = name;
         this.provider = new MediaListProvider(ui, name);
@@ -146,21 +165,28 @@ public abstract class DefaultMode extends AbstractMode
         toolbar.setSpacing(5);
         initToolbar(toolbar);
 
-        FlowPanel panel = new FlowPanel();
-        panel.add(toolbar);
-
         // medialist
-        CellList<Media> mediaList = new CellList<Media>(cell);
-        mediaList.setStyleName(ui.resources.mobileCss().listPanel());
-        mediaList.setPageSize(PAGE_SIZE);
-        provider.getDataProvider().addDataDisplay(mediaList);
-        // pager
-        Pager pager = new Pager();
-        pager.setDisplay(mediaList);
+        DeejaydCellTable<Media> mediaList = new DeejaydCellTable<Media>(PAGE_SIZE, ui.resources);
+        mediaList.addColumn(new Column<Media, Media>(titleCell) {
 
-        panel.add(pager);
-        panel.add(mediaList);
-        initWidget(panel);
+			@Override
+			public Media getValue(Media object) {
+				return object;
+			}
+		});
+        mediaList.addColumn(new Column<Media, Media>(cCell) {
+
+			@Override
+			public Media getValue(Media object) {
+				return object;
+			}
+		});
+        mediaList.setColumnWidth(1, "30px");   
+        
+        provider.getDataProvider().addDataDisplay(mediaList);
+        mediaListPanel.add(mediaList);
+        // pager
+        pager.setDisplay(mediaList);
 
         ui.addStatusChangeHandler(this);
     }

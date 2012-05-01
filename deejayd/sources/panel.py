@@ -200,7 +200,10 @@ class PanelSource(_BaseSortedLibSource):
         self.__update_current()
         self.dispatch_signame(self.__class__.source_signal)
 
-    def get_content(self, start = 0, stop = None):
+    def get_content(self, start = 0, length = None):
+        stop = None
+        if length is not None: 
+            stop = start + int(length)
         if self._state["panel-type"] == "panel":
             return self._media_list.get(start, stop),self.__filter,self._sorts
         elif self._state["panel-type"] == "playlist":

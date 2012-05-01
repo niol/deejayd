@@ -22,10 +22,13 @@ package org.mroy31.deejayd.mobile.client;
 
 import java.util.HashMap;
 
+import org.mroy31.deejayd.common.i18n.CommonI18nConstants;
+import org.mroy31.deejayd.common.i18n.CommonI18nMessages;
 import org.mroy31.deejayd.common.rpc.callbacks.RpcHandler;
 import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 import org.mroy31.deejayd.mobile.i18n.MobileConstants;
 import org.mroy31.deejayd.mobile.i18n.MobileMessages;
+import org.mroy31.deejayd.mobile.resources.MobileCellListRessources;
 import org.mroy31.deejayd.mobile.resources.MobileResources;
 import org.mroy31.deejayd.mobile.widgets.ScrollToCommand;
 import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
@@ -46,6 +49,7 @@ public class MobileLayout extends DeejaydUIWidget {
     public final MobileConstants i18nConst = GWT.create(MobileConstants.class);
     public final MobileMessages i18nMsg = GWT.create(MobileMessages.class);
     public final MobileResources resources = GWT.create(MobileResources.class);
+    public final MobileCellListRessources cellListRessources = GWT.create(MobileCellListRessources.class);
 
     private class MobileMessage extends Message {
 
@@ -161,6 +165,16 @@ public class MobileLayout extends DeejaydUIWidget {
         }
         return "";
     }
+
+	@Override
+	public CommonI18nConstants getI18nConstants() {
+		return this.i18nConst;
+	}
+
+	@Override
+	public CommonI18nMessages getI18nMessages() {
+		return this.i18nMsg;
+	}
 }
 
 //vim: ts=4 sw=4 expandtab

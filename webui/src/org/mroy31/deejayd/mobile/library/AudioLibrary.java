@@ -116,6 +116,7 @@ public class AudioLibrary extends AbstractLibrary {
             }
         });
         l.addColumn(selColumn);
+        l.setColumnWidth(0, "25px");
     }
 }
 

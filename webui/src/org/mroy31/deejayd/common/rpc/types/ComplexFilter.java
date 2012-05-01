@@ -37,6 +37,14 @@ public class ComplexFilter extends MediaFilter {
         filterList.add(filter);
     }
 
+    public void removeFilter(MediaFilter filter) {
+    	filterList.remove(filter);
+    }
+    
+    public void clearFilter() {
+    	filterList.clear();
+    }
+    
     public MediaFilter[] getFilters() {
         return filterList.toArray(new MediaFilter[0]);
     }

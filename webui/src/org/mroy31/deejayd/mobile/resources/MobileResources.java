@@ -1,6 +1,6 @@
 /*
  * Deejayd, a media player daemon
- * Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+ * Copyright (C) 2007-2012 Mickael Royer <mickael.royer@gmail.com>
  *                         Alexandre Rossi <alexandre.rossi@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,17 +45,34 @@ public interface MobileResources extends DeejaydCellTable.Resources {
         String wallHeaderTitle();
         String wallHeaderHTMLTitle();
 
+        String headerButton();
         String headerBackButton();
         String headerForwardButton();
 
         String modeListDesc();
         String modeListItem();
-        String listPanel();
-        String listItem();
-        String tagListItem();
         String contextPanel();
         String contextHeader();
 
+        /*
+         * Slider
+         */
+        String slider();
+        String sliderHandle();
+        
+        /*
+         * FlipSwitch
+         */
+        String flipSwitch();
+        String flipSwitchElt();
+        String flipSwitchOnElt();
+        String flipSwitchOffElt();
+        
+        /*
+         * SpinnerValue
+         */
+        String spinnerValue();
+        
         /*
          * Player buttons
          */
@@ -72,15 +89,14 @@ public interface MobileResources extends DeejaydCellTable.Resources {
          */
         String coverImg();
         /*
-         * Volume slider
+         * Volume control
          */
         String volPanel();
-        String volSliderPanel();
-        String volSlider();
-        String volHandle();
+
         /*
          * Time SeekBar
          */
+        String optionPanel();
         String seekBar();
         String seekBarDesc();
         String goFirst();
@@ -96,7 +112,7 @@ public interface MobileResources extends DeejaydCellTable.Resources {
         String mListTitle();
         String mListDesc();
         String dvdTrack();
-
+        
         /*
          * Toolbar buttons
          */
@@ -133,7 +149,7 @@ public interface MobileResources extends DeejaydCellTable.Resources {
 
     ImageResource stop();
 
-    @ImageOptions(repeatStyle=RepeatStyle.Horizontal)
+    @ImageOptions(repeatStyle=RepeatStyle.Both)
     ImageResource toolbar();
 
     @Source("go-next.png")
@@ -147,8 +163,6 @@ public interface MobileResources extends DeejaydCellTable.Resources {
 
     @Source("button.png")
     DataResource button();
-
-    ImageResource slider();
 
     @Source("vol-down.png")
     ImageResource volDown();
@@ -182,6 +196,14 @@ public interface MobileResources extends DeejaydCellTable.Resources {
 
     @Source("audio-file.png")
     ImageResource audioFile();
+
+	ImageResource downArrow();
+
+	ImageResource leftArrow();
+
+	ImageResource rightArrow();
+
+	ImageResource upArrow();
 }
 
 //vim: ts=4 sw=4 expandtab

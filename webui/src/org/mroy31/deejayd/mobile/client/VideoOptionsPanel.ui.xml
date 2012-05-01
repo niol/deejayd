@@ -1,0 +1,58 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+	xmlns:g="urn:import:com.google.gwt.user.client.ui"
+	xmlns:mobile="urn:import:org.mroy31.deejayd.mobile.widgets">
+
+	<g:FlowPanel>
+		<g:HorizontalPanel spacing="5" visible="false" ui:field="zoomPanel" width="100%">
+		  <g:cell verticalAlignment='ALIGN_MIDDLE'>
+		    <g:Label ui:field="zoomLabel"></g:Label>
+		  </g:cell>
+		  <g:cell horizontalAlignment='ALIGN_LEFT'>
+		    <mobile:SpinnerValue minValue="-85" maxValue="400" ui:field="zoomValue"></mobile:SpinnerValue>
+		  </g:cell>
+		</g:HorizontalPanel>
+		
+		<g:HorizontalPanel spacing="5" visible="false" ui:field="aspectRatioPanel" width="100%">
+          <g:cell verticalAlignment='ALIGN_MIDDLE'>
+            <g:Label ui:field="aspectRatioLabel"></g:Label>
+          </g:cell>
+          <g:cell horizontalAlignment='ALIGN_LEFT'>
+            <g:ListBox ui:field="aspectRatio">
+              <g:item value="auto">Auto</g:item>
+              <g:item value="1:1">1:1</g:item>
+              <g:item value="16:9">16:9</g:item>
+              <g:item value="4:3">4:3</g:item>
+              <g:item value="2.11:1">DVB (2.11:1)</g:item>
+            </g:ListBox>
+          </g:cell>
+        </g:HorizontalPanel>
+        
+		<g:HorizontalPanel spacing="5" visible="false" ui:field="audioChannelPanel" width="100%">
+          <g:cell verticalAlignment='ALIGN_MIDDLE'>
+            <g:Label ui:field="audioChannelLabel"></g:Label>
+          </g:cell>
+          <g:cell horizontalAlignment='ALIGN_LEFT'>
+            <g:ListBox ui:field="audioChannel"></g:ListBox>
+          </g:cell>
+        </g:HorizontalPanel>
+        
+        <g:HorizontalPanel spacing="5" visible="false" ui:field="subChannelPanel" width="100%">
+          <g:cell verticalAlignment='ALIGN_MIDDLE'>
+            <g:Label ui:field="subChannelLabel"></g:Label>
+          </g:cell>
+          <g:cell horizontalAlignment='ALIGN_LEFT'>
+            <g:ListBox ui:field="subChannel"></g:ListBox>
+          </g:cell>
+        </g:HorizontalPanel>
+        
+        <g:HorizontalPanel spacing="5" visible="false" ui:field="subOffsetPanel" width="100%">
+          <g:cell verticalAlignment='ALIGN_MIDDLE'>
+            <g:Label ui:field="subOffsetLabel"></g:Label>
+          </g:cell>
+          <g:cell horizontalAlignment='ALIGN_LEFT'>
+            <mobile:SpinnerValue minValue="-100000" maxValue="100000" stepSize="100" ui:field="subOffsetValue"></mobile:SpinnerValue>
+          </g:cell>
+        </g:HorizontalPanel>
+	</g:FlowPanel>
+</ui:UiBinder> 

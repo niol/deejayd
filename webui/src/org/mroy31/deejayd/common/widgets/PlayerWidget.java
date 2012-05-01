@@ -20,6 +20,9 @@
 
 package org.mroy31.deejayd.common.widgets;
 
+import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
+
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Timer;
@@ -28,31 +31,62 @@ import com.google.gwt.user.client.ui.Composite;
 public abstract class PlayerWidget extends Composite {
     protected final DeejaydUIWidget privateUI;
 
-    protected class SeekTimer extends Timer {
-        private int value;
-        public SeekTimer(int seekTime) {
-            value = seekTime;
+    protected abstract class AbstractRpcTimer extends Timer {
+    	boolean updatePending = false;
+    	boolean updateRunning = false;
+    	
+    	int TIMER = 600;
+        int value;       
+        AnswerHandler<Boolean> handler = new AnswerHandler<Boolean>() {
+			
+			@Override
+			public void onAnswer(Boolean answer) {
+				updateRunning = false;
+				if (!updatePending) {
+					GWT.log("No update pending, update UI");
+					privateUI.update();
+				}
+					
+			}
+		};
+        
+        public void updateValue(int value) {
+        	GWT.log("update timer value : "+Integer.toString(value));
+        	// cancel old timer
+        	if (this.updatePending) {
+        		GWT.log("update pending cancel timer");
+        		this.cancel();
+        	}
+        	
+        	this.value = value;
+        	this.updatePending = true;
+        	this.schedule(TIMER);
         }
+    }
+    
+    protected class SeekTimer extends AbstractRpcTimer {
+    	        
+        @Override
+        public void run() {
+        	GWT.log("Run seek command");
+        	
+        	updateRunning = true; updatePending = false;
+            privateUI.rpc.seek(value, handler);
+        }
+                
+    }
+    protected SeekTimer seekTimer = new SeekTimer();
+
+    protected class VolumeTimer extends AbstractRpcTimer {
 
         @Override
         public void run() {
-            privateUI.rpc.seek(value, null);
+        	updateRunning = true; updatePending = false;
+            privateUI.rpc.setVolume(value, handler);
         }
+        
     }
-    protected SeekTimer seekTimer = null;
-
-    protected class VolumeTimer extends Timer {
-        private int value;
-        public VolumeTimer(int volume) {
-            value = volume;
-        }
-
-        @Override
-        public void run() {
-            privateUI.rpc.setVolume(value, null);
-        }
-    }
-    protected VolumeTimer volumeTimer = null;
+    protected VolumeTimer volumeTimer = new VolumeTimer();
 
     public PlayerWidget(DeejaydUIWidget ui) {
         this.privateUI = ui;

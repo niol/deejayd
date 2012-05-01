@@ -20,15 +20,15 @@
 
 package org.mroy31.deejayd.mobile.widgets.impl;
 
+import org.mroy31.deejayd.mobile.animation.DeejaydAnimationUtils;
 import org.mroy31.deejayd.mobile.events.AnimationEndHandler;
-import org.mroy31.deejayd.mobile.events.DeejaydEventsUtils;
 import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 
 public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
 
     @Override
     public void showContextPanel(final WallToWallPanel panel) {
-        DeejaydEventsUtils.addAnimationEndHandlerOnce(panel.getElement(),
+        DeejaydAnimationUtils.addAnimationEndHandlerOnce(panel.getElement(),
                 new AnimationEndHandler() {
                     public void onAnimationEnd() {
                         panel.getWall().getContents().setVisible(false);
@@ -52,7 +52,7 @@ public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
 
     @Override
     public void hideContextPanel(final WallToWallPanel panel) {
-    	DeejaydEventsUtils.addAnimationEndHandlerOnce(panel.getElement(),
+    	DeejaydAnimationUtils.addAnimationEndHandlerOnce(panel.getElement(),
                 new AnimationEndHandler() {
                     public void onAnimationEnd() {
                         panel.getContextPanel().removeStyleName(
@@ -72,7 +72,7 @@ public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
     @Override
     public void showParent(final WallToWallPanel current, final WallToWallPanel parent) {
         if (parent != null) {
-        	DeejaydEventsUtils.addAnimationEndHandlerOnce(current.getElement(),
+        	DeejaydAnimationUtils.addAnimationEndHandlerOnce(current.getElement(),
                 new AnimationEndHandler() {
                     public void onAnimationEnd() {
                         current.removeStyleName(ui.resources.mobileCss().currentWall());
@@ -98,7 +98,7 @@ public class WallToWallPanelWebkitImpl extends WallToWallPanelImpl {
     @Override
     public void showChild(final WallToWallPanel current, final WallToWallPanel child) {
         if (child != null) {
-        	DeejaydEventsUtils.addAnimationEndHandlerOnce(current.getElement(),
+        	DeejaydAnimationUtils.addAnimationEndHandlerOnce(current.getElement(),
                 new AnimationEndHandler() {
                     public void onAnimationEnd() {
                         current.removeStyleName(ui.resources.mobileCss().currentWall());

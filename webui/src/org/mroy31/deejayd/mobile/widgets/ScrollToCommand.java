@@ -39,8 +39,8 @@ public class ScrollToCommand implements Command {
         }
     }
 
-    public native void execute() /*-{
-   $wnd.scrollTo(0,
+   public native void execute() /*-{
+       $wnd.scrollTo(0,
            this.@org.mroy31.deejayd.mobile.widgets.ScrollToCommand::yPos);
    }-*/;
 }

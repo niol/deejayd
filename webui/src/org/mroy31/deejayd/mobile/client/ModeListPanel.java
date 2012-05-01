@@ -20,69 +20,47 @@
 
 package org.mroy31.deejayd.mobile.client;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
-import org.mroy31.deejayd.mobile.widgets.ListPanel;
 import org.mroy31.deejayd.mobile.widgets.WallToWallPanel;
 
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.cell.client.ClickableTextCell;
+import com.google.gwt.cell.client.ValueUpdater;
+import com.google.gwt.user.cellview.client.CellList;
+import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 
 public class ModeListPanel extends WallToWallPanel {
-    private class ModeItem extends Composite {
-        private final String mode;
-
-        public ModeItem(String mode) {
-            this.mode = mode;
-            HorizontalPanel panel = new HorizontalPanel();
-            Label modeLabel = new Label(ui.getSourceTitle(mode));
-
-            panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-            panel.addStyleName(ui.resources.mobileCss().modeListDesc());
-            panel.setWidth("100%");
-            panel.add(modeLabel);
-            panel.setCellWidth(modeLabel, "100%");
-            panel.add(new Image(ui.resources.chevron()));
-
-            initWidget(panel);
-            addStyleName(ui.resources.mobileCss().modeListItem());
-            sinkEvents(Event.ONCLICK);
-        }
-
-        @Override
-        public void onBrowserEvent(Event event) {
-            super.onBrowserEvent(event);
-            switch (DOM.eventGetType(event)) {
-                case Event.ONCLICK:
-                    ui.rpc.setMode(mode, new AnswerHandler<Boolean>() {
-                        public void onAnswer(Boolean answer) {
-                            ui.update();
-                            showChild();
-                        }
-                    });
-                    break;
-            }
-        }
-    }
 
     public ModeListPanel() {
-        super("Mode List", null);
+        super("Mode List", null);       
+        final CellList<String> panel = new CellList<String>(new ClickableTextCell(), ui.cellListRessources);
+        panel.setValueUpdater(new ValueUpdater<String>() {
+			
+			@Override
+			public void update(String value) {
+				ui.rpc.setMode(value, new AnswerHandler<Boolean>() {
+                    public void onAnswer(Boolean answer) {
+                        ui.update();
+                        showChild();
+                    }
+                });
+			}
+		});
+        panel.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
+        add(panel);
 
         // build mode list
         ui.rpc.getModeList(new AnswerHandler<HashMap<String,String>>() {
             public void onAnswer(HashMap<String, String> list) {
-                ListPanel panel = new ListPanel();
-                for (String key : list.keySet()) {
+            	ArrayList<String> modes = new ArrayList<String>();
+                for (String key : list.keySet()) {               	
                     if (list.get(key).equals("true")) {
-                        panel.add(new ModeItem(key));
-                    }
+                        modes.add(key);
+                    }                   
                 }
-                add(panel);
+                panel.setRowData(modes);
             }
         });
     }

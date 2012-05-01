@@ -1,6 +1,6 @@
 /*
  * Deejayd, a media player daemon
- * Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+ * Copyright (C) 2007-2012 Mickael Royer <mickael.royer@gmail.com>
  *                         Alexandre Rossi <alexandre.rossi@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.webui.widgets;
+package org.mroy31.deejayd.common.widgets;
 
 import java.util.HashMap;
 
@@ -28,7 +28,6 @@ import org.mroy31.deejayd.common.events.LibraryChangeHandler;
 import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatsChangeHandler;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
-import org.mroy31.deejayd.common.widgets.DeejaydUIWidget;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;

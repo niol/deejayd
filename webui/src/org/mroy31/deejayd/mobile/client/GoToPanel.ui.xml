@@ -1,0 +1,24 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+	xmlns:g="urn:import:com.google.gwt.user.client.ui"
+	xmlns:mobile="urn:import:org.mroy31.deejayd.mobile.widgets">
+
+    <ui:with field="resources"
+           type="org.mroy31.deejayd.mobile.resources.MobileResources"/>
+           
+	<g:VerticalPanel width="100%">
+	    <g:cell horizontalAlignment='ALIGN_CENTER'>
+	      <g:HorizontalPanel spacing="5">
+	        <g:cell><mobile:SpinnerValue maxValue="10" ui:field="hour"></mobile:SpinnerValue></g:cell>
+	        <g:cell verticalAlignment='ALIGN_MIDDLE'><g:HTMLPanel>H</g:HTMLPanel></g:cell>
+	        <g:cell><mobile:SpinnerValue maxValue="59" ui:field="minute"></mobile:SpinnerValue></g:cell>
+	        <g:cell verticalAlignment='ALIGN_MIDDLE'><g:HTMLPanel>M</g:HTMLPanel></g:cell>
+	        <g:cell><mobile:SpinnerValue maxValue="59" ui:field="second"></mobile:SpinnerValue></g:cell>
+	        <g:cell verticalAlignment='ALIGN_MIDDLE'><g:HTMLPanel>S</g:HTMLPanel></g:cell>
+	      </g:HorizontalPanel>
+	    </g:cell>
+	    <g:cell horizontalAlignment='ALIGN_CENTER'>
+		  <g:Button addStyleNames="{resources.mobileCss.button}" width="90%" ui:field="goToButton" />
+	    </g:cell>
+	</g:VerticalPanel>
+</ui:UiBinder> 

@@ -95,6 +95,7 @@ abstract class AbstractLibrary extends Composite {
                     }
 
         });
+        l.setColumnWidth(1, "40px");
 
         l.addColumn(new Column<LibraryProvider.LibraryItem, String>(
                 new AbstractCell<String>("click") {
@@ -113,7 +114,6 @@ abstract class AbstractLibrary extends Composite {
                             SafeHtmlBuilder sb) {
                         if (value != null) {
                             sb.appendEscaped(value);
-
                       }
                     }
                 }) {
@@ -124,7 +124,7 @@ abstract class AbstractLibrary extends Composite {
                     }
 
         });
-        l.setColumnWidth(2, "100%");
+        l.setColumnSpan(2, 10);
 
         l.addColumn(new Column<LibraryProvider.LibraryItem, ImageResource>(
                 new AbstractCell<ImageResource>("click") {
@@ -154,6 +154,7 @@ abstract class AbstractLibrary extends Composite {
                     }
 
         });
+        l.setColumnWidth(12, "30px"); // need to count precedent colspan
     }
 
     abstract void addFirstColumn(DeejaydCellTable<LibraryProvider.LibraryItem> l);

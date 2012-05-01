@@ -32,16 +32,16 @@ public class PlayerPanel extends WallToWallPanel implements StatusChangeHandler{
     private String current = "";
     private String state = "";
     private int volume = -1;
-
-    private PlayerUI player = new PlayerUI(new PlayerUI.MediaChangeHandler() {
-        public void onMediaChange(String title) {
-            setWallTitle(title, true);
-        }
-    });
+    private PlayerUI player;
 
     public PlayerPanel(WallToWallPanel parent) {
         super("", parent);
 
+        player = new PlayerUI(new PlayerUI.MediaChangeHandler() {
+            public void onMediaChange(String title) {
+                setWallTitle(title, true);
+            }
+        }, this);
         add(player);
         ui.addStatusChangeHandler(this);
         setWallTitle(ui.i18nConst.noPlayingMedia());

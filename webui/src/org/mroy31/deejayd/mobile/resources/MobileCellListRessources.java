@@ -18,13 +18,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.events;
+package org.mroy31.deejayd.mobile.resources;
 
-import com.google.gwt.event.shared.EventHandler;
+import com.google.gwt.user.cellview.client.CellList;
 
-public interface AnimationEndHandler extends EventHandler {
+public interface MobileCellListRessources  extends CellList.Resources {
 
-    void onAnimationEnd();
+	@Override
+    @Source("MobileCellList.css")
+    CellList.Style cellListStyle();
 
 }
 

@@ -31,6 +31,8 @@ import org.mroy31.deejayd.common.events.StatsChangeEvent;
 import org.mroy31.deejayd.common.events.StatsChangeHandler;
 import org.mroy31.deejayd.common.events.StatusChangeEvent;
 import org.mroy31.deejayd.common.events.StatusChangeHandler;
+import org.mroy31.deejayd.common.i18n.CommonI18nConstants;
+import org.mroy31.deejayd.common.i18n.CommonI18nMessages;
 import org.mroy31.deejayd.common.rpc.Rpc;
 import org.mroy31.deejayd.common.rpc.callbacks.AnswerHandler;
 
@@ -99,6 +101,9 @@ public abstract class DeejaydUIWidget extends Composite
     }
 
     abstract public void setMessage(String message, String type);
+    
+    abstract public CommonI18nConstants getI18nConstants();
+    abstract public CommonI18nMessages getI18nMessages();
 
 }
 

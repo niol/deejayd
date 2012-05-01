@@ -1,6 +1,6 @@
 /*
  * Deejayd, a media player daemon
- * Copyright (C) 2007-2012 Mickael Royer <mickael.royer@gmail.com>
+ * Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
  *                         Alexandre Rossi <alexandre.rossi@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,14 +18,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.mroy31.deejayd.mobile.events;
+package org.mroy31.deejayd.common.i18n;
 
-import com.google.gwt.event.shared.EventHandler;
+import com.google.gwt.i18n.client.Constants;
+import com.google.gwt.i18n.client.LocalizableResource.DefaultLocale;
 
-public interface AnimationEndHandler extends EventHandler {
+@DefaultLocale("en")
+public interface CommonI18nConstants extends Constants {
 
-    void onAnimationEnd();
+    @DefaultStringValue("All")
+    String all();
+
+    @DefaultStringValue("Various artists")
+    String variousArtist();
+
+    @DefaultStringValue("Unknown")
+    String unknown();
 
 }
 
-//vim: ts=4 sw=4 expandtab
+// vim: ts=4 sw=4 expandtab

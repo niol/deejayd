@@ -20,17 +20,6 @@
   <!-- Only support gecko and webkit -->
   <set-property name="user.agent" value="safari,gecko1_8"/>
 
-  <!-- HTML5 drag and drop support                                -->
-  <replace-with class="com.google.gwt.user.client.impl.DOMImplDragDropWebkit">
-    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
-    <when-property-is name="user.agent" value="safari"/>
-  </replace-with>
-
-  <replace-with class="com.google.gwt.user.client.impl.DOMImplDragDropMozilla">
-    <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
-    <when-property-is name="user.agent" value="gecko1_8"/>
-  </replace-with>
-
   <!-- Specify the app entry point class.                         -->
   <entry-point class='org.mroy31.deejayd.webui.client.Deejayd_webui'/>
 
