@@ -1,4 +1,10 @@
-deejayd (0.11.0-1~pre+1) UNRELEASED; urgency=low
+deejayd (0.11.0-1~pre+1) unstable; urgency=low
+
+  *  New upstream pre-release.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 02 May 2012 10:03:06 +0200
+
+deejayd (0.10.0-4) unstable; urgency=low
 
   * New upstream version:
         - Drop patches which have been integrated upstream.
@@ -10,7 +16,13 @@ deejayd (0.11.0-1~pre+1) UNRELEASED; urgency=low
     upstream package.
   * Add upstream inotify fixes.
   * Update to policy 3.9.2.0 (nothing to do).
-  * Remove ${python:Breaks} which is not used anymore in dh_python2.
+  * Remove ${python:Breaks} and build dependency on python-support which
+    are not useful anymore with dh_python2.
+  * Update policy to 3.9.2: Nothing to do.
+  * deejayd-webui-extension :
+      - Set compatibility to Firefox 8.
+      - Rename to xul-ext-deejayd-webui per draft policy.
+      - Use mozilla-devscripts for install target (Closes: #638483).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 02 May 2011 20:59:50 +0200
 
