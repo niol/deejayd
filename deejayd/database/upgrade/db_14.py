@@ -24,7 +24,9 @@ def upgrade(cursor, backend, config):
         if table.name in ("webradio_source", "webradio_categories", "webradio_stats"):
             for stmt in backend.to_sql(table):
                 cursor.execute(stmt)
-    # get new id
+    # add local source
+    query = "INSERT INTO webradio_source(name) VALUES(%s)"
+    cursor.execute(query, ('local',))
     s_id = cursor.lastrowid
 
     # get recorded webradio
