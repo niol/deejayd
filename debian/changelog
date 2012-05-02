@@ -1,8 +1,8 @@
-deejayd (0.11.0-1~pre+1) unstable; urgency=low
+deejayd (0.12.0~pre+1-1) unstable; urgency=low
 
   *  New upstream pre-release.
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 02 May 2012 10:03:06 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 02 May 2012 10:47:51 +0200
 
 deejayd (0.10.0-4) unstable; urgency=low
 
