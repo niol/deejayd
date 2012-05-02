@@ -13,6 +13,7 @@ usr/lib/python*/*-packages/deejayd/plugins/*.py
 usr/lib/python*/*-packages/deejayd/sources/*.py
 usr/lib/python*/*-packages/deejayd/ui/*
 usr/lib/python*/*-packages/deejayd/database/*
+usr/lib/python*/*-packages/pytyx11/*
 usr/share/locale/*/LC_MESSAGES/deejayd.mo
 etc/deejayd.conf
 debian/deejayd.xinitrc etc
