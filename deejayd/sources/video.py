@@ -62,7 +62,10 @@ class VideoSource(_BaseSortedLibSource):
             self._media_list.sort(self._sorts + self.default_sorts)
         self.dispatch_signame(self.source_signal)
 
-    def get_content(self, start = 0, stop = None):
+    def get_content(self, start = 0, length = None):
+        stop = None
+        if length is not None: 
+            stop = start + int(length)
         return self._media_list.get(start, stop), None, self._sorts
 
     def close(self):
