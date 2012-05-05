@@ -86,12 +86,13 @@ public class PlayerUI extends PlayerWidget {
                 resizeCoverImage();
             }
         });
-        coverImg.setResource(ui.resources.missingCover());
+        //coverImg.setResource(ui.resources.missingCover());
+        coverImg.setUrl(ui.resources.missingCover().getSafeUri());
         // resize cover img when window is resized
         Window.addResizeHandler(new ResizeHandler() {
 			
 			@Override
-			public void onResize(ResizeEvent event) {
+			public void onResize(ResizeEvent event) {				
 				resizeCoverImage();
 			}
 		});
@@ -138,6 +139,7 @@ public class PlayerUI extends PlayerWidget {
 
             public void onAnswer(Media current) {
             	currentMedia = current;
+            	goToPanel.reset();
             	
                 String title = current.getStrAttr("title");
                 String desc = "";
@@ -179,7 +181,8 @@ public class PlayerUI extends PlayerWidget {
     }
 
     public void resetCover() {
-        coverImg.setResource(ui.resources.missingCover());
+        //coverImg.setResource(ui.resources.missingCover());
+    	coverImg.setUrl(ui.resources.missingCover().getSafeUri());
     }
 
     @UiHandler("seekButton")
@@ -215,8 +218,8 @@ public class PlayerUI extends PlayerWidget {
     private void resizeCoverImage() {
     	int size = Math.min(Window.getClientWidth(),
                 Window.getClientHeight()-140);
-        coverImg.setHeight(Integer.toString(size));
-        coverImg.setWidth(Integer.toString(size));
+        coverImg.setHeight(Integer.toString(size)+"px");
+        coverImg.setWidth(Integer.toString(size)+"px");
     }
     
     private void updateOptionPanelDisplay() {

@@ -30,6 +30,12 @@ public class GoToPanel extends Composite {
 		goToButton.setText(ui.i18nConst.goTo());
 	}
 
+	public void reset() {
+		for (SpinnerValue sv : new SpinnerValue[] {hour, minute, second}) {
+			sv.setValue(0, false);
+		}
+	}
+	
 	@UiHandler("goToButton")
 	void onClick(ClickEvent e) {
 		int value = hour.getValue()*3600 + minute.getValue()*60 + second.getValue();
