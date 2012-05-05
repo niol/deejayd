@@ -90,7 +90,7 @@ class WebRpcModule(JSONRpcComponent):
         panel = self.deejayd_core.panel
         library = self.deejayd_core.audiolib
 
-        medias, filters, sort = panel.get()
+        medias, filters, sort = panel.get_content()
         try: filter_list = filters.filterlist
         except (TypeError, AttributeError):
             filter_list = []
