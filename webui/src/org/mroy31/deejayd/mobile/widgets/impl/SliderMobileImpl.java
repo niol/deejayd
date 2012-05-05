@@ -25,6 +25,8 @@ package org.mroy31.deejayd.mobile.widgets.impl;
 import org.mroy31.deejayd.mobile.widgets.Slider;
 import org.mroy31.deejayd.mobile.widgets.Slider.SliderHandle;
 
+import com.google.gwt.event.dom.client.TouchCancelEvent;
+import com.google.gwt.event.dom.client.TouchCancelHandler;
 import com.google.gwt.event.dom.client.TouchEndEvent;
 import com.google.gwt.event.dom.client.TouchEndHandler;
 import com.google.gwt.event.dom.client.TouchMoveEvent;
@@ -70,6 +72,17 @@ public class SliderMobileImpl extends SliderImpl {
                     sliding = false;
                     slider.fireChangeEndEvent();
                 }
+			}
+		});
+		
+		handle.addTouchCancelHandler(new TouchCancelHandler() {
+			
+			@Override
+			public void onTouchCancel(TouchCancelEvent event) {
+				if (sliding) {
+                    sliding = false;
+                    slider.fireChangeEndEvent();
+				}
 			}
 		});
 	}

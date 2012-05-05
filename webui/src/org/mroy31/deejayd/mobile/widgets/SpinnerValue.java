@@ -28,12 +28,12 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasValue;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class SpinnerValue extends Composite implements HasValue<Integer>, ClickHandler {
@@ -53,27 +53,30 @@ public class SpinnerValue extends Composite implements HasValue<Integer>, ClickH
 		this(false);
 	}
 	
-	public SpinnerValue(boolean inline) {
-		FlowPanel panel = new FlowPanel();
-		initWidget(panel);
+	public SpinnerValue(boolean inline) {		
 		if (inline) {
-			DOM.setStyleAttribute(panel.getElement(), "display", "inline-block");
+			HorizontalPanel panel = new HorizontalPanel();
+			panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+			
 			firstArrow = new Image(ui.resources.leftArrow());
 			lastArrow = new Image(ui.resources.rightArrow());
 			
 			panel.add(firstArrow);
 			panel.add(label);
 			panel.add(lastArrow);
+			initWidget(panel);
 		} else {
+			VerticalPanel panel = new VerticalPanel();
+			panel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
+			
 			panel.add(lastArrow);
 			panel.add(label);
 			panel.add(firstArrow);
+			initWidget(panel);
 		}
-		DOM.setStyleAttribute(panel.getElement(), "textAlign", "center");
 		
 		firstArrow.addClickHandler(this);
-		lastArrow.addClickHandler(this);
-		
+		lastArrow.addClickHandler(this);	
 		addStyleName(ui.resources.mobileCss().spinnerValue());
 	}
 

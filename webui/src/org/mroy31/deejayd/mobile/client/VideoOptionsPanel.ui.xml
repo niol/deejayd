@@ -9,7 +9,7 @@
 		    <g:Label ui:field="zoomLabel"></g:Label>
 		  </g:cell>
 		  <g:cell horizontalAlignment='ALIGN_LEFT'>
-		    <mobile:SpinnerValue minValue="-85" maxValue="400" ui:field="zoomValue"></mobile:SpinnerValue>
+		    <mobile:SpinnerValue stepSize="5" minValue="-85" maxValue="400" ui:field="zoomValue"></mobile:SpinnerValue>
 		  </g:cell>
 		</g:HorizontalPanel>
 		
