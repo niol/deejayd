@@ -59,6 +59,8 @@ public class PlayerUI extends PlayerWidget {
         public void onMediaChange(String title);
     }
     private MediaChangeHandler changeHandler;
+    private Media currentMedia = null;
+    private String state = "stop";
     
     private VideoOptionsPanel videoOptsPanel = new VideoOptionsPanel();
     private GoToPanel goToPanel = new GoToPanel();
@@ -114,6 +116,7 @@ public class PlayerUI extends PlayerWidget {
     }
 
     public void updateState(String state) {
+    	this.state = state;
         if (state.equals("play")) {
             playToggleButton.addStyleName(ui.resources.mobileCss().pause());
             playToggleButton.removeStyleName(
@@ -122,10 +125,10 @@ public class PlayerUI extends PlayerWidget {
             playToggleButton.addStyleName(ui.resources.mobileCss().play());
             playToggleButton.removeStyleName(
                     ui.resources.mobileCss().pause());
-        }
-        optionPanel.setVisible(!state.equals("stop"));
+        }    
+        updateOptionPanelDisplay();
     }
-
+    
     public void updateVolume(int vol) {
         volSlider.setValue(vol, false);
     }
@@ -134,6 +137,8 @@ public class PlayerUI extends PlayerWidget {
         ui.rpc.getCurrent(new AnswerHandler<Media>() {
 
             public void onAnswer(Media current) {
+            	currentMedia = current;
+            	
                 String title = current.getStrAttr("title");
                 String desc = "";
 
@@ -155,15 +160,18 @@ public class PlayerUI extends PlayerWidget {
                         }
                     });
                 } else if (current.isVideo()) {
+                    resetCover();
                     title += " ("+DeejaydUtils.formatTime(current.getIntAttr("length"))+")";
                     setVideoOptions(current);
                 } else if (current.isWebradio()) {
+                    resetCover();
                     if (current.hasAttr("song-title"))
                         title += " -- " + current.getStrAttr("song-title");
                     if (current.hasAttr("uri"))
                         desc = current.getStrAttr("uri");
                 }
                 videoOptsButton.setVisible(current.isVideo());
+                updateOptionPanelDisplay();
 
                 changeHandler.onMediaChange("<b>"+title+"</b><br/><i>"+desc+"</i>");
             }
@@ -211,6 +219,12 @@ public class PlayerUI extends PlayerWidget {
         coverImg.setWidth(Integer.toString(size));
     }
     
+    private void updateOptionPanelDisplay() {
+    	optionPanel.setVisible((!state.equals("stop")) 
+        		&& (currentMedia != null) 
+        		&& (!currentMedia.isWebradio()));
+    }
+
 }
 
 //vim: ts=4 sw=4 expandtab
