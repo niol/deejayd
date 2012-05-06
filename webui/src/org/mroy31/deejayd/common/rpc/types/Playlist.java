@@ -30,7 +30,7 @@ public class Playlist {
     }
 
     public int getId() {
-        return (int) pls.get("id").isNumber().doubleValue();
+        return (int) pls.get("pl_id").isNumber().doubleValue();
     }
 
     public String getName() {
