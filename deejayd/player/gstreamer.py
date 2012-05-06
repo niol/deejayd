@@ -407,21 +407,21 @@ class GstreamerPlayer(_BasePlayer):
         t = uri_type+"://"
         return gst.element_make_from_uri(gst.URI_SRC, t, '')  is not None
 
-    SUPPORTED_MINE_TYPES = None
+    SUPPORTED_MIME_TYPES = None
     def is_supported_format(self,format):
-        if self.SUPPORTED_MINE_TYPES is None:
-            self.SUPPORTED_MINE_TYPES = []
+        if self.SUPPORTED_MIME_TYPES is None:
+            self.SUPPORTED_MIME_TYPES = []
             factories = gst.type_find_factory_get_list()
             for factory in factories:
                 if factory.get_name() in ("video/mpeg4", "video/x-h264"):
                     # FIXME for this 2 factories, returned mimetype is strange
                     # in debian squeeze
-                    self.SUPPORTED_MINE_TYPES.append(factory.get_name())
+                    self.SUPPORTED_MIME_TYPES.append(factory.get_name())
                 caps = factory.get_caps()
                 if caps is None:
                     continue
                 for c in caps:
-                    self.SUPPORTED_MINE_TYPES.append(c.get_name())
+                    self.SUPPORTED_MIME_TYPES.append(c.get_name())
 
         formats = {
             ".mp3": ("audio/mpeg",),
@@ -437,7 +437,7 @@ class GstreamerPlayer(_BasePlayer):
 
         if format in formats.keys():
             for mime in formats[format]:
-                if mime not in self.SUPPORTED_MINE_TYPES:
+                if mime not in self.SUPPORTED_MIME_TYPES:
                     return False
             return True
 
