@@ -7,7 +7,6 @@
 .cell div {
   overflow: hidden;
   white-space: nowrap;
-  -moz-binding: url('style/mozbinding.xml#ellipsis');
   text-overflow: ellipsis;
   cursor: default;
 }

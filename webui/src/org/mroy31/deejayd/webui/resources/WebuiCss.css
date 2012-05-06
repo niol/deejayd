@@ -58,11 +58,7 @@ body {
   overflow: hidden;
   white-space: nowrap;
   width: 100%;
-}
-@if user.agent gecko1_8 gecko {
-  .textOverflow { -moz-binding: url('style/mozbinding.xml#ellipsis'); }
-} @elif user.agent safari {
-  .textOverflow { text-overflow: ellipsis; }
+  text-overflow: ellipsis;
 }
 
 /*
