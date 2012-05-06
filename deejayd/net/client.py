@@ -19,7 +19,7 @@
 """The Deejayd python client library"""
 
 import socket, asyncore, threading
-import sys, inspect, re, new, os
+import sys, inspect, re, new, posixpath
 
 from Queue import Queue, Empty
 
@@ -673,7 +673,7 @@ class DeejayDaemonHTTP(_DeejayDaemon):
         _DeejayDaemon.__init__(self)
         self.host = host
         self.port = port
-        self.url = os.path.join(root_url, "rpc/")
+        self.url = posixpath.join(root_url, "rpc/")
         self.connection = httplib.HTTPConnection(self.host, self.port)
         self.hdrs = {
                 "Content-Type": "text/json",
