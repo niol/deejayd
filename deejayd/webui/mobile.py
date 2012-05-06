@@ -31,7 +31,8 @@ def build(config):
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
     <!-- Specific for mobile device -->
-    <meta name="viewport" content="user-scalable=no, width=device-width">
+    <meta name="viewport" content="user-scalable=no; width=device-width">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="./style/deejayd.jpg"/>
 
     <!--                                           -->
