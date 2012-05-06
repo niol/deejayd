@@ -1,6 +1,5 @@
 usr/bin/deejayd
 usr/lib/python*/*-packages/deejayd/core.py
-usr/lib/python*/*-packages/deejayd/component.py
 usr/lib/python*/*-packages/deejayd/utils.py
 usr/lib/python*/*-packages/deejayd/xmlobject.py
 usr/lib/python*/*-packages/deejayd/thread.py
