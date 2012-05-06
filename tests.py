@@ -23,16 +23,16 @@ This is the test suite launcher :
     * Without arguments, it runs the whole test suite.
     * It accepts a list of arguments which can be :
         - a test module name without the 'test_' prefix.
-          e.g. : ./tests.py xmlprocessing
+          e.g. : ./tests.py jsonrpc
         - a test module name without the 'test_' prefix, a slash, and a test
           name in unittest dotted notation (See the documentation of
           loadTestsFromName at
           http://docs.python.org/lib/testloader-objects.html)
-          e.g. : ./tests.py xmlprocessing/TestAnswerParser
-              or ./tests.py xmlprocessing/TestAnswerParser.testAnswerParserError
+          e.g. : ./tests.py jsonrpc/TestJSONRPCBuilders
+              or ./tests.py jsonrpc/TestJSONRPCBuilders.test_response_builder
     * If the fist argument is 'list', list all the possibles tests that can be
       combined on the command line restricted by the same arguments.
-      e.g. : ./tests.py list xmlprocessing client
+      e.g. : ./tests.py list jsonrpc library
       would list all the tests that are to be run from those test modules.
     * Test suite has several options :
       * --player to select media backend : gstreamer(default) or xine
