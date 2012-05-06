@@ -188,7 +188,7 @@ class AvailableCommands:
            if no dirname has been entered, return root directory content"""
 
     @command("videolib.update",
-            cmd_args={"name":"force", "type":"bool", "req":False},
+            cmd_args=[{"name":"force", "type":"bool", "req":False}],
             cmd_ans="dict")
     def video_update(self, args):
         """Update video library"""
