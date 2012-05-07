@@ -19,3 +19,6 @@ recursive-include testdeejayd *
 include data/logo/*
 recursive-include webui *
 include man/*
+include .project
+include .pydevproject
+include .settings/*prefs
