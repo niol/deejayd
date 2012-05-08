@@ -83,10 +83,12 @@ public class TagList extends Composite {
         		MediaTagProvider.MediaTag value, NativeEvent event, 
         		ValueUpdater<MediaTagProvider.MediaTag> valueUpdater) {
         	// update related basic filter
-        	BasicFilter f = tagFilters.get(value.getType());
-        	f.setPattern(value.getValue());
-        	
-        	filter.addFilter(f);
+        	if (!value.getValue().equals("__all__")) {
+	        	BasicFilter f = tagFilters.get(value.getType());
+	        	f.setPattern(value.getValue());
+	        	
+	        	filter.addFilter(f);
+        	}
         	if (avTagsIterator.hasNext()) {
         		updateTagList(avTagsIterator.next());
         	} else {
