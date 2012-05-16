@@ -176,12 +176,13 @@ public class PlayerUI extends PlayerWidget {
                 updateOptionPanelDisplay();
 
                 changeHandler.onMediaChange("<b>"+title+"</b><br/><i>"+desc+"</i>");
+                // Resize cover in case of height header change with new title
+                resizeCoverImage();
             }
         });
     }
 
     public void resetCover() {
-        //coverImg.setResource(ui.resources.missingCover());
     	coverImg.setUrl(ui.resources.missingCover().getSafeUri());
     }
 
@@ -216,8 +217,9 @@ public class PlayerUI extends PlayerWidget {
     }
     
     private void resizeCoverImage() {
+    	int headerHeight = playerPanel.getWall().getHeader().getOffsetHeight();
     	int size = Math.min(Window.getClientWidth(),
-                Window.getClientHeight()-140);
+                Window.getClientHeight()-100-headerHeight);
         coverImg.setHeight(Integer.toString(size)+"px");
         coverImg.setWidth(Integer.toString(size)+"px");
     }

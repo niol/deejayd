@@ -83,6 +83,10 @@ public class WallPanel extends Composite {
         return contents;
     }
 
+    public Widget getHeader() {
+    	return header;
+    }
+    
     public void setLeftButton(String label, final Command cmd) {
         Label l = new Label(label);
         l.addStyleName(resources.mobileCss().button());
