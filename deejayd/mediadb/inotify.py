@@ -191,7 +191,23 @@ class _DeejaydInotify(DeejaydThread):
                       proc_fun=InotifyWatcher(library,self.__queue), rec=True,
                       auto_add=False)
 
+        error = False
+        for path, wd in wdd.items():
+            if wd < 0:
+                if os.path.isdir(path):
+                    error = True
+                    reason = ''
+                else:
+                    reason = _(' (directory gone)')
+
+                log.err(_("inotify: could not watch directory '%s'%s" % (path, reason)))
+            else:
+                log.debug(_("inotify: watching directory '%s'" % path))
+        if error:
+            log.err(_("Try raising fs.inotify.max_user_watches (man sysctl)"))
+
     def stop_watching_dir(self, dir_path):
+        log.debug(_("inotify: stopped watching directory '%s'" % dir_path))
         self.__wm.rm_watch(os.path.realpath(dir_path), rec=True)
 
     def run(self):
