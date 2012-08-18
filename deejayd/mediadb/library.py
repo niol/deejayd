@@ -506,7 +506,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         dir_path = os.path.join(path, name)
         if dirlink:
             self.db_con.insert_dirlink(dir_path, self.type)
-            self.watcher.watch_dir(dir_path, self)
+        self.watcher.watch_dir(dir_path, self)
 
         changes = self._update_dir(dir_path.rstrip("/"), dispatch_signal=False)
         self._add_missing_dir(os.path.dirname(dir_path))
@@ -522,7 +522,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
         if dirlink:
             self.db_con.remove_dirlink(dir_path, self.type)
-            self.watcher.stop_watching_dir(dir_path)
+        self.watcher.stop_watching_dir(dir_path)
 
         ids = self.db_con.remove_recursive_dir(dir_path)
         self._remove_empty_dir(path)

@@ -183,26 +183,16 @@ class _DeejaydInotify(DeejaydThread):
         self.__queue = Queue.Queue(1000)
 
         self.__wm = pyinotify.WatchManager()
-        self.__watched_dirs = {}
         self.EVENT_MASK = self.watched_events_mask()
 
-    def is_watched (self, dir_path):
-        return dir_path in self.__watched_dirs.keys()
-
     def watch_dir(self, dir_path, library):
-        if self.is_watched(dir_path):
-            raise ValueError('dir %s is already watched' % dir_path)
         realpath = os.path.realpath(dir_path)
         wdd = self.__wm.add_watch(realpath, self.EVENT_MASK,
                       proc_fun=InotifyWatcher(library,self.__queue), rec=True,
-                      auto_add=True)
-        self.__watched_dirs[dir_path] = (realpath, wdd, )
+                      auto_add=False)
 
     def stop_watching_dir(self, dir_path):
-        if self.is_watched(dir_path):
-            (realpath, wdd, ) = self.__watched_dirs[dir_path]
-            del self.__watched_dirs[dir_path]
-            self.__wm.rm_watch(wdd[realpath], rec=True)
+        self.__wm.rm_watch(os.path.realpath(dir_path), rec=True)
 
     def run(self):
         notifier = self.notifier(self.__wm)
