@@ -23,7 +23,7 @@ if python_version[0] < 3 and python_version[1] < 7:
         import unittest2 as unittest
     except ImportError:
         sys.exit(\
-            "For python version < 2.7, deejayd tests require unittest2 mpdule")
+            "For python version < 2.7, deejayd tests require unittest2 module")
 else:
     import unittest
 

@@ -62,7 +62,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         self.media_attr = []
         for attr_list in [self.__class__.common_attr,\
                            self.__class__.custom_attr,\
-                           self.__class__.persistent_attr]: 
+                           self.__class__.persistent_attr]:
             self.media_attr.extend(attr_list)
         self._fs_charset = fs_charset
         self._update_id = 0
@@ -101,7 +101,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         if len(files) == 0 and len(dirs) == 0 and root != self._path:
             err = _("Unable to find '%s' folder in library") % root
             raise NotFoundException(err)
-        
+
     def get_dir_content(self, dir = ""):
         abs_dir = os.path.join(self._path, dir).rstrip("/")
         files_rsp = self.db_con.get_dir_content(abs_dir,\
@@ -160,7 +160,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
     def search(self, pattern, type = 'all'):
         if pattern is None:
             raise DeejaydError(_("Pattern must be a string"))
-        
+
         if type not in self.supported_search_type + ["all"]:
             raise DeejaydError(_('Type %s is not supported') % (type,))
         if type == "all":
@@ -181,7 +181,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         self.dispatch_signame('mediadb.mupdate',\
                 attrs = {"type": "update", "id": file_id})
         self.db_con.connection.commit()
-        
+
     def get_root_path(self):
         return self._path
 
@@ -216,7 +216,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
     #
     # Update process
     #
-    
+
     def update(self, force = False, sync = False):
         if self._update_end:
             self._update_id += 1

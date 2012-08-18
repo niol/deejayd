@@ -19,7 +19,7 @@
 """
 Deejayd DB testing module
 """
-import os,time, traceback
+import os, time, traceback
 from testdeejayd import TestCaseWithDeejaydCore, unittest
 from deejayd import mediafilters
 from deejayd.utils import str_decode
@@ -122,14 +122,14 @@ class _VerifyDeejayLibrary(object):
             self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \
                 (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
-        
+
         return (realFile, inDBfile)
 
 class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
     library_type = "audio"
     supported_ext = (".ogg",".mp3",".mp4",".flac")
     tested_tags = ("title","artist","album","genre")
-    
+
     def verifyTag(self, filePath, inlink_path=None):
         (realFile, inDBfile) = super(VerifyDeejayAudioLibrary, self)\
                                             .verifyTag(filePath, inlink_path)
@@ -145,10 +145,10 @@ class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
                 print "------------------Traceback lines--------------------"
                 print str_decode(traceback.format_exc(), errors='replace')
                 print "-----------------------------------------------------"
-                return             
+                return
             cover = fd.read()
             fd.close()
-            
+
             try: inDBCover = self.library.get_cover(inDBfile["media_id"])
             except NotFoundException:
                 self.assertTrue(False, "cover %s exists but not found in db"\
