@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-06 22:55+0200\n"
+"POT-Creation-Date: 2012-09-18 16:03+0200\n"
 "PO-Revision-Date: 2010-12-27 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -303,7 +303,7 @@ msgstr "L'aspect vidéo %s n'est pas connu"
 #: ../deejayd/player/_base.py:221
 #, python-format
 msgid "Video option %s is not supported by %s player"
-msgstr "L'option %s n'est pas supporté pour ce backend"
+msgstr "L'option %s n'est pas supporté pour ce backend %s"
 
 #: ../deejayd/player/_base.py:235
 #, python-format
@@ -400,7 +400,7 @@ msgstr "Gstreamer >= 0.10.24 est requis"
 #: ../deejayd/player/gstreamer.py:72
 #, python-format
 msgid "No audio sink found for Gstreamer : %s"
-msgstr "Aucun driver audio trouvé pour gstreamer"
+msgstr "Aucun driver audio trouvé pour gstreamer : %s"
 
 #: ../deejayd/player/gstreamer.py:89
 #, python-format
