@@ -58,6 +58,9 @@
       <arg value="org.mroy31.deejayd.webui.Deejayd_webui"/>
       <arg value="org.mroy31.deejayd.mobile.Mobile_Webui"/>
     </java>
+    <copy todir="../build/webui/static">
+      <fileset dir="static"/>
+    </copy>
   </target>
 
   <target name="clean" description="Cleans this project">

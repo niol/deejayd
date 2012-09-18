@@ -44,7 +44,7 @@ def build(config):
     <!-- be added before this line.                -->
     <!--                                           -->
     <script type="text/javascript" language="javascript"
-            src="deejayd_webui/deejayd_webui.nocache.js"></script>
+            src="gwtwebui/gwtwebui.nocache.js"></script>
 
     <style>
         body, table td {

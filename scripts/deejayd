@@ -267,7 +267,7 @@ if __name__ == "__main__":
             htdocs_dir = None
             if INSTALL_MODE == 'source':
                 htdocs_dir = os.path.abspath(os.path.join(INSTALL_BIN_DIR, '..',
-                                                          'data', 'htdocs'))
+                                                          'build', 'webui'))
             elif INSTALL_MODE == 'installed':
                 htdocs_dir = os.path.abspath(os.path.join(INSTALL_PREFIX,
                                                           'share', 'deejayd',

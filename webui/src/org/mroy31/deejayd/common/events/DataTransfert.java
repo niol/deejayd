@@ -36,7 +36,7 @@ public class DataTransfert extends JavaScriptObject {
 
     public final native void setDragImage(String text) /*-{
         var img = document.createElement("img");
-        img.src = "../style/copy.png";
+        img.src = "../static/copy.png";
         this.setDragImage(img, -10, 0);
     }-*/;
 

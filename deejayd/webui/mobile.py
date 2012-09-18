@@ -49,7 +49,7 @@ def build(config):
     <!-- be added before this line.                -->
     <!--                                           -->
     <script type="text/javascript" language="javascript"
-            src="mobile_webui/mobile_webui.nocache.js"></script>
+            src="gwtmobilewebui/gwtmobilewebui.nocache.js"></script>
 
     <style>
         .gwt-CheckBox input {

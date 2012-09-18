@@ -168,10 +168,9 @@ class build_webui(Command):
         if self.ant_target == "builddist":
             wdir = os.path.join("build", "webui")
             data_files = self.distribution.data_files
-            data_files.extend(get_data_files(os.path.join(wdir,"deejayd_webui"),
-                    'share/deejayd/htdocs/webui/deejayd_webui'))
-            data_files.extend(get_data_files(os.path.join(wdir,"mobile_webui"),
-                    'share/deejayd/htdocs/mobile/mobile_webui'))
+            for d in ('gwtwebui', 'gwtmobilewebui', 'static'):
+                data_files.extend(get_data_files(os.path.join(wdir, d),
+                                  os.path.join('share/deejayd/htdocs/', d)))
 
     def clean(self):
         if os.path.isfile(self.build_file) and self.ant is not None:
@@ -239,9 +238,6 @@ def build_data_files_list():
         ('share/doc/deejayd', ("README", "NEWS", )),
         ('share/doc/deejayd', ["scripts/deejayd_rgscan"]),
         ]
-
-    # htdocs
-    data.extend(get_data_files('data/htdocs', 'share/deejayd/htdocs'))
 
     return data
 

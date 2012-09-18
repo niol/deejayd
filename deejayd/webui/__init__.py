@@ -152,21 +152,20 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
     # tmp dir
     main_handler.putChild("tmp",static.File(tmp_dir))
 
+    main_handler.putChild('static',
+                          static.File(os.path.join(htdocs_dir, 'static')))
+
     # webui
     webui_handler = DeejaydWebuiHandler(config)
-    webui_gwt = static.File(os.path.join(htdocs_dir,"webui", "deejayd_webui"))
-    webui_handler.putChild("deejayd_webui", webui_gwt)
-    webui_style = static.File(os.path.join(htdocs_dir,"webui", "style"))
-    webui_handler.putChild("style", webui_style)
+    webui_gwt = static.File(os.path.join(htdocs_dir, 'gwtwebui'))
+    webui_handler.putChild('gwtwebui', webui_gwt)
 
     main_handler.putChild("webui", webui_handler)
 
     # mobile part
     mobile_handler = DeejaydMobileHandler(config)
-    mobile_style = static.File(os.path.join(htdocs_dir,"mobile", "style"))
-    mobile_gwt = static.File(os.path.join(htdocs_dir,"mobile", "mobile_webui"))
-    mobile_handler.putChild("style", mobile_style)
-    mobile_handler.putChild("mobile_webui", mobile_gwt)
+    mobilewebui_gwt = static.File(os.path.join(htdocs_dir, 'gwtmobilewebui'))
+    mobile_handler.putChild('gwtmobilewebui', mobilewebui_gwt)
 
     main_handler.putChild("m", mobile_handler)
 
