@@ -113,6 +113,8 @@ class IceCastPlugin(object):
                 else:
                     wb_names[name] = self.__db.add_webradio(self.__id, name, \
                                         [listen_url], categories[genre])
+                log.debug('Added icecast webradio %s' % name)
+        self.__db.connection.commit()
 
     def get_categories(self):
         if self.__last_parse is None:

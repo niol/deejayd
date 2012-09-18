@@ -74,6 +74,7 @@ class WbLocalSource(object):
             else:
                 raise SourceError(_("Given url %s is not supported") % url)
         self.__db.add_webradio(self.__id, name, needed_urls, cat)
+        self.__db.connection.commit()
 
     def remove_webradios(self, ids):
         self.__db.remove_webradios(self.__id, ids)

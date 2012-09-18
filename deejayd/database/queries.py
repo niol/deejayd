@@ -730,7 +730,6 @@ class DatabaseQueries(object):
 
         query = "INSERT INTO webradio_entries(url, webradio_id)VALUES(%s,%s)"
         cursor.executemany(query, [(url,wid) for url in urls])
-        self.connection.commit()
 
         return wid
 
@@ -738,7 +737,6 @@ class DatabaseQueries(object):
     def add_webradio_urls(self, cursor, w_id, urls):
         query = "INSERT INTO webradio_entries(url, webradio_id)VALUES(%s,%s)"
         cursor.executemany(query, [(url, w_id) for url in urls])
-        self.connection.commit()
 
     @query_decorator("none")
     def remove_webradios(self, cursor, source_id, wids):
