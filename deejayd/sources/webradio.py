@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from zope.interface import implements
+from deejayd.ui import log
 from deejayd.jsonrpc.interfaces import WebradioSourceModule, jsonrpc_module
 from deejayd.sources._base import _BaseSource, SimpleMediaList, SourceError
 from deejayd.plugins import IWebradioPlugin, IEditWebradioPlugin, PluginError
@@ -59,20 +60,35 @@ class WbLocalSource(object):
         self.__db.remove_webradio_categories(self.__id, ids)
 
     def add_webradio(self, name, urls, cat = None):
-        needed_urls = []
+        provided_urls = []
         for url in urls:
             if url.lower().startswith("http://"):
                 try:
                     if url.lower().endswith(".pls"):
-                        needed_urls.extend(get_uris_from_pls(url))
+                        provided_urls.extend(get_uris_from_pls(url))
                     elif url.lower().endswith(".m3u"):
-                        needed_urls.extend(get_uris_from_m3u(url))
+                        provided_urls.extend(get_uris_from_m3u(url))
                     else:
-                        needed_urls.append(url)
+                        provided_urls.append(url)
                 except IOError:
-                    raise SourceError(_("Given url %s is not supported") % url)
+                    log.debug(_("Could not parse %s") % url)
+                    pass
+
+        needed_urls = []
+        for url in provided_urls:
+            try:
+                protocol = url.split(':')[0]
+                if protocol not in ('http', 'https', 'rtsp', ):
+                    raise ValueError
+            except ValueError:
+                log.debug(_("Discarding %s : webradio protocol not supported.")
+                          % url)
             else:
-                raise SourceError(_("Given url %s is not supported") % url)
+                needed_urls.append(url)
+
+        if len(needed_urls) < 1:
+            raise SourceError(_("Given url %s is not supported") % url)
+
         self.__db.add_webradio(self.__id, name, needed_urls, cat)
         self.__db.connection.commit()
 
