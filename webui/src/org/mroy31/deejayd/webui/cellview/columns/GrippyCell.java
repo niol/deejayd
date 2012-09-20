@@ -50,7 +50,7 @@ public class GrippyCell<T> extends AbstractCell<String> {
     @Override
     public void render(Context context, String value, SafeHtmlBuilder sb) {
         sb.appendHtmlConstant("<div style='margin-left:6px;margin-right:6px;text-overflow: clip'>");
-        sb.appendHtmlConstant("<img draggable=\"true\" src=\"./deejayd_webui/clear.cache.gif\" class=\""+className+"\">")
+        sb.appendHtmlConstant("<img draggable=\"true\" src=\"./gwtwebui/clear.cache.gif\" class=\""+className+"\">")
           .appendHtmlConstant("</img>")
           .appendHtmlConstant("</div>");
     }

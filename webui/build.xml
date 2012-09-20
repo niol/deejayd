@@ -65,8 +65,8 @@
 
   <target name="clean" description="Cleans this project">
     <delete dir="war/WEB-INF/classes" failonerror="false" />
-    <delete dir="war/deejayd_webui" failonerror="false" />
-    <delete dir="war/mobile_webui" failonerror="false" />
+    <delete dir="war/gwtwebui" failonerror="false" />
+    <delete dir="war/gwtmobilewebui" failonerror="false" />
   </target>
 
 </project>
