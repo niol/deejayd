@@ -68,6 +68,7 @@ if [ ! -z "$DEEJAYD_XSERVER_METHOD" ] &&\
             chmod g+w $DEEJAYD_XAUTHORITY
         fi
     fi
+    export DISPLAY=$DEEJAYD_DISPLAYNAME
 fi
 
 # Load the VERBOSE setting and other rcS variables
