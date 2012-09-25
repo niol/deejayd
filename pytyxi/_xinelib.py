@@ -58,10 +58,10 @@ class xine_cfg_entry_t(ctypes.Structure):
     _fields_ = (
         ('key', ctypes.c_char_p),
         ('type', ctypes.c_int),
+        ('exp_level', ctypes.c_int),
         ('unknown_value', ctypes.c_char_p),
         ('str_value', ctypes.c_char_p),
         ('str_default', ctypes.c_char_p),
-        ('dummy', ctypes.c_void_p),
         ('num_value', ctypes.c_int),
         ('num_default', ctypes.c_int),
         ('range_min', ctypes.c_int),
@@ -69,7 +69,6 @@ class xine_cfg_entry_t(ctypes.Structure):
         ('enum_values', ctypes.c_void_p), # char **enum_values
         ('description', ctypes.c_char_p),
         ('help', ctypes.c_char_p),
-        ('exp_level', ctypes.c_int),
         ('callback', ctypes.c_void_p),
         ('callback_data', ctypes.c_void_p),
     )
@@ -185,19 +184,32 @@ xine_frame_output_cb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p,
                   ctypes.POINTER(ctypes.c_double),
                   ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
 
+# struct timeval from the GNU C Library <sys/time.h>
+class timeval(ctypes.Structure):
+    _fields_ = (
+        ('tv_sec', ctypes.c_long),
+        ('tv_usec', ctypes.c_long),
+    )
+
 class xine_event_t(ctypes.Structure):
     _fields_ = (
-        ('type', ctypes.c_int),
         ('stream', ctypes.c_void_p),
         ('data', ctypes.c_void_p),
         ('data_length', ctypes.c_int),
+        ('type', ctypes.c_int),
+        ('tv', timeval),
+    )
+
+class xine_ui_data_t(ctypes.Structure):
+    _fields_ = (
+        ('num_buttons', ctypes.c_int),
+        ('str_len', ctypes.c_int),
+        ('str', 256 * ctypes.c_char),
     )
 
 class xine_ui_message_data_t(ctypes.Structure):
     _fields_ = (
-        ('compatibility_num_buttons', ctypes.c_int),
-        ('compatibility_str_len', ctypes.c_int),
-        ('compatibility_str', 256 * ctypes.c_char),
+        ('compatibility', xine_ui_data_t),
         ('type', ctypes.c_int),
         ('explanation', ctypes.c_int),
         ('num_parameters', ctypes.c_int),
