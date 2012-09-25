@@ -212,6 +212,9 @@ class GstreamerPlayer(_BasePlayer):
             self.bin.set_property('uri', uri)
             if suburi is not None:
                 self.bin.set_property('suburi', suburi)
+
+            if self.__window is not None:
+                self.__window.set_dpms(False)
             self.__set_gst_state(gst.STATE_PLAYING)
 
         if self._media_file["type"] == "webradio":
