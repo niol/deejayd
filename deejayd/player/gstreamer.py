@@ -66,12 +66,42 @@ class GstreamerPlayer(_BasePlayer):
         self.bin = gst.element_factory_make('playbin2')
         self.bin.set_property("auto-flush-bus",True)
 
-        # Open a Audio pipeline
-        try: audio_sink = gst.parse_launch(self.__gst_options["audio_p"])
-        except gobject.GError, err:
+        # Open a Audio sink
+        audio_sink_bin = gst.Bin()
+        audiofilter = gst.element_factory_make('capsfilter')
+        audioconvert = gst.element_factory_make('audioconvert')
+        try:
+            audio_sink = gst.parse_launch(self.__gst_options["audio_p"])
+            ret = audio_sink.set_state(gst.STATE_READY)
+            if ret == gst.STATE_CHANGE_FAILURE:
+                raise PlayerError
+        except (PlayerError, gobject.GError), err:
             raise PlayerError(_("No audio sink found for Gstreamer : %s") \
                     % str(err).decode("utf8", 'replace'))
-        self.bin.set_property('audio-sink',audio_sink)
+        finally:
+            audio_sink.set_state(gst.STATE_NULL)
+        audio_sink_bin.add_many(audiofilter, audioconvert, audio_sink)
+        audiofilter.link(audioconvert)
+        audioconvert.link(audio_sink)
+        audio_sink_bin.add_pad(gst.GhostPad('sink',
+                               audiofilter.get_static_pad('sink')))
+
+        audio_sink_caps = audio_sink.get_static_pad('sink').get_caps()
+        wanted_channels = self.get_num_audio_channels()
+        if wanted_channels != -1:
+            wanted_caps = gst.Caps()
+            for cap in audio_sink_caps:
+                try:
+                    channels = cap['channels']
+                except KeyError:
+                    pass
+                else:
+                    wanted_cap = cap.copy()
+                    wanted_cap['channels'] = wanted_channels
+                    wanted_caps.append_structure(wanted_cap)
+            audiofilter.set_property('caps', wanted_caps)
+
+        self.bin.set_property('audio-sink', audio_sink_bin)
 
         # connect to bus messages
         bus = self.bin.get_bus()
@@ -158,6 +188,19 @@ class GstreamerPlayer(_BasePlayer):
         self.bin = None
         self.__bus_id = None
 
+    def get_num_audio_channels(self):
+        wanted_output = self.config.get('gstreamer', 'speaker_setup')
+        if wanted_output == 'stereo':
+            channels = 2
+        elif wanted_output == '4channel':
+            channels = 4
+        elif wanted_output == '5channel':
+            channels = 5
+        elif wanted_output == '51channel':
+            channels = 6
+        elif wanted_output == 'ac3passthrough':
+            channels = -1
+        return channels
 
     def play(self):
         super(GstreamerPlayer, self).play()

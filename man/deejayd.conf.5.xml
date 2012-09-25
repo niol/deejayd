@@ -464,6 +464,19 @@ panel_tags = genre,artist,album
       </varlistentry>
 
       <varlistentry>
+        <term>speaker_setup</term>
+        <listitem>
+          <para>The speaker setup you use for sound output. Possible values are
+            <parameter>stereo</parameter> (default),
+            <parameter>4channel</parameter>,
+            <parameter>5channel</parameter>,
+            <parameter>51channel</parameter>,
+            <parameter>ac3passthrough</parameter>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>video_output</term>
         <listitem>
           <para>The video output sink to use in gstreamer. This is usually
