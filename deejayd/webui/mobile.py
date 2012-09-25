@@ -33,7 +33,7 @@ def build(config):
     <!-- Specific for mobile device -->
     <meta name="viewport" content="user-scalable=no; width=device-width">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="./style/deejayd.jpg"/>
+    <link rel="apple-touch-icon" href="../static/deejayd.jpg"/>
 
     <!--                                           -->
     <!-- Any title is fine                         -->
