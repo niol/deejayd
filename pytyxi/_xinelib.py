@@ -22,10 +22,10 @@ import sys, ctypes
 
 try:
     if sys.platform == 'linux2':
-        _xinelib = ctypes.cdll.LoadLibrary('libxine.so.1')
+        _xinelib = ctypes.cdll.LoadLibrary('libxine.so.2')
     elif sys.platform == 'darwin':
         # FIXME: should find a means to configure path
-        _xinelib = ctypes.cdll.LoadLibrary('/opt/local/lib/libxine.1.dylib')
+        _xinelib = ctypes.cdll.LoadLibrary('/opt/local/lib/libxine.2.dylib')
 except (ImportError, OSError), e:
     raise ImportError, e
 
