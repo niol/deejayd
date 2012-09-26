@@ -632,11 +632,8 @@ class XinePlayer(object):
             return entry.str_value or entry.str_default
         elif entry.type == XinePlayer.XINE_CONFIG_TYPE_ENUM:
             enum_values = []
-            enum_value_addr = entry.enum_values
             for enum_value_index in range(0, entry.num_value):
-                enum_value = ctypes.string_at(enum_value_addr)
-                enum_values.append(enum_value)
-                enum_value_addr = enum_value_addr + len(enum_value) + 1 # '\0'
+                enum_values.append(entry.enum_values[enum_value_index])
             return enum_values
         elif entry.type == XinePlayer.XINE_CONFIG_TYPE_NUM:
             return entry.num_value or entry.num_default
@@ -708,7 +705,9 @@ if __name__ == '__main__':
     print 'Xine %d.%d.%d ' % x.get_version()
     x.set_param(XinePlayer.XINE_ENGINE_PARAM_VERBOSITY_LOG, 1)
     vd = VideoDriver(x, fullscreen=False)
-    s = x.stream_new(video_port=vd)
+    # force audio driver to alsa to test config entry set/get
+    ad = AudioDriver(x, "alsa")
+    s = x.stream_new(video_port=vd, audio_port=ad)
     x.update_config_entry('audio.device.alsa_front_device', 'hw:0,1')
     print '\tOutput to : %s'\
           % x.get_config_entry('audio.device.alsa_default_device')
