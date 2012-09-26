@@ -280,7 +280,6 @@ class DatabaseQueries(object):
         for (tag, direction) in orders:
             query.order_by_tag(tag, direction == "descending")
         query.set_limit(limit)
-        print query.to_sql()
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("fetchall")
