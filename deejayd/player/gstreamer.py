@@ -60,47 +60,69 @@ class GstreamerPlayer(_BasePlayer):
         self.__display = None
         self.__window = None
 
+    def __gst_add_elts_to_sink(self, sink_bin, elts):
+        sink_bin.add_many(*elts)
+        try:
+            gst.element_link_many(*elts)
+        except gst.LinkError, e:
+            err = str(e).decode("utf8", 'replace')
+            raise PlayerError(_("Could not link GStreamer pipeline: '%s'")\
+                               % err)
+        # Test to ensure output pipeline can preroll
+        sink_bin.set_state(gst.STATE_READY)
+        result, state, pending = sink_bin.get_state(timeout=gst.SECOND/2)
+        if result == gst.STATE_CHANGE_FAILURE:
+            sink_bin.set_state(gst.STATE_NULL)
+            raise PlayerError(_("Unable to create pipeline"))
+
     def __init_pipeline(self):
         if self.bin is not None: return
 
         self.bin = gst.element_factory_make('playbin2')
         self.bin.set_property("auto-flush-bus",True)
 
-        # Open a Audio sink
-        audio_sink_bin = gst.Bin()
-        audiofilter = gst.element_factory_make('capsfilter')
-        audioconvert = gst.element_factory_make('audioconvert')
-        try:
-            audio_sink = gst.parse_launch(self.__gst_options["audio_p"])
-            ret = audio_sink.set_state(gst.STATE_READY)
-            if ret == gst.STATE_CHANGE_FAILURE:
-                raise PlayerError
-        except (PlayerError, gobject.GError), err:
-            raise PlayerError(_("No audio sink found for Gstreamer : %s") \
-                    % str(err).decode("utf8", 'replace'))
-        finally:
-            audio_sink.set_state(gst.STATE_NULL)
-        audio_sink_bin.add_many(audiofilter, audioconvert, audio_sink)
-        audiofilter.link(audioconvert)
-        audioconvert.link(audio_sink)
-        audio_sink_bin.add_pad(gst.GhostPad('sink',
-                               audiofilter.get_static_pad('sink')))
+        if self.__gst_options["audio_p"] != "fakesink":
+            # Open a Audio sink
+            # [<-> Ghospad -> audiofilter -> audioconvert -> audio sink]
+            audio_sink_bin = gst.Bin()
+            audiofilter = gst.element_factory_make('capsfilter')
+            audioconvert = gst.element_factory_make('audioconvert')
+            try:
+                audio_sink = gst.parse_launch(self.__gst_options["audio_p"])
+                ret = audio_sink.set_state(gst.STATE_READY)
+                if ret == gst.STATE_CHANGE_FAILURE:
+                    raise PlayerError
+            except (PlayerError, gobject.GError), err:
+                raise PlayerError(_("No audio sink found for Gstreamer : %s") \
+                        % str(err).decode("utf8", 'replace'))
+            finally:
+                audio_sink.set_state(gst.STATE_NULL)
 
-        audio_sink_caps = audio_sink.get_static_pad('sink').get_caps()
-        wanted_channels = self.get_num_audio_channels()
-        if wanted_channels != -1:
-            wanted_caps = gst.Caps()
-            for cap in audio_sink_caps:
-                try:
-                    channels = cap['channels']
-                except KeyError:
-                    pass
-                else:
-                    wanted_cap = cap.copy()
-                    wanted_cap['channels'] = wanted_channels
-                    wanted_caps.append_structure(wanted_cap)
-            audiofilter.set_property('caps', wanted_caps)
-
+            try:
+                self.__gst_add_elts_to_sink(audio_sink_bin,\
+                         [audiofilter, audioconvert, audio_sink])
+            except PlayerError, ex:
+                self.__destroy_pipeline()
+                raise ex
+            # create ghostpad
+            audio_sink_bin.add_pad(gst.GhostPad('sink',
+                                   audiofilter.get_static_pad('sink')))
+            audio_sink_caps = audio_sink.get_static_pad('sink').get_caps()
+            wanted_channels = self.get_num_audio_channels()
+            if wanted_channels != -1:
+                wanted_caps = gst.Caps()
+                for cap in audio_sink_caps:
+                    try:
+                        channels = cap['channels']
+                    except KeyError:
+                        pass
+                    else:
+                        wanted_cap = cap.copy()
+                        wanted_cap['channels'] = wanted_channels
+                        wanted_caps.append_structure(wanted_cap)
+                audiofilter.set_property('caps', wanted_caps)
+        else:
+            audio_sink_bin = gst.element_factory_make('fakesink')
         self.bin.set_property('audio-sink', audio_sink_bin)
 
         # connect to bus messages
@@ -142,22 +164,11 @@ class GstreamerPlayer(_BasePlayer):
             self.__osd.set_property("halignment", 0) # left
             self.__osd.set_property("valignment", 2) # top
             bin_elts = [self.__osd, video_sink]
-            map(bufbin.add, bin_elts)
             try:
-                gst.element_link_many(*bin_elts)
-            except gst.LinkError, e:
-                err = str(e).decode("utf8", 'replace')
+                self.__gst_add_elts_to_sink(bufbin, bin_elts)
+            except PlayerError, ex:
                 self.__destroy_pipeline()
-                raise PlayerError(_("Could not link GStreamer pipeline: '%s'")\
-                                   % err)
-
-            # Test to ensure output pipeline can preroll
-            bufbin.set_state(gst.STATE_READY)
-            result, state, pending = bufbin.get_state(timeout=gst.SECOND/2)
-            if result == gst.STATE_CHANGE_FAILURE:
-                bufbin.set_state(gst.STATE_NULL)
-                self.__destroy_pipeline()
-                raise PlayerError(_("Unable to create video pipeline"))
+                raise ex
             # create ghostpad
             gpad = gst.GhostPad('sink', self.__osd.get_pad('video_sink'))
             bufbin.add_pad(gpad)
@@ -349,7 +360,8 @@ class GstreamerPlayer(_BasePlayer):
             imagesink.set_xwindow_id(self.__window.window_p())
 
     def __about_to_finish(self, pipeline):
-        if self._media_file["type"] != "webradio":
+        if self._media_file is not None and \
+                self._media_file["type"] != "webradio":
             self.__new_file = self._source.next(explicit = False)
             if self.__new_file is not None and \
                     not self.__need_pipeline_change(self.__new_file):
@@ -358,9 +370,9 @@ class GstreamerPlayer(_BasePlayer):
 
                 # set new uri and suburi if necessary:
                 self.bin.set_property('uri', self.__new_file["uri"])
-                if self._has_external_subtitle():
+                if self._has_external_subtitle(self.__new_file):
                     # external subtitle
-                    suburi = self._new_file["external_subtitle"]
+                    suburi = self.__new_file["external_subtitle"]
                     self.bin.set_property('suburi', suburi)
 
         return True
@@ -385,7 +397,9 @@ class GstreamerPlayer(_BasePlayer):
         elif message.type == gst.MESSAGE_ERROR:
             err, debug = message.parse_error()
             err = str(err).decode("utf8", 'replace')
-            log.err("Gstreamer : " + err)
+            log.err("Gstreamer Error: %s" % err )
+            debug = str(debug).decode("utf8", 'replace')
+            log.debug("Gstreamer Error debug: %s" % debug )
         elif message.type == gst.MESSAGE_ELEMENT:
             name = ""
             if hasattr(message.structure, "get_name"):

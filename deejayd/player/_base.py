@@ -355,12 +355,14 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
             self.stop()
 
     def _current_is_video(self):
-        return self._media_file is not None and self._media_file['type'] == 'video'
-
-    def _has_external_subtitle(self):
         return self._media_file is not None \
-            and "external_subtitle" in self._media_file \
-            and self._media_file["external_subtitle"].startswith("file://")
+                and self._media_file['type'] == 'video'
+
+    def _has_external_subtitle(self, media = None):
+        media_file = media or self._media_file
+        return media_file is not None \
+            and "external_subtitle" in media_file \
+            and media_file["external_subtitle"].startswith("file://")
 
     def _init_video_information(self):
         if self._current_is_video():
