@@ -430,7 +430,8 @@ class GstreamerPlayer(_BasePlayer):
 
     def __update_metadata(self, tags):
         for k in tags.keys():
-            value = str(tags[k]).strip()
+            # GstTags can only be ascii or utf-8
+            value = str(tags[k]).decode('utf-8').strip()
             if not value: continue
             if k in ("emphasis", "mode", "layer"):
                 continue
