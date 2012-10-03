@@ -19,7 +19,8 @@
 import os, datetime
 
 from deejayd.mediadb.formats._base import _VideoFile
-extensions = (".avi", ".asf", ".wmv", ".ogm", ".mkv", ".mp4", ".mov", ".m4v")
+extensions = (".avi", ".flv", ".asf", ".wmv", ".ogm", ".mkv",\
+        ".mp4", ".mov", ".m4v")
 
 class VideoFile(_VideoFile):
     mime_type = (u"video/x-msvideo", u"video/x-ms-asf", u"video/x-ms-wmv",\
