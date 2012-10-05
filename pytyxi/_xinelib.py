@@ -18,6 +18,7 @@
 
 
 import sys, ctypes
+from pytyx11._libX11 import Display
 
 
 try:
@@ -188,7 +189,7 @@ _xinelib.xine_dispose.restype = None
 
 class x11_visual_t(ctypes.Structure):
     _fields_ = (
-        ('display', ctypes.c_void_p),
+        ('display', ctypes.POINTER(Display)),
         ('screen', ctypes.c_int),
         ('d', ctypes.c_ulong), # Drawable
         ('user_data', ctypes.c_void_p),

@@ -19,6 +19,8 @@
 import sys
 import ctypes
 
+from pytyx11._libX11 import Display
+
 
 try:
     if sys.platform == 'linux2':
@@ -31,17 +33,17 @@ except (ImportError, OSError), e:
 
 
 # Bool DPMSQueryExtension (Display *display, int *event_base, int *error_base)
-_libXext.DPMSQueryExtension.argtypes = (ctypes.c_void_p,
+_libXext.DPMSQueryExtension.argtypes = (ctypes.POINTER(Display),
                                         ctypes.POINTER(ctypes.c_int),
                                         ctypes.POINTER(ctypes.c_int))
 _libXext.DPMSQueryExtension.restype = ctypes.c_int
 
 # Status DPMSEnable (Display *display )
-_libXext.DPMSEnable.argtypes = (ctypes.c_void_p, )
+_libXext.DPMSEnable.argtypes = (ctypes.POINTER(Display), )
 _libXext.DPMSEnable.restype = ctypes.c_int
 
 # Status DPMSDisable (Display *display )
-_libXext.DPMSDisable.argtypes = (ctypes.c_void_p, )
+_libXext.DPMSDisable.argtypes = (ctypes.POINTER(Display), )
 _libXext.DPMSDisable.restype = ctypes.c_int
 
 
