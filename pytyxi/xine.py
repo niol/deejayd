@@ -344,7 +344,7 @@ class Stream(object):
             self.set_dpms(False)
 
     def stop(self):
-        self.set_dpms(False)
+        self.set_dpms(True)
         xinelib.xine_stop(self.__stream_p)
 
     def get_pos_length(self):
