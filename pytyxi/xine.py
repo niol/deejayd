@@ -708,6 +708,7 @@ if __name__ == '__main__':
     # force audio driver to alsa to test config entry set/get
     ad = AudioDriver(x, "alsa")
     s = x.stream_new(video_port=vd, audio_port=ad)
+    s.set_param(Stream.XINE_PARAM_VERBOSITY, 2) # DEBUG
     x.update_config_entry('audio.device.alsa_front_device', 'hw:0,1')
     print '\tOutput to : %s'\
           % x.get_config_entry('audio.device.alsa_default_device')
