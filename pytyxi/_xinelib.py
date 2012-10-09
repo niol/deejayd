@@ -62,23 +62,29 @@ _xinelib.xine_config_load.argstype = (ctypes.POINTER(xine_t), ctypes.c_char_p)
 _xinelib.xine_config_load.restype = None
 
 class xine_cfg_entry_t(ctypes.Structure):
-    _fields_ = (
-        ('key', ctypes.c_char_p),
-        ('type', ctypes.c_int),
-        ('exp_level', ctypes.c_int),
-        ('unknown_value', ctypes.c_char_p),
-        ('str_value', ctypes.c_char_p),
-        ('str_default', ctypes.c_char_p),
-        ('num_value', ctypes.c_int),
-        ('num_default', ctypes.c_int),
-        ('range_min', ctypes.c_int),
-        ('range_max', ctypes.c_int),
-        ('enum_values', ctypes.POINTER(ctypes.c_char_p)), # char **enum_values
-        ('description', ctypes.c_char_p),
-        ('help', ctypes.c_char_p),
-        ('callback', ctypes.c_void_p),
-        ('callback_data', ctypes.c_void_p),
-    )
+    pass
+
+# typedef void (*xine_config_cb_t) (void *user_data, xine_cfg_entry_t *entry);
+xine_config_cb_t = ctypes.CFUNCTYPE(None, ctypes.c_void_p,
+                                    ctypes.POINTER(xine_cfg_entry_t))
+
+xine_cfg_entry_t._fields_ = (
+    ('key', ctypes.c_char_p),
+    ('type', ctypes.c_int),
+    ('exp_level', ctypes.c_int),
+    ('unknown_value', ctypes.c_char_p),
+    ('str_value', ctypes.c_char_p),
+    ('str_default', ctypes.c_char_p),
+    ('num_value', ctypes.c_int),
+    ('num_default', ctypes.c_int),
+    ('range_min', ctypes.c_int),
+    ('range_max', ctypes.c_int),
+    ('enum_values', ctypes.POINTER(ctypes.c_char_p)), # char **enum_values
+    ('description', ctypes.c_char_p),
+    ('help', ctypes.c_char_p),
+    ('callback', xine_config_cb_t),
+    ('callback_data', ctypes.c_void_p),
+)
 
 # int  xine_config_get_first_entry (xine_t *self, xine_cfg_entry_t *entry)
 _xinelib.xine_config_get_first_entry.argstype = (ctypes.POINTER(xine_t),
@@ -187,18 +193,6 @@ _xinelib.xine_close.restype = None
 _xinelib.xine_dispose.argstype = (ctypes.POINTER(xine_stream_t), )
 _xinelib.xine_dispose.restype = None
 
-class x11_visual_t(ctypes.Structure):
-    _fields_ = (
-        ('display', ctypes.POINTER(Display)),
-        ('screen', ctypes.c_int),
-        ('d', ctypes.c_ulong), # Drawable
-        ('user_data', ctypes.c_void_p),
-        ('dest_size_cb', ctypes.c_void_p),
-        ('frame_output_cb', ctypes.c_void_p),
-        ('lock_display', ctypes.c_void_p),
-        ('unlock_display', ctypes.c_void_p),
-    )
-
 # dest size callback
 xine_dest_size_cb = ctypes.CFUNCTYPE(None, ctypes.c_void_p,
                      ctypes.c_int, ctypes.c_int, ctypes.c_double,
@@ -212,6 +206,18 @@ xine_frame_output_cb = ctypes.CFUNCTYPE(None, ctypes.c_void_p,
                   ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
                   ctypes.POINTER(ctypes.c_double),
                   ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
+
+class x11_visual_t(ctypes.Structure):
+    _fields_ = (
+        ('display', ctypes.POINTER(Display)),
+        ('screen', ctypes.c_int),
+        ('d', ctypes.c_ulong), # Drawable
+        ('user_data', ctypes.c_void_p),
+        ('dest_size_cb', xine_dest_size_cb),
+        ('frame_output_cb', xine_frame_output_cb),
+        ('lock_display', ctypes.c_void_p),
+        ('unlock_display', ctypes.c_void_p),
+    )
 
 # struct timeval from the GNU C Library <sys/time.h>
 class timeval(ctypes.Structure):

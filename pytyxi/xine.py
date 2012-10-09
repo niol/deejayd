@@ -224,17 +224,15 @@ class VideoDriver(object):
 
         # Those callbacks are required to be kept in this tuple in order to
         # be safe from the garbage collector.
-        self.__x11_callbacks = ( xinelib.xine_dest_size_cb(self.__dest_size_cb),
-                           xinelib.xine_frame_output_cb(self.__frame_output_cb),
-                               )
+        self.__x11_dest_size_cb = xinelib.xine_dest_size_cb(self.__dest_size_cb)
+        self.__x11_frame_output_cb = xinelib.xine_frame_output_cb(self.__frame_output_cb)
 
         vis = xinelib.x11_visual_t()
         vis.display = self.display.display_p()
         vis.screen = self.display.get_default_screen_number()
         vis.d = self.window.window_p()
-        vis.frame_output_cb = ctypes.cast(self.__x11_callbacks[1],
-                                          ctypes.c_void_p)
-        vis.dest_size_cb = ctypes.cast(self.__x11_callbacks[0], ctypes.c_void_p)
+        vis.frame_output_cb = self.__x11_frame_output_cb
+        vis.dest_size_cb = self.__x11_dest_size_cb
         return vis
 
     def __frame_output_cb(self, user_data,
