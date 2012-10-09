@@ -200,13 +200,13 @@ class x11_visual_t(ctypes.Structure):
     )
 
 # dest size callback
-xine_dest_size_cb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p,
+xine_dest_size_cb = ctypes.CFUNCTYPE(None, ctypes.c_void_p,
                      ctypes.c_int, ctypes.c_int, ctypes.c_double,
                      ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
                      ctypes.POINTER(ctypes.c_double))
 
 # frame output callback
-xine_frame_output_cb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p,
+xine_frame_output_cb = ctypes.CFUNCTYPE(None, ctypes.c_void_p,
                   ctypes.c_int, ctypes.c_int, ctypes.c_double,
                   ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
                   ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
