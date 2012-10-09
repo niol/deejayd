@@ -222,7 +222,7 @@ class timeval(ctypes.Structure):
 
 class xine_event_t(ctypes.Structure):
     _fields_ = (
-        ('stream', ctypes.c_void_p),
+        ('stream', ctypes.POINTER(xine_stream_t)),
         ('data', ctypes.c_void_p),
         ('data_length', ctypes.c_int),
         ('type', ctypes.c_int),
