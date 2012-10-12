@@ -22,14 +22,11 @@ import ctypes
 from pytyx11._libX11 import Display
 
 
-try:
-    if sys.platform == 'linux2':
-        _libXext = ctypes.cdll.LoadLibrary('libXext.so.6')
-    elif sys.platform == 'darwin':
-        # FIXME: should find a means to configure path
-        _libXext = ctypes.cdll.LoadLibrary('/opt/local/lib/libXext.6.dylib')
-except (ImportError, OSError), e:
-    raise ImportError, e
+lib = ctypes.util.find_library('Xext')
+if lib is not None:
+    _libXext = ctypes.cdll.LoadLibrary(lib)
+else:
+    raise ImportError('Could not load Xext shared library.')
 
 
 # Bool DPMSQueryExtension (Display *display, int *event_base, int *error_base)

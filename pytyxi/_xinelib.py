@@ -21,14 +21,12 @@ import sys, ctypes
 from pytyx11._libX11 import Display
 
 
-try:
-    if sys.platform == 'linux2':
-        _xinelib = ctypes.cdll.LoadLibrary('libxine.so.2')
-    elif sys.platform == 'darwin':
-        # FIXME: should find a means to configure path
-        _xinelib = ctypes.cdll.LoadLibrary('/opt/local/lib/libxine.2.dylib')
-except (ImportError, OSError), e:
-    raise ImportError, e
+lib = ctypes.util.find_library('xine')
+if lib is not None:
+    _xinelib = ctypes.cdll.LoadLibrary(lib)
+else:
+    raise ImportError('Could not load xine shared library.')
+
 
 #
 # xine_t structure base definition
