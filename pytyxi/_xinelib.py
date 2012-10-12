@@ -251,7 +251,7 @@ class xine_ui_message_data_t(ctypes.Structure):
     )
 
 # event listener callback type
-xine_event_listener_cb_t = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p,
+xine_event_listener_cb_t = ctypes.CFUNCTYPE(None, ctypes.c_void_p,
                                             ctypes.POINTER(xine_event_t))
 
 # Opaque xine_event_queue_t structure
@@ -262,7 +262,7 @@ class xine_event_queue_t(ctypes.Structure):
 #    void *user_data)
 _xinelib.xine_event_create_listener_thread.argtypes = (\
                                        ctypes.POINTER(xine_event_queue_t),
-                                       ctypes.c_void_p,
+                                       xine_event_listener_cb_t,
                                        ctypes.c_void_p)
 _xinelib.xine_event_create_listener_thread.restype = None
 
