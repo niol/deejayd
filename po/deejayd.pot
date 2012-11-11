@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-06 22:55+0200\n"
+"POT-Creation-Date: 2012-11-11 17:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -217,6 +217,29 @@ msgstr ""
 msgid "Inotify problem for '%s', see traceback"
 msgstr ""
 
+#: ../deejayd/mediadb/inotify.py:201
+msgid " (directory gone)"
+msgstr ""
+
+#: ../deejayd/mediadb/inotify.py:203
+#, python-format
+msgid "inotify: could not watch directory '%s'%s"
+msgstr ""
+
+#: ../deejayd/mediadb/inotify.py:205
+#, python-format
+msgid "inotify: watching directory '%s'"
+msgstr ""
+
+#: ../deejayd/mediadb/inotify.py:207
+msgid "Try raising fs.inotify.max_user_watches (man sysctl)"
+msgstr ""
+
+#: ../deejayd/mediadb/inotify.py:210
+#, python-format
+msgid "inotify: stopped watching directory '%s'"
+msgstr ""
+
 #: ../deejayd/net/protocol.py:83
 msgid "error, see deejayd log"
 msgstr ""
@@ -344,12 +367,12 @@ msgstr ""
 msgid "No media file is currently playing"
 msgstr ""
 
-#: ../deejayd/player/_base.py:376
+#: ../deejayd/player/_base.py:378
 #, python-format
 msgid "Sub channel %d"
 msgstr ""
 
-#: ../deejayd/player/_base.py:384
+#: ../deejayd/player/_base.py:386
 #, python-format
 msgid "Audio channel %d"
 msgstr ""
@@ -394,30 +417,30 @@ msgstr ""
 msgid "Gstreamer >= 0.10.24 is required"
 msgstr ""
 
-#: ../deejayd/player/gstreamer.py:72
-#, python-format
-msgid "No audio sink found for Gstreamer : %s"
-msgstr ""
-
-#: ../deejayd/player/gstreamer.py:89
-#, python-format
-msgid "No video sink found for Gstreamer : %s"
-msgstr ""
-
-#: ../deejayd/player/gstreamer.py:95
-msgid "Unable to open video display"
-msgstr ""
-
-#: ../deejayd/player/gstreamer.py:121
+#: ../deejayd/player/gstreamer.py:69
 #, python-format
 msgid "Could not link GStreamer pipeline: '%s'"
 msgstr ""
 
-#: ../deejayd/player/gstreamer.py:130
-msgid "Unable to create video pipeline"
+#: ../deejayd/player/gstreamer.py:76
+msgid "Unable to create pipeline"
 msgstr ""
 
-#: ../deejayd/player/gstreamer.py:281
+#: ../deejayd/player/gstreamer.py:96
+#, python-format
+msgid "No audio sink found for Gstreamer : %s"
+msgstr ""
+
+#: ../deejayd/player/gstreamer.py:141
+#, python-format
+msgid "No video sink found for Gstreamer : %s"
+msgstr ""
+
+#: ../deejayd/player/gstreamer.py:147
+msgid "Unable to open video display"
+msgstr ""
+
+#: ../deejayd/player/gstreamer.py:338
 msgid "Unable to change gstreamer state"
 msgstr ""
 
@@ -616,18 +639,28 @@ msgstr ""
 msgid "type %s not supported"
 msgstr ""
 
-#: ../deejayd/sources/webradio.py:73 ../deejayd/sources/webradio.py:75
+#: ../deejayd/sources/webradio.py:74
+#, python-format
+msgid "Could not parse %s"
+msgstr ""
+
+#: ../deejayd/sources/webradio.py:84
+#, python-format
+msgid "Discarding %s : webradio protocol not supported."
+msgstr ""
+
+#: ../deejayd/sources/webradio.py:90
 #, python-format
 msgid "Given url %s is not supported"
 msgstr ""
 
-#: ../deejayd/sources/webradio.py:98 ../deejayd/sources/webradio.py:151
-#: ../deejayd/sources/webradio.py:164 ../deejayd/sources/webradio.py:170
+#: ../deejayd/sources/webradio.py:115 ../deejayd/sources/webradio.py:168
+#: ../deejayd/sources/webradio.py:181 ../deejayd/sources/webradio.py:187
 #, python-format
 msgid "Webradio source %s not supported"
 msgstr ""
 
-#: ../deejayd/sources/webradio.py:101
+#: ../deejayd/sources/webradio.py:118
 msgid "You can not edit this webradio source"
 msgstr ""
 

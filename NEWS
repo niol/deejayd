@@ -1,7 +1,7 @@
 
 New features and significant updates in version...
 
-0.12.0 (2012-XX-XX)
+0.12.0 (2012-11-11)
 -------------------
   * Restructure the code to reduce its size
      WARNING : there are some changes in the JSON-RPC interface, see docs

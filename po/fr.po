@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-18 16:03+0200\n"
+"POT-Creation-Date: 2012-11-11 17:41+0100\n"
 "PO-Revision-Date: 2010-12-27 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -218,6 +218,29 @@ msgstr "Evennement inotify %s : %s"
 msgid "Inotify problem for '%s', see traceback"
 msgstr "Problème inotify pour '%s', voir l'exception pour plus de détail"
 
+#: ../deejayd/mediadb/inotify.py:201
+msgid " (directory gone)"
+msgstr "(répertoire absent)"
+
+#: ../deejayd/mediadb/inotify.py:203
+#, python-format
+msgid "inotify: could not watch directory '%s'%s"
+msgstr "inotify : impossible de surveiller le dossier '%s' %s"
+
+#: ../deejayd/mediadb/inotify.py:205
+#, python-format
+msgid "inotify: watching directory '%s'"
+msgstr "inotify : surveillance du répertoire '%s'"
+
+#: ../deejayd/mediadb/inotify.py:207
+msgid "Try raising fs.inotify.max_user_watches (man sysctl)"
+msgstr "Essayez d'augmenter fs.inotify.max_user_watches (man sysctl)"
+
+#: ../deejayd/mediadb/inotify.py:210
+#, python-format
+msgid "inotify: stopped watching directory '%s'"
+msgstr "inotify : arrêt de la surveillance du répertoire '%s'"
+
 #: ../deejayd/net/protocol.py:83
 msgid "error, see deejayd log"
 msgstr "erreur, voir les logs de deejayd"
@@ -347,12 +370,12 @@ msgstr "Canal des sous-titres %d non trouvé"
 msgid "No media file is currently playing"
 msgstr "Aucun fichier n'est actuellement en cours de lecture"
 
-#: ../deejayd/player/_base.py:376
+#: ../deejayd/player/_base.py:378
 #, python-format
 msgid "Sub channel %d"
 msgstr "Canal des sous-titres %d"
 
-#: ../deejayd/player/_base.py:384
+#: ../deejayd/player/_base.py:386
 #, python-format
 msgid "Audio channel %d"
 msgstr "Canal audio %d"
@@ -397,30 +420,30 @@ msgstr "Impossible d'identifier le dvd"
 msgid "Gstreamer >= 0.10.24 is required"
 msgstr "Gstreamer >= 0.10.24 est requis"
 
-#: ../deejayd/player/gstreamer.py:72
-#, python-format
-msgid "No audio sink found for Gstreamer : %s"
-msgstr "Aucun driver audio trouvé pour gstreamer : %s"
-
-#: ../deejayd/player/gstreamer.py:89
-#, python-format
-msgid "No video sink found for Gstreamer : %s"
-msgstr "Aucun driver vidéo trouvé pour gstreamer : %s"
-
-#: ../deejayd/player/gstreamer.py:95
-msgid "Unable to open video display"
-msgstr "Impossible d'ouvrir l'affichage video "
-
-#: ../deejayd/player/gstreamer.py:121
+#: ../deejayd/player/gstreamer.py:69
 #, python-format
 msgid "Could not link GStreamer pipeline: '%s'"
 msgstr "Impossible de lier le pipeline Gstreamer : '%s'"
 
-#: ../deejayd/player/gstreamer.py:130
-msgid "Unable to create video pipeline"
-msgstr "Impossible de créer le pipeline vidéo"
+#: ../deejayd/player/gstreamer.py:76
+msgid "Unable to create pipeline"
+msgstr "Impossible de créer le pipeline"
 
-#: ../deejayd/player/gstreamer.py:281
+#: ../deejayd/player/gstreamer.py:96
+#, python-format
+msgid "No audio sink found for Gstreamer : %s"
+msgstr "Aucun driver audio trouvé pour gstreamer : %s"
+
+#: ../deejayd/player/gstreamer.py:141
+#, python-format
+msgid "No video sink found for Gstreamer : %s"
+msgstr "Aucun driver vidéo trouvé pour gstreamer : %s"
+
+#: ../deejayd/player/gstreamer.py:147
+msgid "Unable to open video display"
+msgstr "Impossible d'ouvrir l'affichage video "
+
+#: ../deejayd/player/gstreamer.py:338
 msgid "Unable to change gstreamer state"
 msgstr "Impossible de changer l'état du player gstreamer"
 
@@ -619,20 +642,30 @@ msgstr "Le répertoire %s n'a pas été trouvé"
 msgid "type %s not supported"
 msgstr "Le type %s n'est pas supporté"
 
-#: ../deejayd/sources/webradio.py:73 ../deejayd/sources/webradio.py:75
+#: ../deejayd/sources/webradio.py:74
+#, python-format
+msgid "Could not parse %s"
+msgstr "Impossible d'analyser %s"
+
+#: ../deejayd/sources/webradio.py:84
+#, python-format
+msgid "Discarding %s : webradio protocol not supported."
+msgstr "Abandon de %s : radio web non supporté"
+
+#: ../deejayd/sources/webradio.py:90
 #, python-format
 msgid "Given url %s is not supported"
 msgstr "L'URL %s n'est pas supportée"
 
-#: ../deejayd/sources/webradio.py:98 ../deejayd/sources/webradio.py:151
-#: ../deejayd/sources/webradio.py:164 ../deejayd/sources/webradio.py:170
+#: ../deejayd/sources/webradio.py:115 ../deejayd/sources/webradio.py:168
+#: ../deejayd/sources/webradio.py:181 ../deejayd/sources/webradio.py:187
 #, python-format
 msgid "Webradio source %s not supported"
 msgstr "La source de radio web %s n'est pas supportée"
 
-#: ../deejayd/sources/webradio.py:101
+#: ../deejayd/sources/webradio.py:118
 msgid "You can not edit this webradio source"
-msgstr ""
+msgstr "Vous ne pouvez pas éditer cette source de radio web"
 
 #: ../deejayd/ui/log.py:86
 #, python-format
@@ -1166,9 +1199,6 @@ msgstr "Aucun service n'a été activé"
 
 #~ msgid "Add to playlist"
 #~ msgstr "Ajouter à la liste de lecture"
-
-#~ msgid "Directory"
-#~ msgstr "Répertoire"
 
 #~ msgid "Save"
 #~ msgstr "Sauver"

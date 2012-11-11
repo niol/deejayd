@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.12.0 (2012-XX-XX)
+Actual version : 0.12.0 (2012-11-11)
 ------------------------------------
 
 Description:
@@ -47,7 +47,7 @@ Requirements:
     * kaa-metadata >= 0.7.3 (http://doc.freevo.org/2.0/Kaa)
     * lxml >= 2.0 (http://codespeak.net/lxml/)
     * twisted-web >= 0.6.0 if you want to use deejayd-webui
-    * if you want to use gstreamer backend (audio only)
+    * if you want to use gstreamer backend
         * pygobject >= 2.12 (http://www.pygtk.org/)
         * gstreamer >= 0.10.24 (http://gstreamer.freedesktop.org)
         * gstreamer plugins :
@@ -66,7 +66,7 @@ Requirements:
         * libX11, libXext
         * ctypes >= 1.0.0 (It is include in python 2.5)
     * pyinotify >= 0.6.0 for inotify support (http://pyinotify.sourceforge.net/)
-    * ant, a JDK (like openjdk) and GWT SDK >= 2.1.1 if you want to build webui
+    * ant, a JDK (like openjdk) and GWT SDK == 2.4.X if you want to build webui
 
 If you want to build deejayd (distutils distribution), you also need
 the gettext package installed because of the usage of the msgfmt binary.
@@ -74,10 +74,10 @@ the gettext package installed because of the usage of the msgfmt binary.
 Installation:
 -------------
 Download deejayd and extract it:
-  $tar xzvf deejayd-0.11.0.tar.gz
+  $tar xzvf deejayd-0.12.0.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.11.0
+  $cd deejayd-0.12.0
   $GWT_SDK="PathToGwtSdk" python setup.py install
 
 Usage:
