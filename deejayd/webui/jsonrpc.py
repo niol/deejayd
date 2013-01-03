@@ -216,6 +216,11 @@ class JSONRpcResource(resource.Resource):
             return Fault(self.FAILURE, "Unable to decode JSON-RPC Request")
 
         log.debug("JSON-RPC Request : %s" % content)
+
+        # By default safari on ios 6 cache all POST resquest / response
+        # except if we add cache-control: no-cache in header
+        # so do it
+        request.setHeader("cache-control", "no-cache")
         try:
             parsed = loads_request(content)
             args, function_path = parsed['params'], parsed["method"]

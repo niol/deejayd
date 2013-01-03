@@ -21,6 +21,7 @@
 package org.mroy31.deejayd.common.rpc;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -56,8 +57,6 @@ import com.google.gwt.json.client.JSONValue;
 public class Rpc {
     private static int request_id = 0;
     private static final String RPC_URL = GWT.getHostPageBaseURL()+"../rpc/";
-    private final RequestBuilder request = new RequestBuilder(
-            RequestBuilder.POST, URL.encode(RPC_URL));
     private ArrayList<RpcHandler> handlers = new ArrayList<RpcHandler>();
     private final AnswerHandler<String> defaultHandler;
 
@@ -102,6 +101,16 @@ public class Rpc {
         try {
             for (RpcHandler h : handlers)
                 h.onRpcStart();
+            /*
+             * By default safari on ios 6 cache all POST resquest / response
+             * except if we add cache-control: no-cache in header request
+             * And to be sure, add a timestamp in each request
+             */
+            long ts = new Date().getTime();
+            String url = RPC_URL + "?ts=" + Long.toString(ts);
+            RequestBuilder request = new RequestBuilder(RequestBuilder.POST, URL.encode(url));
+            request.setHeader("cache-control", "no-cache");
+
             request.sendRequest(json_cmd.toString(), callback);
         }
         catch (RequestException ex) {
