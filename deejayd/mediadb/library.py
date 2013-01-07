@@ -524,7 +524,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
             self.db_con.remove_dirlink(dir_path, self.type)
         self.watcher.stop_watching_dir(dir_path)
 
-        ids = self.db_con.remove_recursive_dir(dir_path)
+        ids = self.db_con.remove_recursive_dir(dir_path, self.type)
         self._remove_empty_dir(path)
         return [(id, "remove") for id in ids]
 
