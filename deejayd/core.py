@@ -103,7 +103,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
 
         # start inotify thread when we are sure that all init stuff are ok
         if self.watcher and start_inotify:
-            log.debug(_("Start inotify threads"))
+            log.debug(_("Start inotify watcher"))
             self.watcher.start()
 
     def close(self):

@@ -32,22 +32,6 @@ class NotFoundException(DeejaydError):pass
 class NotSupportedFormat(DeejaydError):pass
 
 
-##########################################################################
-##########################################################################
-def inotify_action(func):
-    def inotify_action_func(*__args, **__kw):
-        self = __args[0]
-        try:
-            name = self.fs_charset2unicode(__args[1])
-            path = self.fs_charset2unicode(__args[2])
-        except UnicodeError:
-            return
-
-        return func(*__args, **__kw)
-
-    return inotify_action_func
-
-
 class _Library(SignalingComponent, JSONRpcComponent):
     common_attr = ("filename","uri","type","title","length")
     persistent_attr = ("rating","skipcount","playcount","lastplayed")
@@ -96,6 +80,45 @@ class _Library(SignalingComponent, JSONRpcComponent):
         unicode for internal processing.
         """
         return str_decode(path, self._fs_charset, errors)
+
+    def walk(self, top=None, walked=None):
+        """
+        This is a wrapper around os.walk() from the standard library:
+        - browsing with topdown=False
+        - following symbolic links on directories
+        - whith barriers in place against walking twice the same directory,
+          which may happen when two directory trees have symbolic links to
+          each other's contents.
+        """
+        if top is None: top = self._path
+        if walked is None: walked = []
+
+        for root, dirs, files in os.walk(top, topdown=False):
+            walked.append(os.path.realpath(root))
+
+            # Follow symlinks if they have not been walked yet
+            for d in dirs:
+                d_path = os.path.join(root, d)
+                if os.path.islink(d_path):
+                    if os.path.realpath(d_path) not in walked:
+                        for x in self.walk(d_path, walked):
+                            yield x
+                    else:
+                        log.err("Not following symlink '%s' because directory has already been processed." % d_path)
+
+            yield root, dirs, files
+
+    def walk_and_do(self, top=None, walked=None, dcb=None, fcb=None):
+        """
+        This walk calls dcb on each found directory and fcb on each found
+        file with the following arguments :
+            - library path
+        """
+        for root, dirs, files in self.walk(top, walked):
+            if dcb is not None:
+                dcb(root)
+            if fcb is not None:
+                map(lambda f: fcb(os.path.join(root, d)), files)
 
     def _verify_dir_not_empty(self, root, dirs = None, files = None):
         if len(files) == 0 and len(dirs) == 0 and root != self._path:
@@ -185,21 +208,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
     def get_root_path(self):
         return self._path
 
-    def get_root_paths(self):
-        root_paths = [self.get_root_path()]
-        for id, dirlink_record in self.db_con.get_all_dirlinks('', self.type):
-            dirlink = os.path.join(self.get_root_path(), dirlink_record)
-            root_paths.append(dirlink)
-        return root_paths
-
-    def library_path(self, realpath):
-        for root in self.get_root_paths():
-            if os.path.islink(root):
-                realroot = os.path.realpath(root)
-                if realpath.startswith(realroot):
-                    return os.path.join(root, realpath[len(realroot)+1:])
-        return realpath
-
     def get_status(self):
         status = []
         if not self._update_end:
@@ -277,12 +285,9 @@ class _Library(SignalingComponent, JSONRpcComponent):
         # name : id
         library_dirs = dict([(item[1],item[0]) for item \
                             in self.db_con.get_all_dirs(dir,self.type)])
-        # name
-        library_dirlinks = [item[1] for item\
-                            in self.db_con.get_all_dirlinks(dir, self.type)]
 
         changes = self.walk_directory(dir or self.get_root_path(),
-                library_dirs, library_files, library_dirlinks, force=force,
+                library_dirs, library_files, force=force,
                 dispatch_signal=dispatch_signal)
 
         # Remove unexistent files and directories from library
@@ -293,10 +298,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
                         'mediadb.mupdate', attrs = {"type": "remove", "id": id})
             changes.append((id, "remove"))
         for id in library_dirs.values(): self.db_con.remove_dir(id)
-        for dirlinkname in library_dirlinks:
-            self.db_con.remove_dirlink(dirlinkname, self.type)
-            if self.watcher:
-                self.watcher.stop_watching_dir(dirlinkname)
 
         return changes
 
@@ -329,7 +330,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
             self.db_con.close()
 
     def walk_directory(self, walk_root,
-                       library_dirs, library_files, library_dirlinks,
+                       library_dirs, library_files,
                        force = False, forbidden_roots=None,
                        dispatch_signal=True):
         """Walk a directory for files to update.
@@ -368,14 +369,8 @@ class _Library(SignalingComponent, JSONRpcComponent):
                 if os.path.islink(dir_path):
                     if not self.is_in_a_root(dir_path, forbidden_roots):
                         forbidden_roots.append(os.path.realpath(dir_path))
-                        if dir_path in library_dirlinks:
-                            library_dirlinks.remove(dir_path)
-                        else:
-                            self.db_con.insert_dirlink(dir_path, self.type)
-                            if self.watcher:
-                                self.watcher.watch_dir(dir_path, self)
                         changes.extend(self.walk_directory(dir_path,
-                                 library_dirs, library_files, library_dirlinks,
+                                 library_dirs, library_files,
                                  force, forbidden_roots,
                                  dispatch_signal))
 
@@ -457,12 +452,12 @@ class _Library(SignalingComponent, JSONRpcComponent):
     #######################################################################
     ## Inotify actions
     #######################################################################
-    @inotify_action
     def add_file(self, path, file):
         file_path = os.path.join(path, file)
+        log.debug('library: adding file %s in db' % file_path)
         file_info = self._get_file_info(file_path)
         if not file_info:
-            return self._inotify_add_info(path, file)
+            self._inotify_add_info(path, file)
 
         try: dir_id, file_id = self.db_con.is_file_exist(path, file, self.type)
         except TypeError:
@@ -474,75 +469,62 @@ class _Library(SignalingComponent, JSONRpcComponent):
         if fid:
             self.set_extra_infos(path, file, fid)
             self._add_missing_dir(os.path.dirname(path))
-            return [(fid, "add")]
-        return None
+            self.dispatch_mupdate(fid, 'add')
 
-    @inotify_action
     def update_file(self, path, name):
         try: dir_id, file_id = self.db_con.is_file_exist(path, name, self.type)
         except TypeError:
-            return self._inotify_update_info(path, name)
+            self._inotify_update_info(path, name)
+            raise NotFoundException('file is not in DB')
         else:
             file_path = os.path.join(path, name)
+            log.debug('library: updating file %s in db' % file_path)
             file_info = self._get_file_info(file_path)
             if not file_info:
-                return self._inotify_update_info(path, name)
+                self._inotify_update_info(path, name)
             self.set_media(dir_id, file_path, file_info, file_id)
-            return [(file_id, "update")]
+            self.dispatch_mupdate(file_id, 'update')
 
-    @inotify_action
     def remove_file(self, path, name):
+        log.debug('library: removing file %s from db' % os.path.join(path, name))
         file = self.db_con.is_file_exist(path, name, self.type)
         if file:
             dir_id, file_id = file
             self.db_con.remove_file(file_id)
             self._remove_empty_dir(path)
-            return [(file_id, "remove")]
+            self.dispatch_mupdate(file_id, 'remove')
         else:
-            return self._inotify_remove_info(path, name)
+            self._inotify_remove_info(path, name)
 
-    @inotify_action
-    def add_directory(self, path, name, dirlink=False):
+    def add_directory(self, path, name):
         dir_path = os.path.join(path, name)
-        if dirlink:
-            self.db_con.insert_dirlink(dir_path, self.type)
+        log.debug('library: adding dir %s in db' % dir_path)
         self.watcher.watch_dir(dir_path, self)
 
-        changes = self._update_dir(dir_path.rstrip("/"), dispatch_signal=False)
+        changes = self._update_dir(dir_path.rstrip("/"))
         self._add_missing_dir(os.path.dirname(dir_path))
-        self._remove_empty_dir(path)
-        return changes
+        self._remove_empty_dir(dir_path)
 
-    @inotify_action
-    def remove_directory(self, path, name, dirlink=False):
+    def remove_directory(self, path, name):
         dir_path = os.path.join(path, name)
+        log.debug('library: removing dir %s in db' % dir_path)
         dir_id = self.db_con.is_dir_exist(dir_path, self.type)
         if not dir_id:
-            return None
+            return
 
-        if dirlink:
-            self.db_con.remove_dirlink(dir_path, self.type)
         self.watcher.stop_watching_dir(dir_path)
 
         ids = self.db_con.remove_recursive_dir(dir_path, self.type)
-        self._remove_empty_dir(path)
-        return [(id, "remove") for id in ids]
-
-    def inotify_record_changes(self, fids):
-        self.mutex.acquire()
-        self.db_con.update_stats(self.type)
-        self.db_con.connection.commit()
-        for fid, signal_type in fids:
-            reactor.callFromThread(self.dispatch_signame, 'mediadb.mupdate',\
-                    attrs = {"type": signal_type, "id": fid})
-        reactor.callFromThread(self.dispatch_signame, self.update_signal_name)
-        self.mutex.release()
+        self._remove_empty_dir(dir_path)
+        for file_id in ids:
+            self.dispatch_mupdate(file_id, 'remove')
 
     def _remove_empty_dir(self, path):
         while path != "":
             if len(self.db_con.get_all_files(path, self.type)) > 0:
                 break
             dir_id = self.db_con.is_dir_exist(path, self.type)
+            log.debug('library: removing empty dir %s in db' % path)
             if dir_id: self.db_con.remove_dir(dir_id)
             path = os.path.dirname(path)
 
@@ -553,6 +535,11 @@ class _Library(SignalingComponent, JSONRpcComponent):
             if dir_id: break
             self.db_con.insert_dir(path, self.type)
             path = os.path.dirname(path)
+
+    def dispatch_mupdate(self, fid, signal_type):
+        self.dispatch_signame('mediadb.mupdate',
+                              attrs={"type": signal_type, "id": fid})
+        self.dispatch_signame(self.update_signal_name)
 
 
 @jsonrpc_module(LibraryModule)
@@ -697,9 +684,9 @@ class AudioLibrary(_Library):
     #
     # custom inotify actions
     #
-    @inotify_action
     def add_file(self, path, file):
         file_path = os.path.join(path, file)
+        log.debug('audio library: adding file %s in db' % file_path)
         file_info = self._get_file_info(file_path)
         if not file_info and file in self.cover_name: # it is a cover
             files = self.db_con.get_dircontent_id(path, self.type)
@@ -733,22 +720,22 @@ class AudioLibrary(_Library):
         rs = self.db_con.is_cover_exist(os.path.join(path, file))
         try: (cover, lmod) = rs
         except TypeError:
-            return None
+            return
         ids = self.db_con.search_id("cover", cover)
         for (id,) in ids:
             self.db_con.set_media_infos(id, {"cover": ""})
         self.db_con.remove_cover(cover)
-        return [(id, "update") for (id,) in ids]
+        for (file_id,) in ids:
+            self.dispatch_mupdate(file_id, 'update')
 
     def _inotify_update_info(self, path, file):
         file_path = os.path.join(path, file)
         rs = self.db_con.is_cover_exist(file_path)
         try: (cover, lmod) = rs
         except TypeError:
-            return None
+            return
         image = self.__extract_cover(file_path)
         if image: self.db_con.update_cover(cover, image)
-        return []
     ###########################################################
 
 
@@ -792,8 +779,7 @@ class VideoLibrary(_Library):
                 else:
                     uri = quote_uri(os.path.join(path, file))
                     self.db_con.set_media_infos(fid, {"external_subtitle": uri})
-                    return [(fid, "update")]
-        return None
+                    self.dispatch_mupdate(fid, 'update')
 
     def _inotify_remove_info(self, path, file):
         (base_file, ext) = os.path.splitext(file)
@@ -802,8 +788,7 @@ class VideoLibrary(_Library):
                     quote_uri(os.path.join(path, file)))
             for (id,) in ids:
                 self.db_con.set_media_infos(id, {"external_subtitle": ""})
-            return [(id, "update") for (id,) in ids]
-        return None
+                self.dispatch_mupdate(id, 'update')
 
     def _inotify_update_info(self, path, file):
         return None

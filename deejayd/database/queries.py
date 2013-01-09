@@ -146,19 +146,6 @@ class DatabaseQueries(object):
         rs = cursor.fetchone()
         return rs and rs[0]
 
-    @query_decorator("none")
-    def insert_dirlink(self, cursor, new_dirlink, type="audio"):
-        query = "INSERT INTO library_dir (name,type,lib_type)VALUES(%s,%s,%s)"
-        cursor.execute(query, (new_dirlink, "dirlink", type))
-
-    @query_decorator("none")
-    def remove_dirlink(self, cursor, dirlink, type="audio"):
-        query = "DELETE FROM library_dir\
-                 WHERE name = %s AND\
-                       type = 'dirlink' AND\
-                       lib_type = %s"
-        cursor.execute(query, (dirlink, type))
-
     @query_decorator("fetchall")
     def get_dir_list(self, cursor, dir, t = "audio"):
         query = "SELECT DISTINCT id, name FROM library_dir\
@@ -185,15 +172,6 @@ class DatabaseQueries(object):
     def get_all_dirs(self, cursor, dir, type = "audio"):
         query = "SELECT DISTINCT id,name FROM library_dir\
             WHERE name LIKE %s AND type='directory' AND lib_type = %s\
-            ORDER BY name"
-        cursor.execute(query,(dir+u"%%", type))
-
-    @query_decorator("fetchall")
-    def get_all_dirlinks(self, cursor, dir, type = 'audio'):
-        if not dir[:-1] == '/': dir = dir+ u'/'
-
-        query = "SELECT DISTINCT id,name FROM library_dir\
-            WHERE name LIKE %s AND type='dirlink' AND lib_type = %s\
             ORDER BY name"
         cursor.execute(query,(dir+u"%%", type))
 

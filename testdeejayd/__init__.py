@@ -31,6 +31,7 @@ KAA_INITIALIZED = False
 
 from testdeejayd.utils.databuilder import TestData, TestAudioCollection,\
                                           TestVideoCollection
+import testdeejayd.utils.twreactor
 from testdeejayd.utils.server import TestServer
 from deejayd.ui.config import DeejaydConfig
 
@@ -160,11 +161,6 @@ class TestCaseWithMediaData(_DeejaydTest):
         super(TestCaseWithMediaData, cls).tearDownClass()
 
 
-# Use threading.Thread class for this test instead of twisted thread API
-# else we can not launch inotify thread without launch twisted reactor
-import deejayd.thread
-deejayd.thread.switch_to_python_thread()
-
 class TestCaseWithDeejaydCore(TestCaseWithMediaData):
     inotify_support = False
 
@@ -181,10 +177,8 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
             kaa.gobject_set_threaded()
             KAA_INITIALIZED = True
 
-        # Use threading.Thread class for this test instead of twisted thread API
-        # else we can not launch inotify thread without launch twisted reactor
-        import deejayd.thread
-        deejayd.thread.switch_to_python_thread()
+        if cls.inotify_support:
+            testdeejayd.utils.twreactor.need_twisted_reactor()
 
         from deejayd.core import DeejayDaemonCore
         cls.deejayd = DeejayDaemonCore(cls.config,\

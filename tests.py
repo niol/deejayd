@@ -176,6 +176,7 @@ else:
         test_module, test_name = get_module_and_name(test_id)
         suitelist.append(get_test_suite(test_module, test_name))
     runner.run(unittest.TestSuite(suitelist))
+    testdeejayd.utils.twreactor.stop_twisted_reactor()
 
 
 # vim: ts=4 sw=4 expandtab
