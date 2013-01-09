@@ -56,7 +56,7 @@ class _BaseSource(SignalingComponent, JSONRpcComponent):
     def get_content(self, start = 0, length = None):
         # medias, filter (None if useless), sort (None if useless)
         stop = None
-        if length is not None: 
+        if length is not None:
             stop = start + int(length)
         return self._media_list.get(start, stop), None, None
 
