@@ -108,7 +108,7 @@ class TestMedia(TestData):
 
     def get_path(self):
         return os.path.join(self.root_path, self.name)
-           
+
     def get_random_tag_value(self, tagname):
         if tagname == "date":
             value = str(self.getRandomInt(2010,1971))
@@ -127,7 +127,7 @@ class TestMedia(TestData):
             tagInfo[tag] = unicode(value)
             self.tags[tag] = unicode(value)
         tagInfo.save()
-    
+
     def __getitem__(self, key):
         try:
             return self.tags[key]
@@ -163,8 +163,8 @@ class TestVideo(TestMedia):
 
 class TestSong(TestMedia):
     supportedTag = ("tracknumber","title","genre","artist","album","date")
-    
-    
+
+
 class TestMP3Song(TestSong):
     ext = ".mp3"
     testFile = os.path.join(DATA_DIR, "mp3_test.mp3")
@@ -238,9 +238,9 @@ class _TestDir(TestData):
             if media["filename"] == filename:
                 return media
         raise KeyError("media %s not found" % filename)
-        
+
     def addMedia(self, media):
-        if self.is_built: 
+        if self.is_built:
             media.build(self.dirPath)
         self.medias.append(media)
 
@@ -252,7 +252,7 @@ class _TestDir(TestData):
         m = self.getRandomElement(self.medias)
         m.remove()
         self.medias.remove(m)
-                
+
     def build(self, destDir, rel_path = ""):
         self.relPath = os.path.join(rel_path, self.name)
         self.dirPath = os.path.join(destDir, self.name)
@@ -397,8 +397,8 @@ class _TestMediaCollection(TestData):
             d = self.dirs[dirname]
         except KeyError:
             raise KeyError("folder %s not found" % dirname)
-        return d.findMedia(filename)          
-    
+        return d.findMedia(filename)
+
     def getRandomMedia(self):
         d = self.getRandomElement(self.dirs.values())
         return self.getRandomElement(d.medias)
@@ -408,15 +408,15 @@ class _TestMediaCollection(TestData):
         for d in self.dirs.values():
             medias.extend(d.medias)
         return medias
-        
+
     def getDirs(self):
         return self.dirs.values()
-              
+
     def getRandomSongPaths(self, howMuch = 1):
         """Returns the path of a random song in provided music"""
         random.seed(time.time())
         return random.sample(self.get_song_paths(), howMuch)
-    
+
     def addMedia(self):
         dir = self.getRandomElement(self.dirs.values())
         dir.addRandomMedia()
@@ -490,7 +490,7 @@ class _TestMediaCollection(TestData):
 
 
 class TestAudioCollection( _TestMediaCollection):
-    dir_class = TestAudioDir    
+    dir_class = TestAudioDir
 
     def remove_cover(self):
         for dir in self.dirs.values():
