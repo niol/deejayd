@@ -19,7 +19,6 @@ Depends: ${misc:Depends}, ${python:Depends},
          python-twisted,
          python-pysqlite2 | python-mysqldb,
          python-lxml, python-mutagen, python-kaa-metadata (>= 0.7.3)
-Recommends: python-pyinotify (>= 0.6.0)
 Suggests: deejayd-webui,
           xserver-xorg, xauth, x11-utils, x11-common,
           python-zope.interface
