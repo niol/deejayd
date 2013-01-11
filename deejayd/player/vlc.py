@@ -69,10 +69,15 @@ class VlcPlayer(_BasePlayer):
        )
 
     def __init__(self, db, plugin_manager, config):
+        # test version, this backend only works with version 2.0.X of libvlc
+        version = _vlc.libvlc_get_version()
+        if not version.startswith("2.0."):
+            raise PlayerError(_("Vlc backend only works with version 2.0.X of libvlc"))
+        
         # init main instance
         try: self.__vlc = _vlc.Instance()
         except _vlc.VLCException, ex:
-            raise PlayerError("Unable to init vlc player: %s" % ex)
+            raise PlayerError(_("Unable to init vlc player: %s") % ex)
         super(VlcPlayer, self).__init__(db, plugin_manager, config)
 
         # init vlc player and event manager
