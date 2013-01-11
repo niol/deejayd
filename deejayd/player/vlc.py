@@ -182,13 +182,15 @@ class VlcPlayer(_BasePlayer):
             # destroy window since it does not useful anymore
             self.__destroy_x_window()
         self._media_file = new_file
+        # replaygain reset
+        self.set_volume(self.get_volume(), sig=False)
         self.play()
-
+        
         if self._media_file is not None:
             self.dispatch_signame('player.status')
 
     def _set_volume(self, vol, sig=True):
-        self.__player.audio_set_volume(vol)
+        self.__player.audio_set_volume(int(vol))
 
     def _player_set_aspectratio(self, aspect_ratio):
         # NOT SUPPORTED
