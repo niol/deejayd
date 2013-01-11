@@ -20,7 +20,7 @@ from deejayd import DeejaydError
 from deejayd.ui import log
 
 
-AVAILABLE_BACKENDS = ('xine', 'gstreamer',)
+AVAILABLE_BACKENDS = ('xine', 'gstreamer', 'vlc')
 
 
 class PlayerError(DeejaydError):pass
@@ -58,6 +58,12 @@ def init(db, plugin_manager, config):
         except PlayerError, err:
             log.err(str(err), fatal=True)
 
+    elif media_backend == "vlc":
+        from deejayd.player import vlc
+        try: player = vlc.VlcPlayer(db, plugin_manager, config)
+        except PlayerError, err:
+            log.err(str(err), fatal=True)
+            
     else: log.err(_("Invalid media backend"), fatal=True)
 
     return player

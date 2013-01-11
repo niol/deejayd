@@ -369,7 +369,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
             # subtitles
             if self._has_external_subtitle():
                 self._media_file["subtitle"] = list(self.default_channels) + \
-                                               [{"lang": "external", "ix":0}]
+                                               [{"lang": "external", "ix":1}]
             elif "subtitle_channels" in self._media_file.keys() and\
                     int(self._media_file["subtitle_channels"]) > 0:
                 self._media_file["subtitle"] = list(self.default_channels)
