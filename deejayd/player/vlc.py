@@ -30,36 +30,36 @@ from deejayd.ui import log
 @jsonrpc_module(PlayerModule)
 class VlcPlayer(_BasePlayer):
     class PlayingEventHandler(object):
-        
+
         def __init__(self, evt_mg):
             self.__lock = threading.Lock()
             self.__event = threading.Event()
             self.__playing = False
             evt_mg.event_attach(_vlc.EventType.MediaPlayerPlaying, self.on_playing_event)
             evt_mg.event_attach(_vlc.EventType.MediaPlayerEncounteredError, self.on_error_event)
-        
+
         def on_error_event(self, instance):
             self.__event.set()
-            
+
         def on_playing_event(self, instance):
             self.__lock.acquire()
             self.__playing = True
             self.__lock.release()
             self.__event.set()
-        
+
         def get_playing(self):
             self.__lock.acquire()
             result = bool(self.__playing)
             self.__lock.release()
             return result
-        
+
         def wait(self, timeout = None):
             self.__event.wait(timeout)
-        
+
         def release(self, evt_mg):
             evt_mg.event_detach(_vlc.EventType.MediaPlayerPlaying)
             evt_mg.event_detach(_vlc.EventType.MediaPlayerEncounteredError)
-    
+
     NAME = "vlc"
     supported_options = (\
             "audio_lang",
@@ -73,7 +73,7 @@ class VlcPlayer(_BasePlayer):
         version = _vlc.libvlc_get_version()
         if not version.startswith("2.0."):
             raise PlayerError(_("Vlc backend only works with version 2.0.X of libvlc"))
-        
+
         # init main instance
         try: self.__vlc = _vlc.Instance()
         except _vlc.VLCException, ex:
@@ -185,7 +185,7 @@ class VlcPlayer(_BasePlayer):
         # replaygain reset
         self.set_volume(self.get_volume(), sig=False)
         self.play()
-        
+
         if self._media_file is not None:
             self.dispatch_signame('player.status')
 
@@ -220,7 +220,7 @@ class VlcPlayer(_BasePlayer):
         if self.__osd_call_id is not None:
             self.__osd_call_id.cancel()
         self.__player.video_set_marquee_string(_vlc.VideoMarqueeOption.Text, text)
-        self.__player.video_set_marquee_int(_vlc.VideoMarqueeOption.Size, 
+        self.__player.video_set_marquee_int(_vlc.VideoMarqueeOption.Size,
                                             self._video_options['osd_size'])
         self.__player.video_set_marquee_int(_vlc.VideoMarqueeOption.Enable, 1)
         self.__osd_call_id = reactor.callLater(2, self._osd_hide)
@@ -259,13 +259,14 @@ class VlcPlayer(_BasePlayer):
             except (PlayerError,KeyError):
                 raise ex
 
+        self.__display.set_dpms(False)
         if self._video_options["fullscreen"]:
             self.__window = x11.X11Window(self.__display,\
                     fullscreen = True)
         else:
             self.__window = x11.X11Window(self.__display,\
                     width=400, height=200)
-            
+
     def __destroy_x_window(self):
         if self.__window is not None:
             self.__player.set_xwindow(-1)
@@ -273,7 +274,7 @@ class VlcPlayer(_BasePlayer):
             self.__display.destroy()
             self.__window = None
             self.__display = None
-                
+
     def __init_video_information(self):
         if self._current_is_video():
             # subtitles
@@ -289,14 +290,14 @@ class VlcPlayer(_BasePlayer):
                 self._media_file['subtitle'] = sub_channels
                 self._media_file["sub_offset"] = 0
                 self._media_file["subtitle_idx"] = self._player_get_slang()
-                
+
             # audio channels
             audio_channels = [{"lang": "none", "ix": -1}]
             if "audio_channels" in self._media_file.keys():
                 for i in range(int(self._media_file["audio_channels"])):
                     audio_channels.append(\
                             {"lang": _("Audio channel %d") % (i+1,), "ix": i+1})
-            if len(audio_channels) > 0:        
+            if len(audio_channels) > 0:
                 self._media_file["audio"] = audio_channels
                 self._media_file["av_offset"] = 0
                 self._media_file["audio_idx"] = self._player_get_alang()
