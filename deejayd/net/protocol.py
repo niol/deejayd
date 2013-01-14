@@ -163,12 +163,6 @@ class DeejaydFactory(protocol.ServerFactory):
             j_sig = DeejaydJSONSignal(signal)
             ans = JSONRPCResponse(j_sig.dump(), None).to_json()
             for client in interested_clients:
-                # http://twistedmatrix.com/pipermail/twisted-python/2007-August/015905.html
-                # says : "Don't call reactor methods from any thread except the
-                # one which is running the reactor.  This will have
-                # unpredictable results and generally be broken."
-                # This is the "why" of this weird call instead of a simple
-                # client.send_buffer(xml_sig.to_xml()).
                 reactor.callFromThread(client.send_buffer, ans+client.delimiter)
 
 # vim: ts=4 sw=4 expandtab
