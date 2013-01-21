@@ -61,7 +61,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
             raise DeejaydError(_("Root library path has wrong caracters"))
         # test library path
         if not os.path.isdir(self._path):
-            msg = _("Unable to find directory %s") \
+            msg = _("Unable to find '%s' folder in library") \
                     % self.fs_charset2unicode(self._path)
             raise NotFoundException(msg)
 
