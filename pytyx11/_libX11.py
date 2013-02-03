@@ -24,7 +24,11 @@ lib = ctypes.util.find_library('X11')
 if lib is not None:
     _libX11 = ctypes.cdll.LoadLibrary(lib)
 else:
-    raise ImportError('Could not load X11 shared library.')
+    if sys.platform.startswith('darwin'):
+        p = '/opt/X11/lib/libX11.dylib'
+        _libX11 = ctypes.cdll.LoadLibrary(p)
+    else:
+        raise ImportError('Could not load X11 shared library.')
 
 
 # int XInitThreads()

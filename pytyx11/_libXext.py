@@ -26,7 +26,11 @@ lib = ctypes.util.find_library('Xext')
 if lib is not None:
     _libXext = ctypes.cdll.LoadLibrary(lib)
 else:
-    raise ImportError('Could not load Xext shared library.')
+    if sys.platform.startswith('darwin'):
+        p = '/opt/X11/lib/libXext.dylib'
+        _libXext = ctypes.cdll.LoadLibrary(p)
+    else:
+        raise ImportError('Could not load Xext shared library.')
 
 
 # Bool DPMSQueryExtension (Display *display, int *event_base, int *error_base)
