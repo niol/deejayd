@@ -21,7 +21,11 @@ from ConfigParser import NoOptionError
 from deejayd.ui import log
 from deejayd.mediadb import library
 
-from deejayd.mediadb import inotify
+try: 
+    from deejayd.mediadb import inotify
+except ImportError:
+    log.msg(_("Inotify is not supported on this platform"))
+    inotify = None
 
 
 def init(db, player, config):
@@ -40,7 +44,8 @@ def init(db, player, config):
         except library.NotFoundException,msg:
             log.err(_("Unable to init video library : %s") % msg, fatal=True)
 
-    lib_watcher = inotify.DeejaydInotify(db, audio_library, video_library)
+    if inotify is not None:
+        lib_watcher = inotify.DeejaydInotify(db, audio_library, video_library)
 
     return audio_library,video_library,lib_watcher
 
