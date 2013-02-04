@@ -24,6 +24,7 @@ from deejayd import DeejaydError
 from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.jsonrpc.interfaces import LibraryModule, jsonrpc_module
 from deejayd.mediadb import formats
+from deejayd.mediadb import pathutils
 from deejayd.utils import quote_uri, str_decode, log_traceback
 from deejayd import mediafilters
 from deejayd.ui import log
@@ -80,45 +81,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
         unicode for internal processing.
         """
         return str_decode(path, self._fs_charset, errors)
-
-    def walk(self, top=None, walked=None):
-        """
-        This is a wrapper around os.walk() from the standard library:
-        - browsing with topdown=False
-        - following symbolic links on directories
-        - whith barriers in place against walking twice the same directory,
-          which may happen when two directory trees have symbolic links to
-          each other's contents.
-        """
-        if top is None: top = self._path
-        if walked is None: walked = []
-
-        for root, dirs, files in os.walk(top, topdown=False):
-            walked.append(os.path.realpath(root))
-
-            # Follow symlinks if they have not been walked yet
-            for d in dirs:
-                d_path = os.path.join(root, d)
-                if os.path.islink(d_path):
-                    if os.path.realpath(d_path) not in walked:
-                        for x in self.walk(d_path, walked):
-                            yield x
-                    else:
-                        log.err("Not following symlink '%s' because directory has already been processed." % d_path)
-
-            yield root, dirs, files
-
-    def walk_and_do(self, top=None, walked=None, dcb=None, fcb=None):
-        """
-        This walk calls dcb on each found directory and fcb on each found
-        file with the following arguments :
-            - library path
-        """
-        for root, dirs, files in self.walk(top, walked):
-            if dcb is not None:
-                dcb(root)
-            if fcb is not None:
-                map(lambda f: fcb(os.path.join(root, d)), files)
 
     def _verify_dir_not_empty(self, root, dirs = None, files = None):
         if len(files) == 0 and len(dirs) == 0 and root != self._path:

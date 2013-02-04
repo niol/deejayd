@@ -25,6 +25,7 @@ import twisted.python.filepath
 import twisted.python._inotify
 from deejayd.ui import log
 import deejayd.mediadb.library
+from deejayd.mediadb import pathutils
 
 
 class DeejaydInotify(twisted.internet.inotify.INotify):
@@ -46,7 +47,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
             if library:
                 library.watcher = self
                 dcb = lambda dir_path: self.watch_dir(dir_path, library)
-                library.walk_and_do(dcb=dcb)
+                pathutils.walk_and_do(library._path, dcb=dcb)
 
     def start(self):
         self.startReading()
