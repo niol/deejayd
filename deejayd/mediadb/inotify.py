@@ -122,8 +122,10 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
             log.debug("inotify: watching directory '%s'" % dir_path)
 
     def stop_watching_dir(self, dir_path):
-        realpath = os.path.realpath(dir_path)
-        self.ignore(twisted.python.filepath.FilePath(realpath))
+        # inotify bindings need encoded strings
+        e_path = dir_path.encode(sys.getfilesystemencoding())
+
+        self.ignore(twisted.python.filepath.FilePath(e_path))
         log.debug("inotify: stopped watching directory '%s'" % dir_path)
 
 
