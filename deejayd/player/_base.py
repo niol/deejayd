@@ -16,9 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import cPickle as pickle
-
 from deejayd.component import SignalingComponent, JSONRpcComponent
+from deejayd.component import PersistentStateComponent
 from deejayd.plugins import PluginError, IPlayerPlugin
 from deejayd.player import PlayerError
 from deejayd.ui import log
@@ -31,7 +30,17 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-class _BasePlayer(SignalingComponent, JSONRpcComponent):
+class _BasePlayer(SignalingComponent, JSONRpcComponent, \
+                  PersistentStateComponent):
+    state_name = "player"
+    # initial value for player state
+    initial_state = {
+        "volume": {"song": 100, "video": 100, "webradio": 100},
+        "state": "stop",
+        "current": -1,
+        "current_source": "none",
+        "current_pos": 0,
+    }
     options = (\
             "audio_lang",
             "sub_lang",
@@ -59,7 +68,6 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
         self._source = None
         self._media_file = None
         self._replaygain = config.getboolean("general","replaygain")
-        self.__volume = {"song": 100, "video": 100, "webradio": 100}
 
         # get video options
         self._video_options = {
@@ -72,22 +80,19 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
         self._default_aspect_ratio = "auto"
 
     def load_state(self):
+        super(_BasePlayer, self).load_state()
         # Restore volume
-        recorded_volume = self.db.get_state("volume")
-        try:
-            self.__volume = pickle.loads(recorded_volume.encode("utf-8"))
-        except pickle.UnpicklingError: # old record
-            self.__volume["song"] = int(recorded_volume)
+        self.__volume = self.state["volume"]
 
         # Restore current media
-        media_pos = int(self.db.get_state("current"))
-        source = self.db.get_state("current_source")
+        media_pos = int(self.state["current"])
+        source = self.state["current_source"]
         if media_pos != -1 and source not in ("queue", "none", 'webradio'):
             self._media_file = self._source.get(media_pos, "pos", source)
 
-        # Update state
-        state = self.db.get_state("state")
-        if state != PLAYER_STOP and source != 'webradio':
+        # Update playing state
+        playing_state = self.state["state"]
+        if playing_state != PLAYER_STOP and self._media_file is not None:
             try:
                 self.play()
             except PlayerError:
@@ -95,9 +100,8 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
                 # so pause for now.
                 self.stop()
             else:
-                if self._media_file and self._media_file["source"] != "queue":
-                    self.seek(int(self.db.get_state("current_pos")))
-        if state == PLAYER_PAUSE:
+                self.seek(self.state["current_pos"])
+        if playing_state == PLAYER_PAUSE:
             self.pause()
 
     def set_source(self, source):
@@ -186,7 +190,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
                     "dvd": "video",
                     "webradio": "webradio"
                 }
-            return mediatype_by_source[self._source.current]
+            return mediatype_by_source[self._source.get_current_sourcename()]
         else:
             return self._media_file['type']
 
@@ -341,18 +345,17 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent):
 
         # save state
         current = self._media_file or {"pos": "-1", "source": "none"}
-        states = [
-            (pickle.dumps(self.__volume), "volume"),
-            (current["pos"], "current"),
-            (current["source"], "current_source"),
-            (str(self.get_position()), "current_pos"),
-            (self.get_state(), "state"),
-            ]
-        self.db.set_state(states)
-
+        self.state.update({
+            "volume": self.__volume,
+            "current": current["pos"],
+            "current_source": current["source"],
+            "current_pos": self.get_position(),
+            "state": self.get_state()
+        })
         # stop player if necessary
         if self.get_state() != PLAYER_STOP:
             self.stop()
+        super(_BasePlayer, self).close()
 
     def _current_is_video(self):
         return self._media_file is not None \

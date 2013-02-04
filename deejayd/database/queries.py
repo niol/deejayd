@@ -752,24 +752,6 @@ class DatabaseQueries(object):
     def get_stats(self, cursor):
         cursor.execute("SELECT * FROM stats")
 
-    #
-    # State requests
-    #
-    @query_decorator("none")
-    def set_state(self, cursor, values):
-        cursor.executemany("REPLACE INTO variables (value,name)VALUES(%s,%s)",\
-                           values)
-        self.connection.commit()
-
-    @query_decorator("custom")
-    def get_state(self, cursor, type):
-        cursor.execute("SELECT value FROM variables WHERE name = %s",(type,))
-        try:
-            (rs,) =  cursor.fetchone()
-            return rs
-        except (ValueError, TypeError):
-            return None
-
     def close(self):
         self.connection.close()
 

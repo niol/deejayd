@@ -225,7 +225,7 @@ if __name__ == "__main__":
     # start core
     try:
         from deejayd.core import DeejayDaemonCore
-        deejayd_core = DeejayDaemonCore(config)
+        deejayd_core = DeejayDaemonCore()
     except Exception, ex:
         abort(msg =\
             _("Unable to launch deejayd core, see traceback for more details"),

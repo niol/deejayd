@@ -18,7 +18,7 @@
 
 import os
 
-from deejayd.component import SignalingComponent
+from deejayd.component import SignalingComponent, PersistentStateComponent
 from deejayd.ui import log
 from deejayd.player import PlayerError
 from deejayd.sources._base import SourceError
@@ -35,12 +35,14 @@ def format_rsp(func):
     return format_rsp_func
 
 
-class SourceFactory(SignalingComponent):
+class SourceFactory(SignalingComponent, PersistentStateComponent):
     sources_list = ("playlist","queue","webradio","video","dvd","panel")
+    state_name = "source_state"
+    initial_state = {"current": "playlist"}
 
     def __init__(self,player,db,audio_library,video_library,plg_mnt,config):
-        SignalingComponent.__init__(self)
-        self.current = ""
+        super(SourceFactory, self).__init__()
+        self.load_state()
         self.db = db
         activated_sources = config.getlist('general', "activated_modes")
 
@@ -87,7 +89,7 @@ class SourceFactory(SignalingComponent):
             log.info(_("DVD support disabled"))
 
         # restore recorded source
-        source = db.get_state("source")
+        source = self.state["current"]
         try: self.set_source(source)
         except UnknownSourceException:
             log.err(_("Unable to set recorded source %s") % str(source))
@@ -104,6 +106,9 @@ class SourceFactory(SignalingComponent):
             raise SourceError(_("option %s not supported for this mode"))
         self.dispatch_signame('player.status')
 
+    def get_current_sourcename(self):
+        return self.state['current']
+    
     def get_source(self,s):
         if s not in self.sources_obj.keys():
             raise UnknownSourceException
@@ -114,12 +119,12 @@ class SourceFactory(SignalingComponent):
         if s not in self.sources_obj.keys():
             raise UnknownSourceException
 
-        self.current = s
+        self.state["current"] = s
         self.dispatch_signame('mode')
         return True
 
     def get_status(self):
-        status = [("mode",self.current)]
+        status = [("mode", self.state["current"])]
         for k in self.sources_obj.keys():
             status.extend(self.sources_obj[k].get_status())
         return status
@@ -136,7 +141,7 @@ class SourceFactory(SignalingComponent):
         return mode in self.sources_obj.keys()
 
     def close(self):
-        self.db.set_state([(self.current,"source")])
+        super(SourceFactory, self).close()
         for k in self.sources_obj.keys():
             self.sources_obj[k].close()
 
@@ -145,7 +150,7 @@ class SourceFactory(SignalingComponent):
     #
     @format_rsp
     def get(self, nb = None, type = "id", source_name = None):
-        src = source_name or self.current
+        src = source_name or self.state["current"]
         return (self.sources_obj[src].go_to(nb,type), src)
 
     @format_rsp
@@ -154,19 +159,19 @@ class SourceFactory(SignalingComponent):
                       self.sources_obj["queue"].next()
         if queue_media: return (queue_media, "queue")
 
-        current = self.sources_obj[self.current].get_current() or \
-            self.sources_obj[self.current].next(explicit = False)
-        return (current, self.current)
+        current = self.sources_obj[self.state["current"]].get_current() or \
+            self.sources_obj[self.state["current"]].next(explicit = False)
+        return (current, self.state["current"])
 
     @format_rsp
     def next(self, explicit = True):
         queue_media = self.sources_obj["queue"].next(explicit)
         if queue_media: return (queue_media, "queue")
-        return (self.sources_obj[self.current].next(explicit),self.current)
+        return (self.sources_obj[self.state["current"]].next(explicit),self.state["current"])
 
     @format_rsp
     def previous(self):
-        return (self.sources_obj[self.current].previous(),self.current)
+        return (self.sources_obj[self.state["current"]].previous(),self.state["current"])
 
     def queue_reset(self):
         self.sources_obj["queue"].reset()

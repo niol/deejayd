@@ -28,7 +28,6 @@ class _DBQuery(object):
     def to_sql(self):
         return str(self)
 
-
 class SimpleSelect(_DBQuery):
 
     def __init__(self, table_name):
@@ -40,13 +39,16 @@ class SimpleSelect(_DBQuery):
     def select_column(self, *__args, **__kw):
         for col in __args:
             self.selects.append("%s.%s" % (self.table_name, col))
+        return self
 
     def order_by(self, column, desc = False):
         self.orders.append("%s.%s" % (self.table_name, column))
+        return self
 
     def append_where(self, where_query, args):
         self.wheres.append(where_query)
         self.wheres_args.extend(args)
+        return self
 
     def get_args(self):
         return self.wheres_args
@@ -123,6 +125,7 @@ class EditRecordQuery(_DBQuery):
 
     def add_value(self, column_name, column_value):
         self.dbvalues[column_name] = column_value
+        return self
 
     def set_update_id(self, key, id):
         self.update_key = key
@@ -151,6 +154,16 @@ class EditRecordQuery(_DBQuery):
         return query
 
 
+class ReplaceQuery(EditRecordQuery):
+
+    def __str__(self):
+        return "REPLACE INTO %s(%s) VALUES(%s)"\
+                % ( self.table_name,
+                    ', '.join(self.dbvalues.keys()),
+                    ', '.join(["%s" for x in self.get_args()]),
+                  )
+        
+        
 def query_decorator(answer_type):
     def query_decorator_instance(func):
 

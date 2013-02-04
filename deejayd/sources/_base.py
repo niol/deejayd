@@ -16,11 +16,10 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import cPickle as pickle
-
 from deejayd import mediafilters
 from deejayd import DeejaydError
 from deejayd.component import SignalingComponent, JSONRpcComponent
+from deejayd.component import PersistentStateComponent
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._medialist import *
 from deejayd.sources._playorder import orders
@@ -29,25 +28,22 @@ from deejayd.sources._playorder import orders
 class SourceError(DeejaydError): pass
 
 
-class _BaseSource(SignalingComponent, JSONRpcComponent):
+class _BaseSource(SignalingComponent, JSONRpcComponent, \
+                  PersistentStateComponent):
     name = "unknown"
-    _default_state = {"id": 1}
+    initial_state = {"id": 1}
 
     def __init__(self, db):
         super(_BaseSource, self).__init__()
+        self.state_name = "%s_state" % self.name
+        self.load_state()
+        
         self.db = db
         self._current = None
         self._playorder = orders["inorder"]
 
-    def _load_state(self):
-        state = self._default_state.copy()
-        recorded_state = self.db.get_state("%s_state" % self.name)
-        if recorded_state is not None:
-            state = pickle.loads(recorded_state.encode("utf-8"))
-        return state
-
     def get_recorded_id(self):
-        return self._state["id"]
+        return self.state["id"]
 
     def get(self, start = 0, length = None):
         medias, filter, sort = self.get_content(start, length)
@@ -104,20 +100,18 @@ class _BaseSource(SignalingComponent, JSONRpcComponent):
         raise NotImplementedError
 
     def close(self):
-        self._state["id"] = self._media_list.list_id
-        states = [ (pickle.dumps(self._state), "%s_state" % self.name) ]
-        self.db.set_state(states)
+        self.state["id"] = self._media_list.list_id
+        super(_BaseSource, self).close()
 
 
 class _BaseLibrarySource(_BaseSource):
     available_playorder = ("inorder", "random", "onemedia","random-weighted")
     has_repeat = True
-    _default_state = {"id": 1, "playorder": "inorder", "repeat": False}
+    initial_state = {"id": 1, "playorder": "inorder", "repeat": False}
     source_signal = ''
 
     def __init__(self, db, library):
         super(_BaseLibrarySource, self).__init__(db)
-        self._state = self._load_state()
         if self.medialist_type == "sorted":
             self._media_list = SortedMediaList(self.get_recorded_id() + 1)
         elif self.medialist_type == "unsorted":
@@ -125,8 +119,8 @@ class _BaseLibrarySource(_BaseSource):
         self.library = library
 
         if self.has_repeat:
-            self._media_list.repeat = self._state["repeat"]
-        self._playorder = orders[self._state["playorder"]]
+            self._media_list.repeat = self.state["repeat"]
+        self._playorder = orders[self.state["playorder"]]
 
     def _get_playlist_content(self, pl_id):
         try:
@@ -159,12 +153,12 @@ class _BaseLibrarySource(_BaseSource):
                 raise SourceError(_("Unable to set %s order, not supported") %
                     value)
             else:
-                self._state["playorder"] = value
+                self.state["playorder"] = value
         elif name == "repeat" and self.has_repeat:
             if not isinstance(value, bool):
                 raise SourceError(_("Option value has to be a boolean"))
             self._media_list.repeat = value
-            self._state["repeat"] = value
+            self.state["repeat"] = value
         else:
             raise NotImplementedError
 

@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from twisted.python import reflect
+from deejayd.model.state import PersistentState
 from deejayd import jsonrpc as jsonrpclib
 from deejayd import DeejaydError, DeejaydSignal
 
@@ -137,5 +138,18 @@ class JSONRpcComponent(object):
     def list_functions(self):
         """Return a list of the names of all jsonrpc methods."""
         return reflect.prefixedMethodNames(self.__class__, 'jsonrpc_')
+
+
+class PersistentStateComponent(object):
+    state_name = ""
+    initial_state = {}
+
+    def load_state(self):
+        st_name = self.state_name == "" and "%s_state" % self.name \
+                or self.state_name
+        self.state = PersistentState.load_from_db(st_name, self.initial_state)
+
+    def close(self):
+        self.state.save()
 
 # vim: ts=4 sw=4 expandtab

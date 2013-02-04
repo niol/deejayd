@@ -61,11 +61,9 @@ class JSONRPCIntrospection(JSONRpcComponent):
 @jsonrpc_module(CoreModule)
 class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
 
-    def __init__(self, config=None, start_inotify=True):
+    def __init__(self, start_inotify=True):
         super(DeejayDaemonCore, self).__init__()
-
-        if not config:
-            config = DeejaydConfig()
+        config = DeejaydConfig.Instance()
 
         self.db = DatabaseQueries(DatabaseConnection(config))
         self.plugin_manager = plugins.PluginManager(config)

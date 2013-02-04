@@ -40,8 +40,8 @@ class PanelSource(_BaseSortedLibSource):
     contains_tags = ('genre','artist','album','title','all')
     sort_tags = ('genre','artist','album','title','rating','tracknumber')
     default_sorts = DEFAULT_AUDIO_SORT
-    _default_state = {"id": 1, "playorder": "inorder", "repeat": False,\
-                      "panel-type": "panel", "panel-value": "0"}
+    initial_state = {"id": 1, "playorder": "inorder", "repeat": False,\
+                     "panel-type": "panel", "panel-value": "0"}
 
     def __init__(self, db, library, config):
         super(PanelSource, self).__init__(db, library)
@@ -65,8 +65,8 @@ class PanelSource(_BaseSortedLibSource):
         self.__filters_to_parms(filter)
 
         # custom attributes
-        self.__update_active_list(self._state["panel-type"],\
-                                  self._state["panel-value"])
+        self.__update_active_list(self.state["panel-type"],\
+                                  self.state["panel-value"])
 
     def __filters_to_parms(self, filter = None):
         # filter as AND(Search, Panel) with
@@ -92,7 +92,7 @@ class PanelSource(_BaseSortedLibSource):
         panel_filter.filterlist = self.__panel.values()
         self.__filter.filterlist.append(panel_filter)
 
-        if self._state["panel-type"] == "panel":
+        if self.state["panel-type"] == "panel":
             sorts = self._sorts + self.__class__.default_sorts
             medias = self.library.search_with_filter(self.__filter, sorts)
             self._media_list.set(medias)
@@ -107,7 +107,7 @@ class PanelSource(_BaseSortedLibSource):
                 if raise_ex:
                     raise SourceError(_("Playlist with id %s not found")\
                             % str(pl_id))
-                self._state["panel-type"] = "panel";
+                self.state["panel-type"] = "panel";
                 medias = self.library.search_with_filter(self.__filter, sorts)
             else:
                 need_sort = True
@@ -184,19 +184,19 @@ class PanelSource(_BaseSortedLibSource):
         self.__update_panel_filters()
 
     def get_active_list(self):
-        return {"type": self._state["panel-type"],\
-                 "value": self._state["panel-value"]}
+        return {"type": self.state["panel-type"],\
+                 "value": self.state["panel-value"]}
 
     def set_active_list(self, type, pl_id = None):
-        if type == self._state["panel-type"]\
-                and pl_id == self._state["panel-value"]:
+        if type == self.state["panel-type"]\
+                and pl_id == self.state["panel-value"]:
             return # we do not need to update panel
         try: 
             self.__update_active_list(type, pl_id, raise_ex = True)
         except TypeError:
             raise SourceError("Unknown panel source")
-        self._state["panel-type"] = type
-        self._state["panel-value"] = pl_id
+        self.state["panel-type"] = type
+        self.state["panel-value"] = pl_id
         self.__update_current()
         self.dispatch_signame(self.__class__.source_signal)
 
@@ -204,9 +204,9 @@ class PanelSource(_BaseSortedLibSource):
         stop = None
         if length is not None: 
             stop = start + int(length)
-        if self._state["panel-type"] == "panel":
+        if self.state["panel-type"] == "panel":
             return self._media_list.get(start, stop),self.__filter,self._sorts
-        elif self._state["panel-type"] == "playlist":
+        elif self.state["panel-type"] == "playlist":
             return self._media_list.get(start, stop), None, self._sorts
 
     def close(self):
@@ -223,21 +223,21 @@ class PanelSource(_BaseSortedLibSource):
     #
     def cb_playlist_update(self, signal):
         pl_id = int(signal.get_attr('pl_id'))
-        if self._state["panel-type"] == "playlist"\
-                and pl_id == int(self._state["panel-value"]):
+        if self.state["panel-type"] == "playlist"\
+                and pl_id == int(self.state["panel-value"]):
             self.__update_active_list("playlist", pl_id, raise_ex = True)
             self.dispatch_signame(self.__class__.source_signal)
 
     def cb_playlist_listupdate(self, signal):
-        if self._state["panel-type"] == "playlist":
-            pl_id = int(self._state["panel-value"])
+        if self.state["panel-type"] == "playlist":
+            pl_id = int(self.state["panel-value"])
             list = [int(id) \
                     for (id, pl, type) in self.db.get_medialist_list() if not \
                     pl.startswith("__") or not pl.endswith("__")]
             if pl_id not in list: # fall back to panel
                 self.__update_active_list("panel", "", raise_ex = True)
-                self._state["panel-type"] = "panel"
-                self._state["panel-value"] = ""
+                self.state["panel-type"] = "panel"
+                self.state["panel-value"] = ""
                 self.dispatch_signame(self.__class__.source_signal)
 
 # vim: ts=4 sw=4 expandtab

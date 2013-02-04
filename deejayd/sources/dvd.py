@@ -18,6 +18,7 @@
 
 
 from deejayd.component import SignalingComponent, JSONRpcComponent
+from deejayd.component import PersistentStateComponent
 from deejayd.jsonrpc.interfaces import DvdSourceModule, jsonrpc_module
 from deejayd.player._base import PlayerError
 from deejayd.player.xine import DvdParser
@@ -25,17 +26,20 @@ from deejayd.player.xine import DvdParser
 class DvdError(Exception): pass
 
 @jsonrpc_module(DvdSourceModule)
-class DvdSource(SignalingComponent, JSONRpcComponent):
+class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
     name = "dvd"
+    initial_state = {"id": 1}
 
     def __init__(self, db, config):
         super(DvdSource, self).__init__()
+        self.load_state()
+        
         try: self.parser = DvdParser()
         except PlayerError, ex: # dvd parser does not work
             raise DvdError(ex)
 
         self.db = db
-        try: self.current_id = int(self.db.get_state("dvdid"))
+        try: self.current_id = int(self.state["id"])
         except TypeError: # init dvdid
             self.current_id = 1
 
@@ -141,8 +145,8 @@ class DvdSource(SignalingComponent, JSONRpcComponent):
         return status
 
     def close(self):
-        states = [(str(self.current_id),"dvdid")]
-        self.db.set_state(states)
+        self.state["id"] = self.current_id
+        super(DvdSource, self).close()
         self.parser.close()
 
 # vim: ts=4 sw=4 expandtab

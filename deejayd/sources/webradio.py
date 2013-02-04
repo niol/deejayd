@@ -118,7 +118,7 @@ def require_editable_source(func):
             raise SourceError(_("You can not edit this webradio source"))
 
         res = func(self, source_name, *args, **kwargs)
-        if source_name == self._state["source"]:
+        if source_name == self.state["source"]:
             self._reload()
         return res
 
@@ -129,11 +129,10 @@ def require_editable_source(func):
 @jsonrpc_module(WebradioSourceModule)
 class WebradioSource(_BaseSource):
     name = "webradio"
-    _default_state = {"id": 1, "source": "local", "source-cat": None}
+    initial_state = {"id": 1, "source": "local", "source-cat": None}
 
     def __init__(self, db, plugin_manager):
         _BaseSource.__init__(self, db)
-        self._state = self._load_state()
         self.wb_sources = {}
         # get plugins
         for plugin in plugin_manager.get_plugins(IWebradioPlugin):
@@ -146,15 +145,15 @@ class WebradioSource(_BaseSource):
         # load current list
         self._media_list = SimpleMediaList(self.get_recorded_id() + 1)
         try:
-            self.__source = self.wb_sources[self._state["source"]]
+            self.__source = self.wb_sources[self.state["source"]]
         except KeyError: # recorded source not found, fallback to default
             self.__source = self.wb_sources["local"]
-            self._state["source"] = "local"
+            self.state["source"] = "local"
 
         try: self._reload(sig = False)
         except PluginError: # fallback to default
             self.__source = self.wb_sources["local"]
-            self._state["source"] = "local"
+            self.state["source"] = "local"
             self._reload(sig = False)
 
     def get_available_sources(self):
@@ -162,17 +161,17 @@ class WebradioSource(_BaseSource):
                     for s in self.wb_sources.values()]
 
     def set_source(self, source):
-        if self._state["source"] != source:
+        if self.state["source"] != source:
             try: self.__source = self.wb_sources[source]
             except KeyError:
                 raise SourceError(_("Webradio source %s not supported")%source)
-            self._state["source"] = source
+            self.state["source"] = source
             self._reload()
 
     def set_source_categorie(self, categorie):
-        if self._state["source-cat"] != categorie:
+        if self.state["source-cat"] != categorie:
             self._media_list.set(self.__source.get_webradios(categorie))
-            self._state["source-cat"] = categorie
+            self.state["source-cat"] = categorie
             self.dispatch_signame('webradio.listupdate')
 
     def get_source_categories(self, source_name):
@@ -194,8 +193,8 @@ class WebradioSource(_BaseSource):
     @require_editable_source
     def source_delete_categories(self, source_name, cat_ids):
         self.wb_sources[source_name].remove_categories(cat_ids)
-        if self._state["source"] == source_name \
-                and self._state["source-cat"] in cat_ids:
+        if self.state["source"] == source_name \
+                and self.state["source-cat"] in cat_ids:
             self.set_source_categorie(None)
 
     @require_editable_source
@@ -214,12 +213,12 @@ class WebradioSource(_BaseSource):
         return [
             ("webradio", self._media_list.list_id),
             ("webradiolength", len(self._media_list)),
-            ("webradiosource", self._state["source"]),
-            ("webradiosourcecat", self._state["source-cat"]),
+            ("webradiosource", self.state["source"]),
+            ("webradiosourcecat", self.state["source-cat"]),
             ]
 
     def _reload(self, sig = True):
-        self._media_list.set(self.__source.get_webradios(self._state["source-cat"]))
+        self._media_list.set(self.__source.get_webradios(self.state["source-cat"]))
         if sig:
             self.dispatch_signame('webradio.listupdate')
 
