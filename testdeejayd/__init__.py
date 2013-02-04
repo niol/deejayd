@@ -54,7 +54,7 @@ class _DeejaydTest(unittest.TestCase):
         # prepare config object
         DeejaydConfig.custom_conf = os.path.join(os.path.dirname(__file__),
                                                  "utils", "defaults.conf")
-        cls.config = DeejaydConfig(force_parse = True)
+        cls.config = DeejaydConfig()
         cls.config.set("general", "media_backend", cls.media_backend)
 
         if cls.db == "sqlite":
@@ -181,8 +181,7 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
             testdeejayd.utils.twreactor.need_twisted_reactor()
 
         from deejayd.core import DeejayDaemonCore
-        cls.deejayd = DeejayDaemonCore(cls.config,\
-                start_inotify=cls.inotify_support)
+        cls.deejayd = DeejayDaemonCore(start_inotify=cls.inotify_support)
         cls.deejayd.audiolib.update(sync = True)
         cls.deejayd.videolib.update(sync = True)
         cls.is_running = True
