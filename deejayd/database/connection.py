@@ -20,6 +20,7 @@ from os import path
 from threading import local
 
 from deejayd.ui import log
+from deejayd.ui.config import DeejaydConfig
 from deejayd.database.queries import DatabaseQueries
 from deejayd.database import sqlite_backend
 from deejayd.database import schema
@@ -29,6 +30,13 @@ DatabaseError = sqlite_backend.sqlite.DatabaseError
 
 
 class DatabaseConnection(local):
+    __instance = None
+    
+    @classmethod
+    def Instance(cls):
+        if cls.__instance is None:
+            cls.__instance = cls(DeejaydConfig.Instance())
+        return cls.__instance
     
     def __init__(self, config):
         self.file = config.get("database","db_name")
