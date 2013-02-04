@@ -272,49 +272,9 @@ bind_addresses = 192.168.51.2, 10.0.0.3
     <variablelist>
 
       <varlistentry>
-        <term>db_type</term>
-        <listitem>
-          <para>Database backend used, among <parameter>sqlite</parameter>
-          and <parameter>mysql</parameter>.</para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>db_name</term>
         <listitem>
-          <para>(SQLite only) The full path to the sqlite database file.</para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>db_user</term>
-        <listitem>
-          <para>(MySQL only) The username to use to connect to the database.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>db_password</term>
-        <listitem>
-          <para>(MySQL only) The password to use to connect to the database.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>db_host</term>
-        <listitem>
-          <para>(MySQL only) The host to try to connect to to reach the
-          database.</para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>db_port</term>
-        <listitem>
-          <para>(MySQL only) The port to try to connect to to reach the
-          database. Usually <parameter>3306</parameter>.</para>
+          <para>The full path to the sqlite database file.</para>
         </listitem>
       </varlistentry>
 

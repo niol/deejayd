@@ -21,7 +21,9 @@ from deejayd.component import SignalingCoreComponent, JSONRpcComponent
 from deejayd.jsonrpc import DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import jsonrpc_module, CoreModule, IntrospectionModule
 from deejayd.ui.config import DeejaydConfig
-from deejayd import player, sources, mediadb, database, plugins
+from deejayd.database.connection import DatabaseConnection
+from deejayd.database.queries import DatabaseQueries
+from deejayd import player, sources, mediadb, plugins
 from deejayd.playlist.rpc import DeejaydRecordedPlaylist
 from deejayd.ui import log
 
@@ -65,7 +67,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
         if not config:
             config = DeejaydConfig()
 
-        self.db = database.init(config)
+        self.db = DatabaseQueries(DatabaseConnection(config))
         self.plugin_manager = plugins.PluginManager(config)
 
         self.player = player.init(self.db, self.plugin_manager, config)

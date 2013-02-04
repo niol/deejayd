@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from os import path
-from threading import local
 from deejayd.ui import log
 from deejayd.utils import str_decode
 
@@ -32,48 +30,10 @@ except ImportError:
             % '.'.join(map(str, pysqlite_min_version))
         log.err(sqlite_error, fatal = True)
 
-LOCK_TIMEOUT = 600
-DatabaseError = sqlite.DatabaseError
-
-def str_adapt(data):
+def str_adapter(data):
     try: return str_decode(data)
     except UnicodeError:
         return data
-
-class DatabaseWrapper(local):
-
-    def __init__(self, db_file):
-        self._file = db_file
-        self.connection = None
-
-    def cursor(self):
-        if self.connection is None:
-            try: self.connection = sqlite.connect(self._file,\
-                    timeout=LOCK_TIMEOUT)
-            except sqlite.Error:
-                error = _("Could not connect to sqlite database %s.")%self._file
-                log.err(error, fatal = True)
-            # configure connection
-            sqlite.register_adapter(str, str_adapt)
-
-        return self.connection.cursor(factory = SQLiteCursorWrapper)
-
-    def commit(self):
-        if self.connection is not None:
-            self.connection.commit()
-
-    def rollback(self):
-        if self.connection is not None:
-            self.connection.rollback()
-
-    def get_last_insert_id(self, cursor):
-        return cursor.lastrowid
-
-    def close(self):
-        if self.connection is not None:
-            self.connection.close()
-            self.connection = None
-
 
 class SQLiteCursorWrapper(sqlite.Cursor):
 

@@ -17,7 +17,7 @@ Depends: ${misc:Depends}, ${python:Depends},
          deejayd-client (= ${binary:Version}),
          deejayd-xine (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
          python-twisted,
-         python-pysqlite2 | python-mysqldb,
+         python-pysqlite2,
          python-lxml, python-mutagen, python-kaa-metadata (>= 0.7.3)
 Suggests: deejayd-webui,
           xserver-xorg, xauth, x11-utils, x11-common,
