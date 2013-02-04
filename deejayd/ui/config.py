@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import ConfigParser, os, sys, string
+import ConfigParser, os, string
 
 class DeejaydConfig:
 
@@ -24,21 +24,30 @@ class DeejaydConfig:
     __global_conf = '/etc/deejayd.conf'
     __user_conf = '~/.deejayd.conf'
     __config = None
+    __instance = None
 
-    def __init__(self, force_parse = False):
+    @classmethod
+    def Instance(cls):
+        if cls.__instance is None:
+            cls.__instance = cls()
+        return cls.__instance
+    
+    def __init__(self):
+        if self.__config is None:
+            self.load()
+        
+    def load(self):
+        DeejaydConfig.__config = ConfigParser.SafeConfigParser()
 
-        if DeejaydConfig.__config == None or force_parse:
-            DeejaydConfig.__config = ConfigParser.SafeConfigParser()
+        default_config_path = os.path.abspath(os.path.dirname(__file__))
+        DeejaydConfig.__config.readfp(open(default_config_path\
+                                    + '/defaults.conf'))
 
-            default_config_path = os.path.abspath(os.path.dirname(__file__))
-            DeejaydConfig.__config.readfp(open(default_config_path\
-                                        + '/defaults.conf'))
-
-            conf_files = [DeejaydConfig.__global_conf,\
-                         os.path.expanduser(DeejaydConfig.__user_conf)]
-            if DeejaydConfig.custom_conf:
-                conf_files.append(DeejaydConfig.custom_conf)
-            DeejaydConfig.__config.read(conf_files)
+        conf_files = [DeejaydConfig.__global_conf,\
+                     os.path.expanduser(DeejaydConfig.__user_conf)]
+        if DeejaydConfig.custom_conf:
+            conf_files.append(DeejaydConfig.custom_conf)
+        DeejaydConfig.__config.read(conf_files)
 
     def __getattr__(self, name):
         return getattr(DeejaydConfig.__config, name)
