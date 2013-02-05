@@ -31,17 +31,17 @@ DatabaseError = sqlite_backend.sqlite.DatabaseError
 
 class DatabaseConnection(local):
     __instance = None
-    
+
     @classmethod
     def Instance(cls):
         if cls.__instance is None:
             cls.__instance = cls(DeejaydConfig.Instance())
         return cls.__instance
-    
+
     def __init__(self, config):
         self.file = config.get("database","db_name")
         self.connection = None
-    
+
         # verify database version
         cursor = self.cursor()
         try:
@@ -55,10 +55,10 @@ class DatabaseConnection(local):
             self.connection.commit()
         else:
             if schema.db_schema_version > db_version:
-                self.__upgrade(config, cursor, schema.db_schema_version, 
+                self.__upgrade(config, cursor, schema.db_schema_version,
                                db_version)
         cursor.close()
-        
+
     def cursor(self):
         if self.connection is None:
             self.__connect()
@@ -89,7 +89,7 @@ class DatabaseConnection(local):
                 log.err(error, fatal = True)
             # configure connection
             sqlite_backend.sqlite.register_adapter(str, sqlite_backend.str_adapter)
-    
+
     def __create(self, cursor):
         for table in schema.db_schema:
             for stmt in sqlite_backend.to_sql(table):
@@ -100,7 +100,7 @@ class DatabaseConnection(local):
         for query in schema.db_init_cmds:
             cursor.execute(query)
         log.info(_("Initial entries correctly inserted."))
-        
+
     def __upgrade(self, config, cursor, db_schema_version, db_version):
         log.info(_("The database structure needs to be updated..."))
 
@@ -116,5 +116,5 @@ class DatabaseConnection(local):
             up.upgrade(cursor, sqlite_backend, config)
             i += 1
         self.connection.commit()
-    
+
 # vim: ts=4 sw=4 expandtab

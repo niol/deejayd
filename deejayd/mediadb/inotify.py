@@ -76,6 +76,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         path, name = os.path.split(fpath)
 
         library.mutex.acquire()
+
         if mask & twisted.internet.inotify.IN_CREATE:
             if self.__isdir_event(mask)\
             or self.__occured_on_dirlink(library, fpath):
