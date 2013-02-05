@@ -67,7 +67,6 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         # symlinks on directories. Therefore, paths must be fixed to use
         # symlinks before being passed on to the library. This is why
         # the library dir_path is passed and used here.
-        dir_path = library.fs_charset2unicode(dir_path)
         filename = library.fs_charset2unicode(filepath.basename())
         fpath = library.fs_charset2unicode(os.path.join(dir_path, filename))
 
