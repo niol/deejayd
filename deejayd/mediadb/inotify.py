@@ -53,6 +53,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         self.startReading()
 
     def close(self):
+        map(self.ignore, self._watchpaths.copy()) # stop watching all
         self.stopReading()
 
     def __occured_on_dirlink(self, library, file_path):
