@@ -79,7 +79,8 @@ class DatabaseConnection(local):
         if self.connection is not None:
             self.connection.close()
             self.connection = None
-            
+        DatabaseConnection.__instance = None
+
     def __connect(self):
         if self.connection is None:
             try: self.connection = sqlite_backend.sqlite.connect(self.file, timeout=LOCK_TIMEOUT)
