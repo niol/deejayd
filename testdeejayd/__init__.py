@@ -38,8 +38,6 @@ from deejayd.ui.config import DeejaydConfig
 
 class _DeejaydTest(unittest.TestCase):
     media_backend = "gstreamer"
-    db = "sqlite"
-    db_options = None
     dbfilename = None
 
     @classmethod
@@ -57,50 +55,9 @@ class _DeejaydTest(unittest.TestCase):
         cls.config = DeejaydConfig()
         cls.config.set("general", "media_backend", cls.media_backend)
 
-        if cls.db == "sqlite":
-            cls.config.set('database', 'db_type', 'sqlite')
-            cls.dbfilename = '/tmp/testdeejayddb-' +\
-                             cls.testdata.getRandomString() + '.db'
-            cls.config.set('database', 'db_name', cls.dbfilename)
-        elif cls.db == "mysql":
-            cls.config.set('database', 'db_type', 'mysql')
-            try: import MySQLdb
-            except ImportError:
-                raise Exception("mysql python driver was not found, quit")
-            try:
-                db_port = int(cls.db_options.get("port", "3300"))
-                db_host = cls.db_options.get("host", "localhost")
-                connection = MySQLdb.connect(\
-                    db=cls.db_options['name'],\
-                    user=cls.db_options['user'],\
-                    passwd=cls.db_options['password'],\
-                    host=db_host,\
-                    port=db_port,\
-                    use_unicode=True, charset="utf8")
-            except MySQLdb.DatabaseError:
-                print "Unable to connect to mysql db"
-                sys.exit(1)
-            except (KeyError, ValueError):
-                print "Missing options to connect to mysql db"
-                sys.exit(1)
-            cursor = connection.cursor()
-            # drop all table
-            from deejayd.database.schema import db_schema
-            for table in db_schema:
-                try:
-                    cursor.execute("DROP TABLE `%s`" % table.name)
-                except MySQLdb.DatabaseError:
-                    pass
-            # commit changes and close
-            connection.commit()
-            connection.close()
-
-            # update config value
-            cls.config.set('database', 'db_name', cls.db_options['name'])
-            cls.config.set('database', 'db_user', cls.db_options['user'])
-            cls.config.set('database', 'db_password',cls.db_options['password'])
-            cls.config.set('database', 'db_host', db_host)
-            cls.config.set('database', 'db_port', str(db_port))
+        cls.dbfilename = '/tmp/testdeejayddb-' +\
+                            cls.testdata.getRandomString() + '.db'
+        cls.config.set('database', 'db_name', cls.dbfilename)
 
         # disable all plugins for tests
         cls.config.set('general', 'enabled_plugins', '')
