@@ -148,13 +148,15 @@ class DatabaseQueries(object):
 
     @query_decorator("fetchall")
     def get_dir_list(self, cursor, dir, t = "audio"):
-        query = "SELECT DISTINCT id, name FROM library_dir\
-                 WHERE name LIKE %s AND\
-                       lib_type = %s AND\
-                       type = 'directory'\
-                 ORDER BY name"
-        term = dir == unicode("") and u"%%" or dir+unicode("/%%")
-        cursor.execute(query, (term, t))
+        query = "SELECT d.id, d.name, COUNT(m.name) AS mediacount\
+                 FROM library_dir d, library_dir sd, library m\
+                 WHERE d.name LIKE %s AND\
+                 SUBSTR(sd.name, 0, LENGTH(d.name)+1) = d.name AND\
+                 sd.id=m.directory AND\
+                 d.lib_type = %s AND\
+                 sd.lib_type = %s\
+                 GROUP BY d.id ORDER BY d.name"
+        cursor.execute(query, (dir+unicode("/%%"), t, t))
 
     @query_decorator("fetchone")
     def get_file_info(self, cursor, file_id, info_type):

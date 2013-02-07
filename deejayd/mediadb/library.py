@@ -83,7 +83,12 @@ class _Library(SignalingComponent, JSONRpcComponent):
         return str_decode(path, self._fs_charset, errors)
 
     def _verify_dir_not_empty(self, root, dirs = None, files = None):
-        if len(files) == 0 and len(dirs) == 0 and root != self._path:
+        if root == self._path\
+        or len(files) > 0\
+        or 0 < sum([mediacount\
+                    for dir_id, dir_path, mediacount in dirs]):
+            pass
+        else:
             err = _("Unable to find '%s' folder in library") % root
             raise NotFoundException(err)
 
@@ -95,9 +100,10 @@ class _Library(SignalingComponent, JSONRpcComponent):
         self._verify_dir_not_empty(abs_dir, dirs_rsp, files_rsp)
 
         dirs = []
-        for dir_id, dir_path in dirs_rsp:
+        for dir_id, dir_path, mediacount in dirs_rsp:
             root, d = os.path.split(dir_path.rstrip("/"))
-            if d != "" and root == self.fs_charset2unicode(abs_dir):
+            if d != "" and root == self.fs_charset2unicode(abs_dir)\
+            and mediacount > 0:
                 dirs.append(d)
         return {'files': files_rsp, 'directories': dirs, 'root': dir}
 
