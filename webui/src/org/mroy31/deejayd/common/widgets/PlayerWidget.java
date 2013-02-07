@@ -36,7 +36,8 @@ public abstract class PlayerWidget extends Composite {
     	boolean updateRunning = false;
     	
     	int TIMER = 600;
-        int value;       
+        int value;
+        boolean relative;
         AnswerHandler<Boolean> handler = new AnswerHandler<Boolean>() {
 			
 			@Override
@@ -49,9 +50,13 @@ public abstract class PlayerWidget extends Composite {
 					
 			}
 		};
-        
-        public void updateValue(int value) {
-        	GWT.log("update timer value : "+Integer.toString(value));
+
+        public void updateValue(int value, boolean relative) {
+            String sign = "";
+            if (relative && value > 0)
+                sign = "+";
+
+        	GWT.log("update timer value : "+sign+Integer.toString(value));
         	// cancel old timer
         	if (this.updatePending) {
         		GWT.log("update pending cancel timer");
@@ -59,8 +64,13 @@ public abstract class PlayerWidget extends Composite {
         	}
         	
         	this.value = value;
+        	this.relative = relative;
         	this.updatePending = true;
         	this.schedule(TIMER);
+        }
+
+        public void updateValue(int value) {
+            this.updateValue(value, false);
         }
     }
     
@@ -71,7 +81,7 @@ public abstract class PlayerWidget extends Composite {
         	GWT.log("Run seek command");
         	
         	updateRunning = true; updatePending = false;
-            privateUI.rpc.seek(value, handler);
+            privateUI.rpc.seek(value, relative, handler);
         }
                 
     }

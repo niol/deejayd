@@ -108,7 +108,7 @@ public class PlayerUI extends PlayerWidget {
         seekButton.setText(ui.i18nConst.goTo());
         seekBar.addValueChangeHandler(new ValueChangeHandler<Integer>() {
             public void onValueChange(ValueChangeEvent<Integer> event) {
-                seekTimer.updateValue(event.getValue());
+                seekTimer.updateValue(event.getValue(), true);
             }
         });
         

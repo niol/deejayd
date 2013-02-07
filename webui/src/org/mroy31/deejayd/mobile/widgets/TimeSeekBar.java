@@ -73,14 +73,15 @@ public class TimeSeekBar extends Composite
 
     public void onClick(ClickEvent event) {
         Widget sender = (Widget) event.getSource();
+        hideDesc();
         if (sender == fastRwdButton) {
-            setValue(value-60);
+            relativeChangeValue(-300);
         } else if (sender == rwdButton) {
-            setValue(value-5);
+            relativeChangeValue(-30);
         } else if (sender == fwdButton) {
-            setValue(value+5);
+            relativeChangeValue(60);
         } else if (sender == fastFwdButton) {
-            setValue(value+60);
+            relativeChangeValue(300);
         }
     }
 
@@ -99,6 +100,16 @@ public class TimeSeekBar extends Composite
             if (fireEvents) {
                 ValueChangeEvent.fire(this, this.value);
             }
+        }
+    }
+
+    public void relativeChangeValue(Integer value) {
+        relativeChangeValue(value, true);
+    }
+
+    public void relativeChangeValue(Integer value, boolean fireEvents) {
+        if (fireEvents) {
+            ValueChangeEvent.fire(this, value);
         }
     }
 
@@ -121,6 +132,10 @@ public class TimeSeekBar extends Composite
     private void updateDesc() {
         timeDesc.setText(DeejaydUtils.formatTime(value)+" / "+
                 DeejaydUtils.formatTime(maxValue));
+    }
+
+    private void hideDesc() {
+        timeDesc.setText("");
     }
 }
 
