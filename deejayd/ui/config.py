@@ -31,11 +31,11 @@ class DeejaydConfig:
         if cls.__instance is None:
             cls.__instance = cls()
         return cls.__instance
-    
+
     def __init__(self):
         if self.__config is None:
             self.load()
-        
+
     def load(self):
         DeejaydConfig.__config = ConfigParser.SafeConfigParser()
 
