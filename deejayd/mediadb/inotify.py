@@ -80,7 +80,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         if mask & twisted.internet.inotify.IN_CREATE:
             if self.__isdir_event(mask)\
             or self.__occured_on_dirlink(library, fpath):
-                library.add_directory(path, name)
+                library.crawl_directory(path, name)
         elif mask & twisted.internet.inotify.IN_DELETE:
             if self.__occured_on_dirlink(library, fpath):
                 library.remove_directory(path, name)
@@ -93,14 +93,11 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
                 library.remove_directory(path, name)
         elif mask & twisted.internet.inotify.IN_MOVED_TO:
             if not self.__isdir_event(mask):
-                library.add_file(path, name)
-            else:
-                library.add_directory(path, name)
-        elif mask & twisted.internet.inotify.IN_CLOSE_WRITE:
-            try:
                 library.update_file(path, name)
-            except deejayd.mediadb.library.NotFoundException:
-                library.add_file(path, name)
+            else:
+                library.crawl_directory(path, name)
+        elif mask & twisted.internet.inotify.IN_CLOSE_WRITE:
+            library.update_file(path, name)
 
         library.db_con.update_stats(library.type)
         library.db_con.connection.commit()

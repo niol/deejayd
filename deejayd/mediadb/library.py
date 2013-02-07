@@ -414,89 +414,86 @@ class _Library(SignalingComponent, JSONRpcComponent):
     #######################################################################
     ## Inotify actions
     #######################################################################
-    def add_file(self, path, file):
-        file_path = os.path.join(path, file)
-        log.debug('library: adding file %s in db' % file_path)
-        file_info = self._get_file_info(file_path)
-        if not file_info:
-            self._inotify_add_info(path, file)
+    def update_extrainfo_file(self, file_path):
+        pass
 
-        try: dir_id, file_id = self.db_con.is_file_exist(path, file, self.type)
-        except TypeError:
-            dir_id = self.db_con.is_dir_exist(path, self.type) or\
-                     self.db_con.insert_dir(path, self.type)
+    def update_file(self, path, file):
+        file_path = os.path.join(path, file)
+        file_info = self._get_file_info(file_path)
+
+        if file_info:
+            self.update_media(file_path, file_info)
+        else:
+            self.update_extrainfo_file(file_path)
+
+    def update_media(self, file_path, file_info):
+        path, file = os.path.split(file_path)
+        rs = self.db_con.is_file_exist(path, file, self.type)
+        if rs is None:
+            log.debug('library: adding file %s in db' % file_path)
+            event = 'add'
+            dir_id = self.db_con.is_dir_exist(path, self.type)
             file_id = None
+        else:
+            log.debug('library: updating file %s in db' % file_path)
+            event = 'update'
+            dir_id, file_id = rs
 
         fid = self.set_media(dir_id, file_path, file_info, file_id)
         if fid:
             self.set_extra_infos(path, file, fid)
-            self._add_missing_dir(os.path.dirname(path))
-            self.dispatch_mupdate(fid, 'add')
+            self.dispatch_mupdate(fid, event)
 
-    def update_file(self, path, name):
-        try: dir_id, file_id = self.db_con.is_file_exist(path, name, self.type)
-        except TypeError:
-            self._inotify_update_info(path, name)
-            raise NotFoundException('file is not in DB')
-        else:
-            file_path = os.path.join(path, name)
-            log.debug('library: updating file %s in db' % file_path)
-            file_info = self._get_file_info(file_path)
-            if not file_info:
-                self._inotify_update_info(path, name)
-            self.set_media(dir_id, file_path, file_info, file_id)
-            self.dispatch_mupdate(file_id, 'update')
+    def remove_extrainfo_file(self, file_path):
+        pass
 
     def remove_file(self, path, name):
-        log.debug('library: removing file %s from db' % os.path.join(path, name))
-        file = self.db_con.is_file_exist(path, name, self.type)
-        if file:
-            dir_id, file_id = file
-            self.db_con.remove_file(file_id)
-            self._remove_empty_dir(path)
-            self.dispatch_mupdate(file_id, 'remove')
+        fn, ext = os.path.splitext(name)
+        if ext in self.ext_dict.keys():
+            self.remove_media(path, name)
         else:
-            self._inotify_remove_info(path, name)
+            self.remove_extrainfo_file(os.path.join(path, name))
+
+    def remove_media(self, path, name):
+        log.debug('library: removing file %s from db' % os.path.join(path, name))
+        dir_id, file_id = self.db_con.is_file_exist(path, name, self.type)
+        self.db_con.remove_file(file_id)
+        self.dispatch_mupdate(file_id, 'remove')
+
+    def crawl_directory(self, path, name):
+        dir_path = os.path.join(path, name)
+
+        # Compute list of paths to avoid in case of symlink loop : paths in db
+        # except paths and children crawled or updated here
+        indb_dirs = self.db_con.get_all_dirs('', self.type)
+        indb_realpaths = []
+        for d_id, d in indb_dirs:
+            if not pathutils.is_subdir_of(dir_path, d):
+                indb_realpaths.append(os.path.realpath(d))
+
+        dcb = lambda file_path: self.add_directory(*os.path.split(file_path))
+        fcb = lambda file_path: self.update_file(*os.path.split(file_path))
+        pathutils.walk_and_do(dir_path, indb_realpaths, dcb, fcb)
 
     def add_directory(self, path, name):
         dir_path = os.path.join(path, name)
         log.debug('library: adding dir %s in db' % dir_path)
+        self.db_con.insert_dir(dir_path, self.type)
         self.watcher.watch_dir(dir_path, self)
-
-        changes = self._update_dir(dir_path.rstrip("/"))
-        self._add_missing_dir(os.path.dirname(dir_path))
-        self._remove_empty_dir(dir_path)
 
     def remove_directory(self, path, name):
         dir_path = os.path.join(path, name)
         log.debug('library: removing dir %s in db' % dir_path)
         dir_id = self.db_con.is_dir_exist(dir_path, self.type)
-        if not dir_id:
+        if dir_id is None:
             return
 
-        self.watcher.stop_watching_dir(dir_path)
+        for id, path in self.db_con.get_all_dirs(dir_path, self.type):
+            self.watcher.stop_watching_dir(path)
 
         ids = self.db_con.remove_recursive_dir(dir_path, self.type)
-        self._remove_empty_dir(dir_path)
         for file_id in ids:
             self.dispatch_mupdate(file_id, 'remove')
-
-    def _remove_empty_dir(self, path):
-        while path != "":
-            if len(self.db_con.get_all_files(path, self.type)) > 0:
-                break
-            dir_id = self.db_con.is_dir_exist(path, self.type)
-            log.debug('library: removing empty dir %s in db' % path)
-            if dir_id: self.db_con.remove_dir(dir_id)
-            path = os.path.dirname(path)
-
-    def _add_missing_dir(self, path):
-        """ add missing dir in the mediadb """
-        while path != "":
-            dir_id = self.db_con.is_dir_exist(path, self.type)
-            if dir_id: break
-            self.db_con.insert_dir(path, self.type)
-            path = os.path.dirname(path)
 
     def dispatch_mupdate(self, fid, signal_type):
         self.dispatch_signame('mediadb.mupdate',
@@ -623,6 +620,45 @@ class AudioLibrary(_Library):
                 changes.append((fid, changes_type))
         return changes
 
+    def update_cover(self, file_path):
+        try: mime, image = self.__extract_cover(file_path)
+        except TypeError: # image not supported
+            return
+        if image:
+            rs = self.db_con.is_cover_exist(file_path)
+            if rs is None:
+                log.debug('library: adding cover %s in db' % file_path)
+                cover_id = self.db_con.add_cover(file_path, mime, image)
+            else:
+                log.debug('library: updating cover %s in db' % file_path)
+                file_id, lmod = rs
+                cover_id, old_mime, src = self.db_con.get_file_cover(file_id)
+                self.db_con.update_cover(cover_id, mime, image)
+
+            # Link cover file with existing media files in same dir
+            for (id,) in self.db_con.get_dircontent_id(os.path.dirname(file_path), self.type):
+                if self.__update_cover(id, cover_id):
+                    self.dispatch_mupdate(id, 'update')
+
+    def update_extrainfo_file(self, file_path):
+        if os.path.basename(file_path) in self.cover_name:
+            self.update_cover(file_path)
+
+    def remove_cover(self, file_path):
+        rs = self.db_con.is_cover_exist(file_path)
+        if rs is not None:
+            log.debug('library: removing cover %s from db' % file_path)
+            file_id, lmod = rs
+            for id in self.db_con.search_id('cover', file_id):
+                print id
+                self.db_con.set_media_infos(id, {"cover": ""})
+                self.dispatch_mupdate(file_id, 'update')
+            self.db_con.remove_cover(file_id)
+
+    def remove_extrainfo_file(self, file_path):
+        if os.path.basename(file_path) in self.cover_name:
+            self.remove_cover(file_path)
+
     def set_media(self, dir_id, file_path, file_info, file_id, cover = None):
         if file_info is not None and "cover" in file_info:
             # find a cover in the file
@@ -642,63 +678,6 @@ class AudioLibrary(_Library):
         if fid and "album" in file_info.keys() and file_info["album"] != '':
             self.db_con.set_variousartist_tag(fid, file_info)
         return fid
-
-    #
-    # custom inotify actions
-    #
-    def add_file(self, path, file):
-        file_path = os.path.join(path, file)
-        log.debug('audio library: adding file %s in db' % file_path)
-        file_info = self._get_file_info(file_path)
-        if not file_info and file in self.cover_name: # it is a cover
-            files = self.db_con.get_dircontent_id(path, self.type)
-            if len(files) > 0:
-                file_path = os.path.join(path, file)
-                try: mime, image = self.__extract_cover(file_path)
-                except TypeError: # image not supported
-                    return False
-                if image:
-                    cover = self.db_con.add_cover(file_path, mime, image)
-                    changes = []
-                    for (id,) in files:
-                        if self.__update_cover(id, cover):
-                            changes.append((id, "update"))
-                    return changes
-            return None
-
-        try: dir_id, file_id = self.db_con.is_file_exist(path, file, self.type)
-        except TypeError:
-            dir_id = self.db_con.is_dir_exist(path, self.type) or\
-                     self.db_con.insert_dir(path, self.type)
-            file_id = None
-
-        fid = self.set_media(dir_id, file_path, file_info, file_id)
-        if fid:
-            self._add_missing_dir(os.path.dirname(path))
-            return [(fid, "add")]
-        return None
-
-    def _inotify_remove_info(self, path, file):
-        rs = self.db_con.is_cover_exist(os.path.join(path, file))
-        try: (cover, lmod) = rs
-        except TypeError:
-            return
-        ids = self.db_con.search_id("cover", cover)
-        for (id,) in ids:
-            self.db_con.set_media_infos(id, {"cover": ""})
-        self.db_con.remove_cover(cover)
-        for (file_id,) in ids:
-            self.dispatch_mupdate(file_id, 'update')
-
-    def _inotify_update_info(self, path, file):
-        file_path = os.path.join(path, file)
-        rs = self.db_con.is_cover_exist(file_path)
-        try: (cover, lmod) = rs
-        except TypeError:
-            return
-        image = self.__extract_cover(file_path)
-        if image: self.db_con.update_cover(cover, image)
-    ###########################################################
 
 
 @jsonrpc_module(LibraryModule)
@@ -731,29 +710,34 @@ class VideoLibrary(_Library):
     #
     # custom inotify actions
     #
-    def _inotify_add_info(self, path, file):
-        (base_file, ext) = os.path.splitext(file)
-        if ext in self.subtitle_ext:
-            for video_ext in self.ext_dict.keys():
-                try: (dir_id,fid,) = self.db_con.is_file_exist(path,\
-                                                base_file+video_ext, self.type)
-                except TypeError: pass
-                else:
-                    uri = quote_uri(os.path.join(path, file))
-                    self.db_con.set_media_infos(fid, {"external_subtitle": uri})
-                    self.dispatch_mupdate(fid, 'update')
+    def update_subtitle(self, file_path):
+        path, fn = os.path.split(file_path)
+        name, ext = os.path.splitext(fn)
+        for video_ext in self.ext_dict.keys():
+            rs = self.db_con.is_file_exist(path, name+video_ext, self.type)
+            if rs is not None:
+                dir_id, fid = rs
+                uri = quote_uri(file_path)
+                log.debug('library: updating external subtitle %s in db' % file_path)
+                self.db_con.set_media_infos(fid, {"external_subtitle": uri})
+                self.dispatch_mupdate(fid, 'update')
 
-    def _inotify_remove_info(self, path, file):
-        (base_file, ext) = os.path.splitext(file)
+    def update_extrainfo_file(self, file_path):
+        base_path, ext = os.path.splitext(file_path)
         if ext in self.subtitle_ext:
-            ids = self.db_con.search_id("external_subtitle",\
-                    quote_uri(os.path.join(path, file)))
-            for (id,) in ids:
-                self.db_con.set_media_infos(id, {"external_subtitle": ""})
-                self.dispatch_mupdate(id, 'update')
+            self.update_subtitle(file_path)
 
-    def _inotify_update_info(self, path, file):
-        return None
-    ###########################################################
+    def remove_extrainfo_file(self, file_path):
+        base_path, ext = os.path.splitext(file_path)
+        if ext in self.subtitle_ext:
+            self.remove_subtitle(file_path)
+
+    def remove_subtitle(self, file_path):
+        ids = self.db_con.search_id("external_subtitle", quote_uri(file_path))
+        for (id,) in ids:
+            log.debug('library: removing external subtitle %s from db' % file_path)
+            self.db_con.set_media_infos(id, {"external_subtitle": ""})
+            self.dispatch_mupdate(id, 'update')
+
 
 # vim: ts=4 sw=4 expandtab
