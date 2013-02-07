@@ -41,11 +41,11 @@ class PersistentState(IterableUserDict):
             rs = cls(name, default_state)
         db_cursor.close()
         return rs
-        
+
     def __init__(self, name, data):
         IterableUserDict.__init__(self, data)
         self.name = name
-        
+
     def save(self):
         db_cursor = DatabaseConnection.Instance().cursor()
         query = ReplaceQuery(self.table_name).add_value("name", self.name) \
@@ -53,11 +53,11 @@ class PersistentState(IterableUserDict):
         db_cursor.execute(query.to_sql(), query.get_args())
         DatabaseConnection.Instance().commit()
         db_cursor.close()
-    
+
     @classmethod
     def load_from_json(cls, json_object):
         raise NotImplementedError # not used
-    
+
     def to_json(self):
         raise NotImplementedError # not used
 
