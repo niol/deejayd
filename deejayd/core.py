@@ -63,7 +63,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
 
     def __init__(self, start_inotify=True):
         super(DeejayDaemonCore, self).__init__()
-        config = DeejaydConfig.Instance()
+        config = DeejaydConfig()
 
         self.db = DatabaseQueries(DatabaseConnection(config))
         self.plugin_manager = plugins.PluginManager(config)
