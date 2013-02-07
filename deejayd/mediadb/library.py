@@ -301,7 +301,8 @@ class _Library(SignalingComponent, JSONRpcComponent):
             forbidden_roots = [self.get_root_path()]
 
         changes = []
-        for root, dirs, files in os.walk(walk_root):
+        for root, dirs, files in pathutils.walk(walk_root):
+            log.debug('library: update crawling %s' % root)
             try:
                 root = self.fs_charset2unicode(root)
             except UnicodeError: # skip this directory
@@ -314,27 +315,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
                 dir_id = self.db_con.insert_dir(root, self.type)
             else:
                 del library_dirs[root]
-
-            # search symlinks
-            for dir in dirs:
-                try:
-                    dir = self.fs_charset2unicode(dir)
-                    dir_path = os.path.join(root, dir)
-                except UnicodeError: # skip this directory
-                    log.info("Directory %s skipped because of unhandled characters."\
-                             % self.fs_charset2unicode(dir_path, 'replace'))
-                    continue
-                # Walk only symlinks that aren't in library root or in one of
-                # the additional known root paths which consist in already
-                # crawled and out-of-main-root directories
-                # (i.e. other symlinks).
-                if os.path.islink(dir_path):
-                    if not self.is_in_a_root(dir_path, forbidden_roots):
-                        forbidden_roots.append(os.path.realpath(dir_path))
-                        changes.extend(self.walk_directory(dir_path,
-                                 library_dirs, library_files,
-                                 force, forbidden_roots,
-                                 dispatch_signal))
 
             # else update files
             dir_changes = self.update_files(root, dir_id,
