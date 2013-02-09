@@ -20,7 +20,7 @@ import os
 
 from deejayd import DeejaydError
 from testdeejayd.interfaces import require_video_support, _TestInterfaces
-from deejayd.mediafilters import *
+from deejayd.model.mediafilters import *
 
 class LibraryInterfaceTests(_TestInterfaces):
 
@@ -28,13 +28,13 @@ class LibraryInterfaceTests(_TestInterfaces):
     # Test update command
     #
     def __testLibraryUpdate(self, library_type):
-        library = getattr(self.deejayd, library_type+"lib")
-        last_update = self.deejayd.get_stats()[library_type+"_library_update"]
+        library = getattr(self.deejayd, library_type + "lib")
+        last_update = self.deejayd.get_stats()[library_type + "_library_update"]
 
-        update_infos = library.update(sync = True)
-        for key in (library_type+'_updating_db',):
+        update_infos = library.update(sync=True)
+        for key in (library_type + '_updating_db',):
             self.assertTrue(key in update_infos)
-        new_update = self.deejayd.get_stats()[library_type+"_library_update"]
+        new_update = self.deejayd.get_stats()[library_type + "_library_update"]
 
         self.assertTrue(int(last_update) <= int(new_update))
 
@@ -51,8 +51,8 @@ class LibraryInterfaceTests(_TestInterfaces):
     # Test getDirContent command
     #
     def __testLibraryGetDirContent(self, library_type):
-        library = getattr(self.deejayd, library_type+"lib")
-        testdata = getattr(self, "test_"+library_type+"data")
+        library = getattr(self.deejayd, library_type + "lib")
+        testdata = getattr(self, "test_" + library_type + "data")
 
         # first, test with an unknown folder
         rand_folder = testdata.getRandomString()
@@ -71,7 +71,7 @@ class LibraryInterfaceTests(_TestInterfaces):
                 self.assertTrue(False, "media %s not found in the lib : %s" \
                                 % (path, str(testdata.medias.keys())))
             for tag in equ_item.supportedTag:
-                self.assertEqual(equ_item.tags[tag], m[tag], 
+                self.assertEqual(equ_item.tags[tag], m[tag],
                                  "tag %s doesn't match for media %s" \
                                  % (tag, m["filename"]))
 
@@ -88,16 +88,16 @@ class LibraryInterfaceTests(_TestInterfaces):
     # Test search command
     #
     def __testLibrarySearch(self, library_type):
-        library = getattr(self.deejayd, library_type+"lib")
-        testdata = getattr(self, "test_"+library_type+"data")
+        library = getattr(self.deejayd, library_type + "lib")
+        testdata = getattr(self, "test_" + library_type + "data")
 
         # search an unknown terms
         text = testdata.getRandomString()
         self.assertEqual(library.search(text), [])
-        
+
         # search with None pattern (that must raise an exception)
         self.assertRaises(DeejaydError, library.search, None)
-        
+
         # search with an unknown type
         rand_type = testdata.getRandomString()
         self.assertRaises(DeejaydError, library.search, text, rand_type)

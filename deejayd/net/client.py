@@ -27,8 +27,9 @@ from deejayd import DeejaydError, DeejaydSignal
 from deejayd.component import SignalingCoreComponent
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import JSONRPC_MODULES
-from deejayd.jsonrpc.jsonbuilders import JSONRPCRequest, Get_json_filter
-from deejayd.jsonrpc.jsonparsers import loads_response, Parse_json_filter
+from deejayd.jsonrpc.jsonbuilders import JSONRPCRequest
+from deejayd.jsonrpc.jsonparsers import loads_response
+from deejayd.model.mediafilters import MediaFilter
 
 
 MSG_DELIMITER = 'ENDJSON\n'
@@ -45,7 +46,7 @@ def build_command(cmd_name, cmd_args, cmd_doc, prefix):
     def func(*args, **kwargs):
         request_args = []
         for idx, arg in enumerate(cmd_args):
-            try: value = args[idx+1]
+            try: value = args[idx + 1]
             except IndexError:
                 if arg["req"] is True:
                     raise DeejaydError("argument %s is required" % arg["name"])
@@ -55,17 +56,17 @@ def build_command(cmd_name, cmd_args, cmd_doc, prefix):
                     continue
             # TODO verify arguments
             if arg["type"] == "filter" and value is not None:
-                try: value = Get_json_filter(value).dump()
+                try: value = value.to_json()
                 except:
                     raise DeejaydError("arg %s is not a valid filter"\
                             % arg["name"])
             request_args.append(value)
         self = args[0]
 
-        cmd = prefix == "" and cmd_name or prefix+"."+cmd_name
+        cmd = prefix == "" and cmd_name or prefix + "." + cmd_name
         request = JSONRPCRequest(cmd, request_args)
         try: return self._send_command(request)
-        except AttributeError: # we are in a submodule
+        except AttributeError:  # we are in a submodule
             return self.core._send_command(request)
     func.__name__ = camelcase_to_underscore(cmd_name)
     func.__doc__ = cmd_doc
@@ -82,15 +83,15 @@ def build_module(instance, CmdClass, prefix=""):
                     build_command(cmd_name, args, cmd.__doc__, prefix))
 
 def parse_deejayd_answer(answer):
-    if answer["error"] is not None: # an error is returned
+    if answer["error"] is not None:  # an error is returned
             error = "Deejayd Server Error - %s - %s"\
                 % (answer["error"]["code"], answer["error"]["message"])
             raise DeejaydError(error)
-    result =  answer["result"]["answer"]
+    result = answer["result"]["answer"]
     type = answer["result"]["type"]
     if type == "mediaList":
         if result["filter"] is not None:
-            try: result["filter"] = Parse_json_filter(result["filter"])
+            try: result["filter"] = MediaFilter.load_from_json(result["filter"])
             except Fault:
                 raise DeejaydError("Unable to parse filter in answer")
     return result
@@ -115,7 +116,7 @@ class _DeejayDaemon(SignalingCoreComponent):
                 instance = self.__class__
             else:
                 prefix = module
-                instance = new.classobj(module+"Class", (object,), {})
+                instance = new.classobj(module + "Class", (object,), {})
                 obj = instance()
                 # add core attr to allow this module to send commands
                 setattr(obj, "core", self)
@@ -163,8 +164,8 @@ class _DeejayDaemon(SignalingCoreComponent):
         try: msg = loads_response(msg)
         except Fault, f:
             raise DeejaydError("JSONRPC error - %s - %s" % (f.code, f.message))
-        if msg["id"] is None: # it is a notification
-            result =  msg["result"]["answer"]
+        if msg["id"] is None:  # it is a notification
+            result = msg["result"]["answer"]
             type = msg["result"]["type"]
             if type == 'signal':
                 signal = DeejaydSignal(result["name"], result["attrs"])
@@ -251,14 +252,14 @@ class DeejayDaemonSync(_DeejayDaemon):
     def _readmsg(self):
         msg_chunks = ''
         msg_chunk = ''
-        def split_msg(msg,index):
-            return (msg[0:index], msg[index+len(MSG_DELIMITER):len(msg)])
+        def split_msg(msg, index):
+            return (msg[0:index], msg[index + len(MSG_DELIMITER):len(msg)])
 
         while 1:
             try: index = self.next_msg.index(MSG_DELIMITER)
             except ValueError: pass
             else:
-                (rs,self.next_msg) = split_msg(self.next_msg, index)
+                (rs, self.next_msg) = split_msg(self.next_msg, index)
                 break
 
             msg_chunk = self.socket_to_server.recv(4096)
@@ -271,7 +272,7 @@ class DeejayDaemonSync(_DeejayDaemon):
             try: index = msg_chunks.index(MSG_DELIMITER)
             except ValueError: pass
             else:
-                (rs,self.next_msg) = split_msg(msg_chunks, index)
+                (rs, self.next_msg) = split_msg(msg_chunks, index)
                 break
 
         return rs
@@ -423,11 +424,11 @@ class _DeejaydSocket(asyncore.dispatcher):
 
     def handle_error(self):
         t, v, tb = sys.exc_info()
-        assert tb # Must have a traceback
+        assert tb  # Must have a traceback
         if self.state != "json_protocol":
             # error appears when we try to connect
             for cb in self.__connect_callback:
-                cb(False,str(v))
+                cb(False, str(v))
 
     def handle_connect(self):
         self.state = "connected"
@@ -439,8 +440,8 @@ class _DeejaydSocket(asyncore.dispatcher):
         self.close()
 
     def handle_read(self):
-        def split_msg(msg,index):
-            return (msg[0:index], msg[index+len(MSG_DELIMITER):len(msg)])
+        def split_msg(msg, index):
+            return (msg[0:index], msg[index + len(MSG_DELIMITER):len(msg)])
 
         if self.state == "connected":
             # Catch banner until first newline char
@@ -460,10 +461,10 @@ class _DeejaydSocket(asyncore.dispatcher):
                     self.state = 'json_protocol'
                     # now we are sure to be connected
                     for cb in self.__connect_callback:
-                        cb(True,"")
+                        cb(True, "")
                 else:
                     for cb in self.__connect_callback:
-                        cb(False,\
+                        cb(False, \
           'This server version protocol is not handled by this client version')
 
         elif self.state == "json_protocol":
@@ -476,7 +477,7 @@ class _DeejaydSocket(asyncore.dispatcher):
             try: index = self.msg_chunks.index(MSG_DELIMITER)
             except ValueError: return
             else:
-                (rawmsg,self.next_msg) = split_msg(self.msg_chunks, index)
+                (rawmsg, self.next_msg) = split_msg(self.msg_chunks, index)
                 self.msg_chunks = ""
                 self.answer_received(rawmsg)
 
@@ -487,25 +488,25 @@ class _DeejaydSocket(asyncore.dispatcher):
                         self.next_msg = ""
                         break
                     else:
-                        (rawmsg,self.next_msg) = split_msg(self.next_msg, index)
+                        (rawmsg, self.next_msg) = split_msg(self.next_msg, index)
                         self.answer_received(rawmsg)
 
         elif self.state == "disconnected":
             # This should not happen
             raise AttributeError
 
-    def answer_received(self,rawmsg):
+    def answer_received(self, rawmsg):
         try: ans = self.deejayd._build_answer(rawmsg)
         except DeejaydError:
-            self.__error_callbacks("Unable to parse server answer : %s" %rawmsg)
+            self.__error_callbacks("Unable to parse server answer : %s" % rawmsg)
             self.close()
         else:
-            if ans is None: # it's a notification (signal) and not an answer
+            if ans is None:  # it's a notification (signal) and not an answer
                 return
 
             try:
                 expected_answer = self.deejayd.expected_answers_queue\
-                                               .get(timeout = 10)
+                                               .get(timeout=10)
             except Empty:
                 self.__error_callbacks("No expected answer for this command")
                 self.close()
@@ -518,7 +519,7 @@ class _DeejaydSocket(asyncore.dispatcher):
 
     def handle_write(self):
         cmd = self.deejayd.command_queue.get()
-        self.send(cmd.to_json()+MSG_DELIMITER)
+        self.send(cmd.to_json() + MSG_DELIMITER)
 
     def writable(self):
         if self.state != "json_protocol": return False
@@ -588,18 +589,18 @@ class DeejayDaemonAsync(_DeejayDaemon):
             # There is no more answer there, so no need to set any more errors.
             pass
 
-    def __connect_callback(self, rs, msg = ""):
+    def __connect_callback(self, rs, msg=""):
         self.connected = rs
-        if not rs: # error happens, reset socket
+        if not rs:  # error happens, reset socket
             del self.socket_to_server
             self.socket_to_server = None
         for cb in self.__con_cb:
             cb(rs, msg)
 
-    def add_connect_callback(self,cb):
+    def add_connect_callback(self, cb):
         self.__con_cb.append(cb)
 
-    def add_error_callback(self,cb):
+    def add_error_callback(self, cb):
         self.__err_cb.append(cb)
 
     def connect(self, host, port, ignore_version=False):
@@ -669,7 +670,7 @@ import httplib
 class DeejayDaemonHTTP(_DeejayDaemon):
     """HTTP deejayd client library."""
 
-    def __init__(self, host, port = 6880, root_url="/"):
+    def __init__(self, host, port=6880, root_url="/"):
         _DeejayDaemon.__init__(self)
         self.host = host
         self.port = port
@@ -690,7 +691,7 @@ class DeejayDaemonHTTP(_DeejayDaemon):
         # get answer
         response = self.connection.getresponse()
         if response.status != 200:
-            raise DeejaydError("Server return error code %d - %s" %\
+            raise DeejaydError("Server return error code %d - %s" % \
                     (response.status, response.reason))
         rawmsg = response.read()
         return parse_deejayd_answer(self._build_answer(rawmsg))

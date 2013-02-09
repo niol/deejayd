@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from deejayd.database.connection import DatabaseConnection
 
 class _DBQuery(object):
 
@@ -27,6 +28,9 @@ class _DBQuery(object):
 
     def to_sql(self):
         return str(self)
+
+    def execute(self):
+        raise NotImplementedError
 
 class SimpleSelect(_DBQuery):
 
@@ -59,6 +63,15 @@ class SimpleSelect(_DBQuery):
                    self.table_name,
                    ' AND '.join(self.wheres) or 1,
                  )
+
+    def execute(self, expected_result = "fetchall"):
+        cursor = DatabaseConnection().cursor()
+        cursor.execute(self.to_sql(), self.get_args())
+        result = getattr(cursor, expected_result)()
+
+        cursor.close()
+        return result
+
 
 class MediaSelectQuery(SimpleSelect):
 
@@ -116,7 +129,17 @@ class MediaSelectQuery(SimpleSelect):
                   limit or '')
 
 
-class EditRecordQuery(_DBQuery):
+class _DBActionQuery(_DBQuery):
+
+    def execute(self, commit = True):
+        cursor = DatabaseConnection().cursor()
+        cursor.execute(self.to_sql(), self.get_args())
+        cursor.close()
+
+        if commit:
+            DatabaseConnection().commit()
+
+class EditRecordQuery(_DBActionQuery):
 
     def __init__(self, table_name):
         super(EditRecordQuery, self).__init__(table_name)
@@ -162,8 +185,26 @@ class ReplaceQuery(EditRecordQuery):
                     ', '.join(self.dbvalues.keys()),
                     ', '.join(["%s" for x in self.get_args()]),
                   )
-        
-        
+
+class DeleteQuery(_DBActionQuery):
+
+    def __init__(self, table_name):
+        super(DeleteQuery, self).__init__(table_name)
+        self.wheres, self.wheres_args = [], []
+
+    def append_where(self, where_query, args):
+        self.wheres.append(where_query)
+        self.wheres_args.extend(args)
+        return self
+
+    def get_args(self):
+        return self.wheres_args
+
+    def __str__(self):
+        return "DELETE FROM %s WHERE %s"\
+               % (self.table_name,
+                  ' AND '.join(self.wheres) or 1,)
+
 def query_decorator(answer_type):
     def query_decorator_instance(func):
 

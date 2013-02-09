@@ -17,10 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os, sys, time, base64
-from deejayd.mediafilters import *
 from deejayd.ui import log
 from deejayd.database.querybuilders import *
-from deejayd.database.dbobjects import SQLizer
+from deejayd.model.mediafilters import MediaFilter
+from deejayd import DeejaydError
 
 
 ############################################################################
@@ -66,18 +66,16 @@ class MediaFile(dict):
         else:
             scale = 10.**(db / 20)
             if scale * peak > 1:
-                scale = 1.0 / peak # don't clip
+                scale = 1.0 / peak  # don't clip
             return min(15, scale)
 
 ############################################################################
 
 
 class DatabaseQueries(object):
-    structure_created = False
 
     def __init__(self, connection):
         self.connection = connection
-        self.sqlizer = SQLizer()
 
     #
     # MediaDB requests
@@ -94,7 +92,7 @@ class DatabaseQueries(object):
         cursor.execute(query, (lastmodified, id))
 
     @query_decorator("rowcount")
-    def set_media_infos(self, cursor, file_id, infos, allow_create = True):
+    def set_media_infos(self, cursor, file_id, infos, allow_create=True):
         if allow_create:
             query = "REPLACE INTO media_info (id,ikey,value)VALUES(%s,%s,%s)"
             entries = [(file_id, k, v) for k, v in infos.items()]
@@ -113,11 +111,11 @@ class DatabaseQueries(object):
         for q in queries: cursor.execute(q, (id,))
 
     @query_decorator("fetchone")
-    def is_file_exist(self, cursor, dirname, filename, type = "audio"):
+    def is_file_exist(self, cursor, dirname, filename, type="audio"):
         query = "SELECT d.id, l.id \
             FROM library l JOIN library_dir d ON d.id=l.directory\
             WHERE l.name = %s AND d.name = %s AND d.lib_type = %s"
-        cursor.execute(query,(filename, dirname, type))
+        cursor.execute(query, (filename, dirname, type))
 
     @query_decorator("lastid")
     def insert_dir(self, cursor, new_dir, type="audio"):
@@ -136,7 +134,7 @@ class DatabaseQueries(object):
         files = self.get_all_files(dir, type)
         for file in files: self.remove_file(file[2])
         cursor.execute("DELETE FROM library_dir\
-                      WHERE name LIKE %s AND lib_type = %s", (dir+u"%%", type))
+                      WHERE name LIKE %s AND lib_type = %s", (dir + u"%%", type))
         return [f[2] for f in files]
 
     @query_decorator("custom")
@@ -147,7 +145,7 @@ class DatabaseQueries(object):
         return rs and rs[0]
 
     @query_decorator("fetchall")
-    def get_dir_list(self, cursor, dir, t = "audio"):
+    def get_dir_list(self, cursor, dir, t="audio"):
         query = "SELECT d.id, d.name, COUNT(m.name) AS mediacount\
                  FROM library_dir d, library_dir sd, library m\
                  WHERE d.name LIKE %s AND\
@@ -156,7 +154,7 @@ class DatabaseQueries(object):
                  d.lib_type = %s AND\
                  sd.lib_type = %s\
                  GROUP BY d.id ORDER BY d.name"
-        cursor.execute(query, (dir+unicode("/%%"), t, t))
+        cursor.execute(query, (dir + unicode("/%%"), t, t))
 
     @query_decorator("fetchone")
     def get_file_info(self, cursor, file_id, info_type):
@@ -164,25 +162,25 @@ class DatabaseQueries(object):
         cursor.execute(query, (file_id, info_type))
 
     @query_decorator("fetchall")
-    def get_all_files(self, cursor, dir, type = "audio"):
+    def get_all_files(self, cursor, dir, type="audio"):
         query = "SELECT DISTINCT d.id, d.name, l.id, l.name, l.lastmodified\
             FROM library l JOIN library_dir d ON d.id=l.directory\
             WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
-        cursor.execute(query,(dir+u"%%", type))
+        cursor.execute(query, (dir + u"%%", type))
 
     @query_decorator("fetchall")
-    def get_all_dirs(self, cursor, dir, type = "audio"):
+    def get_all_dirs(self, cursor, dir, type="audio"):
         query = "SELECT DISTINCT id,name FROM library_dir\
             WHERE name LIKE %s AND type='directory' AND lib_type = %s\
             ORDER BY name"
-        cursor.execute(query,(dir+u"%%", type))
+        cursor.execute(query, (dir + u"%%", type))
 
-    def _medialist_answer(self, answer, infos = []):
+    def _medialist_answer(self, answer, infos=[]):
         files = []
         for m in answer:
             current = MediaFile(self, m[0])
             for index, attr in enumerate(infos):
-                current[attr] = m[index+1]
+                current[attr] = m[index + 1]
             files.append(current)
 
         return files
@@ -197,61 +195,60 @@ class DatabaseQueries(object):
         return selectquery, joinquery
 
     @query_decorator("medialist")
-    def get_dir_content(self, cursor, dir, infos = [], type = "audio"):
+    def get_dir_content(self, cursor, dir, infos=[], type="audio"):
         selectquery, joinquery = self._build_media_query(infos)
-        query = "SELECT DISTINCT "+ selectquery +\
+        query = "SELECT DISTINCT " + selectquery + \
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            LEFT OUTER JOIN media_info i ON i.id=l.id"\
-                           + joinquery+\
+                           + joinquery + \
             " WHERE d.name = %s AND d.lib_type = %s ORDER BY d.name,l.name"
-        cursor.execute(query,(dir, type))
+        cursor.execute(query, (dir, type))
 
     @query_decorator("medialist")
-    def get_file(self, cursor, dir, file, infos = [], type = "audio"):
+    def get_file(self, cursor, dir, file, infos=[], type="audio"):
         selectquery, joinquery = self._build_media_query(infos)
-        query = "SELECT DISTINCT "+ selectquery +\
+        query = "SELECT DISTINCT " + selectquery + \
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
-                           + joinquery+\
+                           + joinquery + \
             " WHERE d.name = %s AND l.name = %s AND d.lib_type = %s"
         cursor.execute(query, (dir, file, type))
 
     @query_decorator("medialist")
     def get_file_withids(self, cursor, file_ids, infos=[], type="audio"):
         selectquery, joinquery = self._build_media_query(infos)
-        query = "SELECT DISTINCT "+ selectquery +\
+        query = "SELECT DISTINCT " + selectquery + \
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
-                           + joinquery+\
+                           + joinquery + \
             " WHERE l.id IN (%s) AND d.lib_type = '%s'" % \
-                (",".join(map(str,file_ids)), type)
+                (",".join(map(str, file_ids)), type)
         cursor.execute(query)
 
     @query_decorator("medialist")
-    def get_alldir_files(self, cursor, dir, infos = [], type = "audio"):
+    def get_alldir_files(self, cursor, dir, infos=[], type="audio"):
         selectquery, joinquery = self._build_media_query(infos)
-        query = "SELECT DISTINCT "+ selectquery +\
+        query = "SELECT DISTINCT " + selectquery + \
             " FROM library l JOIN library_dir d ON d.id=l.directory\
                            JOIN media_info i ON i.id=l.id"\
-                           + joinquery+\
+                           + joinquery + \
             " WHERE d.name LIKE %s AND d.lib_type = %s ORDER BY d.name,l.name"
-        cursor.execute(query,(dir+u"%%", type))
+        cursor.execute(query, (dir + u"%%", type))
 
     @query_decorator("fetchall")
     def get_dircontent_id(self, cursor, dir, type):
         query = "SELECT l.id\
             FROM library l JOIN library_dir d ON l.directory = d.id\
             WHERE d.lib_type = %s AND d.name = %s"
-        cursor.execute(query,(type, dir))
+        cursor.execute(query, (type, dir))
 
     @query_decorator("fetchall")
     def search_id(self, cursor, key, value):
         query = "SELECT DISTINCT id FROM media_info WHERE ikey=%s AND value=%s"
-        cursor.execute(query,(key, value))
+        cursor.execute(query, (key, value))
 
     @query_decorator("medialist")
-    def search(self, cursor, filter, infos = [], orders = [], limit = None):
-        filter = self.sqlizer.translate(filter)
+    def search(self, cursor, filter, infos=[], orders=[], limit=None):
         query = MediaSelectQuery()
         query.select_id()
         for tag in infos:
@@ -264,10 +261,10 @@ class DatabaseQueries(object):
 
     @query_decorator("fetchall")
     def list_tags(self, cursor, tag, filter):
-        filter = self.sqlizer.translate(filter)
         query = MediaSelectQuery()
         query.select_tag(tag)
-        filter.restrict(query)
+        if filter is not None:
+            filter.restrict(query)
         query.order_by_tag(tag)
         cursor.execute(query.to_sql(), query.get_args())
 
@@ -289,7 +286,7 @@ class DatabaseQueries(object):
                 AND m2.value=%s AND m3.ikey='artist'"
         cursor.execute(query, (file_info["album"],))
         try: (id, various_artist, artist) = cursor.fetchone()
-        except TypeError: # first song of this album
+        except TypeError:  # first song of this album
             return
         else:
             need_update = False
@@ -306,17 +303,17 @@ class DatabaseQueries(object):
                     WHERE ikey='various_artist' AND id = %s", ids)
 
     @query_decorator("none")
-    def erase_empty_dir(self, cursor, type = "audio"):
+    def erase_empty_dir(self, cursor, type="audio"):
         cursor.execute("SELECT DISTINCT name FROM library_dir\
             WHERE lib_type=%s", (type,))
         for (dirname,) in cursor.fetchall():
             rs = self.get_all_files(dirname, type)
-            if len(rs) == 0: # remove directory
-                cursor.execute("DELETE FROM library_dir WHERE name = %s",\
+            if len(rs) == 0:  # remove directory
+                cursor.execute("DELETE FROM library_dir WHERE name = %s", \
                     (dirname,))
 
     @query_decorator("none")
-    def update_stats(self, cursor, type = "audio"):
+    def update_stats(self, cursor, type="audio"):
         # record mediadb stats
         query = "UPDATE stats SET value = \
           (SELECT COUNT(DISTINCT m.value) FROM media_info m JOIN media_info m2\
@@ -332,16 +329,16 @@ class DatabaseQueries(object):
         cursor.executemany(query, values)
 
         # update last updated stats
-        cursor.execute("UPDATE stats SET value = %s WHERE name = %s",\
-            (time.time(),type+"_library_update"))
+        cursor.execute("UPDATE stats SET value = %s WHERE name = %s", \
+            (time.time(), type + "_library_update"))
 
     #
     # cover requests
     #
     @query_decorator("fetchone")
-    def get_file_cover(self, cursor, file_id, source = False):
+    def get_file_cover(self, cursor, file_id, source=False):
         var = source and "source" or "image"
-        query = "SELECT c.id, c.mime_type, c." + var +\
+        query = "SELECT c.id, c.mime_type, c." + var + \
             " FROM media_info m JOIN cover c\
                               ON m.ikey = 'cover' AND m.value = c.id\
             WHERE m.id = %s"
@@ -386,11 +383,11 @@ class DatabaseQueries(object):
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("custom")
-    def get_medialist_id(self, cursor, pl_name, pl_type = 'static'):
+    def get_medialist_id(self, cursor, pl_name, pl_type='static'):
         query = SimpleSelect('medialist')
         query.select_column('id')
-        query.append_where("name = %s", (pl_name, ))
-        query.append_where("type = %s", (pl_type, ))
+        query.append_where("name = %s", (pl_name,))
+        query.append_where("type = %s", (pl_type,))
         cursor.execute(query.to_sql(), query.get_args())
 
         ans = cursor.fetchone()
@@ -401,7 +398,7 @@ class DatabaseQueries(object):
     def is_medialist_exists(self, cursor, pl_id):
         query = SimpleSelect('medialist')
         query.select_column('id', 'name', 'type')
-        query.append_where("id = %s", (pl_id, ))
+        query.append_where("id = %s", (pl_id,))
         cursor.execute(query.to_sql(), query.get_args())
 
     @query_decorator("none")
@@ -414,7 +411,8 @@ class DatabaseQueries(object):
             cursor.execute(query, (ml_id,))
         elif type == "magic":
             for (filter_id,) in self.__get_medialist_filterids(cursor, ml_id):
-                self.delete_filter(cursor, filter_id)
+                f = MediaFilter.load_from_db(filter_id)
+                if f is not None: f.erase_from_db()
             cursor.execute(\
               "DELETE FROM medialist_filters WHERE medialist_id=%s", (ml_id,))
             # delete medialist properties
@@ -426,87 +424,10 @@ class DatabaseQueries(object):
         cursor.execute("DELETE FROM medialist WHERE id = %s", (ml_id,))
         self.connection.commit()
 
-    def get_filter(self, cursor, id):
-        try: filter_type = self.__get_filter_type(cursor, id)
-        except ValueError:
-            return None
-        if filter_type == 'basic':
-            return self.__get_basic_filter(cursor, id)
-        elif filter_type == 'complex':
-            return self.__get_complex_filter(cursor, id)
-
-    def delete_filter(self, cursor, filter_id):
-        try: filter_type = self.__get_filter_type(cursor, filter_id)
-        except ValueError:
-            return None
-
-        if filter_type == 'basic':
-            cursor.execute("DELETE FROM filters_basicfilters\
-                WHERE filter_id = %s", (filter_id,))
-        elif filter_type == 'complex':
-            # get filters id associated with this filter
-            query = SimpleSelect('filters_complexfilters_subfilters')
-            query.select_column('filter_id')
-            query.append_where("complexfilter_id = %s", (filter_id, ))
-            cursor.execute(query.to_sql(), query.get_args())
-
-            for (id,) in cursor.fetchall():
-                self.delete_filter(cursor, id)
-                cursor.execute("DELETE FROM filters_complexfilters_subfilters \
-                    WHERE complexfilter_id = %s AND filter_id = %s",\
-                    (filter_id, id))
-            cursor.execute("DELETE FROM filters_complexfilters \
-                WHERE filter_id = %s",(filter_id,))
-
-        cursor.execute("DELETE FROM filters WHERE filter_id = %s",(filter_id,))
-
-    def __get_filter_type(self, cursor, filter_id):
-        query = SimpleSelect('filters')
-        query.select_column('type')
-        query.append_where("filter_id = %s", (filter_id, ))
-        cursor.execute(query.to_sql(), query.get_args())
-        record = cursor.fetchone()
-
-        if not record: raise ValueError
-        return record[0]
-
-    def __get_basic_filter(self, cursor, id):
-        query = SimpleSelect('filters_basicfilters')
-        query.select_column('tag', 'operator', 'pattern')
-        query.append_where("filter_id = %s", (id, ))
-        cursor.execute(query.to_sql(), query.get_args())
-        record = cursor.fetchone()
-
-        if record:
-            bfilter_class = NAME2BASIC[record[1]]
-            f = bfilter_class(record[0], record[2])
-            return f
-
-    def __get_complex_filter(self, cursor, id):
-        query = SimpleSelect('filters_complexfilters')
-        query.select_column('combinator')
-        query.append_where("filter_id = %s", (id, ))
-        cursor.execute(query.to_sql(), query.get_args())
-        record = cursor.fetchone()
-
-        if record:
-            cfilter_class = NAME2COMPLEX[record[0]]
-            query = SimpleSelect('filters_complexfilters_subfilters')
-            query.select_column('filter_id')
-            query.append_where("complexfilter_id = %s", (id, ))
-            cursor.execute(query.to_sql(), query.get_args())
-            sf_records = cursor.fetchall()
-            filterlist = []
-            for sf_record in sf_records:
-                sf_id = sf_record[0]
-                filterlist.append(self.get_filter(cursor, sf_id))
-            cfilter = cfilter_class(*filterlist)
-            return cfilter
-
     def __get_medialist_filterids(self, cursor, ml_id):
         query = SimpleSelect('medialist_filters')
         query.select_column('filter_id')
-        query.append_where("medialist_id = %s", (ml_id, ))
+        query.append_where("medialist_id = %s", (ml_id,))
         cursor.execute(query.to_sql(), query.get_args())
 
         return cursor.fetchall()
@@ -514,8 +435,11 @@ class DatabaseQueries(object):
     def __add_medialist_filters(self, cursor, pl_id, filters):
         filter_ids = []
         for filter in filters:
-            filter_id = self.sqlizer.translate(filter).save(self)
-            if filter_id: filter_ids.append((pl_id, filter_id))
+            filter_id = filter.save()
+            if filter_id:
+                filter_ids.append((pl_id, filter_id))
+            else:
+                raise DeejaydError("Unable to save filter %s" % str(filter))
         cursor.executemany("INSERT INTO medialist_filters\
             (medialist_id,filter_id)VALUES(%s,%s)", filter_ids)
 
@@ -525,7 +449,7 @@ class DatabaseQueries(object):
         if not rs: return []
         filters = []
         for (filter_id,) in rs:
-            filter = self.get_filter(cursor, filter_id)
+            filter = MediaFilter.load_from_db(filter_id)
             if filter: filters.append(filter)
         return filters
 
@@ -541,12 +465,14 @@ class DatabaseQueries(object):
         else: (id,) = rs
 
         for (filter_id,) in self.__get_medialist_filterids(cursor, id):
-            self.delete_filter(cursor, filter_id)
+            f = MediaFilter.load_from_db(filter_id)
+            if f is not None:
+                f.erase_from_db()
         cursor.execute(\
           "DELETE FROM medialist_filters WHERE medialist_id=%s", (id,))
+        self.connection.commit()
 
         self.__add_medialist_filters(cursor, id, filters)
-        self.connection.commit()
         return id
 
     @query_decorator("none")
@@ -563,10 +489,10 @@ class DatabaseQueries(object):
     @query_decorator("none")
     def set_magic_medialist_sorts(self, cursor, ml_id, sorts):
         # first, delete all previous sort for this medialist
-        cursor.execute("DELETE FROM medialist_sorts WHERE medialist_id=%s",\
+        cursor.execute("DELETE FROM medialist_sorts WHERE medialist_id=%s", \
                 (ml_id,))
         cursor.executemany("INSERT INTO medialist_sorts\
-            (medialist_id,tag,direction)VALUES(%s,%s,%s)",\
+            (medialist_id,tag,direction)VALUES(%s,%s,%s)", \
             [ (ml_id, tag, direction) for (tag, direction) in sorts])
         self.connection.commit()
 
@@ -598,15 +524,15 @@ class DatabaseQueries(object):
         self.connection.commit()
 
     @query_decorator("medialist")
-    def get_static_medialist(self, cursor, ml_id, infos = []):
+    def get_static_medialist(self, cursor, ml_id, infos=[]):
         selectquery, joinquery = self._build_media_query(infos)
-        query = "SELECT DISTINCT "+ selectquery + ", mi.position " +\
+        query = "SELECT DISTINCT " + selectquery + ", mi.position " + \
             " FROM medialist m JOIN medialist_libraryitem mi\
                                     ON m.id = mi.medialist_id\
                            JOIN media_info i ON i.id=mi.libraryitem_id"\
-                           + joinquery+\
+                           + joinquery + \
             " WHERE m.id = %s AND m.type = 'static' ORDER BY mi.position"
-        cursor.execute(query,(ml_id,))
+        cursor.execute(query, (ml_id,))
 
     @query_decorator("custom")
     def set_static_medialist(self, cursor, name, content):
@@ -620,11 +546,11 @@ class DatabaseQueries(object):
         else: (id,) = rs
 
         cursor.execute(\
-            "DELETE FROM medialist_libraryitem WHERE medialist_id = %s",(id,))
+            "DELETE FROM medialist_libraryitem WHERE medialist_id = %s", (id,))
         values = [(id, s["media_id"]) for s in content]
         query = "INSERT INTO medialist_libraryitem(medialist_id,libraryitem_id)\
             VALUES(%s,%s)"
-        cursor.executemany(query,values)
+        cursor.executemany(query, values)
         self.connection.commit()
         # return id of the playlist
         return id
@@ -645,7 +571,7 @@ class DatabaseQueries(object):
 
     @query_decorator("custom")
     def get_webradio_source(self, cursor, source):
-        cursor.execute("SELECT id FROM webradio_source WHERE name = %s",\
+        cursor.execute("SELECT id FROM webradio_source WHERE name = %s", \
                             (source,))
         result = cursor.fetchall()
         if len(result) == 1:
@@ -670,7 +596,7 @@ class DatabaseQueries(object):
         query = "SELECT id FROM webradio\
                 WHERE cat_id IN (%s) AND source_id = %s"
         cursor.execute(query, (",".join(map(str, cat_ids)), source_id))
-        w_ids  = [id for (id,) in cursor.fetchall()]
+        w_ids = [id for (id,) in cursor.fetchall()]
 
         query = "DELETE FROM webradio_categories\
                 WHERE id IN (%s) AND source_id = %s"
@@ -688,7 +614,7 @@ class DatabaseQueries(object):
         self.clear_webradios(source_id)
 
     @query_decorator("fetchall")
-    def get_webradios(self, cursor, source, cat_id = None):
+    def get_webradios(self, cursor, source, cat_id=None):
         query = "SELECT DISTINCT w.id, w.name, e.url\
             FROM webradio w INNER JOIN webradio_entries e \
                             ON w.id = e.webradio_id\
@@ -701,14 +627,14 @@ class DatabaseQueries(object):
         cursor.execute(query, args)
 
     @query_decorator("custom")
-    def add_webradio(self, cursor, s_id, name, urls, category = None):
+    def add_webradio(self, cursor, s_id, name, urls, category=None):
         cat_id = category or -1
         query = "INSERT INTO webradio(name, source_id, cat_id)VALUES(%s,%s,%s)"
         cursor.execute(query, (name, s_id, cat_id))
         wid = self.connection.get_last_insert_id(cursor)
 
         query = "INSERT INTO webradio_entries(url, webradio_id)VALUES(%s,%s)"
-        cursor.executemany(query, [(url,wid) for url in urls])
+        cursor.executemany(query, [(url, wid) for url in urls])
 
         return wid
 

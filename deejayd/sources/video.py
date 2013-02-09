@@ -19,7 +19,7 @@
 from deejayd.jsonrpc.interfaces import VideoSourceModule, jsonrpc_module
 from deejayd.mediadb.library import NotFoundException
 from deejayd.sources._base import _BaseSortedLibSource, SourceError
-from deejayd import mediafilters
+from deejayd.model import mediafilters
 
 @jsonrpc_module(VideoSourceModule)
 class VideoSource(_BaseSortedLibSource):

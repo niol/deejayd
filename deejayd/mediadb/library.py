@@ -26,7 +26,7 @@ from deejayd.jsonrpc.interfaces import LibraryModule, jsonrpc_module
 from deejayd.mediadb import formats
 from deejayd.mediadb import pathutils
 from deejayd.utils import quote_uri, str_decode, log_traceback
-from deejayd import mediafilters
+from deejayd.model import mediafilters
 from deejayd.ui import log
 
 class NotFoundException(DeejaydError):pass

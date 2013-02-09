@@ -17,9 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd import DeejaydError
+from deejayd.model.mediafilters import MediaFilter
 from deejayd.jsonrpc import *
-from deejayd.jsonrpc.jsonbuilders import Get_json_filter
-from deejayd.jsonrpc.jsonparsers import Parse_json_filter
 import inspect
 
 def underscore_to_camelcase(s):
@@ -118,9 +117,8 @@ def verify_arguments(__args, args):
                     raise Fault(INVALID_METHOD_PARAMS,\
                       _("Arg %s is not an int-list") % arg["name"])
             elif arg['type'] == 'filter':
-                print "filter, value", value
                 if value is not None:
-                    value = Parse_json_filter(value)
+                    value = MediaFilter.load_from_json(value)
             __new_args[idx+1] = value
     return __new_args
 
@@ -133,7 +131,7 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
         type = getattr(rpc_cmd, "answer", "ack")
         if type == "mediaList":
             if res["filter"] is not None:
-                res["filter"] = Get_json_filter(res["filter"]).dump()
+                res["filter"] = res["filter"].to_json()
         elif type == "dict":
             res = dict(res)
         elif type == "ack":

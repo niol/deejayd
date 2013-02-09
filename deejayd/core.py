@@ -93,7 +93,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
             self.put_sub_handler(source.name, source)
             setattr(self, source.name, source)
 
-        if not self.db.structure_created:
+        if not DatabaseConnection().structure_created:
             self.audiolib.update()
             if self.videolib:
                 self.videolib.update()

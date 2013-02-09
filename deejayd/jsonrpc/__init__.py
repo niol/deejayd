@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,6 +16,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+try: import json # python 2.6
+except ImportError: # if python < 2.6, require simplejson
+    import simplejson as json
 from deejayd import DeejaydError
 
 # Deejayd protocol version number

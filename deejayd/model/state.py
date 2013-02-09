@@ -29,7 +29,7 @@ class PersistentState(IterableUserDict):
     table_name = "variables"
 
     @classmethod
-    def load_from_db(cls, name, default_state):
+    def load_from_db(cls, name, default_state = {}):
         db_cursor = DatabaseConnection().cursor()
         query = SimpleSelect(cls.table_name).select_column("value")\
                                             .append_where("name = %s" , (name,))
@@ -47,12 +47,9 @@ class PersistentState(IterableUserDict):
         self.name = name
 
     def save(self):
-        db_cursor = DatabaseConnection().cursor()
         query = ReplaceQuery(self.table_name).add_value("name", self.name) \
                                  .add_value("value", pickle.dumps(self.data))
-        db_cursor.execute(query.to_sql(), query.get_args())
-        DatabaseConnection().commit()
-        db_cursor.close()
+        query.execute()
 
     @classmethod
     def load_from_json(cls, json_object):

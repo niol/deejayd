@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -19,9 +19,6 @@
 from datetime import datetime
 from deejayd.jsonrpc import *
 import time
-try: import json # python 2.6
-except ImportError: # if python < 2.6, require simplejson
-    import simplejson as json
 
 
 class JSONRPCEncoder(json.JSONEncoder):
@@ -90,44 +87,6 @@ class JSONRPCResponse(_DeejaydJSON):
             obj = {"result": None, "error": error, "id": self.id}
             return json.dumps(obj)
 
-#
-# JSON filter serializer
-#
-class JSONFilter(_DeejaydJSON):
-
-    def __init__(self, filter):
-        self.filter = filter
-
-    def _get_value(self):
-        raise NotImplementedError
-
-    def _build_obj(self):
-        return {
-            "type": self.type,
-            "id": self.filter.get_identifier(),
-            "value": self._get_value(),
-            }
-
-class JSONBasicFilter(JSONFilter):
-    type = "basic"
-    def _get_value(self):
-        return {"tag": self.filter.tag, "pattern": self.filter.pattern}
-
-class JSONComplexFilter(JSONFilter):
-    type = "complex"
-    def _get_value(self):
-        return [Get_json_filter(f).dump() for f in self.filter.filterlist]
-
-def Get_json_filter(filter):
-    if filter is None:
-        return None
-    if filter.type == 'basic':
-        json_filter_class = JSONBasicFilter
-    elif filter.type == 'complex':
-        json_filter_class = JSONComplexFilter
-    return json_filter_class(filter)
-
-#
 # JSON signal serializer
 #
 class DeejaydJSONSignal(_DeejaydJSON):

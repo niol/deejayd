@@ -21,7 +21,6 @@ Deejayd DB testing module
 """
 import os, time, traceback
 from testdeejayd import TestCaseWithDeejaydCore, unittest
-from deejayd import mediafilters
 from deejayd.utils import str_decode
 from deejayd.mediadb import inotify
 from deejayd.mediadb.library import NotFoundException
@@ -37,7 +36,7 @@ class _VerifyDeejayLibrary(object):
 
     def verifyMediaDBContent(self, testTag=True):
         if not self.inotify_support:
-            self.library.update(sync = True)
+            self.library.update(sync=True)
         else:
             time.sleep(1)
 
@@ -80,8 +79,8 @@ class _VerifyDeejayLibrary(object):
             except NotFoundException:
                 allContents = self.library.get_dir_content('')
                 self.assertTrue(False,
-                    "'%s' is in directory tree but was not found in DB %s" %\
-                    (root,str(allContents)))
+                    "'%s' is in directory tree but was not found in DB %s" % \
+                    (root, str(allContents)))
 
             # First, verify directory list
             self.assertEqual(contents["directories"].sort(), dirs.sort(),
@@ -93,7 +92,7 @@ class _VerifyDeejayLibrary(object):
                     % (root, [f["filename"] for f in contents["files"]], files))
             db_files = [f["filename"] for f in contents["files"]]
             for file in files:
-                (name,ext) = os.path.splitext(file)
+                (name, ext) = os.path.splitext(file)
                 if ext.lower() in self.__class__.supported_ext:
                     self.assertTrue(file in db_files,
                     "'%s' is a file in directory tree but was not found in DB"\
@@ -113,7 +112,7 @@ class _VerifyDeejayLibrary(object):
         if inlink_path:
             link_full_path = os.path.join(self.testdata.getRootDir(),
                                           inlink_path)
-            abs_path = filePath[len(inlink_path)+1:]
+            abs_path = filePath[len(inlink_path) + 1:]
             realFile = self.testdata.dirlinks[link_full_path].medias[abs_path]
         else:
             realFile = self.testdata.getMedia(filePath)
@@ -121,14 +120,14 @@ class _VerifyDeejayLibrary(object):
         for tag in self.tested_tags:
             self.assert_(realFile[tag] == inDBfile[tag],
                 "tag %s for %s different between DB and reality %s != %s" % \
-                (tag,realFile["filename"],realFile[tag],inDBfile[tag]))
+                (tag, realFile["filename"], realFile[tag], inDBfile[tag]))
 
         return (realFile, inDBfile)
 
 class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
     library_type = "audio"
-    supported_ext = (".ogg",".mp3",".mp4",".flac")
-    tested_tags = ("title","artist","album","genre")
+    supported_ext = (".ogg", ".mp3", ".mp4", ".flac")
+    tested_tags = ("title", "artist", "album", "genre")
 
     def verifyTag(self, filePath, inlink_path=None):
         (realFile, inDBfile) = super(VerifyDeejayAudioLibrary, self)\
@@ -157,8 +156,8 @@ class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
 
 class VerifyDeejayVideoLibrary(_VerifyDeejayLibrary):
     library_type = "video"
-    supported_ext = (".mpg",".avi")
-    tested_tags = ('length','videowidth','videoheight','external_subtitle')
+    supported_ext = (".mpg", ".avi")
+    tested_tags = ('length', 'videowidth', 'videoheight', 'external_subtitle')
 
 
 #####################################
@@ -220,8 +219,8 @@ class TestAudioLibrary(TestCaseWithDeejaydCore, \
     @classmethod
     def setUpClass(cls):
         super(TestAudioLibrary, cls).setUpClass()
-        cls.library = getattr(cls.deejayd, cls.library_type+"lib")
-        cls.testdata = getattr(cls, "test_"+cls.library_type+"data")
+        cls.library = getattr(cls.deejayd, cls.library_type + "lib")
+        cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
 
     def testChangeTag(self):
         """Tag value change detected by audio library"""
@@ -239,14 +238,14 @@ class TestAudioLibrary(TestCaseWithDeejaydCore, \
         self.verifyMediaDBContent()
 
 
-class TestVideoLibrary(TestCaseWithDeejaydCore,\
+class TestVideoLibrary(TestCaseWithDeejaydCore, \
         _TestDeejayLibrary, VerifyDeejayVideoLibrary):
 
     @classmethod
     def setUpClass(cls):
         super(TestVideoLibrary, cls).setUpClass()
-        cls.library = getattr(cls.deejayd, cls.library_type+"lib")
-        cls.testdata = getattr(cls, "test_"+cls.library_type+"data")
+        cls.library = getattr(cls.deejayd, cls.library_type + "lib")
+        cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
 
     def testAddSubtitle(self):
         """Add a subtitle file in library"""
@@ -290,18 +289,18 @@ class _TestInotifyDeejayLibrary(object):
         self.verifyMediaDBContent()
 
 
-class TestInotifyVideoLibrary(TestCaseWithDeejaydCore,\
+class TestInotifyVideoLibrary(TestCaseWithDeejaydCore, \
         _TestInotifyDeejayLibrary, VerifyDeejayVideoLibrary):
     inotify_support = True
 
     @classmethod
     def setUpClass(cls):
         super(TestInotifyVideoLibrary, cls).setUpClass()
-        cls.library = getattr(cls.deejayd, cls.library_type+"lib")
-        cls.testdata = getattr(cls, "test_"+cls.library_type+"data")
+        cls.library = getattr(cls.deejayd, cls.library_type + "lib")
+        cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
 
     def tearDown(self):
-        self.library.update(sync = True)
+        self.library.update(sync=True)
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyAddSubtitle(self):
@@ -316,18 +315,18 @@ class TestInotifyVideoLibrary(TestCaseWithDeejaydCore,\
         self.verifyMediaDBContent()
 
 
-class TestInotifyAudioLibrary(TestCaseWithDeejaydCore,\
+class TestInotifyAudioLibrary(TestCaseWithDeejaydCore, \
         _TestInotifyDeejayLibrary, VerifyDeejayAudioLibrary):
     inotify_support = True
 
     @classmethod
     def setUpClass(cls):
         super(TestInotifyAudioLibrary, cls).setUpClass()
-        cls.library = getattr(cls.deejayd, cls.library_type+"lib")
-        cls.testdata = getattr(cls, "test_"+cls.library_type+"data")
+        cls.library = getattr(cls.deejayd, cls.library_type + "lib")
+        cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
 
     def tearDown(self):
-        self.library.update(sync = True)
+        self.library.update(sync=True)
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyAddCover(self):

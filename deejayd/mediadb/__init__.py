@@ -21,32 +21,32 @@ from ConfigParser import NoOptionError
 from deejayd.ui import log
 from deejayd.mediadb import library
 
-try: 
+try:
     from deejayd.mediadb import inotify
 except ImportError:
-    log.msg(_("Inotify is not supported on this platform"))
+    log.msg("Inotify is not supported on this platform")
     inotify = None
 
 
 def init(db, player, config):
-    audio_library,video_library,lib_watcher = None, None, None
-    fc = config.get("mediadb","filesystem_charset")
+    audio_library, video_library, lib_watcher = None, None, None
+    fc = config.get("mediadb", "filesystem_charset")
 
-    audio_dir = config.get("mediadb","music_directory")
+    audio_dir = config.get("mediadb", "music_directory")
     try: audio_library = library.AudioLibrary(db, player, audio_dir, fc)
-    except library.NotFoundException,msg:
-        log.err(_("Unable to init audio library : %s") % msg, fatal = True)
+    except library.NotFoundException, msg:
+        log.err(_("Unable to init audio library : %s") % msg, fatal=True)
 
     activated_sources = config.getlist('general', "activated_modes")
     if "video" in activated_sources:
         video_dir = config.get('mediadb', 'video_directory')
-        try: video_library = library.VideoLibrary(db,player,video_dir,fc)
-        except library.NotFoundException,msg:
+        try: video_library = library.VideoLibrary(db, player, video_dir, fc)
+        except library.NotFoundException, msg:
             log.err(_("Unable to init video library : %s") % msg, fatal=True)
 
     if inotify is not None:
         lib_watcher = inotify.DeejaydInotify(db, audio_library, video_library)
 
-    return audio_library,video_library,lib_watcher
+    return audio_library, video_library, lib_watcher
 
 # vim: ts=4 sw=4 expandtab

@@ -18,12 +18,12 @@
 
 
 from deejayd import DeejaydError
-from deejayd.mediafilters import *
+from deejayd.model import mediafilters
 from testdeejayd.interfaces import _TestInterfaces
 
 class RecordedPlaylistInterfaceTests(_TestInterfaces):
 
-    def __createRecordedPlaylist(self, pl_type = 'magic'):
+    def __createRecordedPlaylist(self, pl_type='magic'):
         djplname = self.testdata.getRandomString()
 
         return self.deejayd.recpls.create(djplname, pl_type)
@@ -50,7 +50,7 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
     def testRecPlsGetContent(self):
         """test recpls.getContent command"""
         recpls = self.deejayd.recpls
-        
+
         # try with a wrong pl id
         rand_id = self.testdata.getRandomInt()
         self.assertRaises(DeejaydError, recpls.get_content, rand_id)
@@ -85,10 +85,11 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         """test recpls.magicAddFilter command"""
         recpls = self.deejayd.recpls
         pl_id = self.__createRecordedPlaylist("magic")["pl_id"]
-        
+
         genre = self.test_audiodata.getRandomGenre()
-        r_filter = Equals('genre', genre)
-        rnd_filter = Equals('genre', self.testdata.getRandomString())
+        r_filter = mediafilters.Equals('genre', genre)
+        rnd_filter = mediafilters.Equals('genre',
+                                         self.testdata.getRandomString())
 
         # add correct filter
         self.assertAckCmd(recpls.magic_add_filter(pl_id, r_filter))
@@ -103,7 +104,7 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         self.assertAckCmd(recpls.magic_remove_filter(pl_id, r_filter))
         ans = recpls.get_content(pl_id)
         self.assertEqual(len(ans["filter"]), 0)
-        
+
         # add random filter
         self.assertAckCmd(recpls.magic_add_filter(pl_id, rnd_filter))
         # verify playlist content
@@ -124,16 +125,13 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         pl_infos = self.__createRecordedPlaylist()
         pl_id = pl_infos["pl_id"]
 
-        genre = self.test_audiodata.getRandomGenre()
-        r_filter = Equals('genre', genre)
-        
         # test limit property
         self.assertAckCmd(recpls.magic_set_property(pl_id, "use-limit", "1"))
         self.assertAckCmd(recpls.magic_set_property(pl_id, "limit-value", "1"))
-        
+
         # test getProperties
         known_keys = (
-            'use-or-filter', 
+            'use-or-filter',
             'use-limit',
             'limit-value',
             'limit-sort-value',

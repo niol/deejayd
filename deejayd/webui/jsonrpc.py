@@ -33,11 +33,11 @@ from deejayd import DeejaydError
 from deejayd.component import JSONRpcComponent
 from deejayd.ui import log
 from deejayd.utils import str_decode
-from deejayd.mediafilters import And
+from deejayd.model.mediafilters import And
 from deejayd.jsonrpc import Fault
 from deejayd.jsonrpc.interfaces import jsonrpc_module, WebModule
 from deejayd.jsonrpc.jsonparsers import loads_request
-from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, Get_json_filter
+from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse
 
 
 @jsonrpc_module(WebModule)
@@ -101,11 +101,11 @@ class WebRpcModule(JSONRpcComponent):
         for ft in filter_list:
             if ft.type == "basic" and ft.get_name() == "contains":
                 panel_filter.combine(ft)
-                answer["search"] = Get_json_filter(ft).dump()
+                answer["search"] = ft.to_json()
                 break
             elif ft.type == "complex" and ft.get_name() == "or":
                 panel_filter.combine(ft)
-                answer["search"] = Get_json_filter(ft).dump()
+                answer["search"] = ft.to_json()
                 break
 
         # find panel filter list

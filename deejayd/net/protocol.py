@@ -24,7 +24,6 @@ from twisted.protocols.basic import LineReceiver
 
 from deejayd import __version__
 from deejayd import DeejaydSignal
-from deejayd.mediafilters import *
 from deejayd.ui import log
 from deejayd.utils import str_decode
 from deejayd.component import JSONRpcComponent

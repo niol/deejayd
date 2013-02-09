@@ -19,11 +19,11 @@
 from zope.interface import Interface, Attribute
 
 class IObjectModel(Interface):
-    
+
     def save(self):
         """ save object in the db """
-    
+
     def to_json(self):
         """ export object to json """
-        
+
 # vim: ts=4 sw=4 expandtab

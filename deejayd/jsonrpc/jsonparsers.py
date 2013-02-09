@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,10 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-try: import json # python 2.6
-except ImportError: # if python < 2.6, require simplejson
-    import simplejson as json
-from deejayd.mediafilters import *
 from deejayd.jsonrpc import *
 
 
@@ -48,26 +44,5 @@ def loads_response(string, **kws):
         if key not in ans:
             raise err
     return ans
-
-
-def Parse_json_filter(json_filter):
-    try:
-        name = json_filter["id"]
-        type = json_filter["type"]
-        if type == "basic":
-            filter_class = NAME2BASIC[name]
-            filter = filter_class(json_filter["value"]["tag"], \
-                    json_filter["value"]["pattern"])
-        elif type == "complex":
-            filter = NAME2COMPLEX[name]()
-            for f in json_filter["value"]:
-                filter.combine(Parse_json_filter(f))
-        else:
-            raise TypeError
-    except (KeyError, TypeError):
-        raise Fault(NOT_WELLFORMED_ERROR,\
-                "Bad filter argument for this json-rpc request")
-
-    return filter
 
 # vim: ts=4 sw=4 expandtab

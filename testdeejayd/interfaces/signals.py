@@ -21,7 +21,7 @@ from deejayd import DeejaydError
 from deejayd.mediadb import inotify
 from testdeejayd import unittest
 from testdeejayd.interfaces import require_video_support, _TestInterfaces
-from deejayd.mediafilters import *
+from deejayd.model.mediafilters import *
 
 class SignalsInterfaceTests(_TestInterfaces):
     possible_clients = ("net_async",)
@@ -64,8 +64,8 @@ class SignalsInterfaceTests(_TestInterfaces):
         client2 = self.get_another_client()
         client2.connect('localhost', self.serverPort)
 
-        self.generic_sub_bcast_test('mode', client2.set_mode, ('video', ))
-        
+        self.generic_sub_bcast_test('mode', client2.set_mode, ('video',))
+
     def test_sub_broadcast_player_status(self):
         """Checks that player.status signals are broadcasted."""
         self.deejayd.set_mode("playlist").wait_for_answer()
@@ -76,10 +76,10 @@ class SignalsInterfaceTests(_TestInterfaces):
 
         trigger_list = ((self.deejayd.player.play_toggle, ()),
                         (self.deejayd.set_option, ("playlist", 'repeat', True)),
-                        (self.deejayd.set_option, ('panel', "playorder",\
+                        (self.deejayd.set_option, ('panel', "playorder", \
                                                    "random")),
-                        (self.deejayd.player.set_volume, (51, )),
-                        (self.deejayd.player.seek, (5, )),
+                        (self.deejayd.player.set_volume, (51,)),
+                        (self.deejayd.player.seek, (5,)),
                        )
 
         for trig in trigger_list:
@@ -108,7 +108,7 @@ class SignalsInterfaceTests(_TestInterfaces):
         ans = self.deejayd.audiolib.get_dir_content().wait_for_answer()
         dir = self.testdata.getRandomElement(ans["directories"])
 
-        trigger_list = ((djpl.add_path, ([dir], )),
+        trigger_list = ((djpl.add_path, ([dir],)),
                         (djpl.shuffle, ()),
                         (djpl.clear, ()),
                        )
@@ -128,7 +128,7 @@ class SignalsInterfaceTests(_TestInterfaces):
         test_pl_name2 = self.testdata.getRandomString()
 
         self.generic_sub_bcast_test('playlist.listupdate',
-                                    djpl.save, (test_pl_name, ))
+                                    djpl.save, (test_pl_name,))
 
         retrievedPls = self.deejayd.recpls.get_list().wait_for_answer()
         for pls in retrievedPls:
@@ -136,7 +136,7 @@ class SignalsInterfaceTests(_TestInterfaces):
                 djpl_id = pls["pl_id"]
                 break
         trigger_list = (
-                        (self.deejayd.recpls.erase, ([djpl_id], )),
+                        (self.deejayd.recpls.erase, ([djpl_id],)),
                         (self.deejayd.recpls.create, (test_pl_name, "static")),
                         (djpl.save, (test_pl_name2,)),
                        )
@@ -153,9 +153,9 @@ class SignalsInterfaceTests(_TestInterfaces):
         st_pl_name = self.testdata.getRandomString()
         mg_pl_name = self.testdata.getRandomString()
 
-        st_pl_id = self.deejayd.recpls.create(st_pl_name,\
+        st_pl_id = self.deejayd.recpls.create(st_pl_name, \
                 'static').wait_for_answer()["pl_id"]
-        mg_pl_id = self.deejayd.recpls.create(mg_pl_name,\
+        mg_pl_id = self.deejayd.recpls.create(mg_pl_name, \
                 'magic').wait_for_answer()["pl_id"]
 
         recpls = self.deejayd.recpls
@@ -163,7 +163,7 @@ class SignalsInterfaceTests(_TestInterfaces):
                         (recpls.static_add_media, (st_pl_id, [dir],)),
                         (recpls.magic_add_filter, (mg_pl_id, filter,)),
                         (recpls.magic_remove_filter, (mg_pl_id, filter,)),
-                        (recpls.magic_set_property, (mg_pl_id,'use-limit','1'))
+                        (recpls.magic_set_property, (mg_pl_id, 'use-limit', '1'))
                        )
         for trig in trigger_list:
             self.generic_sub_bcast_test('playlist.update', trig[0], trig[1])
@@ -225,7 +225,7 @@ class SignalsInterfaceTests(_TestInterfaces):
                            if wr['title'] == test_wr_name][0]
         self.generic_sub_bcast_test('webradio.listupdate',
                                     wr_list.source_delete_webradios,
-                                    ("local", [retrieved_wr['id']], ))
+                                    ("local", [retrieved_wr['id']],))
 
     def test_sub_broadcast_queue_update(self):
         """Checks that queue.update signals are broadcasted."""
@@ -235,12 +235,12 @@ class SignalsInterfaceTests(_TestInterfaces):
         ans = self.deejayd.audiolib.get_dir_content().wait_for_answer()
         dir = self.testdata.getRandomElement(ans["directories"])
 
-        self.generic_sub_bcast_test('queue.update', q.add_path, ([dir], ))
+        self.generic_sub_bcast_test('queue.update', q.add_path, ([dir],))
 
         retrieved_song_id = [song['id'] \
                 for song in q.get().wait_for_answer()["medias"]]
         self.generic_sub_bcast_test('queue.update',
-                                    q.remove, (retrieved_song_id, ))
+                                    q.remove, (retrieved_song_id,))
 
     @require_video_support
     @unittest.skip("Dvd test not supported for now")
@@ -251,7 +251,7 @@ class SignalsInterfaceTests(_TestInterfaces):
 
     def test_sub_broadcast_mode(self):
         """Checks that mode signals are broadcasted."""
-        self.generic_sub_bcast_test('mode', self.deejayd.set_mode, ('webradio', ))
+        self.generic_sub_bcast_test('mode', self.deejayd.set_mode, ('webradio',))
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def test_sub_broadcast_mediadb_aupdate(self):
