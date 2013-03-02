@@ -80,7 +80,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
             self.videolib.register_dispatcher(self)
             self.put_sub_handler('videolib', self.videolib)
 
-        self.recpls = DeejaydRecordedPlaylist(self.db, self.audiolib)
+        self.recpls = DeejaydRecordedPlaylist(self.audiolib)
         self.recpls.register_dispatcher(self)
         self.put_sub_handler('recpls', self.recpls)
 
@@ -107,11 +107,11 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
             self.watcher.start()
 
     def close(self):
-        for obj in (self.watcher,self.player,self.sources,self.audiolib,\
-                    self.videolib,self.db):
+        for obj in (self.watcher, self.player, self.sources, self.audiolib, \
+                    self.videolib, self.db):
             if obj != None: obj.close()
 
-    def ping(self): # do nothing
+    def ping(self):  # do nothing
         pass
 
     def set_option(self, source, option_name, option_value):
@@ -151,11 +151,11 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
             "protocol_version": DEEJAYD_PROTOCOL_VERSION
         }
 
-    def set_rating(self, media_ids, rating, type = "audio"):
+    def set_rating(self, media_ids, rating, type="audio"):
         if int(rating) not in range(0, 5):
             raise DeejaydError(_("Bad rating value"))
 
-        try: library = getattr(self, type+"lib")
+        try: library = getattr(self, type + "lib")
         except AttributeError:
             raise DeejaydError(_('Type %s is not supported') % (type,))
         for id in media_ids:

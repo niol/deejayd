@@ -56,7 +56,7 @@ def build_signature(answer, args):
     if args:
         signature = []
         opt_params = [p_dict[p["type"]] for p in args if not p["req"]]
-        for i in range(len(opt_params)+1):
+        for i in range(len(opt_params) + 1):
             s = ["object"]
             s.extend([p_dict[p["type"]] for p in args if p["req"]])
             s.extend(opt_params[:i])
@@ -72,54 +72,54 @@ def build_help(cmd):
 
     p_desc = "\nNo arguments"
     if len(args) > 0:
-        p_desc = "\nArguments : \n%s" %\
-            "\n".join(["  * name '%s', type '%s', required '%s'" %\
+        p_desc = "\nArguments : \n%s" % \
+            "\n".join(["  * name '%s', type '%s', required '%s'" % \
                 (a["name"], a["type"], a["req"]) for a in args])
     return """
 Description :
 %(description)s
 Answer type : %(answer)s %(p_desc)s""" % {\
-            "description": cmd.__doc__,\
-            "answer": answer,\
-            "p_desc": p_desc,\
+            "description": cmd.__doc__, \
+            "answer": answer, \
+            "p_desc": p_desc, \
         }
 
 def verify_arguments(__args, args):
     __new_args = list(__args)
     for idx, arg in enumerate(args):
-        try: value = __args[idx+1]
+        try: value = __args[idx + 1]
         except IndexError:
             if arg["req"] is True:
-                raise Fault(INVALID_METHOD_PARAMS,\
+                raise Fault(INVALID_METHOD_PARAMS, \
                     _("Arg %s is required") % arg["name"])
         else:
             if arg['type'] == "int":
                 try: value = int(value)
-                except (ValueError,TypeError):
-                    raise Fault(INVALID_METHOD_PARAMS,\
+                except (ValueError, TypeError):
+                    raise Fault(INVALID_METHOD_PARAMS, \
                         _("Arg %s is not an int") % arg["name"])
             elif arg['type'] in ("bool", "list", "dict"):
                 types = {
-                         "bool": bool, 
-                         "dict": dict, 
-                         "list": list, 
+                         "bool": bool,
+                         "dict": dict,
+                         "list": list,
                          "string": str
                     }
                 if not isinstance(value, types[arg['type']]):
-                    raise Fault(INVALID_METHOD_PARAMS,\
+                    raise Fault(INVALID_METHOD_PARAMS, \
                         _("Arg %s has wrong type") % arg["name"])
             elif arg['type'] == "int-list":
                 if not isinstance(value, list):
-                    raise Fault(INVALID_METHOD_PARAMS,\
+                    raise Fault(INVALID_METHOD_PARAMS, \
                         _("Arg %s is not a list") % arg["name"])
                 try: value = map(int, value)
-                except (ValueError,TypeError):
-                    raise Fault(INVALID_METHOD_PARAMS,\
+                except (ValueError, TypeError):
+                    raise Fault(INVALID_METHOD_PARAMS, \
                       _("Arg %s is not an int-list") % arg["name"])
             elif arg['type'] == 'filter':
                 if value is not None:
                     value = MediaFilter.load_from_json(value)
-            __new_args[idx+1] = value
+            __new_args[idx + 1] = value
     return __new_args
 
 def jsonrpc_func(cmd_name, rpc_cmd, func):
@@ -132,6 +132,8 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
         if type == "mediaList":
             if res["filter"] is not None:
                 res["filter"] = res["filter"].to_json()
+        elif type == 'fileAndDirList':
+            res["files"] = map(lambda m: m.to_json(), res["files"])
         elif type == "dict":
             res = dict(res)
         elif type == "ack":
@@ -189,7 +191,7 @@ class IntrospectionModule(object):
     class getMethodHelp:
         """Return a documentation string describing the use of the given method."""
         answer = 'string'
-        args = [{"name":"method","type":"string","req":True}]
+        args = [{"name":"method", "type":"string", "req":True}]
 
     class getMethodSignature:
         """Return a list of type signatures.
@@ -200,7 +202,7 @@ class IntrospectionModule(object):
         string is returned.
         """
         answer = 'list'
-        args = [{"name":"method","type":"string","req":True}]
+        args = [{"name":"method", "type":"string", "req":True}]
 
 class CoreModule(object):
 
@@ -220,7 +222,7 @@ class CoreModule(object):
   * video : to manage and wath video file
   * dvd : to wath dvd
   * webradio : to manage and listen webradios"""
-        args = [{"name":"mode","type":"string","req":True}]
+        args = [{"name":"mode", "type":"string", "req":True}]
 
     class getModes:
         """For each available source, shows if it is activated or not.
@@ -280,16 +282,16 @@ class CoreModule(object):
   * playorder (_str_: inorder, onemedia, random or random-weighted)
   * repeat (_bool_: True or False)"""
         args = [
-            {"name":"source", "type":"string", "req":True},\
-            {"name":"option_name", "type":"string","req":True},\
-            {"name":"option_value","type":"string","req":True}
+            {"name":"source", "type":"string", "req":True}, \
+            {"name":"option_name", "type":"string", "req":True}, \
+            {"name":"option_value", "type":"string", "req":True}
         ]
 
     class setRating:
         """Set rating of media file with ids equal to media_id for library 'type' """
         args = [\
-            {"name":"ids", "type":"int-list", "req": True},\
-            {"name": "value", "type": "int", "req": True},\
+            {"name":"ids", "type":"int-list", "req": True}, \
+            {"name": "value", "type": "int", "req": True}, \
             {"name": "type", "type": "string", "req": False}
         ]
 
@@ -301,7 +303,7 @@ class TcpModule:
     class setSubscription:
         """Set subscribtion to "signal" signal notifications to "value" which should be 0 or 1."""
         args = [
-            {"name":"signal", "type":"string", "req":True},\
+            {"name":"signal", "type":"string", "req":True}, \
             {"name":"value", "type":"bool", "req":True}
         ]
 
@@ -310,12 +312,12 @@ class WebModule:
     class writeCover:
         """ Record requested cover in the temp directory """
         answer = 'dict'
-        args = [{"name":"mid","type":"int","req":True}]
+        args = [{"name":"mid", "type":"int", "req":True}]
 
     class buildPanel:
         """ Build panel list """
         answer = 'dict'
-        args = [{"name":"updated_tag","type":"string","req":False}]
+        args = [{"name":"updated_tag", "type":"string", "req":False}]
 
 class LibraryModule:
 
@@ -323,27 +325,27 @@ class LibraryModule:
         """Update the library.
   * 'type'_updating_db : the id of this task. It appears in the status until the update are completed."""
         answer = 'dict'
-        args = [{"name":"force","type":"bool","req":False}]
+        args = [{"name":"force", "type":"bool", "req":False}]
 
     class getDirContent:
         """List the files of the directory supplied as argument."""
         answer = 'fileAndDirList'
-        args = [{"name":"directory","type":"string","req":False}]
+        args = [{"name":"directory", "type":"string", "req":False}]
 
     class search:
         """Search files in library where "type" contains "pattern" content."""
         answer = 'list'
         args = [
-            {"name":"pattern", "type":"string", "req":True},\
-            {"name":"type","type":"string","req":False}
+            {"name":"pattern", "type":"string", "req":True}, \
+            {"name":"type", "type":"string", "req":False}
         ]
 
     class tagList:
         """ List all the possible values for a tag according to the optional filter argument."""
         answer = 'list'
-        args=[
+        args = [
             {"name":"tag", "type":"string", "req":True},
-            {"name":"filter","type":"filter","req":False}
+            {"name":"filter", "type":"filter", "req":False}
         ]
 
 class PlayerModule(object):
@@ -446,7 +448,7 @@ class PlaylistSourceModule(object):
         args = [
             { "name":"first",
               "type":"int",
-              "req":False},\
+              "req":False}, \
             { "name":"length",
               "type":"int",
               "req":False}
@@ -487,7 +489,7 @@ class PlaylistSourceModule(object):
 
     class remove:
         """Remove songs with ids passed as argument ("ids") from the current playlist"""
-        args = [{"name":"ids","type":"int-list","req":True}]
+        args = [{"name":"ids", "type":"int-list", "req":True}]
 
     class move:
         """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)"""
@@ -504,7 +506,7 @@ class WebradioSourceModule(object):
         args = [
             { "name":"first",
               "type":"int",
-              "req":False},\
+              "req":False}, \
             { "name":"length",
               "type":"int",
               "req":False}
@@ -516,48 +518,48 @@ class WebradioSourceModule(object):
 
     class setSource:
         """Set current source to 'source_name'"""
-        args = [{"name":"source_name","type":"string","req":True}]
+        args = [{"name":"source_name", "type":"string", "req":True}]
 
     class getSourceCategories:
         """Return list of categories for webradio source 'source_name'"""
         answer = 'dict'
-        args = [{"name":"source_name","type":"string","req":True}]
+        args = [{"name":"source_name", "type":"string", "req":True}]
 
     class setSourceCategorie:
         """Set categorie to 'categorie' for current source"""
-        args = [{"name":"categorie","type":"string","req":True}]
+        args = [{"name":"categorie", "type":"string", "req":True}]
 
     class sourceAddCategorie:
         """Add a new categorie for the source 'source_name'"""
         answer = 'dict'
         args = [
-            {"name":"source_name","type":"string","req":True},
-            {"name":"cat","type":"string","req":True}
+            {"name":"source_name", "type":"string", "req":True},
+            {"name":"cat", "type":"string", "req":True}
         ]
 
     class sourceDeleteCategories:
         """Remove categories with id in "cat_ids" from the 'source_name' source."""
         args = [
-            {"name":"source_name","type":"string","req":True},
-            {"name":"cat_ids","type":"int-list","req":True}
+            {"name":"source_name", "type":"string", "req":True},
+            {"name":"cat_ids", "type":"int-list", "req":True}
         ]
 
     class sourceClearWebradios:
         """Remove all recorded webradios from the 'source_name' source."""
-        args = [{"name":"source_name","type":"string","req":True}]
+        args = [{"name":"source_name", "type":"string", "req":True}]
 
     class sourceDeleteWebradios:
         """Remove webradios with id in "ids" from the 'source_name' source."""
         args = [
-            {"name":"source_name","type":"string","req":True},
-            {"name":"ids","type":"int-list","req":True}
+            {"name":"source_name", "type":"string", "req":True},
+            {"name":"ids", "type":"int-list", "req":True}
         ]
 
     class sourceAddWebradio:
         """Add a webradio in 'source_name' source. Its name is "name" and the url of the webradio is "url". You can pass a playlist for "url" argument (.pls and .m3u format are supported)."""
-        args=[
-            {"name":"source_name","type":"string","req":True},
-            {"name":"name","type":"string","req":True},
+        args = [
+            {"name":"source_name", "type":"string", "req":True},
+            {"name":"name", "type":"string", "req":True},
             {"name":"url", "type":"list", "req":True}
         ]
 
@@ -569,7 +571,7 @@ class PanelSourceModule(object):
         args = [
             { "name":"first",
               "type":"int",
-              "req":False},\
+              "req":False}, \
             { "name":"length",
               "type":"int",
               "req":False}
@@ -588,20 +590,20 @@ class PanelSourceModule(object):
     class setActiveList:
         """Set the active list in panel mode"""
         args = [
-            {"name":"type", "type":"string", "req":True},\
+            {"name":"type", "type":"string", "req":True}, \
             {"name":"value", "type":"int", "req":False}
         ]
 
     class setFilter:
         """Set a filter for panel mode"""
         args = [
-            {"name":"tag", "type":"string", "req":True},\
+            {"name":"tag", "type":"string", "req":True}, \
             {"name":"values", "type":"list", "req":True}
         ]
 
     class removeFilter:
         """Remove a filter for panel mode"""
-        args = [{"name":"tag", "type":"string", "req":True},]
+        args = [{"name":"tag", "type":"string", "req":True}, ]
 
     class clearFilters:
         """Clear filters for panel mode"""
@@ -609,7 +611,7 @@ class PanelSourceModule(object):
     class setSearchFilter:
         """Set search filter in panel mode"""
         args = [
-            {"name":"tag", "type":"string", "req":True},\
+            {"name":"tag", "type":"string", "req":True}, \
             {"name":"value", "type":"string", "req":True}
         ]
 
@@ -621,7 +623,7 @@ class PanelSourceModule(object):
 
     class setSort:
         """Sort active medialist in panel mode"""
-        args = [{"name":"sort","type":"sort","req":True},]
+        args = [{"name":"sort", "type":"sort", "req":True}, ]
 
 class VideoSourceModule(object):
 
@@ -631,7 +633,7 @@ class VideoSourceModule(object):
         args = [
             { "name":"first",
               "type":"int",
-              "req":False},\
+              "req":False}, \
             { "name":"length",
               "type":"int",
               "req":False}
@@ -640,13 +642,13 @@ class VideoSourceModule(object):
     class set:
         """Set content of video mode"""
         args = [
-            {"name":"value", "type":"string", "req":True},\
-            {"name":"type","type":"string","req":False}
+            {"name":"value", "type":"string", "req":True}, \
+            {"name":"type", "type":"string", "req":False}
         ]
 
     class setSort:
         """Sort active medialist in video mode"""
-        args = [{"name":"sort","type":"sort","req":True},]
+        args = [{"name":"sort", "type":"sort", "req":True}, ]
 
 class DvdSourceModule(object):
 
@@ -665,7 +667,7 @@ class QueueModule(object):
         args = [
             { "name":"first",
               "type":"int",
-              "req":False},\
+              "req":False}, \
             { "name":"length",
               "type":"int",
               "req":False}
@@ -697,7 +699,7 @@ class QueueModule(object):
 
     class remove:
         """Remove songs with ids passed as argument ("ids") from the current playlist"""
-        args = [{"name":"ids","type":"int-list","req":True}]
+        args = [{"name":"ids", "type":"int-list", "req":True}]
 
     class move:
         """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)"""
@@ -722,8 +724,8 @@ class RecordedPlaylistModule(object):
   * type : type of the created playlist"""
         answer = 'dict'
         args = [
-            {"name":"name", "type":"string", "req":True},\
-            {"name":"type","type":"string","req":True}
+            {"name":"name", "type":"string", "req":True}, \
+            {"name":"type", "type":"string", "req":True}
         ]
 
     class erase:
@@ -734,9 +736,9 @@ class RecordedPlaylistModule(object):
         """Return the content of a recorded playlist."""
         answer = 'mediaList'
         args = [
-            {"name":"pl_id", "type":"int", "req":True},\
-            {"name":"first", "type":"int", "req":False},\
-            {"name":"length","type":"int","req":False}
+            {"name":"pl_id", "type":"int", "req":True}, \
+            {"name":"first", "type":"int", "req":False}, \
+            {"name":"length", "type":"int", "req":False}
         ]
 
     class staticAddMedia:
@@ -744,42 +746,42 @@ class RecordedPlaylistModule(object):
   * 'path' (default) to specify folder/file path in values argument
   * OR 'id' to specify media ids in values argument"""
         args = [
-            {"name":"pl_id", "type":"int", "req":True},\
-            {"name":"values", "type":"list", "req":True},\
-            {"name":"type","type":"string","req":False}
+            {"name":"pl_id", "type":"int", "req":True}, \
+            {"name":"values", "type":"list", "req":True}, \
+            {"name":"type", "type":"string", "req":False}
         ]
 
     class staticRemoveMedia:
         """Remove songs in a recorded static playlist. Argument 'values' specify position of media to remove from the playlist"""
         args = [
-            {"name":"pl_id", "type":"int", "req":True},\
-            {"name":"values", "type":"list", "req":True},\
+            {"name":"pl_id", "type":"int", "req":True}, \
+            {"name":"values", "type":"list", "req":True}, \
         ]
 
     class staticClearMedia:
         """Remove all songs in a recorded static playlist."""
         args = [
-            {"name":"pl_id", "type":"int", "req":True},\
+            {"name":"pl_id", "type":"int", "req":True}, \
         ]
 
     class magicAddFilter:
         """Add a filter in recorded magic playlist."""
         args = [
-            {"name":"pl_id", "type":"int", "req":True},\
-            {"name":"filter","type":"filter","req":True}
+            {"name":"pl_id", "type":"int", "req":True}, \
+            {"name":"filter", "type":"filter", "req":True}
         ]
 
     class magicRemoveFilter:
         """Remove a filter from recorded magic playlist."""
         args = [
-            {"name":"pl_id", "type":"int", "req":True},\
-            {"name":"filter","type":"filter","req":True}
+            {"name":"pl_id", "type":"int", "req":True}, \
+            {"name":"filter", "type":"filter", "req":True}
         ]
 
     class magicClearFilter:
         """Remove all filter from recorded magic playlist."""
         args = [
-            {"name":"pl_id", "type":"int", "req":True},\
+            {"name":"pl_id", "type":"int", "req":True}, \
         ]
 
     class magicGetProperties:
@@ -795,8 +797,8 @@ class RecordedPlaylistModule(object):
     class magicSetProperty:
         """Set a property for a magic playlist."""
         args = [
-            {"name":"pl_id", "type":"int", "req":True},\
-            {"name":"key", "type":"string","req":True},\
+            {"name":"pl_id", "type":"int", "req":True}, \
+            {"name":"key", "type":"string", "req":True}, \
             {"name":"value", "type":"string", "req":True}
         ]
 

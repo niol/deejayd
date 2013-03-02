@@ -18,6 +18,7 @@
 
 from deejayd.jsonrpc.interfaces import PlaylistSourceModule, jsonrpc_module
 from deejayd.sources._base import _BaseAudioLibSource
+from deejayd.model.playlist import StaticPlaylist
 
 @jsonrpc_module(PlaylistSourceModule)
 class PlaylistSource(_BaseAudioLibSource):
@@ -30,11 +31,13 @@ class PlaylistSource(_BaseAudioLibSource):
 
     def shuffle(self):
         self._media_list.shuffle(self._current)
-        if self._current: self._current["pos"] = 0
         self.dispatch_signame(self.__class__.source_signal)
 
     def save(self, playlist_name):
-        id = self.db.set_static_medialist(playlist_name, self._media_list.get())
+        pls = StaticPlaylist(self.library, playlist_name)
+        pls.set(self._media_list.get())
+        id = pls.save()
+
         self.dispatch_signame('playlist.listupdate')
         return {"playlist_id": id}
 

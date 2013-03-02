@@ -16,12 +16,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.model import mediafilters
 from deejayd import DeejaydError
 from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.component import PersistentStateComponent
 from deejayd.mediadb.library import NotFoundException
-from deejayd.sources._medialist import *
+from deejayd.model.playlist import PlaylistFactory
 from deejayd.sources._playorder import orders
 
 
@@ -37,7 +36,7 @@ class _BaseSource(SignalingComponent, JSONRpcComponent, \
         super(_BaseSource, self).__init__()
         self.state_name = "%s_state" % self.name
         self.load_state()
-        
+
         self.db = db
         self._current = None
         self._playorder = orders["inorder"]
@@ -45,23 +44,33 @@ class _BaseSource(SignalingComponent, JSONRpcComponent, \
     def get_recorded_id(self):
         return self.state["id"]
 
-    def get(self, start = 0, length = None):
-        medias, filter, sort = self.get_content(start, length)
-        return {"medias": medias, "filter": filter, "sort": sort}
+    def get(self, start=0, length=None):
+        def to_json(pl_entry, pos):
+            m = pl_entry.get_media()
+            if not isinstance(m, dict):
+                m = m.to_json()
+            m["id"] = pl_entry.get_id()
+            m["pos"] = pos
+            return m
 
-    def get_content(self, start = 0, length = None):
+        medias, filter, sort = self.get_content(start, length)
+        rs = {
+            "medias": map(to_json, medias, range(1, len(medias))),
+            "filter": filter,
+            "sort": sort
+        }
+        return rs
+
+    def get_content(self, start=0, length=None):
         # medias, filter (None if useless), sort (None if useless)
-        stop = None
-        if length is not None:
-            stop = start + int(length)
-        return self._media_list.get(start, stop), None, None
+        return self._media_list.get(start, length), None, None
 
     def get_current(self):
         return self._current
 
-    def go_to(self, id, type = "id"):
+    def go_to(self, id, type="id"):
         if type == "pos":
-            try: id = self._media_list._order[id]
+            try: id = self._media_list._playlist[id]["id"]
             except IndexError: return None
         self._current = self._playorder.set_explicit(self._media_list, id)
         return self._current
@@ -69,82 +78,62 @@ class _BaseSource(SignalingComponent, JSONRpcComponent, \
     def remove(self, ids):
         if not self._media_list.delete(ids):
             raise SourceError(_("Unable to delete selected ids"))
-        self._media_list.reload_item_pos(self._current)
 
     def clear(self):
         self._media_list.clear()
         self._playorder.reset(self._media_list)
 
-    def next(self, explicit = True):
+    def next(self, explicit=True):
         if explicit:
-            self._current = self._playorder.next_explicit(self._media_list,\
+            self._current = self._playorder.next_explicit(self._media_list, \
                                                           self._current)
         else:
-            self._current = self._playorder.next_implicit(self._media_list,\
+            self._current = self._playorder.next_implicit(self._media_list, \
                                                           self._current)
         return self._current
 
     def previous(self):
-        self._current = self._playorder.previous_explicit(self._media_list,\
+        self._current = self._playorder.previous_explicit(self._media_list, \
                                                           self._current)
         return self._current
 
     def get_status(self):
         return [
-            (self.name, self._media_list.list_id),
-            (self.name+"length", len(self._media_list)),
-            (self.name+"timelength", self._media_list.time_length)
+            (self.name, self._media_list.get_id()),
+            (self.name + "length", len(self._media_list)),
+            (self.name + "timelength", self._media_list.time_length)
             ]
 
     def set_option(self, name, value):
         raise NotImplementedError
 
     def close(self):
-        self.state["id"] = self._media_list.list_id
+        self.state["id"] = self._media_list.get_id()
         super(_BaseSource, self).close()
 
 
 class _BaseLibrarySource(_BaseSource):
-    available_playorder = ("inorder", "random", "onemedia","random-weighted")
+    available_playorder = ("inorder", "random", "onemedia", "random-weighted")
     has_repeat = True
     initial_state = {"id": 1, "playorder": "inorder", "repeat": False}
     source_signal = ''
+    medialist_type = "static"
+    base_medialist = ''
 
     def __init__(self, db, library):
         super(_BaseLibrarySource, self).__init__(db)
-        if self.medialist_type == "sorted":
-            self._media_list = SortedMediaList(self.get_recorded_id() + 1)
-        elif self.medialist_type == "unsorted":
-            self._media_list = UnsortedMediaList(self.get_recorded_id() + 1)
+        if self.medialist_type == "static":
+            self._media_list = PlaylistFactory().static(library,
+                                                        self.base_medialist)
+        else:
+            self._media_list = PlaylistFactory().magic(library,
+                                                       self.base_medialist)
+        self._media_list.set_id(self.get_recorded_id() + 1)
         self.library = library
 
         if self.has_repeat:
             self._media_list.repeat = self.state["repeat"]
         self._playorder = orders[self.state["playorder"]]
-
-    def _get_playlist_content(self, pl_id):
-        try:
-            pl_id, name, type = self.db.is_medialist_exists(pl_id)
-            if type == "static":
-                return self.db.get_static_medialist(pl_id,\
-                    infos=self.library.media_attr)
-            elif type == "magic":
-                properties = dict(self.db.get_magic_medialist_properties(pl_id))
-                if properties["use-or-filter"] == "1":
-                    filter = mediafilters.Or()
-                else:
-                    filter = mediafilters.And()
-                sorts = mediafilters.DEFAULT_AUDIO_SORT
-                if properties["use-limit"] == "1":
-                    sorts = [(properties["limit-sort-value"],\
-                             properties["limit-sort-direction"])] + sorts
-                    limit = int(properties["limit-value"])
-                else:
-                    limit = None
-                filter.filterlist = self.db.get_magic_medialist_filters(pl_id)
-                return self.library.search_with_filter(filter, sorts, limit)
-        except TypeError:
-            raise SourceError(_("Playlist %s does not exist.") % str(pl_id))
 
     def set_option(self, name, value):
         if name == "playorder":
@@ -164,14 +153,14 @@ class _BaseLibrarySource(_BaseSource):
 
     def get_status(self):
         status = super(_BaseLibrarySource, self).get_status()
-        status.append((self.name+"playorder", self._playorder.name))
+        status.append((self.name + "playorder", self._playorder.name))
         if self.has_repeat:
-            status.append((self.name+"repeat", self._media_list.repeat))
+            status.append((self.name + "repeat", self._media_list.repeat))
         return status
 
     def close(self):
         super(_BaseLibrarySource, self).close()
-        self.db.set_static_medialist(self.base_medialist,self._media_list.get())
+        self._media_list.save()
 
     def cb_library_changes(self, signal):
         file_id = signal.get_attr("id")
@@ -193,7 +182,7 @@ class _BaseLibrarySource(_BaseSource):
 
 
 class _BaseSortedLibSource(_BaseLibrarySource):
-    medialist_type = "sorted"
+    medialist_type = "magic"
 
     def set_sort(self, sorts):
         for (tag, direction) in sorts:
@@ -202,33 +191,23 @@ class _BaseSortedLibSource(_BaseLibrarySource):
             if direction not in ('ascending', 'descending'):
                 raise SourceError(_("Bad sort direction for source"))
         self._sorts = sorts
-        self._media_list.sort(self._sorts + self.default_sorts)
+        self._media_list.sort(self._sorts)
         self.dispatch_signame(self.source_signal)
 
 
 class _BaseAudioLibSource(_BaseLibrarySource):
     base_medialist = ''
-    medialist_type = "unsorted"
+    medialist_type = "static"
 
-    def __init__(self, db, audio_library):
-        super(_BaseAudioLibSource, self).__init__(db, audio_library)
-        # load saved
-        try: ml_id = self.db.get_medialist_id(self.base_medialist, 'static')
-        except ValueError: # medialist does not exist
-            pass
-        else:
-            self._media_list.set(self._get_playlist_content(ml_id))
-
-    def add_song(self, song_ids, pos = None):
+    def add_song(self, song_ids, pos=None):
         try: medias = self.library.get_file_withids(song_ids)
         except NotFoundException:
             raise SourceError(_("One of these ids %s not found") % \
                 ",".join(map(str, song_ids)))
-        self._media_list.add_media(medias, pos)
-        if pos is not None: self._media_list.reload_item_pos(self._current)
+        self._media_list.add(medias, pos)
         self.dispatch_signame(self.source_signal)
 
-    def add_path(self, paths, pos = None):
+    def add_path(self, paths, pos=None):
         medias = []
         for path in paths:
             try: medias.extend(self.library.get_all_files(path))
@@ -236,22 +215,21 @@ class _BaseAudioLibSource(_BaseLibrarySource):
                 try: medias.extend(self.library.get_file(path))
                 except NotFoundException:
                     raise SourceError(_("%s not found") % path)
-        self._media_list.add_media(medias, pos)
-        if pos is not None: self._media_list.reload_item_pos(self._current)
+        self._media_list.add(medias, pos)
         self.dispatch_signame(self.source_signal)
 
-    def load_playlist(self, pl_ids, pos = None):
-        medias = []
-        for id in pl_ids:
-            medias.extend(self._get_playlist_content(id))
-        self._media_list.add_media(medias, pos)
-        if pos: self._media_list.reload_item_pos(self._current)
+    def load_playlist(self, pl_ids, pos=None):
+        try:
+            pls_list = [PlaylistFactory().load_byid(self.library, pl_id)
+                        for pl_id in pl_ids]
+        except IndexError:
+            raise DeejaydError(_("Some asked playlist are not found."))
+        self._media_list.add(reduce(lambda ms, p: ms + p.get(), pls_list, []))
         self.dispatch_signame(self.source_signal)
 
     def move(self, ids, new_pos):
         if not self._media_list.move(ids, new_pos):
             raise SourceError(_("Unable to move selected medias"))
-        self._media_list.reload_item_pos(self._current)
         self.dispatch_signame(self.source_signal)
 
     def remove(self, ids):

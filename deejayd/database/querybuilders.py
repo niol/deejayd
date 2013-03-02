@@ -45,7 +45,7 @@ class SimpleSelect(_DBQuery):
             self.selects.append("%s.%s" % (self.table_name, col))
         return self
 
-    def order_by(self, column, desc = False):
+    def order_by(self, column, desc=False):
         self.orders.append("%s.%s" % (self.table_name, column))
         return self
 
@@ -59,12 +59,12 @@ class SimpleSelect(_DBQuery):
 
     def __str__(self):
         return "SELECT DISTINCT %s FROM %s WHERE %s"\
-               % ( ', '.join(self.selects),
+               % (', '.join(self.selects),
                    self.table_name,
                    ' AND '.join(self.wheres) or 1,
                  )
 
-    def execute(self, expected_result = "fetchall"):
+    def execute(self, expected_result="fetchall"):
         cursor = DatabaseConnection().cursor()
         cursor.execute(self.to_sql(), self.get_args())
         result = getattr(cursor, expected_result)()
@@ -84,21 +84,30 @@ class MediaSelectQuery(SimpleSelect):
 
     def select_id(self):
         self.id = True
+        return self
 
     def select_column(self, column_name, table_name=None):
         if not table_name:
             table_name = self.table_name
         self.selects.append("%s.%s" % (table_name, column_name))
+        return self
 
     def select_tag(self, tagname):
         self.select_column('value', tagname)
         self.join_on_tag(tagname)
+        return self
 
-    def order_by_tag(self, tagname, desc = False):
+    def select_tags(self, tags):
+        for tagname in tags:
+            self.select_tag(tagname)
+        return self
+
+    def order_by_tag(self, tagname, desc=False):
         order = "%s.value" % tagname
         if desc: order = "%s DESC" % order
         self.orders.append(order)
         self.join_on_tag(tagname)
+        return self
 
     def join_on_tag(self, tagname):
         if tagname not in self.__joined_tags:
@@ -107,9 +116,11 @@ class MediaSelectQuery(SimpleSelect):
                                             AND %(tag)s.ikey = '%(tag)s'"\
                    % { 'tag' : tagname }
             self.joins.append(j_st)
+        return self
 
     def set_limit(self, limit):
         self.limit = limit
+        return self
 
     def __str__(self):
         orders, limit = None, None
@@ -129,9 +140,23 @@ class MediaSelectQuery(SimpleSelect):
                   limit or '')
 
 
+class StaticPlaylistSelectQuery(MediaSelectQuery):
+
+    def __init__(self, item_table, pl_id):
+        super(StaticPlaylistSelectQuery, self).__init__()
+        self.select_id()
+        join_ml = "JOIN %s ml ON ml.libraryitem_id = library.id" % item_table
+        self.joins.append(join_ml)
+        self.orders.append("ml.position")
+        self.append_where("ml.medialist_id = %s", (pl_id,))
+
+    def order_by_tag(self, tagname, desc=False):
+        raise NotImplementedError  # static playlist are ordered by position
+
+
 class _DBActionQuery(_DBQuery):
 
-    def execute(self, commit = True):
+    def execute(self, commit=True):
         cursor = DatabaseConnection().cursor()
         cursor.execute(self.to_sql(), self.get_args())
         cursor.close()
@@ -164,13 +189,13 @@ class EditRecordQuery(_DBActionQuery):
         if self.update_id:
             sets_st = ["%s = %%s" % x for x in self.dbvalues.keys()]
             query = "UPDATE %s SET %s WHERE %s"\
-                    % ( self.table_name,
+                    % (self.table_name,
                         ', '.join(sets_st),
                         "%s.%s = %%s" % (self.table_name, self.update_key),
                       )
         else:
             query = "INSERT INTO %s(%s) VALUES(%s)"\
-                    % ( self.table_name,
+                    % (self.table_name,
                         ', '.join(self.dbvalues.keys()),
                         ', '.join(["%s" for x in self.get_args()]),
                       )
@@ -181,7 +206,7 @@ class ReplaceQuery(EditRecordQuery):
 
     def __str__(self):
         return "REPLACE INTO %s(%s) VALUES(%s)"\
-                % ( self.table_name,
+                % (self.table_name,
                     ', '.join(self.dbvalues.keys()),
                     ', '.join(["%s" for x in self.get_args()]),
                   )
@@ -220,7 +245,7 @@ def query_decorator(answer_type):
             elif answer_type == "fetchone":
                 rs = cursor.fetchone()
             elif answer_type == "medialist":
-                rs = self._medialist_answer(cursor.fetchall(),__kw['infos'])
+                rs = self._medialist_answer(cursor.fetchall(), __kw['infos'])
 
             cursor.close()
             return rs

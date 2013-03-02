@@ -18,7 +18,7 @@
 
 from deejayd import DeejaydError
 from deejayd.database.querybuilders import EditRecordQuery, SimpleSelect
-from deejayd.database.querybuilders import DeleteQuery
+from deejayd.database.querybuilders import DeleteQuery, ReplaceQuery
 from deejayd.database.connection import DatabaseConnection
 from deejayd.model._model import IObjectModel
 from zope.interface import implements
@@ -207,6 +207,11 @@ class NotEquals(BasicFilter):
     def _match_tag(self):
         return "(%s.value != " % (self.tag,) + "%s)", self.pattern
 
+class StartsWith(BasicFilter):
+    repr_str = "(%s == '%s%%')"
+    def _match_tag(self):
+        return "(%s.value LIKE " % (self.tag,) + "%s)", self.pattern + "%%"
+
 class Contains(BasicFilter):
     repr_str = "(%s == '%%%s%%')"
     def _match_tag(self):
@@ -234,6 +239,7 @@ class Lower(BasicFilter):
 BASIC_FILTERS = (
                   Equals,
                   NotEquals,
+                  StartsWith,
                   Contains,
                   NotContains,
                   Regexi,
@@ -351,7 +357,7 @@ class ComplexFilter(MediaFilter):
 
         for subfilter in self.filterlist:
             subfilter_id = subfilter.save()
-            query = EditRecordQuery(self.SUBFILTERS_TABLE)\
+            query = ReplaceQuery(self.SUBFILTERS_TABLE)\
                               .add_value('complexfilter_id', self.db_id)\
                               .add_value('filter_id', subfilter_id)\
                               .execute()

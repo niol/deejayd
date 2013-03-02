@@ -38,13 +38,13 @@ def str_adapter(data):
 class SQLiteCursorWrapper(sqlite.Cursor):
 
     def execute(self, query, params=()):
-        #print "execute query %s - %s" % (query, params)
+        # print "execute query %s - %s" % (query, params)
         query = self.convert_query(query, len(params))
         rs = sqlite.Cursor.execute(self, query, params)
         return rs
 
     def executemany(self, query, param_list):
-        #print "execute query %s - %s" % (query, param_list)
+        # print "execute query %s - %s" % (query, param_list)
         if len(param_list) == 0: return
         query = self.convert_query(query, len(param_list[0]))
         return sqlite.Cursor.executemany(self, query, param_list)

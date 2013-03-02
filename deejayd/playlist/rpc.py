@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,118 +17,120 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd import DeejaydError
+import deejayd.mediadb.library
 from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.jsonrpc.interfaces import jsonrpc_module, RecordedPlaylistModule
-from deejayd.playlist.static import StaticPlaylist
-from deejayd.playlist.magic import MagicPlaylist
+from deejayd.model.playlist import PlaylistFactory
 
-class PlaylistFactory(object):
 
-    def __init__(self, db, id, audio_library = None):
-        self.db = db
-        self.library = audio_library
-        try:
-            self.pl_id, self.name, self.type = db.is_medialist_exists(id)
-        except TypeError:
-            raise DeejaydError(_("Playlist with id %s not found.") % str(id))
+def load_playlist(type):
+    def load_playlist_decorator(func):
+        def load_playlist_func(self, pl_id, *__args, **__kw):
+            try: pls = PlaylistFactory().load_byid(self.library, pl_id)
+            except IndexError:
+                raise DeejaydError(_("Playlist %s not found") % str(pl_id))
+            if pls.get_type() != type:
+                raise DeejaydError(_("Playlist %s has wrong type") % str(pl_id))
+            rs = func(self, pls, *__args, **__kw)
+            pls.save()
 
-    def is_static(self):
-        if self.type == "magic":
-            raise DeejaydError(_("The selected playlist is not static"))
-        return StaticPlaylist(self.db, self.library, self.pl_id, self.name)
+            if rs is None:
+                self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+            return rs
 
-    def is_magic(self):
-        if self.type == "static":
-            raise DeejaydError(_("The selected playlist is not static"))
-        return MagicPlaylist(self.db, self.library, self.pl_id, self.name)
+        return load_playlist_func
 
-    def get_content(self, first=0, length=-1):
-        cls = self.type == "magic" and MagicPlaylist or StaticPlaylist
-        medias, filt, sort = cls(self.db, self.library,\
-                self.pl_id, self.name).content(first, length)
-        return {"medias": medias, "sort": sort, "filter": filt}
+    return load_playlist_decorator
 
 
 @jsonrpc_module(RecordedPlaylistModule)
 class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
 
-    def __init__(self, db, audio_library):
+    def __init__(self, audio_library):
         super(DeejaydRecordedPlaylist, self).__init__()
 
-        self.db, self.library = db, audio_library
+        self.__pl_manager = PlaylistFactory()
+        self.library = audio_library
 
     def get_list(self):
-        return [{"name": pl, "pl_id": id, "type":type}\
-            for (id, pl, type) in self.db.get_medialist_list() if not \
-            pl.startswith("__") or not pl.endswith("__")]
+        return self.__pl_manager.list()
 
-    def get_content(self, pl_id, first=0, length=-1):
-        return PlaylistFactory(self.db, pl_id, self.library).get_content(first,\
-                length)
+    def get_content(self, pl_id, first=0, length=None):
+        try: pls = self.__pl_manager.load_byid(self.library, pl_id)
+        except IndexError:
+            raise DeejaydError(_("Playlist with id %s does not exist"))
+        medias, filter, sort = pls.get(first, length), None, None
+        if pls.get_type() == "magic":
+            filter = pls.get_main_filter()
+            sort = pls.get_sorts()
+        return {"medias": medias, "sort": sort, "filter": filter}
 
     def create(self, name, type):
         if name == "":
             raise DeejaydError(_("Set a playlist name"))
-        # first search if this pls already exist
-        try: self.db.get_medialist_id(name, type)
-        except ValueError: pass
-        else: # pls already exists
-            raise DeejaydError(_("This playlist already exists"))
-
-        if type == "static":
-            pl_id = self.db.set_static_medialist(name, [])
-        elif type == "magic":
-            pl_id = self.db.set_magic_medialist_filters(name, [])
-            # set default properties for this playlist
-            default = {
-                    "use-or-filter": "0",
-                    "use-limit": "0",
-                    "limit-value": "50",
-                    "limit-sort-value": "title",
-                    "limit-sort-direction": "ascending"
-                    }
-            for (k, v) in default.items():
-                self.db.set_magic_medialist_property(pl_id, k, v)
-        else:
+        if type not in ("static", "magic"):
             raise DeejaydError(_("playlist type has to be 'static' or 'magic'"))
+
+        pls_list = self.get_list()
+        for pls in pls_list:
+            if pls["name"] == name and pls["type"] == type:
+                raise DeejaydError(_("This playlist already exists"))
+
+        pls = getattr(self.__pl_manager, type)(self.library, name)
         self.dispatch_signame('playlist.listupdate')
-        return {"pl_id": pl_id, "name": name, "type": type}
+        return {"pl_id": pls.get_dbid(), "name": name, "type": type}
 
     def erase(self, pl_ids):
-        for id in pl_ids:
-            self.db.delete_medialist(id)
+        try: pls_list = map(lambda i: self.__pl_manager.load_byid(self.library, i),
+                            pl_ids)
+        except IndexError:
+            raise DeejaydError(_("Some playlists in the list do not exist"))
+
+        self.__pl_manager.erase(pls_list)
         if pl_ids: self.dispatch_signame('playlist.listupdate')
 
-    def static_add_media(self, pl_id, values, type = "path"):
-        PlaylistFactory(self.db, pl_id, self.library).is_static()\
-                                                     .add(values, type)
-        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+    @load_playlist("static")
+    def static_add_media(self, pls, values, type="path"):
+        if type == "path":
+            all_medias = []
+            for path in values:
+                try: medias = self.library.get_all_files(path)
+                except deejayd.mediadb.library.NotFoundException:
+                    try: medias = self.library.get_file(path)
+                    except deejayd.mediadb.library.NotFoundException:
+                        raise DeejaydError(_('Path %s not found in library')\
+                                % path)
+                all_medias += medias
+        elif type == "id":
+            all_medias = self.library.get_file_withids(values)
+        pls.add(all_medias)
 
-    def static_remove_media(self, pl_id, values):
-        PlaylistFactory(self.db, pl_id, self.library).is_static().remove(values)
-        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+    @load_playlist("static")
+    def static_remove_media(self, pls, ids):
+        pls.delete(ids)
 
-    def static_clear_media(self, pl_id):
-        PlaylistFactory(self.db, pl_id, self.library).is_static().clear()
-        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+    @load_playlist("static")
+    def static_clear_media(self, pls):
+        pls.clear()
 
-    def magic_add_filter(self, pl_id, filter):
-        PlaylistFactory(self.db, pl_id).is_magic().add_filter(filter)
-        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+    @load_playlist("magic")
+    def magic_add_filter(self, pls, filter):
+        pls.add_filter(filter)
 
-    def magic_remove_filter(self, pl_id, filter):
-        PlaylistFactory(self.db, pl_id).is_magic().remove_filter(filter)
-        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+    @load_playlist("magic")
+    def magic_remove_filter(self, pls, filter):
+        pls.remove_filter(filter)
 
-    def magic_clear_filter(self, pl_id):
-        PlaylistFactory(self.db, pl_id).is_magic().clear_filter()
-        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+    @load_playlist("magic")
+    def magic_clear_filter(self, pls):
+        pls.clear_filter()
 
-    def magic_get_properties(self, pl_id):
-        return PlaylistFactory(self.db, pl_id).is_magic().get_properties()
+    @load_playlist("magic")
+    def magic_get_properties(self, pls):
+        return pls.get_properties()
 
-    def magic_set_property(self, pl_id, k, v):
-        PlaylistFactory(self.db, pl_id).is_magic().set_property(k, v)
-        self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+    @load_playlist("magic")
+    def magic_set_property(self, pls, k, v):
+        pls.set_property(k, v)
 
 # vim: ts=4 sw=4 expandtab

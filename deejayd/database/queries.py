@@ -21,56 +21,7 @@ from deejayd.ui import log
 from deejayd.database.querybuilders import *
 from deejayd.model.mediafilters import MediaFilter
 from deejayd import DeejaydError
-
-
-############################################################################
-class MediaFile(dict):
-
-    def __init__(self, db, file_id):
-        self.db = db
-        self["media_id"] = file_id
-
-    def set_info(self, key, value):
-        self.set_infos({key: value})
-
-    def set_infos(self, infos):
-        self.db.set_media_infos(self["media_id"], infos)
-        self.db.connection.commit()
-        self.update(infos)
-
-    def played(self):
-        played = int(self["playcount"]) + 1
-        timestamp = int(time.time())
-        self.set_infos({"playcount":str(played), "lastplayed":str(timestamp)})
-
-    def skip(self):
-        skip = int(self["skipcount"]) + 1
-        self.set_info("skipcount", str(skip))
-
-    def get_cover(self):
-        if self["type"] != "song":
-            raise AttributeError
-        try: (id, mime, cover) = self.db.get_file_cover(self["media_id"])
-        except TypeError:
-            raise AttributeError
-        return {"cover": base64.b64decode(cover), "id":id, "mime": mime}
-
-    def replay_gain(self):
-        """Return the recommended Replay Gain scale factor."""
-        try:
-            db = float(self["replaygain_track_gain"].split()[0])
-            peak = self["replaygain_track_peak"] and\
-                     float(self["replaygain_track_peak"]) or 1.0
-        except (KeyError, ValueError, IndexError):
-            return 1.0
-        else:
-            scale = 10.**(db / 20)
-            if scale * peak > 1:
-                scale = 1.0 / peak  # don't clip
-            return min(15, scale)
-
-############################################################################
-
+from deejayd.model.media_item import AudioItem, VideoItem
 
 class DatabaseQueries(object):
 
@@ -176,11 +127,13 @@ class DatabaseQueries(object):
         cursor.execute(query, (dir + u"%%", type))
 
     def _medialist_answer(self, answer, infos=[]):
+        cls = {
+            "song": AudioItem,
+            "video": VideoItem,
+        }
         files = []
         for m in answer:
-            current = MediaFile(self, m[0])
-            for index, attr in enumerate(infos):
-                current[attr] = m[index + 1]
+            current = cls[m[3]](m, m[0])
             files.append(current)
 
         return files
@@ -371,189 +324,6 @@ class DatabaseQueries(object):
         query = "DELETE FROM cover WHERE id NOT IN \
                   (SELECT DISTINCT value FROM media_info WHERE ikey = 'cover')"
         cursor.execute(query)
-
-    #
-    # common medialist requests
-    #
-    @query_decorator("fetchall")
-    def get_medialist_list(self, cursor):
-        query = SimpleSelect('medialist')
-        query.select_column('id', 'name', 'type')
-        query.order_by('name')
-        cursor.execute(query.to_sql(), query.get_args())
-
-    @query_decorator("custom")
-    def get_medialist_id(self, cursor, pl_name, pl_type='static'):
-        query = SimpleSelect('medialist')
-        query.select_column('id')
-        query.append_where("name = %s", (pl_name,))
-        query.append_where("type = %s", (pl_type,))
-        cursor.execute(query.to_sql(), query.get_args())
-
-        ans = cursor.fetchone()
-        if ans is None: raise ValueError
-        return ans[0]
-
-    @query_decorator("fetchone")
-    def is_medialist_exists(self, cursor, pl_id):
-        query = SimpleSelect('medialist')
-        query.select_column('id', 'name', 'type')
-        query.append_where("id = %s", (pl_id,))
-        cursor.execute(query.to_sql(), query.get_args())
-
-    @query_decorator("none")
-    def delete_medialist(self, cursor, ml_id):
-        try: ml_id, name, type = self.is_medialist_exists(ml_id)
-        except TypeError:
-            return
-        if type == "static":
-            query = "DELETE FROM medialist_libraryitem WHERE medialist_id = %s"
-            cursor.execute(query, (ml_id,))
-        elif type == "magic":
-            for (filter_id,) in self.__get_medialist_filterids(cursor, ml_id):
-                f = MediaFilter.load_from_db(filter_id)
-                if f is not None: f.erase_from_db()
-            cursor.execute(\
-              "DELETE FROM medialist_filters WHERE medialist_id=%s", (ml_id,))
-            # delete medialist properties
-            cursor.execute(\
-              "DELETE FROM medialist_property WHERE medialist_id=%s", (ml_id,))
-            # delete medialist sort
-            cursor.execute(\
-              "DELETE FROM medialist_sorts WHERE medialist_id=%s", (ml_id,))
-        cursor.execute("DELETE FROM medialist WHERE id = %s", (ml_id,))
-        self.connection.commit()
-
-    def __get_medialist_filterids(self, cursor, ml_id):
-        query = SimpleSelect('medialist_filters')
-        query.select_column('filter_id')
-        query.append_where("medialist_id = %s", (ml_id,))
-        cursor.execute(query.to_sql(), query.get_args())
-
-        return cursor.fetchall()
-
-    def __add_medialist_filters(self, cursor, pl_id, filters):
-        filter_ids = []
-        for filter in filters:
-            filter_id = filter.save()
-            if filter_id:
-                filter_ids.append((pl_id, filter_id))
-            else:
-                raise DeejaydError("Unable to save filter %s" % str(filter))
-        cursor.executemany("INSERT INTO medialist_filters\
-            (medialist_id,filter_id)VALUES(%s,%s)", filter_ids)
-
-    @query_decorator("custom")
-    def get_magic_medialist_filters(self, cursor, ml_id):
-        rs = self.__get_medialist_filterids(cursor, ml_id)
-        if not rs: return []
-        filters = []
-        for (filter_id,) in rs:
-            filter = MediaFilter.load_from_db(filter_id)
-            if filter: filters.append(filter)
-        return filters
-
-    @query_decorator("custom")
-    def set_magic_medialist_filters(self, cursor, pl_name, filters):
-        slt_query = "SELECT id FROM medialist WHERE name=%s AND type = 'magic'"
-        cursor.execute(slt_query, (pl_name,))
-        rs = cursor.fetchone()
-        if not rs:
-            query = "INSERT INTO medialist (name,type)VALUES(%s,'magic')"
-            cursor.execute(query, (pl_name,))
-            id = self.connection.get_last_insert_id(cursor)
-        else: (id,) = rs
-
-        for (filter_id,) in self.__get_medialist_filterids(cursor, id):
-            f = MediaFilter.load_from_db(filter_id)
-            if f is not None:
-                f.erase_from_db()
-        cursor.execute(\
-          "DELETE FROM medialist_filters WHERE medialist_id=%s", (id,))
-        self.connection.commit()
-
-        self.__add_medialist_filters(cursor, id, filters)
-        return id
-
-    @query_decorator("none")
-    def add_magic_medialist_filters(self, cursor, pl_id, filters):
-        self.__add_medialist_filters(cursor, pl_id, filters)
-        self.connection.commit()
-
-    @query_decorator("fetchall")
-    def get_magic_medialist_sorts(self, cursor, ml_id):
-        query = "SELECT tag,direction FROM medialist_sorts\
-                WHERE medialist_id = %s"
-        cursor.execute(query, (ml_id,))
-
-    @query_decorator("none")
-    def set_magic_medialist_sorts(self, cursor, ml_id, sorts):
-        # first, delete all previous sort for this medialist
-        cursor.execute("DELETE FROM medialist_sorts WHERE medialist_id=%s", \
-                (ml_id,))
-        cursor.executemany("INSERT INTO medialist_sorts\
-            (medialist_id,tag,direction)VALUES(%s,%s,%s)", \
-            [ (ml_id, tag, direction) for (tag, direction) in sorts])
-        self.connection.commit()
-
-    @query_decorator("fetchall")
-    def get_magic_medialist_properties(self, cursor, ml_id):
-        query = "SELECT ikey,value FROM medialist_property\
-                WHERE medialist_id = %s"
-        cursor.execute(query, (ml_id,))
-
-    @query_decorator("none")
-    def set_magic_medialist_property(self, cursor, ml_id, key, value):
-        cursor.execute("REPLACE INTO medialist_property\
-            (medialist_id,ikey,value)VALUES(%s,%s,%s)", (ml_id, key, value))
-        self.connection.commit()
-
-######################################
-###### Static medialist queries ######
-######################################
-    @query_decorator("none")
-    def add_to_static_medialist(self, cursor, ml_id, media_ids):
-        query = "INSERT INTO medialist_libraryitem\
-            (medialist_id, libraryitem_id) VALUES(%s,%s)"
-        cursor.executemany(query, [(ml_id, mid) for mid in media_ids])
-
-    @query_decorator("none")
-    def clear_static_medialist(self, cursor, ml_id):
-        query = "DELETE FROM medialist_libraryitem WHERE medialist_id = %s"
-        cursor.execute(query, (ml_id,))
-        self.connection.commit()
-
-    @query_decorator("medialist")
-    def get_static_medialist(self, cursor, ml_id, infos=[]):
-        selectquery, joinquery = self._build_media_query(infos)
-        query = "SELECT DISTINCT " + selectquery + ", mi.position " + \
-            " FROM medialist m JOIN medialist_libraryitem mi\
-                                    ON m.id = mi.medialist_id\
-                           JOIN media_info i ON i.id=mi.libraryitem_id"\
-                           + joinquery + \
-            " WHERE m.id = %s AND m.type = 'static' ORDER BY mi.position"
-        cursor.execute(query, (ml_id,))
-
-    @query_decorator("custom")
-    def set_static_medialist(self, cursor, name, content):
-        slt_query = "SELECT id FROM medialist WHERE name=%s AND type = 'static'"
-        cursor.execute(slt_query, (name,))
-        rs = cursor.fetchone()
-        if not rs:
-            query = "INSERT INTO medialist (name,type)VALUES(%s,'static')"
-            cursor.execute(query, (name,))
-            id = self.connection.get_last_insert_id(cursor)
-        else: (id,) = rs
-
-        cursor.execute(\
-            "DELETE FROM medialist_libraryitem WHERE medialist_id = %s", (id,))
-        values = [(id, s["media_id"]) for s in content]
-        query = "INSERT INTO medialist_libraryitem(medialist_id,libraryitem_id)\
-            VALUES(%s,%s)"
-        cursor.executemany(query, values)
-        self.connection.commit()
-        # return id of the playlist
-        return id
 
     #
     # Webradio requests

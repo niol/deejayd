@@ -16,12 +16,4 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-class _Playlist(object):
-
-    def __init__(self, db, audio_library, id, name):
-        self.db = db
-        self.library = audio_library
-        self.pl_id = id
-        self.name = name
-
 # vim: ts=4 sw=4 expandtab

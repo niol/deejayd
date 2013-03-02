@@ -25,11 +25,11 @@ from deejayd.ui import log
 from deejayd.plugins import PluginError, IWebradioPlugin
 
 ICECAST_YP = "http://dir.xiph.org/yp.xml"
-UPDATE_INTERVAL = 7*24*60*60 # 7 days
+UPDATE_INTERVAL = 7 * 24 * 60 * 60  # 7 days
 
 class IceCastPlugin(object):
     implements(IWebradioPlugin)
-    NAME="icecast"
+    NAME = "icecast"
 
     def __init__(self):
         self.__db = None
@@ -42,7 +42,7 @@ class IceCastPlugin(object):
         self.__id = self.__db.get_webradio_source(self.NAME)
 
         self.__task = task.LoopingCall(self.__check_update)
-        self.__task.start(60*60) # check every hour
+        self.__task.start(60 * 60)  # check every hour
 
     def __check_update(self):
         need_reload_list = True
@@ -53,7 +53,7 @@ class IceCastPlugin(object):
                 (self.__last_parse,) = last_parse
 
         if self.__last_parse is not None:
-            if int(time.time()) < int(self.__last_parse)+UPDATE_INTERVAL:
+            if int(time.time()) < int(self.__last_parse) + UPDATE_INTERVAL:
                 need_reload_list = False
 
         if need_reload_list:
@@ -105,7 +105,7 @@ class IceCastPlugin(object):
             if server_type.startswith("audio") or \
                     (server_type == "application/ogg" and \
                      not listen_url.endswith("ogv")):
-                if genre not in categories.keys(): # add categorie in database
+                if genre not in categories.keys():  # add categorie in database
                     categories[genre] = self.__db.add_webradio_category(\
                                                     self.__id, genre)
                 if name in wb_names.keys():
@@ -121,15 +121,15 @@ class IceCastPlugin(object):
             raise PluginError("Unable to parse icecast webradio list")
         return dict(self.__db.get_webradio_categories(self.__id))
 
-    def get_webradios(self, cat_id = None):
+    def get_webradios(self, cat_id=None):
         if self.__last_parse is None:
             raise PluginError("Unable to parse icecast webradio list")
 
         streams = {}
         for (id, name, url) in self.__db.get_webradios(self.__id, cat_id):
             if id not in streams.keys():
-                streams[id] = {"wb_id": id, "title": name,\
-                        "urls": [url], "url-type": "urls", "uri": "",\
+                streams[id] = {"wb_id": id, "title": name, \
+                        "urls": [url], "url-type": "urls", "uri": "", \
                         "url-index": 0, "type": "webradio"}
             else:
                 streams[id]["urls"].append(url)

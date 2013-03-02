@@ -20,7 +20,7 @@ from deejayd import DeejaydError
 from testdeejayd.interfaces import require_video_support, _TestInterfaces
 
 class VideoInterfaceTests(_TestInterfaces):
-    
+
     @require_video_support
     def testVideoSet(self):
         """Test video.set command"""
@@ -40,17 +40,17 @@ class VideoInterfaceTests(_TestInterfaces):
         # test videolist content
         uris = [m["uri"] for m in video_obj.get()["medias"]]
         self.assertEqual(expected_uris.sort(), uris.sort())
-        
+
         # search a wrong title
         rand = self.testdata.getRandomString()
         video_obj.set(rand, "search")
         self.assertEqual(len(video_obj.get()["medias"]), 0)
-    
+
     @require_video_support
     def testVideoSort(self):
         """Test video.sort command"""
         video_obj = self.deejayd.video
-        
+
         # sort videolist content
         sort = [["rating", "ascending"]]
         self.assertAckCmd(video_obj.set_sort(sort))
@@ -59,6 +59,6 @@ class VideoInterfaceTests(_TestInterfaces):
         rnd_sort = [(self.testdata.getRandomString(), "ascending")]
         self.assertRaises(DeejaydError, video_obj.set_sort, rnd_sort)
 
-        
+
 
 # vim: ts=4 sw=4 expandtab
