@@ -20,102 +20,20 @@ from zope.interface import implements
 from deejayd.ui import log
 from deejayd.jsonrpc.interfaces import WebradioSourceModule, jsonrpc_module
 from deejayd.sources._base import _BaseSource, SourceError
-from deejayd.plugins import IWebradioPlugin, IEditWebradioPlugin, PluginError
-from deejayd.utils import get_uris_from_pls, get_uris_from_m3u
+from deejayd.webradio.IWebradioSource import IEditWebradioSource
 from deejayd.model.playlist import SimplePlaylist
+from deejayd.webradio.local import WebradioLocalSource
+from deejayd.webradio.icecast import IceCastPlugin
+from deejayd import DeejaydError
+from deejayd.ui.config import DeejaydConfig
 
-
-class WbLocalSource(object):
-    implements(IEditWebradioPlugin)
-    NAME = "local"
-
-    def __init__(self):
-        self.__db = None
-        self.__id = None
-
-    def set_db_connection(self, connection):
-        self.__db = connection
-        self.__id = self.__db.get_webradio_source(self.NAME)
-
-    def get_categories(self):
-        return dict(self.__db.get_webradio_categories(self.__id))
-
-    def get_webradios(self, cat_id=None):
-        streams = {}
-        for (id, name, url) in self.__db.get_webradios(self.__id, cat_id):
-            if id not in streams.keys():
-                streams[id] = {"wb_id": id, "title": name, \
-                        "urls": [url], "url-type": "urls", "uri": "", \
-                        "url-index": 0, "type": "webradio"}
-            else:
-                streams[id]["urls"].append(url)
-        return streams.values()
-
-    def add_categorie(self, cat):
-        return {
-            "id": self.__db.add_webradio_category(self.__id, cat),
-            "name": cat
-        }
-
-    def remove_categories(self, ids):
-        self.__db.remove_webradio_categories(self.__id, ids)
-
-    def add_webradio(self, name, urls, cat=None):
-        provided_urls = []
-        for url in urls:
-            if url.lower().startswith("http://"):
-                try:
-                    if url.lower().endswith(".pls"):
-                        provided_urls.extend(get_uris_from_pls(url))
-                    elif url.lower().endswith(".m3u"):
-                        provided_urls.extend(get_uris_from_m3u(url))
-                    else:
-                        provided_urls.append(url)
-                except IOError:
-                    log.debug(_("Could not parse %s") % url)
-                    pass
-
-        needed_urls = []
-        for url in provided_urls:
-            try:
-                protocol = url.split(':')[0]
-                if protocol not in ('http', 'https', 'rtsp',):
-                    raise ValueError
-            except ValueError:
-                log.debug(_("Discarding %s : webradio protocol not supported.")
-                          % url)
-            else:
-                needed_urls.append(url)
-
-        if len(needed_urls) < 1:
-            raise SourceError(_("Given url %s is not supported") % url)
-
-        self.__db.add_webradio(self.__id, name, needed_urls, cat)
-        self.__db.connection.commit()
-
-    def remove_webradios(self, ids):
-        self.__db.remove_webradios(self.__id, ids)
-
-    def clear_webradios(self):
-        self.__db.clear_webradios(self.__id)
-
-    def get_stats(self):
-        return {
-            "last_webradios_update": "",
-            "last_categories_update": "",
-            "webradio_count": "",
-            "category_count": "",
-        }
-
-############################################################################
-############################################################################
 
 def require_editable_source(func):
     def impl(self, source_name, *args, **kwargs):
         if source_name not in self.wb_sources.keys():
             raise SourceError(_("Webradio source %s not supported") % source_name)
         source = self.wb_sources[source_name]
-        if not IEditWebradioPlugin.providedBy(source):
+        if not IEditWebradioSource.providedBy(source):
             raise SourceError(_("You can not edit this webradio source"))
 
         res = func(self, source_name, *args, **kwargs)
@@ -132,16 +50,11 @@ class WebradioSource(_BaseSource):
     name = "webradio"
     initial_state = {"id": 1, "source": "local", "source-cat": None}
 
-    def __init__(self, db, plugin_manager):
-        _BaseSource.__init__(self, db)
-        self.wb_sources = {}
-        # get plugins
-        for plugin in plugin_manager.get_plugins(IWebradioPlugin):
-            self.wb_sources[plugin.NAME] = plugin()
-            self.wb_sources[plugin.NAME].set_db_connection(db)
-        # get local source from database
-        self.wb_sources["local"] = WbLocalSource()
-        self.wb_sources["local"].set_db_connection(db)
+    def __init__(self):
+        _BaseSource.__init__(self, None)
+        self.wb_sources = { "local": WebradioLocalSource() }
+        if DeejaydConfig().getboolean("webradio", "icecast"):
+            self.wb_sources["icecast"] = IceCastPlugin()
 
         # load current list
         self._media_list = SimplePlaylist(self.get_recorded_id() + 1)
@@ -152,13 +65,13 @@ class WebradioSource(_BaseSource):
             self.state["source"] = "local"
 
         try: self._reload(sig=False)
-        except PluginError:  # fallback to default
+        except DeejaydError:  # fallback to default
             self.__source = self.wb_sources["local"]
             self.state["source"] = "local"
             self._reload(sig=False)
 
     def get_available_sources(self):
-        return [(s.NAME, IEditWebradioPlugin.providedBy(s)) \
+        return [(s.NAME, IEditWebradioSource.providedBy(s)) \
                     for s in self.wb_sources.values()]
 
     def set_source(self, source):

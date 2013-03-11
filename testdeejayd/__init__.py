@@ -29,7 +29,7 @@ else:
 
 KAA_INITIALIZED = False
 
-from testdeejayd.utils.databuilder import TestData, TestAudioCollection,\
+from testdeejayd.utils.databuilder import TestData, TestAudioCollection, \
                                           TestVideoCollection
 import testdeejayd.utils.twreactor
 from testdeejayd.utils.server import TestServer
@@ -56,16 +56,20 @@ class _DeejaydTest(unittest.TestCase):
         cls.config.load()
         cls.config.set("general", "media_backend", cls.media_backend)
 
-        cls.dbfilename = '/tmp/testdeejayddb-' +\
+        cls.dbfilename = '/tmp/testdeejayddb-' + \
                             cls.testdata.getRandomString() + '.db'
         cls.config.set('database', 'db_name', cls.dbfilename)
 
         # disable all plugins for tests
         cls.config.set('general', 'enabled_plugins', '')
 
+        # disable icecast, not supported in test
+        cls.config.set('webradio', 'icecast', 'no')
+
+
     @classmethod
     def tearDownClass(cls):
-        if cls.dbfilename is not None: # Clean up temporary db file
+        if cls.dbfilename is not None:  # Clean up temporary db file
             try: os.unlink(cls.dbfilename)
             except OSError:
                 pass
@@ -140,8 +144,8 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
 
         from deejayd.core import DeejayDaemonCore
         cls.deejayd = DeejayDaemonCore(start_inotify=cls.inotify_support)
-        cls.deejayd.audiolib.update(sync = True)
-        cls.deejayd.videolib.update(sync = True)
+        cls.deejayd.audiolib.update(sync=True)
+        cls.deejayd.videolib.update(sync=True)
         cls.is_running = True
 
     @classmethod
@@ -166,7 +170,7 @@ class TestCaseWithServer(TestCaseWithMediaData):
         cls.webServerPort = cls.config.getint('webui', 'port')
 
         # define a tmp directory for webui
-        cls.tmp_dir = '/tmp/testdeejayd-tmpdir-'+cls.testdata.getRandomString()
+        cls.tmp_dir = '/tmp/testdeejayd-tmpdir-' + cls.testdata.getRandomString()
         cls.config.set("webui", "tmp_dir", cls.tmp_dir)
 
         # record config to be used by the test server

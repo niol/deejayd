@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,30 +17,24 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import urllib, time
-from zope.interface import implements
 from twisted.internet import threads, task
 
+from deejayd import DeejaydError
 from deejayd.xmlobject import ET
 from deejayd.ui import log
-from deejayd.plugins import PluginError, IWebradioPlugin
+from deejayd.ui.config import DeejaydConfig
+from deejayd.webradio._base import _BaseWebradioSource
+from deejayd.database.connection import DatabaseConnection
 
-ICECAST_YP = "http://dir.xiph.org/yp.xml"
 UPDATE_INTERVAL = 7 * 24 * 60 * 60  # 7 days
 
-class IceCastPlugin(object):
-    implements(IWebradioPlugin)
+class IceCastPlugin(_BaseWebradioSource):
     NAME = "icecast"
 
     def __init__(self):
-        self.__db = None
-        self.__id = None
+        super(IceCastPlugin, self).__init__()
+
         self.__last_parse = None
-        self.__task = None
-
-    def set_db_connection(self, connection):
-        self.__db = connection
-        self.__id = self.__db.get_webradio_source(self.NAME)
-
         self.__task = task.LoopingCall(self.__check_update)
         self.__task.start(60 * 60)  # check every hour
 
@@ -48,9 +42,9 @@ class IceCastPlugin(object):
         need_reload_list = True
         # see if stations list has already been parsed
         if self.__last_parse is None:
-            last_parse = self.__db.get_webradio_stats(self.__id, "last_update")
-            if last_parse is not None:
-                (self.__last_parse,) = last_parse
+            stats = self.source.get_stats()
+            if "last_update" in stats:
+                self.__last_parse = stats["last_update"]
 
         if self.__last_parse is not None:
             if int(time.time()) < int(self.__last_parse) + UPDATE_INTERVAL:
@@ -66,33 +60,36 @@ class IceCastPlugin(object):
 
     def __on_reload_success(self, *args):
         self.__last_parse = int(time.time())
-
-        self.__db.set_webradio_stats(self.__id, "last_update", self.__last_parse)
-        self.__db.set_webradio_stats(self.__id, "wb_count", len(self.get_webradios()))
-        self.__db.set_webradio_stats(self.__id, "cat_count", len(self.get_categories()))
+        self.source.set_stats({
+            "last_update": self.__last_parse,
+            "wb_count": len(self.get_webradios()),
+            "cat_count": len(self.get_categories()),
+        })
 
     def __reload_list(self):
+        log.msg("start to reload icecast webradio source")
+        url = DeejaydConfig().get("webrdio", "icecast_url")
         try:
-            page_handle = urllib.urlopen(ICECAST_YP)
+            page_handle = urllib.urlopen(url)
             xml_page = page_handle.read()
+            log.debug("ICECAST - receive xml content %s" % xml_page.decode("utf-8"))
         except:
-            raise PluginError(_("Unable to connect to icecast website"))
+            raise DeejaydError(_("Unable to connect to icecast website"))
 
         # try to parse result
         try:
             root = ET.fromstring(xml_page)
         except ET.XMLSyntaxError:
-            raise PluginError(_("Unable to parse icecast webradio list"))
+            raise DeejaydError(_("Unable to parse icecast webradio list"))
         except:
-            raise PluginError(_("Unable to read result from icecast webradio list"))
+            raise DeejaydError(_("Unable to read result from icecast webradio list"))
         finally:
             page_handle.close()
 
         # start with erase all recorded webradio
-        self.__db.clear_webradio_categories(self.__id)
+        self.source.clear_categories(commit=False)
 
         categories = {}
-        wb_names = {}
         for station in root:
             try:
                 server_type = station.find("server_type").text
@@ -106,42 +103,32 @@ class IceCastPlugin(object):
                     (server_type == "application/ogg" and \
                      not listen_url.endswith("ogv")):
                 if genre not in categories.keys():  # add categorie in database
-                    categories[genre] = self.__db.add_webradio_category(\
-                                                    self.__id, genre)
-                if name in wb_names.keys():
-                    self.__db.add_webradio_urls(wb_names[name], [listen_url])
+                    categories[genre] = self.source.add_categorie(genre,
+                                                                commit=False)
+                    categories[genre]["webradios"] = {}
+
+                cat = categories[genre]
+                if name not in cat["webradios"].keys():
+                    cat["webradios"][name] = [listen_url]
                 else:
-                    wb_names[name] = self.__db.add_webradio(self.__id, name, \
-                                        [listen_url], categories[genre])
+                    cat["webradios"][name].append(listen_url)
                 log.debug('Added icecast webradio %s' % name)
-        self.__db.connection.commit()
+        # save wb
+        for cat in categories.values():
+            for wb, urls in cat["webradios"].items():
+                self.source.add_webradio(wb, cat["id"], urls, commit=False)
+        DatabaseConnection().commit()
+        log.msg("finish to reload icecast webradio source")
 
     def get_categories(self):
         if self.__last_parse is None:
-            raise PluginError("Unable to parse icecast webradio list")
-        return dict(self.__db.get_webradio_categories(self.__id))
+            raise DeejaydError("Unable to parse icecast webradio list")
+        return self.source.get_categories()
 
     def get_webradios(self, cat_id=None):
         if self.__last_parse is None:
-            raise PluginError("Unable to parse icecast webradio list")
-
-        streams = {}
-        for (id, name, url) in self.__db.get_webradios(self.__id, cat_id):
-            if id not in streams.keys():
-                streams[id] = {"wb_id": id, "title": name, \
-                        "urls": [url], "url-type": "urls", "uri": "", \
-                        "url-index": 0, "type": "webradio"}
-            else:
-                streams[id]["urls"].append(url)
-        return streams.values()
-
-    def get_stats(self):
-        return {
-            "last_webradios_update": self.__last_parse,
-            "last_categories_update": self.__last_parse,
-            "webradio_count": self.__db.get_webradio_stats(self.__id, "wb_count") or 0,
-            "category_count": self.__db.get_webradio_stats(self.__id, "cat_count") or 0,
-        }
+            raise DeejaydError("Unable to parse icecast webradio list")
+        return self.source.get_webradios(cat_id)
 
     def close(self):
         if self.__task is not None:

@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ class PluginManager(object):
         modules = [os.path.basename(f[:-3]) \
                    for f in glob.glob(os.path.join(base, "[!_]*.py"))]
         for m in modules:
-            mod = __import__(base_import+"."+m, {}, {}, base)
+            mod = __import__(base_import + "." + m, {}, {}, base)
             for cls_name in dir(mod):
                 cls = getattr(mod, cls_name)
                 try:
@@ -49,42 +49,6 @@ class PluginManager(object):
                     continue
 
         return plugins
-
-class IWebradioPlugin(Interface):
-    NAME = Attribute("Name of the plugin")
-
-    def set_db_connection(self, connection):
-        """Allow webradio plugin to use connection to the database"""
-
-    def get_categories(self):
-        """return list of categories supported by this plugin
-            raise an exception if no categorie has been supported"""
-
-    def get_webradios(self, categorie = None):
-        """return list of streams for a given categories """
-
-    def get_stats(self):
-        """return statistic informations about this source"""
-
-class IEditWebradioPlugin(IWebradioPlugin):
-
-    def add_categorie(self, cat):
-        """add a new categorie"""
-
-    def remove_categories(self, ids):
-        """remove a list of categories"""
-
-    def add_webradio(self, name, urls, cat = None):
-        """add a new webradio"""
-
-    def update_webradios_categorie(self, wb_ids, cat = None):
-        """Change webradio category"""
-
-    def remove_webradios(self, ids):
-        """remove webradios from the source"""
-
-    def clear_webradios(self):
-        """remove all webradios from the source"""
 
 
 class IPlayerPlugin(Interface):

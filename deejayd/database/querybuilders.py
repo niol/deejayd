@@ -45,7 +45,7 @@ class SimpleSelect(_DBQuery):
             self.selects.append("%s.%s" % (self.table_name, col))
         return self
 
-    def order_by(self, column, desc=False):
+    def order_by(self, column):
         self.orders.append("%s.%s" % (self.table_name, column))
         return self
 
@@ -71,6 +71,31 @@ class SimpleSelect(_DBQuery):
 
         cursor.close()
         return result
+
+
+class WebradioSelectQuery(SimpleSelect):
+
+    def __init__(self, wb_table, url_table):
+        super(WebradioSelectQuery, self).__init__(wb_table)
+        self.selects = [
+             "%s.id" % wb_table,
+             "%s.name" % wb_table,
+             "GROUP_CONCAT(%s.url)" % url_table
+        ]
+        self.joins = [
+            "JOIN %(url)s ON %(url)s.webradio_id = %(wb)s.id"\
+                   % { 'url' : url_table, 'wb': self.table_name }
+        ]
+        self.group_by = ["%s.id" % wb_table]
+
+    def __str__(self):
+        group_by = 'GROUP BY ' + ', '.join(self.group_by)
+        return "SELECT DISTINCT %s FROM %s %s WHERE %s %s"\
+               % (', '.join(self.selects),
+                  self.table_name,
+                  ' '.join(self.joins),
+                  ' AND '.join(self.wheres) or 1,
+                  group_by,)
 
 
 class MediaSelectQuery(SimpleSelect):
@@ -159,10 +184,12 @@ class _DBActionQuery(_DBQuery):
     def execute(self, commit=True):
         cursor = DatabaseConnection().cursor()
         cursor.execute(self.to_sql(), self.get_args())
+        rs = DatabaseConnection().get_last_insert_id(cursor)
         cursor.close()
-
         if commit:
             DatabaseConnection().commit()
+
+        return rs
 
 class EditRecordQuery(_DBActionQuery):
 

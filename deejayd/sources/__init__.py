@@ -36,11 +36,11 @@ def format_rsp(func):
 
 
 class SourceFactory(SignalingComponent, PersistentStateComponent):
-    sources_list = ("playlist","queue","webradio","video","dvd","panel")
+    sources_list = ("playlist", "queue", "webradio", "video", "dvd", "panel")
     state_name = "source_state"
     initial_state = {"current": "playlist"}
 
-    def __init__(self,player,db,audio_library,video_library,plg_mnt,config):
+    def __init__(self, player, db, audio_library, video_library, plg_mnt, config):
         super(SourceFactory, self).__init__()
         self.load_state()
         self.db = db
@@ -52,7 +52,7 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         # playlist
         if "playlist" in activated_sources:
             from deejayd.sources import playlist
-            self.sources_obj["playlist"] = playlist.PlaylistSource(db,\
+            self.sources_obj["playlist"] = playlist.PlaylistSource(db, \
                                                                  audio_library)
         else:
             log.info(_("Playlist support disabled"))
@@ -60,7 +60,7 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         # panel
         if "panel" in activated_sources:
             from deejayd.sources import panel
-            self.sources_obj["panel"] = panel.PanelSource(db, audio_library,\
+            self.sources_obj["panel"] = panel.PanelSource(db, audio_library, \
                     config)
         else:
             log.info(_("Panel support disabled"))
@@ -68,7 +68,7 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         # Webradio
         if "webradio" in activated_sources and player.is_supported_uri("http"):
             from deejayd.sources import webradio
-            self.sources_obj["webradio"] = webradio.WebradioSource(db, plg_mnt)
+            self.sources_obj["webradio"] = webradio.WebradioSource()
         else:
             log.info(_("Webradio support disabled"))
 
@@ -82,7 +82,7 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         # dvd
         if "dvd" in activated_sources and player.is_supported_uri("dvd"):
             from deejayd.sources import dvd
-            try: self.sources_obj["dvd"] = dvd.DvdSource(db,config)
+            try: self.sources_obj["dvd"] = dvd.DvdSource(db, config)
             except dvd.DvdError, ex:
                 log.err(_("Unable to init dvd support : %s") % str(ex))
         else:
@@ -108,14 +108,14 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
 
     def get_current_sourcename(self):
         return self.state['current']
-    
-    def get_source(self,s):
+
+    def get_source(self, s):
         if s not in self.sources_obj.keys():
             raise UnknownSourceException
 
         return self.sources_obj[s]
 
-    def set_source(self,s):
+    def set_source(self, s):
         if s not in self.sources_obj.keys():
             raise UnknownSourceException
 
@@ -149,9 +149,9 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
     # Functions called from the player
     #
     @format_rsp
-    def get(self, nb = None, type = "id", source_name = None):
+    def get(self, nb=None, type="id", source_name=None):
         src = source_name or self.state["current"]
-        return (self.sources_obj[src].go_to(nb,type), src)
+        return (self.sources_obj[src].go_to(nb, type), src)
 
     @format_rsp
     def get_current(self):
@@ -160,25 +160,25 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         if queue_media: return (queue_media, "queue")
 
         current = self.sources_obj[self.state["current"]].get_current() or \
-            self.sources_obj[self.state["current"]].next(explicit = False)
+            self.sources_obj[self.state["current"]].next(explicit=False)
         return (current, self.state["current"])
 
     @format_rsp
-    def next(self, explicit = True):
+    def next(self, explicit=True):
         queue_media = self.sources_obj["queue"].next(explicit)
         if queue_media: return (queue_media, "queue")
-        return (self.sources_obj[self.state["current"]].next(explicit),self.state["current"])
+        return (self.sources_obj[self.state["current"]].next(explicit), self.state["current"])
 
     @format_rsp
     def previous(self):
-        return (self.sources_obj[self.state["current"]].previous(),self.state["current"])
+        return (self.sources_obj[self.state["current"]].previous(), self.state["current"])
 
     def queue_reset(self):
         self.sources_obj["queue"].reset()
 
 
-def init(player,db,audio_library,video_library,pl_mngt,config):
-    source = SourceFactory(player,db,audio_library,video_library,pl_mngt,config)
+def init(player, db, audio_library, video_library, pl_mngt, config):
+    source = SourceFactory(player, db, audio_library, video_library, pl_mngt, config)
     return source
 
 
