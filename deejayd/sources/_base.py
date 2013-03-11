@@ -55,7 +55,7 @@ class _BaseSource(SignalingComponent, JSONRpcComponent, \
 
         medias, filter, sort = self.get_content(start, length)
         rs = {
-            "medias": map(to_json, medias, range(1, len(medias))),
+            "medias": map(to_json, medias, range(1, 1 + len(medias))),
             "filter": filter,
             "sort": sort
         }
