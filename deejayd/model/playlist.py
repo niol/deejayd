@@ -148,7 +148,7 @@ class SimplePlaylist(object):
     def find(self, media_id):
         for entry in self._playlist:
             if entry["media_id"] == media_id:
-                return entry["id"]
+                return entry
         raise ValueError
 
     def set(self, medias):
