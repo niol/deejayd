@@ -25,16 +25,6 @@ from deejayd.sources._base import SourceError
 
 class UnknownSourceException: pass
 
-def format_rsp(func):
-    def format_rsp_func(*__args, **__kw):
-        (media, source) = func(*__args, **__kw)
-        if media is not None:
-            media["source"] = source
-        return media
-
-    return format_rsp_func
-
-
 class SourceFactory(SignalingComponent, PersistentStateComponent):
     sources_list = ("playlist","queue","webradio","video","dvd","panel")
     state_name = "source_state"
@@ -108,7 +98,7 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
 
     def get_current_sourcename(self):
         return self.state['current']
-    
+
     def get_source(self,s):
         if s not in self.sources_obj.keys():
             raise UnknownSourceException
@@ -148,12 +138,10 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
     #
     # Functions called from the player
     #
-    @format_rsp
     def get(self, nb = None, type = "id", source_name = None):
         src = source_name or self.state["current"]
-        return (self.sources_obj[src].go_to(nb,type), src)
+        return self.sources_obj[src].go_to(nb,type)
 
-    @format_rsp
     def get_current(self):
         queue_media = self.sources_obj["queue"].get_current() or \
                       self.sources_obj["queue"].next()
@@ -161,17 +149,16 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
 
         current = self.sources_obj[self.state["current"]].get_current() or \
             self.sources_obj[self.state["current"]].next(explicit = False)
-        return (current, self.state["current"])
+        return current
 
-    @format_rsp
     def next(self, explicit = True):
         queue_media = self.sources_obj["queue"].next(explicit)
-        if queue_media: return (queue_media, "queue")
-        return (self.sources_obj[self.state["current"]].next(explicit),self.state["current"])
+        if queue_media:
+            return queue_media
+        return self.sources_obj[self.state["current"]].next(explicit)
 
-    @format_rsp
     def previous(self):
-        return (self.sources_obj[self.state["current"]].previous(),self.state["current"])
+        return self.sources_obj[self.state["current"]].previous()
 
     def queue_reset(self):
         self.sources_obj["queue"].reset()
