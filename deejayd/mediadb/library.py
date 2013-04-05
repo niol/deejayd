@@ -405,8 +405,12 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
     def update_file(self, path, file):
         file_path = os.path.join(path, file)
-        file_info = self._get_file_info(file_path)
+        db_entry = self.db_con.is_file_exist(path, file, self.type)
+        if db_entry is not None:
+            if os.stat(file_path).st_mtime <= db_entry[2]:
+                return
 
+        file_info = self._get_file_info(file_path)
         if file_info:
             self.update_media(file_path, file_info)
         else:
@@ -423,7 +427,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         else:
             log.debug('library: updating file %s in db' % file_path)
             event = 'update'
-            dir_id, file_id = rs
+            dir_id, file_id, lm = rs
 
         fid = self.set_media(dir_id, file_path, file_info, file_id)
         if fid:
@@ -441,8 +445,9 @@ class _Library(SignalingComponent, JSONRpcComponent):
             self.remove_extrainfo_file(os.path.join(path, name))
 
     def remove_media(self, path, name):
-        log.debug('library: removing file %s from db' % os.path.join(path, name))
-        dir_id, file_id = self.db_con.is_file_exist(path, name, self.type)
+        log.debug('library: removing file %s from db'\
+                % os.path.join(path, name))
+        dir_id, file_id, lm = self.db_con.is_file_exist(path, name, self.type)
         self.db_con.remove_file(file_id)
         self.dispatch_mupdate(file_id, 'remove')
 
@@ -702,7 +707,7 @@ class VideoLibrary(_Library):
         for video_ext in self.ext_dict.keys():
             rs = self.db_con.is_file_exist(path, name+video_ext, self.type)
             if rs is not None:
-                dir_id, fid = rs
+                dir_id, fid, lm = rs
                 uri = quote_uri(file_path)
                 log.debug('library: updating external subtitle %s in db' % file_path)
                 self.db_con.set_media_infos(fid, {"external_subtitle": uri})
