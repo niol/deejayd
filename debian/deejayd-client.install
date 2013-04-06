@@ -1,6 +1,6 @@
 usr/lib/python*/*-packages/deejayd/__init__.py
-usr/lib/python*/*-packages/deejayd/mediafilters.py
 usr/lib/python*/*-packages/deejayd/component.py
+usr/lib/python*/*-packages/deejayd/model/*.py
 usr/lib/python*/*-packages/deejayd/jsonrpc/__init__.py
 usr/lib/python*/*-packages/deejayd/jsonrpc/jsonbuilders.py
 usr/lib/python*/*-packages/deejayd/jsonrpc/jsonparsers.py
