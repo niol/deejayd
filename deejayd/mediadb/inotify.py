@@ -53,7 +53,10 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         self.startReading()
 
     def close(self):
-        map(self.ignore, self._watchpaths.copy()) # stop watching all
+        try:
+            map(self.ignore, self._watchpaths.copy()) # stop watching all
+        except KeyError:
+            pass
         self.stopReading()
 
     def __occured_on_dirlink(self, library, file_path):
