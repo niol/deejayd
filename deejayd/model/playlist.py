@@ -51,10 +51,10 @@ class PlaylistEntry(MutableMapping):
         if key == "id":
             return self.id
         elif key == "pos":
-            try:
-                return self.playlist_manager.get().index(self)
-            except ValueError:  # entry not in the list anymore
-                return -1
+            for index, entry in enumerate(self.playlist_manager.get()):
+                if entry['id'] == self['id']:
+                    return index
+            return -1 # entry not in the list anymore
         elif key == "source":
             return self.playlist_manager.get_source()
         return self.media[key]
