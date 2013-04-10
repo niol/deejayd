@@ -60,6 +60,7 @@ class Webradio(MutableMapping):
 class WebradioSource(object):
     implements(IObjectModel)
     CAT_TABLE = "webradio_categories"
+    CAT_REL_TABLE = "webradio_categories_relation"
     WEB_TABLE = "webradio"
     URL_TABLE = "webradio_entries"
     STAT_TABLE = "webradio_stats"
@@ -85,27 +86,38 @@ class WebradioSource(object):
         return {"id": cat_id, "name": name}
 
     def delete_categories(self, cat_ids, commit=True):
-        webradios = reduce(lambda l, i: l + self.get_webradio(id), cat_ids, [])
-        self.delete_webradios(map(lambda w: w["id"], webradios), commit)
-        DeleteQuery(self.CAT_TABLE)\
-                .append_where("source_id = %s", (self.db_id,))\
-                .append_where("id IN (%s)", (",".join(map(str, cat_ids)),))\
-                .execute(commit=commit)
+        for key, table in [("id", self.CAT_TABLE),
+                           ("cat_id", self.CAT_REL_TABLE)]:
+            DeleteQuery(table)\
+                    .append_where(key + " IN (%s)", (",".join(map(str, cat_ids)),))\
+                    .execute(commit=commit)
 
     def clear_categories(self, commit=True):
-        self.delete_categories(self.get_categories().values(), commit)
+        where_select = "SELECT id FROM %s WHERE source_id = %d" \
+                % (self.CAT_TABLE, self.db_id)
+        DeleteQuery(self.CAT_REL_TABLE)\
+              .append_where("cat_id IN (%s)" % where_select, ())\
+              .execute(commit=commit)
+        DeleteQuery(self.CAT_TABLE)\
+              .append_where("source_id = %s", (self.db_id,))\
+              .execute(commit=commit)
 
     def get_webradios(self, cat_id=None):
-        query = WebradioSelectQuery(self.WEB_TABLE, self.URL_TABLE)\
+        query = WebradioSelectQuery(self.WEB_TABLE, self.URL_TABLE,
+                                    self.CAT_REL_TABLE)\
                 .append_where(self.WEB_TABLE + ".source_id = %s", (self.db_id,))
         if cat_id is not None:
-            query.append_where(self.WEB_TABLE + ".cat_id = %s", (cat_id,))
+            query.select_category(cat_id)
         return map(lambda w_infos: Webradio(w_infos), query.execute())
 
-    def add_webradio(self, name, cat_id, urls, commit=True):
+    def add_webradio(self, name, cat_ids, urls, commit=True):
         wb_id = EditRecordQuery(self.WEB_TABLE)\
                     .add_value("name", name)\
                     .add_value("source_id", self.db_id)\
+                    .execute(commit=commit)
+        for cat_id in cat_ids:
+            ReplaceQuery(self.CAT_REL_TABLE)\
+                    .add_value("webradio_id", wb_id)\
                     .add_value("cat_id", cat_id)\
                     .execute(commit=commit)
         for url in urls:
@@ -116,17 +128,26 @@ class WebradioSource(object):
 
     def delete_webradios(self, wb_ids, commit=True):
         for table, key in [(self.WEB_TABLE, "id"),
-                           (self.URL_TABLE, 'webradio_id')]:
+                           (self.URL_TABLE, 'webradio_id'),
+                           (self.CAT_REL_TABLE, 'webradio_id')]:
             DeleteQuery(table)\
-                .append_where("%s IN (%s)", (key, ",".join(map(str, wb_ids))))\
+                .append_where(key + " IN (%s)", (",".join(map(str, wb_ids)),))\
                 .execute(commit=commit)
 
     def clear_webradios(self, commit=True):
-        all_wbs = SimpleSelect(self.WEB_TABLE)\
+        where_select = SimpleSelect(self.WEB_TABLE)\
                     .select_column("id")\
-                    .append_where("source_id = %s", (self.db_id,))\
-                    .execute()
-        self.delete_webradios(map(lambda w: w[0], all_wbs), commit)
+                    .append_where("source_id = %d" % self.db_id, ())\
+                    .to_sql()
+        DeleteQuery(self.CAT_REL_TABLE)\
+              .append_where("webradio_id IN (%s)" % where_select, ())\
+              .execute(commit=commit)
+        DeleteQuery(self.URL_TABLE)\
+              .append_where("webradio_id IN (%s)" % where_select, ())\
+              .execute(commit=commit)
+        DeleteQuery(self.WEB_TABLE)\
+              .append_where("source_id = %s", (self.db_id,))\
+              .execute(commit=commit)
 
     def get_stats(self):
         return dict(SimpleSelect(self.STAT_TABLE)\

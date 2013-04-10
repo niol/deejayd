@@ -1,6 +1,6 @@
 syntax: glob
 deejayd.py
-db*
+db
 conf*
 *.orig
 *.rej

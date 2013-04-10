@@ -62,7 +62,8 @@ class WebradioLocalSource(_BaseWebradioSource):
 
         if len(needed_urls) < 1:
             raise DeejaydError(_("Given url %s is not supported") % url)
-        self.source.add_webradio(name, cat, needed_urls)
+        cats = cat is not None and [cat] or []
+        self.source.add_webradio(name, cats, needed_urls)
 
     def remove_webradios(self, ids):
         self.source.delete_webradios(ids)

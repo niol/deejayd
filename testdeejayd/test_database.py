@@ -17,73 +17,72 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-from testdeejayd import TestCaseWithData
-from deejayd.mediafilters import *
+import os
+from testdeejayd import TestCaseWithMediaData, KAA_INITIALIZED
+from testdeejayd.db.schemas import SCHEMAS
+from deejayd import DeejaydError
+from deejayd.database.schema import DB_SCHEMA
+from deejayd.database.connection import DatabaseConnection
+from deejayd.core import DeejayDaemonCore
 
-import deejayd.database
-from deejayd.database.dbobjects import SQLizer
 
-
-class TestDatabase(TestCaseWithData):
+class TestDatabase(TestCaseWithMediaData):
 
     def setUp(self):
-        self.db = deejayd.database.init(self.config)
-        self.sqlizer = SQLizer()
+        self.dbfilename = '/tmp/testdeejayddb-' + \
+                            self.testdata.getRandomString() + '.db'
+        self.config.set('database', 'db_name', self.dbfilename)
 
     def tearDown(self):
-        self.db.close()
+        if os.path.isfile(self.dbfilename):
+            os.unlink(self.dbfilename)
 
-    def test_basicfilter_save_retrieve(self):
-        """Test the saving and retrieval of a basic filter"""
-        f_class = self.testdata.getRandomElement(BASIC_FILTERS)
-        f = f_class(self.testdata.getRandomString(),
-                    self.testdata.getRandomString())
-        sqlf = self.sqlizer.translate(f)
+    def __init_db(self, version):
+        if version in SCHEMAS:
+            return DatabaseConnection(config=self.config, schema=SCHEMAS[version])
+        raise DeejaydError("db version %d not found" % version)
 
-        fid = sqlf.save(self.db)
-        self.db.connection.commit()
+    def __init_core(self):
+        if self.media_backend == "gstreamer" and not KAA_INITIALIZED:
+            import kaa
+            # use kaa mainloop (start when we instanciate DeejaydCore)
+            # to start glib main loop in an other thread (required by gstreamer)
+            kaa.main.select_notifier('generic')
+            kaa.gobject_set_threaded()
+            KAA_INITIALIZED = True
+        return DeejayDaemonCore(start_inotify=False)
 
-        cursor = self.db.connection.cursor()
-        retrieved_filter = self.db.get_filter(cursor, fid)
-
-        self.failUnless(f.equals(retrieved_filter))
-
-        sqlf.tag = self.testdata.getRandomString()
-        sqlf.save(self.db)
-        self.db.connection.commit()
-
-        retrieved_filter = self.db.get_filter(cursor, fid)
-        self.failUnless(sqlf.equals(retrieved_filter))
-
+    def test_migration_14(self):
+        self.__init_db(14)
+        # record a local webradio
+        wb_category = self.testdata.getRandomString()
+        wb_name = self.testdata.getRandomString()
+        SQL = [
+            "INSERT INTO webradio_source (id, name) VALUES(1,'local');",
+            "INSERT INTO webradio_categories (id, source_id, name) VALUES(1, 1,'%s');" % wb_category,
+            "INSERT INTO webradio (id, source_id, cat_id, name) VALUES(1, 1, 1, '%s');" % wb_name,
+            "INSERT INTO webradio_entries (webradio_id, url) VALUES(1, '%s');" % "http://example.com",
+        ]
+        cursor = DatabaseConnection().cursor()
+        for query in SQL:
+            cursor.execute(query)
+        DatabaseConnection().commit()
+        DatabaseConnection().upgrade(self.config, cursor, DB_SCHEMA["version"],
+                                     14)
         cursor.close()
 
-    def test_complex_filter_save_retrieve(self):
-        """Test the saving and retrieval of a complex filter"""
-        f = self.testdata.get_sample_filter()
-        sqlf = self.sqlizer.translate(f)
+        deejayd = self.__init_core()
+        categories = deejayd.webradio.get_source_categories("local")
+        self.assertEqual(len(categories), 1)
+        self.assertTrue(wb_category in categories)
 
-        fid = sqlf.save(self.db)
-        self.db.connection.commit()
+        deejayd.webradio.set_source_categorie(categories[wb_category])
+        webradios = deejayd.webradio.get()["medias"]
+        self.assertEqual(len(webradios), 1)
+        self.assertEqual(webradios[0]["title"], wb_name)
 
-        cursor = self.db.connection.cursor()
-        retrieved_filter = self.db.get_filter(cursor, fid)
-
-        self.assert_filter_matches_sample(retrieved_filter)
-        cursor.close()
-
-    def test_magic_medialist_save_retrieve(self):
-        """Test the saving and retrieval of a magic medialist"""
-        f = self.testdata.get_sample_filter()
-
-        pl_name = self.testdata.getRandomString()
-        pl_id = self.db.set_magic_medialist_filters(pl_name, [f])
-
-        # retrieve magic playlist
-        retrieved_filters = self.db.get_magic_medialist_filters(pl_id)
-        self.assertEqual(len(retrieved_filters), 1)
-        self.failUnless(f.equals(retrieved_filters[0]))
-
-        # resave the same playlist
-        self.db.set_magic_medialist_filters(pl_name, retrieved_filters)
+        import kaa
+        deejayd.close()
+        kaa.main.stop()
 
 # vim: ts=4 sw=4 expandtab

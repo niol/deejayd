@@ -75,8 +75,9 @@ class SimpleSelect(_DBQuery):
 
 class WebradioSelectQuery(SimpleSelect):
 
-    def __init__(self, wb_table, url_table):
+    def __init__(self, wb_table, url_table, cat_rel_table):
         super(WebradioSelectQuery, self).__init__(wb_table)
+        self.cat_rel_table = cat_rel_table
         self.selects = [
              "%s.id" % wb_table,
              "%s.name" % wb_table,
@@ -87,6 +88,12 @@ class WebradioSelectQuery(SimpleSelect):
                    % { 'url' : url_table, 'wb': self.table_name }
         ]
         self.group_by = ["%s.id" % wb_table]
+
+    def select_category(self, cat_id):
+        cat_join = "JOIN %(cat_rel)s ON %(cat_rel)s.webradio_id = %(wb)s.id"\
+                   % { 'cat_rel' : self.cat_rel_table, 'wb': self.table_name }
+        self.joins.append(cat_join)
+        self.append_where(self.cat_rel_table + ".cat_id = %s", (cat_id,))
 
     def __str__(self):
         group_by = 'GROUP BY ' + ', '.join(self.group_by)

@@ -560,7 +560,8 @@ class WebradioSourceModule(object):
         args = [
             {"name":"source_name", "type":"string", "req":True},
             {"name":"name", "type":"string", "req":True},
-            {"name":"url", "type":"list", "req":True}
+            {"name":"url", "type":"list", "req":True},
+            {"name":"cat", "type":"int", "req":False},
         ]
 
 class PanelSourceModule(object):
