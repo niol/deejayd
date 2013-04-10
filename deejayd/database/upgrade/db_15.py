@@ -36,7 +36,13 @@ def upgrade(cursor, backend, config):
         cursor.execute("INSERT INTO webradio_categories_relation (cat_id,webradio_id)\
                 VALUES(%s,%s)", (c_id, wid))
 
-    # remove icecast webradio if it exists
+    #  force reload of icecast webradio
+    cursor.execute("SELECT id FROM webradio_source WHERE name = 'icecast'")
+    rs = cursor.fetchone()
+    if rs is not None:
+        (s_id,) = rs
+        cursor.execute("DELETE FROM webradio_stats WHERE source_id = %s",\
+                (s_id,))
 
     # update db version
     sql = [
