@@ -58,6 +58,7 @@ class WebradioSource(_BaseSource):
 
         # load current list
         self._media_list = SimplePlaylist(self.get_recorded_id() + 1)
+        self._media_list.set_source("webradio")
         try:
             self.__source = self.wb_sources[self.state["source"]]
         except KeyError:  # recorded source not found, fallback to default

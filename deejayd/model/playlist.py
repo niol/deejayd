@@ -51,10 +51,12 @@ class PlaylistEntry(MutableMapping):
         if key == "id":
             return self.id
         elif key == "pos":
-            try:
-                return self.playlist_manager.get().index(self)
-            except ValueError:  # entry not in the list anymore
-                return -1
+            for index, entry in enumerate(self.playlist_manager.get()):
+                if entry['id'] == self['id']:
+                    return index
+            return -1 # entry not in the list anymore
+        elif key == "source":
+            return self.playlist_manager.get_source()
         return self.media[key]
 
     def __setitem__(self, key, value):
@@ -83,6 +85,7 @@ class PlaylistEntry(MutableMapping):
 class SimplePlaylist(object):
 
     def __init__(self, pl_id=0):
+        self.source = None
         self.pl_id = pl_id
         self.plmedia_id = 0
         self._playlist = []
@@ -90,6 +93,12 @@ class SimplePlaylist(object):
 
     def __len__(self):
         return len(self._playlist)
+
+    def set_source(self, source):
+        self.source = source
+
+    def get_source(self):
+        return self.source
 
     def get_id(self):
         return self.pl_id
@@ -139,7 +148,7 @@ class SimplePlaylist(object):
     def find(self, media_id):
         for entry in self._playlist:
             if entry["media_id"] == media_id:
-                return entry["id"]
+                return entry
         raise ValueError
 
     def set(self, medias):
@@ -194,7 +203,10 @@ class _Playlist(SimplePlaylist):
         selected = filter(lambda m: m["media_id"] == media["media_id"], \
                           self._playlist)
         if len(selected) > 0:
-            map(lambda e: e.set_media(media), selected)
+            def update(e):
+                m = e.get_media()
+                m.update(media)
+            map(update, selected)
             self.pl_id += 1
             return True
         return False

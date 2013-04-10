@@ -95,6 +95,7 @@ class PanelSource(_BaseSortedLibSource):
                                                                 pl_id)
                 if self._media_list.get_type() == "magic":
                     self._media_list.load()
+                self._media_list.set_source("panel")
             except IndexError:  # playlist does not exist, set to panel
                 if raise_ex:
                     raise SourceError(_("Playlist with id %s not found")\
@@ -112,7 +113,7 @@ class PanelSource(_BaseSortedLibSource):
         if self._current and self._current["id"] != -1:  # update current id
             media_id = self._current["media_id"]
             try:
-                self._current["id"] = self._media_list.find_id(media_id)
+                self._current = self._media_list.find(media_id)
             except ValueError:
                 self._current["id"] = -1
 

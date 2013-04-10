@@ -129,6 +129,7 @@ class _BaseLibrarySource(_BaseSource):
             self._media_list = PlaylistFactory().magic(library,
                                                        self.base_medialist)
         self._media_list.set_id(self.get_recorded_id() + 1)
+        self._media_list.set_source(self.name)
         self.library = library
 
         if self.has_repeat:

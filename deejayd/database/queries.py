@@ -63,7 +63,7 @@ class DatabaseQueries(object):
 
     @query_decorator("fetchone")
     def is_file_exist(self, cursor, dirname, filename, type="audio"):
-        query = "SELECT d.id, l.id \
+        query = "SELECT d.id, l.id, l.lastmodified \
             FROM library l JOIN library_dir d ON d.id=l.directory\
             WHERE l.name = %s AND d.name = %s AND d.lib_type = %s"
         cursor.execute(query, (filename, dirname, type))
