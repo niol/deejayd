@@ -29,6 +29,7 @@ from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery, \
     ReplaceQuery
 from deejayd.database.querybuilders import StaticPlaylistSelectQuery
 from deejayd.database.querybuilders import SimpleSelect
+from deejayd import Singleton
 
 __all__ = (
     "PlaylistFactory"
@@ -54,7 +55,7 @@ class PlaylistEntry(MutableMapping):
             for index, entry in enumerate(self.playlist_manager.get()):
                 if entry['id'] == self['id']:
                     return index
-            return -1 # entry not in the list anymore
+            return -1  # entry not in the list anymore
         elif key == "source":
             return self.playlist_manager.get_source()
         return self.media[key]
@@ -456,98 +457,73 @@ class MagicPlaylist(_Playlist):
         self.__update()
 
 
+@Singleton
 class PlaylistFactory(object):
+    __loaded_instances = {}
+    __loaded_simples = {}
     PLS_CLS = {
         "magic": MagicPlaylist,
         "static": StaticPlaylist,
     }
 
-    class __impl(object):
-        __loaded_instances = {}
-        __loaded_simples = {}
-        PLS_CLS = {
-            "magic": MagicPlaylist,
-            "static": StaticPlaylist,
-        }
-
-        def load_byid(self, library, pl_id):
-            if pl_id not in self.__loaded_instances.keys():
-                pls = SimpleSelect(_Playlist.TABLE)\
-                            .select_column('name', 'type')\
-                            .append_where("id=%s", (pl_id,))\
-                            .execute(expected_result="fetchone")
-                if pls is None:
-                    raise IndexError
-                name, type = pls
-                pls_instance = self.PLS_CLS[type](library, name, db_id=pl_id)
-                self.__loaded_instances[pl_id] = pls_instance
-            return self.__loaded_instances[pl_id]
-
-        def __load_by_name(self, library, type, name, create):
-            pls = SimpleSelect('medialist').select_column('id')\
-                                           .append_where("name=%s", (name,))\
-                                           .append_where("type=%s", (type,))\
-                                           .execute(expected_result="fetchone")
-            pl_id = pls is not None and pls[0] or None
-            if pl_id is None:
-                if not create: raise IndexError
-                pls_instance = self.PLS_CLS[type](library, name, db_id=pl_id)
-                pl_id = pls_instance.save()
-                self.__loaded_instances[pl_id] = pls_instance
-            elif pl_id not in self.__loaded_instances.keys():
-                pls_instance = self.PLS_CLS[type](library, name, db_id=pl_id)
-                self.__loaded_instances[pl_id] = pls_instance
-
-            return self.__loaded_instances[pl_id]
-
-        def static(self, library, name, create=True):
-            return self.__load_by_name(library, "static", name, create)
-
-        def magic(self, library, name, create=True):
-            return self.__load_by_name(library, "magic", name, create)
-
-        def simple(self, name):
-            if name not in self.__loaded_simples.keys():
-                self.__loaded_simples[name] = SimplePlaylist()
-            return self.__loaded_simples[name]
-
-        def list(self):
+    def load_byid(self, library, pl_id):
+        if pl_id not in self.__loaded_instances.keys():
             pls = SimpleSelect(_Playlist.TABLE)\
-                        .select_column('id', 'name', 'type')\
-                        .order_by('name')\
-                        .execute()
-                        # .append_where("name NOT LIKE %s", ("__%%",))\
-                        # .append_where("name NOT LIKE %s", ("%%__",))\
-            pls = filter(lambda p: not p[1].startswith("__")\
-                        and not p[1].endswith("__"), pls)
-            return map(lambda p: {"pl_id": p[0], "name": p[1], "type": p[2]},
-                       pls)
+                        .select_column('name', 'type')\
+                        .append_where("id=%s", (pl_id,))\
+                        .execute(expected_result="fetchone")
+            if pls is None:
+                raise IndexError
+            name, type = pls
+            pls_instance = self.PLS_CLS[type](library, name, db_id=pl_id)
+            self.__loaded_instances[pl_id] = pls_instance
+        return self.__loaded_instances[pl_id]
 
-        def erase(self, pl_objects):
-            for pl in pl_objects:
-                try: del self.__loaded_instances[pl.db_id]
-                except IndexError, TypeError:
-                    pass
-                pl.erase_from_db()
+    def __load_by_name(self, library, type, name, create):
+        pls = SimpleSelect('medialist').select_column('id')\
+                                       .append_where("name=%s", (name,))\
+                                       .append_where("type=%s", (type,))\
+                                       .execute(expected_result="fetchone")
+        pl_id = pls is not None and pls[0] or None
+        if pl_id is None:
+            if not create: raise IndexError
+            pls_instance = self.PLS_CLS[type](library, name, db_id=pl_id)
+            pl_id = pls_instance.save()
+            self.__loaded_instances[pl_id] = pls_instance
+        elif pl_id not in self.__loaded_instances.keys():
+            pls_instance = self.PLS_CLS[type](library, name, db_id=pl_id)
+            self.__loaded_instances[pl_id] = pls_instance
 
-    # storage for the instance reference
-    __instance = None
+        return self.__loaded_instances[pl_id]
 
-    def __init__(self, *args, **kwargs):
-        # Check whether we already have an instance
-        if PlaylistFactory.__instance is None:
-            # Create and remember instance
-            PlaylistFactory.__instance = PlaylistFactory.__impl(*args, **kwargs)
+    def static(self, library, name, create=True):
+        return self.__load_by_name(library, "static", name, create)
 
-        # Store instance reference as the only member in the handle
-        self.__dict__['_Singleton__instance'] = PlaylistFactory.__instance
+    def magic(self, library, name, create=True):
+        return self.__load_by_name(library, "magic", name, create)
 
-    def __getattr__(self, attr):
-        """ Delegate access to implementation """
-        return getattr(self.__instance, attr)
+    def simple(self, name):
+        if name not in self.__loaded_simples.keys():
+            self.__loaded_simples[name] = SimplePlaylist()
+        return self.__loaded_simples[name]
 
-    def __setattr__(self, attr, value):
-        """ Delegate access to implementation """
-        return setattr(self.__instance, attr, value)
+    def list(self):
+        pls = SimpleSelect(_Playlist.TABLE)\
+                    .select_column('id', 'name', 'type')\
+                    .order_by('name')\
+                    .execute()
+                    # .append_where("name NOT LIKE %s", ("__%%",))\
+                    # .append_where("name NOT LIKE %s", ("%%__",))\
+        pls = filter(lambda p: not p[1].startswith("__")\
+                    and not p[1].endswith("__"), pls)
+        return map(lambda p: {"pl_id": p[0], "name": p[1], "type": p[2]},
+                   pls)
+
+    def erase(self, pl_objects):
+        for pl in pl_objects:
+            try: del self.__loaded_instances[pl.db_id]
+            except IndexError, TypeError:
+                pass
+            pl.erase_from_db()
 
 # vim: ts=4 sw=4 expandtab

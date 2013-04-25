@@ -23,6 +23,7 @@ from deejayd.database.querybuilders import SimpleSelect, ReplaceQuery, \
     EditRecordQuery, DeleteQuery, WebradioSelectQuery
 from deejayd import DeejaydError
 from zope.interface import implements
+from deejayd import Singleton
 
 
 class Webradio(MutableMapping):
@@ -163,45 +164,24 @@ class WebradioSource(object):
                 .add_value("value", v)\
                 .execute(commit=commit)
 
+@Singleton
 class WebradioFactory(object):
+    __loaded_sources = {}
+    TABLE = "webradio_source"
 
-    class __impl(object):
-        __loaded_sources = {}
-        TABLE = "webradio_source"
-
-        def get_source(self, name):
-            if name not in self.__loaded_sources:
-                wb = SimpleSelect(self.TABLE)\
-                            .select_column("id")\
-                            .append_where("name=%s", (name,))\
-                            .execute(expected_result="fetchone")
-                if wb is None:
-                    wb_id = EditRecordQuery(self.TABLE)\
-                                .add_value("name", name)\
-                                .execute()
-                else:
-                    wb_id = wb[0]
-                self.__loaded_sources[name] = WebradioSource(name, wb_id)
-            return self.__loaded_sources[name]
-
-    # storage for the instance reference
-    __instance = None
-
-    def __init__(self, *args, **kwargs):
-        # Check whether we already have an instance
-        if WebradioFactory.__instance is None:
-            # Create and remember instance
-            WebradioFactory.__instance = WebradioFactory.__impl(*args, **kwargs)
-
-        # Store instance reference as the only member in the handle
-        self.__dict__['_Singleton__instance'] = WebradioFactory.__instance
-
-    def __getattr__(self, attr):
-        """ Delegate access to implementation """
-        return getattr(self.__instance, attr)
-
-    def __setattr__(self, attr, value):
-        """ Delegate access to implementation """
-        return setattr(self.__instance, attr, value)
+    def get_source(self, name):
+        if name not in self.__loaded_sources:
+            wb = SimpleSelect(self.TABLE)\
+                        .select_column("id")\
+                        .append_where("name=%s", (name,))\
+                        .execute(expected_result="fetchone")
+            if wb is None:
+                wb_id = EditRecordQuery(self.TABLE)\
+                            .add_value("name", name)\
+                            .execute()
+            else:
+                wb_id = wb[0]
+            self.__loaded_sources[name] = WebradioSource(name, wb_id)
+        return self.__loaded_sources[name]
 
 # vim: ts=4 sw=4 expandtab

@@ -34,13 +34,13 @@ def str_decode(data, charset='utf-8', errors='strict'):
         return data
     try: rs = data.decode(charset, errors)
     except UnicodeError:
-        err = _("'%s' string has badly encoded characters") %\
+        err = _("'%s' string has badly encoded characters") % \
                 data.decode(charset, "replace")
         log.err(err)
         raise
     return rs
 
-def log_traceback(level = "info"):
+def log_traceback(level="info"):
     log_func = level == "info" and log.info or log.err
     log_func("------------------Traceback lines--------------------")
     log_func(str_decode(traceback.format_exc(), errors='replace'))
@@ -48,7 +48,7 @@ def log_traceback(level = "info"):
 
 def format_time(time):
     """Turn a time value in seconds into hh:mm:ss or mm:ss."""
-    if time >= 3600: # 1 hour
+    if time >= 3600:  # 1 hour
         # time, in hours:minutes:seconds
         return "%d:%02d:%02d" % (time // 3600, (time % 3600) // 60, time % 60)
     else:
@@ -92,10 +92,10 @@ def get_uris_from_pls(URL):
     lines = get_playlist_file_lines(URL)
     if not lines[0].startswith("[playlist]"):
         raise DeejaydError(_("Playlist has a wrong format"))
-        
+
     for line in lines:
-        if line.lower().startswith("file") and line.find("=")!=-1:
-            uris.append(line[line.find("=")+1:].strip())
+        if line.lower().startswith("file") and line.find("=") != -1:
+            uris.append(line[line.find("=") + 1:].strip())
 
     return uris
 
@@ -105,7 +105,7 @@ def get_uris_from_m3u(URL):
     if not lines[0].startswith("#EXTM3U"):
         raise DeejaydError(_("Playlist has a wrong format"))
     for line in lines:
-        if not line.startswith("#") and line.strip()!="":
+        if not line.startswith("#") and line.strip() != "":
             uris.append(line.strip())
 
     return uris

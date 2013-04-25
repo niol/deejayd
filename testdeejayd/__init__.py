@@ -50,10 +50,9 @@ class _DeejaydTest(unittest.TestCase):
         t.install()
 
         # prepare config object
-        DeejaydConfig.custom_conf = os.path.join(os.path.dirname(__file__),
-                                                 "utils", "defaults.conf")
+        custom_conf = os.path.join(os.path.dirname(__file__), "utils", "defaults.conf")
         cls.config = DeejaydConfig()
-        cls.config.load()
+        cls.config.read([custom_conf])
         cls.config.set("general", "media_backend", cls.media_backend)
 
         cls.dbfilename = '/tmp/testdeejayddb-' + \

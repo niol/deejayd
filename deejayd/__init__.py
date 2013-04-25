@@ -49,14 +49,14 @@ class DeejaydError(Exception):
 
 class DeejaydSignal(object):
 
-    SIGNALS = ('player.status',       # Player status change (play/pause/stop/
+    SIGNALS = ('player.status',  # Player status change (play/pause/stop/
                                       # random/repeat/volume/manseek)
-               'player.current',      # Currently played song change
-               'player.plupdate',     # The current playlist has changed
-               'playlist.listupdate', # The stored playlist list has changed
+               'player.current',  # Currently played song change
+               'player.plupdate',  # The current playlist has changed
+               'playlist.listupdate',  # The stored playlist list has changed
                                       # (either a saved playlist has been saved
                                       # or deleted).
-               'playlist.update',     # A recorded playlist (static or magic)
+               'playlist.update',  # A recorded playlist (static or magic)
                                       # has changed
                                       # set id of playlist as attribute
                'webradio.listupdate',
@@ -64,15 +64,15 @@ class DeejaydSignal(object):
                'queue.update',
                'video.update',
                'dvd.update',
-               'mode',                # Mode change
-               'mediadb.aupdate',     # Media library audio update
-               'mediadb.vupdate',     # Media library video update
-               'mediadb.mupdate',     # a media has been updated
+               'mode',  # Mode change
+               'mediadb.aupdate',  # Media library audio update
+               'mediadb.vupdate',  # Media library video update
+               'mediadb.mupdate',  # a media has been updated
                                       # set id and type of media as attribute
                                       # set type of update as attribute
               )
 
-    def __init__(self, name=None, attrs = {}):
+    def __init__(self, name=None, attrs={}):
         self.name = name
         self.attrs = attrs
 
@@ -90,5 +90,31 @@ class DeejaydSignal(object):
 
     def set_attr(self, key, value):
         self.attrs[key] = value
+
+
+def Singleton(cls):
+    class SingletonClass(object):
+        # storage for the instance reference
+        __instance = None
+
+        def __init__(self, *args, **kwargs):
+            """ Create DatabaseConnection instance """
+            # Check whether we already have an instance
+            if self.__instance is None:
+                # Create and remember instance
+                self.__class__.__instance = cls(*args, **kwargs)
+
+            # Store instance reference as the only member in the handle
+            self.__dict__['_Singleton__instance'] = self.__class__.__instance
+
+        def __getattr__(self, attr):
+            """ Delegate access to implementation """
+            return getattr(self.__instance, attr)
+
+        def __setattr__(self, attr, value):
+            """ Delegate access to implementation """
+            return setattr(self.__instance, attr, value)
+
+    return SingletonClass
 
 # vim: ts=4 sw=4 expandtab
