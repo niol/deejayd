@@ -22,10 +22,10 @@ from deejayd.jsonrpc import DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import jsonrpc_module, CoreModule, IntrospectionModule
 from deejayd.ui.config import DeejaydConfig
 from deejayd.database.connection import DatabaseConnection
-from deejayd.database.queries import DatabaseQueries
 from deejayd import player, sources, mediadb, plugins
 from deejayd.playlist.rpc import DeejaydRecordedPlaylist
 from deejayd.ui import log
+from deejayd.model.stats import get_stats
 
 # Exception imports
 import deejayd.mediadb.library
@@ -64,16 +64,16 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
     def __init__(self, start_inotify=True):
         super(DeejayDaemonCore, self).__init__()
         config = DeejaydConfig()
+        self.stats = get_stats()
 
-        self.db = DatabaseQueries(DatabaseConnection(config))
         self.plugin_manager = plugins.PluginManager(config)
 
-        self.player = player.init(self.db, self.plugin_manager, config)
+        self.player = player.init(self.plugin_manager, config)
         self.player.register_dispatcher(self)
         self.put_sub_handler('player', self.player)
 
         self.audiolib, self.videolib, self.watcher = \
-            mediadb.init(self.db, self.player, config)
+            mediadb.init(self.player, config)
         self.audiolib.register_dispatcher(self)
         self.put_sub_handler('audiolib', self.audiolib)
         if self.videolib:
@@ -84,7 +84,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
         self.recpls.register_dispatcher(self)
         self.put_sub_handler('recpls', self.recpls)
 
-        self.sources = sources.init(self.player, self.db, self.audiolib,
+        self.sources = sources.init(self.player, self.audiolib,
                                     self.videolib, self.plugin_manager,
                                     config)
         self.sources.register_dispatcher(self)
@@ -108,7 +108,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
 
     def close(self):
         for obj in (self.watcher, self.player, self.sources, self.audiolib, \
-                    self.videolib, self.db):
+                    self.videolib):
             if obj != None: obj.close()
 
     def ping(self):  # do nothing
@@ -142,8 +142,7 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
         return dict(status)
 
     def get_stats(self):
-        ans = self.db.get_stats()
-        return dict(ans)
+        return dict(self.stats)
 
     def get_server_info(self):
         return {

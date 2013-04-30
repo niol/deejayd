@@ -32,12 +32,11 @@ class _BaseSource(SignalingComponent, JSONRpcComponent, \
     name = "unknown"
     initial_state = {"id": 1}
 
-    def __init__(self, db):
+    def __init__(self):
         super(_BaseSource, self).__init__()
         self.state_name = "%s_state" % self.name
         self.load_state()
 
-        self.db = db
         self._current = None
         self._playorder = orders["inorder"]
 
@@ -120,8 +119,8 @@ class _BaseLibrarySource(_BaseSource):
     medialist_type = "static"
     base_medialist = ''
 
-    def __init__(self, db, library):
-        super(_BaseLibrarySource, self).__init__(db)
+    def __init__(self, library):
+        super(_BaseLibrarySource, self).__init__()
         if self.medialist_type == "static":
             self._media_list = PlaylistFactory().static(library,
                                                         self.base_medialist)

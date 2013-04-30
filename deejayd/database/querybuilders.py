@@ -49,8 +49,10 @@ class SimpleSelect(_DBQuery):
         self.orders.append("%s.%s" % (self.table_name, column))
         return self
 
-    def append_where(self, where_query, args):
+    def append_where(self, where_query, args=[]):
         self.wheres.append(where_query)
+        if type(args) not in (list, tuple):
+            args = [args]
         self.wheres_args.extend(args)
         return self
 
@@ -71,6 +73,32 @@ class SimpleSelect(_DBQuery):
 
         cursor.close()
         return result
+
+
+class ComplexSelect(SimpleSelect):
+
+    def __init__(self, table_name):
+        super(ComplexSelect, self).__init__(table_name)
+        self.joins = []
+
+    def join(self, table_name, condition):
+        j_sql = "JOIN %s %s ON %s" % (table_name, table_name, condition)
+        self.joins.append(j_sql)
+        return self
+
+    def select_column(self, column_name, table_name=None):
+        if not table_name:
+            table_name = self.table_name
+        self.selects.append("%s.%s" % (table_name, column_name))
+        return self
+
+    def __str__(self):
+        return "SELECT DISTINCT %s FROM %s %s WHERE %s"\
+               % (', '.join(self.selects),
+                   self.table_name,
+                  ' '.join(self.joins),
+                   ' AND '.join(self.wheres) or 1,
+                 )
 
 
 class WebradioSelectQuery(SimpleSelect):
@@ -186,12 +214,28 @@ class StaticPlaylistSelectQuery(MediaSelectQuery):
         raise NotImplementedError  # static playlist are ordered by position
 
 
+class LibrarySelectQuery(MediaSelectQuery):
+
+    def __init__(self, libdir_table):
+        super(LibrarySelectQuery, self).__init__()
+        join_d = "JOIN %(d)s %(d)s ON %(d)s.id = library.directory" % {"d": libdir_table}
+        self.joins.append(join_d)
+        self.orders += [libdir_table + ".name", self.table_name + ".name"]
+
+    def order_by_tag(self, tagname, desc=False):
+        raise NotImplementedError  # this query are ordered by folder/file name
+
+
 class _DBActionQuery(_DBQuery):
 
-    def execute(self, commit=True):
+    def execute(self, commit=True, expected_result="lastid"):
         cursor = DatabaseConnection().cursor()
         cursor.execute(self.to_sql(), self.get_args())
-        rs = DatabaseConnection().get_last_insert_id(cursor)
+        rs = None
+        if expected_result == "lastid":
+            rs = DatabaseConnection().get_last_insert_id(cursor)
+        elif expected_result == "rowcount":
+            rs = cursor.rowcount
         cursor.close()
         if commit:
             DatabaseConnection().commit()
@@ -263,30 +307,5 @@ class DeleteQuery(_DBActionQuery):
         return "DELETE FROM %s WHERE %s"\
                % (self.table_name,
                   ' AND '.join(self.wheres) or 1,)
-
-def query_decorator(answer_type):
-    def query_decorator_instance(func):
-
-        def query_func(self, *__args, **__kw):
-            cursor = self.connection.cursor()
-            rs = func(self, cursor, *__args, **__kw)
-            if answer_type == "lastid":
-                rs = self.connection.get_last_insert_id(cursor)
-            elif answer_type == "rowcount":
-                rs = cursor.rowcount
-            elif answer_type == "fetchall":
-                rs = list(cursor.fetchall())
-            elif answer_type == "fetchone":
-                rs = cursor.fetchone()
-            elif answer_type == "medialist":
-                rs = self._medialist_answer(cursor.fetchall(), __kw['infos'])
-
-            cursor.close()
-            return rs
-
-        return query_func
-
-    return query_decorator_instance
-
 
 # vim: ts=4 sw=4 expandtab

@@ -30,17 +30,16 @@ class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
     name = "dvd"
     initial_state = {"id": 1}
 
-    def __init__(self, db, config):
+    def __init__(self, config):
         super(DvdSource, self).__init__()
         self.load_state()
-        
+
         try: self.parser = DvdParser()
-        except PlayerError, ex: # dvd parser does not work
+        except PlayerError, ex:  # dvd parser does not work
             raise DvdError(ex)
 
-        self.db = db
         try: self.current_id = int(self.state["id"])
-        except TypeError: # init dvdid
+        except TypeError:  # init dvdid
             self.current_id = 1
 
         self.dvd_info = None
@@ -56,7 +55,7 @@ class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
         # Reinit var and update id
         self.dvd_info = None
         self.selected_track = None
-        self.current_id +=1
+        self.current_id += 1
 
         try: self.dvd_info = self.parser.get_dvd_info()
         except PlayerError, err:
@@ -65,7 +64,7 @@ class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
         self.select_track()
         self.dispatch_signame('dvd.update')
 
-    def select_track(self,nb = None,alang_idx = None, slang_idx = None):
+    def select_track(self, nb=None, alang_idx=None, slang_idx=None):
         if not self.dvd_info: return
 
         if not nb: nb = self.dvd_info['longest_track']
@@ -75,9 +74,9 @@ class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
                 self.selected_track["selected_chapter"] = -1
                 break
 
-    def select_chapter(self,track = None, chapter = 1, alang = None, \
-                        slang = None):
-        self.selected_track = self.select_track(track,alang,slang)
+    def select_chapter(self, track=None, chapter=1, alang=None, \
+                        slang=None):
+        self.selected_track = self.select_track(track, alang, slang)
         self.selected_track["selected_chapter"] = chapter
 
     def get_current(self):
@@ -91,15 +90,15 @@ class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
             pos = self.selected_track["selected_chapter"]
         uri = "dvd://%d" % self.selected_track["ix"]
         return {"title": self.dvd_info["title"], "type": "video", \
-                "uri": uri, "chapter":self.selected_track["selected_chapter"],\
-                "length": str(self.selected_track["length"]),\
-                "id": id, "pos": pos,\
-                "audio": self.selected_track["audio"],\
+                "uri": uri, "chapter":self.selected_track["selected_chapter"], \
+                "length": str(self.selected_track["length"]), \
+                "id": id, "pos": pos, \
+                "audio": self.selected_track["audio"], \
                 "subtitle": self.selected_track["subp"]}
 
-    def go_to(self,id,type = "track"):
+    def go_to(self, id, type="track"):
         if type in ("track", "id"): self.select_track(id)
-        elif type == "chapter": self.select_chapter(None,id)
+        elif type == "chapter": self.select_chapter(None, id)
         elif type == "dvd_id":
             ids = id.split('.')
             self.select_track(int(ids[0]))
@@ -108,7 +107,7 @@ class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
 
         return self.get_current()
 
-    def next(self, explicit = True):
+    def next(self, explicit=True):
         if not self.dvd_info or not self.selected_track: return None
 
         if self.selected_track["selected_chapter"] != -1:
@@ -117,7 +116,7 @@ class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
         else:
             # go to next title
             current_title = self.selected_track["ix"]
-            self.select_track(current_title+1)
+            self.select_track(current_title + 1)
 
         return self.get_current()
 
@@ -140,7 +139,7 @@ class DvdSource(SignalingComponent, JSONRpcComponent, PersistentStateComponent):
         if self.dvd_info: length = len(self.dvd_info)
         status = [
             (self.name, self.current_id),
-            (self.name+"length",length)
+            (self.name + "length", length)
             ]
         return status
 

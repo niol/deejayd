@@ -30,28 +30,25 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
     state_name = "source_state"
     initial_state = {"current": "playlist"}
 
-    def __init__(self, player, db, audio_library, video_library, plg_mnt, config):
+    def __init__(self, player, audio_library, video_library, plg_mnt, config):
         super(SourceFactory, self).__init__()
         self.load_state()
-        self.db = db
         activated_sources = config.getlist('general', "activated_modes")
 
         self.sources_obj = {}
         from deejayd.sources import queue
-        self.sources_obj["queue"] = queue.QueueSource(db, audio_library)
+        self.sources_obj["queue"] = queue.QueueSource(audio_library)
         # playlist
         if "playlist" in activated_sources:
             from deejayd.sources import playlist
-            self.sources_obj["playlist"] = playlist.PlaylistSource(db, \
-                                                                 audio_library)
+            self.sources_obj["playlist"] = playlist.PlaylistSource(audio_library)
         else:
             log.info(_("Playlist support disabled"))
 
         # panel
         if "panel" in activated_sources:
             from deejayd.sources import panel
-            self.sources_obj["panel"] = panel.PanelSource(db, audio_library, \
-                    config)
+            self.sources_obj["panel"] = panel.PanelSource(audio_library, config)
         else:
             log.info(_("Panel support disabled"))
 
@@ -65,14 +62,14 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         # Video
         if "video" in activated_sources:
             from deejayd.sources import video
-            self.sources_obj["video"] = video.VideoSource(db, video_library)
+            self.sources_obj["video"] = video.VideoSource(video_library)
         else:
             log.info(_("Video support disabled"))
 
         # dvd
         if "dvd" in activated_sources and player.is_supported_uri("dvd"):
             from deejayd.sources import dvd
-            try: self.sources_obj["dvd"] = dvd.DvdSource(db, config)
+            try: self.sources_obj["dvd"] = dvd.DvdSource(config)
             except dvd.DvdError, ex:
                 log.err(_("Unable to init dvd support : %s") % str(ex))
         else:
@@ -148,10 +145,10 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         if queue_media: return (queue_media, "queue")
 
         current = self.sources_obj[self.state["current"]].get_current() or \
-            self.sources_obj[self.state["current"]].next(explicit = False)
+            self.sources_obj[self.state["current"]].next(explicit=False)
         return current
 
-    def next(self, explicit = True):
+    def next(self, explicit=True):
         queue_media = self.sources_obj["queue"].next(explicit)
         if queue_media:
             return queue_media
@@ -164,8 +161,8 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         self.sources_obj["queue"].reset()
 
 
-def init(player, db, audio_library, video_library, pl_mngt, config):
-    source = SourceFactory(player, db, audio_library, video_library, pl_mngt, config)
+def init(player, audio_library, video_library, pl_mngt, config):
+    source = SourceFactory(player, audio_library, video_library, pl_mngt, config)
     return source
 
 

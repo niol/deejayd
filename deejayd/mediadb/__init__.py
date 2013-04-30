@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -28,24 +28,24 @@ except ImportError:
     inotify = None
 
 
-def init(db, player, config):
+def init(player, config):
     audio_library, video_library, lib_watcher = None, None, None
     fc = config.get("mediadb", "filesystem_charset")
 
     audio_dir = config.get("mediadb", "music_directory")
-    try: audio_library = library.AudioLibrary(db, player, audio_dir, fc)
+    try: audio_library = library.AudioLibrary(player, audio_dir, fc)
     except library.NotFoundException, msg:
         log.err(_("Unable to init audio library : %s") % msg, fatal=True)
 
     activated_sources = config.getlist('general', "activated_modes")
     if "video" in activated_sources:
         video_dir = config.get('mediadb', 'video_directory')
-        try: video_library = library.VideoLibrary(db, player, video_dir, fc)
+        try: video_library = library.VideoLibrary(player, video_dir, fc)
         except library.NotFoundException, msg:
             log.err(_("Unable to init video library : %s") % msg, fatal=True)
 
     if inotify is not None:
-        lib_watcher = inotify.DeejaydInotify(db, audio_library, video_library)
+        lib_watcher = inotify.DeejaydInotify(audio_library, video_library)
 
     return audio_library, video_library, lib_watcher
 
