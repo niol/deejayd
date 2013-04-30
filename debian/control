@@ -71,3 +71,9 @@ Depends: ${misc:Depends}, ${python:Depends},
 Recommends: gstreamer0.10-gnomevfs, lsdvd
 Description: Deejayd GStreamer backend
  The deejayd media backend using the GStreamer library.
+
+Package: deejayd-vlc
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}, libvlc5
+Description: Deejayd VLC backend
+ The deejayd media backend using the VLC library.
