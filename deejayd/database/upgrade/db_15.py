@@ -44,6 +44,18 @@ def upgrade(cursor, backend, config):
         cursor.execute("DELETE FROM webradio_stats WHERE source_id = %s",\
                 (s_id,))
 
+    # remove dirlinks records which are useless now
+    cursor.execute("DELETE FROM library_dir WHERE type = 'dirlink'")
+    cursor.execute("ALTER TABLE library_dir RENAME TO library_dir_dirlinks")
+    cursor.execute("CREATE TABLE library_dir (id integer PRIMARY KEY,\
+                                              name text,\
+                                              lib_type text)")
+    cursor.execute("CREATE UNIQUE INDEX library_dir_name_lib_type_idx\
+                    ON library_dir (name, lib_type)")
+    cursor.execute("INSERT INTO library_dir(id, name, lib_type)\
+                           SELECT id, name, lib_type FROM library_dir_dirlinks")
+    cursor.execute("DROP TABLE library_dir_dirlinks")
+
     # update db version
     sql = [
         "UPDATE variables SET value = '15' WHERE name = 'database_version';",

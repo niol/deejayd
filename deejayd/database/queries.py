@@ -70,8 +70,8 @@ class DatabaseQueries(object):
 
     @query_decorator("lastid")
     def insert_dir(self, cursor, new_dir, type="audio"):
-        query = "INSERT INTO library_dir (name,type,lib_type)VALUES(%s,%s,%s)"
-        cursor.execute(query, (new_dir, 'directory', type))
+        query = "INSERT INTO library_dir (name,lib_type) VALUES(%s,%s)"
+        cursor.execute(query, (new_dir, type))
 
     @query_decorator("none")
     def remove_dir(self, cursor, id):
@@ -122,7 +122,7 @@ class DatabaseQueries(object):
     @query_decorator("fetchall")
     def get_all_dirs(self, cursor, dir, type="audio"):
         query = "SELECT DISTINCT id,name FROM library_dir\
-            WHERE name LIKE %s AND type='directory' AND lib_type = %s\
+            WHERE name LIKE %s AND lib_type = %s\
             ORDER BY name"
         cursor.execute(query, (dir + u"%%", type))
 
