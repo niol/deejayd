@@ -25,8 +25,8 @@ AVAILABLE_BACKENDS = ('xine', 'gstreamer', 'vlc')
 
 class PlayerError(DeejaydError):pass
 
-def init(db, plugin_manager, config):
-    media_backend = config.get("general","media_backend")
+def init(plugin_manager, config):
+    media_backend = config.get("general", "media_backend")
 
     if media_backend == "auto":
         backend_it = iter(AVAILABLE_BACKENDS)
@@ -35,7 +35,7 @@ def init(db, plugin_manager, config):
             while not media_backend:
                 backend = backend_it.next()
                 try:
-                    __import__('.'.join(('deejayd', 'player', backend, )))
+                    __import__('.'.join(('deejayd', 'player', backend,)))
                 except ImportError:
                     # Do nothing, simply ignore
                     pass
@@ -48,22 +48,22 @@ def init(db, plugin_manager, config):
 
     if media_backend == "gstreamer":
         from deejayd.player import gstreamer
-        try: player = gstreamer.GstreamerPlayer(db, plugin_manager, config)
+        try: player = gstreamer.GstreamerPlayer(plugin_manager, config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 
     elif media_backend == "xine":
         from deejayd.player import xine
-        try: player = xine.XinePlayer(db, plugin_manager, config)
+        try: player = xine.XinePlayer(plugin_manager, config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 
     elif media_backend == "vlc":
         from deejayd.player import vlc
-        try: player = vlc.VlcPlayer(db, plugin_manager, config)
+        try: player = vlc.VlcPlayer(plugin_manager, config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
-            
+
     else: log.err(_("Invalid media backend"), fatal=True)
 
     return player

@@ -21,7 +21,7 @@ from pytyxi import xine
 
 from deejayd.jsonrpc.interfaces import jsonrpc_module, PlayerModule
 from deejayd.player import PlayerError
-from deejayd.player._base import _BasePlayer, PLAYER_PAUSE,\
+from deejayd.player._base import _BasePlayer, PLAYER_PAUSE, \
                                  PLAYER_PLAY, PLAYER_STOP
 from deejayd.ui import log
 
@@ -37,12 +37,12 @@ class XinePlayer(_BasePlayer):
             "zoom",
             "aspect_ratio"\
         )
-    default_channels = [{"lang": "none", "ix": -2}, {"lang": "auto", "ix": -1}]
+    default_channels = [{"lang": "none", "ix":-2}, {"lang": "auto", "ix":-1}]
 
     supported_extensions = None
     xine_plugins = None
 
-    def __init__(self, db, plugin_manager, config):
+    def __init__(self, plugin_manager, config):
         # init main instance
         try:
             self.__xine = xine.XinePlayer()
@@ -50,7 +50,7 @@ class XinePlayer(_BasePlayer):
             raise PlayerError(_("Unable to init a xine instance"))
         self.__supports_gapless = self.__xine.has_gapless()
 
-        super(XinePlayer, self).__init__(db, plugin_manager, config)
+        super(XinePlayer, self).__init__(plugin_manager, config)
         self.__xine_options = {
             "video": self.config.get("xine", "video_output"),
             "audio": self.config.get("xine", "audio_output"),
@@ -108,7 +108,7 @@ class XinePlayer(_BasePlayer):
                 try: open_uri(self._media_file["uri"])
                 except PlayerError, ex:
                     if self._media_file["url-index"] < \
-                                            len(self._media_file["urls"])-1:
+                                            len(self._media_file["urls"]) - 1:
                         self._media_file["url-index"] += 1
                         self._media_file["uri"] = \
                                 self._media_file["urls"]\
@@ -127,7 +127,7 @@ class XinePlayer(_BasePlayer):
             self.__window.show(needs_video)
         self._init_video_information()
 
-    def _change_file(self, new_file, gapless = False):
+    def _change_file(self, new_file, gapless=False):
         sig = self.get_state() == PLAYER_STOP and True or False
         if self._media_file == None\
                 or new_file == None\
@@ -178,11 +178,11 @@ class XinePlayer(_BasePlayer):
     def _player_set_suboffset(self, offset):
         self.__stream.set_param(xine.Stream.XINE_PARAM_SPU_OFFSET, offset * 90)
 
-    def _player_set_alang(self,lang_idx):
+    def _player_set_alang(self, lang_idx):
         self.__stream.set_param(xine.Stream.XINE_PARAM_AUDIO_CHANNEL_LOGICAL,
                                 lang_idx)
 
-    def _player_set_slang(self,lang_idx):
+    def _player_set_slang(self, lang_idx):
         self.__stream.set_param(xine.Stream.XINE_PARAM_SPU_CHANNEL, lang_idx)
 
     def _player_get_alang(self):
@@ -192,14 +192,14 @@ class XinePlayer(_BasePlayer):
     def _player_get_slang(self):
         return self.__stream.get_param(xine.Stream.XINE_PARAM_SPU_CHANNEL)
 
-    def _set_volume(self, vol, sig = True):
+    def _set_volume(self, vol, sig=True):
         if self.__stream: self.__stream.set_volume(vol)
 
     def get_position(self):
         if not self.__stream: return 0
         return self.__stream.get_pos()
 
-    def _set_position(self,pos):
+    def _set_position(self, pos):
         pos = int(pos * 1000)
         state = self.get_state()
         if state == PLAYER_PAUSE:
@@ -220,13 +220,13 @@ class XinePlayer(_BasePlayer):
             return PLAYER_PAUSE
         return PLAYER_STOP
 
-    def is_supported_uri(self,uri_type):
+    def is_supported_uri(self, uri_type):
         if self.xine_plugins == None:
             self.xine_plugins = self.__xine.list_input_plugins()
 
         return uri_type in self.xine_plugins
 
-    def is_supported_format(self,format):
+    def is_supported_format(self, format):
         if self.supported_extensions == None:
             self.supported_extensions = self.__xine.get_supported_extensions()
         return format.strip(".") in self.supported_extensions
@@ -235,7 +235,7 @@ class XinePlayer(_BasePlayer):
         super(XinePlayer, self).close()
         self.__xine.destroy()
 
-    def _create_stream(self, has_video = True):
+    def _create_stream(self, has_video=True):
         if self.__stream != None:
             self._destroy_stream()
 
@@ -302,7 +302,7 @@ class XinePlayer(_BasePlayer):
             if self._media_file["type"] == "webradio":
                 # an error happened, try the next url
                 if self._media_file["url-index"] \
-                        < len(self._media_file["urls"])-1:
+                        < len(self._media_file["urls"]) - 1:
                     self._media_file["url-index"] += 1
                     self._media_file["uri"] = \
                             self._media_file["urls"]\
@@ -318,8 +318,8 @@ class XinePlayer(_BasePlayer):
                 except AttributeError: pass
                 for plugin in self.plugins:
                     plugin.on_media_played(self._media_file)
-        new_file = self._source.next(explicit = False)
-        try: self._change_file(new_file, gapless = True)
+        new_file = self._source.next(explicit=False)
+        try: self._change_file(new_file, gapless=True)
         except PlayerError:
             pass
         return False
@@ -389,36 +389,36 @@ class DvdParser:
         dvd_info = {"title": kaa_infos["label"], 'track': []}
         longest_track = {"ix": 0, "length": 0}
         for idx, t in enumerate(kaa_infos['tracks']):
-            try: self.__mine_stream.open("dvd://%d" % (idx+1,))
+            try: self.__mine_stream.open("dvd://%d" % (idx + 1,))
             except xine.XineError, ex:
                 raise PlayerError, ex
-            track = {"ix": idx+1, "length": int(t['length']), "chapter": []}
+            track = {"ix": idx + 1, "length": int(t['length']), "chapter": []}
             if track['length'] > longest_track["length"]:
                 longest_track = track
 
             # get audio channels info
             channels_number = len(t['audio'])
-            audio_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
-            for ch in range(0,channels_number):
+            audio_channels = [{"lang":"none", "ix":-2}, {"lang":"auto", "ix":-1}]
+            for ch in range(0, channels_number):
                 lang = self.__mine_stream.get_audio_lang(ch)
                 audio_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
             track["audio"] = audio_channels
 
             # get subtitles channels info
             channels_number = len(t['subtitles'])
-            sub_channels = [{"lang":"none","ix":-2},{"lang":"auto","ix":-1}]
-            for ch in range(0,channels_number):
+            sub_channels = [{"lang":"none", "ix":-2}, {"lang":"auto", "ix":-1}]
+            for ch in range(0, channels_number):
                 lang = self.__mine_stream.get_spu_lang(ch)
                 sub_channels.append({'ix':ch, "lang":lang.encode("utf-8")})
             track["subp"] = sub_channels
 
             # chapters
-            for c_i,chapter in enumerate(kaa_infos['tracks'][idx]['chapters']):
-                track["chapter"].append({ "ix": c_i+1,\
+            for c_i, chapter in enumerate(kaa_infos['tracks'][idx]['chapters']):
+                track["chapter"].append({ "ix": c_i + 1, \
                         'length': int(chapter["pos"]) })
                 if c_i > 0:
-                    track["chapter"][c_i-1]['length'] = int(chapter["pos"]) - \
-                            track["chapter"][c_i-1]['length']
+                    track["chapter"][c_i - 1]['length'] = int(chapter["pos"]) - \
+                            track["chapter"][c_i - 1]['length']
                 if c_i == len(kaa_infos['tracks'][idx]['chapters']) - 1:
                     track["chapter"][c_i]['length'] = track["length"] - \
                             int(track["chapter"][c_i]['length'])

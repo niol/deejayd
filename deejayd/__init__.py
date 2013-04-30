@@ -115,6 +115,7 @@ def Singleton(cls):
             """ Delegate access to implementation """
             return setattr(self.__instance, attr, value)
 
+    SingletonClass.__name__ = cls.__name__
     return SingletonClass
 
 # vim: ts=4 sw=4 expandtab

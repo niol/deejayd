@@ -34,8 +34,8 @@ class VideoSource(_BaseSortedLibSource):
     source_signal = 'video.update'
     sort_tags = ('title', 'rating', 'length')
 
-    def __init__(self, db, library):
-        super(VideoSource, self).__init__(db, library)
+    def __init__(self, library):
+        super(VideoSource, self).__init__(library)
         self._media_list.load()
 
     def set(self, value, type):

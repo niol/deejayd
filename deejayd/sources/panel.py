@@ -43,8 +43,8 @@ class PanelSource(_BaseSortedLibSource):
     initial_state = {"id": 1, "playorder": "inorder", "repeat": False, \
                      "panel-type": "panel", "panel-value": "0"}
 
-    def __init__(self, db, library, config):
-        super(PanelSource, self).__init__(db, library)
+    def __init__(self, library, config):
+        super(PanelSource, self).__init__(library)
         self._media_list.load()
         self._panel_medialist = self._media_list
 
@@ -223,9 +223,7 @@ class PanelSource(_BaseSortedLibSource):
     def cb_playlist_listupdate(self, signal):
         if self.state["panel-type"] == "playlist":
             pl_id = int(self.state["panel-value"])
-            list = [int(id) \
-                    for (id, pl, type) in self.db.get_medialist_list() if not \
-                    pl.startswith("__") or not pl.endswith("__")]
+            list = [int(p["pl_id"]) for p in PlaylistFactory().list()]
             if pl_id not in list:  # fall back to panel
                 self.__update_active_list("panel", "", raise_ex=True)
                 self.state["panel-type"] = "panel"

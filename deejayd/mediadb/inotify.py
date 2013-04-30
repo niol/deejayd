@@ -26,22 +26,22 @@ import twisted.python._inotify
 from deejayd.ui import log
 import deejayd.mediadb.library
 from deejayd.mediadb import pathutils
+from deejayd.database.connection import DatabaseConnection
 
 
 class DeejaydInotify(twisted.internet.inotify.INotify):
 
-    IN_WATCH_MASK = twisted.internet.inotify.IN_DELETE |\
-                    twisted.internet.inotify.IN_CREATE |\
-                    twisted.internet.inotify.IN_MOVED_FROM |\
-                    twisted.internet.inotify.IN_MOVED_TO |\
+    IN_WATCH_MASK = twisted.internet.inotify.IN_DELETE | \
+                    twisted.internet.inotify.IN_CREATE | \
+                    twisted.internet.inotify.IN_MOVED_FROM | \
+                    twisted.internet.inotify.IN_MOVED_TO | \
                     twisted.internet.inotify.IN_CLOSE_WRITE
 
-    def __init__(self, db, audio_library, video_library):
+    def __init__(self, audio_library, video_library):
         super(DeejaydInotify, self).__init__()
 
         self.__audio_library = audio_library
         self.__video_library = video_library
-        self.__db = db
 
         for library in (self.__audio_library, self.__video_library):
             if library:
@@ -54,7 +54,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
 
     def close(self):
         try:
-            map(self.ignore, self._watchpaths.copy()) # stop watching all
+            map(self.ignore, self._watchpaths.copy())  # stop watching all
         except KeyError:
             pass
         self.stopReading()
@@ -102,9 +102,9 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         elif mask & twisted.internet.inotify.IN_CLOSE_WRITE:
             library.update_file(path, name)
 
-        library.db_con.update_stats(library.type)
-        library.db_con.connection.commit()
-        library.db_con.close()
+        # library.db_con.update_stats(library.type)
+        DatabaseConnection().commit()
+        DatabaseConnection().close()
         library.mutex.release()
 
     def watch_dir(self, dir_path, library):

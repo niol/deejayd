@@ -51,7 +51,7 @@ class WebradioSource(_BaseSource):
     initial_state = {"id": 1, "source": "local", "source-cat": None}
 
     def __init__(self):
-        _BaseSource.__init__(self, None)
+        _BaseSource.__init__(self)
         self.wb_sources = { "local": WebradioLocalSource() }
         if DeejaydConfig().getboolean("webradio", "icecast"):
             self.wb_sources["icecast"] = IceCastPlugin()

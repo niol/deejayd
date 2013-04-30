@@ -52,10 +52,9 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
     supported_options = []
     default_channels = []
 
-    def __init__(self, db, plugin_manager, config):
+    def __init__(self, plugin_manager, config):
         super(_BasePlayer, self).__init__()
         self.config = config
-        self.db = db
         # Init plugins
         self.plugins = []
         plugins_cls = plugin_manager.get_plugins(IPlayerPlugin)

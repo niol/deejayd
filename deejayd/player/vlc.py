@@ -22,7 +22,7 @@ from deejayd.player import _vlc
 from deejayd.jsonrpc.interfaces import jsonrpc_module, PlayerModule
 from deejayd.player import PlayerError
 from pytyx11 import x11
-from deejayd.player._base import _BasePlayer, PLAYER_PAUSE,\
+from deejayd.player._base import _BasePlayer, PLAYER_PAUSE, \
                                  PLAYER_PLAY, PLAYER_STOP
 from deejayd.ui import log
 
@@ -53,7 +53,7 @@ class VlcPlayer(_BasePlayer):
             self.__lock.release()
             return result
 
-        def wait(self, timeout = None):
+        def wait(self, timeout=None):
             self.__event.wait(timeout)
 
         def release(self, evt_mg):
@@ -68,7 +68,7 @@ class VlcPlayer(_BasePlayer):
             "sub_lang",
        )
 
-    def __init__(self, db, plugin_manager, config):
+    def __init__(self, plugin_manager, config):
         # test version, this backend only works with version 2.0.X of libvlc
         version = _vlc.libvlc_get_version()
         if not version.startswith("2.0."):
@@ -78,7 +78,7 @@ class VlcPlayer(_BasePlayer):
         try: self.__vlc = _vlc.Instance()
         except _vlc.VLCException, ex:
             raise PlayerError(_("Unable to init vlc player: %s") % ex)
-        super(VlcPlayer, self).__init__(db, plugin_manager, config)
+        super(VlcPlayer, self).__init__(plugin_manager, config)
 
         # init vlc player and event manager
         self.__player = self.__vlc.media_player_new()
@@ -139,11 +139,11 @@ class VlcPlayer(_BasePlayer):
 
     def get_position(self):
         if self.get_state() != PLAYER_STOP:
-            return int(self.__player.get_position() *\
+            return int(self.__player.get_position() * \
                     float(self.__media_length()))
         return 0
 
-    def _set_position(self,pos):
+    def _set_position(self, pos):
         if self.get_state() != PLAYER_STOP and self.__player.is_seekable():
             self.__player.set_position(pos / float(self.__media_length()))
 
@@ -155,11 +155,11 @@ class VlcPlayer(_BasePlayer):
             return PLAYER_PAUSE
         return PLAYER_STOP
 
-    def is_supported_uri(self,uri_type):
+    def is_supported_uri(self, uri_type):
         # TODO : find a way to know list of available module to implement this
         return True
 
-    def is_supported_format(self,format):
+    def is_supported_format(self, format):
         # TODO : find a way to know list of available module to implement this
         return True
 
@@ -171,7 +171,7 @@ class VlcPlayer(_BasePlayer):
         self.__player.video_set_scale(value)
         self._media_file["zoom"] = zoom
 
-    def _change_file(self,new_file):
+    def _change_file(self, new_file):
         def needs_video(media):
             if media is not None and media['type'] == 'video':
                 return True
@@ -197,17 +197,17 @@ class VlcPlayer(_BasePlayer):
         pass
 
     def _player_set_avoffset(self, offset):
-        if self.__player.audio_set_delay(offset * 1000) == -1: # error
+        if self.__player.audio_set_delay(offset * 1000) == -1:  # error
             raise PlayerError(_("Unable to update audio/video delay"))
 
     def _player_set_suboffset(self, offset):
-        if self.__player.video_set_spu_delay(offset * 1000) == -1: # error
+        if self.__player.video_set_spu_delay(offset * 1000) == -1:  # error
             raise PlayerError(_("Unable to update spu delay"))
 
-    def _player_set_alang(self,lang_idx):
+    def _player_set_alang(self, lang_idx):
         self.__player.audio_set_track(lang_idx)
 
-    def _player_set_slang(self,lang_idx):
+    def _player_set_slang(self, lang_idx):
         self.__player.video_set_spu(lang_idx)
 
     def _player_get_alang(self):
@@ -238,7 +238,7 @@ class VlcPlayer(_BasePlayer):
                 for plugin in self.plugins:
                     plugin.on_media_played(self._media_file)
 
-            self._change_file(self._source.next(explicit = False))
+            self._change_file(self._source.next(explicit=False))
         reactor.callFromThread(eof_cb)
 
     def __media_length(self):
@@ -254,17 +254,17 @@ class VlcPlayer(_BasePlayer):
                 raise PlayerError(_("Unable to open video display"))
 
         try: open_display(self._video_options["display"])
-        except PlayerError, ex: # try to get display with env var
+        except PlayerError, ex:  # try to get display with env var
             try: open_display(os.environ["DISPLAY"])
-            except (PlayerError,KeyError):
+            except (PlayerError, KeyError):
                 raise ex
 
         self.__display.set_dpms(False)
         if self._video_options["fullscreen"]:
-            self.__window = x11.X11Window(self.__display,\
-                    fullscreen = True)
+            self.__window = x11.X11Window(self.__display, \
+                    fullscreen=True)
         else:
-            self.__window = x11.X11Window(self.__display,\
+            self.__window = x11.X11Window(self.__display, \
                     width=400, height=200)
 
     def __destroy_x_window(self):
@@ -282,7 +282,7 @@ class VlcPlayer(_BasePlayer):
             if "subtitle_channels" in self._media_file.keys():
                 for i in range(int(self._media_file["subtitle_channels"])):
                     sub_channels.append(\
-                        {"lang": _("Sub channel %d") % (i+1,), "ix": i+1})
+                        {"lang": _("Sub channel %d") % (i + 1,), "ix": i + 1})
             if self._has_external_subtitle():
                 sub_channels.append({"lang": "external", \
                                      "ix": len(sub_channels)})
@@ -292,11 +292,11 @@ class VlcPlayer(_BasePlayer):
                 self._media_file["subtitle_idx"] = self._player_get_slang()
 
             # audio channels
-            audio_channels = [{"lang": "none", "ix": -1}]
+            audio_channels = [{"lang": "none", "ix":-1}]
             if "audio_channels" in self._media_file.keys():
                 for i in range(int(self._media_file["audio_channels"])):
                     audio_channels.append(\
-                            {"lang": _("Audio channel %d") % (i+1,), "ix": i+1})
+                            {"lang": _("Audio channel %d") % (i + 1,), "ix": i + 1})
             if len(audio_channels) > 0:
                 self._media_file["audio"] = audio_channels
                 self._media_file["av_offset"] = 0
