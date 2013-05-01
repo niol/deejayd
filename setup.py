@@ -250,9 +250,9 @@ if __name__ == "__main__":
            license="GNU GPL v2",
            scripts=["scripts/deejayd","scripts/djc"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
-                     "deejayd.mediadb.formats",
-                     "deejayd.mediadb.formats.audio",\
-                     "deejayd.mediadb.formats.video","deejayd.player",\
+                     "deejayd.mediadb.parsers",
+                     "deejayd.mediadb.parsers.audio",\
+                     "deejayd.mediadb.parsers.video","deejayd.player",\
                      "deejayd.sources","deejayd.ui","deejayd.jsonrpc",\
                      "deejayd.database","deejayd.database.upgrade",\
                      "deejayd.model", "deejayd.webradio",

@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.mediadb.formats._base import _AudioFile
+from deejayd.mediadb.parsers.audio.core import _AudioFile
 
 extensions = ['.mp4', '.m4a']
 try: from mutagen.mp4 import MP4

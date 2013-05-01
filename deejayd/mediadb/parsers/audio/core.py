@@ -28,7 +28,7 @@ class _MediaFile(object):
             "filename": os.path.basename(file_path),
             "uri": quote_uri(file_path),
             "type": self.type,
-            "rating": "2", # [0-4]
+            "rating": "2",  # [0-4]
             "lastplayed": "0",
             "skipcount": "0",
             "playcount": "0",
@@ -38,8 +38,8 @@ class _MediaFile(object):
 class _AudioFile(_MediaFile):
     _tagclass_ = None
     type = "song"
-    supported_tag = ("tracknumber","title","genre","artist","album",\
-            "discnumber","date","replaygain_track_gain",\
+    supported_tag = ("tracknumber", "title", "genre", "artist", "album", \
+            "discnumber", "date", "replaygain_track_gain", \
             "replaygain_track_peak")
 
     def _format_number(self, nb):
@@ -69,47 +69,6 @@ class _AudioFile(_MediaFile):
             infos["various_artist"] = infos["artist"]
             cover = self.get_cover(tag_info)
             if cover: infos["cover"] = cover
-
-        return infos
-
-class _VideoFile(_MediaFile):
-    type = "video"
-    mime_type = None
-
-    def _format_title(self, f):
-        (filename,ext) = os.path.splitext(f)
-        title = filename.replace(".", " ")
-        title = title.replace("_", " ")
-        return title.title()
-
-    def parse(self, file):
-        # import kaa.metadata in the last moment to avoid to launch thread too
-        # early
-        import kaa.metadata
-
-        infos = _MediaFile.parse(self, file)
-        infos.update({
-                "audio_channels": "0",
-                "subtitle_channels": "0",
-                "length": "0",
-                "videoheight": "0",
-                "videowidth": "0",
-                })
-        (path,filename) = os.path.split(file)
-        infos["title"] = self._format_title(filename)
-
-        # parse video file with kaa
-        kaa_infos = kaa.metadata.parse(file)
-        if kaa_infos is None:
-            raise TypeError(_("Video media %s not supported by kaa parser") \
-                    % file)
-        if len(kaa_infos["video"]) == 0:
-            raise TypeError(_("This file is not a video"))
-        infos["length"] = int(kaa_infos["length"])
-        infos["videowidth"] = kaa_infos["video"][0]["width"]
-        infos["videoheight"] = kaa_infos["video"][0]["height"]
-        infos["audio_channels"] = len(kaa_infos["audio"])
-        infos["subtitle_channels"] = len(kaa_infos["subtitles"])
 
         return infos
 

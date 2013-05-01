@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.mediadb.formats._base import _AudioFile
+from deejayd.mediadb.parsers.audio.core import _AudioFile
 
 extensions = [".flac"]
 try: from mutagen.flac import FLAC
@@ -28,7 +28,7 @@ class FlacFile(_AudioFile):
 
     def get_cover(self, tag_info):
         for picture in tag_info.pictures:
-            if picture.type == 3: # album front cover
+            if picture.type == 3:  # album front cover
                 return {"data": picture.data, "mime": picture.mime}
         return None
 

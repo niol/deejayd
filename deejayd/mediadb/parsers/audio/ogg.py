@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.mediadb.formats._base import _AudioFile
+from deejayd.mediadb.parsers.audio.core import _AudioFile
 
 extensions = [".ogg"]
 try: from mutagen.oggvorbis import OggVorbis
@@ -30,14 +30,14 @@ class OggFile(_AudioFile):
         return None
         # disable for now
         # not work correctly
-        #if 'coverarttype' in tag_info.keys() and\
+        # if 'coverarttype' in tag_info.keys() and\
         #        int(tag_info['coverarttype'][0])==3:
         #    try:
         #        return {"data": tag_info['coverart'][0],\
         #                "mime": tag_info['coverartmime'][0]}
         #    except KeyError:
         #        return None
-        #return None
+        # return None
 
 object = OggFile
 

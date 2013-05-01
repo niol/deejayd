@@ -26,7 +26,7 @@ from deejayd.sources._base import SourceError
 class UnknownSourceException: pass
 
 class SourceFactory(SignalingComponent, PersistentStateComponent):
-    sources_list = ("playlist", "queue", "webradio", "video", "dvd", "panel")
+    sources_list = ("playlist", "queue", "webradio", "video", "panel")
     state_name = "source_state"
     initial_state = {"current": "playlist"}
 
@@ -65,15 +65,6 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
             self.sources_obj["video"] = video.VideoSource(video_library)
         else:
             log.info(_("Video support disabled"))
-
-        # dvd
-        if "dvd" in activated_sources and player.is_supported_uri("dvd"):
-            from deejayd.sources import dvd
-            try: self.sources_obj["dvd"] = dvd.DvdSource(config)
-            except dvd.DvdError, ex:
-                log.err(_("Unable to init dvd support : %s") % str(ex))
-        else:
-            log.info(_("DVD support disabled"))
 
         # restore recorded source
         source = self.state["current"]

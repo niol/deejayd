@@ -43,7 +43,7 @@ class CoreInterfaceTests(_TestInterfaces):
 
     def testGetModes(self):
         """Test getModes command"""
-        known_keys = ("playlist", "panel", "dvd", "webradio", "video")
+        known_keys = ("playlist", "panel", "webradio", "video")
         ans = self.deejayd.get_modes()
         for k in known_keys:
             self.assertTrue(k in ans.keys())
@@ -52,7 +52,7 @@ class CoreInterfaceTests(_TestInterfaces):
     def testGetStats(self):
         """Test getStats command"""
         ans = self.deejayd.get_stats()
-        keys = ["audio_library_update","songs","artists","albums"]
+        keys = ["audio_library_update", "songs", "artists", "albums"]
         if self.hasVideoSupport():
             keys.append("video_library_update")
         for k in keys:
@@ -121,11 +121,11 @@ class CoreInterfaceTests(_TestInterfaces):
         modes = ["playlist", "panel", "queue"]
         if self.hasVideoSupport(): modes.append("video")
         for mode in modes:
-            order = self.testdata.getRandomElement(("inorder", "random",\
+            order = self.testdata.getRandomElement(("inorder", "random", \
                     "onemedia"))
             self.assertAckCmd(self.deejayd.set_option(mode, "playorder", order))
             status = self.deejayd.get_status()
-            self.assertEqual(status[mode+"playorder"], order)
+            self.assertEqual(status[mode + "playorder"], order)
             if mode != "queue":
                 rpt = self.testdata.getRandomElement((False, True))
                 self.assertAckCmd(self.deejayd.set_option(mode, "repeat", rpt))

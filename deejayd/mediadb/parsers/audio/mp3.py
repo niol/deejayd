@@ -17,9 +17,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
-from deejayd.mediadb.formats._base import _AudioFile
+from deejayd.mediadb.parsers.audio.core import _AudioFile
 
-extensions = [".mp3",".mp2",".aac"]
+extensions = [".mp3", ".mp2", ".aac"]
 try: from mutagen.mp3 import MP3
 except ImportError:
     extensions = []
@@ -58,31 +58,31 @@ class Mp3File(_AudioFile):
 
         for frame in tag.values():
             if frame.FrameID == "TXXX":
-                if frame.desc in ("replaygain_track_peak",\
+                if frame.desc in ("replaygain_track_peak", \
                                   "replaygain_track_gain"):
                     # Some versions of Foobar2000 write broken Replay Gain
                     # tags in this format.
                     infos[frame.desc] = frame.text[0]
                     self.replaygain_process = True
                 else: continue
-            elif frame.FrameID == "RVA2": # replaygain
+            elif frame.FrameID == "RVA2":  # replaygain
                 self.__process_rg(frame, infos)
                 continue
-            elif frame.FrameID == "TCON": # genre
+            elif frame.FrameID == "TCON":  # genre
                 infos["genre"] = frame.genres[0]
                 continue
-            elif frame.FrameID == "TDRC": # date
+            elif frame.FrameID == "TDRC":  # date
                 list = [stamp.text for stamp in frame.text]
                 infos["date"] = list[0]
                 continue
-            elif frame.FrameID == "TRCK": # tracknumber
+            elif frame.FrameID == "TRCK":  # tracknumber
                 infos["tracknumber"] = self._format_number(frame.text[0])
-            elif frame.FrameID == "TPOS": # discnumber
+            elif frame.FrameID == "TPOS":  # discnumber
                 infos["discnumber"] = self._format_number(frame.text[0])
             elif frame.FrameID in self.IDS.keys():
                 infos[self.IDS[frame.FrameID]] = frame.text[0]
-            elif frame.FrameID == "APIC": # picture
-                if frame.type == 3: # album front cover
+            elif frame.FrameID == "APIC":  # picture
+                if frame.type == 3:  # album front cover
                     infos["cover"] = {"data": frame.data, "mime": frame.mime}
             else: continue
 
@@ -91,7 +91,7 @@ class Mp3File(_AudioFile):
 
     def __process_rg(self, frame, infos):
         if frame.channel == 1:
-            if frame.desc == "album": return # not supported
+            if frame.desc == "album": return  # not supported
             elif frame.desc == "track" or not self.replaygain_process:
                 infos["replaygain_track_gain"] = "%+f dB" % frame.gain
                 infos["replaygain_track_peak"] = str(frame.peak)

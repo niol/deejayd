@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,22 +16,15 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, glob
+from deejayd import DeejaydError
 
-def get_extensions(player, type = "audio"):
-    base = os.path.join(os.path.dirname(__file__), type)
-    base_import = "deejayd.mediadb.formats.%s" % type
-    ext_dict = {}
+class ParseError(DeejaydError):
+    pass
 
-    modules = [os.path.basename(f[:-3]) \
-                for f in glob.glob(os.path.join(base, "[!_]*.py"))]
-    for m in modules:
-        mod = __import__(base_import+"."+m, {}, {}, base)
-        filetype_class = mod.object
-        for ext in mod.extensions:
-            if player.is_supported_format(ext):
-                ext_dict[ext] = filetype_class
+class NoParserError(DeejaydError):
+    pass
 
-    return ext_dict
+from deejayd.mediadb.parsers.video import VideoParserFactory
+from deejayd.mediadb.parsers.audio import AudioParserFactory
 
 # vim: ts=4 sw=4 expandtab

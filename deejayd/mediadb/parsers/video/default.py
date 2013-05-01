@@ -16,17 +16,16 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os, datetime
+from deejayd.mediadb.parsers._base import _VideoFile
 
-from deejayd.mediadb.formats._base import _VideoFile
-extensions = (".avi", ".flv", ".asf", ".wmv", ".ogm", ".mkv",\
-        ".mp4", ".mov", ".m4v")
 
 class VideoFile(_VideoFile):
+    extensions = (".avi", ".asf", ".wmv", ".ogm", ".mkv", ".mp4", ".mov", ".m4v")
     mime_type = (u"video/x-msvideo", u"video/x-ms-asf", u"video/x-ms-wmv",\
             u"video/x-ogg", u"video/x-theora",u"application/ogg",\
             u"video/x-matroska", u'video/quicktime', u'video/mp4')
 
+type = "main"
 object = VideoFile
 
 # vim: ts=4 sw=4 expandtab

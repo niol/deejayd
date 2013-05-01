@@ -21,7 +21,9 @@ from deejayd import DeejaydError
 from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.database.connection import DatabaseConnection
 from deejayd.jsonrpc.interfaces import LibraryModule, jsonrpc_module
-from deejayd.mediadb import formats, pathutils
+from deejayd.mediadb import pathutils
+from deejayd.mediadb.parsers import NoParserError, ParseError
+from deejayd.mediadb.parsers import AudioParserFactory, VideoParserFactory
 from deejayd.model import mediafilters
 from deejayd.model.library import LibraryFactory
 from deejayd.model.stats import get_stats
@@ -70,9 +72,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
         # Connection to the database
         self.mutex = threading.Lock()
-
-        # build supported extension list
-        self.ext_dict = formats.get_extensions(player, self.type)
 
     def fs_charset2unicode(self, path, errors='strict'):
         """
@@ -311,6 +310,8 @@ class _Library(SignalingComponent, JSONRpcComponent):
                 log.info("Directory %s skipped because of unhandled characters."\
                          % self.fs_charset2unicode(root, 'replace'))
                 continue
+            if os.path.basename(root).startswith("."):
+                continue  # skip hidden folder
 
             try: dir_id = library_dirs[root]
             except KeyError:
@@ -381,16 +382,14 @@ class _Library(SignalingComponent, JSONRpcComponent):
         pass
 
     def _get_file_info(self, file_path):
-        (base, ext) = os.path.splitext(file_path)
-        # try to get infos from this file
-        try: file_info = self.ext_dict[ext.lower()]().parse(file_path)
-        except (TypeError, KeyError):
+        try: infos = self.parser.parse(file_path)
+        except NoParserError:
             log.info(_("File %s not supported") % file_path)
             return None
         except Exception:
             log_traceback()
             return None
-        return file_info
+        return infos
 
     #######################################################################
     # # Inotify actions
@@ -434,7 +433,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
     def remove_file(self, path, name):
         fn, ext = os.path.splitext(name)
-        if ext in self.ext_dict.keys():
+        if ext in self.parser.get_extensions():
             self.remove_media(path, name)
         else:
             self.remove_extrainfo_file(os.path.join(path, name))
@@ -490,6 +489,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
 @jsonrpc_module(LibraryModule)
 class AudioLibrary(_Library):
     type = "audio"
+    parser = AudioParserFactory()
     search_type = "song"
     update_signal_name = 'mediadb.aupdate'
     cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg", \
@@ -505,24 +505,10 @@ class AudioLibrary(_Library):
         return {"mime": mime, "cover": base64.b64decode(image), "id": cover_id}
 
     def __extract_cover(self, cover_path):
-        # import kaa.metadata in the last moment to avoid to launch thread too
-        # early
-        import kaa.metadata
-
         if os.path.getsize(cover_path) > 512 * 1024:
             return None  # file too large (> 512k)
 
-        # parse video file with kaa
-        cover_infos = kaa.metadata.parse(cover_path)
-        if cover_infos is None:
-            raise TypeError(_("cover %s not supported by kaa parser") % \
-                    cover_path)
-        # get mime type of this picture
-        mime_type = cover_infos["mime"]
-        if unicode(mime_type) not in (u"image/jpeg", u"image/png"):
-            log.info(_("cover %s : wrong mime type") % cover_path)
-            return None
-
+        mime_type = "image/jpeg"
         try: fd = open(cover_path)
         except Exception:
             log.info(_("Unable to open cover file %s") % cover_path)
@@ -666,6 +652,7 @@ class AudioLibrary(_Library):
 @jsonrpc_module(LibraryModule)
 class VideoLibrary(_Library):
     type = "video"
+    parser = VideoParserFactory()
     search_type = "video"
     update_signal_name = 'mediadb.vupdate'
     subtitle_ext = (".srt",)
@@ -694,7 +681,7 @@ class VideoLibrary(_Library):
     def update_subtitle(self, file_path):
         path, fn = os.path.split(file_path)
         name, ext = os.path.splitext(fn)
-        for video_ext in self.ext_dict.keys():
+        for video_ext in self.parser.get_extensions():
             rs = self.lib_obj.is_file_exist(path, name + video_ext)
             if rs is not None:
                 dir_id, fid, lm = rs

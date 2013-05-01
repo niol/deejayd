@@ -231,10 +231,6 @@ if __name__ == "__main__":
         abort(msg=\
             _("Unable to launch deejayd core, see traceback for more details"),
             exception=ex)
-
-    # use twisted loop for kaa
-    import kaa
-    kaa.main.select_notifier('twisted')
     ###############################################################
 
     service = False
@@ -249,7 +245,6 @@ if __name__ == "__main__":
             try: reactor.listenTCP(port, factory, interface=bind_address)
             except CannotListenError, err:
                 deejayd_core.close()
-                kaa.main.stop()
                 abort(msg=str(err))
 
     # webui service
@@ -278,7 +273,6 @@ if __name__ == "__main__":
                                   options.webui_logfile, htdocs_dir)
             except webui.DeejaydWebError, err:
                 deejayd_core.close()
-                kaa.main.stop()
                 abort(msg=str(err))
 
             port = config.getint("webui", "port")
@@ -291,7 +285,6 @@ if __name__ == "__main__":
     # launch reactor
     if not service:
         deejayd_core.close()
-        kaa.main.stop()
         abort(msg=_("No service has been activated"))
 
     # launch reactor
