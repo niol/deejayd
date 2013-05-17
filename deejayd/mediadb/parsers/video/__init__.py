@@ -34,6 +34,10 @@ PARSERS = [('asf', ['video/asf'], ['asf', 'wmv', 'wma']),
 ]
 
 class VideoParserFactory(object):
+    subtitle_ext = (".srt",)
+
+    def __init__(self, library):
+        self.library = library
 
     def get_extensions(self):
         return (".avi", ".flv", ".asf", ".wmv", ".ogm", ".mkv", \
@@ -45,7 +49,8 @@ class VideoParserFactory(object):
         title = title.replace("_", " ")
         return title.title()
 
-    def parse(self, path):
+    def parse(self, file_obj):
+        path = file_obj.get_path()
         extension = os.path.splitext(path)[1][1:]
         mimetype = mimetypes.guess_type(path)[0]
         parser_ext = None
@@ -67,21 +72,29 @@ class VideoParserFactory(object):
             raise ParseError(_("Video media %s not supported") % file)
         if len(infos["video"]) == 0:
             raise ParseError(_("This file is not a video"))
-
-        return {
-            "filename": os.path.basename(path),
+        file_obj.update({
             "uri": quote_uri(path),
-            "type": "video",
-            "rating": "2",  # [0-4]
-            "lastplayed": "0",
-            "skipcount": "0",
-            "playcount": "0",
             "title": self._format_title(os.path.basename(path)),
             "length": int(infos["length"] or 0),
             "videowidth": infos["video"][0]["width"],
             "videoheight": infos["video"][0]["height"],
             "audio_channels": len(infos["audio"]),
             "subtitle_channels": len(infos["subtitles"]),
-        }
+        })
+
+        # find external subtitle
+        base_path = os.path.splitext(path)[0]
+        sub = ""
+        for ext_type in self.subtitle_ext:
+            if os.path.isfile(os.path.join(base_path + ext_type)):
+                sub = quote_uri(base_path + ext_type)
+                file_obj["external_subtitle"] = sub
+                break
+
+        return file_obj
+
+    def inotify_parse(self, filepath):
+        # TODO : parse subtitle if necessary
+        pass
 
 # vim: ts=4 sw=4 expandtab

@@ -32,14 +32,13 @@ class Mp3File(_AudioFile):
             }
     replaygain_process = False
 
-    def parse(self, file):
-        infos = _AudioFile.parse(self, file)
+    def parse(self, file, library):
+        infos = _AudioFile.parse(self, file, library)
         mp3_info = MP3(file)
 
         infos.update([
             ("title", ""),
             ("artist", ""),
-            ("various_artist", ""),
             ("album", ""),
             ("tracknumber", ""),
             ("discnumber", ""),
@@ -47,7 +46,6 @@ class Mp3File(_AudioFile):
             ("genre", ""),
             ("replaygain_track_gain", ""),
             ("replaygain_track_peak", ""),
-            ("bitrate", int(mp3_info.info.bitrate)),
             ("length", int(mp3_info.info.length)),
             ])
 
@@ -83,10 +81,10 @@ class Mp3File(_AudioFile):
                 infos[self.IDS[frame.FrameID]] = frame.text[0]
             elif frame.FrameID == "APIC":  # picture
                 if frame.type == 3:  # album front cover
-                    infos["cover"] = {"data": frame.data, "mime": frame.mime}
+                    infos["cover"] = {"data": frame.data,
+                                      "mimetype": frame.mime}
             else: continue
 
-        infos["various_artist"] = infos["artist"]
         return infos
 
     def __process_rg(self, frame, infos):

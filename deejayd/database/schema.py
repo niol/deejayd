@@ -56,29 +56,71 @@ DB_SCHEMA = {
     "tables": [
         Table('library_dir', key='id')[
             Column('id', auto_increment=True),
+            Column('parent_id', type='int'),
             Column('name'),
             Column('lib_type'),  # audio or video
             Index(('name', 'lib_type'))],
-        Table('library', key='id')[
+
+        # audio related tables
+        Table('song', key='id')[
             Column('id', auto_increment=True),
-            Column('directory', type='int'),
-            Column('name'),
+            Column('directory', type='int'),  # foreign key to library_dir
+            Column('filename'),
             Column('lastmodified', type='int'),
-            Index(('name', 'directory')),
+            Column('uri'),
+            Column('title'),
+            Column('length', type='int'),
+            Column('skipcount', type='int'),
+            Column('playcount', type='int'),
+            Column('lastplayed', type='int'),
+            Column('rating', type='int'),
+            Column('album_id', type='int'),  # foreign key to album
+            Column('artist'),
+            Column('genre'),
+            Column('tracknumber'),
+            Column('date'),
+            Column('replaygain_track_gain'),
+            Column('replaygain_track_peak'),
+            Column('discnumber'),
+            Index(('filename', 'directory')),
             Index(('directory',), unique=False)],
-        Table('media_info', key=('id', 'ikey'))[
-            Column('id', type="int"),
-            Column('ikey'),
-            Column('value')],
-        Table('cover', key='id')[
+        Table('album', key='id')[
             Column('id', auto_increment=True),
-            # path to the cover file or
-            # hash of the picture for cover inside audio file
-            Column('source'),
-            Column('mime_type'),  # mime type of the cover, ex image/jpeg
-            Column('lmod', type="int"),  # last modified
-            Column('image', type="blob"),
-            Index(('source',))],
+            Column('album'),  # foreign key to library_dir
+            Column('compilation', type='int'),
+            Column('cover_type'), # "image/jpeg" "image/png"
+            Column('cover_lmod', type='int'),
+            Index(('album',), unique=True)],
+        Table('artist', key='id')[
+            Column('id', auto_increment=True),
+            Column('name'),  # foreign key to library_dir
+            Index(('name',), unique=True)],
+        Table('artist_album', key='id')[
+            Column('artist_id', auto_increment=True),
+            Column('album_id')],  # foreign key to library_dir
+
+        # video related tables
+        Table('video', key='id')[
+            Column('id', auto_increment=True),
+            Column('directory', type='int'),  # foreign key to library_dir
+            Column('filename'),
+            Column('uri'),
+            Column('title'),
+            Column('length', type='int'),
+            Column('skipcount', type='int'),
+            Column('playcount', type='int'),
+            Column('lastplayed', type='int'),
+            Column('rating', type='int'),
+            Column('lastmodified', type='int'),
+            Column('videoheight', type='int'),
+            Column('videowidth', type='int'),
+            Column('audio_channels', type='int'),
+            Column('subtitle_channels', type='int'),
+            Column('external_subtitle'),
+            Index(('filename', 'directory')),
+            Index(('directory',), unique=False)],
+
+        # medialist related tables
         Table('medialist', key='id')[
             Column('id', auto_increment=True),
             Column('name'),
@@ -100,6 +142,8 @@ DB_SCHEMA = {
         Table('medialist_filters', key=('medialist_id', 'filter_id'))[
             Column('medialist_id', type='int'),
             Column('filter_id', type='int')],
+
+        # filter related tables
         Table('filters', key=('filter_id'))[
             Column('filter_id', auto_increment=True),
             Column('type')],  # complex or basic
@@ -115,6 +159,8 @@ DB_SCHEMA = {
               key=('complexfilter_id', 'filter_id'))[
             Column('complexfilter_id', type='int'),
             Column('filter_id', type='int')],
+
+        # webradio related tables
         Table('webradio_source', key='id')[
             Column('id', auto_increment=True),
             Column('name'),

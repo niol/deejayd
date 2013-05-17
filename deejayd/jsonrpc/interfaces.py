@@ -136,6 +136,8 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
             res["files"] = map(lambda m: m.to_json(), res["files"])
         elif type == "dict":
             res = dict(res)
+        elif type == "media":
+            res = res.to_json()
         elif type == "ack":
             res = True
 
@@ -408,7 +410,7 @@ class PlayerModule(object):
 
     class getPlaying:
         """Return informations on the current song/webradio/video. Raise an error if no media is playing"""
-        answer = "dict"
+        answer = "media"
 
     class getAvailableVideoOptions:
         """Get video options supported by the active player. the answer is a dict of option_name=is_supported where

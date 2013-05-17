@@ -38,10 +38,9 @@ class Mp4File(_AudioFile):
         "disk": "discnumber",
         }
 
-    def parse(self, file):
-        infos = _AudioFile.parse(self, file)
+    def parse(self, file, library):
+        infos = _AudioFile.parse(self, file, library)
         mp4_info = MP4(file)
-        infos["bitrate"] = int(mp4_info.info.bitrate)
         infos["length"] = int(mp4_info.info.length)
 
         for tag, name in self.__translate.iteritems():
@@ -63,9 +62,8 @@ class Mp4File(_AudioFile):
             mime = "image/jpeg"
             if cover.format == cover.FORMAT_PNG:
                 mime = "image/png"
-            infos["cover"] = {"mime": mime, "data": cover}
+            infos["cover"] = {"mimetype": mime, "data": cover}
 
-        infos["various_artist"] = infos["artist"]
         return infos
 
 object = Mp4File

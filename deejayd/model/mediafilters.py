@@ -127,6 +127,9 @@ class MediaFilter(object):
     def to_json(self):
         raise NotImplementedError
 
+    def _get_table(self, tag, query):
+        return tag == "album" and "album" or query.table_name
+
 
 class BasicFilter(MediaFilter):
     type = 'basic'
@@ -158,10 +161,10 @@ class BasicFilter(MediaFilter):
 
     def restrict(self, query):
         query.join_on_tag(self.tag)
-        where_str, arg = self._match_tag()
+        where_str, arg = self._match_tag(self._get_table(self.tag, query))
         query.append_where(where_str, (arg,))
 
-    def _match_tag(self, match_value):
+    def _match_tag(self, table):
         raise NotImplementedError
 
     def __str__(self):
@@ -199,41 +202,41 @@ class BasicFilter(MediaFilter):
 
 class Equals(BasicFilter):
     repr_str = "(%s == '%s')"
-    def _match_tag(self):
-        return "(%s.value = " % (self.tag,) + "%s)", self.pattern
+    def _match_tag(self, table):
+        return "(%s.%s = " % (table, self.tag) + "%s)", self.pattern
 
 class NotEquals(BasicFilter):
     repr_str = "(%s != '%s')"
-    def _match_tag(self):
-        return "(%s.value != " % (self.tag,) + "%s)", self.pattern
+    def _match_tag(self, table):
+        return "(%s.%s != " % (table, self.tag) + "%s)", self.pattern
 
 class StartsWith(BasicFilter):
     repr_str = "(%s == '%s%%')"
-    def _match_tag(self):
-        return "(%s.value LIKE " % (self.tag,) + "%s)", self.pattern + "%%"
+    def _match_tag(self, table):
+        return "(%s.%s LIKE " % (table, self.tag) + "%s)", self.pattern + "%%"
 
 class Contains(BasicFilter):
     repr_str = "(%s == '%%%s%%')"
-    def _match_tag(self):
-        return "(%s.value LIKE " % (self.tag,) + "%s)", "%%" + self.pattern + "%%"
+    def _match_tag(self, table):
+        return "(%s.%s LIKE " % (table, self.tag) + "%s)", "%%" + self.pattern + "%%"
 
 class NotContains(BasicFilter):
     repr_str = "(%s != '%%%s%%')"
-    def _match_tag(self):
-        return "(%s.value NOT LIKE " % (self.tag,) + "%s)", "%%" + self.pattern + "%%"
+    def _match_tag(self, table):
+        return "(%s.%s NOT LIKE " % (table, self.tag) + "%s)", "%%" + self.pattern + "%%"
 
 class Regexi(BasicFilter):
     repr_str = "(%s ~ /%s/)"
 
 class Higher(BasicFilter):
     repr_str = "(%s >= %s)"
-    def _match_tag(self):
-        return "(%s.value >= " % (self.tag,) + "%s)", self.pattern
+    def _match_tag(self, table):
+        return "(%s.%s >= " % (table, self.tag) + "%s)", self.pattern
 
 class Lower(BasicFilter):
     repr_str = "(%s <= %s)"
-    def _match_tag(self):
-        return "(%s.value <= " % (self.tag,) + "%s)", self.pattern
+    def _match_tag(self, table):
+        return "(%s.%s <= " % (table, self.tag) + "%s)", self.pattern
 
 
 BASIC_FILTERS = (
@@ -334,7 +337,8 @@ class ComplexFilter(MediaFilter):
         for filter in self.filterlist:
             if filter.type == "basic":
                 query.join_on_tag(filter.tag)
-                where_query, arg = filter._match_tag()
+                where_query, arg = filter._match_tag(\
+                        self._get_table(filter.tag, query))
                 wheres.append(where_query)
                 wheres_args.append(arg)
             else:  # complex filter

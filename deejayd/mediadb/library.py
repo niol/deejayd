@@ -25,7 +25,7 @@ from deejayd.mediadb import pathutils
 from deejayd.mediadb.parsers import NoParserError, ParseError
 from deejayd.mediadb.parsers import AudioParserFactory, VideoParserFactory
 from deejayd.model import mediafilters
-from deejayd.model.library import LibraryFactory
+from deejayd.model.library import LibraryFactory, LibraryDir
 from deejayd.model.stats import get_stats
 from deejayd.ui import log
 from deejayd.utils import quote_uri, str_decode, log_traceback
@@ -35,6 +35,7 @@ import threading
 import base64
 import hashlib
 import time
+from collections import OrderedDict
 
 
 class NotFoundException(DeejaydError):pass
@@ -45,6 +46,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
     supported_search_type = []
     default_search_sort = None
     type = None
+    PARSER = None
 
     def __init__(self, player, path, fs_charset="utf-8"):
         super(_Library, self).__init__()
@@ -69,8 +71,9 @@ class _Library(SignalingComponent, JSONRpcComponent):
             msg = _("Unable to find '%s' folder in library") \
                     % self.fs_charset2unicode(self._path)
             raise NotFoundException(msg)
+        self.lib_obj.set_root_path(self._path)
 
-        # Connection to the database
+        self.parser = self.PARSER(self)
         self.mutex = threading.Lock()
 
     def fs_charset2unicode(self, path, errors='strict'):
@@ -80,61 +83,50 @@ class _Library(SignalingComponent, JSONRpcComponent):
         """
         return str_decode(path, self._fs_charset, errors)
 
-    def _verify_dir_not_empty(self, root, dirs=None, files=None):
-        if root == self._path\
-        or len(files) > 0\
-        or 0 < sum([mediacount\
-                    for dir_id, dir_path, mediacount in dirs]):
-            pass
-        else:
-            err = _("Unable to find '%s' folder in library") % root
+    def get_model(self):
+        return self.lib_obj
+
+    def _get_dir_obj(self, dir):
+        abs_dir = os.path.join(self._path, dir).rstrip("/")
+        try: dir_obj = self.lib_obj.get_dir_with_path(abs_dir)
+        except DeejaydError:
+            err = _("Unable to find '%s' folder in library") % abs_dir
             raise NotFoundException(err)
+        return dir_obj
 
     def get_dir_content(self, dir=""):
-        abs_dir = os.path.join(self._path, dir).rstrip("/")
-        files_rsp = self.lib_obj.get_dir_content(abs_dir)
-        dirs_rsp = self.lib_obj.get_dir_list(abs_dir)
-        self._verify_dir_not_empty(abs_dir, dirs_rsp, files_rsp)
-
-        dirs = []
-        for dir_id, dir_path, mediacount in dirs_rsp:
-            root, d = os.path.split(dir_path.rstrip("/"))
-            if d != "" and root == self.fs_charset2unicode(abs_dir)\
-            and mediacount > 0:
-                dirs.append(d)
-        return {'files': files_rsp, 'directories': dirs, 'root': dir}
+        try: rs = self._get_dir_obj(dir).to_json(subdirs=True, files=True)
+        except DeejaydError, ex:
+            if dir == "":
+                return {"root": "", "files": [], "directories": []}
+            raise ex
+        return rs
 
     def get_dir_files(self, dir):
-        abs_dir = os.path.join(self._path, dir).rstrip("/")
-        files_rsp = self.lib_obj.get_dir_content(abs_dir)
-        self._verify_dir_not_empty(abs_dir, [], files_rsp)
-        return files_rsp
+        return self._get_dir_obj(dir).get_files()
 
     def get_all_files(self, dir):
-        abs_dir = os.path.join(self._path, dir).rstrip("/")
-        files_rsp = self.lib_obj.get_alldir_files(abs_dir)
-        self._verify_dir_not_empty(abs_dir, [], files_rsp)
-        return files_rsp
+        return self._get_dir_obj(dir).get_all_files()
 
     def get_file(self, file):
         file = os.path.join(self._path, file)
         d, f = os.path.split(file)
-        files_rsp = self.lib_obj.get_file(d, f)
-        if len(files_rsp) == 0:
-            # this file is not found
+
+        dir_obj = self._get_dir_obj(d)
+        try: file = self.lib_obj.get_file_with_path(dir_obj, f)
+        except DeejaydError:
             err = _("Unable to find '%s' file in library") % file
             raise NotFoundException(err)
-        return files_rsp
+        return (file,)
 
     def get_file_withids(self, file_ids):
-        files_rsp = self.lib_obj.get_file_withids(file_ids)
+        files_rsp = self.lib_obj.get_files_with_ids(file_ids)
         if len(files_rsp) != len(file_ids):
             raise NotFoundException
         return files_rsp
 
     def search_with_filter(self, filter, ords=[], limit=None):
         ft = mediafilters.And()
-        ft.combine(mediafilters.Equals("type", self.__class__.search_type))
         if filter is not None:
             ft.combine(filter)
 
@@ -155,15 +147,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         return self.search_with_filter(filter, self.default_search_sort)
 
     def tag_list(self, tag, filter=None):
-        return [x[0] for x in self.lib_obj.list_tags(tag, filter)]
-
-    def set_file_info(self, file_id, key, value, allow_create=False):
-        ans = self.lib_obj.set_media_infos(file_id, {key: value}, allow_create)
-        if not ans:
-            raise NotFoundException
-        self.dispatch_signame('mediadb.mupdate', \
-                attrs={"type": "update", "id": file_id})
-        DatabaseConnection().commit()
+        return [x[-1] for x in self.lib_obj.list_tags(tag, filter)]
 
     def get_root_path(self):
         return self._path
@@ -213,75 +197,13 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
         raise DeejaydError(_("A library update is already running"))
 
-    def is_in_root(self, path, root=None):
-        """Checks if a directory is physically in the supplied root (the library root by default)."""
-        if not root:
-            root = self.get_root_path()
-        real_root = os.path.realpath(root)
-        real_path = os.path.realpath(path)
-
-        head = real_path
-        old_head = None
-        while head != old_head:
-            if head == real_root:
-                return True
-            old_head = head
-            head, tail = os.path.split(head)
-        return False
-
-    def is_in_a_root(self, path, roots):
-        """Checks if a directory is physically in one of the supplied roots."""
-        for root in roots:
-            if self.is_in_root(path, root):
-                return True
-        return False
-
-    def _update_dir(self, dir, force=False, dispatch_signal=True):
-        dir = self.fs_charset2unicode(dir)
-
-        # dirname/filename : (id, lastmodified)
-        library_files = dict([(os.path.join(it[1], it[3]), (it[2], it[4]))\
-            for it in self.lib_obj.get_all_files(dir)])
-        # name : id
-        library_dirs = dict([(item[1], item[0]) for item \
-                            in self.lib_obj.get_all_dirs(dir)])
-
-        changes = self.walk_directory(dir or self.get_root_path(),
-                library_dirs, library_files, force=force,
-                dispatch_signal=dispatch_signal)
-
-        # Remove unexistent files and directories from library
-        for (id, lastmodified) in library_files.values():
-            self.lib_obj.remove_file(id)
-            if dispatch_signal:
-                reactor.callFromThread(self.dispatch_signame, \
-                        'mediadb.mupdate', attrs={"type": "remove", "id": id})
-            changes.append((id, "remove"))
-        for id in library_dirs.values(): self.lib_obj.remove_dir(id)
-
-        return changes
-
     def _update(self, force=False):
         self._update_end = False
 
         try:
-            # compare keys recorded in the database with needed key
-            # if there is a difference, force update
-            keys = self.lib_obj.get_media_keys(self.search_type)
-            # remove cover because it is not used
-            try: keys.remove(("cover",))
-            except ValueError:
-                pass
-            if len(keys) > 0 and\
-                     len(keys) != len(self.lib_obj.get_media_attributes()):
-                log.msg(\
-                    _("%s library has to be updated, this can take a while.") % \
-                    (self.type,))
-                force = True
-            self._update_dir('', force=force)
+            self.walk_directory('', force=force)
 
             self.mutex.acquire()
-            self.lib_obj.erase_empty_dir()
             # TODO make stats works
             self.stats[self.type + "_library_update"] = time.time()
             self.stats.save()
@@ -292,17 +214,16 @@ class _Library(SignalingComponent, JSONRpcComponent):
             # close the connection
             DatabaseConnection().close()
 
-    def walk_directory(self, walk_root,
-                       library_dirs, library_files,
-                       force=False, forbidden_roots=None,
-                       dispatch_signal=True):
-        """Walk a directory for files to update.
-        Called recursively to carefully handle symlinks."""
-        if not forbidden_roots:
-            forbidden_roots = [self.get_root_path()]
+    def walk_directory(self, walk_root, force=False, dispatch_signal=True):
+        walk_root = os.path.join(self.get_root_path(),
+                                 self.fs_charset2unicode(walk_root))
+        walk_root = walk_root.rstrip("/")
 
-        changes = []
-        for root, dirs, files in pathutils.walk(walk_root):
+        recorded_dirs = OrderedDict()
+        recorded_files = []
+
+        for root, subdirs, files in pathutils.walk(walk_root):
+            root = root.rstrip("/")
             log.debug('library: update crawling %s' % root)
             try:
                 root = self.fs_charset2unicode(root)
@@ -313,20 +234,66 @@ class _Library(SignalingComponent, JSONRpcComponent):
             if os.path.basename(root).startswith("."):
                 continue  # skip hidden folder
 
-            try: dir_id = library_dirs[root]
-            except KeyError:
-                dir_id = self.lib_obj.insert_dir(root)
-            else:
-                del library_dirs[root]
+            dir_obj = self.lib_obj.get_dir_with_path(root, create=True)
+            parsed_files = self.update_files(dir_obj, files, force)
 
-            # else update files
-            dir_changes = self.update_files(root, dir_id,
-                                            map(self.fs_charset2unicode, files),
-                                            library_files,
-                                            force, dispatch_signal)
-            changes.extend(dir_changes)
+            def subdir_path(subdir):
+                try: subdir = self.fs_charset2unicode(subdir)
+                except UnicodeError:
+                    return None
+                return os.path.join(root, subdir)
+            subdir_objs = [recorded_dirs[subdir_path(s)] for s in subdirs \
+                            if subdir_path(s) in recorded_dirs]
 
-        return changes
+            if not parsed_files and not subdir_objs:
+                dir_obj.erase()
+                continue
+
+            map(lambda sd: sd.set_parent(dir_obj), subdir_objs)
+            recorded_files += parsed_files
+            recorded_dirs[root] = dir_obj
+
+        # save all changes
+        for d in reversed(recorded_dirs):
+            recorded_dirs[d].save()
+        map(lambda f: f.save(), recorded_files)
+
+        # clean library
+        self.lib_obj.clean_library(walk_root,
+                                   map(lambda d: d.get_id(), recorded_dirs.values()),
+                                   map(lambda f: f["media_id"], recorded_files))
+
+    def update_files(self, dir_obj, files, force=False):
+        parsed_files = []
+        for file in files:
+            try: file = self.fs_charset2unicode(file)
+            except UnicodeError:  # skip this directory
+                log.info("File %s skipped because of unhandled characters."\
+                         % self.fs_charset2unicode(file, 'replace'))
+            filepath = os.path.join(dir_obj.get_path(), file)
+
+            file_obj = self.lib_obj.get_file_with_path(dir_obj, file, create=True)
+            need_update = force or os.stat(filepath).st_mtime > file_obj["lastmodified"]
+            if need_update:
+                file_obj = self._get_file_info(file_obj)
+                if file_obj is None:
+                    continue
+                file_obj["lastmodified"] = int(time.time())
+            parsed_files.append(file_obj)
+
+        return parsed_files
+
+    def _get_file_info(self, file_obj):
+        try: file_obj = self.parser.parse(file_obj)
+        except NoParserError:
+            file_obj.erase()
+            log.info(_("File %s not supported") % file_obj.get_path())
+            return None
+        except Exception:
+            file_obj.erase()
+            log_traceback(level="info")
+            return None
+        return file_obj
 
     def end_update(self, result=True):
         self._update_end = True
@@ -336,60 +303,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
             log.err(msg)
             self._update_error = msg
         return True
-
-    def update_files(self, root, dir_id, files, library_files,
-                     force=False, dispatch_signal=True):
-        changes = []
-        for file in files:
-            assert type(file) is unicode
-
-            file_path = os.path.join(root, file)
-            try:
-                fid, lastmodified = library_files[file_path]
-                need_update = force or os.stat(file_path).st_mtime > lastmodified
-                changes_type = "update"
-            except KeyError:
-                need_update, fid = True, None
-                changes_type = "add"
-            else: del library_files[file_path]
-            if need_update:
-                file_info = self._get_file_info(file_path)
-                if file_info is not None:  # file supported
-                    fid = self.set_media(dir_id, file_path, file_info, fid)
-            if fid: self.set_extra_infos(root, file, fid)
-            if need_update and fid:
-                if dispatch_signal:
-                    reactor.callFromThread(self.dispatch_signame, \
-                                'mediadb.mupdate',
-                                attrs={"type": changes_type, "id": fid})
-                changes.append((fid, changes_type))
-
-        return changes
-
-    def set_media(self, dir_id, file_path, file_info, file_id):
-        if file_info is None: return file_id  # not supported
-        lastmodified = os.stat(file_path).st_mtime
-        if file_id:  # do not update persistent attribute
-            fid = file_id
-            self.lib_obj.update_file(fid, lastmodified)
-        else:
-            filename = os.path.basename(file_path)
-            fid = self.lib_obj.insert_file(dir_id, filename, lastmodified)
-        self.lib_obj.set_media_infos(fid, file_info)
-        return fid
-
-    def set_extra_infos(self, dir, file, file_id):
-        pass
-
-    def _get_file_info(self, file_path):
-        try: infos = self.parser.parse(file_path)
-        except NoParserError:
-            log.info(_("File %s not supported") % file_path)
-            return None
-        except Exception:
-            log_traceback()
-            return None
-        return infos
 
     #######################################################################
     # # Inotify actions
@@ -489,193 +402,25 @@ class _Library(SignalingComponent, JSONRpcComponent):
 @jsonrpc_module(LibraryModule)
 class AudioLibrary(_Library):
     type = "audio"
-    parser = AudioParserFactory()
+    PARSER = AudioParserFactory
     search_type = "song"
     update_signal_name = 'mediadb.aupdate'
-    cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg", \
-                  "cover.png", "folder.png", ".folder.png", \
-                  "albumart.jpg", "albumart.png")
     supported_search_type = ['title', 'genre', 'filename', 'artist', 'album']
     default_search_sort = mediafilters.DEFAULT_AUDIO_SORT
 
-    def get_cover(self, file_id):
-        try: (cover_id, mime, image) = self.lib_obj.get_file_cover(file_id)
-        except TypeError:
-            raise NotFoundException
-        return {"mime": mime, "cover": base64.b64decode(image), "id": cover_id}
-
-    def __extract_cover(self, cover_path):
-        if os.path.getsize(cover_path) > 512 * 1024:
-            return None  # file too large (> 512k)
-
-        mime_type = "image/jpeg"
-        try: fd = open(cover_path)
-        except Exception:
-            log.info(_("Unable to open cover file %s") % cover_path)
-            log_traceback()
-            return None
-        rs = fd.read()
-        fd.close()
-        return mime_type, base64.b64encode(rs)
-
-    def __find_cover(self, dir):
-        cover = None
-        for name in self.cover_name:
-            cover_path = os.path.join(dir, name)
-            if os.path.isfile(cover_path):
-                try: (cover, lmod) = self.lib_obj.is_cover_exist(cover_path)
-                except TypeError:
-                    try: mime, image = self.__extract_cover(cover_path)
-                    except TypeError:
-                        return None
-                    cover = self.lib_obj.add_cover(cover_path, mime, image)
-                else:
-                    if int(lmod) < os.stat(cover_path).st_mtime:
-                        try: mime, image = self.__extract_cover(cover_path)
-                        except TypeError:
-                            return None
-                        self.lib_obj.update_cover(cover, mime, image)
-                break
-        return cover
-
-    def __update_cover(self, file_id, cover):
-        try:
-            (recorded_cover, mime, source) = self.lib_obj.get_file_cover(\
-                    file_id, True)
-        except TypeError:
-            recorded_cover, mime, source = -1, "", ""
-        if not source.startswith("hash") and str(recorded_cover) != str(cover):
-            self.lib_obj.set_media_infos(file_id, {"cover": cover})
-            return True
-        return False
-
-    def __get_digest(self, data):
-        return "hash_-_%s" % hashlib.md5(data).hexdigest()
-
-    def _update_dir(self, dir, force=False, dispatch_signal=True):
-        changes = super(AudioLibrary, self)._update_dir(dir, force,
-                                                        dispatch_signal)
-        # remove unused cover
-        self.lib_obj.remove_unused_cover()
-        return changes
-
-    def update_files(self, root, dir_id, files, library_files, force=False,
-                     dispatch_signal=True):
-        changes = []
-        if len(files): cover = self.__find_cover(root)
-        for file in files:
-            assert type(file) is unicode
-
-            file_path = os.path.join(root, file)
-            try:
-                fid, lastmodified = library_files[file_path]
-                need_update = force or os.stat(file_path).st_mtime > lastmodified
-                changes_type = "update"
-            except KeyError:
-                need_update, fid = True, None
-                changes_type = "add"
-            else: del library_files[file_path]
-            if need_update:
-                file_info = self._get_file_info(file_path)
-                if file_info is not None:  # file supported
-                    fid = self.set_media(dir_id, file_path, file_info, fid, cover)
-            elif fid and cover:
-                self.__update_cover(fid, cover)
-            if need_update and fid:
-                if dispatch_signal:
-                    reactor.callFromThread(self.dispatch_signame,
-                        'mediadb.mupdate', \
-                        attrs={"type": changes_type, "id": fid})
-                changes.append((fid, changes_type))
-        return changes
-
-    def update_cover(self, file_path):
-        try: mime, image = self.__extract_cover(file_path)
-        except TypeError:  # image not supported
-            return
-        if image:
-            rs = self.lib_obj.is_cover_exist(file_path)
-            if rs is None:
-                log.debug('library: adding cover %s in db' % file_path)
-                cover_id = self.lib_obj.add_cover(file_path, mime, image)
-            else:
-                log.debug('library: updating cover %s in db' % file_path)
-                file_id, lmod = rs
-                cover_id, old_mime, src = self.lib_obj.get_file_cover(file_id)
-                self.db_con.update_cover(cover_id, mime, image)
-
-            # Link cover file with existing media files in same dir
-            for (id,) in self.lib_obj.get_dircontent_id(os.path.dirname(file_path)):
-                if self.__update_cover(id, cover_id):
-                    self.dispatch_mupdate(id, 'update')
-
-    def update_extrainfo_file(self, file_path):
-        if os.path.basename(file_path) in self.cover_name:
-            self.update_cover(file_path)
-
-    def remove_cover(self, file_path):
-        rs = self.lib_obj.is_cover_exist(file_path)
-        if rs is not None:
-            log.debug('library: removing cover %s from db' % file_path)
-            file_id, lmod = rs
-            for id in self.lib_obj.search_id('cover', file_id):
-                print id
-                self.lib_obj.set_media_infos(id, {"cover": ""})
-                self.dispatch_mupdate(file_id, 'update')
-            self.lib_obj.remove_cover(file_id)
-
-    def remove_extrainfo_file(self, file_path):
-        if os.path.basename(file_path) in self.cover_name:
-            self.remove_cover(file_path)
-
-    def set_media(self, dir_id, file_path, file_info, file_id, cover=None):
-        if file_info is not None and "cover" in file_info:
-            # find a cover in the file
-            image = base64.b64encode(file_info["cover"]["data"])
-            mime = file_info["cover"]["mime"]
-            # use hash to identify cover in the db and avoid duplication
-            img_hash = self.__get_digest(image)
-            try: (cover, lmod) = self.lib_obj.is_cover_exist(img_hash)
-            except TypeError:
-                cover = self.lib_obj.add_cover(img_hash, mime, image)
-            file_info["cover"] = cover
-        elif cover:  # use the cover available in this directory
-            file_info["cover"] = cover
-        fid = super(AudioLibrary, self).set_media(dir_id, file_path, \
-                file_info, file_id)
-        # update compilation tag if necessary
-        if fid and "album" in file_info.keys() and file_info["album"] != '':
-            self.lib_obj.set_variousartist_tag(fid, file_info)
-        return fid
+    def get_albums(self, genre=None, artist=None):
+        pass
 
 
 @jsonrpc_module(LibraryModule)
 class VideoLibrary(_Library):
     type = "video"
-    parser = VideoParserFactory()
+    PARSER = VideoParserFactory
     search_type = "video"
     update_signal_name = 'mediadb.vupdate'
-    subtitle_ext = (".srt",)
     supported_search_type = ['title']
     default_search_sort = mediafilters.DEFAULT_VIDEO_SORT
 
-    def set_extra_infos(self, dir, file, file_id):
-        file_path = os.path.join(dir, file)
-        (base_path, ext) = os.path.splitext(file_path)
-        sub = ""
-        for ext_type in self.subtitle_ext:
-            if os.path.isfile(os.path.join(base_path + ext_type)):
-                sub = quote_uri(base_path + ext_type)
-                break
-        try:
-            (recorded_sub,) = self.lib_obj.get_file_info(file_id, \
-                                                        "external_subtitle")
-        except TypeError:
-            recorded_sub = None
-        if recorded_sub != sub:
-            self.lib_obj.set_media_infos(file_id, {"external_subtitle": sub})
-
-    #
     # custom inotify actions
     #
     def update_subtitle(self, file_path):

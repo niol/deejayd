@@ -86,6 +86,13 @@ class ComplexSelect(SimpleSelect):
         self.joins.append(j_sql)
         return self
 
+    def order_by(self, column, table_name=None, descending=False):
+        if not table_name:
+            table_name = self.table_name
+        self.orders.append("%s.%s %s" % (table_name, column,
+                                         descending and "DESC" or ""))
+        return self
+
     def select_column(self, column_name, table_name=None):
         if not table_name:
             table_name = self.table_name
@@ -93,11 +100,16 @@ class ComplexSelect(SimpleSelect):
         return self
 
     def __str__(self):
-        return "SELECT DISTINCT %s FROM %s %s WHERE %s"\
+        orders = None
+        if len(self.orders) >= 1:
+            orders = 'ORDER BY ' + ', '.join(self.orders)
+
+        return "SELECT DISTINCT %s FROM %s %s WHERE %s %s"\
                % (', '.join(self.selects),
                    self.table_name,
                   ' '.join(self.joins),
                    ' AND '.join(self.wheres) or 1,
+                   orders or '',
                  )
 
 
@@ -132,99 +144,60 @@ class WebradioSelectQuery(SimpleSelect):
                   ' AND '.join(self.wheres) or 1,
                   group_by,)
 
+class LibrarySelectQuery(ComplexSelect):
+    dedicated_table = ('album',)
 
-class MediaSelectQuery(SimpleSelect):
-
-    def __init__(self):
-        super(MediaSelectQuery, self).__init__('library')
-        self.joins = []
+    def __init__(self, media_table, libdir_table):
+        super(LibrarySelectQuery, self).__init__(media_table)
         self.limit = None
         self.__joined_tags = []
-        self.id = False
-
-    def select_id(self):
-        self.id = True
-        return self
-
-    def select_column(self, column_name, table_name=None):
-        if not table_name:
-            table_name = self.table_name
-        self.selects.append("%s.%s" % (table_name, column_name))
-        return self
-
-    def select_tag(self, tagname):
-        self.select_column('value', tagname)
-        self.join_on_tag(tagname)
-        return self
-
-    def select_tags(self, tags):
-        for tagname in tags:
-            self.select_tag(tagname)
-        return self
-
-    def order_by_tag(self, tagname, desc=False):
-        order = "%s.value" % tagname
-        if desc: order = "%s DESC" % order
-        self.orders.append(order)
-        self.join_on_tag(tagname)
-        return self
-
-    def join_on_tag(self, tagname):
-        if tagname not in self.__joined_tags:
-            self.__joined_tags.append(tagname)
-            j_st = "JOIN media_info %(tag)s ON %(tag)s.id = library.id\
-                                            AND %(tag)s.ikey = '%(tag)s'"\
-                   % { 'tag' : tagname }
-            self.joins.append(j_st)
-        return self
+        self.libdir_table = libdir_table
 
     def set_limit(self, limit):
         self.limit = limit
         return self
 
+    def select_dir(self):
+        join_d = "JOIN %(d)s %(d)s ON %(d)s.id = %(m)s.directory" \
+                 % {"d": self.libdir_table, "m": self.table_name}
+        self.joins.append(join_d)
+        self.selects = map(lambda a: "%s.%s" % (self.libdir_table, a),
+                           ("id", "name", "parent_id"))
+
+    def select_tag(self, tag):
+        self.join_on_tag(tag)
+        table = tag in self.dedicated_table and tag or self.table_name
+        self.select_column(tag, table_name=table)
+
+    def join_on_tag(self, tagname):
+        if tagname in self.dedicated_table and tagname not in self.__joined_tags:
+            self.__joined_tags.append(tagname)
+            j_st = "JOIN %(tag)s %(tag)s ON %(tag)s.id = %(table)s.album_id" \
+                   % { 'tag' : tagname, "table": self.table_name }
+            self.joins.append(j_st)
+        return self
+
+    def order_by_tag(self, tag, descending=False):
+        table = tag in self.dedicated_table and tag or self.table_name
+        return self.order_by(tag, table_name=table, descending=descending)
+
     def __str__(self):
-        orders, limit = None, None
-        if len(self.orders) >= 1:
-            orders = 'ORDER BY ' + ', '.join(self.orders)
+        if not self.orders:
+            self.orders = [self.libdir_table + ".name",
+                           self.table_name + ".filename"]
+        orders = 'ORDER BY ' + ', '.join(self.orders)
+
+        limit = None
         if self.limit is not None:
             limit = "LIMIT %s" % str(self.limit)
 
-
-        return "SELECT DISTINCT %s %s FROM %s %s WHERE %s %s %s"\
-               % (self.id and 'library.id,' or '',
-                  ', '.join(self.selects),
+        return "SELECT DISTINCT %s FROM %s %s WHERE %s %s %s"\
+               % (', '.join(self.selects),
                   self.table_name,
                   ' '.join(self.joins),
                   ' AND '.join(self.wheres) or 1,
                   orders or '',
                   limit or '')
-
-
-class StaticPlaylistSelectQuery(MediaSelectQuery):
-
-    def __init__(self, item_table, pl_id):
-        super(StaticPlaylistSelectQuery, self).__init__()
-        self.select_id()
-        join_ml = "JOIN %s ml ON ml.libraryitem_id = library.id" % item_table
-        self.joins.append(join_ml)
-        self.orders.append("ml.position")
-        self.append_where("ml.medialist_id = %s", (pl_id,))
-
-    def order_by_tag(self, tagname, desc=False):
-        raise NotImplementedError  # static playlist are ordered by position
-
-
-class LibrarySelectQuery(MediaSelectQuery):
-
-    def __init__(self, libdir_table):
-        super(LibrarySelectQuery, self).__init__()
-        join_d = "JOIN %(d)s %(d)s ON %(d)s.id = library.directory" % {"d": libdir_table}
-        self.joins.append(join_d)
-        self.orders += [libdir_table + ".name", self.table_name + ".name"]
-
-    def order_by_tag(self, tagname, desc=False):
-        raise NotImplementedError  # this query are ordered by folder/file name
-
 
 class _DBActionQuery(_DBQuery):
 
@@ -256,6 +229,7 @@ class EditRecordQuery(_DBActionQuery):
     def set_update_id(self, key, id):
         self.update_key = key
         self.update_id = id
+        return self
 
     def get_args(self):
         args = self.dbvalues.values()

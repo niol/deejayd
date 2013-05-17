@@ -27,7 +27,9 @@ __all__ = ["AudioParserFactory"]
 
 class AudioParserFactory(object):
 
-    def __init__(self):
+    def __init__(self, library):
+        self.library = library
+
         base = os.path.dirname(__file__)
         base_import = "deejayd.mediadb.parsers.audio"
         self.parsers = {}
@@ -40,15 +42,72 @@ class AudioParserFactory(object):
             except AttributeError:
                 continue
             for ext in mod.extensions:
-                self.parsers[ext] = filetype_class
+                self.parsers[ext] = filetype_class()
 
     def get_extensions(self):
         return self.parsers.keys()
 
-    def parse(self, path):
+    def parse(self, file_obj):
+        path = file_obj.get_path()
         extension = os.path.splitext(path)[1]
         if extension not in self.parsers:
             raise NoParserError()
-        return self.parsers[extension]().parse(path)
+        infos = self.parsers[extension].parse(path, self.library)
+
+        # find and save album
+        library_model = self.library.get_model()
+        album = library_model.get_album_with_name(infos["album"], create=True)
+        album.save()
+        file_obj.set_album(album)
+
+        # update metadata
+        for k in infos:
+            if k not in ("album", "cover"):
+                file_obj[k] = infos[k]
+
+        # find cover
+        cover = CoverParser().find_cover(os.path.dirname(path))
+        if cover is not None:
+            need_update = os.stat(cover["path"]).st_mtime > album["cover_lmod"]
+            if need_update:
+                album.update_cover(cover["path"], cover["mimetype"])
+        elif "cover" in infos:
+            tmp_path = os.path.join("/tmp", "djd_tmp_cover")
+            with open(tmp_path, "w") as f:
+                f.write(infos["cover"]["data"])
+            album.update_cover(tmp_path, infos["cover"]["mimetype"])
+            os.unlink(tmp_path)
+
+        return file_obj
+
+    def inotify_parse(self, filepath):
+        CoverParser().parse(filepath, self.library)
+
+
+class CoverParser(object):
+    cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg", \
+                  "cover.png", "folder.png", ".folder.png", \
+                  "albumart.jpg", "albumart.png")
+
+    def parse(self, file, library):
+        filename = os.path.basename(file)
+        if filename in self.cover_name:
+            # try to find album related to this path
+            lib_model = library.get_model()
+            try:
+                dir_obj = lib_model.get_dir_with_path(os.path.dirname(file))
+            except DeejaydError:
+                return
+            if len(dir_obj.get_files()) > 0:
+                pass
+
+    def find_cover(self, dir):
+        cover, mimetype = None, None
+        for name in self.cover_name:
+            cover = os.path.join(dir, name)
+            if os.path.isfile(cover):
+                mimetype = mimetypes.guess_type(cover)
+                return {"path": cover, "mimetype": mimetype[0]}
+        return None
 
 # vim: ts=4 sw=4 expandtab

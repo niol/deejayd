@@ -18,14 +18,11 @@
 
 from UserDict import IterableUserDict
 
-from deejayd.model._model import IObjectModel
 from deejayd.database.connection import DatabaseConnection
 from deejayd.database.querybuilders import SimpleSelect, ReplaceQuery
-from zope.interface import implements
 
 class Stats(IterableUserDict):
-    implements(IObjectModel)
-    table_name = "variables"
+    table_name = "stats"
 
     def __init__(self):
         IterableUserDict.__init__(self)

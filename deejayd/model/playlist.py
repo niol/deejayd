@@ -23,11 +23,9 @@ from zope.interface import implements
 from deejayd import DeejaydError
 from deejayd.database.connection import DatabaseConnection
 from deejayd.model._model import IObjectModel
-from deejayd.model.media_item import AudioItem, VideoItem
 from deejayd.model.mediafilters import MediaFilter, And, Or
 from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery, \
     ReplaceQuery
-from deejayd.database.querybuilders import StaticPlaylistSelectQuery
 from deejayd.database.querybuilders import SimpleSelect
 from deejayd import Singleton
 
@@ -171,10 +169,6 @@ class _Playlist(SimplePlaylist):
         self.db_id = db_id
         self.name = name
         self.library = library
-        if library.type == "audio":
-            self.ITEM_CLS = AudioItem
-        elif library.type == "video":
-            self.ITEM_CLS = VideoItem
 
         self.time_length = 0
         self.repeat = False
@@ -237,10 +231,12 @@ class StaticPlaylist(_Playlist):
         if self.db_id is None:
             return
 
-        query = StaticPlaylistSelectQuery(self.ITEM_TABLE, self.db_id)\
-                        .select_tags(self.ITEM_CLS.attributes())
-        rs = query.execute()
-        medias = map(lambda m: self.ITEM_CLS(m), rs)
+        m_ids = SimpleSelect(self.ITEM_TABLE) \
+                    .select_column("libraryitem_id") \
+                    .append_where("medialist_id = %s", self.db_id) \
+                    .order_by("position") \
+                    .execute()
+        medias = self.library.get_file_withids([m[0] for m in m_ids])
         self._playlist = map(self._format, medias)
         self._update_time_length()
 
@@ -357,7 +353,8 @@ class MagicPlaylist(_Playlist):
         for f in self.filters:
             filter.combine(f)
 
-        sorts = self.sorts + self.ITEM_CLS.default_sort()
+        lib_model = self.library.get_model()
+        sorts = self.sorts + lib_model.MEDIA_OBJECT.default_sort()
         if self.properties["use-limit"] == "1":
             sorts = [(self.properties["limit-sort-value"], \
                      self.properties["limit-sort-direction"])] + sorts

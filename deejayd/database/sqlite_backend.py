@@ -75,34 +75,12 @@ def to_sql(table):
               '_'.join(index.columns), table.name, ','.join(index.columns))
 
 custom_queries = [
-    # custom indexes
-    "CREATE INDEX id_key_value_1x ON media_info(id,ikey,value COLLATE BINARY);",
-    "CREATE INDEX id_key_value_2x ON media_info(id,ikey,value COLLATE NOCASE);",
-    "CREATE INDEX key_value_1x ON media_info (ikey, value COLLATE BINARY);",
-    "CREATE INDEX key_value_2x ON media_info (ikey, value COLLATE NOCASE);",
     # extract from ANALYZE request
     "ANALYZE;",
-    "INSERT INTO sqlite_stat1 VALUES('cover', 'cover_source_idx','208 1');",
     "INSERT INTO sqlite_stat1 VALUES('stats',\
             'sqlite_autoindex_stats_1','7 1');",
     "INSERT INTO sqlite_stat1 VALUES('variables',\
             'sqlite_autoindex_variables_1','18 1');",
-    "INSERT INTO sqlite_stat1 VALUES('media_info',\
-            'key_value_2x','70538 3713 6');",
-    "INSERT INTO sqlite_stat1 VALUES('media_info',\
-            'key_value_1x','70538 3713 6');",
-    "INSERT INTO sqlite_stat1 VALUES('media_info',\
-            'id_key_value_2x','70538 16 1 1');",
-    "INSERT INTO sqlite_stat1 VALUES('media_info',\
-            'id_key_value_1x','70538 16 1 1');",
-    "INSERT INTO sqlite_stat1 VALUES('media_info',\
-            'sqlite_autoindex_media_info_1','70538 16 1');",
-    "INSERT INTO sqlite_stat1 VALUES('media_info',\
-            'sqlite_autoindex_media_info_1','70538 16 1');",
-    "INSERT INTO sqlite_stat1 VALUES('library',\
-            'library_directory_idx','4421 18');",
-    "INSERT INTO sqlite_stat1 VALUES('library',\
-            'library_name_directory_idx','4421 2 1');",
     "INSERT INTO sqlite_stat1 VALUES('library_dir',\
             'library_dir_name_lib_type_idx','377 2 1');",
     ]

@@ -20,22 +20,7 @@ import os
 from deejayd.utils import quote_uri
 
 
-class _MediaFile(object):
-    type = "unknown"
-
-    def parse(self, file_path):
-        return {
-            "filename": os.path.basename(file_path),
-            "uri": quote_uri(file_path),
-            "type": self.type,
-            "rating": "2",  # [0-4]
-            "lastplayed": "0",
-            "skipcount": "0",
-            "playcount": "0",
-            }
-
-
-class _AudioFile(_MediaFile):
+class _AudioFile(object):
     _tagclass_ = None
     type = "song"
     supported_tag = ("tracknumber", "title", "genre", "artist", "album", \
@@ -50,14 +35,15 @@ class _AudioFile(_MediaFile):
 
         return "/".join(numbers)
 
-    def parse(self, file):
-        infos = _MediaFile.parse(self, file)
+    def parse(self, file, library):
+        infos = {
+            "uri": quote_uri(file),
+            }
         if self._tagclass_:
             tag_info = self._tagclass_(file)
-            for i in ("bitrate", "length"):
-                try: infos[i] = int(getattr(tag_info.info, i))
-                except AttributeError:
-                    infos[i] = 0
+            try: infos["length"] = int(getattr(tag_info.info, "length"))
+            except AttributeError:
+                infos["length"] = 0
             for t in self.supported_tag:
                 try: info = tag_info[t][0]
                 except:
@@ -66,7 +52,6 @@ class _AudioFile(_MediaFile):
                     info = self._format_number(info)
                 infos[t] = info
             # get front cover album if available
-            infos["various_artist"] = infos["artist"]
             cover = self.get_cover(tag_info)
             if cover: infos["cover"] = cover
 

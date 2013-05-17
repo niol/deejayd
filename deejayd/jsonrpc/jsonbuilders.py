@@ -48,7 +48,7 @@ class JSONRPCRequest(_DeejaydJSON):
     """
     Build JSON-RPC Request
     """
-    def __init__(self, method_name, params, notification = False, id = None):
+    def __init__(self, method_name, params, notification=False, id=None):
         self.method = method_name
         self.params = params
         # use timestamp as id if no id has been given
@@ -99,7 +99,7 @@ class DeejaydJSONSignal(_DeejaydJSON):
         self.name = name
 
     def _build_obj(self):
-        return {"type": "signal",\
+        return {"type": "signal", \
                 "answer": {"name": self.name, "attrs": self.attrs}}
 
 # vim: ts=4 sw=4 expandtab

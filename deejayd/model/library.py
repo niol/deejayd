@@ -16,312 +16,385 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import shutil
 import time
-from zope.interface import implements
+import os
+from collections import MutableMapping
 
-from deejayd.model._model import IObjectModel
 from deejayd.model.media_item import AudioItem, VideoItem
 from deejayd.database.querybuilders import LibrarySelectQuery, ComplexSelect
 from deejayd.database.querybuilders import SimpleSelect
-from deejayd.database.querybuilders import MediaSelectQuery
-from deejayd.database.querybuilders import ReplaceQuery
 from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery
-from deejayd import Singleton
-from deejayd.database.connection import DatabaseConnection
+from deejayd.ui.config import DeejaydConfig
+from deejayd.ui import log
+from deejayd import Singleton, DeejaydError
+
+DIR_TABLE = "library_dir"
+
+class LibraryDir(object):
+
+    def __init__(self, library, path, db_id=None, parent_id=None):
+        self.path = path
+        self.library = library
+        self.db_id = db_id
+        self.parent_id = parent_id
+        self.parent = None
+
+    def __strip_root(self, path):
+        path = path.replace(self.library.get_root_path(), "")
+        return path.lstrip("/")
+
+    def to_json(self, subdirs=False, files=False):
+        rs = {
+            "id": self.db_id,
+            "parent_id": self.get_parentid(),
+            "name": os.path.basename(self.path),
+            "path": self.path,
+            "root": self.__strip_root(self.path),
+        }
+        if files:
+            rs["files"] = self.get_files()
+        if subdirs:
+            rs["directories"] = map(lambda d: os.path.basename(d.path), self.get_subdirs())
+        return rs
+
+    def set_parent(self, parent):
+        self.parent = parent
+
+    def get_id(self):
+        return self.db_id
+
+    def get_parentid(self):
+        if self.parent_id is not None:
+            return self.parent_id
+        elif self.parent is not None:
+            return self.parent.get_id()
+        return None
+
+    def get_path(self):
+        return self.path
+
+    def get_subdirs(self):
+        rs = SimpleSelect(DIR_TABLE) \
+                    .select_column("id") \
+                    .append_where("parent_id = %s", self.db_id) \
+                    .execute()
+        return self.library.get_dirs_with_ids([id for (id,) in rs])
+
+    def get_files(self):
+        if self.db_id is not None:
+            f_ids = SimpleSelect(self.library.LIB_TABLE) \
+                        .select_column("id") \
+                        .append_where("directory=%s", self.db_id) \
+                        .execute()
+            return self.library.get_files_with_ids(map(lambda i: i[0], f_ids))
+        return []
+
+    def get_all_files(self):
+        f_ids = ComplexSelect(self.library.LIB_TABLE) \
+                    .join(DIR_TABLE, "%s.id = %s.directory" \
+                        % (DIR_TABLE, self.library.LIB_TABLE)) \
+                    .select_column("id") \
+                    .append_where(DIR_TABLE + ".name LIKE %s", self.path + u"%%") \
+                    .execute()
+        files = self.library.get_files_with_ids(map(lambda i: i[0], f_ids))
+        return files
+
+    def save(self):
+        if self.db_id is None:
+            self.db_id = EditRecordQuery(DIR_TABLE) \
+                            .add_value("name", self.path) \
+                            .add_value("parent_id", self.get_parentid()) \
+                            .add_value("lib_type", self.library.TYPE) \
+                            .execute(commit=False)
+            self.library.loaded_dirs[self.db_id] = self
+
+
+    def erase(self, purge_files=False):
+        if self.db_id is not None:
+            if purge_files:
+                map(lambda f: f.erase(), self.get_files())
+            DeleteQuery(DIR_TABLE).append_where("id = %s", (self.db_id,)) \
+                                  .execute(commit=False)
+            map(lambda d: d.erase(purge_files), self.get_subdirs())
+            del self.library.loaded_dirs[self.db_id]
 
 class _Library(object):
-    implements(IObjectModel)
-    DIR_TABLE = "library_dir"
-    LIB_TABLE = "library"
-    INFO_TABLE = "media_info"
     MEDIA_OBJECT = None
     TYPE = ""
+    DIR_TABLE = "library_dir"
+    LIB_TABLE = ""
 
-    def get_media_attributes(self):
-        return self.MEDIA_OBJECT.attributes()
+    def __init__(self):
+        self.root_path = None
+        self.loaded_dirs = {}
+        self.loaded_files = {}
+        # load dirs and files
+        result = SimpleSelect(DIR_TABLE) \
+                    .select_column("name", "id", "parent_id") \
+                    .append_where("lib_type = %s", self.TYPE) \
+                    .execute()
+        for d in result:
+            self.loaded_dirs[int(d[1])] = LibraryDir(self, *d)
 
-    def insert_dir(self, new_dir):
-        return EditRecordQuery(self.DIR_TABLE) \
-                .add_value("name", new_dir) \
-                .add_value("lib_type", self.TYPE) \
-                .execute(commit=False)
+        query = self._build_library_query()
+        for m in query.execute():
+            self.loaded_files[m[3]] = self._map_media(m)
 
-    def insert_file(self, dir, filename, lastmodified):
-        return EditRecordQuery(self.LIB_TABLE) \
-                .add_value("directory", dir) \
-                .add_value("name", filename) \
-                .add_value("lastmodified", lastmodified) \
-                .execute(commit=False)
+    def set_root_path(self, path):
+        self.root_path = path
 
-    def update_file(self, id, lastmodified):
-        return EditRecordQuery(self.LIB_TABLE) \
-                .set_update_id("id", id) \
-                .add_value("lastmodified", lastmodified) \
-                .execute(commit=False)
+    def get_root_path(self):
+        return self.root_path
 
-    def remove_file(self, id):
-        for (table, key) in [(self.LIB_TABLE, "id"), (self.INFO_TABLE, "id")]:
-            DeleteQuery(table).append_where(key + " = %s", (id,)) \
-                              .execute(commit=False)
-
-    def remove_dir(self, id):
-        f_ids = SimpleSelect(self.LIB_TABLE) \
-                        .select_column("id") \
-                        .append_where("directory = %s", id) \
-                        .execute()
-        self.remove_file(map(lambda i: i[0], f_ids))
-        DeleteQuery(self.DIR_TABLE).append_where("id = %s", (id,)) \
-                                   .execute(commit=False)
-
-    def remove_recursive_dir(self, dir):
-        files = self.get_all_files(dir)
-        for file in files:
-            self.remove_file(file[2])
-        DeleteQuery(self.DIR_TABLE) \
-                .append_where("name LIKE %s", (dir + u'%%',)) \
-                .append_where("lib_type = %s", (self.TYPE,)) \
-                .execute(commit=False)
-        return [f[2] for f in files]
-
-    def erase_empty_dir(self):
-        dirlist = SimpleSelect(self.DIR_TABLE) \
-                        .select_column("name") \
-                        .append_where("lib_type = %s", self.TYPE) \
-                        .execute()
-        for (dirname,) in dirlist:
-            rs = self.get_all_files(dirname)
-            if len(rs) == 0:  # remove directory
-                DeleteQuery(self.DIR_TABLE) \
-                        .append_where("name = %s", (dirname,)) \
-                        .execute(commit=False)
-
-    def set_media_infos(self, file_id, infos, allow_create=True):
-        rowcount = 0
-        for k, v in infos.items():
-            rowcount += ReplaceQuery(self.INFO_TABLE) \
-                            .add_value("id", file_id) \
-                            .add_value("ikey", k) \
-                            .add_value("value", v) \
-                            .execute(commit=False, expected_result="rowcount")
-        return rowcount
-
-    def is_file_exist(self, dirname, filename):
-        return LibrarySelectQuery(self.DIR_TABLE) \
-                .select_column("id", self.DIR_TABLE) \
-                .select_column("id", self.LIB_TABLE) \
-                .select_column("lastmodified", self.LIB_TABLE) \
-                .append_where(self.DIR_TABLE + ".name = %s", dirname) \
-                .append_where(self.LIB_TABLE + ".name = %s", filename) \
-                .append_where("lib_type = %s", self.TYPE) \
-                .execute(expected_result="fetchone")
-
-    def is_dir_exist(self, dirname):
-        rs = SimpleSelect(self.DIR_TABLE) \
+    def get_dir_with_path(self, path, create=False):
+        rs = SimpleSelect(DIR_TABLE) \
                     .select_column("id") \
-                    .append_where("name = %s", dirname) \
+                    .append_where("name = %s", path) \
                     .append_where("lib_type = %s", self.TYPE) \
                     .execute(expected_result="fetchone")
-        return rs and rs[0]
+        db_id = rs and rs[0] or None
+        if db_id is None:
+            if not create:
+                raise DeejaydError
+            return LibraryDir(self, path)
 
-    def get_all_dirs(self, dir):
-        return SimpleSelect(self.DIR_TABLE) \
-                    .select_column("id", "name") \
-                    .append_where("name LIKE %s", dir + u"%%") \
-                    .append_where("lib_type = %s", self.TYPE) \
-                    .order_by("name") \
-                    .execute()
+        return self.get_dirs_with_ids((db_id,))[0]
 
-    def get_all_files(self, dir):
-        return LibrarySelectQuery(self.DIR_TABLE) \
-                .select_column("id", self.DIR_TABLE) \
-                .select_column("name", self.DIR_TABLE) \
-                .select_column("id", self.LIB_TABLE) \
-                .select_column("name", self.LIB_TABLE) \
-                .select_column("lastmodified", self.LIB_TABLE) \
-                .append_where(self.DIR_TABLE + ".name LIKE %s", dir + u"%%") \
-                .append_where("lib_type = %s", self.TYPE) \
-                .execute()
+    def get_dirs_with_ids(self, dir_ids):
+        return [self.loaded_dirs[int(id)] for id in dir_ids]
 
-    def get_file_info(self, file_id, info_type):
-        return SimpleSelect(self.INFO_TABLE).select_column("value") \
-                    .append_where("id=%s AND ikey=%s", (file_id, info_type)) \
-                    .execute(expected_result="fetchone")
-
-    def get_file(self, dir, file):
-        result = LibrarySelectQuery(self.DIR_TABLE) \
-                .select_id() \
-                .select_tags(self.MEDIA_OBJECT.attributes()) \
-                .append_where(self.LIB_TABLE + ".name = %s", (file,)) \
-                .append_where(self.DIR_TABLE + ".name = %s", (dir,)) \
-                .append_where(self.DIR_TABLE + ".lib_type = %s", (self.TYPE,)) \
-                .execute()
-        return map(lambda m: self.MEDIA_OBJECT(m), result)
-
-    def get_alldir_files(self, dir):
-        result = LibrarySelectQuery(self.DIR_TABLE) \
-                .select_id() \
-                .select_tags(self.MEDIA_OBJECT.attributes()) \
-                .append_where(self.DIR_TABLE + ".name LIKE %s", dir + u"%%") \
-                .append_where(self.DIR_TABLE + ".lib_type = %s", (self.TYPE,)) \
-                .execute()
-        return map(lambda m: self.MEDIA_OBJECT(m), result)
-
-    def get_dir_content(self, path):
-        result = LibrarySelectQuery(self.DIR_TABLE) \
-                .select_id() \
-                .select_tags(self.MEDIA_OBJECT.attributes()) \
-                .append_where(self.DIR_TABLE + ".name = %s", (path,)) \
-                .append_where(self.DIR_TABLE + ".lib_type = %s", (self.TYPE,)) \
-                .execute()
-        return map(lambda m: self.MEDIA_OBJECT(m), result)
-
-    def get_file_withids(self, file_ids):
-        result = LibrarySelectQuery(self.DIR_TABLE) \
-                .select_id() \
-                .select_tags(self.MEDIA_OBJECT.attributes()) \
-                .append_where(self.LIB_TABLE + ".id IN (%s)" % ",".join(map(str, file_ids))) \
-                .append_where(self.DIR_TABLE + ".lib_type = %s", (self.TYPE,)) \
-                .execute()
-        return map(lambda m: self.MEDIA_OBJECT(m), result)
-
-    def get_dircontent_id(self, dir):
-        return LibrarySelectQuery(self.DIR_TABLE) \
+    def get_file_with_path(self, dir_obj, filename, create=False):
+        rs = ComplexSelect(self.LIB_TABLE) \
+                    .join(DIR_TABLE, "%s.id = %s.directory" \
+                        % (DIR_TABLE, self.LIB_TABLE)) \
                     .select_column("id") \
-                    .append_where(self.DIR_TABLE + ".name = %s", (dir,)) \
-                    .append_where(self.DIR_TABLE + ".lib_type = %s", (self.TYPE,)) \
-                    .execute()
+                    .append_where(DIR_TABLE + ".name = %s", dir_obj.get_path()) \
+                    .append_where(self.LIB_TABLE + ".filename = %s", filename) \
+                    .execute(expected_result="fetchone")
+        db_id = rs and rs[0] or None
+        if db_id is None:
+            if not create:
+                raise DeejaydError
+            return self.MEDIA_OBJECT(self, dir_obj, filename)
+        return self.get_files_with_ids((db_id,))[0]
 
-    def search_id(self, key, value):
-        return SimpleSelect(self.INFO_TABLE) \
-                .select_column("id") \
-                .append_where("ikey=%s AND value=%s", (key, value)) \
-                .execute()
+    def get_files_with_ids(self, file_ids):
+        return [self.loaded_files[int(id)] for id in file_ids]
 
     def list_tags(self, tag, filter):
-        query = MediaSelectQuery()
-        query.select_tag(tag)
+        query = self._build_library_query(attrs=(tag,), map_media=False)
         if filter is not None:
             filter.restrict(query)
         query.order_by_tag(tag)
         return query.execute()
 
     def search(self, filter, orders=[], limit=None):
-        query = MediaSelectQuery()
-        query.select_id()
-        query.select_tags(self.MEDIA_OBJECT.attributes())
+        query = self._build_library_query()
         filter.restrict(query)
         for (tag, direction) in orders:
-            query.order_by_tag(tag, direction == "descending")
+            descending = direction == "descending"
+            query.order_by_tag(tag, descending=descending)
         query.set_limit(limit)
-        return map(lambda m: self.MEDIA_OBJECT(m), query.execute())
+        return map(self._map_media, query.execute())
 
-    def get_dir_list(self, dir):
-        cursor = DatabaseConnection().cursor()
-        query = "SELECT d.id, d.name, COUNT(m.name) AS mediacount\
-                 FROM library_dir d, library_dir sd, library m\
-                 WHERE d.name LIKE %s AND\
-                 SUBSTR(sd.name, 0, LENGTH(d.name)+1) = d.name AND\
-                 sd.id=m.directory AND\
-                 d.lib_type = %s AND\
-                 sd.lib_type = %s\
-                 GROUP BY d.id ORDER BY d.name"
-        cursor.execute(query, (dir + unicode("/%%"), self.TYPE, self.TYPE))
-        rs = cursor.fetchall()
-        cursor.close()
-        return rs
+    def clean_library(self, path, dir_ids, file_ids):
+        d_ids = SimpleSelect(DIR_TABLE) \
+                    .select_column("id") \
+                    .append_where("name LIKE %s", path + u"%%") \
+                    .append_where("id NOT IN (%s)" % ",".join(map(str, dir_ids))) \
+                    .append_where("lib_type = %s", self.TYPE) \
+                    .execute()
+        map(lambda d: d.erase(), self.get_dirs_with_ids([d[0] for d in d_ids]))
 
-    def get_media_keys(self, type):
-        cursor = DatabaseConnection().cursor()
-        query = "SELECT DISTINCT m.ikey FROM media_info m\
-                JOIN media_info m2 ON m.id = m2.id\
-                WHERE m2.ikey='type' AND m2.value=%s"
-        cursor.execute(query, (type,))
-        rs = cursor.fetchall()
-        cursor.close()
-        return rs
+        f_ids = ComplexSelect(self.LIB_TABLE) \
+            .join(DIR_TABLE, "%s.id = %s.directory" % (DIR_TABLE, self.LIB_TABLE)) \
+            .select_column("id") \
+            .append_where(DIR_TABLE + ".name LIKE %s", path + u"%%") \
+            .append_where(self.LIB_TABLE + ".id NOT IN (%s)" % ",".join(map(str, file_ids))) \
+            .append_where(DIR_TABLE + ".lib_type = %s", (self.TYPE,)) \
+            .execute()
+        map(lambda f: f.erase(), self.get_files_with_ids([f[0] for f in f_ids]))
+
+    def get_media_attributes(self):
+        return self.MEDIA_OBJECT.attributes()
+
+    def _map_media(self, db_result):
+        dir_id = db_result[0]
+
+        media_id = db_result[3]
+        media_name = db_result[4]
+        return self.MEDIA_OBJECT(self, self.loaded_dirs[dir_id],
+                                 media_name, db_id=media_id,
+                                 infos=db_result[5:])
+
+    def _build_library_query(self, attrs=None, map_media=True):
+        attrs = attrs or self.MEDIA_OBJECT.attributes()
+        query = LibrarySelectQuery(self.LIB_TABLE, self.DIR_TABLE)
+        if map_media:
+            query.select_dir()
+            map(lambda a: query.select_column(a), ("id", "filename"))
+        for tag in attrs:
+            query.select_tag(tag)
+        return query
+
+class Album(MutableMapping):
+    COVER_EXT = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+    }
+
+    def __init__(self, library, name, cover_lmod= -1,
+                 cover_type=None, compilation=0, db_id=None):
+        self.library = library
+        self.db_id = db_id
+        self.dirty = False
+        self.data = {
+            "album": name,
+            "compilation": compilation,
+            "cover_lmod": cover_lmod,
+            "cover_type": cover_type,
+        }
+
+    def __getitem__(self, key):
+        if key == "id":
+            return self.db_id
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        if key == "id":
+            raise DeejaydError("id can't be modified")
+        self.dirty = True
+        self.data[key] = value
+
+    def __delitem__(self, key):
+        raise DeejaydError("key can't be removed from album object")
+
+    def __iter__(self):
+        return self.data.iterkeys()
+
+    def __len__(self):
+        return len(self.data)
+
+    def update_cover(self, orig_path, mimetype):
+        dest = os.path.join(self.library.get_cover_folder(),
+                            self.get_cover_filename(cover_type=mimetype))
+        try: shutil.copy(orig_path, dest)
+        except OSError:
+            log.err(_("Unable to copy cover to correct folder"))
+            return
+        self.update({
+            "cover_type": mimetype,
+            "cover_lmod": time.time()
+        })
+        self.save()
+
+    def get_cover_filename(self, cover_type = None):
+        cover_type = cover_type or self.data["cover_type"]
+        if cover_type is not None and self.db_id is not None:
+            return "%s.%s" % (self.db_id, self.COVER_EXT[cover_type])
+        return ""
+
+    def to_json(self):
+        return {
+            "id": self.db_id,
+            "name": self.data["album"],
+            "cover_filename": self.get_cover_filename(),
+        }
+
+    def erase(self):
+        if self.db_id is not None:
+            DeleteQuery(self.library.ALBUM_TABLE) \
+                    .append_where("id = %s", (self.db_id,)) \
+                    .execute(commit=False)
+            # delete cover
+            c_path = os.path.join(self.library.get_cover_folder(),
+                                  self.get_cover_filename())
+            if os.path.isfile(c_path):
+                try: os.unlink(c_path)
+                except OSError, err:
+                    log.err(_("Unable to remove cover %s: %s") \
+                            % (self.get_cover_filename(), err))
+
+    def save(self):
+        if self.db_id is None or self.dirty:
+            query = EditRecordQuery(self.library.ALBUM_TABLE)
+            for k,v in self.data.items():
+                query.add_value(k, v)
+            if self.db_id is not None:
+                query.set_update_id("id", self.db_id) \
+                     .execute(commit=False)
+            else:
+                self.db_id = query.execute(commit=False)
+                self.library.loaded_albums[self.db_id] = self
+        self.dirty = False
+
 
 class AudioLibrary(_Library):
     MEDIA_OBJECT = AudioItem
     TYPE = "audio"
-    COVER_TABLE = "cover"
+    LIB_TABLE = "song"
+    ALBUM_TABLE = "album"
+    loaded_albums = {}
 
-    def set_variousartist_tag(self, fid, file_info):
-        cursor = DatabaseConnection().cursor()
-        query = "SELECT DISTINCT m.id,m.value,m3.value FROM media_info m\
-                JOIN media_info m2 ON m.id = m2.id\
-                JOIN media_info m3 ON m.id = m3.id\
-                WHERE m.ikey='various_artist' AND m2.ikey='album'\
-                AND m2.value=%s AND m3.ikey='artist'"
-        cursor.execute(query, (file_info["album"],))
-        try: (id, various_artist, artist) = cursor.fetchone()
-        except TypeError:  # first song of this album
-            cursor.close()
-            return
-        else:
-            need_update = False
-            if various_artist == "__various__":
-                need_update, ids = True, [(fid,)]
-            elif artist != file_info["artist"]:
-                need_update = True
-                cursor.execute("SELECT id FROM media_info\
-                        WHERE ikey='album' AND value=%s", (file_info["album"],))
-                ids = cursor.fetchall()
+    def __init__(self):
+        self.cover_folder = DeejaydConfig().get("mediadb", "cover_directory")
+        if not os.path.exists(self.cover_folder):
+            try: os.mkdir(self.cover_folder, 0755)
+            except OSError, err:
+                raise DeejaydError(_("Unable to create cover folder %s: %s")
+                                   % (self.cover_folder, err))
+        # load albums
+        alb_entries = SimpleSelect(self.ALBUM_TABLE) \
+            .select_column("id", "album", "cover_lmod",
+                           "cover_type", "compilation") \
+            .execute()
+        for (id, album, cover_lmod, cover_type, compil) in alb_entries:
+            self.loaded_albums[id] = Album(self, album, db_id=id,
+                                           cover_lmod=cover_lmod,
+                                           cover_type=cover_type,
+                                           compilation=compil)
+        super(AudioLibrary, self).__init__()
 
-        if need_update:
-            cursor.executemany("UPDATE media_info SET value = '__various__'\
-                    WHERE ikey='various_artist' AND id = %s", ids)
-        cursor.close()
+    def get_album_with_name(self, name, create=False):
+        album_entry = SimpleSelect(self.ALBUM_TABLE) \
+                            .select_column("id") \
+                            .append_where("album = %s", name) \
+                            .execute(expected_result="fetchone")
+        db_id = album_entry and album_entry[0] or None
+        if db_id is None:
+            if not create:
+                raise DeejaydError
+            return Album(self, name)
+        return self.loaded_albums[db_id]
 
-    def get_file_cover(self, file_id, source=False):
-        var = source and "source" or "image"
-        return ComplexSelect(self.COVER_TABLE) \
-                    .join(self.INFO_TABLE, \
-                        "%s.ikey = 'cover' AND %s.value = %s.id" \
-                        % (self.INFO_TABLE, self.INFO_TABLE, self.COVER_TABLE)) \
-                    .select_column("id") \
-                    .select_column("mime_type") \
-                    .select_column(var) \
-                    .append_where(self.INFO_TABLE + ".id = %s", file_id) \
-                    .execute(expected_result="fetchone")
+    def get_album_with_id(self, id):
+        try: return self.loaded_albums[id]
+        except KeyError:
+            raise DeejaydError(_("Album with id %d not found") % id)
 
-    def is_cover_exist(self, source):
-        return SimpleSelect(self.COVER_TABLE) \
-                    .select_column("id", "lmod") \
-                    .append_where("source=%s", source) \
-                    .execute(expected_result="fetchone")
+    def get_cover_folder(self):
+        return self.cover_folder
 
-    def add_cover(self, source, mime, image):
-        return EditRecordQuery(self.COVER_TABLE) \
-                    .add_value("source", source) \
-                    .add_value("mime_type", mime) \
-                    .add_value("lmod", time.time()) \
-                    .add_value("image", image) \
-                    .execute(commit=False)
+    def clean_library(self, path, dir_ids, file_ids):
+        super(AudioLibrary, self).clean_library(path, dir_ids, file_ids)
+        # clean album
+        used_album = SimpleSelect(self.LIB_TABLE) \
+                            .select_column("album_id")
+        unused_albums = SimpleSelect(self.ALBUM_TABLE) \
+                .select_column("id") \
+                .append_where("id NOT IN (%s)" % used_album.to_sql()) \
+                .execute()
+        map(lambda a_id: self.loaded_albums[a_id[0]].erase(), unused_albums)
 
-    def update_cover(self, id, mime, new_image):
-        return EditRecordQuery(self.COVER_TABLE) \
-                    .set_update_id("id", id) \
-                    .add_value("mime_type", mime) \
-                    .add_value("lmod", time.time()) \
-                    .add_value("image", new_image) \
-                    .execute(commit=False)
-
-    def remove_cover(self, id):
-        DeleteQuery(self.COVER_TABLE) \
-                .append_where("id=%s", (id,)) \
-                .execute(commit=False)
-
-    def remove_unused_cover(self):
-        s_query = SimpleSelect(self.INFO_TABLE) \
-                    .select_column("value") \
-                    .append_where("ikey = 'cover'")
-        DeleteQuery(self.COVER_TABLE) \
-                .append_where("id NOT IN (%s)" % s_query.to_sql(), ()) \
-                .execute(commit=False)
+    def _build_library_query(self, attrs=None, map_media=True):
+        query = super(AudioLibrary, self)._build_library_query(attrs, map_media)
+        return query.join_on_tag("album")
 
 class VideoLibrary(_Library):
     MEDIA_OBJECT = VideoItem
     TYPE = "video"
+    LIB_TABLE = "video"
 
 
 @Singleton

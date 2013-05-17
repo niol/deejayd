@@ -29,7 +29,7 @@ class FlacFile(_AudioFile):
     def get_cover(self, tag_info):
         for picture in tag_info.pictures:
             if picture.type == 3:  # album front cover
-                return {"data": picture.data, "mime": picture.mime}
+                return {"data": picture.data, "mimetype": picture.mime}
         return None
 
 object = FlacFile
