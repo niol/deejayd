@@ -687,7 +687,7 @@ class VideoLibrary(_Library):
                 dir_id, fid, lm = rs
                 uri = quote_uri(file_path)
                 log.debug('library: updating external subtitle %s in db' % file_path)
-                self.log_obj.set_media_infos(fid, {"external_subtitle": uri})
+                self.lib_obj.set_media_infos(fid, {"external_subtitle": uri})
                 self.dispatch_mupdate(fid, 'update')
 
     def update_extrainfo_file(self, file_path):
