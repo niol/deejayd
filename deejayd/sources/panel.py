@@ -115,7 +115,7 @@ class PanelSource(_BaseSortedLibSource):
             try:
                 self._current = self._media_list.find(media_id)
             except ValueError:
-                self._current["id"] = -1
+                pass
 
     def get_tags(self):
         return self.__panel_tags

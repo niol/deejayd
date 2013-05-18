@@ -285,7 +285,8 @@ class ComplexFilter(MediaFilter):
             self.combine(filter)
 
     def combine(self, filter):
-        self.filterlist.append(filter)
+        if filter is not None:
+            self.filterlist.append(filter)
 
     def equals(self, filter):
         if filter.type == 'complex' and len(filter) == len(self.filterlist):
@@ -331,14 +332,14 @@ class ComplexFilter(MediaFilter):
     def _build_wheres(self, query):
         if not self.filterlist: return "(1)", []
         wheres, wheres_args = [], []
-        for filter in self.filterlist:
-            if filter.type == "basic":
-                query.join_on_tag(filter.tag)
-                where_query, arg = filter._match_tag()
+        for f in self.filterlist:
+            if f.type == "basic":
+                query.join_on_tag(f.tag)
+                where_query, arg = f._match_tag()
                 wheres.append(where_query)
                 wheres_args.append(arg)
             else:  # complex filter
-                where_query, args = filter._build_wheres(query)
+                where_query, args = f._build_wheres(query)
                 wheres.append(where_query)
                 wheres_args.extend(args)
         return "(%s)" % (self.combinator.join(wheres),), wheres_args
