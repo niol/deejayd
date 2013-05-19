@@ -351,7 +351,7 @@ class MPEG4(core.AVContainer):
                         datasize -= mdia[0]
 
                 elif datatype == 'udta':
-                    log.debug(u'udta: %r' % struct.unpack('>I4s', atomdata[:8]))
+                    log.debug(struct.unpack('>I4s', atomdata[:8]))
                 else:
                     if datatype == 'edts':
                         log.debug(u'--> %r [%d] (edit list)' % \

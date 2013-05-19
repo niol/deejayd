@@ -387,6 +387,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
             log.info(_("File %s not supported") % file_path)
             return None
         except Exception:
+            log.err(_("Unable to parse file %s") % (file_path,))
             log_traceback()
             return None
         return infos
