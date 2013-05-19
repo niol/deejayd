@@ -66,7 +66,10 @@ class PlaylistEntry(MutableMapping):
         self.media[key] = value
 
     def __delitem__(self, key):
-        raise DeejaydError("We can't remove any key from a playlist entry")
+        if key in ("id", "pos"):
+            raise DeejaydError("We can't remove key %s from a playlist entry"
+                               % key)
+        del self.media[key]
 
     def __getattr__(self, attr):
         if hasattr(self.media, attr):
