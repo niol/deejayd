@@ -352,6 +352,14 @@ class LibraryModule:
 
 class PlayerModule(object):
 
+    class getStatus:
+        """Return status of player
+  * volume : `[0-100]` current volume value
+  * state : [play-pause-stop] the current state of the player
+  * current : _int_:_int_:_str_ current media pos : current media file id : playing source name
+  * time : _int_:_int_ position:length of the current media file"""
+        answer = 'dict'
+
     class playToggle:
         """Toggle play/pause."""
 

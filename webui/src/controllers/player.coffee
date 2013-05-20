@@ -29,10 +29,11 @@ class DjdApp.PlayerController
       player_controller = @
       @view = new DjdApp.views.PlayerView(@)
       @updateCurrent()
+      @updateStatus()
 
       # define event handlers
-      jQuery(document).on("djdStatusUpdate", (e, status) ->
-        player_controller.updateStatus(status)
+      @rpc_client.subscribe("player.status", (sig) ->
+        player_controller.updateStatus()
       )
       @rpc_client.subscribe("player.current", (sig) ->
         player_controller.updateCurrent()
@@ -40,14 +41,18 @@ class DjdApp.PlayerController
       # load is finish
       @is_loaded = true
 
-  updateStatus: (status) ->
-    if status.state != @state
-      @view.updateState(status.state)
-      @state = status.state
+  updateStatus:  ->
+    _ref = @
+    @rpc_client.sendCommand("player.getStatus", [], (answer) ->
+      status = answer.answer
+      if status.state != _ref.state
+        _ref.view.updateState(status.state)
+        _ref.state = status.state
 
-    if status.volume != @volume
-      @view.updateVolume(status.volume)
-      @volume = status.volume
+      if status.volume != _ref.volume
+        _ref.view.updateVolume(status.volume)
+        _ref.volume = status.volume
+    )
 
   updateCurrent: ->
     view = @view

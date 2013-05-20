@@ -35,11 +35,6 @@ class DjdApp.Main
     @player = new DjdApp.PlayerController(@)
     @audiolib = new DjdApp.AudioLibraryController(@)
 
-    # subscribe to player.status signal
-    _ref = @
-    @client.subscribe("player.status", (signal) ->
-      _ref.updateStatus()
-    )
     @loadController(page_id)
 
   loadController: (page_id) ->
@@ -48,16 +43,8 @@ class DjdApp.Main
     if page_id == "djd-audiolib-page"
       @audiolib.load()
 
-    # refresh ui
-    @updateStatus()
-
   close: ->
     @loadingPopup.setError(jQuery.i18n._("connection_lost"))
-
-  updateStatus: ->
-    @client.sendCommand("getStatus", [], (answer) ->
-      jQuery.event.trigger("djdStatusUpdate", [answer.answer])
-    )
 
 
 # disable ajax navigation
