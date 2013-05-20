@@ -335,11 +335,11 @@ class ComplexFilter(MediaFilter):
     def _build_wheres(self, query):
         if not self.filterlist: return "(1)", []
         wheres, wheres_args = [], []
-        for filter in self.filterlist:
-            if filter.type == "basic":
-                query.join_on_tag(filter.tag)
-                where_query, arg = filter._match_tag(\
-                        self._get_table(filter.tag, query))
+        for f in self.filterlist:
+            if f.type == "basic":
+                query.join_on_tag(f.tag)
+                where_query, arg = f._match_tag(\
+                        self._get_table(f.tag, query))
                 wheres.append(where_query)
                 wheres_args.append(arg)
             else:  # complex filter
