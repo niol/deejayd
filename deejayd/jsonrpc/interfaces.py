@@ -137,7 +137,7 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
         elif type == "dict":
             res = dict(res)
         elif type == "media":
-            res = res.to_json()
+            res = res is not None and res.to_json() or None
         elif type == "ack":
             res = True
 
@@ -216,6 +216,9 @@ class CoreModule(object):
   * server_version : deejayd server version
   * protocol_version : protocol version"""
         answer = 'dict'
+
+    class close:
+        """Close the connection with the server"""
 
     class setMode:
         """Change the player mode. Possible values are :
@@ -297,10 +300,7 @@ class CoreModule(object):
             {"name": "type", "type": "string", "req": False}
         ]
 
-class TcpModule:
-
-    class close:
-        """Close the connection with the server"""
+class SignalModule:
 
     class setSubscription:
         """Set subscribtion to "signal" signal notifications to "value" which should be 0 or 1."""
@@ -818,7 +818,7 @@ JSONRPC_MODULES = {
     "recpls": RecordedPlaylistModule,
     "audiolib": LibraryModule,
     "videolib": LibraryModule,
-    "tcp": TcpModule,
+    "signal": SignalModule,
 }
 
 # vim: ts=4 sw=4 expandtab

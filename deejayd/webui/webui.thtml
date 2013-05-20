@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+
+    <!-- Specific for mobile device -->
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1"/>
+    <link rel="apple-touch-icon" href="static/img/deejayd.jpg"/>
+
+    <!-- Page title                         -->
+    <title>Deejayd Mobile Webui</title>
+
+    <!--                                           -->
+    <!--    Load style                             -->
+    <!--                                           -->
+    <link rel="stylesheet"
+          href="static/style/jquery.mobile-1.3.1.min.css"/>
+    <link rel="stylesheet"
+          href="static/style/deejayd.css"/>
+
+    <!--                                           -->
+    <!--    Load library scripts                   -->
+    <!--                                           -->
+    <script type="text/javascript" language="javascript"
+            src="static/js/lib/sockjs-0.3.min.js"></script>
+    <script type="text/javascript" language="javascript"
+            src="static/js/lib/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" language="javascript"
+            src="static/js/lib/jquery.mobile-1.3.1.min.js"></script>
+    <script type="text/javascript" language="javascript"
+            src="static/js/lib/jquery.i18n.min.js"></script>
+
+    <!--                                           -->
+    <!--    Load namespace var and options         -->
+    <!--                                           -->
+    <script>
+        window.DjdApp = {
+            models: {},
+            views: {},
+            options: {
+                root_url: '%(root_url)s'
+            },
+            dictionary: '%(i18n_dict)s'
+        };
+    </script>
+    %(custom_scripts)s
+
+</head>
+
+<body>
+    <div id="djd-player-page" data-role="page">
+        <div data-role="panel" id="djd-player-panel"
+             data-display="push" data-theme="a">
+            <ul data-role="listview">
+                <li>
+                    <a href="#djd-audiolib-page">
+                        Audio Library
+                    </a>
+                </li>
+            </ul>
+        </div><!-- /panel -->
+
+        <div data-role="header" data-position="fixed">
+            <h1 id="djd-player-page-title"></h1>
+            <a href="#djd-player-panel" data-icon="home" data-role="button"
+               data-iconpos="notext"></a>
+            <a href="#" data-icon="bars" data-role="button"
+               data-iconpos="notext"></a>
+        </div><!-- /header -->
+
+        <div data-role="content" id="djd-player-content">
+        </div><!-- /content -->
+
+        <div data-role="footer" id="djd-player-footer" data-position="fixed">
+            <div class="ui-grid-solo">
+                <input type="range" name="djd-player-slider" id="djd-player-slider"
+                       min="0" max="100" value="0"
+                       data-highlight="true"></input>
+            </div>
+        </div><!-- /footer -->
+
+        <div id="djd-player-popup" data-role="popup" data-dismissible="true">
+           <div data-role="content" id="djd-player-popup-content"></div>
+        </div>
+    </div><!-- player page -->
+
+    <div id="djd-playlist-page" data-role="page">
+    </div><!-- playlist page -->
+
+    <div id="djd-audiolib-page" data-role="page">
+        <div data-role="panel" id="djd-audiolib-panel"
+             data-display="push" data-theme="a">
+            <ul data-role="listview">
+                <li>
+                    <a href="#djd-player-page">
+                        Now Playing
+                    </a>
+                </li>
+            </ul>
+        </div><!-- /panel -->
+
+        <div data-role="header" data-position="fixed">
+            <h1 id="djd-audiolib-page-title">Audio Library</h1>
+            <a href="#djd-audiolib-panel" data-icon="home" data-role="button"
+               data-iconpos="notext"></a>
+            <div data-theme="c" data-role="content" style="height: 50px;">
+
+            </div>
+        </div><!-- /header -->
+
+        <div data-role="content" id="djd-audiolib-content">
+        </div><!-- /content -->
+
+        <div data-role="footer" id="djd-audiolib-footer" data-position="fixed">
+            <div data-role="navbar" data-theme="b">
+                <ul>
+                    <li><a href="#" class="ui-btn-active ui-state-persist">Genre</a></li>
+                    <li><a href="#">Artist</a></li>
+                    <li><a href="#">Albums</a></li>
+                    <li><a href="#">Songs</a></li>
+                </ul>
+            </div><!-- /navbar -->
+        </div><!-- /footer -->
+    </div><!-- audiolib page -->
+</body>
+
+</html>

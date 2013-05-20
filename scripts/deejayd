@@ -233,11 +233,11 @@ if __name__ == "__main__":
             exception=ex)
     ###############################################################
 
+    from deejayd.net.protocol import DeejaydFactory
     service = False
     # net service
     if config.getboolean("net", "enabled"):
         service = True
-        from deejayd.net.protocol import DeejaydFactory
 
         factory = DeejaydFactory(deejayd_core)
         port = config.getint("net", "port")
@@ -263,11 +263,12 @@ if __name__ == "__main__":
             htdocs_dir = None
             if INSTALL_MODE == 'source':
                 htdocs_dir = os.path.abspath(os.path.join(INSTALL_BIN_DIR, '..',
-                                                          'build', 'webui'))
+                                                          'webui'))
             elif INSTALL_MODE == 'installed':
-                htdocs_dir = os.path.abspath(os.path.join(INSTALL_PREFIX,
-                                                          'share', 'deejayd',
-                                                          'htdocs'))
+               htdocs_dir = os.path.abspath(os.path.join(INSTALL_PREFIX,
+                                                         'share', 'deejayd',
+                                                         'htdocs'))
+
             try:
                 site = webui.init(deejayd_core, config,
                                   options.webui_logfile, htdocs_dir)

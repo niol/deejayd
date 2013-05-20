@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,119 +16,63 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-def build(config):
-    return """
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
-<!-- above set at the top of the file will set     -->
-<!-- the browser's rendering engine into           -->
-<!-- "Quirks Mode". Replacing this declaration     -->
-<!-- with a "Standards Mode" doctype is supported, -->
-<!-- but may lead to some differences in layout.   -->
+import os
 
-<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+from twisted.web.resource import Resource, NoResource
+from deejayd.ui.config import DeejaydConfig
+from deejayd.jsonrpc import json
 
-    <!--                                           -->
-    <!-- Any title is fine                         -->
-    <!--                                           -->
-    <title>Deejayd Webui</title>
+class DeejaydMainResource(Resource):
 
-    <!-- this property sets the webui lang.   -->
-    <meta name="gwt:property" content="locale=%(lang)s">
+    def getChild(self, name, request):
+        if name == '': return self
+        return Resource.getChild(self,name,request)
 
-    <!--                                           -->
-    <!-- This script loads your compiled module.   -->
-    <!-- If you add any GWT meta tags, they must   -->
-    <!-- be added before this line.                -->
-    <!--                                           -->
-    <script type="text/javascript" language="javascript"
-            src="gwtwebui/gwtwebui.nocache.js"></script>
+    def render_GET(self, request):
+        # Trailing slash is required for js script paths in the mobile webui,
+        # therefore we need to add it if it is missing, by issuing a redirect
+        # to the web browser.
+        if request.prepath[-1] != '':
+            request.redirect(request.path + '/')
+            return 'redirected'
 
-    <style>
-        body, table td {
-            font-size: 0.7em !important;
-        }
-        .gwt-SliderBar-shell {
-            margin-top: 5px;
-            background-color: #fff;
-            height: 18pt;
-            width: 100px;
-        }
-        .gwt-SliderBar-shell .gwt-SliderBar-line {
-            border: 1px solid #ccc;
-            background-color: white;
-            height: 4px;
-            width: %(slider_width)s;
-            top: 9pt;
-            overflow: hidden;
-        }
-        .gwt-SliderBar-shell .gwt-SliderBar-knob {
-            top: 1pt;
-            width: 11px;
-            height: 21px;
-            z-index: 0;
-            cursor: pointer;
-        }
-        .gwt-SliderBar-shell-focused {
-        }
-        .gwt-SliderBar-shell .gwt-SliderBar-line-sliding {
-            background-color: #DDDDDD;
-            cursor: pointer;
-        }
+        user_agent = request.getHeader("user-agent");
+        mobile_client = user_agent.lower().find("mobile") != -1
 
-        .gwt-SplitLayoutPanel .gwt-SplitLayoutPanel-HDragger {
-            background-color: #D0E4F6 !important;
-            cursor: e-resize;
-        }
-        .gwt-SplitLayoutPanel .gwt-SplitLayoutPanel-VDragger {
-            background-color: #D0E4F6 !important;
-            cursor: n-resize;
-        }
-        .gwt-Button {
-            padding: 2px 4px !important;
-            font-size: 1.0em !important;
-        }
-        .gwt-ListBox {
-            padding: 0px 2px;
-            height: 22px;
-            font-size: 1.0em;
-        }
-        .gwt-TextBox {
-            padding: 0px !important;
-        }
-    </style>
-  </head>
+        return self.__build(mobile_client=mobile_client)
 
-  <body>
+    def __load_script(self, script, type="text/javascript"):
+        return "<script type='%(t)s' src='%(src)s'></script>" % {
+            "t": type,
+            "src": script,
+            }
 
-    <div id="errorMsg" style="display: none; width: 22em; position: absolute; left: %(msg_left)s; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
-      Your web browser is not supported by this application.
-      You need to use a web browser based on gecko or webkit engine
-      in order for this application to display correctly.
-    </div>
+    def __djdscripts(self, config):
+        scripts = [
+            ("gen/deejayd.js", "text/javascript"),
+        ]
+        return "\n".join(map(lambda s: self.__load_script(s[0], s[1]),
+                             scripts))
 
-    <script>
-      var errorMsg = document.getElementById("errorMsg");
-      if (errorMsg) {
-        setTimeout('errorMsg.style.display = "block";', 1000);
-      }
-    </script>
+    def __i18n_dict(self, config):
+        return json.dumps({
+            "no_media": _("No media"),
+            "connection_lost": _("Connection with server has been lost")
+        })
 
-    <noscript>
-      <div style="width: 22em; position: absolute; left: %(msg_left)s; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
-        Your web browser must have JavaScript enabled
-        in order for this application to display correctly.
-      </div>
-    </noscript>
+    def __build(self, mobile_client=False):
+        config = DeejaydConfig()
 
-  </body>
-</html>
-""" % {
-        "lang": config.get("webui", "lang"),
-        "slider_width": "95%",
-        "msg_left": "50%",
+        tpl_path = os.path.join(os.path.dirname(__file__), "webui.thtml")
+        tpl_content = ""
+        with open(tpl_path) as tpl:
+            tpl_content = tpl.read()
+        page_content = tpl_content % {
+            "root_url": config.get("webui", "root_url"),
+            "custom_scripts": self.__djdscripts(config),
+            "i18n_dict": self.__i18n_dict(config),
+            "loading": _("Loading..."),
         }
+        return page_content.encode("utf-8")
 
 # vim: ts=4 sw=4 expandtab

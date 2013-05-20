@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,35 +16,33 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys, traceback
-from twisted.application import service, internet
+import traceback
 from twisted.internet import protocol, reactor
 from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
 
-from deejayd import __version__
-from deejayd import DeejaydSignal
+from deejayd import __version__, DeejaydError
+from deejayd.signals import SIGNALS
 from deejayd.ui import log
 from deejayd.utils import str_decode
 from deejayd.component import JSONRpcComponent
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
-from deejayd.jsonrpc.interfaces import jsonrpc_module, TcpModule
+from deejayd.jsonrpc.interfaces import jsonrpc_module, SignalModule
 from deejayd.jsonrpc.jsonparsers import loads_request
 from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, DeejaydJSONSignal
 
 
-@jsonrpc_module(TcpModule)
+@jsonrpc_module(SignalModule)
 class DeejaydProtocol(LineReceiver, JSONRpcComponent):
     NOT_FOUND = 8001
     FAILURE = 8002
     delimiter = 'ENDJSON\n'
 
-    def __init__(self, deejayd_core, protocol_manager):
+    def __init__(self, deejayd_core):
         super(DeejaydProtocol, self).__init__()
         self.MAX_LENGTH = 40960
         self.subHandlers = {}
         self.deejayd_core = deejayd_core
-        self.manager = protocol_manager
 
         self.__need_to_close = False
 
@@ -53,7 +51,7 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
                          (__version__, DEEJAYD_PROTOCOL_VERSION, ))
 
     def connectionLost(self, reason=ConnectionDone):
-        self.manager.close_signals(self)
+        self.factory.close_signals(self)
 
     def lineReceived(self, line):
         line = line.strip("\r")
@@ -63,10 +61,12 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
         try:
             parsed = loads_request(line)
             args, function_path = parsed['params'], parsed["method"]
-            if function_path.startswith("tcp"):
-                # it's a command linked with this tcp connection
+            if function_path.startswith("signal"):
+                # it's a command linked with this connection
                 method = function_path.split(self.separator, 1)[1]
                 function = self.get_function(method)
+            elif function_path == "close":
+                function = self.close
             else:
                 function = self.deejayd_core.get_function(function_path)
         except Fault, f:
@@ -99,16 +99,20 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
         self.transport.loseConnection()
 
     #
-    # rpc commands linked with a TCP connection
+    # rpc commands linked with this connection
     #
-    def set_subscription(self, signal, value):
+    def set_subscription(self, signal_name, value):
+        if signal_name not in SIGNALS:
+            raise DeejaydError(_("Signal %s does not exist") % signal_name)
+
         if value is False:
-            self.manager.set_not_signaled(self, signal)
+            self.factory.set_not_signaled(self, signal_name)
         elif value is True:
-            self.manager.set_signaled(self, signal)
+            self.factory.set_signaled(self, signal_name)
 
     def close(self):
         self.__need_to_close = True
+
 
 class DeejaydFactory(protocol.ServerFactory):
     protocol = DeejaydProtocol
@@ -116,30 +120,26 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def __init__(self, deejayd_core):
         self.deejayd_core = deejayd_core
-        self.signaled_clients = dict([(signame, []) for signame\
-                                                    in DeejaydSignal.SIGNALS])
+        self.signaled_clients = dict([(signame, []) for signame in SIGNALS.keys()])
         self.core_sub_ids = {}
 
-    def startFactory(self):
-        log.info(_("Net Protocol activated"))
-
     def buildProtocol(self, addr):
-        p = self.protocol(self.deejayd_core, self)
+        p = self.protocol(self.deejayd_core)
 
         p.factory = self
         return p
 
     def clientConnectionLost(self, connector, reason):
-        for signal_name in DeejaydSignal.SIGNALS:
+        for signal_name in SIGNALS.keys():
             self.set_not_signaled(connector, signal_name)
 
     def set_signaled(self, connector, signal_name):
         client_list =  self.signaled_clients[signal_name]
         if len(client_list) < 1:
             # First subscription for this signal, so subscribe
-            sub_id = self.deejayd_core.subscribe(signal_name,
-                                                 self.sig_bcast_to_clients)
-            self.core_sub_ids[signal_name] = sub_id
+            receiver = self.sig_bcast_to_clients(signal_name)
+            SIGNALS[signal_name].connect(receiver)
+            self.core_sub_ids[signal_name] = receiver
 
         self.signaled_clients[signal_name].append(connector)
 
@@ -149,19 +149,29 @@ class DeejaydFactory(protocol.ServerFactory):
             client_list.remove(connector)
         if len(client_list) < 1:
             # No more clients for this signal, we can unsubscribe
-            self.deejayd_core.unsubscribe(self.core_sub_ids[signal_name])
+            SIGNALS[signal_name].disconnect(self.core_sub_ids[signal_name])
+            del self.core_sub_ids[signal_name]
 
     def close_signals(self, connector):
         for signal_name in self.signaled_clients.keys():
             if len(self.signaled_clients[signal_name]) > 0:
                 self.set_not_signaled(connector, signal_name)
 
-    def sig_bcast_to_clients(self, signal):
-        interested_clients = self.signaled_clients[signal.get_name()]
-        if len(interested_clients) > 0:
-            j_sig = DeejaydJSONSignal(signal)
-            ans = JSONRPCResponse(j_sig.dump(), None).to_json()
-            for client in interested_clients:
-                reactor.callFromThread(client.send_buffer, ans+client.delimiter)
+    def sig_bcast_to_clients(self, signal_name):
+        def receiver(signal=None, sender=None, **kwargs):
+            interested_clients = self.signaled_clients[signal_name]
+            if len(interested_clients) > 0:
+                j_sig = {
+                    "type": "signal",
+                    "answer": {
+                        "name": signal_name,
+                        "attrs": kwargs,
+                    }
+                }
+                ans = JSONRPCResponse(j_sig, None).to_json()
+                for client in interested_clients:
+                    reactor.callFromThread(client.send_buffer, ans+client.delimiter)
+
+        return receiver
 
 # vim: ts=4 sw=4 expandtab

@@ -313,7 +313,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
     def get_playing(self):
         if self.is_playing():
             return self._media_file
-        raise PlayerError(_("No media file is currently playing"))
+        return None
 
     def is_playing(self):
         return self.get_state() != PLAYER_STOP

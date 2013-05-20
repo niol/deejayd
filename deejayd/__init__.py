@@ -47,51 +47,6 @@ class DeejaydError(Exception):
             return unicode(self._message)
 
 
-class DeejaydSignal(object):
-
-    SIGNALS = ('player.status',  # Player status change (play/pause/stop/
-                                      # random/repeat/volume/manseek)
-               'player.current',  # Currently played song change
-               'player.plupdate',  # The current playlist has changed
-               'playlist.listupdate',  # The stored playlist list has changed
-                                      # (either a saved playlist has been saved
-                                      # or deleted).
-               'playlist.update',  # A recorded playlist (static or magic)
-                                      # has changed
-                                      # set id of playlist as attribute
-               'webradio.listupdate',
-               'panel.update',
-               'queue.update',
-               'video.update',
-               'dvd.update',
-               'mode',  # Mode change
-               'mediadb.aupdate',  # Media library audio update
-               'mediadb.vupdate',  # Media library video update
-               'mediadb.mupdate',  # a media has been updated
-                                      # set id and type of media as attribute
-                                      # set type of update as attribute
-              )
-
-    def __init__(self, name=None, attrs={}):
-        self.name = name
-        self.attrs = attrs
-
-    def set_name(self, name):
-        self.name = name
-
-    def get_name(self):
-        return self.name
-
-    def get_attrs(self):
-        return self.attrs
-
-    def get_attr(self, key):
-        return self.attrs[key]
-
-    def set_attr(self, key, value):
-        self.attrs[key] = value
-
-
 def Singleton(cls):
     class SingletonClass(object):
         # storage for the instance reference

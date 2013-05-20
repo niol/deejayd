@@ -31,10 +31,9 @@ except IOError:
 t.install()
 
 from deejayd.mediafilters import *
-from deejayd import DeejaydSignal
 from deejayd.jsonrpc import interfaces
 from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
-                                     Get_json_filter, DeejaydJSONSignal
+                                         DeejaydJSONSignal
 
 common_request = [
         {"prefix": "", "desc": "General Commands",\
@@ -61,6 +60,8 @@ common_request = [
                        "object": interfaces.QueueModule},
         {"prefix": "recpls.", "desc": "Recorded Playlist Commands",\
                        "object": interfaces.RecordedPlaylistModule},
+        {"prefix": "signal.", "desc": "Signal commands",
+                       "object": interfaces.SignalModule},
     ]
 
 class WikiFormat:
@@ -220,29 +221,12 @@ An example is given here.
 
 %(commands)s
 
-== Http Specific Commands ==
-
-%(web_commands)s
-
-== TCP commands ==
-
-%(tcp_commands)s
 """ % {
         "cmd_format": self.commandDoc(),
         "answer": self.answerDoc(),
-        "filter": Get_json_filter(filter).to_pretty_json(),
+        "filter": filter.to_json(),
         "commands": "\n\n".join(map(self.formatSectionDoc, sections)),
         "signal": DeejaydJSONSignal(signal).to_pretty_json(),
-        "web_commands": self.formatSectionDoc({\
-                "prefix": "web.",
-                "desc": "Commands specific to webui",
-                "object": interfaces.WebModule,
-            }),
-        "tcp_commands": self.formatSectionDoc({\
-                "prefix": "tcp.",
-                "desc": "TCP Specific commands (ex: signal commands)",
-                "object": interfaces.TcpModule,
-            }),
     }
 
 if __name__ == "__main__":

@@ -1,0 +1,67 @@
+/*
+# Deejayd, a media player daemon
+# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+div#djd-loading-widget {
+    position: absolute; left: 0; top: 0;
+    width: 100%; height: 100%;
+    z-index: 1000;
+    background: #000000;
+    opacity: 0.3;
+    text-align: center;
+    color: #ffffff;
+}
+
+div#djd-loading-img {
+    width: 300px; height: 300px;
+    margin: auto;
+    background-image: url(djd-images/loading.gif);
+}
+
+div#djd-loading-error {
+    width: 50%; height: 50%;
+    position: relative; top: 25%;
+    margin: auto;
+    background-color: red;
+    text-align: center;
+}
+div#djd-loading-error span {
+   margin: auto;
+   text-size: 1.2em;
+   position: relative; top: 40%;
+}
+
+div#djd-player-btn-group {
+    text-align: center;
+}
+div#djd-player-btn-group a.djd-player-btn {
+    display: block;
+    width: 48px; height: 48px;
+    background-repeat: no-repeat;
+    margin: auto;
+}
+
+div#djd-player-content {
+    background-image: url(djd-images/missing-cover.png);
+    background-repeat: no-repeat;
+    background-position: 50% 0%;
+    display: block;
+    height: 100px;
+    background-size: 100px 100px;
+}

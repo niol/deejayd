@@ -16,18 +16,16 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os,shutil
+import os
 from twisted.web import static,server
 from twisted.web.resource import Resource, NoResource
 
 from deejayd import DeejaydError
 from deejayd.ui import log
 
-# jsonrpc import
-from deejayd.webui.jsonrpc import JSONRpcResource
-
-from deejayd.webui.webui import build as webui_build
-from deejayd.webui.mobile import build as mobile_build
+from txsockjs.factory import SockJSResource
+from deejayd.net.protocol import DeejaydFactory
+from deejayd.webui.webui import DeejaydMainResource
 
 
 class DeejaydWebError(DeejaydError): pass
@@ -60,61 +58,6 @@ class DeejaydRootRedirector(Resource):
             return 'redirected'
 
 
-class DeejaydMainHandler(Resource):
-
-    def getChild(self, name, request):
-        if name == '': return self
-        return Resource.getChild(self,name,request)
-
-    def render_GET(self, request):
-        user_agent = request.getHeader("user-agent");
-        root = request.prepath[-1] != '' and request.path + '/' or request.path
-        if user_agent.lower().find("mobile") != -1:
-            # redirect to specific mobile interface
-            request.redirect(root + 'm/')
-            return 'redirected'
-        else: # default web interface
-            request.redirect(root + 'webui/')
-            return 'redirected'
-
-class DeejaydWebuiHandler(Resource):
-
-    def __init__(self, config):
-        Resource.__init__(self)
-        self.__config = config
-
-    def getChild(self, name, request):
-        if name == '': return self
-        return Resource.getChild(self,name,request)
-
-    def render_GET(self, request):
-        # Trailing slash is required for js script paths in the mobile webui,
-        # therefore we need to add it if it is missing, by issuing a redirect
-        # to the web browser.
-        if request.prepath[-1] != '':
-            request.redirect(request.path + '/')
-            return 'redirected'
-        return webui_build(self.__config)
-
-class DeejaydMobileHandler(Resource):
-
-    def __init__(self, config):
-        Resource.__init__(self)
-        self.__config = config
-
-    def getChild(self, name, request):
-        if name == '': return self
-        return Resource.getChild(self,name,request)
-
-    def render_GET(self, request):
-        # Trailing slash is required for js script paths in the mobile webui,
-        # therefore we need to add it if it is missing, by issuing a redirect
-        # to the web browser.
-        if request.prepath[-1] != '':
-            request.redirect(request.path + '/')
-            return 'redirected'
-        return mobile_build(self.__config)
-
 class SiteWithCustomLogging(server.Site):
 
     def _openLogFile(self, path):
@@ -129,45 +72,18 @@ class SiteWithCustomLogging(server.Site):
 
 
 def init(deejayd_core, config, webui_logfile, htdocs_dir):
-    # create tmp directory
-    tmp_dir = config.get("webui","tmp_dir")
-    if os.path.isdir(tmp_dir):
-        try: shutil.rmtree(tmp_dir)
-        except (IOError, OSError):
-            raise DeejaydWebError(_("Unable to remove tmp directory %s") % \
-                    tmp_dir)
-    try: os.mkdir(tmp_dir)
-    except IOError:
-        raise DeejaydWebError(_("Unable to create tmp directory %s") % tmp_dir)
-
-    if not os.path.isdir(htdocs_dir):
-        raise DeejaydWebError(_("Htdocs directory %s does not exists") % \
-                htdocs_dir)
-
     # main handler
-    main_handler = DeejaydMainHandler()
+    main_handler = DeejaydMainResource()
     # json-rpc handler
-    rpc_handler = JSONRpcResource(deejayd_core, tmp_dir)
-    main_handler.putChild("rpc",rpc_handler)
-    # tmp dir
-    main_handler.putChild("tmp",static.File(tmp_dir))
+    main_handler.putChild("rpc", SockJSResource(DeejaydFactory(deejayd_core)))
+    # cover folder
+    cover_folder = config.get("mediadb", "cover_directory")
+    main_handler.putChild("covers", static.File(cover_folder))
 
-    main_handler.putChild('static',
-                          static.File(os.path.join(htdocs_dir, 'static')))
-
-    # webui
-    webui_handler = DeejaydWebuiHandler(config)
-    webui_gwt = static.File(os.path.join(htdocs_dir, 'gwtwebui'))
-    webui_handler.putChild('gwtwebui', webui_gwt)
-
-    main_handler.putChild("webui", webui_handler)
-
-    # mobile part
-    mobile_handler = DeejaydMobileHandler(config)
-    mobilewebui_gwt = static.File(os.path.join(htdocs_dir, 'gwtmobilewebui'))
-    mobile_handler.putChild('gwtmobilewebui', mobilewebui_gwt)
-
-    main_handler.putChild("m", mobile_handler)
+    static_dir = os.path.join(htdocs_dir, 'static')
+    main_handler.putChild('static', static.File(static_dir))
+    gen_dir = os.path.join(htdocs_dir, 'gen')
+    main_handler.putChild('gen', static.File(gen_dir))
 
     root_url = config.get('webui', 'root_url')
     root_url = root_url[-1] == '/' and root_url or root_url + '/'

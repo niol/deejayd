@@ -1,5 +1,5 @@
 syntax: glob
-deejayd.py
+run_deejayd.py
 db
 conf*
 *.orig
@@ -8,17 +8,10 @@ conf*
 *~
 *.pyc
 build*
-data/htdocs/webui/deejayd_webui*
-data/htdocs/mobile/mobile_webui*
-webui/war*
-webui/gwt*
-webui/src/META-INF/jdoconfig.xml
-webui/src/log4j.properties
+webui/gen*
 
 syntax: regexp
 .*\#.*\#$
 
 syntax: regexp
-^data/htdocs/webui/deejayd_webui$
-syntax: regexp
-^data/htdocs/mobile/mobile_webui$
+^.idea

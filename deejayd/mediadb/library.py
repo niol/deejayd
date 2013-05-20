@@ -191,7 +191,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
                 self.defered.addErrback(error_handler, self)
 
                 self.defered.unpause()
-            self.dispatch_signame(self.update_signal_name)
 
             return dict([(self.type + "_updating_db", self._update_id)])
 
@@ -214,7 +213,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
             # close the connection
             DatabaseConnection().close()
 
-    def walk_directory(self, walk_root, force=False, dispatch_signal=True):
+    def walk_directory(self, walk_root, force=False):
         walk_root = os.path.join(self.get_root_path(),
                                  self.fs_charset2unicode(walk_root))
         walk_root = walk_root.rstrip("/")
@@ -297,7 +296,9 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
     def end_update(self, result=True):
         self._update_end = True
-        if result: log.msg(_("The %s library has been updated") % self.type)
+        if result:
+            log.msg(_("The %s library has been updated") % self.type)
+            self.dispatch_signame(self.update_signal_name)
         else:
             msg = _("Unable to update the %s library. See log.") % self.type
             log.err(msg)

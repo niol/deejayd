@@ -19,75 +19,7 @@
 from twisted.python import reflect
 from deejayd.model.state import PersistentState
 from deejayd import jsonrpc as jsonrpclib
-from deejayd import DeejaydError, DeejaydSignal
-
-class SignalingComponent(object):
-    SUBSCRIPTIONS = {}
-
-    def __init__(self):
-        super(SignalingComponent, self).__init__()
-        self.__dispatcher = None
-
-    def register_dispatcher(self, dispatcher):
-        self.__dispatcher = dispatcher
-        # set internal subscription
-        for signame in self.SUBSCRIPTIONS.keys():
-            self.__dispatcher.subscribe(signame,\
-                    getattr(self, self.SUBSCRIPTIONS[signame]))
-
-    def dispatch_signal(self, signal):
-        if self.__dispatcher:
-            self.__dispatcher._dispatch_signal(signal)
-
-    def dispatch_signame(self, signal_name, attrs = {}):
-        if self.__dispatcher:
-            self.__dispatcher._dispatch_signame(signal_name, attrs)
-
-
-class SignalingCoreComponent(object):
-
-    def __init__(self):
-        super(SignalingCoreComponent, self).__init__()
-        self._clear_subscriptions()
-
-    def __get_next_sub_id(self):
-        sub_id = self.__sub_id_counter
-        self.__sub_id_counter = self.__sub_id_counter + 1
-        return sub_id
-
-    def subscribe(self, signal_name, callback):
-        """Subscribe to a signal with a callback. Returns an id."""
-        if signal_name not in DeejaydSignal.SIGNALS:
-            return DeejaydError('Unknown signal provided for subscription.')
-
-        sub_id = self.__get_next_sub_id()
-        self.__sig_subscriptions[sub_id] = (signal_name, callback)
-        return sub_id
-
-    def unsubscribe(self, sub_id):
-        """Unsubscribe using the provied id."""
-        try:
-            del self.__sig_subscriptions[sub_id]
-        except IndexError:
-            raise DeejaydError('Unknown subscription id')
-
-    def get_subscriptions(self):
-        """Get the list of currently subcribed signals for this instance."""
-        return dict([(sub_id, sub[0]) for (sub_id, sub)\
-                                      in self.__sig_subscriptions.items()])
-
-    def _clear_subscriptions(self):
-        self.__sig_subscriptions = {}
-        self.__sub_id_counter = 0
-
-    def _dispatch_signal(self, signal):
-        for cb in [sub[1] for sub in self.__sig_subscriptions.values()\
-                                  if sub[0] == signal.get_name()]:
-            cb(signal)
-
-    def _dispatch_signame(self, signal_name, attrs = {}):
-        self._dispatch_signal(DeejaydSignal(signal_name, attrs))
-
+from deejayd.signals import SIGNALS
 
 class JSONRpcComponent(object):
     separator = '.'
@@ -139,6 +71,11 @@ class JSONRpcComponent(object):
         """Return a list of the names of all jsonrpc methods."""
         return reflect.prefixedMethodNames(self.__class__, 'jsonrpc_')
 
+class SignalingComponent(object):
+
+    def dispatch_signame(self, signal_name, **kwargs):
+        signal = SIGNALS[signal_name]
+        signal.send(sender=self, **kwargs)
 
 class PersistentStateComponent(object):
     state_name = ""

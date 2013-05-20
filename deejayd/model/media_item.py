@@ -21,9 +21,8 @@ import os
 from collections import MutableMapping
 
 from deejayd.model.mediafilters import DEFAULT_AUDIO_SORT, DEFAULT_VIDEO_SORT
-from deejayd.database.connection import DatabaseConnection
-from deejayd.database.querybuilders import ReplaceQuery
 from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery
+from deejayd.signals import mediadb_mupdate
 from deejayd import DeejaydError
 
 class _MediaItem(MutableMapping):
@@ -113,6 +112,8 @@ class _MediaItem(MutableMapping):
             DeleteQuery(self.TABLE).append_where("id = %s", (self.db_id,))\
                               .execute(commit)
             del self.library.loaded_files[self.db_id]
+            mediadb_mupdate.send(sender=self, media_id=self.db_id,
+                                 type="delete")
             self.db_id = None
 
     def to_json(self):
@@ -132,12 +133,15 @@ class _MediaItem(MutableMapping):
                 query.add_value(attr, self.data[attr])
             self.db_id = query.execute(commit=commit)
             self.library.loaded_files[self.db_id] = self
+            mediadb_mupdate.send(sender=self, media_id=self.db_id, type="add")
         elif self.dirty_keys:
             query = EditRecordQuery(self.TABLE)
             query.set_update_id("id", self.db_id)
             for attr in self.dirty_keys:
                 query.add_value(attr, self.data[attr])
             query.execute(commit=commit)
+            mediadb_mupdate.send(sender=self, media_id=self.db_id,
+                                 type="update")
 
         return self.db_id
 

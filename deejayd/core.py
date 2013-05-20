@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd import DeejaydError, __version__
-from deejayd.component import SignalingCoreComponent, JSONRpcComponent
+from deejayd.component import JSONRpcComponent
 from deejayd.jsonrpc import DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import jsonrpc_module, CoreModule, IntrospectionModule
 from deejayd.ui.config import DeejaydConfig
@@ -59,7 +59,7 @@ class JSONRPCIntrospection(JSONRpcComponent):
 
 
 @jsonrpc_module(CoreModule)
-class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
+class DeejayDaemonCore(JSONRpcComponent):
 
     def __init__(self, start_inotify=True):
         super(DeejayDaemonCore, self).__init__()
@@ -69,27 +69,21 @@ class DeejayDaemonCore(JSONRpcComponent, SignalingCoreComponent):
         self.plugin_manager = plugins.PluginManager(config)
 
         self.player = player.init(self.plugin_manager, config)
-        self.player.register_dispatcher(self)
         self.put_sub_handler('player', self.player)
 
         self.audiolib, self.videolib, self.watcher = \
             mediadb.init(self.player, config)
-        self.audiolib.register_dispatcher(self)
         self.put_sub_handler('audiolib', self.audiolib)
         if self.videolib:
-            self.videolib.register_dispatcher(self)
             self.put_sub_handler('videolib', self.videolib)
 
         self.recpls = DeejaydRecordedPlaylist(self.audiolib)
-        self.recpls.register_dispatcher(self)
         self.put_sub_handler('recpls', self.recpls)
 
         self.sources = sources.init(self.player, self.audiolib,
                                     self.videolib, self.plugin_manager,
                                     config)
-        self.sources.register_dispatcher(self)
         for source in self.sources.sources_obj.values():
-            source.register_dispatcher(self)
             self.put_sub_handler(source.name, source)
             setattr(self, source.name, source)
 

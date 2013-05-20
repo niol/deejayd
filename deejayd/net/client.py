@@ -23,8 +23,7 @@ import sys, inspect, re, new, posixpath
 
 from Queue import Queue, Empty
 
-from deejayd import DeejaydError, DeejaydSignal
-from deejayd.component import SignalingCoreComponent
+from deejayd import DeejaydError
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import JSONRPC_MODULES
 from deejayd.jsonrpc.jsonbuilders import JSONRPCRequest
@@ -102,7 +101,7 @@ def parse_deejayd_answer(answer):
 class ConnectError(DeejaydError):
     pass
 
-class _DeejayDaemon(SignalingCoreComponent):
+class _DeejayDaemon(object):
     """Abstract class for a deejayd daemon client."""
 
     def __init__(self):
@@ -230,7 +229,7 @@ class DeejayDaemonSync(_DeejayDaemon):
             return
 
         self.socket_to_server.settimeout(self.__timeout)
-        try: self.tcp.close()
+        try: self.close()
         except socket.timeout:
             pass
 
@@ -641,25 +640,11 @@ class DeejayDaemonAsync(_DeejayDaemon):
         return expected_answer
 
     def subscribe(self, signal_name, callback):
-        if signal_name not in self.get_subscriptions().values():
-            ans = self.tcp.set_subscription(signal_name, True)
-            # Subscription are sync because there should be a way to tell the
-            # client that subscription failed.
-            ans.wait_for_answer()
-        return _DeejayDaemon.subscribe(self, signal_name, callback)
+        # TODO: rewrite async subscribe/unsubscribe command in client library
+        pass
 
     def unsubscribe(self, sub_id):
-        try:
-            signal_name = self.get_subscriptions()[sub_id]
-        except KeyError:
-            # DeejaydError will be raised at local unsubscription
-            pass
-        _DeejayDaemon.unsubscribe(self, sub_id)
-        # Remote unsubscribe if last local subscription laid off
-        if signal_name not in self.get_subscriptions().values():
-            ans = self.tcp.set_subscription(signal_name, False)
-            # As subscription, unsubscription is sync.
-            ans.wait_for_answer()
+        pass
 
 
 #
