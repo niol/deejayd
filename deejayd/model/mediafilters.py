@@ -288,7 +288,8 @@ class ComplexFilter(MediaFilter):
             self.combine(filter)
 
     def combine(self, filter):
-        self.filterlist.append(filter)
+        if filter is not None:
+            self.filterlist.append(filter)
 
     def equals(self, filter):
         if filter.type == 'complex' and len(filter) == len(self.filterlist):
@@ -342,7 +343,7 @@ class ComplexFilter(MediaFilter):
                 wheres.append(where_query)
                 wheres_args.append(arg)
             else:  # complex filter
-                where_query, args = filter._build_wheres(query)
+                where_query, args = f._build_wheres(query)
                 wheres.append(where_query)
                 wheres_args.extend(args)
         return "(%s)" % (self.combinator.join(wheres),), wheres_args

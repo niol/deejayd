@@ -133,7 +133,8 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
     def get_current(self):
         queue_media = self.sources_obj["queue"].get_current() or \
                       self.sources_obj["queue"].next()
-        if queue_media: return (queue_media, "queue")
+        if queue_media:
+            return queue_media
 
         current = self.sources_obj[self.state["current"]].get_current() or \
             self.sources_obj[self.state["current"]].next(explicit=False)

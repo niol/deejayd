@@ -670,7 +670,7 @@ class Matroska(core.AVContainer):
             elif elem_id == MATROSKA_CHAPTER_UID_ID:
                 self.objects_by_uid[elem.get_value()] = chap
 
-        log.debug(u'Chapter %r found', chap.name)
+        log.debug(u'Chapter %r found' % chap.name)
         chap.id = len(self.chapters)
         self.chapters.append(chap)
 

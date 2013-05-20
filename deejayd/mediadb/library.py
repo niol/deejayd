@@ -355,9 +355,11 @@ class _Library(SignalingComponent, JSONRpcComponent):
     def remove_media(self, path, name):
         log.debug('library: removing file %s from db'\
                 % os.path.join(path, name))
-        dir_id, file_id, lm = self.lib_obj.is_file_exist(path, name)
-        self.lib_obj.remove_file(file_id)
-        self.dispatch_mupdate(file_id, 'remove')
+        rs = self.lib_obj.is_file_exist(path, name)
+        if rs is not None:
+            dir_id, file_id, lm = rs
+            self.lib_obj.remove_file(file_id)
+            self.dispatch_mupdate(file_id, 'remove')
 
     def crawl_directory(self, path, name):
         dir_path = os.path.join(path, name)
@@ -433,7 +435,7 @@ class VideoLibrary(_Library):
                 dir_id, fid, lm = rs
                 uri = quote_uri(file_path)
                 log.debug('library: updating external subtitle %s in db' % file_path)
-                self.log_obj.set_media_infos(fid, {"external_subtitle": uri})
+                self.lib_obj.set_media_infos(fid, {"external_subtitle": uri})
                 self.dispatch_mupdate(fid, 'update')
 
     def update_extrainfo_file(self, file_path):
