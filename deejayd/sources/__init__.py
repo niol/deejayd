@@ -26,7 +26,7 @@ from deejayd.sources._base import SourceError
 class UnknownSourceException: pass
 
 class SourceFactory(SignalingComponent, PersistentStateComponent):
-    sources_list = ("playlist", "queue", "webradio", "video", "panel")
+    sources_list = ("playlist", "queue", "webradio", "video")
     state_name = "source_state"
     initial_state = {"current": "playlist"}
 
@@ -44,13 +44,6 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
             self.sources_obj["playlist"] = playlist.PlaylistSource(audio_library)
         else:
             log.info(_("Playlist support disabled"))
-
-        # panel
-        if "panel" in activated_sources:
-            from deejayd.sources import panel
-            self.sources_obj["panel"] = panel.PanelSource(audio_library, config)
-        else:
-            log.info(_("Panel support disabled"))
 
         # Webradio
         if "webradio" in activated_sources and player.is_supported_uri("http"):

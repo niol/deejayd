@@ -184,7 +184,6 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         if self._media_file is None:
             mediatype_by_source = {
                     "playlist": "song",
-                    "panel": "song",
                     "video": "video",
                     "dvd": "video",
                     "webradio": "webradio"

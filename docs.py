@@ -48,8 +48,6 @@ common_request = [
                        "object": interfaces.LibraryModule},
         {"prefix": "playlist.", "desc": "Playlist Mode Commands",\
                        "object": interfaces.PlaylistSourceModule},
-        {"prefix": "panel.", "desc": "Panel Mode Commands",\
-                       "object": interfaces.PanelSourceModule},
         {"prefix": "video.", "desc": "Video Mode Commands",\
                        "object": interfaces.VideoSourceModule},
         {"prefix": "webradio.", "desc": "Webradio Mode Commands",\

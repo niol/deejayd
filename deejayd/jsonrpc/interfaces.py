@@ -223,7 +223,6 @@ class CoreModule(object):
     class setMode:
         """Change the player mode. Possible values are :
   * playlist : to manage and listen songs in playlist
-  * panel : to manage and listen songs in panel mode (like itunes)
   * video : to manage and wath video file
   * dvd : to wath dvd
   * webradio : to manage and listen webradios"""
@@ -233,7 +232,6 @@ class CoreModule(object):
         """For each available source, shows if it is activated or not.
    The answer consists in :
   * playlist : _bool_ true or false
-  * panel : _bool_ true or false
   * webradio : _bool_ true or false (media backend has to be abble to read url streams)
   * video : _bool_ true or false (needs video dependencies, X display and needs to be activated in configuration)
   * dvd : _bool_ true or false (media backend has to be able to read dvd)"""
@@ -308,18 +306,6 @@ class SignalModule:
             {"name":"signal", "type":"string", "req":True}, \
             {"name":"value", "type":"bool", "req":True}
         ]
-
-class WebModule:
-
-    class writeCover:
-        """ Record requested cover in the temp directory """
-        answer = 'dict'
-        args = [{"name":"mid", "type":"int", "req":True}]
-
-    class buildPanel:
-        """ Build panel list """
-        answer = 'dict'
-        args = [{"name":"updated_tag", "type":"string", "req":False}]
 
 class LibraryModule:
 
@@ -574,67 +560,6 @@ class WebradioSourceModule(object):
             {"name":"cat", "type":"int", "req":False},
         ]
 
-class PanelSourceModule(object):
-
-    class get:
-        """Return the content of this mode."""
-        answer = "mediaList"
-        args = [
-            { "name":"first",
-              "type":"int",
-              "req":False}, \
-            { "name":"length",
-              "type":"int",
-              "req":False}
-        ]
-
-    class getTags:
-        """Return tag list used in panel mode."""
-        answer = 'list'
-
-    class getActiveList:
-        """Return active list in panel mode
-         * type : 'playlist' if playlist is choosen as active medialist 'panel' if panel navigation is active
-         * value : if 'playlist' is selected, used playlist id"""
-        answer = 'dict'
-
-    class setActiveList:
-        """Set the active list in panel mode"""
-        args = [
-            {"name":"type", "type":"string", "req":True}, \
-            {"name":"value", "type":"int", "req":False}
-        ]
-
-    class setFilter:
-        """Set a filter for panel mode"""
-        args = [
-            {"name":"tag", "type":"string", "req":True}, \
-            {"name":"values", "type":"list", "req":True}
-        ]
-
-    class removeFilter:
-        """Remove a filter for panel mode"""
-        args = [{"name":"tag", "type":"string", "req":True}, ]
-
-    class clearFilters:
-        """Clear filters for panel mode"""
-
-    class setSearchFilter:
-        """Set search filter in panel mode"""
-        args = [
-            {"name":"tag", "type":"string", "req":True}, \
-            {"name":"value", "type":"string", "req":True}
-        ]
-
-    class clearSearchFilter:
-        """Clear search filter in panel mode"""
-
-    class clearAllFilters:
-        """Clear search filter and panel filters"""
-
-    class setSort:
-        """Sort active medialist in panel mode"""
-        args = [{"name":"sort", "type":"sort", "req":True}, ]
 
 class VideoSourceModule(object):
 
@@ -818,7 +743,6 @@ JSONRPC_MODULES = {
     "core": CoreModule,
     "player": PlayerModule,
     "playlist": PlaylistSourceModule,
-    "panel": PanelSourceModule,
     "webradio": WebradioSourceModule,
     "video": VideoSourceModule,
     "dvd": DvdSourceModule,

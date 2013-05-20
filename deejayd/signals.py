@@ -35,7 +35,6 @@ mode_change = Signal()
 playlist_listupdate = Signal()
 playlist_update = Signal(providing_args=["pl_id"])
 webradio_listupdate = Signal()
-panel_update = Signal()
 queue_update = Signal()
 video_update = Signal()
 
@@ -51,7 +50,6 @@ SIGNALS = {
     "playlist.listupdate": playlist_listupdate,
     "playlist.update": playlist_update,
     "webradio.listupdate": webradio_listupdate,
-    "panel.update": panel_update,
     "queue.update": queue_update,
     "video.update": video_update,
     "mode": mode_change,
