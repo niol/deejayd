@@ -15,7 +15,7 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          lsb-base (>= 3.0-6), logrotate, adduser,
          deejayd-client (= ${binary:Version}),
-         deejayd-xine (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
+         deejayd-vlc (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}) | deejayd-xine (= ${binary:Version}),
          python-twisted,
          python-pysqlite2,
          python-lxml, python-mutagen
