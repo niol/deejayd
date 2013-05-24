@@ -69,7 +69,8 @@ class _Library(object):
                         .select_column("id") \
                         .append_where("directory = %s", id) \
                         .execute()
-        self.remove_file(map(lambda i: i[0], f_ids))
+        for f_id in f_ids:
+            self.remove_file(f_id[0])
         DeleteQuery(self.DIR_TABLE).append_where("id = %s", (id,)) \
                                    .execute(commit=False)
 
