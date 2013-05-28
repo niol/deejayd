@@ -1,3 +1,9 @@
+deejayd (0.10.0-5) unstable; urgency=low
+
+  * Fix typo in mozilla-devscripts versionned dep.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 27 May 2013 14:32:13 +0000
+
 deejayd (0.10.0-4) unstable; urgency=low
 
   * Add upstream inotify fixes.
