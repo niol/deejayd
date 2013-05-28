@@ -4,6 +4,12 @@ deejayd (0.12.0~pre+1-1) unstable; urgency=low
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 02 May 2012 10:47:51 +0200
 
+deejayd (0.10.0-5) unstable; urgency=low
+
+  * Fix typo in mozilla-devscripts versionned dep.
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 27 May 2013 14:32:13 +0000
+
 deejayd (0.10.0-4) unstable; urgency=low
 
   * New upstream version:
