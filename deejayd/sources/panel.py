@@ -65,8 +65,8 @@ class PanelSource(_BaseSortedLibSource):
         #  * Panel : And(OR(genre=value1, genre=value2), OR(artist=value1)...)
         #  * Search : OR(tag1 CONTAINS value, )
         self.__search, self.__panel = None, {}
-        if filter != None:
-            for ft in filters:
+        for ft in filters:
+            if ft != None:
                 if ft.get_name() == "and":  # panel
                     for panel_ft in ft.filterlist:
                         tag = panel_ft.filterlist[0].tag
