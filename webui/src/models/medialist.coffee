@@ -1,6 +1,6 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
-#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+# Copyright (C) 2013 Mickael Royer <mickael.royer@gmail.com>
+#                    Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,15 +16,15 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
+class DjdApp.models.MediaList
+  constructor: (m_list) ->
+    @media_list = []
+    for m in m_list
+      @media_list.push(new DjdApp.models.Media(m))
 
-from deejayd.jsonrpc.interfaces import VideoSourceModule, jsonrpc_module
-from deejayd.sources._base import _BaseLibrarySource
+  getMediaList: ->
+    return @media_list
 
-@jsonrpc_module(VideoSourceModule)
-class VideoSource(_BaseLibrarySource):
-    name = "videopls"
-    mlist_name = "__djvideo__"
-    source_signal = 'videopls.update'
+class DjdApp.models.Playlist extends DjdApp.models.MediaList
 
 # vim: ts=4 sw=4 expandtab

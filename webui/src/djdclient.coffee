@@ -49,16 +49,30 @@ class DjdApp.WebClient
       else if msg.indexOf(@webClient.delimiter) > 0
         answer = JSON.parse(msg.substr(0, msg.length-@webClient.delimiter.length))
         if answer.error # some errors happen, display a message
-          alert(answer.error)
+          alert("Error: #{ answer.error.code } - #{ answer.error.message }")
         else
           if answer.result.type == "signal" # we receive signal dispatch it
             signal = answer.result.answer
             if @webClient.signals.hasOwnProperty(signal.name)
               for cb in @webClient.signals[signal.name]
                 cb(signal)
+
           else if @webClient.cmd_callbacks.hasOwnProperty(answer.id)
             cb = @webClient.cmd_callbacks[answer.id]
-            cb(answer.result)
+            cb(@webClient._formatAnswer(answer.result))
+
+  _formatAnswer: (answer) ->
+    switch answer.type
+      when "media"
+        if answer.answer != null
+          return new DjdApp.models.Media(answer.answer)
+        return null
+      when "medialist"
+        return new DjdApp.models.MediaList(answer.answer)
+      when "playlist"
+        return new DjdApp.models.Playlist(answer.answer)
+      else
+        return answer.answer
 
   sendCommand: (cmd_name, args, callback=null) ->
     if @is_connected

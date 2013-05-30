@@ -129,9 +129,8 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
         except DeejaydError, ex:
             raise Fault(INTERNAL_ERROR, unicode(ex))
         type = getattr(rpc_cmd, "answer", "ack")
-        if type == "mediaList":
-            if res["filter"] is not None:
-                res["filter"] = res["filter"].to_json()
+        if type in ("medialist", "albumList", "playlist"):
+            res = map(lambda m: m.to_json(), res)
         elif type == 'fileAndDirList':
             res["files"] = map(lambda m: m.to_json(), res["files"])
         elif type == "dict":
@@ -213,29 +212,13 @@ class CoreModule(object):
 
     class getServerInfo:
         """Return deejayd server informations :
+  * video_support : true if this server supports video, else false
   * server_version : deejayd server version
   * protocol_version : protocol version"""
         answer = 'dict'
 
     class close:
         """Close the connection with the server"""
-
-    class setMode:
-        """Change the player mode. Possible values are :
-  * playlist : to manage and listen songs in playlist
-  * video : to manage and wath video file
-  * dvd : to wath dvd
-  * webradio : to manage and listen webradios"""
-        args = [{"name":"mode", "type":"string", "req":True}]
-
-    class getModes:
-        """For each available source, shows if it is activated or not.
-   The answer consists in :
-  * playlist : _bool_ true or false
-  * webradio : _bool_ true or false (media backend has to be abble to read url streams)
-  * video : _bool_ true or false (needs video dependencies, X display and needs to be activated in configuration)
-  * dvd : _bool_ true or false (media backend has to be able to read dvd)"""
-        answer = 'dict'
 
     class getStatus:
         """Return status of deejayd. Given informations are :
@@ -280,16 +263,6 @@ class CoreModule(object):
   * albums : number of albums in the database"""
         answer = 'dict'
 
-    class setOption:
-        """Set player options "name" to "value" for mode "source", Available options are :
-  * playorder (_str_: inorder, onemedia, random or random-weighted)
-  * repeat (_bool_: True or False)"""
-        args = [
-            {"name":"source", "type":"string", "req":True}, \
-            {"name":"option_name", "type":"string", "req":True}, \
-            {"name":"option_value", "type":"string", "req":True}
-        ]
-
     class setRating:
         """Set rating of media file with ids equal to media_id for library 'type' """
         args = [\
@@ -307,7 +280,7 @@ class SignalModule:
             {"name":"value", "type":"bool", "req":True}
         ]
 
-class LibraryModule:
+class LibraryModule(object):
 
     class update:
         """Update the library.
@@ -321,11 +294,11 @@ class LibraryModule:
         args = [{"name":"directory", "type":"string", "req":False}]
 
     class search:
-        """Search files in library where "type" contains "pattern" content."""
-        answer = 'list'
+        """Search files in library that match "filter"
+        ."""
+        answer = 'medialist'
         args = [
-            {"name":"pattern", "type":"string", "req":True}, \
-            {"name":"type", "type":"string", "req":False}
+            {"name":"filter", "type":"filter", "req":False}
         ]
 
     class tagList:
@@ -333,6 +306,19 @@ class LibraryModule:
         answer = 'list'
         args = [
             {"name":"tag", "type":"string", "req":True},
+            {"name":"filter", "type":"filter", "req":False}
+        ]
+
+class AudioLibraryModule(LibraryModule):
+
+    class albumList:
+        """Get Albums that match the 'filter', the answer is list where each
+entry has
+  * id of the album
+  * name of the filename
+  * filename of the cover"""
+        answer = 'albumList'
+        args = [
             {"name":"filter", "type":"filter", "req":False}
         ]
 
@@ -436,11 +422,20 @@ class PlayerModule(object):
             "req": True, },
         ]
 
-class PlaylistSourceModule(object):
+class _SourceModule(object):
+
+    class getStatus:
+        """Return status of source. Given informations are :
+  * repeat : _bool_ false (not activated) or true (activated)
+  * playorder : inorder | random | onemedia | random-weighted
+  * id : _int_ id of the current playlist
+  * length : _int_ length of the current playlist
+  * timelength : _int_ time length of the current playlist"""
+        answer = 'dict'
 
     class get:
-        """Return the content of this mode."""
-        answer = "mediaList"
+        """Return the content of this source."""
+        answer = "playlist"
         args = [
             { "name":"first",
               "type":"int",
@@ -452,6 +447,49 @@ class PlaylistSourceModule(object):
 
     class clear:
         """Clear the current playlist."""
+
+    class setOption:
+        """Set player options "name" to "value". Available options are :
+  * playorder (_str_: inorder, onemedia, random or random-weighted)
+  * repeat (_bool_: True or False)"""
+        args = [
+            {"name":"option_name", "type":"string", "req":True}, \
+            {"name":"option_value", "type":"string", "req":True}
+        ]
+
+    class addMediasByIds:
+        """Load files and directories identified with ids (dir_ids and  media_ids).
+if queue args = True (default), selected medias are added at the end of the
+playlist, else they replace current playlist
+."""
+        args = [
+            {"name":"dir_ids", "type":"int-list", "req":True},
+            {"name":"media_ids", "type":"int-list", "req":True},
+            {"name":"queue", "type":"bool", "req":False}
+        ]
+
+    class addMediaByFilter:
+        """Load files that match the filter argument
+if queue args = True (default), selected medias are added at the end of the
+playlist, else they replace current playlist
+."""
+        args = [
+            {"name":"filter", "type":"filter", "req":True},
+            {"name":"queue", "type":"bool", "req":False}
+        ]
+
+    class remove:
+        """Remove songs with ids passed as argument ("ids") from the current playlist"""
+        args = [{"name":"ids", "type":"int-list", "req":True}]
+
+    class move:
+        """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)"""
+        args = [
+            {"name":"ids", "type":"int-list", "req":True},
+            {"name":"pos", "type":"int", "req":False}
+        ]
+
+class AudioSourceModule(_SourceModule):
 
     class shuffle:
         """Shuffle the current playlist."""
@@ -469,28 +507,15 @@ class PlaylistSourceModule(object):
             {"name":"pos", "type":"int", "req":False}
         ]
 
-    class addPath:
-        """Load files or directories passed as arguments ("paths") at the position "pos" in the current playlist."""
-        args = [
-            {"name":"paths", "type":"list", "req":True},
-            {"name":"pos", "type":"int", "req":False}
-        ]
+class VideoSourceModule(_SourceModule):
+    pass
 
-    class addSong:
-        """Load files with id passed as arguments ("ids") at the position "pos" in the current playlist."""
-        args = [
-            {"name":"ids", "type":"int-list", "req":True},
-            {"name":"pos", "type":"int", "req":False}
-        ]
+class QueueSourceModule(_SourceModule):
 
-    class remove:
-        """Remove songs with ids passed as argument ("ids") from the current playlist"""
-        args = [{"name":"ids", "type":"int-list", "req":True}]
-
-    class move:
-        """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)"""
+    class loadPlaylist:
+        """Load recorded playlist at a specific position"""
         args = [
-            {"name":"ids", "type":"int-list", "req":True},
+            {"name":"pl_ids", "type":"int-list", "req":True},
             {"name":"pos", "type":"int", "req":False}
         ]
 
@@ -561,88 +586,6 @@ class WebradioSourceModule(object):
         ]
 
 
-class VideoSourceModule(object):
-
-    class get:
-        """Return the content of this mode."""
-        answer = "mediaList"
-        args = [
-            { "name":"first",
-              "type":"int",
-              "req":False}, \
-            { "name":"length",
-              "type":"int",
-              "req":False}
-        ]
-
-    class set:
-        """Set content of video mode"""
-        args = [
-            {"name":"value", "type":"string", "req":True}, \
-            {"name":"type", "type":"string", "req":False}
-        ]
-
-    class setSort:
-        """Sort active medialist in video mode"""
-        args = [{"name":"sort", "type":"sort", "req":True}, ]
-
-class DvdSourceModule(object):
-
-    class get:
-        """Get the content of the current dvd."""
-        answer = 'dvdInfo'
-
-    class reload:
-        """Load the content of the dvd player."""
-
-class QueueModule(object):
-
-    class get:
-        """Return the content of this mode."""
-        answer = "mediaList"
-        args = [
-            { "name":"first",
-              "type":"int",
-              "req":False}, \
-            { "name":"length",
-              "type":"int",
-              "req":False}
-        ]
-
-    class clear:
-        """Clear the queue"""
-
-    class loadPlaylist:
-        """Load recorded playlist at a specific position"""
-        args = [
-            {"name":"pl_ids", "type":"int-list", "req":True},
-            {"name":"pos", "type":"int", "req":False}
-        ]
-
-    class addPath:
-        """Load files or directories passed as arguments ("paths") at the position "pos" in the current playlist."""
-        args = [
-            {"name":"paths", "type":"list", "req":True},
-            {"name":"pos", "type":"int", "req":False}
-        ]
-
-    class addSong:
-        """Load files with id passed as arguments ("ids") at the position "pos" in the current playlist."""
-        args = [
-            {"name":"ids", "type":"int-list", "req":True},
-            {"name":"pos", "type":"int", "req":False}
-        ]
-
-    class remove:
-        """Remove songs with ids passed as argument ("ids") from the current playlist"""
-        args = [{"name":"ids", "type":"int-list", "req":True}]
-
-    class move:
-        """Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)"""
-        args = [
-            {"name":"ids", "type":"int-list", "req":True},
-            {"name":"pos", "type":"int", "req":False}
-        ]
 
 class RecordedPlaylistModule(object):
 
@@ -742,11 +685,10 @@ class RecordedPlaylistModule(object):
 JSONRPC_MODULES = {
     "core": CoreModule,
     "player": PlayerModule,
-    "playlist": PlaylistSourceModule,
+    "audiopls": AudioSourceModule,
+    "audioqueue": QueueSourceModule,
+    "videopls": VideoSourceModule,
     "webradio": WebradioSourceModule,
-    "video": VideoSourceModule,
-    "dvd": DvdSourceModule,
-    "queue": QueueModule,
     "recpls": RecordedPlaylistModule,
     "audiolib": LibraryModule,
     "videolib": LibraryModule,

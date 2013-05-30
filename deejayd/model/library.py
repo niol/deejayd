@@ -182,16 +182,16 @@ class _Library(object):
     def get_files_with_ids(self, file_ids):
         return [self.loaded_files[int(id)] for id in file_ids]
 
-    def list_tags(self, tag, filter):
+    def list_tags(self, tag, ft):
         query = self._build_library_query(attrs=(tag,), map_media=False)
-        if filter is not None:
-            filter.restrict(query)
+        if ft is not None:
+            ft.restrict(query)
         query.order_by_tag(tag)
         return query.execute()
 
-    def search(self, filter, orders=[], limit=None):
+    def search(self, ft, orders=[], limit=None):
         query = self._build_library_query()
-        filter.restrict(query)
+        ft.restrict(query)
         for (tag, direction) in orders:
             descending = direction == "descending"
             query.order_by_tag(tag, descending=descending)
@@ -372,6 +372,15 @@ class AudioLibrary(_Library):
         try: return self.loaded_albums[id]
         except KeyError:
             raise DeejaydError(_("Album with id %d not found") % id)
+
+    def get_albums_with_filter(self, filter):
+        query = LibrarySelectQuery(self.LIB_TABLE, self.DIR_TABLE) \
+                        .order_by_tag("album") \
+                        .select_column("id", self.ALBUM_TABLE)
+        if filter is not None:
+            filter.restrict(query)
+        a_ids = query.execute()
+        return map(lambda id: self.loaded_albums[id[0]], a_ids)
 
     def get_cover_folder(self):
         return self.cover_folder

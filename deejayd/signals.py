@@ -30,13 +30,14 @@ mediadb_vupdate = Signal()    # Media library video update
 mediadb_mupdate = Signal(providing_args=["media_id", "type"])    # Media item
                                                                  # update
 
-# source specific signals
-mode_change = Signal()
-playlist_listupdate = Signal()
-playlist_update = Signal(providing_args=["pl_id"])
+recpls_listupdate = Signal()
+recpls_update = Signal(providing_args=["pl_id"])
 webradio_listupdate = Signal()
-queue_update = Signal()
-video_update = Signal()
+
+# source specific signals
+audiopls_update = Signal()
+audioqueue_update = Signal()
+videopls_update = Signal()
 
 SIGNALS = {
     'player.status': player_status,
@@ -47,12 +48,13 @@ SIGNALS = {
     'mediadb.vupdate': mediadb_vupdate,
     'mediadb.mupdate': mediadb_mupdate,
 
-    "playlist.listupdate": playlist_listupdate,
-    "playlist.update": playlist_update,
+    "recpls.listupdate": recpls_listupdate,
+    "recpls.update": recpls_update,
+
     "webradio.listupdate": webradio_listupdate,
-    "queue.update": queue_update,
-    "video.update": video_update,
-    "mode": mode_change,
+    "audioqueue.update": audioqueue_update,
+    "videopls.update": videopls_update,
+    "audiopls.update": audiopls_update,
 }
 
 # vim: ts=4 sw=4 expandtab

@@ -20,6 +20,7 @@ class DjdApp.PlayerController
   constructor: (@main_controller) ->
     # init var
     @is_loaded = false
+    @is_pls_loaded = false
     @state = "stop"
     @volume = 0
     @rpc_client = @main_controller.client
@@ -41,10 +42,30 @@ class DjdApp.PlayerController
       # load is finish
       @is_loaded = true
 
+  loadPlaylist: ->
+    if not @is_pls_loaded
+      @pls_view = new DjdApp.views.PlaylistView(@)
+
+      # define event handlers
+      self = @
+      for key in ["audiopls", "audioqueue", "videopls"]
+        @rpc_client.subscribe("#{ key }.update", (sig) ->
+          pl  = sig.name.split(".")[0]
+          self.updatePlaylist(pl)
+        )
+        @updatePlaylist(key)
+
+      @is_pls_loaded = true
+
+  updatePlaylist: (pls) ->
+    self = @
+    @rpc_client.sendCommand("#{ pls }.getStatus", [], (infos) ->
+      self.pls_view.refresh(pls, infos)
+    )
+
   updateStatus:  ->
     _ref = @
-    @rpc_client.sendCommand("player.getStatus", [], (answer) ->
-      status = answer.answer
+    @rpc_client.sendCommand("player.getStatus", [], (status) ->
       if status.state != _ref.state
         _ref.view.updateState(status.state)
         _ref.state = status.state
@@ -57,11 +78,14 @@ class DjdApp.PlayerController
   updateCurrent: ->
     view = @view
     @rpc_client.sendCommand("player.getPlaying", [], (answer) ->
-      view.refreshCurrent(answer.answer)
+      view.refreshCurrent(answer)
     )
 #
 #  Commands called from view
 #
+  goTo: (id, pls) ->
+    @rpc_client.sendCommand("player.goTo", [id, "id", pls])
+
   previous: ->
     @rpc_client.sendCommand("player.previous", [])
 
@@ -76,5 +100,35 @@ class DjdApp.PlayerController
 
   setVolume: (vol) ->
     @rpc_client.sendCommand("player.setVolume", [vol])
+
+  getAudioPlaylist: (start=0, length=null, cb=null) ->
+    args = [start]
+    if length != null
+      args.push(length)
+    @rpc_client.sendCommand("audiopls.get", args, cb)
+
+  getAudioQueue: (start=0, length=null, cb=null) ->
+    args = [start]
+    if length != null
+      args.push(length)
+    @rpc_client.sendCommand("audioqueue.get", args, cb)
+
+  getVideoPlaylist: (start=0, length=null, cb=null) ->
+    args = [start]
+    if length != null
+      args.push(length)
+    @rpc_client.sendCommand("videopls.get", args, cb)
+
+  plsClear: (pls) ->
+    @rpc_client.sendCommand("#{ pls }.clear", [])
+
+  plsShuffle: (pls) ->
+    @rpc_client.sendCommand("#{ pls }.shuffle", [])
+
+  plsRemove: (pls, ids) ->
+    @rpc_client.sendCommand("#{ pls }.remove", [ids])
+
+  plsOptions: (pls, option, value) ->
+    @rpc_client.sendCommand("#{ pls }.setOption", [option, value])
 
 # vim: ts=4 sw=4 expandtab

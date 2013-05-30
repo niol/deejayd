@@ -172,12 +172,13 @@ class LibrarySelectQuery(ComplexSelect):
     def join_on_tag(self, tagname):
         if tagname in self.dedicated_table and tagname not in self.__joined_tags:
             self.__joined_tags.append(tagname)
-            j_st = "JOIN %(tag)s %(tag)s ON %(tag)s.id = %(table)s.album_id" \
+            j_st = "JOIN %(tag)s %(tag)s ON %(tag)s.id = %(table)s.%(tag)s_id" \
                    % { 'tag' : tagname, "table": self.table_name }
             self.joins.append(j_st)
         return self
 
     def order_by_tag(self, tag, descending=False):
+        self.join_on_tag(tag)
         table = tag in self.dedicated_table and tag or self.table_name
         return self.order_by(tag, table_name=table, descending=descending)
 
@@ -198,6 +199,7 @@ class LibrarySelectQuery(ComplexSelect):
                   ' AND '.join(self.wheres) or 1,
                   orders or '',
                   limit or '')
+
 
 class _DBActionQuery(_DBQuery):
 

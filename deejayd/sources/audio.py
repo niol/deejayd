@@ -16,29 +16,33 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.jsonrpc.interfaces import PlaylistSourceModule, jsonrpc_module
-from deejayd.sources._base import _BaseAudioLibSource
+from deejayd.jsonrpc.interfaces import AudioSourceModule, jsonrpc_module
+from deejayd.sources._base import _BaseLibrarySource
 from deejayd.model.playlist import StaticPlaylist
+from deejayd.model.playlist import PlaylistFactory
+from deejayd import DeejaydError
 
-@jsonrpc_module(PlaylistSourceModule)
-class PlaylistSource(_BaseAudioLibSource):
-    SUBSCRIPTIONS = {
-            "mediadb.mupdate": "cb_library_changes",
-            }
-    base_medialist = "__djcurrent__"
-    name = "playlist"
-    source_signal = 'player.plupdate'
-
-    def shuffle(self):
-        self._media_list.shuffle(self._current)
-        self.dispatch_signame(self.__class__.source_signal)
+@jsonrpc_module(AudioSourceModule)
+class AudioSource(_BaseLibrarySource):
+    base_medialist = "__djaudio__"
+    name = "audiopls"
+    source_signal = 'audiopls.update'
 
     def save(self, playlist_name):
         pls = StaticPlaylist(self.library, playlist_name)
         pls.set(self._media_list.get())
         id = pls.save()
 
-        self.dispatch_signame('playlist.listupdate')
+        self.dispatch_signame('recpls.listupdate')
         return {"playlist_id": id}
+
+    def load_playlist(self, pl_ids, pos=None):
+        try:
+            pls_list = [PlaylistFactory().load_byid(self.library, pl_id)
+                        for pl_id in pl_ids]
+        except IndexError:
+            raise DeejaydError(_("Some asked playlist are not found."))
+        self._media_list.add(reduce(lambda ms, p: ms + p.get(), pls_list, []))
+        self.dispatch_signame(self.source_signal)
 
 # vim: ts=4 sw=4 expandtab

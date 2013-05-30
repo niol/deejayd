@@ -1,6 +1,6 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
-#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+# Copyright (C) 2013 Mickael Royer <mickael.royer@gmail.com>
+#                    Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -96,4 +96,4 @@ class DjdApp.views.PlayerView
     if current == null
       jQuery("#djd-player-page-title").html(jQuery.i18n._("no_media"))
     else
-      jQuery("#djd-player-page-title").html(current.title)
+      jQuery("#djd-player-page-title").html(current.formatTitle())

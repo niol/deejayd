@@ -87,7 +87,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         media_pos = int(self.state["current"])
         source = self.state["current_source"]
         if media_pos != -1 and source not in ("queue", "none", 'webradio'):
-            self._media_file = self._source.get(media_pos, "pos", source)
+            self._media_file = self._source.go_to(media_pos, "pos", source)
 
         # Update playing state
         playing_state = self.state["state"]
@@ -150,7 +150,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         self._change_file(self._source.previous())
 
     def go_to(self, nb, type='id', source=None):
-        self._change_file(self._source.get(nb, type, source))
+        self._change_file(self._source.go_to(nb, type, source))
 
     def get_volume(self):
         return self.__volume[self.__get_vol_type()]
@@ -183,9 +183,9 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
     def __get_vol_type(self):
         if self._media_file is None:
             mediatype_by_source = {
-                    "playlist": "song",
-                    "video": "video",
-                    "dvd": "video",
+                    "audiopls": "song",
+                    "audioqueue": "song",
+                    "videopls": "video",
                     "webradio": "webradio"
                 }
             return mediatype_by_source[self._source.get_current_sourcename()]

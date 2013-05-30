@@ -35,7 +35,7 @@ def load_playlist(type):
             pls.save()
 
             if rs is None:
-                self.dispatch_signame('playlist.update', {"pl_id": pl_id})
+                self.dispatch_signame('recpls.update', {"pl_id": pl_id})
             return rs
 
         return load_playlist_func
@@ -77,7 +77,7 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
                 raise DeejaydError(_("This playlist already exists"))
 
         pls = getattr(self.__pl_manager, type)(self.library, name)
-        self.dispatch_signame('playlist.listupdate')
+        self.dispatch_signame('recpls.listupdate')
         return {"pl_id": pls.get_dbid(), "name": name, "type": type}
 
     def erase(self, pl_ids):
@@ -87,7 +87,7 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
             raise DeejaydError(_("Some playlists in the list do not exist"))
 
         self.__pl_manager.erase(pls_list)
-        if pl_ids: self.dispatch_signame('playlist.listupdate')
+        if pl_ids: self.dispatch_signame('recpls.listupdate')
 
     @load_playlist("static")
     def static_add_media(self, pls, values, type="path"):

@@ -20,12 +20,52 @@ class DjdApp.AudioLibraryController
   constructor: (@main_controller) ->
     # init var
     @is_loaded = false
+    @rpc_client = @main_controller.client
 
   load: ->
     if not @is_loaded
       @is_loaded = true
+      @view =  new DjdApp.views.AudioLibraryView(@)
+
+      # define event handlers
+      _ref = @
+      @rpc_client.subscribe("mediadb.aupdate", (sig) ->
+        _ref.view.refresh()
+      )
 
 #
 #  Commands called from view
 #
-  getGenre: ->
+  getFolderContent: (folder='', cb) ->
+    @rpc_client.sendCommand("audiopls.getDirContent", [folder], cb)
+
+  playByFilter: (filter) ->
+    filter = filter.dump() if filter != null
+    self = @
+    @rpc_client.sendCommand("audiopls.addMediaByFilter", [filter, false], (ans) ->
+      self.rpc_client.sendCommand("player.goTo", [0, "pos", "audiopls"])
+    )
+
+  addByFilter: (filter) ->
+    filter = filter.dump() if filter != null
+    self = @
+    @rpc_client.sendCommand("audiopls.addMediaByFilter", [filter, true])
+
+  addQueueByFilter: (filter) ->
+    filter = filter.dump() if filter != null
+    self = @
+    @rpc_client.sendCommand("audioqueue.addMediaByFilter", [filter, true])
+
+  getGenre: (cb) ->
+    @rpc_client.sendCommand("audiolib.tagList", ["genre"], cb)
+
+  getArtist: (cb) ->
+    @rpc_client.sendCommand("audiolib.tagList", ["artist"], cb)
+
+  getAlbum: (filter, cb) ->
+    filter = filter.dump() if filter != null
+    @rpc_client.sendCommand("audiolib.albumList", [filter], cb)
+
+  getSongs: (filter, cb) ->
+    filter = filter.dump() if filter != null
+    @rpc_client.sendCommand("audiolib.search", [filter], cb)

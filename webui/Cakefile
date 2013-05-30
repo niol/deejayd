@@ -22,10 +22,15 @@ fs     = require 'fs'
 appFiles  = [
     # omit src/ and .coffee to make the below lines a little shorter
     'utils'
+    'models/media'
+    'models/medialist'
+    'models/mediafilter'
     'djdclient'
     'widgets/loading'
     'widgets/player-btn'
     'views/player'
+    'views/playlist'
+    'views/audiolib'
     'controllers/player'
     'controllers/audiolib'
     'main'
@@ -47,3 +52,22 @@ task 'build', 'Build deejayd webui application from source files', ->
                 fs.unlink 'gen/deejayd.coffee', (err) ->
                     throw err if err
                     console.log 'Done.'
+
+
+task 'debug', 'Build deejayd webui application from source files', ->
+    appContents = new Array remaining = appFiles.length
+    for file, index in appFiles then do (file, index) ->
+        fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
+            throw err if err
+            appContents[index] = fileContents
+            process() if --remaining is 0
+    process = ->
+        fs.writeFile 'gen/deejayd.coffee', appContents.join('\n\n'), 'utf8', (err) ->
+            throw err if err
+            exec 'coffee --map --compile gen/deejayd.coffee', (err, stdout, stderr) ->
+                throw err if err
+                console.log stdout + stderr
+                console.log 'Done.'
+                #fs.unlink 'gen/deejayd.coffee', (err) ->
+                #    throw err if err
+

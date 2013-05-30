@@ -16,16 +16,27 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.jsonrpc.interfaces import QueueModule, jsonrpc_module
-from deejayd.sources._base import _BaseAudioLibSource
+from deejayd.jsonrpc.interfaces import QueueSourceModule, jsonrpc_module
+from deejayd.sources._base import _BaseLibrarySource
+from deejayd.model.playlist import PlaylistFactory
+from deejayd import DeejaydError
 
-@jsonrpc_module(QueueModule)
-class QueueSource(_BaseAudioLibSource):
-    base_medialist = "__djqueue__"
-    name = "queue"
-    source_signal = 'queue.update'
+@jsonrpc_module(QueueSourceModule)
+class QueueSource(_BaseLibrarySource):
+    mlist_name = "__djqueue__"
+    name = "audioqueue"
+    source_signal = 'audioqueue.update'
     available_playorder = ("inorder", "random")
     has_repeat = False
+
+    def load_playlist(self, pl_ids, pos=None):
+        try:
+            pls_list = [PlaylistFactory().load_byid(self.library, pl_id)
+                        for pl_id in pl_ids]
+        except IndexError:
+            raise DeejaydError(_("Some asked playlist are not found."))
+        self._media_list.add(reduce(lambda ms, p: ms + p.get(), pls_list, []))
+        self.dispatch_signame(self.source_signal)
 
     def go_to(self, nb, type = "id"):
         self._current = super(QueueSource, self).go_to(nb, type)

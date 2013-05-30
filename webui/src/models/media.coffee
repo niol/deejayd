@@ -1,6 +1,6 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
-#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+# Copyright (C) 2013 Mickael Royer <mickael.royer@gmail.com>
+#                    Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,34 +16,25 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-log_levels = {
-  "error": 0,
-  "info": 1,
-  "debug": 2,
-}
-active_level = "debug"
-DjdApp.log = (msg, level="info") ->
-  if log_levels[level] <= log_levels[active_level]
-    console.log(msg)
+class DjdApp.models.Media
+  constructor: (@media) ->
 
-DjdApp.debug = (msg)->
-  DjdApp.log("DjdApp DEBUG -- #{msg}", "debug")
+  formatTitle: ->
+    return @media.title
 
-DjdApp.error = (msg)->
-  DjdApp.log("DjdApp ERROR -- #{msg}", "error")
+  formatMedialist: ->
+    return """
+           <p class="ui-li-aside">#{ @formatLength() }</p>
+           <h4>#{ @media.title }</h4>
+           <p><em>#{ @media.artist } - #{ @media.album }</em></p>
+           """
+  getMedia: ->
+    return @media
 
+  get: (attr) ->
+    return @media[attr]
 
-DjdApp.formatTime = (t) ->
-  num = (n) ->
-    if n < 10
-      return "0#{ n }"
-    else
-      return "#{ n }"
-
-  d = new Date(t*1000)
-  if t < 3600
-    return "#{ num(d.getMinutes()) }:#{ num(d.getSeconds()) }"
-  else
-    return "#{ num(d.getHours()) }:#{ num(d.getMinutes()) }:#{ num(d.getSeconds()) }"
+  formatLength: ->
+    return DjdApp.formatTime(@media["length"])
 
 # vim: ts=4 sw=4 expandtab

@@ -56,8 +56,20 @@ class DeejaydMainResource(Resource):
 
     def __i18n_dict(self, config):
         return json.dumps({
+            "song": _("Song"),
+            "songs": _("Songs"),
+            "video": _("Video"),
+            "videos": _("Videos"),
+            "plsTitle": _("%s %s (%s)"),
+            "clear": _("Clear"),
+            "shuffle": _("Shuffle"),
+            "loading": _("Loading..."),
+            "unknown": _("Unknown"),
             "no_media": _("No media"),
-            "connection_lost": _("Connection with server has been lost")
+            "connection_lost": _("Connection with server has been lost"),
+            "inorder": _("In order"),
+            "random": _("Random"),
+            "onemedia": _("One media"),
         })
 
     def __build(self, mobile_client=False):
@@ -72,6 +84,12 @@ class DeejaydMainResource(Resource):
             "custom_scripts": self.__djdscripts(config),
             "i18n_dict": self.__i18n_dict(config),
             "loading": _("Loading..."),
+            "music": _("Music"),
+            "genre": _("Genre"),
+            "artist": _("Artist"),
+            "album": _("Album"),
+            "folder": _("Folder"),
+            "repeat": _("Repeat"),
         }
         return page_content.encode("utf-8")
 

@@ -81,9 +81,8 @@ class DeejayDaemonCore(JSONRpcComponent):
         self.put_sub_handler('recpls', self.recpls)
 
         self.sources = sources.init(self.player, self.audiolib,
-                                    self.videolib, self.plugin_manager,
-                                    config)
-        for source in self.sources.sources_obj.values():
+                                    self.videolib, config)
+        for source in self.sources.sources.values():
             self.put_sub_handler(source.name, source)
             setattr(self, source.name, source)
 
@@ -108,25 +107,6 @@ class DeejayDaemonCore(JSONRpcComponent):
     def ping(self):  # do nothing
         pass
 
-    def set_option(self, source, option_name, option_value):
-        try: self.sources.set_option(source, option_name, option_value)
-        except sources.UnknownSourceException:
-            raise DeejaydError(_('Mode %s not supported') % source)
-        except sources._base.SourceError, ex:
-            raise DeejaydError(str(ex))
-
-    def set_mode(self, mode_name):
-        try: self.sources.set_source(mode_name)
-        except sources.UnknownSourceException:
-            raise DeejaydError(_('Mode %s not supported') % mode_name)
-
-    def get_modes(self):
-        av_sources = self.sources.get_available_sources()
-        modes = {}
-        for s in self.sources.get_all_sources():
-            modes[s] = s in av_sources
-        return modes
-
     def get_status(self):
         status = self.player.get_status()
         status.extend(self.sources.get_status())
@@ -141,7 +121,8 @@ class DeejayDaemonCore(JSONRpcComponent):
     def get_server_info(self):
         return {
             "server_version": __version__,
-            "protocol_version": DEEJAYD_PROTOCOL_VERSION
+            "protocol_version": DEEJAYD_PROTOCOL_VERSION,
+            "video_support": DeejaydConfig().getboolean("video", "enable")
         }
 
     def set_rating(self, media_ids, rating, type="audio"):

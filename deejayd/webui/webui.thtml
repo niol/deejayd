@@ -39,6 +39,7 @@
         window.DjdApp = {
             models: {},
             views: {},
+            widgets: {},
             options: {
                 root_url: '%(root_url)s'
             },
@@ -56,7 +57,7 @@
             <ul data-role="listview">
                 <li>
                     <a href="#djd-audiolib-page">
-                        Audio Library
+                        %(music)s
                     </a>
                 </li>
             </ul>
@@ -66,8 +67,8 @@
             <h1 id="djd-player-page-title"></h1>
             <a href="#djd-player-panel" data-icon="home" data-role="button"
                data-iconpos="notext"></a>
-            <a href="#" data-icon="bars" data-role="button"
-               data-iconpos="notext"></a>
+            <a href="#djd-playlist-page" data-icon="bars" data-role="button"
+               data-iconpos="notext" data-transition="flip"></a>
         </div><!-- /header -->
 
         <div data-role="content" id="djd-player-content">
@@ -87,6 +88,56 @@
     </div><!-- player page -->
 
     <div id="djd-playlist-page" data-role="page">
+        <div data-role="header" data-position="fixed">
+            <h1 id="djd-playlist-title"></h1>
+            <a href="#djd-player-page" data-icon="delete"
+               data-role="button" data-transition="flip">
+                Close
+            </a>
+            <div id="djd-playlist-toolbar">
+                <div style="float:left" data-role="controlgroup"
+                     data-type="horizontal"
+                     id="djd-playlist-toolbar-buttons">
+                </div>
+                <div style="float:right">
+                    <fieldset data-role="controlgroup" data-type="horizontal">
+                        <input type="checkbox" id="djd-playlist-toolbar-rpt"
+                               name="djd-playlist-toolbar-rpt"
+                               data-mini="true"/>
+                        <label for="djd-playlist-toolbar-rpt">%(repeat)s</label>
+
+                        <select name="djd-playlist-toolbar-order"
+                                id="djd-playlist-toolbar-order"
+                                data-mini="true">
+                        </select>
+                    </fieldset>
+                </div>
+            </div>
+        </div><!-- /header -->
+
+        <div data-role="content" id="djd-playlist-content">
+            <ul data-role="listview" id="djd-playlist-listview"></ul>
+        </div><!-- /content -->
+
+        <div data-role="footer" id="djd-playlist-footer" data-position="fixed">
+            <div data-role="navbar" data-theme="b">
+                <ul>
+                    <li><a href="#"
+                           class="ui-btn-active ui-state-persist"
+                           data-djd-source="audiopls"
+                           id="djd-playlist-nav-audiopls">Audio playlist</a>
+                    </li>
+                    <li><a href="#"
+                           data-djd-source="videopls"
+                           id="djd-playlist-nav-videopls">Video playlist</a>
+                    </li>
+                    <li><a href="#"
+                           data-djd-source="audioqueue"
+                           id="djd-playlist-nav-audioqueue">Audio Queue</a>
+                    </li>
+                </ul>
+            </div><!-- /navbar -->
+        </div><!-- /footer -->
     </div><!-- playlist page -->
 
     <div id="djd-audiolib-page" data-role="page">
@@ -102,27 +153,60 @@
         </div><!-- /panel -->
 
         <div data-role="header" data-position="fixed">
-            <h1 id="djd-audiolib-page-title">Audio Library</h1>
+            <h1 id="djd-audiolib-page-title">%(music)s</h1>
             <a href="#djd-audiolib-panel" data-icon="home" data-role="button"
                data-iconpos="notext"></a>
-            <div data-theme="c" data-role="content" style="height: 50px;">
-
+            <div class="ui-body-c" id="djd-audiolib-toolbar">
+                <ul class="djd-inline-block" id="djd-audiolib-toolbar-buttons">
+                </ul>
+                <div style="display: inline-block;">
+                    <h2 id="djd-audiolib-toolbar-title"></h2>
+                </div>
             </div>
         </div><!-- /header -->
 
         <div data-role="content" id="djd-audiolib-content">
+            <ul data-role="listview" id="djd-audiolib-listview"></ul>
         </div><!-- /content -->
 
-        <div data-role="footer" id="djd-audiolib-footer" data-position="fixed">
-            <div data-role="navbar" data-theme="b">
+        <div data-theme="a" data-role="footer" id="djd-audiolib-footer"
+             data-position="fixed">
+            <div data-role="navbar" data-theme="b" id="djd-audiolib-nav">
                 <ul>
-                    <li><a href="#" class="ui-btn-active ui-state-persist">Genre</a></li>
-                    <li><a href="#">Artist</a></li>
-                    <li><a href="#">Albums</a></li>
-                    <li><a href="#">Songs</a></li>
+                    <li><a href="#"
+                           class="ui-btn-active ui-state-persist"
+                           id="djd-audiolib-nav-genre">%(genre)s</a>
+                    </li>
+                    <li>
+                        <a href="#" id="djd-audiolib-nav-artist">
+                            %(artist)s
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="djd-audiolib-nav-album">
+                            %(album)s
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="djd-audiolib-nav-folder">
+                            %(folder)s
+                        </a>
+                    </li>
                 </ul>
             </div><!-- /navbar -->
         </div><!-- /footer -->
+
+        <div data-theme="a" id="djd-audiolib-popup" data-role="popup"
+             data-dismissible="false">
+            <a href="#" data-rel="back" data-role="button" data-theme="a"
+               data-icon="delete" data-iconpos="notext" class="ui-btn-right"></a>
+
+            <div data-role="header"><h1>Actions</h1></div>
+            <div data-role="content">
+                <ul data-role="listview" id="djd-audiolib-popup-menu">
+                </ul>
+            </div>
+        </div>
     </div><!-- audiolib page -->
 </body>
 

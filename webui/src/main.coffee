@@ -40,7 +40,9 @@ class DjdApp.Main
   loadController: (page_id) ->
     if page_id == "djd-player-page"
       @player.load()
-    if page_id == "djd-audiolib-page"
+    else if page_id == "djd-playlist-page"
+      @player.loadPlaylist()
+    else if page_id == "djd-audiolib-page"
       @audiolib.load()
 
   close: ->

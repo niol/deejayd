@@ -83,6 +83,14 @@ class PlaylistEntry(MutableMapping):
     def get_id(self):
         return self.id
 
+    def to_json(self):
+        m = self.get_media().to_json()
+        m.update({
+            "id": self.id,
+            "pos": self["pos"],
+        })
+        return m
+
 
 class SimplePlaylist(object):
 
@@ -352,9 +360,9 @@ class MagicPlaylist(_Playlist):
                                   .execute()
 
     def load(self):
-        filter = self.properties["use-or-filter"] == "1" and Or() or And()
+        ft = self.properties["use-or-filter"] == "1" and Or() or And()
         for f in self.filters:
-            filter.combine(f)
+            ft.combine(f)
 
         lib_model = self.library.get_model()
         sorts = self.sorts + lib_model.MEDIA_OBJECT.default_sort()
@@ -364,7 +372,7 @@ class MagicPlaylist(_Playlist):
             limit = int(self.properties["limit-value"])
         else:
             limit = None
-        medias = self.library.search_with_filter(filter, sorts, limit)
+        medias = self.library.search(ft, sorts, limit)
         self._playlist = map(self._format, medias)
         self._update_time_length()
 

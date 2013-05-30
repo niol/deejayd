@@ -165,8 +165,8 @@ class AudioItem(_MediaItem):
         return DEFAULT_AUDIO_SORT
 
     def __init__(self, library, dir, name, db_id=None, infos=None):
-        super(AudioItem, self).__init__(library, dir, name, db_id, infos)
         self.album = None
+        super(AudioItem, self).__init__(library, dir, name, db_id, infos)
 
     def _load(self, infos):
         data = super(AudioItem, self)._load(infos)

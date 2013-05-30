@@ -1,7 +1,7 @@
 /*
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
-#                         Alexandre Rossi <alexandre.rossi@gmail.com>
+# Copyright (C) 2013 Mickael Royer <mickael.royer@gmail.com>
+#                    Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+
+/****************************************************************************/
+/* custom icons */
+.ui-icon-shuffle {
+    background-image: url(djd-images/shuffle.png);
+}
+
+/****************************************************************************/
 
 div#djd-loading-widget {
     position: absolute; left: 0; top: 0;
@@ -47,6 +55,9 @@ div#djd-loading-error span {
    position: relative; top: 40%;
 }
 
+/*
+ * player
+ */
 div#djd-player-btn-group {
     text-align: center;
 }
@@ -64,4 +75,27 @@ div#djd-player-content {
     display: block;
     height: 100px;
     background-size: 100px 100px;
+}
+
+/*
+ * audio library
+ */
+ul.djd-inline-block {
+    display: inline-block;
+    margin: 0.1em 0.6em;
+    padding: 0;
+}
+ul.djd-inline-block li {
+    display: inline-block;
+    list-style: none;
+}
+
+div#djd-audiolib-popup {
+    min-width: 250px;
+}
+
+h2#djd-audiolib-toolbar-title {
+    margin: 0.1em;
+    padding: 0 50px;
+    font-size: 1.1em;
 }

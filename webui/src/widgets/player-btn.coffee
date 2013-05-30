@@ -28,7 +28,7 @@ class DjdApp.PlayerButton
     return @elt
 
   setImage: (img) ->
-    img_path = "static/style/djd-images/normal-res/#{ img }.png"
+    img_path = "static/style/djd-images/#{ img }.png"
     @elt.css("background-image", "url(#{ img_path })")
 
 

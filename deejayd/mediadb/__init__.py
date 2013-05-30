@@ -37,8 +37,7 @@ def init(player, config):
     except library.NotFoundException, msg:
         log.err(_("Unable to init audio library : %s") % msg, fatal=True)
 
-    activated_sources = config.getlist('general', "activated_modes")
-    if "video" in activated_sources:
+    if config.getboolean("video", "enabled"):
         video_dir = config.get('mediadb', 'video_directory')
         try: video_library = library.VideoLibrary(player, video_dir, fc)
         except library.NotFoundException, msg:

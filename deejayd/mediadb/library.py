@@ -21,6 +21,7 @@ from deejayd import DeejaydError
 from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.database.connection import DatabaseConnection
 from deejayd.jsonrpc.interfaces import LibraryModule, jsonrpc_module
+from deejayd.jsonrpc.interfaces import AudioLibraryModule
 from deejayd.mediadb import pathutils
 from deejayd.mediadb.parsers import NoParserError, ParseError
 from deejayd.mediadb.parsers import AudioParserFactory, VideoParserFactory
@@ -125,26 +126,14 @@ class _Library(SignalingComponent, JSONRpcComponent):
             raise NotFoundException
         return files_rsp
 
-    def search_with_filter(self, filter, ords=[], limit=None):
+    def search(self, f=None, ords=[], limit=None):
         ft = mediafilters.And()
-        if filter is not None:
-            ft.combine(filter)
+        if f is not None:
+            ft.combine(f)
 
+        if not ords:
+            ords = self.default_search_sort
         return self.lib_obj.search(ft, orders=ords, limit=limit)
-
-    def search(self, pattern, type='all'):
-        if pattern is None:
-            raise DeejaydError(_("Pattern must be a string"))
-
-        if type not in self.supported_search_type + ["all"]:
-            raise DeejaydError(_('Type %s is not supported') % (type,))
-        if type == "all":
-            filter = mediafilters.Or()
-            for tag in self.supported_search_type:
-                filter.combine(mediafilters.Contains(tag, pattern))
-        else:
-            filter = mediafilters.Contains(type, pattern)
-        return self.search_with_filter(filter, self.default_search_sort)
 
     def tag_list(self, tag, filter=None):
         return [x[-1] for x in self.lib_obj.list_tags(tag, filter)]
@@ -402,7 +391,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         self.dispatch_signame(self.update_signal_name)
 
 
-@jsonrpc_module(LibraryModule)
+@jsonrpc_module(AudioLibraryModule)
 class AudioLibrary(_Library):
     type = "audio"
     PARSER = AudioParserFactory
@@ -411,8 +400,8 @@ class AudioLibrary(_Library):
     supported_search_type = ['title', 'genre', 'filename', 'artist', 'album']
     default_search_sort = mediafilters.DEFAULT_AUDIO_SORT
 
-    def get_albums(self, genre=None, artist=None):
-        pass
+    def album_list(self, filter=None):
+        return self.lib_obj.get_albums_with_filter(filter)
 
 
 @jsonrpc_module(LibraryModule)
