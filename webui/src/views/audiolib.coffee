@@ -17,20 +17,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 class DjdApp.widgets.AudioLibraryToolbar
-  constructor: ->
+  constructor: (@view) ->
     @title = ""
     @buttons = []
-    @history = []
 
-  update: (title, buttons, keep_hist=true) ->
-    if keep_hist
-      @history.push({
-        title: @title,
-        buttons: @buttons
-      })
+  update: (title, buttons) ->
     @title = title
     @buttons = buttons
-
     @refresh()
 
   refresh: ->
@@ -43,8 +36,6 @@ class DjdApp.widgets.AudioLibraryToolbar
   reset: ->
     @title = ""
     @buttons = []
-    @history = []
-
     @refresh()
 
 
@@ -95,7 +86,7 @@ class DjdApp.widgets.AudioLibraryContextMenu
 class DjdApp.views.AudioLibraryView
   constructor: (@controller) ->
     @list = $("#djd-audiolib-listview")
-    @toolbar = new DjdApp.widgets.AudioLibraryToolbar()
+    @toolbar = new DjdApp.widgets.AudioLibraryToolbar(@)
     @menu = new DjdApp.widgets.AudioLibraryContextMenu(@)
     @rating_menu = new DjdApp.widgets.RatingPopup(@controller, "#djd-audiolib-page")
     @loadGenreList()
@@ -130,20 +121,8 @@ class DjdApp.views.AudioLibraryView
           html: self.format(g)
         }).click((e) ->
           e.preventDefault()
+
           $("#djd-audiolib-footer").hide()
-
-          back_button = $("<a/>", {
-            href: "#",
-            html: $.i18n._("genre"),
-          }).click((e) ->
-            self.loadGenreList()
-          )
-          back_button.buttonMarkup({
-            corners: false,
-            icon: "arrow-l",
-          })
-          self.toolbar.update(self.format(g), [back_button])
-
           self.loadAlbumList(filter)
         ).on("contextmenu", (e) ->
           e.preventDefault()
@@ -171,10 +150,12 @@ class DjdApp.views.AudioLibraryView
           html: self.format(artist)
         }).click((e) ->
           e.preventDefault()
-          self.toolbar.update(self.format(artist), [])
+
+          $("#djd-audiolib-footer").hide()
           self.loadAlbumList(a_ft)
         ).on("contextmenu", (e) ->
           e.preventDefault()
+
           self.menu.update(a_ft)
         )
         $("<li/>").append(anchor).appendTo(self.list)
@@ -185,12 +166,26 @@ class DjdApp.views.AudioLibraryView
   loadFolderList: (folder=null) ->
 
   loadAlbumList: (filter=null) ->
+    self = @
     if filter == null
       @toolbar.reset()
       @setActiveTab("album")
+    else
+      back_button = $("<a/>", {
+        href: "#",
+        html: $.i18n._(filter.tag),
+      }).click((e) ->
+        if filter.tag == 'genre'
+          self.loadGenreList()
+        else if filter.tag == 'artist'
+          self.loadArtistList()
+      ).buttonMarkup({
+        corners: false,
+        icon: "arrow-l",
+      })
+      @toolbar.update(@format(filter.pattern), [back_button])
     @enableLoading()
 
-    self = @
     @controller.getAlbum(filter, (a_list) ->
       self.list.html('')
       $(a_list).each((idx, album) ->
@@ -200,8 +195,8 @@ class DjdApp.views.AudioLibraryView
           href: "#",
         }).click((e) ->
           e.preventDefault()
-          self.toolbar.update(self.format(album), [])
-          self.loadSongs(a_ft)
+
+          self.loadSongs(album, filter)
         ).on("contextmenu", (e) ->
           e.preventDefault()
           self.menu.update(a_ft)
@@ -221,11 +216,26 @@ class DjdApp.views.AudioLibraryView
       self.list.listview( "refresh" );
     )
 
-  loadSongs: (filter) ->
+  loadSongs: (album, filter) ->
+    self = @
+
+    b_title = $.i18n._("albums")
+    if filter != null
+      b_title = filter.pattern
+    back_button = $("<a/>", {
+      href: "#",
+      html: b_title,
+    }).click((e) ->
+      self.loadAlbumList(filter)
+    ).buttonMarkup({
+      corners: false,
+      icon: "arrow-l",
+    })
+    @toolbar.update(@format(album.name), [back_button])
     @enableLoading()
 
-    self = @
-    @controller.getSongs(filter, (s_list) ->
+    a_ft = new DjdApp.models.MediaBasicFilter("equals", "album_id", album.id)
+    @controller.getSongs(a_ft, (s_list) ->
       self.list.html('')
       $(s_list.getMediaList()).each((idx, song) ->
         s_ft = new DjdApp.models.MediaBasicFilter("equals",

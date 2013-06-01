@@ -17,15 +17,15 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 class DjdApp.models.MediaBasicFilter
-  constructor: (@type, @tag, @value) ->
+  constructor: (@type, @tag, @pattern) ->
 
   dump: ->
     return {
       type: "basic",
-      id: "equals",
+      id: @type,
       value: {
         tag: @tag,
-        pattern: @value,
+        pattern: @pattern,
       }
     }
 
