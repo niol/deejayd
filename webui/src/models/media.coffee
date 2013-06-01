@@ -23,11 +23,19 @@ class DjdApp.models.Media
     return @media.title
 
   formatMedialist: ->
+    rating = $("<div/>")
+    for i in [1..@media.rating]
+      $("<span/>", {
+        class: "djd-icon-star",
+      }).appendTo(rating)
+
     return """
            <p class="ui-li-aside">#{ @formatLength() }</p>
            <h4>#{ @media.title }</h4>
-           <p><em>#{ @media.artist } - #{ @media.album }</em></p>
+           <p class="djd-li-rating">#{ rating.html() }</p>
+           <p class="djd-li-desc"><em>#{ @media.artist } - #{ @media.album }</em></p>
            """
+
   getMedia: ->
     return @media
 

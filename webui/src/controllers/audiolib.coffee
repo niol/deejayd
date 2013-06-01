@@ -48,13 +48,15 @@ class DjdApp.AudioLibraryController
 
   addByFilter: (filter) ->
     filter = filter.dump() if filter != null
-    self = @
     @rpc_client.sendCommand("audiopls.addMediaByFilter", [filter, true])
 
   addQueueByFilter: (filter) ->
     filter = filter.dump() if filter != null
-    self = @
     @rpc_client.sendCommand("audioqueue.addMediaByFilter", [filter, true])
+
+  setRating: (filter, value) ->
+    filter = filter.dump() if filter != null
+    @rpc_client.sendCommand("audiolib.setRating", [filter, value])
 
   getGenre: (cb) ->
     @rpc_client.sendCommand("audiolib.tagList", ["genre"], cb)
@@ -69,3 +71,4 @@ class DjdApp.AudioLibraryController
   getSongs: (filter, cb) ->
     filter = filter.dump() if filter != null
     @rpc_client.sendCommand("audiolib.search", [filter], cb)
+

@@ -125,18 +125,4 @@ class DeejayDaemonCore(JSONRpcComponent):
             "video_support": DeejaydConfig().getboolean("video", "enable")
         }
 
-    def set_rating(self, media_ids, rating, type="audio"):
-        if int(rating) not in range(0, 5):
-            raise DeejaydError(_("Bad rating value"))
-
-        try: library = getattr(self, type + "lib")
-        except AttributeError:
-            raise DeejaydError(_('Type %s is not supported') % (type,))
-        for id in media_ids:
-            try: library.set_file_info(int(id), "rating", rating)
-            except TypeError:
-                raise DeejaydError(_("%s library not activated") % type)
-            except deejayd.mediadb.library.NotFoundException:
-                raise DeejaydError(_("File with id %s not found") % str(id))
-
 # vim: ts=4 sw=4 expandtab

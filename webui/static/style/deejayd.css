@@ -99,3 +99,29 @@ h2#djd-audiolib-toolbar-title {
     padding: 0 50px;
     font-size: 1.1em;
 }
+
+/*
+ * media listview
+ */
+p.djd-li-desc {
+    display: block;
+    float: left;
+}
+p.djd-li-rating {
+    display: block;
+    float: right;
+    text-align: right;
+    width: 30%;
+}
+
+span.djd-icon-star {
+    background-image: url(djd-images/star-on.png);
+    width: 16px; height: 16px;
+    display: inline-block;
+}
+
+span.djd-icon-star-off {
+    background-image: url(djd-images/star-off.png);
+    width: 16px; height: 16px;
+    display: inline-block;
+}

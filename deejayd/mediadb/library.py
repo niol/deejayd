@@ -138,6 +138,15 @@ class _Library(SignalingComponent, JSONRpcComponent):
     def tag_list(self, tag, filter=None):
         return [x[-1] for x in self.lib_obj.list_tags(tag, filter)]
 
+    def set_rating(self, mfilter, rating):
+        if int(rating) not in range(0, 5):
+            raise DeejaydError(_("Bad rating value"))
+
+        medias = self.lib_obj.search(mfilter)
+        for m in medias:
+            m["rating"] = rating
+            m.save()
+
     def get_root_path(self):
         return self._path
 

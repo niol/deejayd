@@ -27,6 +27,7 @@ appFiles  = [
     'models/mediafilter'
     'djdclient'
     'widgets/loading'
+    'widgets/rating'
     'widgets/player-btn'
     'views/player'
     'views/playlist'

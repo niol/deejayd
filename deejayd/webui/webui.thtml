@@ -166,7 +166,8 @@
         </div><!-- /header -->
 
         <div data-role="content" id="djd-audiolib-content">
-            <ul data-role="listview" id="djd-audiolib-listview"></ul>
+            <ul data-role="listview" id="djd-audiolib-listview"
+                data-split-icon="star"></ul>
         </div><!-- /content -->
 
         <div data-theme="a" data-role="footer" id="djd-audiolib-footer"

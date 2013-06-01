@@ -263,14 +263,6 @@ class CoreModule(object):
   * albums : number of albums in the database"""
         answer = 'dict'
 
-    class setRating:
-        """Set rating of media file with ids equal to media_id for library 'type' """
-        args = [\
-            {"name":"ids", "type":"int-list", "req": True}, \
-            {"name": "value", "type": "int", "req": True}, \
-            {"name": "type", "type": "string", "req": False}
-        ]
-
 class SignalModule:
 
     class setSubscription:
@@ -308,6 +300,14 @@ class LibraryModule(object):
             {"name":"tag", "type":"string", "req":True},
             {"name":"filter", "type":"filter", "req":False}
         ]
+
+    class setRating:
+        """Set rating of media file identified by filter 'filter'"""
+        args = [
+            {"name":"filter", "type":"filter", "req": True}, \
+            {"name": "value", "type": "int", "req": True}, \
+        ]
+
 
 class AudioLibraryModule(LibraryModule):
 

@@ -97,6 +97,7 @@ class DjdApp.views.AudioLibraryView
     @list = $("#djd-audiolib-listview")
     @toolbar = new DjdApp.widgets.AudioLibraryToolbar()
     @menu = new DjdApp.widgets.AudioLibraryContextMenu(@)
+    @rating_menu = new DjdApp.widgets.RatingPopup(@controller, "#djd-audiolib-page")
     @loadGenreList()
 
     # init event handler
@@ -228,8 +229,7 @@ class DjdApp.views.AudioLibraryView
       self.list.html('')
       $(s_list.getMediaList()).each((idx, song) ->
         s_ft = new DjdApp.models.MediaBasicFilter("equals",
-          "media_id",
-          song.get("media_id")
+          "id", song.get("media_id")
         )
         anchor = $("<a/>", {
           href: "#",
@@ -238,7 +238,13 @@ class DjdApp.views.AudioLibraryView
           e.preventDefault()
           self.menu.update(s_ft)
         )
-        $("<li/>").append(anchor).appendTo(self.list)
+        rating = $("<a/>", {
+          href: "#",
+        }).click((e) ->
+          e.preventDefault()
+          self.rating_menu.update(s_ft)
+        )
+        $("<li/>").append(anchor).append(rating).appendTo(self.list)
       )
       self.list.listview( "refresh" );
     )
