@@ -256,6 +256,7 @@ class EditRecordQuery(_DBActionQuery):
     def set_update_id(self, key, id):
         self.update_key = key
         self.update_id = id
+        return self
 
     def get_args(self):
         args = self.dbvalues.values()
