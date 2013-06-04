@@ -26,7 +26,7 @@ from zope.interface import implements
 __all__ = (
             'BASIC_FILTERS', 'NAME2BASIC',
             'Equals', 'NotEquals', 'Contains', 'NotContains', 'Regexi',
-            'Higher', 'Lower',
+            'Higher', 'Lower', 'In'
             'COMPLEX_FILTERS', 'NAME2COMPLEX',
             'And', 'Or',
             "DEFAULT_AUDIO_SORT", "DEFAULT_VIDEO_SORT"
@@ -238,6 +238,10 @@ class Lower(BasicFilter):
     def _match_tag(self, table):
         return "(%s.%s <= " % (table, self.tag) + "%s)", self.pattern
 
+class In(BasicFilter):
+    repr_str = "(%s in (%s))"
+    def _match_tag(self, table):
+        return "(%s.%s IN (%%s))" % (table, self.tag), self.pattern
 
 BASIC_FILTERS = (
                   Equals,
@@ -248,6 +252,7 @@ BASIC_FILTERS = (
                   Regexi,
                   Higher,
                   Lower,
+                  In,
                 )
 
 NAME2BASIC = dict([(x(None, None).get_identifier(), x) for x in BASIC_FILTERS])

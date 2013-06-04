@@ -135,13 +135,16 @@ class _BaseLibrarySource(_BaseSource):
             self._media_list.set(medias)
         self.dispatch_signame(self.source_signal)
 
-    def add_media_by_ids(self, dir_ids, media_ids, queue=True):
+    def add_media_by_ids(self, media_ids, queue=True):
         medias = []
         try: medias += self.library.get_file_withids(media_ids)
         except NotFoundException:
             raise SourceError(_("One of these media ids %s not found") % \
                               ",".join(map(str, media_ids)))
         self._load_medias(medias, queue)
+
+    def load_folders(self, f_ids, queue=True):
+        self._load_medias(self.library.get_all_files(f_ids), queue)
 
     def add_media_by_filter(self, ft, queue=True):
         medias = self.library.search(ft)

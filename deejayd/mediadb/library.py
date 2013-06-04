@@ -106,9 +106,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
     def get_dir_files(self, dir):
         return self._get_dir_obj(dir).get_files()
 
-    def get_all_files(self, dir):
-        return self._get_dir_obj(dir).get_all_files()
-
     def get_file(self, file):
         file = os.path.join(self._path, file)
         d, f = os.path.split(file)
@@ -119,6 +116,14 @@ class _Library(SignalingComponent, JSONRpcComponent):
             err = _("Unable to find '%s' file in library") % file
             raise NotFoundException(err)
         return (file,)
+
+    def get_all_files(self, dir_ids):
+        try: dirs = self.lib_obj.get_dirs_with_ids(dir_ids)
+        except KeyError:
+            err = _("Some folder in '%s' has not found in library") \
+                  % ",".join(map(str, dir_ids))
+            raise NotFoundException(err)
+        return reduce(lambda l, d: l+d.get_all_files(), dirs, [])
 
     def get_file_withids(self, file_ids):
         files_rsp = self.lib_obj.get_files_with_ids(file_ids)

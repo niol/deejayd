@@ -457,13 +457,22 @@ class _SourceModule(object):
             {"name":"option_value", "type":"string", "req":True}
         ]
 
-    class addMediasByIds:
-        """Load files and directories identified with ids (dir_ids and  media_ids).
+    class loadFolders:
+        """Load folders identified with their ids (dir_ids).
 if queue args = True (default), selected medias are added at the end of the
 playlist, else they replace current playlist
 ."""
         args = [
             {"name":"dir_ids", "type":"int-list", "req":True},
+            {"name":"queue", "type":"bool", "req":False}
+        ]
+
+    class addMediasByIds:
+        """Load files identified with ids (media_ids).
+if queue args = True (default), selected medias are added at the end of the
+playlist, else they replace current playlist
+."""
+        args = [
             {"name":"media_ids", "type":"int-list", "req":True},
             {"name":"queue", "type":"bool", "req":False}
         ]

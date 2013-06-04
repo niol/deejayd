@@ -55,7 +55,7 @@ class LibraryDir(object):
         if files:
             rs["files"] = self.get_files()
         if subdirs:
-            rs["directories"] = map(lambda d: os.path.basename(d.path), self.get_subdirs())
+            rs["directories"] = map(lambda d: d.to_json(), self.get_subdirs())
         return rs
 
     def set_parent(self, parent):
@@ -190,13 +190,13 @@ class _Library(object):
         return query.execute()
 
     def search(self, ft, orders=[], limit=None):
-        query = self._build_library_query()
+        query = self._build_library_query(attrs=["id"], map_media=False)
         ft.restrict(query)
         for (tag, direction) in orders:
             descending = direction == "descending"
             query.order_by_tag(tag, descending=descending)
         query.set_limit(limit)
-        return map(self._map_media, query.execute())
+        return [self.loaded_files[m[0]] for m in query.execute()]
 
     def clean_library(self, path, dir_ids, file_ids):
         d_ids = SimpleSelect(DIR_TABLE) \

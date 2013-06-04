@@ -44,7 +44,7 @@ class DjdApp.widgets.AudioLibraryContextMenu
     @popup = $("#djd-audiolib-popup")
     @menu = $("#djd-audiolib-popup-menu")
 
-  update: (filter) ->
+  update: (value, type="filter") ->
     @menu.html('')
 
     self = @
@@ -53,7 +53,7 @@ class DjdApp.widgets.AudioLibraryContextMenu
       html: $.i18n._("play")
     }).click((e) ->
       e.preventDefault()
-      self.view.controller.playByFilter(filter)
+      self.view.controller.play(value, type)
       self.close()
     )
     add_button = $("<a/>", {
@@ -61,7 +61,7 @@ class DjdApp.widgets.AudioLibraryContextMenu
       html: $.i18n._("addPls")
     }).click((e) ->
       e.preventDefault()
-      self.view.controller.addByFilter(filter)
+      self.view.controller.addToPls(value, type)
       self.close()
     )
     queue_button = $("<a/>", {
@@ -69,7 +69,7 @@ class DjdApp.widgets.AudioLibraryContextMenu
       html: $.i18n._("addQueue")
     }).click((e) ->
       e.preventDefault()
-      self.view.controller.addQueueByFilter(filter)
+      self.view.controller.addToQueue(value, type)
       self.close()
     )
 
@@ -93,7 +93,7 @@ class DjdApp.views.AudioLibraryView
 
     # init event handler
     self = @
-    for key in ["album", "artist", "genre", "folder"]
+    for key in ["album", "artist", "genre", "folder", "playlist"]
       btn = $("#djd-audiolib-nav-#{ key }")
       btn.click((e) ->
         if not $(@).hasClass("ui-state-persist")
@@ -104,6 +104,8 @@ class DjdApp.views.AudioLibraryView
           c_key = k.charAt(0).toUpperCase() + k.slice(1)
           self["load#{ c_key }List"]()
       )
+
+  loadPlaylistList: ->
 
   loadGenreList: ->
     @toolbar.reset()
@@ -162,8 +164,6 @@ class DjdApp.views.AudioLibraryView
       )
       self.list.listview( "refresh" );
     )
-
-  loadFolderList: (folder=null) ->
 
   loadAlbumList: (filter=null) ->
     self = @
@@ -257,6 +257,89 @@ class DjdApp.views.AudioLibraryView
         $("<li/>").append(anchor).append(rating).appendTo(self.list)
       )
       self.list.listview( "refresh" );
+    )
+
+  _pathJoin: (paths...) ->
+    index = null
+    while (index = paths.indexOf("")) != -1
+      paths.splice(index, 1);
+    if paths.length > 0
+      return paths.join("/")
+    return ""
+
+  loadFolderList: (folder="") ->
+    self = @
+    # update toolbar
+    if folder == ""
+      @toolbar.reset()
+    else
+      f_list = folder.split("/")
+      buttons = []
+      rel_path = ""
+      a = [""]
+      $.each(f_list, (idx, p) ->
+        if idx < (f_list.length-1)
+          a.push(p)
+      )
+
+      for path in a
+        title = if path == "" then "/" else path
+        rel_path = @_pathJoin(rel_path, path)
+
+        buttons.push($("<a/>", {
+          href: "#",
+          html: title,
+        }).attr("data-djdpath", rel_path).click((e) ->
+          e.preventDefault()
+          v = $(@).attr("data-djdpath")
+          self.loadFolderList(v)
+        ).buttonMarkup({
+          corners: false,
+        }))
+      @toolbar.update(f_list[f_list.length-1], buttons)
+    @enableLoading()
+
+    # get folder content
+    @controller.getFolderContent(folder, (result) ->
+      self.list.html('')
+      $(result.directories).each((idx, dir) ->
+        img = $("<img/>", {
+          src: "static/style/djd-images/folder-music.png",
+          class: "ui-li-icon",
+        })
+        anchor = $("<a/>", {
+          href: "#",
+          text: "#{ dir.name }",
+        }).append(img).click((e) ->
+          e.preventDefault()
+          self.loadFolderList(self._pathJoin(result.root, dir.name))
+        ).on("contextmenu", (e) ->
+          e.preventDefault()
+          self.menu.update([dir.id], "folder")
+        )
+        $("<li/>").append(anchor).appendTo(self.list)
+      )
+
+      $(result.files).each((idx, file) ->
+        f_ft = new DjdApp.models.MediaBasicFilter("equals", "id", file.media_id)
+
+        img = $("<img/>", {
+          src: "static/style/djd-images/music.png",
+          class: "ui-li-icon",
+        })
+        anchor = $("<a/>", {
+          href: "#",
+          text: "#{ file.filename }",
+        }).append(img).click((e) ->
+          e.preventDefault()
+          self.menu.update(f_ft)
+        ).on("contextmenu", (e) ->
+          e.preventDefault()
+          self.menu.update(f_ft)
+        )
+        $("<li/>").append(anchor).appendTo(self.list)
+      )
+      self.list.listview("refresh")
     )
 
   enableLoading: ->

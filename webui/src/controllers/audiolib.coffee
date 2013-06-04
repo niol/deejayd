@@ -37,22 +37,31 @@ class DjdApp.AudioLibraryController
 #  Commands called from view
 #
   getFolderContent: (folder='', cb) ->
-    @rpc_client.sendCommand("audiopls.getDirContent", [folder], cb)
+    @rpc_client.sendCommand("audiolib.getDirContent", [folder], cb)
 
-  playByFilter: (filter) ->
-    filter = filter.dump() if filter != null
+  play: (value, type="filter") ->
+    cmd = "loadFolders"
+    if type == "filter"
+      value = value.dump() if value != null
+      cmd = "addMediaByFilter"
     self = @
-    @rpc_client.sendCommand("audiopls.addMediaByFilter", [filter, false], (ans) ->
+    @rpc_client.sendCommand("audiopls.#{ cmd }", [value, false], (ans) ->
       self.rpc_client.sendCommand("player.goTo", [0, "pos", "audiopls"])
     )
 
-  addByFilter: (filter) ->
-    filter = filter.dump() if filter != null
-    @rpc_client.sendCommand("audiopls.addMediaByFilter", [filter, true])
+  addToPls: (value, type="filter") ->
+    cmd = "loadFolders"
+    if type == "filter"
+      value = value.dump() if value != null
+      cmd = "addMediaByFilter"
+    @rpc_client.sendCommand("audiopls.#{ cmd }", [value, true])
 
-  addQueueByFilter: (filter) ->
-    filter = filter.dump() if filter != null
-    @rpc_client.sendCommand("audioqueue.addMediaByFilter", [filter, true])
+  addToQueue: (value, type="filter") ->
+    cmd = "loadFolders"
+    if type == "filter"
+      value = value.dump() if value != null
+      cmd = "addMediaByFilter"
+    @rpc_client.sendCommand("audioqueue.#{ cmd }", [value, true])
 
   setRating: (filter, value) ->
     filter = filter.dump() if filter != null
