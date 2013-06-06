@@ -27,13 +27,13 @@ appFiles  = [
     'models/mediafilter'
     'djdclient'
     'widgets/loading'
-    'widgets/rating'
+    'widgets/library'
     'widgets/player-btn'
     'views/player'
     'views/playlist'
-    'views/audiolib'
+    'views/library'
     'controllers/player'
-    'controllers/audiolib'
+    'controllers/library'
     'main'
 ]
 

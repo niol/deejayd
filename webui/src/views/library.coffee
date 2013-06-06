@@ -16,79 +16,121 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-class DjdApp.widgets.AudioLibraryToolbar
-  constructor: (@view) ->
-    @title = ""
-    @buttons = []
+class DjdApp.views.LibraryView
 
-  update: (title, buttons) ->
-    @title = title
-    @buttons = buttons
-    @refresh()
+  enableLoading: ->
+    @list.html("<li>#{ $.i18n._('loading') }</li>")
+    @list.listview( "refresh" );
 
-  refresh: ->
-    $("#djd-audiolib-toolbar-title").html(@title)
+  format: (str) ->
+    if str == ''
+      str = "<em>#{ $.i18n._('unknown') }</em>"
+    return str
 
-    $("#djd-audiolib-toolbar-buttons").html('')
-    for btn in @buttons
-      $("<li/>").append(btn).appendTo("#djd-audiolib-toolbar-buttons")
+  _pathJoin: (paths...) ->
+    index = null
+    while (index = paths.indexOf("")) != -1
+      paths.splice(index, 1);
+    if paths.length > 0
+      return paths.join("/")
+    return ""
 
-  reset: ->
-    @title = ""
-    @buttons = []
-    @refresh()
-
-
-class DjdApp.widgets.AudioLibraryContextMenu
-  constructor: (@view) ->
-    @popup = $("#djd-audiolib-popup")
-    @menu = $("#djd-audiolib-popup-menu")
-
-  update: (value, type="filter") ->
-    @menu.html('')
-
+  loadFolderList: (folder="") ->
     self = @
-    play_button = $("<a/>", {
-      href: "#",
-      html: $.i18n._("play")
-    }).click((e) ->
-      e.preventDefault()
-      self.view.controller.play(value, type)
-      self.close()
+    # update toolbar
+    if folder == ""
+      @toolbar.reset()
+    else
+      f_list = folder.split("/")
+      buttons = []
+      rel_path = ""
+      a = [""]
+      $.each(f_list, (idx, p) ->
+        if idx < (f_list.length-1)
+          a.push(p)
+      )
+
+      for path in a
+        title = if path == "" then "/" else path
+        rel_path = @_pathJoin(rel_path, path)
+
+        buttons.push($("<a/>", {
+          href: "#",
+          html: title,
+        }).attr("data-djdpath", rel_path).click((e) ->
+          e.preventDefault()
+          v = $(@).attr("data-djdpath")
+          self.loadFolderList(v)
+        ).buttonMarkup({
+          corners: false,
+        }))
+      @toolbar.update(f_list[f_list.length-1], buttons)
+    @enableLoading()
+
+    # get folder content
+    @controller.getFolderContent(folder, (result) ->
+      self.list.html('')
+      $(result.directories).each((idx, dir) ->
+        img = $("<img/>", {
+          src: "static/style/djd-images/#{ self.folder_icon }",
+          class: "ui-li-icon",
+        })
+        anchor = $("<a/>", {
+          href: "#",
+          text: "#{ dir.name }",
+        }).append(img).click((e) ->
+          e.preventDefault()
+          self.loadFolderList(self._pathJoin(result.root, dir.name))
+        ).on("contextmenu", (e) ->
+          e.preventDefault()
+          self.menu.update([dir.id], "folder")
+        )
+        $("<li/>").append(anchor).appendTo(self.list)
+      )
+
+      $(result.files).each((idx, file) ->
+        f_ft = new DjdApp.models.MediaBasicFilter("equals", "id", file.media_id)
+
+        img = $("<img/>", {
+          src: "static/style/djd-images/#{ self.file_icon }",
+          class: "ui-li-icon",
+        })
+        anchor = $("<a/>", {
+          href: "#",
+          text: "#{ file.filename }",
+        }).append(img).click((e) ->
+          e.preventDefault()
+          self.menu.update(f_ft)
+        ).on("contextmenu", (e) ->
+          e.preventDefault()
+          self.menu.update(f_ft)
+        )
+        $("<li/>").append(anchor).appendTo(self.list)
+      )
+      self.list.listview("refresh")
     )
-    add_button = $("<a/>", {
-      href: "#",
-      html: $.i18n._("addPls")
-    }).click((e) ->
-      e.preventDefault()
-      self.view.controller.addToPls(value, type)
-      self.close()
-    )
-    queue_button = $("<a/>", {
-      href: "#",
-      html: $.i18n._("addQueue")
-    }).click((e) ->
-      e.preventDefault()
-      self.view.controller.addToQueue(value, type)
-      self.close()
-    )
-
-    for button in [play_button, add_button, queue_button]
-      $("<li/>").append(button).appendTo(@menu)
-    @menu.listview("refresh")
-
-    @popup.popup("open")
-
-  close: ->
-    @popup.popup("close")
 
 
-class DjdApp.views.AudioLibraryView
+class DjdApp.views.VideoLibraryView extends DjdApp.views.LibraryView
+  constructor: (@controller) ->
+    @list = $("#djd-videolib-listview")
+    @toolbar = new DjdApp.widgets.LibraryToolbar("videolib")
+    @menu = new DjdApp.widgets.LibraryContextMenu(@, "videolib", false)
+
+    @folder_icon = "folder-video.png"
+    @file_icon = "video.png"
+    @loadFolderList()
+
+
+class DjdApp.views.AudioLibraryView extends DjdApp.views.LibraryView
   constructor: (@controller) ->
     @list = $("#djd-audiolib-listview")
-    @toolbar = new DjdApp.widgets.AudioLibraryToolbar(@)
-    @menu = new DjdApp.widgets.AudioLibraryContextMenu(@)
+    @toolbar = new DjdApp.widgets.LibraryToolbar("audiolib")
+    @menu = new DjdApp.widgets.LibraryContextMenu(@, "audiolib", true)
     @rating_menu = new DjdApp.widgets.RatingPopup(@controller, "#djd-audiolib-page")
+
+    @folder_icon = "folder-music.png"
+    @file_icon = "music.png"
     @loadGenreList()
 
     # init event handler
@@ -259,97 +301,5 @@ class DjdApp.views.AudioLibraryView
       self.list.listview( "refresh" );
     )
 
-  _pathJoin: (paths...) ->
-    index = null
-    while (index = paths.indexOf("")) != -1
-      paths.splice(index, 1);
-    if paths.length > 0
-      return paths.join("/")
-    return ""
-
-  loadFolderList: (folder="") ->
-    self = @
-    # update toolbar
-    if folder == ""
-      @toolbar.reset()
-    else
-      f_list = folder.split("/")
-      buttons = []
-      rel_path = ""
-      a = [""]
-      $.each(f_list, (idx, p) ->
-        if idx < (f_list.length-1)
-          a.push(p)
-      )
-
-      for path in a
-        title = if path == "" then "/" else path
-        rel_path = @_pathJoin(rel_path, path)
-
-        buttons.push($("<a/>", {
-          href: "#",
-          html: title,
-        }).attr("data-djdpath", rel_path).click((e) ->
-          e.preventDefault()
-          v = $(@).attr("data-djdpath")
-          self.loadFolderList(v)
-        ).buttonMarkup({
-          corners: false,
-        }))
-      @toolbar.update(f_list[f_list.length-1], buttons)
-    @enableLoading()
-
-    # get folder content
-    @controller.getFolderContent(folder, (result) ->
-      self.list.html('')
-      $(result.directories).each((idx, dir) ->
-        img = $("<img/>", {
-          src: "static/style/djd-images/folder-music.png",
-          class: "ui-li-icon",
-        })
-        anchor = $("<a/>", {
-          href: "#",
-          text: "#{ dir.name }",
-        }).append(img).click((e) ->
-          e.preventDefault()
-          self.loadFolderList(self._pathJoin(result.root, dir.name))
-        ).on("contextmenu", (e) ->
-          e.preventDefault()
-          self.menu.update([dir.id], "folder")
-        )
-        $("<li/>").append(anchor).appendTo(self.list)
-      )
-
-      $(result.files).each((idx, file) ->
-        f_ft = new DjdApp.models.MediaBasicFilter("equals", "id", file.media_id)
-
-        img = $("<img/>", {
-          src: "static/style/djd-images/music.png",
-          class: "ui-li-icon",
-        })
-        anchor = $("<a/>", {
-          href: "#",
-          text: "#{ file.filename }",
-        }).append(img).click((e) ->
-          e.preventDefault()
-          self.menu.update(f_ft)
-        ).on("contextmenu", (e) ->
-          e.preventDefault()
-          self.menu.update(f_ft)
-        )
-        $("<li/>").append(anchor).appendTo(self.list)
-      )
-      self.list.listview("refresh")
-    )
-
-  enableLoading: ->
-    @list.html("<li>#{ $.i18n._('loading') }</li>")
-    @list.listview( "refresh" );
-
   setActiveTab: (tab) ->
     $("#djd-audiolib-footer").show()
-
-  format: (str) ->
-    if str == ''
-      str = "<em>#{ $.i18n._('unknown') }</em>"
-    return str

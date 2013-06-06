@@ -34,6 +34,7 @@ class DjdApp.Main
     # init controllers
     @player = new DjdApp.PlayerController(@)
     @audiolib = new DjdApp.AudioLibraryController(@)
+    @videolib = new DjdApp.VideoLibraryController(@)
 
     @loadController(page_id)
 
@@ -44,6 +45,8 @@ class DjdApp.Main
       @player.loadPlaylist()
     else if page_id == "djd-audiolib-page"
       @audiolib.load()
+    else if page_id == "djd-videolib-page"
+      @videolib.load()
 
   close: ->
     @loadingPopup.setError(jQuery.i18n._("connection_lost"))

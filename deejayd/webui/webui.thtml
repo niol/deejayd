@@ -60,6 +60,11 @@
                         %(music)s
                     </a>
                 </li>
+                <li>
+                    <a href="#djd-videolib-page">
+                        %(video)s
+                    </a>
+                </li>
             </ul>
         </div><!-- /panel -->
 
@@ -149,6 +154,11 @@
                         Now Playing
                     </a>
                 </li>
+                <li>
+                    <a href="#djd-videolib-page">
+                        %(video)s
+                    </a>
+                </li>
             </ul>
         </div><!-- /panel -->
 
@@ -205,6 +215,54 @@
             <div data-role="header"><h1>Actions</h1></div>
             <div data-role="content">
                 <ul data-role="listview" id="djd-audiolib-popup-menu">
+                </ul>
+            </div>
+        </div>
+    </div><!-- audiolib page -->
+
+    <div id="djd-videolib-page" data-role="page">
+        <div data-role="panel" id="djd-videolib-panel"
+             data-display="push" data-theme="a">
+            <ul data-role="listview">
+                <li>
+                    <a href="#djd-player-page">
+                        Now Playing
+                    </a>
+                </li>
+                <li>
+                    <a href="#djd-audiolib-page">
+                        Music
+                    </a>
+                </li>
+            </ul>
+        </div><!-- /panel -->
+
+        <div data-role="header" data-position="fixed">
+            <h1 id="djd-videolib-page-title">%(video)s</h1>
+            <a href="#djd-videolib-panel" data-icon="home" data-role="button"
+               data-iconpos="notext"></a>
+            <div class="ui-body-c" id="djd-videolib-toolbar">
+                <ul class="djd-inline-block" id="djd-videolib-toolbar-buttons">
+                </ul>
+                <div style="display: inline-block;">
+                    <h2 id="djd-videolib-toolbar-title"></h2>
+                </div>
+            </div>
+        </div><!-- /header -->
+
+        <div data-role="content" id="djd-videolib-content">
+            <ul data-role="listview" id="djd-videolib-listview"
+                data-split-icon="star"></ul>
+        </div><!-- /content -->
+
+        <div data-theme="a" id="djd-videolib-popup" data-role="popup"
+             data-dismissible="false">
+            <a href="#" data-rel="back" data-role="button" data-theme="a"
+               data-icon="delete" data-iconpos="notext" class="ui-btn-right"></a>
+
+            <div data-role="header"><h1>Actions</h1></div>
+            <div data-role="content">
+                <ul data-role="listview" id="djd-videolib-popup-menu">
                 </ul>
             </div>
         </div>

@@ -85,6 +85,7 @@ class DeejaydMainResource(Resource):
             "i18n_dict": self.__i18n_dict(config),
             "loading": _("Loading..."),
             "music": _("Music"),
+            "video": _("Video"),
             "genre": _("Genre"),
             "artist": _("Artist"),
             "album": _("Album"),
