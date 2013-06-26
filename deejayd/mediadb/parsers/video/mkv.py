@@ -815,7 +815,7 @@ class Matroska(core.AVContainer):
                 try:
                     value = [filter(item) for item in value] if isinstance(value, list) else filter(value)
                 except Exception, e:
-                    log.info(u'Failed to convert tag to core attribute: %r', e)
+                    log.info(u'Failed to convert tag to core attribute: %r' % e)
             # Special handling for tv series recordings. The 'title' tag
             # can be used for both the series and the episode name. The
             # same is true for trackno which may refer to the season
