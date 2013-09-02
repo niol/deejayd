@@ -53,10 +53,13 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         self.startReading()
 
     def close(self):
-        try:
-            map(self.ignore, self._watchpaths.copy())  # stop watching all
-        except KeyError:
-            pass
+        # stop watching all
+        for library in (self.__audio_library, self.__video_library):
+            if library:
+                library.watcher = self
+                dcb = lambda dir_path: self.stop_watching_dir(dir_path)
+                pathutils.walk_and_do(library._path, dcb=dcb)
+
         self.stopReading()
 
     def __occured_on_dirlink(self, library, file_path):
@@ -126,8 +129,12 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         # inotify bindings need encoded strings
         e_path = dir_path.encode(sys.getfilesystemencoding())
 
-        self.ignore(twisted.python.filepath.FilePath(e_path))
-        log.debug("inotify: stopped watching directory '%s'" % dir_path)
+        try:
+            self.ignore(twisted.python.filepath.FilePath(e_path))
+        except KeyError:
+            log.warning("inotify: failed to stop watching directory '%s' (not watched?)" % dir_path)
+        else:
+            log.debug("inotify: stopped watching directory '%s'" % dir_path)
 
 
 # vim: ts=4 sw=4 expandtab
