@@ -743,7 +743,7 @@ class Matroska(core.AVContainer):
                         self.objects_by_uid[target].tags.update(tags_dict)
                         self.tags_to_attributes(self.objects_by_uid[target], tags_dict)
                     except KeyError:
-                        log.info(u'Tags assigned to unknown/unsupported target uid %d', target)
+                        log.info(u'Tags assigned to unknown/unsupported target uid %d' % target)
             else:
                 self.tags.update(tags_dict)
                 self.tags_to_attributes(self, tags_dict)
