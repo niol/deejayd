@@ -70,6 +70,7 @@ class DeejaydMainResource(Resource):
             "inorder": _("In order"),
             "random": _("Random"),
             "onemedia": _("One media"),
+            "allCategories": _("All cats"),
         })
 
     def __build(self, mobile_client=False):
@@ -86,6 +87,7 @@ class DeejaydMainResource(Resource):
             "loading": _("Loading..."),
             "music": _("Music"),
             "video": _("Video"),
+            "webradio": _("Webradio"),
             "genre": _("Genre"),
             "artist": _("Artist"),
             "album": _("Album"),

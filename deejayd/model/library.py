@@ -117,7 +117,9 @@ class LibraryDir(object):
             DeleteQuery(DIR_TABLE).append_where("id = %s", (self.db_id,)) \
                                   .execute(commit=False)
             map(lambda d: d.erase(purge_files), self.get_subdirs())
-            del self.library.loaded_dirs[self.db_id]
+            try: del self.library.loaded_dirs[self.db_id]
+            except KeyError:
+                pass
 
 class _Library(object):
     MEDIA_OBJECT = None

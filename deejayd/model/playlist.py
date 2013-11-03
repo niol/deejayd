@@ -524,6 +524,7 @@ class PlaylistFactory(object):
                     # .append_where("name NOT LIKE %s", ("%%__",))\
         pls = filter(lambda p: not p[1].startswith("__")\
                     and not p[1].endswith("__"), pls)
+
         return map(lambda p: {"pl_id": p[0], "name": p[1], "type": p[2]},
                    pls)
 

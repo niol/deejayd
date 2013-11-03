@@ -17,10 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import urllib2, time
-from twisted.internet import threads, task
+from twisted.internet import threads, task, reactor
 
 from deejayd import DeejaydError
-from deejayd.xmlobject import ET
+from xml.etree import cElementTree as ET
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
 from deejayd.webradio._base import _BaseWebradioSource
@@ -29,11 +29,12 @@ from deejayd.database.connection import DatabaseConnection
 UPDATE_INTERVAL = 7 * 24 * 60 * 60  # 7 days
 TIMEOUT = 2  # 2 seconds
 
-class IceCastPlugin(_BaseWebradioSource):
+class IceCastSource(_BaseWebradioSource):
     NAME = "icecast"
+    state_name = "webradio_icecast"
 
     def __init__(self):
-        super(IceCastPlugin, self).__init__()
+        super(IceCastSource, self).__init__()
 
         self.__last_parse = None
         self.__update_running = False
@@ -69,6 +70,10 @@ class IceCastPlugin(_BaseWebradioSource):
             self.__last_parse = int(time.time())
             result["last_update"] = self.__last_parse
             self.source.set_stats(result)
+
+            self.state["id"] += 1
+            reactor.callFromThread(self.dispatch_signame, self.signal_name,
+                                   source_name=self.NAME)
 
     def __reload_list(self):
         log.msg(_("Start to reload icecast webradio source"))
@@ -141,12 +146,12 @@ class IceCastPlugin(_BaseWebradioSource):
     def get_categories(self):
         if self.__last_parse is None:
             raise DeejaydError("Unable to parse icecast webradio list")
-        return self.source.get_categories()
+        return super(IceCastSource, self).get_categories()
 
     def get_webradios(self, cat_id=None):
         if self.__last_parse is None:
             raise DeejaydError("Unable to parse icecast webradio list")
-        return self.source.get_webradios(cat_id)
+        return super(IceCastSource, self).get_webradios(cat_id)
 
     def close(self):
         if self.__task is not None:

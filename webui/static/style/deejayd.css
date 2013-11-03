@@ -21,7 +21,7 @@
 /****************************************************************************/
 /* custom icons */
 .ui-icon-shuffle {
-    background-image: url(djd-images/shuffle.png);
+    background-image: url(images/shuffle.png);
 }
 
 /****************************************************************************/
@@ -39,7 +39,7 @@ div#djd-loading-widget {
 div#djd-loading-img {
     width: 300px; height: 300px;
     margin: auto;
-    background-image: url(djd-images/loading.gif);
+    background-image: url(images/loading.gif);
 }
 
 div#djd-loading-error {
@@ -56,20 +56,28 @@ div#djd-loading-error span {
 }
 
 /*
+ * Main footer
+ */
+#djd-footer-content {
+    height: 50px;
+    display: inline-block;
+}
+
+/*
  * player
  */
 div#djd-player-btn-group {
     text-align: center;
 }
-div#djd-player-btn-group a.djd-player-btn {
-    display: block;
+div#djd-player-btn-group a.djd-player-btn, div#djd-footer a.djd-player-btn {
+    display: inline-block;
     width: 48px; height: 48px;
     background-repeat: no-repeat;
     margin: auto;
 }
 
 div#djd-player-content {
-    background-image: url(djd-images/missing-cover.png);
+    background-image: url(images/missing-cover.png);
     background-repeat: no-repeat;
     background-position: 50% 0%;
     display: block;
@@ -94,7 +102,8 @@ div#djd-audiolib-popup {
     min-width: 250px;
 }
 
-h2#djd-audiolib-toolbar-title {
+h2#djd-audiolib-toolbar-title, h2#djd-videolib-toolbar-title,
+h2#djd-webradio-toolbar-title {
     margin: 0.1em;
     padding-left: 25px;
     font-size: 1.0em;
@@ -115,13 +124,21 @@ p.djd-li-rating {
 }
 
 span.djd-icon-star {
-    background-image: url(djd-images/star-on.png);
+    background-image: url(images/star-on.png);
     width: 16px; height: 16px;
     display: inline-block;
 }
 
 span.djd-icon-star-off {
-    background-image: url(djd-images/star-off.png);
+    background-image: url(images/star-off.png);
     width: 16px; height: 16px;
     display: inline-block;
+}
+
+/*
+ * Webradio
+ */
+#djd-webradio-toolbar .ui-select {
+    margin-top: 0;
+    margin-bottom: 0;
 }

@@ -29,11 +29,16 @@ appFiles  = [
     'widgets/loading'
     'widgets/library'
     'widgets/player-btn'
+    'widgets/webradio'
+    'views/footer'
     'views/player'
     'views/playlist'
     'views/library'
+    'views/webradio'
+    'controllers/base'
     'controllers/player'
     'controllers/library'
+    'controllers/webradio'
     'main'
 ]
 

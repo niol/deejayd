@@ -26,6 +26,19 @@ class DjdApp.Main
     DjdApp.debug(rpc_url)
     @client = new DjdApp.WebClient(rpc_url)
 
+    # create panel menu
+    $("#djd-main-panel").panel({
+      display: "overlay"
+      create: (evt, ui) ->
+        $("#djd-main-panel-menu").listview()
+    })
+    $(document).on("click", ".djd-open-menu", (evt) ->
+      $("#djd-main-panel").panel("open")
+    )
+
+    # create main footer/header
+    $("#djd-header").toolbar()
+
     @loadingPopup = new DjdApp.LoadingWidgets()
     @loadingPopup.load()
 
@@ -35,6 +48,7 @@ class DjdApp.Main
     @player = new DjdApp.PlayerController(@)
     @audiolib = new DjdApp.AudioLibraryController(@)
     @videolib = new DjdApp.VideoLibraryController(@)
+    @webradio = new DjdApp.WebradioController(@)
 
     @loadController(page_id)
 
@@ -47,6 +61,17 @@ class DjdApp.Main
       @audiolib.load()
     else if page_id == "djd-videolib-page"
       @videolib.load()
+    else if page_id == "djd-webradio-page"
+      @webradio.load()
+
+  setTitle: (title) ->
+    $("#djd-title").html(title)
+
+  setHeaderToolbar: (toolbar) ->
+    toolbar.appendTo("#djd-header-toolbar")
+
+#  setFooterToolbar: (toolbar) ->
+#    @footer.setPageFooter(toolbar)
 
   close: ->
     @loadingPopup.setError(jQuery.i18n._("connection_lost"))
@@ -58,6 +83,7 @@ $.mobile.ajaxLinksEnabled = false;
 init = false
 main = null
 jQuery(document).on 'pageshow', ->
+
   page_id = jQuery.mobile.activePage.attr('id')
   if not init
     main = new DjdApp.Main()

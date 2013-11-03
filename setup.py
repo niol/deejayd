@@ -27,7 +27,6 @@ from distutils.errors import DistutilsFileError
 from distutils.dep_util import newer
 from distutils.dir_util import remove_tree
 from distutils.spawn import find_executable
-from xml.dom import minidom
 
 import deejayd
 

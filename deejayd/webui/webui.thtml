@@ -16,7 +16,7 @@
     <!--    Load style                             -->
     <!--                                           -->
     <link rel="stylesheet"
-          href="static/style/jquery.mobile-1.3.1.min.css"/>
+          href="static/jqm/jquery.mobile-1.4.0-rc.1.min.css"/>
     <link rel="stylesheet"
           href="static/style/deejayd.css"/>
 
@@ -24,13 +24,13 @@
     <!--    Load library scripts                   -->
     <!--                                           -->
     <script type="text/javascript" language="javascript"
-            src="static/js/lib/sockjs-0.3.min.js"></script>
+            src="static/js/sockjs-0.3.min.js"></script>
     <script type="text/javascript" language="javascript"
-            src="static/js/lib/jquery-1.9.1.min.js"></script>
+            src="static/js/jquery-1.9.1.min.js"></script>
     <script type="text/javascript" language="javascript"
-            src="static/js/lib/jquery.mobile-1.3.1.min.js"></script>
+            src="static/jqm/jquery.mobile-1.4.0-rc.1.min.js"></script>
     <script type="text/javascript" language="javascript"
-            src="static/js/lib/jquery.i18n.min.js"></script>
+            src="static/js/jquery.i18n.min.js"></script>
 
     <!--                                           -->
     <!--    Load namespace var and options         -->
@@ -51,35 +51,55 @@
 </head>
 
 <body>
-    <div id="djd-player-page" data-role="page">
-        <div data-role="panel" id="djd-player-panel"
-             data-display="push" data-theme="a">
-            <ul data-role="listview">
-                <li>
-                    <a href="#djd-audiolib-page">
-                        %(music)s
-                    </a>
-                </li>
-                <li>
-                    <a href="#djd-videolib-page">
-                        %(video)s
-                    </a>
-                </li>
-            </ul>
-        </div><!-- /panel -->
+    <div data-role="panel" id="djd-main-panel" data-theme="a">
+        <ul data-role="listview" id="djd-main-panel-menu">
+            <li>
+                <a href="#djd-player-page">
+                    Now Playing
+                </a>
+            </li>
+            <li>
+                <a href="#djd-audiolib-page">
+                    %(music)s
+                </a>
+            </li>
+            <li>
+                <a href="#djd-videolib-page">
+                    %(video)s
+                </a>
+            </li>
+            <li>
+                <a href="#djd-webradio-page">
+                    %(webradio)s
+                </a>
+            </li>
+        </ul>
+    </div><!-- /panel -->
 
-        <div data-role="header" data-position="fixed">
-            <h1 id="djd-player-page-title"></h1>
-            <a href="#djd-player-panel" data-icon="home" data-role="button"
-               data-iconpos="notext"></a>
-            <a href="#djd-playlist-page" data-icon="bars" data-role="button"
-               data-iconpos="notext" data-transition="flip"></a>
-        </div><!-- /header -->
+    <div data-role="header" id="djd-header"
+         data-theme="b" data-position="fixed">
+        <h1 id="djd-title"></h1>
+        <a class="djd-open-menu" data-icon="home" data-role="button"
+           data-iconpos="notext"></a>
+        <a href="#djd-playlist-page" data-icon="bars" data-role="button"
+           data-iconpos="notext" data-transition="flip"></a>
+
+        <div id="djd-header-toolbar" data-theme="a"></div>
+    </div><!-- /djd header -->
+
+    <div data-role="footer" id="djd-footer"
+         data-theme="b" data-position="fixed">
+        <div id="djd-footer-toolbar" data-theme="a"></div>
+        <div id="djd-footer-content"></div>
+    </div><!-- /djd footer -->
+
+    <div id="djd-player-page" data-role="page">
 
         <div data-role="content" id="djd-player-content">
         </div><!-- /content -->
 
-        <div data-role="footer" id="djd-player-footer" data-position="fixed">
+        <div data-role="footer" id="djd-player-footer" data-position="fixed"
+             data-theme="b">
             <div class="ui-grid-solo">
                 <input type="range" name="djd-player-slider" id="djd-player-slider"
                        min="0" max="100" value="0"
@@ -93,7 +113,7 @@
     </div><!-- player page -->
 
     <div id="djd-playlist-page" data-role="page">
-        <div data-role="header" data-position="fixed">
+        <div data-role="header">
             <h1 id="djd-playlist-title"></h1>
             <a href="#djd-player-page" data-icon="delete"
                data-role="button" data-transition="flip">
@@ -146,27 +166,12 @@
     </div><!-- playlist page -->
 
     <div id="djd-audiolib-page" data-role="page">
-        <div data-role="panel" id="djd-audiolib-panel"
-             data-display="push" data-theme="a">
-            <ul data-role="listview">
-                <li>
-                    <a href="#djd-player-page">
-                        Now Playing
-                    </a>
-                </li>
-                <li>
-                    <a href="#djd-videolib-page">
-                        %(video)s
-                    </a>
-                </li>
-            </ul>
-        </div><!-- /panel -->
 
-        <div data-role="header" data-position="fixed">
+        <div data-role="header">
             <h1 id="djd-audiolib-page-title">%(music)s</h1>
-            <a href="#djd-audiolib-panel" data-icon="home" data-role="button"
+            <a class="djd-open-menu" data-icon="home" data-role="button"
                data-iconpos="notext"></a>
-            <div class="ui-body-c" id="djd-audiolib-toolbar">
+            <div class="ui-body-b" id="djd-audiolib-toolbar">
                 <ul class="djd-inline-block" id="djd-audiolib-toolbar-buttons">
                 </ul>
                 <div style="display: inline-block;">
@@ -221,27 +226,11 @@
     </div><!-- audiolib page -->
 
     <div id="djd-videolib-page" data-role="page">
-        <div data-role="panel" id="djd-videolib-panel"
-             data-display="push" data-theme="a">
-            <ul data-role="listview">
-                <li>
-                    <a href="#djd-player-page">
-                        Now Playing
-                    </a>
-                </li>
-                <li>
-                    <a href="#djd-audiolib-page">
-                        Music
-                    </a>
-                </li>
-            </ul>
-        </div><!-- /panel -->
-
         <div data-role="header" data-position="fixed">
             <h1 id="djd-videolib-page-title">%(video)s</h1>
-            <a href="#djd-videolib-panel" data-icon="home" data-role="button"
+            <a class="djd-open-menu" data-icon="home" data-role="button"
                data-iconpos="notext"></a>
-            <div class="ui-body-c" id="djd-videolib-toolbar">
+            <div class="ui-body-b" id="djd-videolib-toolbar">
                 <ul class="djd-inline-block" id="djd-videolib-toolbar-buttons">
                 </ul>
                 <div style="display: inline-block;">
@@ -266,7 +255,56 @@
                 </ul>
             </div>
         </div>
-    </div><!-- audiolib page -->
+    </div><!-- videolib page -->
+
+    <div id="djd-webradio-page" data-role="page">
+        <div data-role="header" data-position="fixed">
+            <h1 id="djd-webradio-page-title">%(webradio)s</h1>
+            <a class="djd-open-menu" data-icon="home" data-role="button"
+               data-iconpos="notext"></a>
+            <div class="ui-body-b"
+                 id="djd-webradio-toolbar"
+                 style="min-height: 40px; line-height: 40px;">
+                <ul class="djd-inline-block" id="djd-webradio-toolbar-buttons">
+                </ul>
+                <div style="display: inline-block;">
+                    <h2 id="djd-webradio-toolbar-title"></h2>
+                </div>
+
+                <div style="float: right;">
+                    <select name="djd-webradio-source-select"
+                            id="djd-webradio-source-select"
+                            data-mini="true">
+                    </select>
+                </div>
+            </div>
+        </div><!-- /header -->
+
+        <div data-role="content" id="djd-webradio-content">
+            <ul data-role="listview" id="djd-webradio-listview"></ul>
+        </div><!-- /content -->
+
+        <div data-theme="a" data-role="footer" id="djd-webradio-footer"
+             data-position="fixed">
+            <div data-role="controlgroup"
+                 data-type="horizontal"
+                 id="djd-webradio-footer-toolbar">
+            </div>
+        </div><!-- /footer -->
+
+        <div data-theme="a" id="djd-webradio-popup" data-role="popup"
+             data-dismissible="false">
+            <a href="#" data-rel="back" data-role="button" data-theme="a"
+               data-icon="delete" data-iconpos="notext" class="ui-btn-right"></a>
+
+            <div data-role="header"><h1></h1></div>
+            <div data-role="content">
+                <ul data-role="listview" id="djd-webradio-popup-menu">
+                </ul>
+            </div>
+        </div>
+    </div><!-- webradio page -->
+
 </body>
 
 </html>

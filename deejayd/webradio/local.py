@@ -26,6 +26,7 @@ from deejayd import DeejaydError
 class WebradioLocalSource(_BaseWebradioSource):
     implements(IEditWebradioSource)
     NAME = "local"
+    state_name = "webradio_local"
 
     def add_categorie(self, cat):
         return self.source.add_categorie(cat)
@@ -45,7 +46,7 @@ class WebradioLocalSource(_BaseWebradioSource):
                     else:
                         provided_urls.append(url)
                 except IOError:
-                    log.debug(_("Could not parse %s") % url)
+                    log.err(_("Could not parse %s") % url)
                     pass
 
         needed_urls = []
@@ -55,13 +56,14 @@ class WebradioLocalSource(_BaseWebradioSource):
                 if protocol not in ('http', 'https', 'rtsp',):
                     raise ValueError
             except ValueError:
-                log.debug(_("Discarding %s : webradio protocol not supported.")
+                log.err(_("Discarding %s : webradio protocol not supported.")
                           % url)
             else:
                 needed_urls.append(url)
 
         if len(needed_urls) < 1:
-            raise DeejaydError(_("Given url %s is not supported") % url)
+            raise DeejaydError(_("Given urls %s is not supported")\
+                    % ",".join(urls))
         cats = cat is not None and [cat] or []
         self.source.add_webradio(name, cats, needed_urls)
 

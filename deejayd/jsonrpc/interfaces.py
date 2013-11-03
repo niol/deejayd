@@ -315,7 +315,7 @@ class AudioLibraryModule(LibraryModule):
         """Get Albums that match the 'filter', the answer is list where each
 entry has
   * id of the album
-  * name of the filename
+  * name of the album
   * filename of the cover"""
         answer = 'albumList'
         args = [
@@ -389,7 +389,7 @@ class PlayerModule(object):
         ]
 
     class getPlaying:
-        """Return informations on the current song/webradio/video. Raise an error if no media is playing"""
+        """Return informations on the current song/webradio/video. Return null if no media is playing"""
         answer = "media"
 
     class getAvailableVideoOptions:
@@ -467,7 +467,7 @@ playlist, else they replace current playlist
             {"name":"queue", "type":"bool", "req":False}
         ]
 
-    class addMediasByIds:
+    class addMediaByIds:
         """Load files identified with ids (media_ids).
 if queue args = True (default), selected medias are added at the end of the
 playlist, else they replace current playlist
@@ -528,38 +528,37 @@ class QueueSourceModule(_SourceModule):
             {"name":"pos", "type":"int", "req":False}
         ]
 
-class WebradioSourceModule(object):
-
-    class get:
-        """Return the content of this mode."""
-        answer = "mediaList"
-        args = [
-            { "name":"first",
-              "type":"int",
-              "req":False}, \
-            { "name":"length",
-              "type":"int",
-              "req":False}
-        ]
+class WebradioModule(object):
 
     class getAvailableSources:
-        """Return list of available sources for webradio mode as source_name: is_editable"""
-        answer = 'dict'
+        """Return list of available sources for webradio mode, each entry of the list is formated like:
+  { name: __source_name__, editable: __boolean__ }"""
+        answer = 'dictList'
 
-    class setSource:
-        """Set current source to 'source_name'"""
+    class getSourceContent:
+        """Return the list of webradio available"""
+        answer = "medialist"
+        args = [
+            {"name":"source_name", "type":"string", "req":True},
+            {"name":"cat", "type":"int", "req":False},
+            { "name":"first", "type":"int", "req":False}, \
+            { "name":"length", "type":"int", "req":False}
+        ]
+
+    class getSourceStatus:
+        """Return status of source 'source_name'"""
+        answer = 'dict'
         args = [{"name":"source_name", "type":"string", "req":True}]
 
     class getSourceCategories:
-        """Return list of categories for webradio source 'source_name'"""
-        answer = 'dict'
+        """Return list of categories for webradio source 'source_name'
+The answer is a list of dict that contains two keys:
+  * name: name of the category
+  * id: id of the category"""
+        answer = 'dictList'
         args = [{"name":"source_name", "type":"string", "req":True}]
 
-    class setSourceCategorie:
-        """Set categorie to 'categorie' for current source"""
-        args = [{"name":"categorie", "type":"string", "req":True}]
-
-    class sourceAddCategorie:
+    class sourceAddCategory:
         """Add a new categorie for the source 'source_name'"""
         answer = 'dict'
         args = [
@@ -697,7 +696,7 @@ JSONRPC_MODULES = {
     "audiopls": AudioSourceModule,
     "audioqueue": QueueSourceModule,
     "videopls": VideoSourceModule,
-    "webradio": WebradioSourceModule,
+    "webradio": WebradioModule,
     "recpls": RecordedPlaylistModule,
     "audiolib": LibraryModule,
     "videolib": LibraryModule,

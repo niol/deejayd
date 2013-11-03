@@ -22,7 +22,6 @@ from deejayd.dispatch import Signal
 player_status = Signal()      # Player status change (play/pause/stop/
                               # random/repeat/volume/manseek)
 player_current = Signal()     # Currently played song change
-player_plupdate = Signal()    # The stored playlist list has changed
 
 # mediadb specific signals
 mediadb_aupdate = Signal()    # Media library audio update
@@ -42,7 +41,6 @@ videopls_update = Signal()
 SIGNALS = {
     'player.status': player_status,
     'player.current': player_current,
-    'player.plupdate': player_plupdate,
 
     'mediadb.aupdate': mediadb_aupdate,
     'mediadb.vupdate': mediadb_vupdate,

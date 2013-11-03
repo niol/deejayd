@@ -120,7 +120,8 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def __init__(self, deejayd_core):
         self.deejayd_core = deejayd_core
-        self.signaled_clients = dict([(signame, []) for signame in SIGNALS.keys()])
+        self.signaled_clients = dict([(signame, [])\
+                for signame in SIGNALS.keys()])
         self.core_sub_ids = {}
 
     def buildProtocol(self, addr):
@@ -149,8 +150,11 @@ class DeejaydFactory(protocol.ServerFactory):
             client_list.remove(connector)
         if len(client_list) < 1:
             # No more clients for this signal, we can unsubscribe
-            SIGNALS[signal_name].disconnect(self.core_sub_ids[signal_name])
-            del self.core_sub_ids[signal_name]
+            try:
+                SIGNALS[signal_name].disconnect(self.core_sub_ids[signal_name])
+                del self.core_sub_ids[signal_name]
+            except KeyError:
+                pass
 
     def close_signals(self, connector):
         for signal_name in self.signaled_clients.keys():

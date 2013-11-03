@@ -150,6 +150,10 @@ class _BaseLibrarySource(_BaseSource):
         medias = self.library.search(ft)
         self._load_medias(medias, queue)
 
+    def remove(self, ids):
+        super(_BaseLibrarySource, self).remove(ids)
+        self.dispatch_signame(self.__class__.source_signal)
+
     def clear(self):
         super(_BaseLibrarySource, self).clear()
         self.dispatch_signame(self.__class__.source_signal)

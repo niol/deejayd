@@ -19,24 +19,31 @@
 from zope.interface import implements
 from deejayd.webradio.IWebradioSource import IWebradioSource
 from deejayd.model.webradio import WebradioFactory
+from deejayd.component import PersistentStateComponent, SignalingComponent
 
-class _BaseWebradioSource(object):
+class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
     implements(IWebradioSource)
     NAME = ""
+    state_name = ""
+    initial_state = {"id": 1}
+    signal_name = "webradio.listupdate"
 
     def __init__(self):
         self.source = WebradioFactory().get_source(self.NAME)
+        self.load_state()
 
     def get_categories(self):
-        return self.source.get_categories()
+        return [
+            {
+                "name": name,
+                "id": int(i),
+            } for name, i in self.source.get_categories().items()
+        ]
 
     def get_webradios(self, cat_id=None):
         return self.source.get_webradios(cat_id)
 
-    def get_stats(self):
-        return self.source.get_stats()
-
-    def close(self):
-        pass
+    def get_status(self):
+        return self.state
 
 # vim: ts=4 sw=4 expandtab

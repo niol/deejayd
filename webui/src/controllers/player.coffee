@@ -16,31 +16,35 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-class DjdApp.PlayerController
+class DjdApp.PlayerController extends DjdApp.BaseController
   constructor: (@main_controller) ->
+    super(@main_controller)
+
+    # init player footer
+    #@footer = new DjdApp.views.PhoneFooterView(@)
+
     # init var
-    @is_loaded = false
     @is_pls_loaded = false
     @state = "stop"
     @volume = 0
-    @rpc_client = @main_controller.client
 
   load: ->
     if not @is_loaded
-      player_controller = @
+      self = @
       @view = new DjdApp.views.PlayerView(@)
       @updateCurrent()
       @updateStatus()
 
       # define event handlers
       @rpc_client.subscribe("player.status", (sig) ->
-        player_controller.updateStatus()
+        self.updateStatus()
       )
       @rpc_client.subscribe("player.current", (sig) ->
-        player_controller.updateCurrent()
+        self.updateCurrent()
       )
       # load is finish
       @is_loaded = true
+    @view.load()
 
   loadPlaylist: ->
     if not @is_pls_loaded
@@ -64,21 +68,24 @@ class DjdApp.PlayerController
     )
 
   updateStatus:  ->
-    _ref = @
+    self = @
     @rpc_client.sendCommand("player.getStatus", [], (status) ->
       if status.state != _ref.state
-        _ref.view.updateState(status.state)
-        _ref.state = status.state
+        self.view.updateState(status.state)
+        self.main_controller.footer.updateState(status.state)
+
+        self.state = status.state
 
       if status.volume != _ref.volume
-        _ref.view.updateVolume(status.volume)
-        _ref.volume = status.volume
+        self.view.updateVolume(status.volume)
+        self.volume = status.volume
     )
 
   updateCurrent: ->
     view = @view
     @rpc_client.sendCommand("player.getPlaying", [], (answer) ->
       view.refreshCurrent(answer)
+      self.main_controller.footer.refreshCurrent(answer)
     )
 #
 #  Commands called from view

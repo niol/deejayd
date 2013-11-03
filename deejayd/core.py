@@ -26,6 +26,7 @@ from deejayd import player, sources, mediadb, plugins
 from deejayd.playlist.rpc import DeejaydRecordedPlaylist
 from deejayd.ui import log
 from deejayd.model.stats import get_stats
+from deejayd.webradio.rpc import DeejaydWebradio
 
 # Exception imports
 import deejayd.mediadb.library
@@ -85,6 +86,8 @@ class DeejayDaemonCore(JSONRpcComponent):
         for source in self.sources.sources.values():
             self.put_sub_handler(source.name, source)
             setattr(self, source.name, source)
+        self.webradio = DeejaydWebradio()
+        self.put_sub_handler('webradio', self.webradio)
 
         if not DatabaseConnection().structure_created:
             self.audiolib.update()

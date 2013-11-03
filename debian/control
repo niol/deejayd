@@ -18,7 +18,7 @@ Depends: ${misc:Depends}, ${python:Depends},
          deejayd-vlc (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}) | deejayd-xine (= ${binary:Version}),
          python-twisted,
          python-pysqlite2,
-         python-lxml, python-mutagen
+         python-mutagen
 Suggests: deejayd-webui,
           xserver-xorg, xauth, x11-utils, x11-common,
           python-zope.interface

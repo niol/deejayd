@@ -73,6 +73,9 @@ class DjdApp.views.PlayerView
       player_view.volume_uiupdate = false
     )
 
+  load: ->
+    # do nothing
+
   resizeCover: ->
     width = jQuery(window).width()
     height = jQuery(window).height()
@@ -94,6 +97,6 @@ class DjdApp.views.PlayerView
 
   refreshCurrent: (current) ->
     if current == null
-      jQuery("#djd-player-page-title").html(jQuery.i18n._("no_media"))
+      @controller.setTitle(jQuery.i18n._("no_media"))
     else
-      jQuery("#djd-player-page-title").html(current.formatTitle())
+      @controller.setTitle(current.formatTitle())
