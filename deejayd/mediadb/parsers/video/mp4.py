@@ -186,17 +186,18 @@ class MPEG4(core.AVContainer):
 
         while type in ['mdat', 'skip']:
             # movie data at the beginning, skip
-            file.seek(size - 8, 1)
+
+            # Extended size
+            if size == 1:
+                (size,) = struct.unpack('>Q', file.read(8))
+                size -= 8
+            file.seek(int(size) - 8, 1)
             h = file.read(8)
             (size, type) = struct.unpack('>I4s', h)
 
         if not type in ['moov', 'wide', 'free']:
             log.debug(u'invalid header: %r' % type)
             raise ParseError()
-
-        # Extended size
-        if size == 1:
-            size = struct.unpack('>Q', file.read(8))
 
         # Back over the atom header we just read, since _readatom expects the
         # file position to be at the start of an atom.
@@ -351,7 +352,7 @@ class MPEG4(core.AVContainer):
                         datasize -= mdia[0]
 
                 elif datatype == 'udta':
-                    log.debug(struct.unpack('>I4s', atomdata[:8]))
+                    log.debug(str(struct.unpack('>I4s', atomdata[:8])))
                 else:
                     if datatype == 'edts':
                         log.debug(u'--> %r [%d] (edit list)' % \

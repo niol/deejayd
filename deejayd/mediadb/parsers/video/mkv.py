@@ -743,7 +743,7 @@ class Matroska(core.AVContainer):
                         self.objects_by_uid[target].tags.update(tags_dict)
                         self.tags_to_attributes(self.objects_by_uid[target], tags_dict)
                     except KeyError:
-                        log.info(u'Tags assigned to unknown/unsupported target uid %d', target)
+                        log.info(u'Tags assigned to unknown/unsupported target uid %d' % target)
             else:
                 self.tags.update(tags_dict)
                 self.tags_to_attributes(self, tags_dict)
@@ -815,7 +815,7 @@ class Matroska(core.AVContainer):
                 try:
                     value = [filter(item) for item in value] if isinstance(value, list) else filter(value)
                 except Exception, e:
-                    log.info(u'Failed to convert tag to core attribute: %r', e)
+                    log.info(u'Failed to convert tag to core attribute: %r' % e)
             # Special handling for tv series recordings. The 'title' tag
             # can be used for both the series and the episode name. The
             # same is true for trackno which may refer to the season
