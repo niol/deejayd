@@ -68,11 +68,18 @@ class VlcPlayer(_BasePlayer):
             "sub_lang",
        )
 
+    LIBVLC_VERSIONS = ('2.0.', '2.1.', )
+
     def __init__(self, plugin_manager, config):
-        # test version, this backend only works with version 2.0.X of libvlc
+        # test version, this backend only works with specific versions of libvlc
         version = _vlc.libvlc_get_version()
-        if not version.startswith("2.0."):
-            raise PlayerError(_("Vlc backend only works with version 2.0.X of libvlc"))
+        good_version = False
+        for v in self.LIBVLC_VERSIONS:
+            if version.startswith(v):
+                good_version = True
+        if not good_version:
+            raise PlayerError(_("Vlc backend only works with versions %s of libvlc")\
+                              % ', '.join([v + 'X' for v in self.LIBVLC_VERSIONS]))
 
         # init main instance
         try: self.__vlc = _vlc.Instance()
