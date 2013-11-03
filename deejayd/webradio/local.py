@@ -58,7 +58,8 @@ class WebradioLocalSource(_BaseWebradioSource):
                 log.debug(_("Discarding %s : webradio protocol not supported.")
                           % url)
             else:
-                needed_urls.append(url)
+                if url not in needed_urls:
+                    needed_urls.append(url)
 
         if len(needed_urls) < 1:
             raise DeejaydError(_("Given url %s is not supported") % url)
