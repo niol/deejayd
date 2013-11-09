@@ -33,11 +33,9 @@ log_level = {"error": ERROR, "info": INFO, \
 
 class LogFile:
 
-    def __init__(self, path, autosignal=True):
+    def __init__(self, path):
         self.path = path
         self.open()
-        if autosignal:
-            self.set_reopen_signal()
 
     def open(self):
         try:
@@ -49,14 +47,6 @@ class LogFile:
         self.fd.close()
         self.open()
 
-    def __reopen_cb(self, signal, frame):
-        self.reopen()
-
-    def set_reopen_signal(self, sig=signal.SIGHUP, callback=None):
-        if not callback:
-            callback = self.__reopen_cb
-        signal.signal(sig, callback)
-
 
 class SignaledFileLogObserver(log.FileLogObserver):
 
@@ -64,12 +54,11 @@ class SignaledFileLogObserver(log.FileLogObserver):
         self.log_file = LogFile(path, False)
         self.log_file.open()
         self.__observe_log_file()
-        self.log_file.set_reopen_signal(callback=self.__reopen_cb)
 
     def __observe_log_file(self):
         log.FileLogObserver.__init__(self, self.log_file.fd)
 
-    def __reopen_cb(self, signal, frame):
+    def reopen_cb(self):
         self.stop()
         self.log_file.reopen()
         self.__observe_log_file()
@@ -99,5 +88,6 @@ def debug(msg):
     if log_level >= DEBUG:
         msg = _("DEBUG - %s") % msg
         __log(msg)
+
 
 # vim: ts=4 sw=4 expandtab

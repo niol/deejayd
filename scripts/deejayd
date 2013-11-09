@@ -184,6 +184,7 @@ def startLog(options):
     if log_file_name:
         flo = deejayd.ui.log.SignaledFileLogObserver(log_file_name)
         log.startLoggingWithObserver(flo.emit)
+        return flo
     else:
         log.startLogging(sys.stdout)
 
@@ -196,7 +197,7 @@ if __name__ == "__main__":
     config = DeejaydConfig()
 
     setEnv(options)
-    startLog(options)
+    flo = startLog(options)
 
     import traceback
     from twisted.internet.error import CannotListenError
@@ -286,6 +287,19 @@ if __name__ == "__main__":
     if not service:
         deejayd_core.close()
         abort(msg=_("No service has been activated"))
+
+    # setup SIGHUP handler
+    import signal
+    import deejayd.database.connection
+    def sig_HUP_cb():
+        log.debug("received SIGHUP.")
+        if flo is not None:
+            flo.reopen_cb()
+        # ensure db gets written to disk
+        deejayd.database.connection.DatabaseConnection().close()
+    def sig_HUP(signal, frame):
+        reactor.callFromThread(sig_HUP_cb)
+    signal.signal(signal.SIGHUP, sig_HUP)
 
     # launch reactor
     from twisted.internet import reactor
