@@ -18,6 +18,7 @@
 
 from deejayd.component import SignalingComponent, JSONRpcComponent
 from deejayd.jsonrpc.interfaces import WebradioModule, jsonrpc_module
+from deejayd.model.webradio import WebradioFactory
 from deejayd.webradio.IWebradioSource import IEditWebradioSource
 from deejayd.webradio.local import WebradioLocalSource
 from deejayd.webradio.icecast import IceCastSource
@@ -47,8 +48,9 @@ def require_source(editable = False):
 @jsonrpc_module(WebradioModule)
 class DeejaydWebradio(SignalingComponent, JSONRpcComponent):
 
-    def __init__(self):
+    def __init__(self, player):
         super(DeejaydWebradio, self).__init__()
+        self.player = player
 
         self.wb_sources = { "local": WebradioLocalSource() }
         if DeejaydConfig().getboolean("webradio", "icecast"):
@@ -59,6 +61,10 @@ class DeejaydWebradio(SignalingComponent, JSONRpcComponent):
             "name": s.NAME,
             "editable": IEditWebradioSource.providedBy(s)} \
         for s in self.wb_sources.values()]
+
+    def play_webradio(self, w_id):
+        w = WebradioFactory().get_webradio(w_id)
+        self.player.play_webradio(w)
 
     @require_source(editable=False)
     def get_source_content(self, source, category=None, start=0, length=None):
@@ -74,23 +80,28 @@ class DeejaydWebradio(SignalingComponent, JSONRpcComponent):
 
     @require_source(editable=True)
     def source_add_category(self, source, cat):
-        self.dispatch_signame('webradio.listupdate')
-        return source.add_categorie(cat)
+        cat = source.add_categorie(cat)
+        if cat is not None:
+            self.dispatch_signame('webradio.listupdate', source=source.get_name())
 
     @require_source(editable=True)
     def source_delete_categories(self, source, cat_ids):
         source.remove_categories(cat_ids)
+        self.dispatch_signame('webradio.listupdate', source=source.get_name())
 
     @require_source(editable=True)
     def source_add_webradio(self, source, name, urls, cat=None):
         source.add_webradio(name, urls, cat)
+        self.dispatch_signame('webradio.listupdate', source=source.get_name())
 
     @require_source(editable=True)
     def source_delete_webradios(self, source, wb_ids):
         source.remove_webradios(wb_ids)
+        self.dispatch_signame('webradio.listupdate', source=source.get_name())
 
     @require_source(editable=True)
     def source_clear_webradios(self, source):
         source.clear_webradios()
+        self.dispatch_signame('webradio.listupdate', source=source.get_name())
 
 # vim: ts=4 sw=4 expandtab

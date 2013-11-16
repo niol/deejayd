@@ -31,7 +31,7 @@ mediadb_mupdate = Signal(providing_args=["media_id", "type"])    # Media item
 
 recpls_listupdate = Signal()
 recpls_update = Signal(providing_args=["pl_id"])
-webradio_listupdate = Signal()
+webradio_listupdate = Signal(providing_args=["source"])
 
 # source specific signals
 audiopls_update = Signal()

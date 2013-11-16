@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import threading, os
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 from deejayd.player import _vlc
 from deejayd.jsonrpc.interfaces import jsonrpc_module, PlayerModule
 from deejayd.player import PlayerError
@@ -105,11 +105,14 @@ class VlcPlayer(_BasePlayer):
                 raise PlayerError(_("VLC does not support audio output %s") \
                         % wanted_aout)
 
-        # other varaibles
+        # other variables
         self.__osd_call_id = None
         self.__display = None
         self.__window = None
         self.__playing_handler = None
+        # task to update webradio metadata
+        # because no event is fired when the playing song changes
+        self.__wb_task = task.LoopingCall(self.__check_webradio_metadata)
 
     def play(self):
         super(VlcPlayer, self).play()
@@ -133,6 +136,10 @@ class VlcPlayer(_BasePlayer):
             raise PlayerError(_("unable to play file %s") \
                               % self._media_file['title'])
         if needs_video: self.__init_video_information()
+
+        # start webradio metadata task
+        if self._media_file["type"] == "webradio":
+            self.__wb_task.start(2)
 
     def pause(self):
         self.__player.pause()
@@ -166,10 +173,6 @@ class VlcPlayer(_BasePlayer):
         # TODO : find a way to know list of available module to implement this
         return True
 
-    def is_supported_format(self, format):
-        # TODO : find a way to know list of available module to implement this
-        return True
-
     def set_zoom(self, zoom):
         if zoom == 100:
             value = 0
@@ -185,6 +188,9 @@ class VlcPlayer(_BasePlayer):
             return False
 
         self.__player.stop()
+        try: self.__wb_task.stop()
+        except:
+            pass
         if needs_video(self._media_file) and not needs_video(new_file):
             # destroy window since it does not useful anymore
             self.__destroy_x_window()
@@ -248,6 +254,15 @@ class VlcPlayer(_BasePlayer):
 
             self._change_file(self._source.next(explicit=False))
         reactor.callFromThread(eof_cb)
+
+    def __check_webradio_metadata(self):
+        m = self.__player.get_media()
+        if (m is not None):
+            desc = m.get_meta(_vlc.Meta.NowPlaying)
+            if "webradio-desc" not in self._media_file.keys() or\
+                    self._media_file["webradio-desc"] != desc:
+                self._media_file["webradio-desc"] = desc
+                self.dispatch_signame('player.current')
 
     def __media_length(self):
         if self._media_file is not None and "length" in self._media_file:

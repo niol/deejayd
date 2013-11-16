@@ -106,6 +106,9 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
     def set_source(self, source):
         self._source = source
 
+    def play_webradio(self, webradio):
+        self._change_file(webradio)
+
     def play_toggle(self):
         if self.get_state() == PLAYER_STOP:
             file = self._media_file or self._source.get_current()
@@ -321,9 +324,12 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         status = [("state", self.get_state()), ("volume", self.get_volume())]
 
         if self._media_file:
-            status.append(("current", \
-              "%d:%s:%s" % (self._media_file["pos"], \
-                    str(self._media_file["id"]), self._media_file["source"])))
+            if self._media_file["type"] == "webradio":
+                status.append(("current", "%d:%d:%s" % (-1 , -1, "webradio")))
+            else:
+                status.append(("current", \
+                  "%d:%s:%s" % (self._media_file["pos"], \
+                        str(self._media_file["id"]), self._media_file["source"])))
 
             if self.get_state() != PLAYER_STOP:
                 position = self.get_position()

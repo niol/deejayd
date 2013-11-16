@@ -218,9 +218,9 @@ if __name__ == "__main__":
     ##################
     media_backend = config.get("general", "media_backend")
     if media_backend == "gstreamer":
-        # Install glib2 reactor
-        from twisted.internet import glib2reactor
-        glib2reactor.install()
+        # Install GI reactor
+        from twisted.internet import gireactor
+        gireactor.install()
     from twisted.internet import reactor
 
     # start core

@@ -535,6 +535,10 @@ class WebradioModule(object):
   { name: __source_name__, editable: __boolean__ }"""
         answer = 'dictList'
 
+    class playWebradio:
+        """ Play webradio identified by id __id__"""
+        args = [{"name":"id", "type":"int", "req":True}]
+
     class getSourceContent:
         """Return the list of webradio available"""
         answer = "medialist"
@@ -546,7 +550,10 @@ class WebradioModule(object):
         ]
 
     class getSourceStatus:
-        """Return status of source 'source_name'"""
+        """Return status of source 'source_name'
+The status contains the following key:
+  * lastModified: __timestamp__
+  * """
         answer = 'dict'
         args = [{"name":"source_name", "type":"string", "req":True}]
 

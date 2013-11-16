@@ -72,8 +72,8 @@ class IceCastSource(_BaseWebradioSource):
             self.source.set_stats(result)
 
             self.state["id"] += 1
-            reactor.callFromThread(self.dispatch_signame, self.signal_name,
-                                   source_name=self.NAME)
+            reactor.callFromThread(self.dispatch_signame, self.signal_name,\
+                                   source=self.NAME)
 
     def __reload_list(self):
         log.msg(_("Start to reload icecast webradio source"))

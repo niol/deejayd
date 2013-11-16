@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,18 +16,23 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
+import os, threading
 from twisted.internet import reactor
-import pygst
-pygst.require('0.10')
 
-import gobject
-import gst
+# gstreamer >= 1.0 import
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GObject, GLib, Gst, GstVideo
+GObject.threads_init()
+Gst.init(None)
 
+# Gst.SECOND is broken
+SECOND = 1000000000
 
 from deejayd.jsonrpc.interfaces import jsonrpc_module, PlayerModule
 from deejayd.player import PlayerError
 from deejayd.player._base import *
+from deejayd.player._gstutils import *
 from deejayd.ui import log
 from pytyx11 import x11
 
@@ -39,10 +44,6 @@ class GstreamerPlayer(_BasePlayer):
     supported_options = ("audio_lang", "sub_lang", "av_offset",)
 
     def __init__(self, plugin_manager, config):
-        if gst.version() < (0, 10, 24):
-            # we need gstreamer version >= 0.10.24 to have playbin2 support
-            raise PlayerError(_("Gstreamer >= 0.10.24 is required"))
-
         super(GstreamerPlayer, self).__init__(plugin_manager, config)
         self.__gst_options = {
                 "audio_p": self.config.get("gstreamer", "audio_output"),
@@ -59,70 +60,84 @@ class GstreamerPlayer(_BasePlayer):
         self.__bus_video_id = None
         self.__display = None
         self.__window = None
+        self.__vol_element = None
 
     def __gst_add_elts_to_sink(self, sink_bin, elts):
-        sink_bin.add_many(*elts)
+        for elt in elts: sink_bin.add(elt)
         try:
-            gst.element_link_many(*elts)
-        except gst.LinkError, e:
+            linked_result = None
+            for elt in elts:
+                if linked_result is not None:
+                    linked_result.link(elt)
+                linked_result = elt
+        except Exception, e:
             err = str(e).decode("utf8", 'replace')
             raise PlayerError(_("Could not link GStreamer pipeline: '%s'")\
                                % err)
         # Test to ensure output pipeline can preroll
-        sink_bin.set_state(gst.STATE_READY)
-        result, state, pending = sink_bin.get_state(timeout=gst.SECOND / 2)
-        if result == gst.STATE_CHANGE_FAILURE:
-            sink_bin.set_state(gst.STATE_NULL)
+        sink_bin.set_state(Gst.State.READY)
+        result, state, pending = sink_bin.get_state(timeout=SECOND / 2)
+        if result == Gst.StateChangeReturn.FAILURE:
+            sink_bin.set_state(Gst.State.NULL)
             raise PlayerError(_("Unable to create pipeline"))
 
     def __init_pipeline(self):
         if self.bin is not None: return
 
-        self.bin = gst.element_factory_make('playbin2')
+        self.bin = Gst.ElementFactory.make('playbin', None)
         self.bin.set_property("auto-flush-bus", True)
 
         if self.__gst_options["audio_p"] != "fakesink":
             # Open a Audio sink
-            # [<-> Ghospad -> audiofilter -> audioconvert -> audio sink]
-            audio_sink_bin = gst.Bin()
-            audiofilter = gst.element_factory_make('capsfilter')
-            audioconvert = gst.element_factory_make('audioconvert')
+            # [<-> Ghospad -> audiofilter -> audioconvert -> audioresample
+            # -> audio sink]
+            audio_sink_bin = Gst.Bin()
+            audiofilter = Gst.ElementFactory.make('capsfilter', None)
+            audioconvert = Gst.ElementFactory.make('audioconvert', None)
+            audioresample = Gst.ElementFactory.make('audioresample', None)
             try:
-                audio_sink = gst.parse_launch(self.__gst_options["audio_p"])
-                ret = audio_sink.set_state(gst.STATE_READY)
-                if ret == gst.STATE_CHANGE_FAILURE:
+                audio_sink = Gst.parse_launch(self.__gst_options["audio_p"])
+                ret = audio_sink.set_state(Gst.State.READY)
+                if ret == Gst.StateChangeReturn.FAILURE:
                     raise PlayerError
-            except (PlayerError, gobject.GError), err:
+            except (PlayerError, GObject.GError), err:
                 raise PlayerError(_("No audio sink found for Gstreamer : %s") \
                         % str(err).decode("utf8", 'replace'))
             finally:
-                audio_sink.set_state(gst.STATE_NULL)
+                try: audio_sink.set_state(Gst.State.NULL)
+                except:
+                    pass
 
+            # playbin2 has started to control the volume through pulseaudio,
+            # which means the volume property can change without us noticing.
+            # Use our own volume element for now until this works with PA.
+            self.__vol_element = Gst.ElementFactory.make('volume', None)
             try:
                 self.__gst_add_elts_to_sink(audio_sink_bin, \
-                         [audiofilter, audioconvert, audio_sink])
+                     [self.__vol_element, audiofilter, audioconvert,\
+                      audioresample, audio_sink])
             except PlayerError, ex:
                 self.__destroy_pipeline()
                 raise ex
             # create ghostpad
-            audio_sink_bin.add_pad(gst.GhostPad('sink',
-                                   audiofilter.get_static_pad('sink')))
-            audio_sink_caps = audio_sink.get_static_pad('sink').get_caps()
+            audio_sink_bin.add_pad(Gst.GhostPad.new('sink',
+                                   self.__vol_element.get_static_pad('sink')))
+
             wanted_channels = self.get_num_audio_channels()
             if wanted_channels != -1:
-                wanted_caps = gst.Caps()
-                for cap in audio_sink_caps:
-                    try:
-                        channels = cap['channels']
-                    except KeyError:
-                        pass
-                    else:
+                wanted_caps = Gst.Caps.new_empty()
+
+                audio_sink_caps = audio_sink.get_static_pad('sink').query_caps(None)
+                for i in range(audio_sink_caps.get_size()):
+                    cap = audio_sink_caps.get_structure(i)
+                    if cap.has_field("channels"):
                         wanted_cap = cap.copy()
-                        wanted_cap['channels'] = wanted_channels
+                        wanted_cap.set_value("channels", wanted_channels)
                         wanted_caps.append_structure(wanted_cap)
+
                 audiofilter.set_property('caps', wanted_caps)
         else:
-            audio_sink_bin = gst.element_factory_make('fakesink')
+            audio_sink_bin = Gst.ElementFactory.make('fakesink', None)
         self.bin.set_property('audio-sink', audio_sink_bin)
 
         # connect to bus messages
@@ -135,8 +150,8 @@ class GstreamerPlayer(_BasePlayer):
         # Open a Video pipeline if video support enabled
         # [<-> Ghospad -> textoverlay (for OSD support) -> video sink]
         if self._current_is_video():
-            try: video_sink = gst.parse_launch(self.__gst_options["video_p"])
-            except gobject.GError, err:
+            try: video_sink = Gst.parse_launch(self.__gst_options["video_p"])
+            except GObject.GError, err:
                 self.__destroy_pipeline()
                 raise PlayerError(_("No video sink found for Gstreamer : %s") \
                         % str(err).decode("utf8", 'replace'))
@@ -158,8 +173,8 @@ class GstreamerPlayer(_BasePlayer):
                 self.__bus_video_id = bus.connect('sync-message::element', \
                                                   self.__sync_message)
 
-            bufbin = gst.Bin()
-            self.__osd = gst.element_factory_make('textoverlay')
+            bufbin = Gst.Bin()
+            self.__osd = Gst.ElementFactory.make('textoverlay', None)
             self.__osd.set_property("silent", True)
             self.__osd.set_property("halignment", 0)  # left
             self.__osd.set_property("valignment", 2)  # top
@@ -170,19 +185,21 @@ class GstreamerPlayer(_BasePlayer):
                 self.__destroy_pipeline()
                 raise ex
             # create ghostpad
-            gpad = gst.GhostPad('sink', self.__osd.get_pad('video_sink'))
+            gpad = Gst.GhostPad.new('sink', self.__osd.get_static_pad('video_sink'))
             bufbin.add_pad(gpad)
             vsink = bufbin
         else:
-            vsink = gst.element_factory_make('fakesink')
+            vsink = Gst.ElementFactory.make('fakesink', None)
         self.bin.set_property('video-sink', vsink)
 
     def __destroy_pipeline(self):
         if self.bin is None: return
-        self.__set_gst_state(gst.STATE_NULL)
+        self.__set_gst_state(Gst.State.NULL)
         bus = self.bin.get_bus()
-        bus.disconnect(self.__bus_id)
-        if self.__atf_id:
+        if self.__bus_id is not None:
+            bus.disconnect(self.__bus_id)
+            self.__bus_id = None
+        if self.__atf_id is not None:
             self.bin.disconnect(self.__atf_id)
             self.__atf_id = None
 
@@ -190,14 +207,15 @@ class GstreamerPlayer(_BasePlayer):
         if self.__display is not None: self.__display.destroy()
         if self.__bus_video_id is not None:
             bus.disconnect(self.__bus_video_id)
-        self.__bus_video_id = None
+            self.__bus_video_id = None
         self.__display = None
         self.__window = None
 
         bus.remove_signal_watch()
         del self.bin
         self.bin = None
-        self.__bus_id = None
+
+        self.__vol_element = None
 
     def get_num_audio_channels(self):
         wanted_output = self.config.get('gstreamer', 'speaker_setup')
@@ -226,7 +244,7 @@ class GstreamerPlayer(_BasePlayer):
 
             if self.__window is not None:
                 self.__window.set_dpms(False)
-            self.__set_gst_state(gst.STATE_PLAYING)
+            self.__set_gst_state(Gst.State.PLAYING)
 
         if self._media_file["type"] == "webradio":
             while True:
@@ -274,54 +292,51 @@ class GstreamerPlayer(_BasePlayer):
 
     def pause(self):
         if self.get_state() == PLAYER_PLAY:
-            self.__set_gst_state(gst.STATE_PAUSED)
+            self.__set_gst_state(Gst.State.PAUSED)
         elif self.get_state() == PLAYER_PAUSE:
-            self.__set_gst_state(gst.STATE_PLAYING)
+            self.__set_gst_state(Gst.State.PLAYING)
         else: return
         self.dispatch_signame('player.status')
 
     def _change_file(self, new_file):
-        sig = self.get_state() == PLAYER_STOP and True or False
         self.__destroy_pipeline()
         self._media_file = new_file
         self.play()
 
         if self._media_file is not None:
-            if sig: self.dispatch_signame('player.status')
+            self.dispatch_signame('player.status')
             self.__current_change()
+        self.dispatch_signame('player.current')
 
     def _set_volume(self, vol, sig=True):
         if self.bin is not None:
             v = float(vol) / 100
-            self.bin.set_property('volume', v)
+            self.__vol_element.set_property('volume', v)
 
     def get_position(self):
-        if self.bin is not None and gst.STATE_NULL != self.__get_gst_state()\
-                and self.bin.get_property('uri'):
-            try: p = self.bin.query_position(gst.FORMAT_TIME)[0]
-            except gst.QueryError: return 0
-            p //= gst.SECOND
+        if self.bin is not None and Gst.State.NULL != self.__get_gst_state()\
+                and self.bin.get_property('current-uri'):
+            ok, p = self.bin.query_position(Gst.Format.TIME)
+            if not ok:
+                log.err(_("Gstreamer: unable to get stream position"))
+                return 0
+            p //= SECOND
             return p
         return 0
 
     def _set_position(self, pos):
-        if self.bin is not None and gst.STATE_NULL != self.__get_gst_state()\
-                and self.bin.get_property('uri'):
+        if self.bin is not None and Gst.State.NULL != self.__get_gst_state()\
+                and self.bin.get_property('current-uri'):
             pos = max(0, int(pos))
-            gst_time = pos * gst.SECOND
-
-            event = gst.event_new_seek(
-                1.0, gst.FORMAT_TIME, gst.SEEK_FLAG_FLUSH | \
-                gst.SEEK_FLAG_ACCURATE, gst.SEEK_TYPE_SET, gst_time, \
-                gst.SEEK_TYPE_NONE, 0)
-            self.bin.send_event(event)
+            self.bin.seek_simple(Gst.Format.TIME,
+                Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos*Gst.SECOND)
 
     def get_state(self):
         if self.bin is None: return PLAYER_STOP
         gst_state = self.__get_gst_state()
-        if gst_state == gst.STATE_PLAYING:
+        if gst_state == Gst.State.PLAYING:
             return PLAYER_PLAY
-        elif gst_state == gst.STATE_PAUSED:
+        elif gst_state == Gst.State.PAUSED:
             return PLAYER_PAUSE
         else:
             return PLAYER_STOP
@@ -330,23 +345,24 @@ class GstreamerPlayer(_BasePlayer):
         state_ret = self.bin.set_state(gst_state)
         timeout = 5
 
-        while state_ret == gst.STATE_CHANGE_ASYNC and timeout > 0:
-            state_ret, state, pending_state = self.bin.get_state(1 * gst.SECOND)
+        while state_ret == Gst.StateChangeReturn.ASYNC and timeout > 0:
+            state_ret, state, pending_state = self.bin.get_state(1 * SECOND)
             timeout -= 1
 
-            if state_ret != gst.STATE_CHANGE_SUCCESS:
+            if state_ret != Gst.StateChangeReturn.SUCCESS:
                 raise PlayerError(_("Unable to change gstreamer state"))
 
 
     def __get_gst_state(self):
         # changestatus,state,_state
-        return self.bin.get_state()[1]
+        return self.bin.get_state(1 * SECOND)[1]
 
     def __sync_message(self, bus, message):
-        if message.structure is None:
+        structure = message.get_structure()
+        if structure is None:
             return
-        message_name = message.structure.get_name()
-        if message_name == 'prepare-xwindow-id':
+        message_name = structure.get_name()
+        if message_name == 'prepare-window-handle':
             if self.__window is None:
                 if self._video_options["fullscreen"]:
                     self.__window = x11.X11Window(self.__display, \
@@ -357,28 +373,26 @@ class GstreamerPlayer(_BasePlayer):
 
             imagesink = message.src
             imagesink.set_property("force-aspect-ratio", "true")
-            imagesink.set_xwindow_id(self.__window.window_p())
+            imagesink.set_window_handle(self.__window.window_p())
 
     def __about_to_finish(self, pipeline):
-        if self._media_file is not None and \
-                self._media_file["type"] != "webradio":
-            self.__new_file = self._source.next(explicit=False)
-            if self.__new_file is not None and \
-                    not self.__need_pipeline_change(self.__new_file):
-                # we can enter in a gapless transition
-                self.__in_gapless_transition = True
+        if self._media_file is None or self._media_file["type"] == "webradio":
+            return
 
-                # set new uri and suburi if necessary:
-                self.bin.set_property('uri', self.__new_file["uri"])
-                if self._has_external_subtitle(self.__new_file):
-                    # external subtitle
-                    suburi = self.__new_file["external_subtitle"]
-                    self.bin.set_property('suburi', suburi)
-
-        return True
+        self.__in_gapless_transition = True
+        self.__new_file = self._source.next(explicit=False)
+        if self.__new_file is not None and \
+                not self.__need_pipeline_change(self.__new_file):
+            # set new uri and suburi if necessary:
+            self.bin.set_property('uri', self.__new_file["uri"])
+            if self._has_external_subtitle(self.__new_file):
+                # external subtitle
+                suburi = self.__new_file["external_subtitle"]
+                self.bin.set_property('suburi', suburi)
 
     def __message(self, bus, message):
-        if message.type == gst.MESSAGE_EOS:
+        if message.type == Gst.MessageType.EOS:
+            print "receive EOS message"
             if self._media_file is not None and \
                     self._media_file["type"] == "webradio":
                 # an error happened, try the next url
@@ -391,23 +405,17 @@ class GstreamerPlayer(_BasePlayer):
                     self.play()
                 return False
             self._end()
-        elif message.type == gst.MESSAGE_TAG:
+        elif message.type == Gst.MessageType.TAG:
             if self._media_file and self._media_file["type"] == "webradio":
                 self.__update_metadata(message.parse_tag())
-        elif message.type == gst.MESSAGE_ERROR:
+        elif message.type == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             err = str(err).decode("utf8", 'replace')
             log.err("Gstreamer Error: %s" % err)
             debug = str(debug).decode("utf8", 'replace')
             log.debug("Gstreamer Error debug: %s" % debug)
-        elif message.type == gst.MESSAGE_ELEMENT:
-            name = ""
-            if hasattr(message.structure, "get_name"):
-                name = message.structure.get_name()
-
-            # This gets sent on song change. But it is not in the docs
-            if name == "playbin2-stream-changed" \
-                    and self.__in_gapless_transition:
+        elif message.type == Gst.MessageType.STREAM_START:
+            if self.__in_gapless_transition:
                 self._end()
 
         return True
@@ -425,23 +433,21 @@ class GstreamerPlayer(_BasePlayer):
             self._init_video_information()
             self.__current_change()
             self.__in_gapless_transition = False
+            self.dispatch_signame('player.status')
+            self.dispatch_signame('player.current')
         else:
             self._change_file(self._source.next(explicit=False))
 
     def __update_metadata(self, tags):
-        for k in tags.keys():
-            # GstTags can only be ascii or utf-8
-            value = str(tags[k]).decode('utf-8').strip()
-            if not value: continue
-            if k in ("emphasis", "mode", "layer"):
-                continue
-            elif isinstance(value, basestring):
-                if k in ("title", "album", "artist"):
-                    name = "song-" + k
-                    if name not in self._media_file.keys() or\
-                                   self._media_file[name] != value:
-                        self._media_file[name] = value
-        self.dispatch_signame('player.current')
+        tags = TagListWrapper(tags)
+        tags = parse_gstreamer_taglist(tags)
+
+        if "title" in tags.keys():
+            desc = tags["title"]
+            if "artist" in tags.keys():
+                desc = tags["artist"] + " - " + desc
+            self._media_file["webradio-desc"] = desc
+            self.dispatch_signame('player.current')
 
     def __need_pipeline_change(self, new_file):
         return self._media_file["type"] != new_file["type"]
@@ -449,8 +455,6 @@ class GstreamerPlayer(_BasePlayer):
     def __current_change(self):
         # replaygain reset
         self.set_volume(self.get_volume(), sig=False)
-
-        self.dispatch_signame('player.current')
 
     def _osd_set(self, text):
         if not self.__osd: return
@@ -463,45 +467,31 @@ class GstreamerPlayer(_BasePlayer):
         if self.__osd:
             self.__osd.set_property("silent", True)
 
-    # Functions used by library to known supported formats
+    # Function to know if we able to play webradio
     def is_supported_uri(self, uri_type):
-        t = uri_type + "://"
-        return gst.element_make_from_uri(gst.URI_SRC, t, '')  is not None
+        uri = uri_type + "://"
+        if not Gst.uri_is_valid(uri):
+            return False
+        try:
+            Gst.Element.make_from_uri(Gst.URIType.SRC, uri, '')
+        except GLib.GError:
+            return False
+        return True
 
-    SUPPORTED_MIME_TYPES = None
-    def is_supported_format(self, format):
-        if self.SUPPORTED_MIME_TYPES is None:
-            self.SUPPORTED_MIME_TYPES = []
-            factories = gst.type_find_factory_get_list()
-            for factory in factories:
-                if factory.get_name() in ("video/mpeg4", "video/x-h264"):
-                    # FIXME for this 2 factories, returned mimetype is strange
-                    # in debian squeeze
-                    self.SUPPORTED_MIME_TYPES.append(factory.get_name())
-                caps = factory.get_caps()
-                if caps is None:
-                    continue
-                for c in caps:
-                    self.SUPPORTED_MIME_TYPES.append(c.get_name())
 
-        formats = {
-            ".mp3": ("audio/mpeg",),
-            ".mp2": ("audio/mpeg",),
-            ".ogg": ("application/ogg", "audio/x-vorbis", "video/x-theora"),
-            ".m4a": ("audio/x-m4a",),
-            ".flac": ("audio/x-flac",),
-            ".avi": ("video/x-msvideo",),
-            ".mp4": ("video/x-h264", "audio/x-m4a"),
-            ".mkv": ("video/x-matroska",),
-            ".m4v": ("video/x-h264",),
-            }
+def init(plugin_manager, config):
+    # Enable error messages by default
+    if Gst.debug_get_default_threshold() == Gst.DebugLevel.NONE:
+        Gst.debug_set_default_threshold(Gst.DebugLevel.ERROR)
 
-        if format in formats.keys():
-            for mime in formats[format]:
-                if mime not in self.SUPPORTED_MIME_TYPES:
-                    return False
-            return True
-
-        return False
+    if Gst.Element.make_from_uri(
+        Gst.URIType.SRC,
+        "file:///fake/path/for/gst", ""):
+        return GstreamerPlayer(plugin_manager, config)
+    else:
+        raise PlayerError(
+            _("Unable to open input files"),
+            _("GStreamer has no element to handle reading files. Check "
+                "your GStreamer installation settings."))
 
 # vim: ts=4 sw=4 expandtab

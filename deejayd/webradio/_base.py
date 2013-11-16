@@ -46,4 +46,7 @@ class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
     def get_status(self):
         return self.state
 
+    def get_name(self):
+        return self.NAME
+
 # vim: ts=4 sw=4 expandtab

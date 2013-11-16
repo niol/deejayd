@@ -2,8 +2,6 @@
 
 * Work on webui from use cases (albumplayback, etc).
 
-* Signals to the webui exploiting websocket API.
-
 * Devscripts dir
 
 * Interlude functionality : save state, play a media, retrieve state. This is

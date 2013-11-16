@@ -81,13 +81,19 @@ class DeejayDaemonCore(JSONRpcComponent):
         self.recpls = DeejaydRecordedPlaylist(self.audiolib)
         self.put_sub_handler('recpls', self.recpls)
 
+        # add audio queue/playlist and video playlist
         self.sources = sources.init(self.player, self.audiolib,
                                     self.videolib, config)
         for source in self.sources.sources.values():
             self.put_sub_handler(source.name, source)
             setattr(self, source.name, source)
-        self.webradio = DeejaydWebradio()
-        self.put_sub_handler('webradio', self.webradio)
+
+        # add webradio if player can play http stream
+        if self.player.is_supported_uri("http"):
+            self.webradio = DeejaydWebradio(self.player)
+            self.put_sub_handler('webradio', self.webradio)
+        else:
+            log.err(_("Player is not able to play http streams"))
 
         if not DatabaseConnection().structure_created:
             self.audiolib.update()
