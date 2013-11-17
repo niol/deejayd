@@ -404,6 +404,19 @@ class AudioLibrary(_Library):
     def album_list(self, filter=None):
         return self.lib_obj.get_albums_with_filter(filter)
 
+    def get_cover(self, album_id):
+        album = self.lib_obj.get_album_with_id(album_id)
+        cover_path = os.path.join(self.lib_obj.get_cover_folder(),
+                                  album.get_cover_filename())
+        if os.path.isfile(cover_path):
+            result = ""
+            # return base64 encoded cover
+            with open(cover_path) as c:
+                data = c.read()
+                result = base64.b64encode(data)
+            return result
+        return None
+
 
 @jsonrpc_module(LibraryModule)
 class VideoLibrary(_Library):

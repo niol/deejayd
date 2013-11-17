@@ -322,6 +322,13 @@ entry has
             {"name":"filter", "type":"filter", "req":False}
         ]
 
+    class getCover:
+        """"""
+        answer = 'cover'
+        args = [
+            {"name": "id", "type": "int", "req": True}
+        ]
+
 class PlayerModule(object):
 
     class getStatus:
