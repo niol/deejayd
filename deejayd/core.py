@@ -94,6 +94,7 @@ class DeejayDaemonCore(JSONRpcComponent):
             self.put_sub_handler('webradio', self.webradio)
         else:
             log.err(_("Player is not able to play http streams"))
+            self.webradio = None
 
         if not DatabaseConnection().structure_created:
             self.audiolib.update()
@@ -110,7 +111,7 @@ class DeejayDaemonCore(JSONRpcComponent):
 
     def close(self):
         for obj in (self.watcher, self.player, self.sources, self.audiolib, \
-                    self.videolib):
+                    self.videolib, self.webradio):
             if obj != None: obj.close()
 
     def ping(self):  # do nothing

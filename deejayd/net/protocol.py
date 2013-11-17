@@ -55,36 +55,41 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
 
     def lineReceived(self, line):
         line = line.strip("\r")
-        # DEBUG Informations
-        log.debug(line)
-
-        try:
-            parsed = loads_request(line)
-            args, function_path = parsed['params'], parsed["method"]
-            if function_path.startswith("signal"):
-                # it's a command linked with this connection
-                method = function_path.split(self.separator, 1)[1]
-                function = self.get_function(method)
-            elif function_path == "close":
-                function = self.close
-            else:
-                function = self.deejayd_core.get_function(function_path)
-        except Fault, f:
-            try: id = parsed["id"]
-            except:
-                id = None
-            ans = JSONRPCResponse(f, id)
+        try: line = str_decode(line)
+        except UnicodeDecodeError:
+            ans = JSONRPCResponse(Fault(_("Command is not correctly encoded")), "1")
         else:
-            try: result = function(*args)
-            except Exception, ex:
-                if not isinstance(ex, Fault):
-                    log.err(str_decode(traceback.format_exc()))
-                    result = Fault(self.FAILURE, _("error, see deejayd log"))
+            # DEBUG Informations
+            log.debug("Receive command ---> '%s'" % line)
+
+            try:
+                parsed = loads_request(line)
+                args, function_path = parsed['params'], parsed["method"]
+                if function_path.startswith("signal"):
+                    # it's a command linked with this connection
+                    method = function_path.split(self.separator, 1)[1]
+                    function = self.get_function(method)
+                elif function_path == "close":
+                    function = self.close
                 else:
-                    result = ex
-            ans = JSONRPCResponse(result, parsed["id"])
+                    function = self.deejayd_core.get_function(function_path)
+            except Fault, f:
+                try: id = parsed["id"]
+                except:
+                    id = None
+                ans = JSONRPCResponse(f, id)
+            else:
+                try: result = function(*args)
+                except Exception, ex:
+                    if not isinstance(ex, Fault):
+                        log.err(str_decode(traceback.format_exc()))
+                        result = Fault(self.FAILURE, _("error, see deejayd log"))
+                    else:
+                        result = ex
+                ans = JSONRPCResponse(result, parsed["id"])
 
         self.send_buffer(ans.to_json()+self.delimiter)
+        log.debug("Send answer ---> '%s'" % ans.to_json())
         if self.__need_to_close:
             self.transport.loseConnection()
 
@@ -92,7 +97,6 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
         if isinstance(buf, unicode):
             buf = buf.encode("utf-8")
         self.transport.write(buf)
-        log.debug(buf)
 
     def lineLengthExceeded(self, line):
         log.err(_("Request too long, close the connection"))
@@ -174,7 +178,10 @@ class DeejaydFactory(protocol.ServerFactory):
                 }
                 ans = JSONRPCResponse(j_sig, None).to_json()
                 for client in interested_clients:
-                    reactor.callFromThread(client.send_buffer, ans+client.delimiter)
+                    reactor.callFromThread(client.send_buffer,\
+                            ans+client.delimiter)
+                    reactor.callFromThread(log.debug, "Send signal ---> '%s'"\
+                            % ans)
 
         return receiver
 

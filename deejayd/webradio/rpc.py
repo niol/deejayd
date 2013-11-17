@@ -83,6 +83,7 @@ class DeejaydWebradio(SignalingComponent, JSONRpcComponent):
         cat = source.add_categorie(cat)
         if cat is not None:
             self.dispatch_signame('webradio.listupdate', source=source.get_name())
+        return cat
 
     @require_source(editable=True)
     def source_delete_categories(self, source, cat_ids):
@@ -103,5 +104,9 @@ class DeejaydWebradio(SignalingComponent, JSONRpcComponent):
     def source_clear_webradios(self, source):
         source.clear_webradios()
         self.dispatch_signame('webradio.listupdate', source=source.get_name())
+
+    def close(self):
+        for source in self.wb_sources.values():
+            source.close()
 
 # vim: ts=4 sw=4 expandtab

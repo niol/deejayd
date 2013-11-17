@@ -183,12 +183,6 @@ DB_SCHEMA = {
             Column('url'),
             Column('webradio_id', type='int'),
             Index(('url', 'webradio_id'))],
-        Table('webradio_stats', key='id')[
-            Column('id', auto_increment=True),
-            Column('source_id', type='int'),
-            Column('key'),
-            Column('value'),
-            Index(('key', 'source_id'), unique=True)],
         Table('stats', key='name')[
             Column('name'),
             Column('value', type='int')],

@@ -552,8 +552,9 @@ class WebradioModule(object):
     class getSourceStatus:
         """Return status of source 'source_name'
 The status contains the following key:
-  * lastModified: __timestamp__
-  * """
+  * last_modified: __timestamp__
+  * categories_count: __int__
+  * webradios_count: __int__"""
         answer = 'dict'
         args = [{"name":"source_name", "type":"string", "req":True}]
 

@@ -80,6 +80,11 @@ class WebradioSource(object):
                     .execute()
         return dict(cats)
 
+    def get_categories_count(self):
+        return SimpleSelect(CAT_TABLE) \
+                    .append_where("source_id = %s", (self.db_id,)) \
+                    .count()
+
     def add_categorie(self, name, commit=True):
         if name in self.get_categories().keys():
             raise DeejaydError(_("category %s already exists") % name)
@@ -113,6 +118,11 @@ class WebradioSource(object):
             query.select_category(cat_id)
         return map(lambda w_infos: Webradio(w_infos), query.execute())
 
+    def get_webradios_count(self):
+        return SimpleSelect(WEB_TABLE) \
+            .append_where("source_id = %s", (self.db_id,)) \
+            .count()
+
     def add_webradio(self, name, cat_ids, urls, commit=True):
         wb_id = EditRecordQuery(WEB_TABLE)\
                     .add_value("name", name)\
@@ -139,7 +149,7 @@ class WebradioSource(object):
 
     def clear_webradios(self, commit=True):
         where_select = SimpleSelect(WEB_TABLE)\
-                    .select_column("id")\
+                    .select_count()\
                     .append_where("source_id = %d" % self.db_id, ())\
                     .to_sql()
         DeleteQuery(CAT_REL_TABLE)\
@@ -151,20 +161,6 @@ class WebradioSource(object):
         DeleteQuery(WEB_TABLE)\
               .append_where("source_id = %s", (self.db_id,))\
               .execute(commit=commit)
-
-    def get_stats(self):
-        return dict(SimpleSelect(STAT_TABLE)\
-                        .select_column("key", "value")\
-                        .append_where("source_id = %s", (self.db_id,))\
-                        .execute())
-
-    def set_stats(self, stats, commit=True):
-        for k, v in stats.items():
-            ReplaceQuery(STAT_TABLE)\
-                .add_value("source_id", self.db_id)\
-                .add_value("key", k)\
-                .add_value("value", v)\
-                .execute(commit=commit)
 
 @Singleton
 class WebradioFactory(object):

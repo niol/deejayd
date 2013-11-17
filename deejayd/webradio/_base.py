@@ -16,16 +16,18 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import time
 from zope.interface import implements
 from deejayd.webradio.IWebradioSource import IWebradioSource
 from deejayd.model.webradio import WebradioFactory
-from deejayd.component import PersistentStateComponent, SignalingComponent
+from deejayd.component import PersistentStateComponent
+from deejayd.component import SignalingComponent
 
 class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
     implements(IWebradioSource)
     NAME = ""
     state_name = ""
-    initial_state = {"id": 1}
+    initial_state = {"last_modified": -1}
     signal_name = "webradio.listupdate"
 
     def __init__(self):
@@ -44,9 +46,19 @@ class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
         return self.source.get_webradios(cat_id)
 
     def get_status(self):
-        return self.state
+        return {
+            "last_modified": self.state["last_modified"],
+            "categories_count": self.source.get_categories_count(),
+            "webradios_count": self.source.get_webradios_count(),
+            }
 
     def get_name(self):
         return self.NAME
+
+    def _update_state(self):
+        self.state["last_modified"] += int(time.time())
+
+    def close(self):
+        PersistentStateComponent.close(self)
 
 # vim: ts=4 sw=4 expandtab

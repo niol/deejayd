@@ -29,9 +29,11 @@ class WebradioLocalSource(_BaseWebradioSource):
     state_name = "webradio_local"
 
     def add_categorie(self, cat):
+        self._update_state()
         return self.source.add_categorie(cat)
 
     def remove_categories(self, ids):
+        self._update_state()
         return self.source.delete_categories(ids)
 
     def add_webradio(self, name, urls, cat=None):
@@ -66,20 +68,16 @@ class WebradioLocalSource(_BaseWebradioSource):
             raise DeejaydError(_("Given urls %s is not supported")\
                     % ",".join(urls))
         cats = cat is not None and [cat] or []
+
+        self._update_state()
         self.source.add_webradio(name, cats, needed_urls)
 
     def remove_webradios(self, ids):
+        self._update_state()
         self.source.delete_webradios(ids)
 
     def clear_webradios(self):
+        self._update_state()
         self.source.clear_webradios()
-
-    def get_stats(self):
-        return {
-            "last_webradios_update": "",
-            "last_categories_update": "",
-            "webradio_count": "",
-            "category_count": "",
-        }
 
 # vim: ts=4 sw=4 expandtab

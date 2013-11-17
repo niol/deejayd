@@ -74,6 +74,14 @@ class SimpleSelect(_DBQuery):
         cursor.close()
         return result
 
+    def count(self):
+        query = "SELECT COUNT(*) FROM %s WHERE %s"\
+            % (self.table_name, ' AND '.join(self.wheres) or 1)
+        print "zboub", query
+        cursor = DatabaseConnection().cursor()
+        cursor.execute(query, self.get_args())
+        return int(cursor.fetchone()[0])
+
 
 class ComplexSelect(SimpleSelect):
 

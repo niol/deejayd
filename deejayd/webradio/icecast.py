@@ -16,15 +16,17 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import urllib2, time
+import urllib2
+import time
 from twisted.internet import threads, task, reactor
+from xml.etree import cElementTree as ET
 
 from deejayd import DeejaydError
-from xml.etree import cElementTree as ET
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
 from deejayd.webradio._base import _BaseWebradioSource
 from deejayd.database.connection import DatabaseConnection
+
 
 UPDATE_INTERVAL = 7 * 24 * 60 * 60  # 7 days
 TIMEOUT = 2  # 2 seconds
@@ -36,24 +38,12 @@ class IceCastSource(_BaseWebradioSource):
     def __init__(self):
         super(IceCastSource, self).__init__()
 
-        self.__last_parse = None
         self.__update_running = False
         self.__task = task.LoopingCall(self.__check_update)
         self.__task.start(60 * 60)  # check every hour
 
     def __check_update(self):
-        need_reload_list = True
-        # see if stations list has already been parsed
-        if self.__last_parse is None:
-            stats = self.source.get_stats()
-            if "last_update" in stats:
-                self.__last_parse = stats["last_update"]
-
-        if self.__last_parse is not None:
-            if int(time.time()) < int(self.__last_parse) + UPDATE_INTERVAL:
-                need_reload_list = False
-
-        if need_reload_list:
+        if int(time.time()) > int(self.state["last_modified"]) + UPDATE_INTERVAL:
             d = threads.deferToThread(self.__reload_list)
             d.pause()
 
@@ -67,11 +57,7 @@ class IceCastSource(_BaseWebradioSource):
 
     def __on_reload_success(self, result, *args):
         if result is not None:
-            self.__last_parse = int(time.time())
-            result["last_update"] = self.__last_parse
-            self.source.set_stats(result)
-
-            self.state["id"] += 1
+            self._update_state()
             reactor.callFromThread(self.dispatch_signame, self.signal_name,\
                                    source=self.NAME)
 
@@ -81,7 +67,6 @@ class IceCastSource(_BaseWebradioSource):
         try:
             page_handle = urllib2.urlopen(url, timeout=TIMEOUT)
             xml_page = page_handle.read()
-            log.debug("ICECAST - receive xml content %s" % xml_page.decode("utf-8"))
         except:
             raise DeejaydError(_("Unable to connect to icecast website"))
 
@@ -144,17 +129,18 @@ class IceCastSource(_BaseWebradioSource):
         }
 
     def get_categories(self):
-        if self.__last_parse is None:
+        if self.state["last_modified"] == -1:
             raise DeejaydError("Unable to parse icecast webradio list")
         return super(IceCastSource, self).get_categories()
 
     def get_webradios(self, cat_id=None):
-        if self.__last_parse is None:
+        if self.state["last_modified"] == -1:
             raise DeejaydError("Unable to parse icecast webradio list")
         return super(IceCastSource, self).get_webradios(cat_id)
 
     def close(self):
         if self.__task is not None:
             self.__task.stop()
+        super(IceCastSource, self).close()
 
 # vim: ts=4 sw=4 expandtab
