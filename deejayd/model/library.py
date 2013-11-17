@@ -166,7 +166,8 @@ class _Library(object):
     def get_dirs_with_ids(self, dir_ids):
         return [self.loaded_dirs[int(id)] for id in dir_ids]
 
-    def get_file_with_path(self, dir_obj, filename, create=False):
+    def get_file_with_path(self, dir_obj, filename, create=False,\
+                           raise_ex=True):
         rs = ComplexSelect(self.LIB_TABLE) \
                     .join(DIR_TABLE, "%s.id = %s.directory" \
                         % (DIR_TABLE, self.LIB_TABLE)) \
@@ -177,7 +178,9 @@ class _Library(object):
         db_id = rs and rs[0] or None
         if db_id is None:
             if not create:
-                raise DeejaydError
+                if raise_ex:
+                    raise DeejaydError
+                return None
             return self.MEDIA_OBJECT(self, dir_obj, filename)
         return self.get_files_with_ids((db_id,))[0]
 

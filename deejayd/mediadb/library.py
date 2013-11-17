@@ -316,34 +316,18 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
     def update_file(self, path, file):
         file_path = os.path.join(path, file)
-        db_entry = self.lib_obj.is_file_exist(path, file)
-        if db_entry is not None:
-            if os.stat(file_path).st_mtime <= db_entry[2]:
+
+        dir_obj = self.lib_obj.get_dir_with_path(path, create=True)
+        file_obj = self.lib_obj.get_file_with_path(dir_obj, file, create=True)
+        need_update = os.stat(file_path).st_mtime > file_obj["lastmodified"]
+        if need_update:
+            file_obj = self._get_file_info(file_obj)
+            if file_obj is None:
+                self.update_extrainfo_file(file_path)
                 return
-
-        file_info = self._get_file_info(file_path)
-        if file_info:
-            self.update_media(file_path, file_info)
-        else:
-            self.update_extrainfo_file(file_path)
-
-    def update_media(self, file_path, file_info):
-        path, file = os.path.split(file_path)
-        rs = self.lib_obj.is_file_exist(path, file)
-        if rs is None:
-            log.debug('library: adding file %s in db' % file_path)
-            event = 'add'
-            dir_id = self.lib_obj.is_dir_exist(path)
-            file_id = None
-        else:
-            log.debug('library: updating file %s in db' % file_path)
-            event = 'update'
-            dir_id, file_id, lm = rs
-
-        fid = self.set_media(dir_id, file_path, file_info, file_id)
-        if fid:
-            self.set_extra_infos(path, file, fid)
-            self.dispatch_mupdate(fid, event)
+            file_obj["lastmodified"] = int(time.time())
+            dir_obj.save()
+            file_obj.save(commit=True)
 
     def remove_extrainfo_file(self, file_path):
         pass
@@ -358,11 +342,13 @@ class _Library(SignalingComponent, JSONRpcComponent):
     def remove_media(self, path, name):
         log.debug('library: removing file %s from db'\
                 % os.path.join(path, name))
-        rs = self.lib_obj.is_file_exist(path, name)
-        if rs is not None:
-            dir_id, file_id, lm = rs
-            self.lib_obj.remove_file(file_id)
-            self.dispatch_mupdate(file_id, 'remove')
+        try: dir_obj = self.lib_obj.get_dir_with_path(path)
+        except DeejaydError:
+            return
+        file_obj = self.lib_obj.get_file_with_path(dir_obj, name,
+                                                   raise_ex=False)
+        if file_obj is not None:
+            file_obj.erase()
 
     def crawl_directory(self, path, name):
         dir_path = os.path.join(path, name)
@@ -382,22 +368,23 @@ class _Library(SignalingComponent, JSONRpcComponent):
     def add_directory(self, path, name):
         dir_path = os.path.join(path, name)
         log.debug('library: adding dir %s in db' % dir_path)
-        self.lib_obj.insert_dir(dir_path)
+        self.lib_obj.get_dir_with_path(dir_path, create=True)
         self.watcher.watch_dir(dir_path, self)
 
     def remove_directory(self, path, name):
         dir_path = os.path.join(path, name)
         log.debug('library: removing dir %s in db' % dir_path)
-        dir_id = self.lib_obj.is_dir_exist(dir_path)
-        if dir_id is None:
+        try:
+            dir_obj = self.lib_obj.get_dir_with_path(dir_path)
+        except DeejaydError:
             return
 
-        for id, path in self.lib_obj.get_all_dirs(dir_path):
-            self.watcher.stop_watching_dir(path)
+        def stop_watchers(d_obj):
+            map(stop_watchers, d_obj.get_subdirs())
+            self.watcher.stop_watching_dir(d_obj.get_path())
+        stop_watchers(dir_obj)
 
-        ids = self.lib_obj.remove_recursive_dir(dir_path)
-        for file_id in ids:
-            self.dispatch_mupdate(file_id, 'remove')
+        dir_obj.erase(purge_files=True)
 
     def dispatch_mupdate(self, fid, signal_type):
         self.dispatch_signame('mediadb.mupdate',
