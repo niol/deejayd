@@ -243,6 +243,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         if not self._current_is_video():
             return
         options[name](value)
+        self.dispatch_signame('player.current')
 
     def set_zoom(self, zoom):
         raise NotImplementedError
