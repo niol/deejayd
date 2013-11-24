@@ -149,7 +149,7 @@ class WebradioSource(object):
 
     def clear_webradios(self, commit=True):
         where_select = SimpleSelect(WEB_TABLE)\
-                    .select_count()\
+                    .select_column("id")\
                     .append_where("source_id = %d" % self.db_id, ())\
                     .to_sql()
         DeleteQuery(CAT_REL_TABLE)\
