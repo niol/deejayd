@@ -301,14 +301,14 @@ class VlcPlayer(_BasePlayer):
     def __init_video_information(self):
         if self._current_is_video():
             # subtitles
-            sub_channels = [{"lang": "none", "ix": 0}]
+            sub_channels = [{"lang": "none", "ix": -1}]
             if "subtitle_channels" in self._media_file.keys():
                 for i in range(int(self._media_file["subtitle_channels"])):
                     sub_channels.append(\
-                        {"lang": _("Sub channel %d") % (i + 1,), "ix": i + 1})
+                        {"lang": _("Sub channel %d") % (i,), "ix": i})
             if self._has_external_subtitle():
                 sub_channels.append({"lang": "external", \
-                                     "ix": len(sub_channels)})
+                                     "ix": len(sub_channels)+1})
             if len(sub_channels) > 1:
                 self._media_file['subtitle'] = sub_channels
                 self._media_file["sub_offset"] = 0
