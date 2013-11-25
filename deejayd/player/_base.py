@@ -180,6 +180,10 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
             self.dispatch_signame('player.status')
             self.osd("Volume: %d" % self.get_volume())
 
+    def set_volume_relative(self, step):
+        new_vol = self.get_volume() + step
+        self.set_volume(min(max(0, new_vol), 100))
+
     def _set_volume(self, v, sig=True):
         raise NotImplementedError
 

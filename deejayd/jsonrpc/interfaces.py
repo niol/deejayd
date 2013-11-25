@@ -365,6 +365,14 @@ class PlayerModule(object):
             "req": True, }
         ]
 
+    class setVolumeRelative:
+        """Update volume with the step argument. IF it is negative, the volume decreases, else it increases"""
+        args = [{ "name": "step",
+                  "type": "int",
+                  "desc": "step to increase/decrease volume",
+                  "req": True, }
+        ]
+
     class seek:
         """Seeks to the position "pos" (in seconds) of the current media set relative argument to true to set new pos in relative way"""
         args = [
