@@ -1,6 +1,15 @@
 
 New features and significant updates in version...
 
+0.13.0 (2014-01-10)
+-------------------
+  * Add vlc backend
+  * Use twisted inotify API instead of pyinotify
+  * Remove kaa-metadata dependency and implements video parser in deejayd
+  * Rewrite some core components
+  * Remove mysql backend
+  * A lot of bug fixes
+
 0.12.0 (2012-11-11)
 -------------------
   * Restructure the code to reduce its size
