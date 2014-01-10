@@ -30,11 +30,11 @@ except IOError:
     t = DeejaydTranslations()
 t.install()
 
-from deejayd.mediafilters import *
+from deejayd.model.mediafilters import *
 from deejayd import DeejaydSignal
 from deejayd.jsonrpc import interfaces
 from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
-                                     Get_json_filter, DeejaydJSONSignal
+                                     DeejaydJSONSignal
 
 common_request = [
         {"prefix": "", "desc": "General Commands",\
@@ -230,7 +230,7 @@ An example is given here.
 """ % {
         "cmd_format": self.commandDoc(),
         "answer": self.answerDoc(),
-        "filter": Get_json_filter(filter).to_pretty_json(),
+        "filter": filter.to_json(),
         "commands": "\n\n".join(map(self.formatSectionDoc, sections)),
         "signal": DeejaydJSONSignal(signal).to_pretty_json(),
         "web_commands": self.formatSectionDoc({\

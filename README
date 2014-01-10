@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.13.0 (2014-01-10)
+Actual version : 0.13.1 (2014-01-10)
 ------------------------------------
 
 Description:
@@ -65,10 +65,10 @@ the gettext package installed because of the usage of the msgfmt binary.
 Installation:
 -------------
 Download deejayd and extract it:
-  $tar xzvf deejayd-0.13.0.tar.gz
+  $tar xzvf deejayd-0.13.1.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.13.0
+  $cd deejayd-0.13.1
   $GWT_SDK="PathToGwtSdk" python setup.py install
 
 Usage:

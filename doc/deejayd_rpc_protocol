@@ -62,42 +62,7 @@ separator.
 Mediafilter object has been serialized in a specific way to be passed as
 an method argument or receive with an answer. An example is given here.
 {{{
-`{
-    "id": "and",
-    "type": "complex",
-    "value": [
-        {
-            "id": "equals",
-            "type": "basic",
-            "value": {
-                "pattern": "artist_name",
-                "tag": "artist"
-            }
-        },
-        {
-            "id": "or",
-            "type": "complex",
-            "value": [
-                {
-                    "id": "contains",
-                    "type": "basic",
-                    "value": {
-                        "pattern": "Rock",
-                        "tag": "genre"
-                    }
-                },
-                {
-                    "id": "higher",
-                    "type": "basic",
-                    "value": {
-                        "pattern": "4",
-                        "tag": "Rating"
-                    }
-                }
-            ]
-        }
-    ]
-}`
+`{'type': 'complex', 'id': 'and', 'value': [{'type': 'basic', 'id': 'equals', 'value': {'pattern': 'artist_name', 'tag': 'artist'}}, {'type': 'complex', 'id': 'or', 'value': [{'type': 'basic', 'id': 'contains', 'value': {'pattern': 'Rock', 'tag': 'genre'}}, {'type': 'basic', 'id': 'higher', 'value': {'pattern': '4', 'tag': 'Rating'}}]}]}`
 }}}
 
 === Sort Objects ===
@@ -931,6 +896,7 @@ Arguments :
   * {{{source_name}}} (Mandatory) : string
   * {{{name}}} (Mandatory) : string
   * {{{url}}} (Mandatory) : list
+  * {{{cat}}} (Optional) : int
 
 Expected return value : ''`['ack']`''
 
