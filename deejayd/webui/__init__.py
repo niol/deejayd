@@ -118,11 +118,10 @@ class DeejaydMobileHandler(Resource):
 class SiteWithCustomLogging(server.Site):
 
     def _openLogFile(self, path):
-        self.log_file = log.LogFile(path, False)
-        self.log_file.set_reopen_signal(callback=self.__reopen_cb)
+        self.log_file = log.LogFile(path)
         return self.log_file.fd
 
-    def __reopen_cb(self, signal, frame):
+    def reopen_log(self):
         self.log_file.reopen()
         # Change the logfile fd from HTTPFactory internals.
         self.logFile = self.log_file.fd

@@ -249,6 +249,7 @@ if __name__ == "__main__":
                 abort(msg=str(err))
 
     # webui service
+    webui_site = None
     if config.getboolean("webui", "enabled"):
         try:
             from deejayd import webui
@@ -270,15 +271,15 @@ if __name__ == "__main__":
                                                           'share', 'deejayd',
                                                           'htdocs'))
             try:
-                site = webui.init(deejayd_core, config,
-                                  options.webui_logfile, htdocs_dir)
+                webui_site = webui.init(deejayd_core, config,
+                                        options.webui_logfile, htdocs_dir)
             except webui.DeejaydWebError, err:
                 deejayd_core.close()
                 abort(msg=str(err))
 
             port = config.getint("webui", "port")
             for bind_address in config.get_bind_addresses('webui'):
-                try: reactor.listenTCP(port, site, interface=bind_address)
+                try: reactor.listenTCP(port, webui_site, interface=bind_address)
                 except CannotListenError, err:
                     deejayd_core.close()
                     abort(msg=str(err))
@@ -295,6 +296,8 @@ if __name__ == "__main__":
         log.debug("received SIGHUP.")
         if flo is not None:
             flo.reopen_cb()
+        if webui_site is not None:
+            webui_site.reopen_log()
         # ensure db gets written to disk
         deejayd.database.connection.DatabaseConnection().close()
     def sig_HUP(signal, frame):
