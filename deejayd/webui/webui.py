@@ -22,7 +22,33 @@ from twisted.web.resource import Resource, NoResource
 from deejayd.ui.config import DeejaydConfig
 from deejayd.jsonrpc import json
 
-class DeejaydMainResource(Resource):
+
+class DeejaydMainHandler(Resource):
+
+    def __init__(self):
+        Resource.__init__(self)
+        self.putChild("m", DeejaydMobileRessource())
+        self.putChild("webui", DeejaydDesktopRessource())
+
+    def getChild(self, name, request):
+        if name == '': return self
+        return Resource.getChild(self,name,request)
+
+    def render_GET(self, request):
+        user_agent = request.getHeader("user-agent");
+        root = request.prepath[-1] != '' and request.path + '/' or request.path
+        if user_agent.lower().find("mobile") != -1:
+            # redirect to specific mobile interface
+            request.redirect(root + 'm/')
+            return 'redirected'
+        else: # default web interface
+            request.redirect(root + 'webui/')
+            return 'redirected'
+
+
+class _DeejaydUIResource(Resource):
+    tpl = ''
+    scripts = []
 
     def getChild(self, name, request):
         if name == '': return self
@@ -36,25 +62,19 @@ class DeejaydMainResource(Resource):
             request.redirect(request.path + '/')
             return 'redirected'
 
-        user_agent = request.getHeader("user-agent");
-        mobile_client = user_agent.lower().find("mobile") != -1
+        return self._build()
 
-        return self.__build(mobile_client=mobile_client)
-
-    def __load_script(self, script, type="text/javascript"):
+    def _load_script(self, script, type="text/javascript"):
         return "<script type='%(t)s' src='%(src)s'></script>" % {
             "t": type,
             "src": script,
             }
 
-    def __djdscripts(self, config):
-        scripts = [
-            ("gen/deejayd.js", "text/javascript"),
-        ]
-        return "\n".join(map(lambda s: self.__load_script(s[0], s[1]),
-                             scripts))
+    def _djdscripts(self, config):
+        return "\n".join(map(lambda s: self._load_script(s[0], s[1]),
+                             self.scripts))
 
-    def __i18n_dict(self, config):
+    def _i18n_dict(self, config):
         return json.dumps({
             "song": _("Song"),
             "songs": _("Songs"),
@@ -71,19 +91,41 @@ class DeejaydMainResource(Resource):
             "random": _("Random"),
             "onemedia": _("One media"),
             "allCategories": _("All cats"),
+            "seek_dialog_title": _("Seek dialog"),
         })
 
-    def __build(self, mobile_client=False):
+    def _get_page_args(self):
         config = DeejaydConfig()
+        return {
+            "root_url": config.get("webui", "root_url"),
+            "custom_scripts": self._djdscripts(config),
+            "i18n_dict": self._i18n_dict(config),
+        }
 
-        tpl_path = os.path.join(os.path.dirname(__file__), "webui.thtml")
+    def _build(self):
+        tpl_path = os.path.join(os.path.dirname(__file__), self.tpl)
         tpl_content = ""
         with open(tpl_path) as tpl:
             tpl_content = tpl.read()
-        page_content = tpl_content % {
-            "root_url": config.get("webui", "root_url"),
-            "custom_scripts": self.__djdscripts(config),
-            "i18n_dict": self.__i18n_dict(config),
+        page_content = tpl_content % self._get_page_args()
+        return page_content.encode("utf-8")
+
+
+class DeejaydDesktopRessource(_DeejaydUIResource):
+    tpl = 'desktop.thtml'
+    scripts = [
+        ("../gen/djd_desktop.js", "text/javascript"),
+        ]
+
+class DeejaydMobileRessource(_DeejaydUIResource):
+    tpl = 'mobile.thtml'
+    scripts = [
+        ("../gen/djd_mobile.js", "text/javascript"),
+        ]
+
+    def _get_page_args(self):
+        args = _DeejaydUIResource._get_page_args(self)
+        args.update({
             "loading": _("Loading..."),
             "music": _("Music"),
             "video": _("Video"),
@@ -93,7 +135,9 @@ class DeejaydMainResource(Resource):
             "album": _("Album"),
             "folder": _("Folder"),
             "repeat": _("Repeat"),
-        }
-        return page_content.encode("utf-8")
+        })
+
+        return args
+
 
 # vim: ts=4 sw=4 expandtab

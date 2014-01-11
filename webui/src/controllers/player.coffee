@@ -20,18 +20,19 @@ class DjdApp.PlayerController extends DjdApp.BaseController
   constructor: (@main_controller) ->
     super(@main_controller)
 
-    # init player footer
-    #@footer = new DjdApp.views.PhoneFooterView(@)
-
     # init var
     @is_pls_loaded = false
     @state = "stop"
     @volume = 0
+    @time = 0
 
   load: ->
     if not @is_loaded
       self = @
-      @view = new DjdApp.views.PlayerView(@)
+      if DjdApp.options.ui == "mobile"
+        @view = new DjdApp.views.MobilePlayerView(@)
+      else if DjdApp.options.ui == "desktop"
+        @view = new DjdApp.views.DesktopPlayerView(@)
       @updateCurrent()
       @updateStatus()
 
@@ -48,7 +49,10 @@ class DjdApp.PlayerController extends DjdApp.BaseController
 
   loadPlaylist: ->
     if not @is_pls_loaded
-      @pls_view = new DjdApp.views.PlaylistView(@)
+      if DjdApp.options.ui == "mobile"
+        @pls_view = new DjdApp.views.MobilePlaylistView(@)
+      else if DjdApp.options.ui == "desktop"
+        @pls_view = new DjdApp.views.DesktopPlaylistView(@)
 
       # define event handlers
       self = @
@@ -70,22 +74,26 @@ class DjdApp.PlayerController extends DjdApp.BaseController
   updateStatus:  ->
     self = @
     @rpc_client.sendCommand("player.getStatus", [], (status) ->
-      if status.state != _ref.state
+      if status.state != self.state
         self.view.updateState(status.state)
-        self.main_controller.footer.updateState(status.state)
-
         self.state = status.state
 
-      if status.volume != _ref.volume
+      if status.volume != self.volume
         self.view.updateVolume(status.volume)
         self.volume = status.volume
+
+      if status.time != self.time
+        t = [0, 0]
+        if status.time != undefined
+          t = status.time.split(":")
+        self.view.updateTime(t[0], t[1])
+        self.time = status.time
     )
 
   updateCurrent: ->
     view = @view
     @rpc_client.sendCommand("player.getPlaying", [], (answer) ->
       view.refreshCurrent(answer)
-      self.main_controller.footer.refreshCurrent(answer)
     )
 #
 #  Commands called from view
@@ -107,6 +115,9 @@ class DjdApp.PlayerController extends DjdApp.BaseController
 
   setVolume: (vol) ->
     @rpc_client.sendCommand("player.setVolume", [vol])
+
+  seek: (pos, relative=false) ->
+    @rpc_client.sendCommand("player.seek", [pos, relative])
 
   getAudioPlaylist: (start=0, length=null, cb=null) ->
     args = [start]
@@ -137,5 +148,8 @@ class DjdApp.PlayerController extends DjdApp.BaseController
 
   plsOptions: (pls, option, value) ->
     @rpc_client.sendCommand("#{ pls }.setOption", [option, value])
+
+  audioPlsSave: (pls_name, cb) ->
+    @rpc_client.sendCommand("audiopls.save", [pls_name], cb)
 
 # vim: ts=4 sw=4 expandtab

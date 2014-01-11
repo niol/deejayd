@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deejayd UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <script type="text/javascript" language="javascript"
+            src="../static/js/sockjs-0.3.min.js"></script>
+    <script type="text/javascript" language="javascript"
+            src="../static/js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" language="javascript"
+            src="../static/js/jquery.i18n.min.js"></script>
+
+    <!-- bootstrap 3 -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"/>
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css"/>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+    <!-- bootstrap slider https://github.com/seiyria/bootstrap-slider -->
+    <link rel="stylesheet"
+          href="../static/bs-slider/bootstrap-slider.min.css"/>
+    <script type="text/javascript" language="javascript"
+            src="../static/bs-slider/bootstrap-slider.min.js"></script>
+
+    <!-- custom theme -->
+    <link rel="stylesheet"
+          href="../static/style/desktop/deejayd-desktop.css"/>
+    <!--                                           -->
+    <!--    Load namespace var and options         -->
+    <!--                                           -->
+    <script>
+        window.DjdApp = {
+            models: {},
+            views: {},
+            widgets: {},
+            options: {
+                root_url: '%(root_url)s',
+                ui: "desktop"
+            },
+            dictionary: '%(i18n_dict)s'
+        };
+    </script>
+    %(custom_scripts)s
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#djd-main-menu-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Deejayd</a>
+
+        </div>
+
+        <div class="collapse navbar-collapse" id="djd-main-menu-collapse">
+            <ul class="nav navbar-nav navbar-right">
+              <li class="active"><a href="#">Now Playing</a></li>
+              <li><a href="#">Music</a></li>
+              <li><a href="#">Video</a></li>
+              <li><a href="#">Webradio</a></li>
+            </ul>
+        </div>
+
+        <div class="navbar-header">
+            <button type="button" style="color: #ffffff;" class="navbar-toggle" data-toggle="collapse" data-target="#djd-seek-menu-collapse">
+                <span>Seek</span>
+            </button>
+            <p id="djd-nowplaying-title" class="navbar-text">No Media</p>
+        </div>
+
+        <div class="collapse navbar-collapse navbar-right" id="djd-seek-menu-collapse">
+            <button type="button"
+                    disabled="disabled"
+                    id="djd-seek-fast-backward"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-fast-backward"/>
+            </button>
+            <button type="button"
+                    disabled="disabled"
+                    id="djd-seek-backward"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-backward"/>
+            </button>
+            <button type="button"
+                    disabled="disabled"
+                    id="djd-seek-time"
+                    class="btn btn-default navbar-btn">00:00</button>
+            <button type="button"
+                    disabled="disabled"
+                    id="djd-seek-forward"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-forward"/>
+            </button>
+            <button type="button"
+                    disabled="disabled"
+                    id="djd-seek-fast-forward"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-fast-forward"/>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container" id="djd-main-container">
+        <div id="djd-alert-container"></div>
+        <div class="row">
+            <div class="col-xs-12 col-md-4" id="djd-main-sidebar"></div>
+            <div class="col-xs-12 col-md-8">
+                <nav class="navbar navbar-default" id="djd-main-toolbar">
+                </nav>
+                <div id="djd-main-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-inverse navbar-fixed-bottom" role="navigation">
+        <div class="navbar-header">
+            <button type="button"
+                    id="djd-player-previous"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-step-backward"/>
+            </button>
+            <button type="button"
+                    id="djd-player-playtoggle"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-play"/>
+            </button>
+            <button type="button"
+                    id="djd-player-stop"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-stop"/>
+            </button>
+            <button type="button"
+                    id="djd-player-next"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-step-forward"/>
+            </button>
+
+            <button type="button" class="navbar-toggle btn-default" data-toggle="collapse" data-target="#djd-player-vol-collapse">
+                <span class="glyphicon glyphicon-volume-up"></span>
+            </button>
+        </div>
+
+        <div class="collapse navbar-collapse navbar-right" id="djd-player-vol-collapse">
+            <form class="navbar-form">
+                <input id="djd-volume-slider"
+                       data-slider-id='djd-volume-slider-instance'
+                       type="text"
+                       data-slider-min="0"  data-slider-max="100"
+                       data-slider-step="1" data-slider-value="0"/>
+            </form>
+        </div>
+    </nav>
+
+    <div class="modal fade" id="djd-modal-popup" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="djd-modal-title"></h4>
+                </div>
+                <div class="modal-body" id="djd-modal-body">
+                </div>
+                <div class="modal-footer" id="djd-modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+</body>
+</html>

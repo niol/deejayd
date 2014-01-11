@@ -16,21 +16,23 @@
     <!--    Load style                             -->
     <!--                                           -->
     <link rel="stylesheet"
-          href="static/jqm/jquery.mobile-1.4.0-rc.1.min.css"/>
+          href="../static/jqm/jquery.mobile-1.4.0-rc.1.min.css"/>
     <link rel="stylesheet"
-          href="static/style/deejayd.css"/>
+          href="../static/style/mobile/deejayd.css"/>
+    <link rel="stylesheet"
+          href="../static/style/desktop/deejayd-responsive.css"/>
 
     <!--                                           -->
     <!--    Load library scripts                   -->
     <!--                                           -->
     <script type="text/javascript" language="javascript"
-            src="static/js/sockjs-0.3.min.js"></script>
+            src="../static/js/sockjs-0.3.min.js"></script>
     <script type="text/javascript" language="javascript"
-            src="static/js/jquery-1.9.1.min.js"></script>
+            src="../static/js/jquery-1.9.1.min.js"></script>
     <script type="text/javascript" language="javascript"
-            src="static/jqm/jquery.mobile-1.4.0-rc.1.min.js"></script>
+            src="../static/jqm/jquery.mobile-1.4.0-rc.1.min.js"></script>
     <script type="text/javascript" language="javascript"
-            src="static/js/jquery.i18n.min.js"></script>
+            src="../static/js/jquery.i18n.min.js"></script>
 
     <!--                                           -->
     <!--    Load namespace var and options         -->
@@ -42,6 +44,7 @@
             widgets: {},
             options: {
                 root_url: '%(root_url)s'
+                ui: "mobile"
             },
             dictionary: '%(i18n_dict)s'
         };
@@ -51,6 +54,9 @@
 </head>
 
 <body>
+    <!-- used to detect phone -->
+    <div id="djd-phone-dummy"></div>
+
     <div data-role="panel" id="djd-main-panel" data-theme="a">
         <ul data-role="listview" id="djd-main-panel-menu">
             <li>

@@ -16,34 +16,29 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-class DjdApp.views.PhoneFooterView
 
-  constructor: (@player_controller) ->
-    $("#djd-footer").toolbar()
-    @play_btn = new DjdApp.PlayerButton("play")
-    @play_btn.getElt().appendTo("#djd-footer-content")
-    @title_box = $("<div></div>", {
-      id: "djd-footer-title"
-    }).appendTo("#djd-footer-content").click((evt) ->
-      # show player page
-      $.mobile.changePage("#djd-player-page")
-    ).html("zboub")
+class DjdApp.views.DesktopAlerts
+  constructor: (msg, type="success") ->
+    self = @
 
-  setPageFooter: (footer) ->
-    footer.appendTo("#djd-footer-toolbar")
+    close_btn = $("<button/>", {
+      type: "button",
+      html: "&times;",
+      class: "close"
+    }).click((e) ->
+      self.destroy()
+    )
+    msg_obj = $("<p/>", {html: msg})
 
-  updateState: (state) ->
-    img = if state == "play" then "pause" else "play"
-    @play_btn.setImage(img)
+    @alert = $("<div></div>", {
+      class: "alert alert-#{ type }"
+    }).append(close_btn).append(msg_obj).appendTo("#djd-alert-container")
 
-  refreshCurrent: (current) ->
-    title = jQuery.i18n._("no_media")
-    if current != null
-      title = current.formatTitle()
-    @title_box.html(title)
+    if type != "danger"
+      setTimeout(()->
+        self.destroy()
+      , 3000)
 
-  show: ->
-    $("#djd-footer").show()
+  destroy: () ->
+    @alert.remove()
 
-  hide: ->
-    $("#djd-footer").hide()

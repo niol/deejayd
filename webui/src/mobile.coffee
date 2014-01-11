@@ -27,17 +27,17 @@ class DjdApp.Main
     @client = new DjdApp.WebClient(rpc_url)
 
     # create panel menu
-    $("#djd-main-panel").panel({
-      display: "overlay"
-      create: (evt, ui) ->
-        $("#djd-main-panel-menu").listview()
-    })
-    $(document).on("click", ".djd-open-menu", (evt) ->
-      $("#djd-main-panel").panel("open")
-    )
+    $("#djd-main-panel").enhanceWithin().panel()
 
-    # create main footer/header
-    $("#djd-header").toolbar()
+    # create main header
+    $("#djd-header").enhanceWithin().toolbar()
+    $(document).on("click", ".djd-open-menu", (evt) ->
+      $("#djd-main-panel").panel("toggle")
+    )
+    if !DjdApp.isMobile()
+      $("#djd-main-panel").panel("open")
+
+    @footer = new DjdApp.views.PhoneFooterView(@)
 
     @loadingPopup = new DjdApp.LoadingWidgets()
     @loadingPopup.load()

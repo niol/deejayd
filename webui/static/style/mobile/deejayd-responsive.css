@@ -1,0 +1,72 @@
+/*
+# Deejayd, a media player daemon
+# Copyright (C) 2013 Mickael Royer <mickael.royer@gmail.com>
+#                    Alexandre Rossi <alexandre.rossi@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+@media all and (min-width: 30em){ /* 500px */
+    /* used to test if we are on a phone */
+    #djd-phone-dummy { display: none; width: 0; height: 0;}
+}
+/*
+ * Design for larger screen
+ */
+@media all and (min-width: 50em){ /* 800px */
+  /* wrap on wide viewports once open */
+  .ui-panel-page-content-open.ui-panel-page-content-position-left {
+    margin-right: 17em;
+  }
+  .ui-panel-page-content-open.ui-panel-page-content-position-right {
+    margin-left: 17em;
+  }
+  .ui-panel-page-content-open {
+    width: auto;
+  }
+
+  /* disable "dismiss" on wide viewports */
+  .ui-panel-dismiss {
+    display: none;
+  }
+
+  /* same as the above but for panels with display mode "push" only */
+  .ui-panel-page-content-open.ui-panel-page-content-position-left.ui-panel-page-content-display-push {
+    margin-right: 17em;
+  }
+  .ui-panel-page-content-open.ui-panel-page-content-position-right.ui-panel-page-content-display-push {
+    margin-left: 17em;
+  }
+  .ui-panel-page-content-open.ui-panel-page-content-display-push {
+    width: auto;
+  }
+  .ui-panel-dismiss-display-push {
+    display: none;
+  }
+
+  /* hide button to show panel */
+  .djd-open-menu {
+      display: none;
+  }
+}
+
+
+@media only screen and (-webkit-min-device-pixel-ratio: 2) {
+    .ui-icon-djd-settings {
+        background: url("settings@2x.png") no-repeat rgba(0, 0, 0, 0.4) !important;
+        background-size: 18px 18px;
+    }
+}
+

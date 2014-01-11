@@ -203,10 +203,12 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         raise NotImplementedError
 
     def seek(self, pos, relative=False):
-        if relative and self.get_state() != "stop"\
-                and self._media_file["type"] != "webradio":
-            cur_pos = self.get_position()
-            pos = int(pos) + cur_pos
+        if self.get_state() == PLAYER_STOP \
+            or self._media_file["type"] == "webradio":
+            return # we can't seek
+
+        if relative:
+            pos = int(pos) + self.get_position()
         self._set_position(pos)
         self.dispatch_signame('player.status')
 

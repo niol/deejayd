@@ -25,7 +25,7 @@ from deejayd.ui import log
 
 from txsockjs.factory import SockJSResource
 from deejayd.net.protocol import DeejaydFactory
-from deejayd.webui.webui import DeejaydMainResource
+from deejayd.webui.webui import DeejaydMainHandler
 
 
 class DeejaydWebError(DeejaydError): pass
@@ -73,7 +73,7 @@ class SiteWithCustomLogging(server.Site):
 
 def init(deejayd_core, config, webui_logfile, htdocs_dir):
     # main handler
-    main_handler = DeejaydMainResource()
+    main_handler = DeejaydMainHandler()
     # json-rpc handler
     main_handler.putChild("rpc", SockJSResource(DeejaydFactory(deejayd_core)))
     # cover folder

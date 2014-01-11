@@ -380,7 +380,7 @@ class PlayerModule(object):
             "type": "int",
             "desc": "new position in the media file ",
             "req": True, },
-          { "name": "absolute",
+          { "name": "relative",
             "type": "boolean",
             "desc": "set to true to set new pos in relative way",
             "req": False, },

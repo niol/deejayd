@@ -19,61 +19,59 @@
 fs     = require 'fs'
 {exec} = require 'child_process'
 
-appFiles  = [
-    # omit src/ and .coffee to make the below lines a little shorter
-    'utils'
-    'models/media'
-    'models/medialist'
-    'models/mediafilter'
-    'djdclient'
-    'widgets/loading'
-    'widgets/library'
-    'widgets/player-btn'
-    'widgets/webradio'
-    'views/footer'
-    'views/player'
-    'views/playlist'
-    'views/library'
-    'views/webradio'
-    'controllers/base'
-    'controllers/player'
-    'controllers/library'
-    'controllers/webradio'
-    'main'
+# omit src/ and .coffee to make the below lines a little shorter
+commonAppFiles = [
+  'utils'
+  'models/media'
+  'models/medialist'
+  'models/mediafilter'
+  'djdclient'
+  'widgets/loading'
+  'widgets/library'
+  'widgets/player-btn'
+  'widgets/webradio'
+  'views/player'
+  'controllers/base'
+  'controllers/player'
+  'controllers/library'
+  'controllers/webradio'
 ]
 
-task 'build', 'Build deejayd webui application from source files', ->
-    appContents = new Array remaining = appFiles.length
-    for file, index in appFiles then do (file, index) ->
-        fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
+mobileAppFiles  = [
+  'views/mobile/footer'
+  'views/mobile/playlist'
+  'views/mobile/library'
+  'views/mobile/webradio'
+  'mobile'
+]
+
+desktopAppFiles  = [
+  'views/desktop/alerts'
+  'views/desktop/playlist'
+  'desktop'
+]
+
+task 'build', 'Build deejayd webui (desktop/mobile) application from source files', ->
+    build = (files, output) ->
+        appFiles = commonAppFiles.concat(files)
+        appContents = new Array remaining = appFiles.length
+        for file, index in appFiles then do (file, index) ->
+          fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
             throw err if err
             appContents[index] = fileContents
-            process() if --remaining is 0
-    process = ->
-        fs.writeFile 'gen/deejayd.coffee', appContents.join('\n\n'), 'utf8', (err) ->
+            process(appContents, output) if --remaining is 0
+
+    process = (input, output)->
+        fs.writeFile "gen/#{output}.coffee", input.join('\n\n'), 'utf8', (err) ->
             throw err if err
-            exec 'coffee --compile gen/deejayd.coffee', (err, stdout, stderr) ->
+            exec "coffee --compile gen/#{output}.coffee", (err, stdout, stderr) ->
                 throw err if err
                 console.log stdout + stderr
-                fs.unlink 'gen/deejayd.coffee', (err) ->
+                fs.unlink "gen/#{output}.coffee", (err) ->
                     throw err if err
                     console.log 'Done.'
 
+    build(mobileAppFiles, "djd_mobile")
+    build(desktopAppFiles, "djd_desktop")
 
-task 'debug', 'Build deejayd webui application from source files', ->
-    appContents = new Array remaining = appFiles.length
-    for file, index in appFiles then do (file, index) ->
-        fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
-            throw err if err
-            appContents[index] = fileContents
-            process() if --remaining is 0
-    process = ->
-        fs.writeFile 'gen/deejayd.coffee', appContents.join('\n\n'), 'utf8', (err) ->
-            throw err if err
-            exec 'coffee --map --compile gen/deejayd.coffee', (err, stdout, stderr) ->
-                throw err if err
-                console.log stdout + stderr
-                console.log 'Done.'
-                #fs.unlink 'gen/deejayd.coffee', (err) ->
-                #    throw err if err
 

@@ -84,7 +84,7 @@ class DjdApp.views.PlaylistToolbar
     $("#djd-playlist-toolbar-order").selectmenu("refresh")
 
 
-class DjdApp.views.PlaylistView
+class DjdApp.views.MobilePlaylistView
   constructor: (@controller) ->
     @playlist = $("#djd-playlist-listview")
     @displayed = "audiopls"

@@ -30,7 +30,8 @@ class Timer
       _ref.action(val)
     , TIMER)
 
-class DjdApp.views.PlayerView
+
+class DjdApp.views.BasePlayerView
   constructor: (@controller) ->
     @volume_uiupdate = false
     player_controller = @controller
@@ -38,6 +39,102 @@ class DjdApp.views.PlayerView
       player_controller.setVolume(val)
     )
 
+  load: ->
+    # do nothing
+
+
+class DjdApp.views.DesktopPlayerView extends DjdApp.views.BasePlayerView
+  constructor: (@controller) ->
+    super(@controller)
+
+    player_controller = @controller
+    # init volume slider
+    self = @ # ref
+    $("#djd-volume-slider").slider()
+    $("#djd-volume-slider").on("slide", (e) ->
+      if not self.volume_uiupdate
+        self.volume_timer.update(jQuery(@).slider("getValue"))
+      self.volume_uiupdate = false
+    )
+
+    # init player buttons
+    $("#djd-player-playtoggle").click((e) ->
+      player_controller.playToggle()
+    )
+    $("#djd-player-stop").click((e) ->
+      player_controller.stop()
+    )
+    $("#djd-player-previous").click((e) ->
+      player_controller.previous()
+    )
+    $("#djd-player-next").click((e) ->
+      player_controller.next()
+    )
+
+    # init seek buttons
+    $("#djd-seek-forward").click((e) ->
+      player_controller.seek(10, true)
+    )
+    $("#djd-seek-fast-forward").click((e) ->
+      player_controller.seek(60, true)
+    )
+    $("#djd-seek-backward").click((e) ->
+      player_controller.seek(-10, true)
+    )
+    $("#djd-seek-fast-backward").click((e) ->
+      player_controller.seek(-60, true)
+    )
+
+  updateState: (state) ->
+    if state == "play"
+      $("#djd-player-playtoggle > span").removeClass("glyphicon-play")
+                                        .addClass("glyphicon-pause")
+    else
+      $("#djd-player-playtoggle > span").removeClass("glyphicon-pause")
+                                        .addClass("glyphicon-play")
+
+    seek_btns = [
+      "#djd-seek-time"
+      "#djd-seek-fast-backward"
+      "#djd-seek-backward"
+      "#djd-seek-forward"
+      "#djd-seek-fast-forward"
+    ]
+    for btn in seek_btns
+      if state == "stop"
+        $(btn).attr("disabled", "disabled")
+      else
+        $(btn).removeAttr("disabled")
+
+  updateVolume: (vol) ->
+    $("#djd-volume-slider").slider("setValue", vol)
+
+  updateTime: (current, total) ->
+    $("#djd-seek-time").html(DjdApp.formatTime(current))
+
+  refreshCurrent: (current) ->
+    if current != null
+      if current.get("type") != "webradio"
+        $("#djd-nowplaying-title").html("""
+          <strong>#{ current.get('title') }</strong>
+          (#{ DjdApp.formatTime(current.get("length")) })
+        """)
+      else
+        $("#djd-nowplaying-title").html("""
+          <strong>#{ current.get('title') }</strong>
+        """)
+    else
+      $("#djd-nowplaying-title").html($.i18n._("no_media"))
+
+  seekDialog: () ->
+    $("djd-modal-title").html($.i18n._("seek_dialog_title"))
+
+
+class DjdApp.views.MobilePlayerView extends DjdApp.views.BasePlayerView
+  constructor: (@controller) ->
+    super(@controller)
+
+    player_controller = @controller
     # init player buttons
     @buttons = {
       previous: new DjdApp.PlayerButton("previous"),
@@ -73,9 +170,6 @@ class DjdApp.views.PlayerView
       player_view.volume_uiupdate = false
     )
 
-  load: ->
-    # do nothing
-
   resizeCover: ->
     width = jQuery(window).width()
     height = jQuery(window).height()
@@ -94,6 +188,9 @@ class DjdApp.views.PlayerView
   updateState: (state) ->
     img = if state == "play" then "pause" else "play"
     @buttons.play.setImage(img)
+
+  updateTime: (current, total) ->
+    # do nothing
 
   refreshCurrent: (current) ->
     if current == null
