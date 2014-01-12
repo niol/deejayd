@@ -37,13 +37,15 @@ class DeejaydMainHandler(Resource):
     def render_GET(self, request):
         user_agent = request.getHeader("user-agent");
         root = request.prepath[-1] != '' and request.path + '/' or request.path
-        if user_agent.lower().find("mobile") != -1:
-            # redirect to specific mobile interface
-            request.redirect(root + 'm/')
-            return 'redirected'
-        else: # default web interface
-            request.redirect(root + 'webui/')
-            return 'redirected'
+        # if user_agent.lower().find("mobile") != -1:
+        #     # redirect to specific mobile interface
+        #     request.redirect(root + 'm/')
+        #     return 'redirected'
+        # else: # default web interface
+        #     request.redirect(root + 'webui/')
+        #     return 'redirected'
+        request.redirect(root + 'webui/')
+        return 'redirected'
 
 
 class _DeejaydUIResource(Resource):
