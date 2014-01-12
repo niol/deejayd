@@ -453,7 +453,7 @@ class MagicPlaylist(_Playlist):
         self.__update()
 
     def set_filters(self, filter_list):
-        map(lambda f: f.erase_from_db(), self.filters)
+        map(lambda f: f.erase_from_db(), [f for f in self.filters if f is not None])
         self.filters = list(filter_list)
         self.__update()
 

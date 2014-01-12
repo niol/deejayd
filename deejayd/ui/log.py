@@ -51,7 +51,7 @@ class LogFile:
 class SignaledFileLogObserver(log.FileLogObserver):
 
     def __init__(self, path):
-        self.log_file = LogFile(path, False)
+        self.log_file = LogFile(path)
         self.log_file.open()
         self.__observe_log_file()
 

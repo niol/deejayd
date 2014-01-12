@@ -26,7 +26,7 @@ from zope.interface import implements
 __all__ = (
             'BASIC_FILTERS', 'NAME2BASIC',
             'Equals', 'NotEquals', 'Contains', 'NotContains', 'Regexi',
-            'Higher', 'Lower', 'In'
+            'Higher', 'Lower', 'In',
             'COMPLEX_FILTERS', 'NAME2COMPLEX',
             'And', 'Or',
             "DEFAULT_AUDIO_SORT", "DEFAULT_VIDEO_SORT"

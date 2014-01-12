@@ -30,7 +30,7 @@ except IOError:
     t = DeejaydTranslations()
 t.install()
 
-from deejayd.mediafilters import *
+from deejayd.model.mediafilters import *
 from deejayd.jsonrpc import interfaces
 from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
                                          DeejaydJSONSignal
@@ -43,19 +43,17 @@ common_request = [
         {"prefix": "player.", "desc": "Player Commands",\
                        "object": interfaces.PlayerModule},
         {"prefix": "audiolib.", "desc": "Audio Library Commands",\
-                       "object": interfaces.LibraryModule},
+                       "object": interfaces.AudioLibraryModule},
         {"prefix": "videolib.", "desc": "Video Library Commands",\
                        "object": interfaces.LibraryModule},
-        {"prefix": "playlist.", "desc": "Playlist Mode Commands",\
-                       "object": interfaces.PlaylistSourceModule},
-        {"prefix": "video.", "desc": "Video Mode Commands",\
+        {"prefix": "audiopls.", "desc": "Playlist Mode Commands",\
+                       "object": interfaces.AudioSourceModule},
+        {"prefix": "videopls.", "desc": "Video Mode Commands",\
                        "object": interfaces.VideoSourceModule},
+        {"prefix": "audioqueue.", "desc": "Queue Commands",\
+                       "object": interfaces.QueueSourceModule},
         {"prefix": "webradio.", "desc": "Webradio Mode Commands",\
-                       "object": interfaces.WebradioSourceModule},
-        {"prefix": "dvd.", "desc": "Dvd Mode Commands",\
-                       "object": interfaces.DvdSourceModule},
-        {"prefix": "queue.", "desc": "Queue Commands",\
-                       "object": interfaces.QueueModule},
+                       "object": interfaces.WebradioModule},
         {"prefix": "recpls.", "desc": "Recorded Playlist Commands",\
                        "object": interfaces.RecordedPlaylistModule},
         {"prefix": "signal.", "desc": "Signal commands",
@@ -165,7 +163,14 @@ Expected return value : ''`%(rvalues)s`''
     def build(self, sections):
         filter = And(Equals("artist", "artist_name"),\
                 Or(Contains("genre", "Rock"), Higher("Rating", "4")))
-        signal = DeejaydSignal("signal_name", {"attr1": "value1"})
+        j_sig = {
+            "type": "signal",
+            "answer": {
+                "name": "signal_name",
+                "attrs": {"attr1": "value1"},
+            }
+        }
+        signal = JSONRPCResponse(j_sig, None).to_json()
         return """= deejayd - JSON-RPC Protocol =
 
 Deejayd protocol follows JSON-RPC 1.0 specification available
@@ -224,7 +229,7 @@ An example is given here.
         "answer": self.answerDoc(),
         "filter": filter.to_json(),
         "commands": "\n\n".join(map(self.formatSectionDoc, sections)),
-        "signal": DeejaydJSONSignal(signal).to_pretty_json(),
+        "signal": signal,
     }
 
 if __name__ == "__main__":

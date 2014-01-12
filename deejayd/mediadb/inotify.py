@@ -132,7 +132,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         try:
             self.ignore(twisted.python.filepath.FilePath(e_path))
         except KeyError:
-            log.warning("inotify: failed to stop watching directory '%s' (not watched?)" % dir_path)
+            log.info("inotify: failed to stop watching directory '%s' (not watched?)" % dir_path)
         else:
             log.debug("inotify: stopped watching directory '%s'" % dir_path)
 

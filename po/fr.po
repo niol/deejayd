@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-11-11 17:41+0100\n"
+"POT-Creation-Date: 2014-01-10 12:56+0100\n"
 "PO-Revision-Date: 2010-12-27 23:40+0200\n"
 "Last-Translator: Mickaël Royer <mickael.royer@gmail.com>\n"
 "Language-Team: French\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n>1;\n"
 
 #: ../deejayd/core.py:106
-msgid "Start inotify threads"
+msgid "Start inotify watcher"
 msgstr "Démarage des threads inotify"
 
 #: ../deejayd/core.py:120 ../deejayd/core.py:127
@@ -26,21 +26,21 @@ msgstr "Démarage des threads inotify"
 msgid "Mode %s not supported"
 msgstr "Mode %s non supporté"
 
-#: ../deejayd/core.py:156
+#: ../deejayd/core.py:155
 msgid "Bad rating value"
 msgstr "Valeur érronée pour la notation"
 
-#: ../deejayd/core.py:160 ../deejayd/mediadb/library.py:165
+#: ../deejayd/core.py:159 ../deejayd/mediadb/library.py:148
 #, python-format
 msgid "Type %s is not supported"
 msgstr "Le type %s n'est pas supporté"
 
-#: ../deejayd/core.py:164
+#: ../deejayd/core.py:163
 #, python-format
 msgid "%s library not activated"
 msgstr "la librairie %s n'est pas activé"
 
-#: ../deejayd/core.py:166
+#: ../deejayd/core.py:165
 #, python-format
 msgid "File with id %s not found"
 msgstr "Le fichier avec l'identifiant %s n'a pas été trouvé"
@@ -93,198 +93,152 @@ msgstr[1] "%d années"
 msgid "Playlist has a wrong format"
 msgstr "La liste de lecture a un format incorrect"
 
-#: ../deejayd/database/__init__.py:36
-#, python-format
-msgid "You chose a database which is not supported. see config file. %s"
-msgstr ""
-"Vous avez choisi une base de donnée non supportée. Vérifier votre fichier de "
-"configuration. %s"
-
-#: ../deejayd/database/__init__.py:68
-msgid "Database structure successfully created."
-msgstr "La structure de la base de donnée a été crée avec succès"
-
-#: ../deejayd/database/__init__.py:71
-msgid "Initial entries correctly inserted."
-msgstr "Les entrées initiales ont été correctement insérées"
-
-#: ../deejayd/database/__init__.py:77
-msgid "The database structure needs to be updated..."
-msgstr "La structure de la base de donnée doit être mise à jour..."
-
-#: ../deejayd/database/__init__.py:86
-msgid "Unable to upgrade database, have to quit"
-msgstr "Impossible de mettre à jour la base de donnée."
-
-#: ../deejayd/database/backends/sqlite.py:31
-#, python-format
-msgid "This program requires pysqlite version %s or later."
-msgstr "Ce program nécessite une version de pysqlite >= %s."
-
-#: ../deejayd/database/backends/sqlite.py:54
+#: ../deejayd/database/connection.py:89
 #, python-format
 msgid "Could not connect to sqlite database %s."
 msgstr "Impossible de se connecter à la base de donnée sqlite %s"
 
-#: ../deejayd/database/backends/mysql.py:72
-#, python-format
-msgid "Could not connect to MySQL server %s."
-msgstr "Impossible de se connecter à la base de donnée mysql %s"
+#: ../deejayd/database/connection.py:102
+msgid "Database structure successfully created."
+msgstr "La structure de la base de donnée a été crée avec succès"
 
-#: ../deejayd/mediadb/__init__.py:37
+#: ../deejayd/database/connection.py:105
+msgid "Initial entries correctly inserted."
+msgstr "Les entrées initiales ont été correctement insérées"
+
+#: ../deejayd/database/connection.py:108
+msgid "The database structure needs to be updated..."
+msgstr "La structure de la base de donnée doit être mise à jour..."
+
+#: ../deejayd/database/connection.py:117
+msgid "Unable to upgrade database, have to quit"
+msgstr "Impossible de mettre à jour la base de donnée."
+
+#: ../deejayd/database/sqlite_backend.py:29
+#, python-format
+msgid "This program requires pysqlite version %s or later."
+msgstr "Ce program nécessite une version de pysqlite >= %s."
+
+#: ../deejayd/mediadb/__init__.py:38
 #, python-format
 msgid "Unable to init audio library : %s"
 msgstr "Impossible d'initialiser la library audio : %s"
 
-#: ../deejayd/mediadb/__init__.py:44
+#: ../deejayd/mediadb/__init__.py:45
 #, python-format
 msgid "Unable to init video library : %s"
 msgstr "Impossible d'initialiser la librairie vidéo : %s"
 
-#: ../deejayd/mediadb/__init__.py:48
-msgid "Inotify support disabled"
-msgstr "Support d'inotify désactivé"
-
-#: ../deejayd/mediadb/library.py:77
+#: ../deejayd/mediadb/library.py:66
 msgid "Root library path has wrong caracters"
 msgstr "Le chemin racine de la librairie a des caractères incorrect"
 
-#: ../deejayd/mediadb/library.py:80
-#, python-format
-msgid "Unable to find directory %s"
-msgstr "Impossible de trouver le répertoire %s"
-
-#: ../deejayd/mediadb/library.py:102
+#: ../deejayd/mediadb/library.py:69 ../deejayd/mediadb/library.py:90
 #, python-format
 msgid "Unable to find '%s' folder in library"
 msgstr "Impossible de trouver le répertoire '%s'"
 
 #. this file is not found
-#: ../deejayd/mediadb/library.py:140
+#: ../deejayd/mediadb/library.py:125
 #, python-format
 msgid "Unable to find '%s' file in library"
 msgstr "Impossible de trouver le fichier '%s'"
 
-#: ../deejayd/mediadb/library.py:162
+#: ../deejayd/mediadb/library.py:145
 msgid "Pattern must be a string"
 msgstr "Le pattern doit être une chaîne de caractère"
 
-#: ../deejayd/mediadb/library.py:246
+#: ../deejayd/mediadb/library.py:214
 msgid "A library update is already running"
 msgstr "Une mise à jour de la librarie est déjà en cours"
 
-#: ../deejayd/mediadb/library.py:316
+#: ../deejayd/mediadb/library.py:278
 #, python-format
 msgid "%s library has to be updated, this can take a while."
 msgstr "La librairie %s doit être mise à jour, cela peut prendre du temps"
 
-#: ../deejayd/mediadb/library.py:393
+#: ../deejayd/mediadb/library.py:333
 #, python-format
 msgid "The %s library has been updated"
 msgstr "La librairie %s a été mise à jour"
 
-#: ../deejayd/mediadb/library.py:395
+#: ../deejayd/mediadb/library.py:335
 #, python-format
 msgid "Unable to update the %s library. See log."
 msgstr "Impossible de mettre à jour la library %s. Voir les logs"
 
-#: ../deejayd/mediadb/library.py:450
+#: ../deejayd/mediadb/library.py:387
 #, python-format
 msgid "File %s not supported"
 msgstr "Le fichier %s n'est pas supporté"
 
-#: ../deejayd/mediadb/library.py:589
+#: ../deejayd/mediadb/library.py:390
 #, python-format
-msgid "cover %s not supported by kaa parser"
-msgstr "Pochette pour %s non supportée"
+msgid "Unable to parse file %s"
+msgstr "Impossible d'analyser le fichier %s"
 
-#: ../deejayd/mediadb/library.py:594
-#, python-format
-msgid "cover %s : wrong mime type"
-msgstr "Pochette pour %s : type mime non supporté"
-
-#: ../deejayd/mediadb/library.py:599
+#: ../deejayd/mediadb/library.py:517
 #, python-format
 msgid "Unable to open cover file %s"
 msgstr "Impossible d'ouvrir la pochette d'album pour %s"
 
-#: ../deejayd/mediadb/inotify.py:38
+#: ../deejayd/model/mediafilters.py:88
 #, python-format
-msgid "Inotify event %s: %s"
-msgstr "Evennement inotify %s : %s"
+msgid "%s is not a json encoded filter: %s"
+msgstr "%s n'est pas un filtre correctement encodé en JSON : %s"
 
-#: ../deejayd/mediadb/inotify.py:99
+#: ../deejayd/model/webradio.py:82
 #, python-format
-msgid "Inotify problem for '%s', see traceback"
-msgstr "Problème inotify pour '%s', voir l'exception pour plus de détail"
+msgid "category %s already exists"
+msgstr "La catégorie %s existe déjà"
 
-#: ../deejayd/mediadb/inotify.py:201
-msgid " (directory gone)"
-msgstr "(répertoire absent)"
-
-#: ../deejayd/mediadb/inotify.py:203
-#, python-format
-msgid "inotify: could not watch directory '%s'%s"
-msgstr "inotify : impossible de surveiller le dossier '%s' %s"
-
-#: ../deejayd/mediadb/inotify.py:205
-#, python-format
-msgid "inotify: watching directory '%s'"
-msgstr "inotify : surveillance du répertoire '%s'"
-
-#: ../deejayd/mediadb/inotify.py:207
-msgid "Try raising fs.inotify.max_user_watches (man sysctl)"
-msgstr "Essayez d'augmenter fs.inotify.max_user_watches (man sysctl)"
-
-#: ../deejayd/mediadb/inotify.py:210
-#, python-format
-msgid "inotify: stopped watching directory '%s'"
-msgstr "inotify : arrêt de la surveillance du répertoire '%s'"
-
-#: ../deejayd/net/protocol.py:83
+#: ../deejayd/net/protocol.py:82
 msgid "error, see deejayd log"
 msgstr "erreur, voir les logs de deejayd"
 
-#: ../deejayd/net/protocol.py:99
+#: ../deejayd/net/protocol.py:98
 msgid "Request too long, close the connection"
 msgstr "Requête trop longue, cloture de la connection"
 
-#: ../deejayd/net/protocol.py:125
+#: ../deejayd/net/protocol.py:124
 msgid "Net Protocol activated"
 msgstr "Protocol réseau activé"
 
-#: ../deejayd/playlist/magic.py:44
-msgid "Only basic filters are allowed for magic playlist"
-msgstr ""
-"Seul les filtres basiques sont autorisés pour les listes de lecture "
-"intelligentes"
-
-#: ../deejayd/playlist/static.py:40
+#: ../deejayd/playlist/rpc.py:31
 #, python-format
-msgid "Path %s not found in library"
-msgstr "Le chemin %s n'a pas été trouvé dans la librairie"
+msgid "Playlist %s not found"
+msgstr "La liste de lecture %s n'a pas été trouvée"
 
 #: ../deejayd/playlist/rpc.py:33
 #, python-format
-msgid "Playlist with id %s not found."
-msgstr "La liste de lecture avec l'identifiant %s n'a pas été trouvée"
+msgid "Playlist %s has wrong type"
+msgstr "La liste de lecture %s n'est pas du bon type"
 
-#: ../deejayd/playlist/rpc.py:37 ../deejayd/playlist/rpc.py:42
-msgid "The selected playlist is not static"
-msgstr "La liste de lecture sélectionnée n'est pas de type statique"
+#: ../deejayd/playlist/rpc.py:61
+#, python-format
+msgid "Playlist with id %s does not exist"
+msgstr "La liste de lecture avec l'id %s n'existe pas."
 
-#: ../deejayd/playlist/rpc.py:71
+#: ../deejayd/playlist/rpc.py:70
 msgid "Set a playlist name"
 msgstr "Indiquer un nom de playlist"
 
-#. pls already exists
-#: ../deejayd/playlist/rpc.py:76
+#: ../deejayd/playlist/rpc.py:72
+msgid "playlist type has to be 'static' or 'magic'"
+msgstr "La liste de lecture doit être de type 'static' ou 'magic'"
+
+#: ../deejayd/playlist/rpc.py:77
 msgid "This playlist already exists"
 msgstr "Cette liste de lecture existe déjà"
 
-#: ../deejayd/playlist/rpc.py:93
-msgid "playlist type has to be 'static' or 'magic'"
-msgstr "La liste de lecture doit être de type 'static' ou 'magic'"
+#: ../deejayd/playlist/rpc.py:87
+msgid "Some playlists in the list do not exist"
+msgstr "Des listes de lecture dans la liste n'existent pas"
+
+#: ../deejayd/playlist/rpc.py:101
+#, python-format
+msgid "Path %s not found in library"
+msgstr "Le chemin %s n'a pas été trouvé dans la librairie"
 
 #: ../deejayd/player/__init__.py:45
 #, python-format
@@ -295,92 +249,92 @@ msgstr "%s backend a été détecté automatiquement."
 msgid "Could not find suitable media backend."
 msgstr "Impossible de trouver un backend fonctionnel"
 
-#: ../deejayd/player/__init__.py:61
+#: ../deejayd/player/__init__.py:67
 msgid "Invalid media backend"
 msgstr "Player invalide"
 
-#: ../deejayd/player/_base.py:56
+#: ../deejayd/player/_base.py:64
 #, python-format
 msgid "Unable to init %s plugin: %s"
 msgstr "Impossible d'initialiser le plugin %s : %s"
 
-#: ../deejayd/player/_base.py:120
+#: ../deejayd/player/_base.py:123
 #, python-format
 msgid "Unable to get pls for webradio %s"
 msgstr "Impossible d'obtenir le fichier .pls pour la webradio %s"
 
 #. we don't succeed to extract uri
-#: ../deejayd/player/_base.py:124
+#: ../deejayd/player/_base.py:127
 msgid "Unable to extract uri from pls playlist"
 msgstr "Impossible d'extraire les urls de la playlist"
 
-#: ../deejayd/player/_base.py:157
+#: ../deejayd/player/_base.py:160
 msgid "Volume value has to be between 0 and 100"
 msgstr "Le volume doit être compris entre 0 et 100"
 
-#: ../deejayd/player/_base.py:218
+#: ../deejayd/player/_base.py:221
 #, python-format
 msgid "Video option %s is not known"
 msgstr "L'aspect vidéo %s n'est pas connu"
 
-#: ../deejayd/player/_base.py:221
+#: ../deejayd/player/_base.py:224
 #, python-format
 msgid "Video option %s is not supported by %s player"
 msgstr "L'option %s n'est pas supporté pour ce backend %s"
 
-#: ../deejayd/player/_base.py:235
+#: ../deejayd/player/_base.py:238
 #, python-format
 msgid "Value %s not allowed for this option"
 msgstr "La valuer %s n'est pas supporté pour cette option"
 
-#: ../deejayd/player/_base.py:247
+#: ../deejayd/player/_base.py:250
 #, python-format
 msgid "Video aspect ration %s is not known."
 msgstr "L'aspect vidéo %s n'est pas connu"
 
-#: ../deejayd/player/_base.py:257
+#: ../deejayd/player/_base.py:260
 #, python-format
 msgid "Audio/Video offset: %d ms"
 msgstr "Décalage Audio/Vidéo : %s ms"
 
-#: ../deejayd/player/_base.py:263
+#: ../deejayd/player/_base.py:266
 #, python-format
 msgid "Subtitle offset: %d ms"
 msgstr "Décalage des sous-titre : %d ms"
 
-#: ../deejayd/player/_base.py:268
+#: ../deejayd/player/_base.py:271
 msgid "Current media hasn't multiple audio channel"
 msgstr "Le média courant n'a pas plusieurs canaux audio"
 
-#: ../deejayd/player/_base.py:281
+#: ../deejayd/player/_base.py:284
 #, python-format
 msgid "Audio channel %d not found"
 msgstr "Canal audio %d non trouvé"
 
-#: ../deejayd/player/_base.py:287
+#: ../deejayd/player/_base.py:290
 msgid "Current media hasn't multiple sub channel"
 msgstr "Le média courant n'a pas plusieurs canaux de sous-titre"
 
-#: ../deejayd/player/_base.py:300
+#: ../deejayd/player/_base.py:303
 #, python-format
 msgid "Sub channel %d not found"
 msgstr "Canal des sous-titres %d non trouvé"
 
-#: ../deejayd/player/_base.py:313
+#: ../deejayd/player/_base.py:316
 msgid "No media file is currently playing"
 msgstr "Aucun fichier n'est actuellement en cours de lecture"
 
-#: ../deejayd/player/_base.py:378
+#: ../deejayd/player/_base.py:380 ../deejayd/player/vlc.py:292
 #, python-format
 msgid "Sub channel %d"
 msgstr "Canal des sous-titres %d"
 
-#: ../deejayd/player/_base.py:386
+#: ../deejayd/player/_base.py:388 ../deejayd/player/vlc.py:306
 #, python-format
 msgid "Audio channel %d"
 msgstr "Canal audio %d"
 
-#: ../deejayd/player/xine.py:50 ../deejayd/player/xine.py:377
+#: ../deejayd/player/xine.py:50
 msgid "Unable to init a xine instance"
 msgstr "Impossible d'initialiser une instance de xine"
 
@@ -411,10 +365,6 @@ msgstr "Impossible d'ouvrir le driver vidéo"
 msgid "Xine error %s"
 msgstr "Erreur Xine %s"
 
-#: ../deejayd/player/xine.py:387
-msgid "Unable to identify dvd device"
-msgstr "Impossible d'identifier le dvd"
-
 #. we need gstreamer version >= 0.10.24 to have playbin2 support
 #: ../deejayd/player/gstreamer.py:44
 msgid "Gstreamer >= 0.10.24 is required"
@@ -439,13 +389,43 @@ msgstr "Aucun driver audio trouvé pour gstreamer : %s"
 msgid "No video sink found for Gstreamer : %s"
 msgstr "Aucun driver vidéo trouvé pour gstreamer : %s"
 
-#: ../deejayd/player/gstreamer.py:147
+#: ../deejayd/player/gstreamer.py:147 ../deejayd/player/vlc.py:261
 msgid "Unable to open video display"
 msgstr "Impossible d'ouvrir l'affichage video "
 
 #: ../deejayd/player/gstreamer.py:338
 msgid "Unable to change gstreamer state"
 msgstr "Impossible de changer l'état du player gstreamer"
+
+#: ../deejayd/player/vlc.py:81
+#, python-format
+msgid "Vlc backend only works with versions %s of libvlc"
+msgstr "Le backend VLC fonctionne uniquement avec les version %s de libvlc"
+
+#: ../deejayd/player/vlc.py:87
+#, python-format
+msgid "Unable to init vlc player: %s"
+msgstr "Impossible d'initialiser vlc: %s"
+
+#: ../deejayd/player/vlc.py:105
+#, python-format
+msgid "VLC does not support audio output %s"
+msgstr "VLC ne supporte pas la sortie audio %s"
+
+#: ../deejayd/player/vlc.py:133
+#, python-format
+msgid "unable to play file %s"
+msgstr "Impossible de lire le fichier %s"
+
+#. error
+#: ../deejayd/player/vlc.py:208
+msgid "Unable to update audio/video delay"
+msgstr "Impossible de mettre à jour le délai audio/vidéo"
+
+#. error
+#: ../deejayd/player/vlc.py:212
+msgid "Unable to update spu delay"
+msgstr "Impossible de mettre à jour le délai audio/sous-titre"
 
 #: ../deejayd/plugins/lastfm.py:36
 #, python-format
@@ -530,182 +510,179 @@ msgstr "Erreur fatale lors de la submission : %s"
 msgid "Force lastfm reauthentification"
 msgstr "Réauthentification à Lastfm forcée"
 
-#: ../deejayd/plugins/icecast.py:79
-msgid "Unable to connect to icecast website"
-msgstr "Impossible de se connecter au serveur de icecast"
-
-#: ../deejayd/plugins/icecast.py:85
-msgid "Unable to parse icecast webradio list"
-msgstr "Impossible de parser la liste des radios web icecast"
-
-#: ../deejayd/plugins/icecast.py:87
-msgid "Unable to read result from icecast webradio list"
-msgstr "Impossible de lire la page retournée par icecast"
-
-#: ../deejayd/sources/__init__.py:56
+#: ../deejayd/sources/__init__.py:46
 msgid "Playlist support disabled"
 msgstr "Mode playlist désactivé"
 
-#: ../deejayd/sources/__init__.py:64
+#: ../deejayd/sources/__init__.py:53
 msgid "Panel support disabled"
 msgstr "Mode Navigateur à panneau désactivé"
 
-#: ../deejayd/sources/__init__.py:71
+#: ../deejayd/sources/__init__.py:60
 msgid "Webradio support disabled"
 msgstr "Mode webradio désactivé"
 
-#: ../deejayd/sources/__init__.py:78
+#: ../deejayd/sources/__init__.py:67
 msgid "Video support disabled"
 msgstr "Mode vidéo désactivé"
 
-#: ../deejayd/sources/__init__.py:85
-#, python-format
-msgid "Unable to init dvd support : %s"
-msgstr "Impossible d'initialiser le support des DVD : %s"
-
-#: ../deejayd/sources/__init__.py:87
-msgid "DVD support disabled"
-msgstr "Le support des DVD est désactivé"
-
-#: ../deejayd/sources/__init__.py:93
+#: ../deejayd/sources/__init__.py:73
 #, python-format
 msgid "Unable to set recorded source %s"
 msgstr "Impossible de choisir la source enregistrée %s"
 
-#: ../deejayd/sources/__init__.py:104
+#: ../deejayd/sources/__init__.py:84
 #, python-format
 msgid "option %s not supported for this mode"
 msgstr "L'option %s n'est pas supporté pour ce mode"
 
-#: ../deejayd/sources/_base.py:75
+#: ../deejayd/sources/_base.py:79
 msgid "Unable to delete selected ids"
 msgstr "Impossible d'effacer les ids des fichiers sélectionnés"
 
-#: ../deejayd/sources/_base.py:153
-#, python-format
-msgid "Playlist %s does not exist."
-msgstr "La liste de lecture %s n'existe pas."
-
-#: ../deejayd/sources/_base.py:159
+#: ../deejayd/sources/_base.py:142
 #, python-format
 msgid "Unable to set %s order, not supported"
 msgstr "Impossible de choisir l'ordre de lecture %s, non supporté"
 
-#: ../deejayd/sources/_base.py:165
+#: ../deejayd/sources/_base.py:148
 msgid "Option value has to be a boolean"
 msgstr "La valeur de l'option doit être un booléen"
 
-#: ../deejayd/sources/_base.py:207
+#: ../deejayd/sources/_base.py:190
 #, python-format
 msgid "Tag '%s' not supported for sort"
 msgstr "Le tag '%s' n'est pas supporté pour le tri"
 
-#: ../deejayd/sources/_base.py:209
+#: ../deejayd/sources/_base.py:192
 msgid "Bad sort direction for source"
 msgstr "Mauvaise direction pour le tri pour cette source"
 
-#: ../deejayd/sources/_base.py:231
+#: ../deejayd/sources/_base.py:205
 #, python-format
 msgid "One of these ids %s not found"
 msgstr "Un de ces identifiants '%s' n'a pas été trouvé"
 
-#: ../deejayd/sources/_base.py:244
+#: ../deejayd/sources/_base.py:217
 #, python-format
 msgid "%s not found"
 msgstr "%s non trouvé"
 
-#: ../deejayd/sources/_base.py:259
+#: ../deejayd/sources/_base.py:226
+msgid "Some asked playlist are not found."
+msgstr "Des listes de lecture demandées ne sont pas disponibles."
+
+#: ../deejayd/sources/_base.py:232
 msgid "Unable to move selected medias"
 msgstr "Impossible de déplacer les fichiers sélectionés"
 
-#: ../deejayd/sources/panel.py:52
+#: ../deejayd/sources/panel.py:54
 msgid "You choose wrong panel tags, fallback to default"
 msgstr "Vous avez choisi les mauvais tags, retourne aux tags par défaut"
 
-#: ../deejayd/sources/panel.py:108
+#: ../deejayd/sources/panel.py:101
 #, python-format
 msgid "Playlist with id %s not found"
 msgstr "La liste de lecture avec l'identifiant %s n'a pas été trouvée"
 
-#: ../deejayd/sources/panel.py:134 ../deejayd/sources/panel.py:166
+#: ../deejayd/sources/panel.py:125 ../deejayd/sources/panel.py:157
 #, python-format
 msgid "Tag '%s' not supported"
 msgstr "Tag '%s' non supporté"
 
-#: ../deejayd/sources/video.py:51
-#, python-format
-msgid "Directory %s not found"
-msgstr "Le répertoire %s n'a pas été trouvé"
-
-#: ../deejayd/sources/video.py:58
+#: ../deejayd/sources/video.py:52
 #, python-format
 msgid "type %s not supported"
 msgstr "Le type %s n'est pas supporté"
 
-#: ../deejayd/sources/webradio.py:74
-#, python-format
-msgid "Could not parse %s"
-msgstr "Impossible d'analyser %s"
-
-#: ../deejayd/sources/webradio.py:84
-#, python-format
-msgid "Discarding %s : webradio protocol not supported."
-msgstr "Abandon de %s : radio web non supporté"
-
-#: ../deejayd/sources/webradio.py:90
-#, python-format
-msgid "Given url %s is not supported"
-msgstr "L'URL %s n'est pas supportée"
-
-#: ../deejayd/sources/webradio.py:115 ../deejayd/sources/webradio.py:168
-#: ../deejayd/sources/webradio.py:181 ../deejayd/sources/webradio.py:187
+#: ../deejayd/sources/webradio.py:34 ../deejayd/sources/webradio.py:82
+#: ../deejayd/sources/webradio.py:95 ../deejayd/sources/webradio.py:101
 #, python-format
 msgid "Webradio source %s not supported"
 msgstr "La source de radio web %s n'est pas supportée"
 
-#: ../deejayd/sources/webradio.py:118
+#: ../deejayd/sources/webradio.py:37
 msgid "You can not edit this webradio source"
 msgstr "Vous ne pouvez pas éditer cette source de radio web"
 
-#: ../deejayd/ui/log.py:86
+#: ../deejayd/ui/log.py:75
 #, python-format
 msgid "ERROR - %s"
 msgstr "ERREUR - %s"
 
-#: ../deejayd/ui/log.py:95
+#: ../deejayd/ui/log.py:84
 #, python-format
 msgid "INFO - %s"
 msgstr "INFO - %s"
 
-#: ../deejayd/ui/log.py:100
+#: ../deejayd/ui/log.py:89
 #, python-format
 msgid "DEBUG - %s"
 msgstr "DEBUG - %s"
 
-#: ../deejayd/jsonrpc/interfaces.py:95
+#: ../deejayd/jsonrpc/interfaces.py:94
 #, python-format
 msgid "Arg %s is required"
 msgstr "L'argument %s est requis"
 
-#: ../deejayd/jsonrpc/interfaces.py:101
+#: ../deejayd/jsonrpc/interfaces.py:100
 #, python-format
 msgid "Arg %s is not an int"
 msgstr "L'argument %s n'est pas un chiffre entier"
 
-#: ../deejayd/jsonrpc/interfaces.py:111
+#: ../deejayd/jsonrpc/interfaces.py:110
 #, python-format
 msgid "Arg %s has wrong type"
 msgstr "L'argument %s n'est pas du bon type"
 
-#: ../deejayd/jsonrpc/interfaces.py:115
+#: ../deejayd/jsonrpc/interfaces.py:114
 #, python-format
 msgid "Arg %s is not a list"
 msgstr "L'argument %s n'est pas une liste"
 
-#: ../deejayd/jsonrpc/interfaces.py:119
+#: ../deejayd/jsonrpc/interfaces.py:118
 #, python-format
 msgid "Arg %s is not an int-list"
 msgstr "L'argument %s n'est pas une liste d'entier"
+
+#: ../deejayd/webradio/icecast.py:64
+msgid "Unable to update icecast webradio, see execption below"
+msgstr "Impossible de mettre à jour les radios web icecast, voir l'exception au dessous"
+
+#: ../deejayd/webradio/icecast.py:74
+msgid "Start to reload icecast webradio source"
+msgstr "Début de la mise à jour des radios web icecast"
+
+#: ../deejayd/webradio/icecast.py:81
+msgid "Unable to connect to icecast website"
+msgstr "Impossible de se connecter au serveur de icecast"
+
+#: ../deejayd/webradio/icecast.py:87
+msgid "Unable to parse icecast webradio list"
+msgstr "Impossible de parser la liste des radios web icecast"
+
+#: ../deejayd/webradio/icecast.py:89
+msgid "Unable to read result from icecast webradio list"
+msgstr "Impossible de lire la page retournée par icecast"
+
+#: ../deejayd/webradio/icecast.py:135
+msgid "Finish to reload icecast webradio source"
+msgstr "Fin de la mise à jour des radios web icecast"
+
+#: ../deejayd/webradio/local.py:48
+#, python-format
+msgid "Could not parse %s"
+msgstr "Impossible d'analyser %s"
+
+#: ../deejayd/webradio/local.py:58
+#, python-format
+msgid "Discarding %s : webradio protocol not supported."
+msgstr "Abandon de %s : radio web non supporté"
+
+#: ../deejayd/webradio/local.py:65
+#, python-format
+msgid "Given url %s is not supported"
+msgstr "L'URL %s n'est pas supportée"
 
 #: ../deejayd/webui/__init__.py:137
 #, python-format
@@ -775,49 +752,113 @@ msgstr "Tuer le processus actuel de deejayd"
 msgid "Log more debug informations"
 msgstr "Enregistre plus d'information pour le debuggage"
 
-#: ../scripts/deejayd:91
+#: ../scripts/deejayd:92
 msgid "The config file does not exist."
 msgstr "Le fichier de configuration n'existe pas"
 
-#: ../scripts/deejayd:121
+#: ../scripts/deejayd:122
 #, python-format
 msgid "Pidfile %s contains non-numeric value"
 msgstr "Le fichier pour le PID %s contient une valeur non numérique"
 
-#: ../scripts/deejayd:127
+#: ../scripts/deejayd:128
 #, python-format
 msgid "Unable to stop deejayd : %s, are you sure it running ?"
 msgstr "Impossible d'arrêter deejayd : %s, Etes vous sûr qu'il est lancé ?"
 
-#: ../scripts/deejayd:130
+#: ../scripts/deejayd:131
 msgid "no PidFile found, are you sure deejayd running ?"
 msgstr ""
 "Aucun fichier pour le PID trouvé, Etes vous sûr que deejayd est lancé ?"
 
-#: ../scripts/deejayd:137
+#: ../scripts/deejayd:138
 #, python-format
 msgid "Unable to remove pid file : %s"
 msgstr "Impossible de supprimer leier pour le PID : %s"
 
-#: ../scripts/deejayd:162
+#: ../scripts/deejayd:163
 msgid "Unable to change gid of the process"
 msgstr "Impossible de modifier le GID du process"
 
-#: ../scripts/deejayd:170
+#: ../scripts/deejayd:171
 msgid "Unable to change uid of the process"
 msgstr "Impossible de modifier l'UID du process"
 
-#: ../scripts/deejayd:231
+#: ../scripts/deejayd:233
 msgid "Unable to launch deejayd core, see traceback for more details"
 msgstr "Impossible de lancer deejayd, voir les logs pour plus de détails"
 
-#: ../scripts/deejayd:260
+#: ../scripts/deejayd:257
 msgid "Webui does not seem to be installed, disabling."
 msgstr "L'interface web ne semble pas installé, désactivé."
 
-#: ../scripts/deejayd:294
+#: ../scripts/deejayd:289
 msgid "No service has been activated"
 msgstr "Aucun service n'a été activé"
+
+#~ msgid "You chose a database which is not supported. see config file. %s"
+#~ msgstr ""
+#~ "Vous avez choisi une base de donnée non supportée. Vérifier votre fichier "
+#~ "de configuration. %s"
+
+#~ msgid "Could not connect to MySQL server %s."
+#~ msgstr "Impossible de se connecter à la base de donnée mysql %s"
+
+#~ msgid "Inotify support disabled"
+#~ msgstr "Support d'inotify désactivé"
+
+#~ msgid "Unable to find directory %s"
+#~ msgstr "Impossible de trouver le répertoire %s"
+
+#~ msgid "cover %s not supported by kaa parser"
+#~ msgstr "Pochette pour %s non supportée"
+
+#~ msgid "cover %s : wrong mime type"
+#~ msgstr "Pochette pour %s : type mime non supporté"
+
+#~ msgid "Inotify event %s: %s"
+#~ msgstr "Evennement inotify %s : %s"
+
+#~ msgid "Inotify problem for '%s', see traceback"
+#~ msgstr "Problème inotify pour '%s', voir l'exception pour plus de détail"
+
+#~ msgid " (directory gone)"
+#~ msgstr "(répertoire absent)"
+
+#~ msgid "inotify: could not watch directory '%s'%s"
+#~ msgstr "inotify : impossible de surveiller le dossier '%s' %s"
+
+#~ msgid "inotify: watching directory '%s'"
+#~ msgstr "inotify : surveillance du répertoire '%s'"
+
+#~ msgid "Try raising fs.inotify.max_user_watches (man sysctl)"
+#~ msgstr "Essayez d'augmenter fs.inotify.max_user_watches (man sysctl)"
+
+#~ msgid "inotify: stopped watching directory '%s'"
+#~ msgstr "inotify : arrêt de la surveillance du répertoire '%s'"
+
+#~ msgid "Only basic filters are allowed for magic playlist"
+#~ msgstr ""
+#~ "Seul les filtres basiques sont autorisés pour les listes de lecture "
+#~ "intelligentes"
+
+#~ msgid "Playlist with id %s not found."
+#~ msgstr "La liste de lecture avec l'identifiant %s n'a pas été trouvée"
+
+#~ msgid "The selected playlist is not static"
+#~ msgstr "La liste de lecture sélectionnée n'est pas de type statique"
+
+#~ msgid "Unable to identify dvd device"
+#~ msgstr "Impossible d'identifier le dvd"
+
+#~ msgid "Unable to init dvd support : %s"
+#~ msgstr "Impossible d'initialiser le support des DVD : %s"
+
+#~ msgid "DVD support disabled"
+#~ msgstr "Le support des DVD est désactivé"
+
+#~ msgid "Directory %s not found"
+#~ msgstr "Le répertoire %s n'a pas été trouvé"
 
 #~ msgid "mode %s is not activated."
 #~ msgstr "Le mode %s n'est pas activé"
@@ -867,9 +908,6 @@ msgstr "Aucun service n'a été activé"
 #~ msgid "Categories not supported for this source"
 #~ msgstr "Les catégories ne sont pas supportées pour cette source"
 
-#~ msgid "Categorie not supported for source %s"
-#~ msgstr "Les catégories ne sont pas supportées pour la source %s"
-
 #~ msgid "Webradio with id %s not found"
 #~ msgstr "La radio web avec l'identifiant %d n'a pas été trouvée"
 
@@ -878,9 +916,6 @@ msgstr "Aucun service n'a été activé"
 
 #~ msgid "Param 'type' has a wrong value"
 #~ msgstr "L'argument 'type' a une valeur fausse"
-
-#~ msgid "Selected playlist is not magic."
-#~ msgstr "La liste de lecture sélectionnée n'est pas de type intelligente."
 
 #~ msgid "mode %s is not known"
 #~ msgstr "Le mode %s n'est pas connu"
