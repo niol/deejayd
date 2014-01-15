@@ -47,6 +47,7 @@ mobileAppFiles  = [
 
 desktopAppFiles  = [
   'views/desktop/alerts'
+  'views/desktop/player_options'
   'views/desktop/playlist'
   'desktop'
 ]

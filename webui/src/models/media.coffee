@@ -42,6 +42,11 @@ class DjdApp.models.Media
   get: (attr) ->
     return @media[attr]
 
+  hasAttr: (attr) ->
+    for k, v of @media
+      if k is attr then return true
+    return false
+
   formatLength: ->
     return DjdApp.formatTime(@media["length"])
 

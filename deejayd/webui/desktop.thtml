@@ -19,12 +19,6 @@
     <!-- Latest compiled and minified JavaScript -->
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
 
-    <!-- bootstrap slider https://github.com/seiyria/bootstrap-slider -->
-    <link rel="stylesheet"
-          href="../static/bs-slider/bootstrap-slider.min.css"/>
-    <script type="text/javascript" language="javascript"
-            src="../static/bs-slider/bootstrap-slider.min.js"></script>
-
     <!-- custom theme -->
     <link rel="stylesheet"
           href="../static/style/desktop/deejayd-desktop.css"/>
@@ -142,6 +136,13 @@
                 <span class="glyphicon glyphicon-step-forward"/>
             </button>
 
+            <button type="button" style="margin-left: 10px;"
+                    disabled="disabled"
+                    id="djd-player-options-btn"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-wrench"/>
+            </button>
+
             <button type="button" class="navbar-toggle btn-default" data-toggle="collapse" data-target="#djd-player-vol-collapse">
                 <span class="glyphicon glyphicon-volume-up"></span>
             </button>
@@ -149,11 +150,23 @@
 
         <div class="collapse navbar-collapse navbar-right" id="djd-player-vol-collapse">
             <form class="navbar-form">
-                <input id="djd-volume-slider"
-                       data-slider-id='djd-volume-slider-instance'
-                       type="text"
-                       data-slider-min="0"  data-slider-max="100"
-                       data-slider-step="1" data-slider-value="0"/>
+                <button type="button"
+                        id="djd-player-volume-down"
+                        class="btn btn-default navbar-btn">
+                    <span class="glyphicon glyphicon-volume-down"/>
+                </button>
+
+                <div class="form-group" style="display: inline-block;">
+                    <input id="djd-player-volume-input" class="form-control"
+                           type="number" step="5" min="0" max="100"/>
+                </div>
+
+                <button type="button"
+                        id="djd-player-volume-up"
+                        class="btn btn-default navbar-btn">
+                    <span class="glyphicon glyphicon-volume-up"/>
+                </button>
+
             </form>
         </div>
     </nav>
@@ -168,7 +181,7 @@
                 <div class="modal-body" id="djd-modal-body">
                 </div>
                 <div class="modal-footer" id="djd-modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button id="djd-modal-close" type="button" class="btn btn-default" data-dismiss="modal">%(close)s</button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->

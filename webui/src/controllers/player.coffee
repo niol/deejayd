@@ -94,6 +94,8 @@ class DjdApp.PlayerController extends DjdApp.BaseController
     view = @view
     @rpc_client.sendCommand("player.getPlaying", [], (answer) ->
       view.refreshCurrent(answer)
+      if @is_pls_loaded
+        @pls_view.refreshCurrent(answer)
     )
 #
 #  Commands called from view
@@ -115,6 +117,9 @@ class DjdApp.PlayerController extends DjdApp.BaseController
 
   setVolume: (vol) ->
     @rpc_client.sendCommand("player.setVolume", [vol])
+
+  setVolumeRelative: (step) ->
+    @rpc_client.sendCommand("player.setVolumeRelative", [step])
 
   seek: (pos, relative=false) ->
     @rpc_client.sendCommand("player.seek", [pos, relative])
@@ -151,5 +156,11 @@ class DjdApp.PlayerController extends DjdApp.BaseController
 
   audioPlsSave: (pls_name, cb) ->
     @rpc_client.sendCommand("audiopls.save", [pls_name], cb)
+
+  getAvailableVideoOptions: (cb) ->
+    @rpc_client.setCommand("player.getAvailableVideoOptions", cb)
+
+  setVideoOption: (opts_name, opts_value) ->
+    @rpc_client.sendCommand("player.setVideoOption", [opts_name, opts_value])
 
 # vim: ts=4 sw=4 expandtab

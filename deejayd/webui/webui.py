@@ -78,6 +78,9 @@ class _DeejaydUIResource(Resource):
 
     def _i18n_dict(self, config):
         return json.dumps({
+            "hours": _("Hours"),
+            "minutes": _("Minutes"),
+            "seconds": _("Seconds"),
             "song": _("Song"),
             "songs": _("Songs"),
             "video": _("Video"),
@@ -94,6 +97,12 @@ class _DeejaydUIResource(Resource):
             "onemedia": _("One media"),
             "allCategories": _("All cats"),
             "seek_dialog_title": _("Seek dialog"),
+            "seek": _("Seek"),
+            "video_options": _("Video Options"),
+            "audio_video_offset": _("Audio/Video offset"),
+            "sub_offset": _("Audio/Subtitle offset"),
+            "audio_channels": _("Audio channels"),
+            "sub_channels": _("Subtitle channels"),
         })
 
     def _get_page_args(self):
@@ -102,6 +111,7 @@ class _DeejaydUIResource(Resource):
             "root_url": config.get("webui", "root_url"),
             "custom_scripts": self._djdscripts(config),
             "i18n_dict": self._i18n_dict(config),
+            "close": _("Close"),
         }
 
     def _build(self):

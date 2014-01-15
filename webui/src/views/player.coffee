@@ -48,12 +48,17 @@ class DjdApp.views.DesktopPlayerView extends DjdApp.views.BasePlayerView
     super(@controller)
 
     player_controller = @controller
-    # init volume slider
     self = @ # ref
-    $("#djd-volume-slider").slider()
-    $("#djd-volume-slider").on("slide", (e) ->
+    # init volume controls
+    $("#djd-player-volume-up").click((e) ->
+      self.controller.setVolumeRelative(5)
+    )
+    $("#djd-player-volume-down").click((e) ->
+      self.controller.setVolumeRelative(-5)
+    )
+    $("#djd-player-volume-input").on("change", (e) ->
       if not self.volume_uiupdate
-        self.volume_timer.update(jQuery(@).slider("getValue"))
+        self.volume_timer.update(jQuery(@).val())
       self.volume_uiupdate = false
     )
 
@@ -84,6 +89,15 @@ class DjdApp.views.DesktopPlayerView extends DjdApp.views.BasePlayerView
     $("#djd-seek-fast-backward").click((e) ->
       player_controller.seek(-60, true)
     )
+    $("#djd-seek-time").click((e) ->
+      self.seekDialog()
+    )
+
+    # init video options
+    @video_opts = new DjdApp.views.PlayerOptionsPopup(@controller)
+    $("#djd-player-options-btn").click((e) ->
+      self.video_opts.show()
+    )
 
   updateState: (state) ->
     if state == "play"
@@ -107,18 +121,26 @@ class DjdApp.views.DesktopPlayerView extends DjdApp.views.BasePlayerView
         $(btn).removeAttr("disabled")
 
   updateVolume: (vol) ->
-    $("#djd-volume-slider").slider("setValue", vol)
+    vol_input = $("#djd-player-volume-input")
+    if vol != vol_input.val()
+      @volume_uiupdate = true
+      vol_input.val(vol)
 
   updateTime: (current, total) ->
     $("#djd-seek-time").html(DjdApp.formatTime(current))
 
   refreshCurrent: (current) ->
+    $("#djd-player-options-btn").attr("disabled", "disabled")
     if current != null
       if current.get("type") != "webradio"
         $("#djd-nowplaying-title").html("""
           <strong>#{ current.get('title') }</strong>
           (#{ DjdApp.formatTime(current.get("length")) })
         """)
+
+        if current.get("type") == "video"
+          @video_opts.updateCurrent(current)
+          $("#djd-player-options-btn").removeAttr("disabled")
       else
         $("#djd-nowplaying-title").html("""
           <strong>#{ current.get('title') }</strong>
@@ -127,7 +149,48 @@ class DjdApp.views.DesktopPlayerView extends DjdApp.views.BasePlayerView
       $("#djd-nowplaying-title").html($.i18n._("no_media"))
 
   seekDialog: () ->
-    $("djd-modal-title").html($.i18n._("seek_dialog_title"))
+    $(".djd-modal-extra-btn").remove()
+
+    $("#djd-modal-title").html($.i18n._("seek_dialog_title"))
+    $("#djd-modal-body").html("""
+<form class="form-horizontal">
+    <div class='form-group'>
+        <label class="control-label col-xs-8">#{ $.i18n._('hours') }</label>
+        <div class="col-xs-4">
+          <input class="form-control" id="djd-seek-hours-input" min="0" max="23" type="number" placeholder=''/>
+        </div>
+    </div>
+
+    <div class='form-group'>
+        <label class="control-label col-xs-8">#{ $.i18n._('minutes') }</label>
+        <div class="col-xs-4">
+          <input class="form-control" id="djd-seek-minutes-input" min="0" max="59" type="number" placeholder=''/>
+        </div>
+    </div>
+
+    <div class='form-group'>
+        <label class="control-label col-xs-8">#{ $.i18n._('seconds') }</label>
+        <div class="col-xs-4">
+          <input class="form-control" id="djd-seek-seconds-input" min="0" max="59" type="number" placeholder=''/>
+        </div>
+    </div>
+</form>
+    """)
+    $("#djd-modal-popup").modal("show")
+
+    self = @
+    $("<button/>", {
+      class: "btn btn-primary djd-modal-extra-btn",
+      html: $.i18n._("seek")
+    }).click((e) ->
+      hours = if $("#djd-seek-hours-input").val() == "" then 0 else $("#djd-seek-hours-input").val()
+      minutes = if $("#djd-seek-minutes-input").val() == "" then 0 else $("#djd-seek-minutes-input").val()
+      seconds = if $("#djd-seek-seconds-input").val() == "" then 0 else $("#djd-seek-seconds-input").val()
+      DjdApp.debug("#{hours} - #{minutes} - #{seconds}")
+      if hours != 0 || minutes != 0 || seconds != 0
+        self.controller.seek(hours*3600 + minutes*60 + seconds, false)
+        $("#djd-modal-popup").modal("hide")
+    ).appendTo("#djd-modal-footer")
 
 
 class DjdApp.views.MobilePlayerView extends DjdApp.views.BasePlayerView

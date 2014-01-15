@@ -25,6 +25,7 @@ class DjdApp.views.DesktopPlaylistView
       audioqueue: {id: -1},
       videopls: {id: -1},
     }
+    @current = null
     @load()
 
   load: () ->
@@ -137,7 +138,16 @@ class DjdApp.views.DesktopPlaylistView
       $("#djd-pls-save").hide()
     @displayed = pls
 
+  refreshCurrent: (current) ->
+    @current = current
+
   formatMediaEntry: (media) ->
+    desc = ""
+    if media.get("type") == "audio"
+      desc = "#{ media.get("artist") } - #{ media.get("album") }"
+    else if media.get("type") == "video"
+      desc = if media.get("external_subtitle") == "" then "Without subtitle" else "With subtitle"
+
     return """
 <div class="dropdown pull-right">
   <button class="btn btn-default dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown">
@@ -150,7 +160,7 @@ class DjdApp.views.DesktopPlaylistView
   </ul>
 </div>
 <h4>#{ media.formatTitle() } (#{ media.formatLength() })</h4>
-<p>#{ media.get("artist") } - #{ media.get("album") }</p>
+<p>#{ desc }</p>
 """
 
   content_tpl: () ->
