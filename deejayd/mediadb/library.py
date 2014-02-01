@@ -127,8 +127,6 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
     def get_file_withids(self, file_ids):
         files_rsp = self.lib_obj.get_files_with_ids(file_ids)
-        if len(files_rsp) != len(file_ids):
-            raise NotFoundException
         return files_rsp
 
     def search(self, f=None, ords=[], limit=None):

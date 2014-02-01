@@ -185,7 +185,7 @@ class _Library(object):
         return self.get_files_with_ids((db_id,))[0]
 
     def get_files_with_ids(self, file_ids):
-        return [self.loaded_files[int(id)] for id in file_ids]
+        return [self.loaded_files[int(id)] for id in file_ids if int(id) in self.loaded_files]
 
     def list_tags(self, tag, ft):
         query = self._build_library_query(attrs=(tag,), map_media=False)

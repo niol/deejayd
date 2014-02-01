@@ -79,10 +79,8 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
     cover_folder = config.get("mediadb", "cover_directory")
     main_handler.putChild("covers", static.File(cover_folder))
 
-    static_dir = os.path.join(htdocs_dir, 'static')
-    main_handler.putChild('static', static.File(static_dir))
-    gen_dir = os.path.join(htdocs_dir, 'gen')
-    main_handler.putChild('gen', static.File(gen_dir))
+    for d in ('gen', 'i18n', 'vendor', 'images'):
+        main_handler.putChild(d, static.File(os.path.join(htdocs_dir, d)))
 
     root_url = config.get('webui', 'root_url')
     root_url = root_url[-1] == '/' and root_url or root_url + '/'

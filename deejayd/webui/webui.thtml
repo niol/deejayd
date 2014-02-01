@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html ng-app="djdWebui">
+<head>
+    <title>Deejayd UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <script type="text/javascript" language="javascript"
+            src="vendor/sockjs-0.3.4/sockjs.min.js"></script>
+    <script type="text/javascript" language="javascript"
+            src="vendor/jquery-2.1.0/jquery.min.js"></script>
+    <!-- bootstrap 3 -->
+    <link rel="stylesheet" href="vendor/bootstrap-3.1.0/css/bootstrap.min.css"/>
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="vendor/bootstrap-3.1.0/css/bootstrap-theme.min.css"/>
+    <script src="vendor/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+
+    <!-- angularjs -->
+    <script src="vendor/angular-1.2.10/angular.min.js"></script>
+    <script src="vendor/angular-1.2.10/angular-sanitize.min.js"></script>
+    <script src="vendor/angular-1.2.10/angular-route.js"></script>
+    <!-- custom theme -->
+    <link rel="stylesheet" href="gen/djd_app.css"/>
+    <!--                                           -->
+    <!--    Load namespace var and options         -->
+    <!--                                           -->
+    <script>
+        window.DjdApp = {
+            models: {},
+            options: {
+                root_url: '%(root_url)s'
+            }
+        };
+    </script>
+    %(custom_scripts)s
+</head>
+
+<body ng-controller="DjdMainCtrl" ng-class="{'djd-disable': loading}">
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#djd-main-menu-collapse">
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Deejayd</a>
+
+        </div>
+
+        <div class="collapse navbar-collapse" id="djd-main-menu-collapse">
+            <ul class="nav navbar-nav navbar-right">
+              <li ng-class="{'active': location=='/'}">
+                  <a data-djd-menu="now_playing" href="#/">
+                      {{'_nowPlaying_' | i18n}}
+                  </a>
+              </li>
+              <li ng-class="{'active': location=='/music'}">
+                  <a data-djd-menu="music" href="#/music">
+                      {{'_music_' | i18n}}
+                  </a>
+              </li>
+              <li ng-class="{'active': location=='/video'}">
+                  <a data-djd-menu="video" href="#/video">
+                      {{'_video_' | i18n}}
+                  </a>
+              </li>
+              <li ng-class="{'active': location=='/radio'}">
+                  <a data-djd-menu="webradio" href="#/radio">
+                      {{'_radio_' | i18n}}
+                  </a>
+              </li>
+            </ul>
+        </div>
+
+        <div ng-controller="DjdPlayerNowPlayingCtrl" class="navbar-header">
+            <button type="button" style="color: #ffffff;" class="navbar-toggle" data-toggle="collapse" data-target="#djd-seek-menu-collapse">
+                <span>{{ '_seek_' | i18n }}</span>
+            </button>
+            <p ng-bind-html="currentMedia" class="djd-current-track"/>
+        </div>
+
+        <div ng-controller="DjdPlayerNowPlayingCtrl" class="collapse navbar-collapse navbar-right" id="djd-seek-menu-collapse">
+            <button type="button"
+                    ng-disabled="!isSeekable"
+                    ng-click="player.seek(-60, true)"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-fast-backward"/>
+            </button>
+            <button type="button"
+                    ng-disabled="!isSeekable"
+                    ng-click="player.seek(-10, true)"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-backward"/>
+            </button>
+            <button type="button"
+                    ng-disabled="!isSeekable"
+                    ng-bind="time"
+                    data-toggle="modal" data-target="#djd-modal-seek-dialog"
+                    class="btn btn-default navbar-btn"></button>
+            <button type="button"
+                    ng-disabled="!isSeekable"
+                    ng-click="player.seek(10, true)"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-forward"/>
+            </button>
+            <button type="button"
+                    ng-disabled="!isSeekable"
+                    ng-click="player.seek(60, true)"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-fast-forward"/>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container" id="djd-main-container">
+        <div djd-alerts></div>
+        <div class="row" ng-view>
+    </div>
+
+    <nav ng-controller="DjdPlayerControlsCtrl" class="navbar navbar-inverse navbar-fixed-bottom" role="navigation">
+        <div class="navbar-header">
+            <button type="button"
+                    ng-click="player.previous()"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-step-backward"/>
+            </button>
+            <button type="button"
+                    id="djd-player-playtoggle"
+                    ng-click="player.playToggle()"
+                    class="btn btn-default navbar-btn">
+                <span
+                    ng-class="{'glyphicon-play': !isPlaying, 'glyphicon-pause': isPlaying}"
+                    class="glyphicon"/>
+            </button>
+            <button type="button"
+                    ng-click="player.stop()"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-stop"/>
+            </button>
+            <button type="button"
+                    ng-click="player.next()"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-step-forward"/>
+            </button>
+
+            <button type="button" style="margin-left: 10px;"
+                    ng-disabled="!isPlayingVideo"
+                    data-toggle="modal" data-target="#djd-modal-player-options-dialog"
+                    id="djd-player-options-btn"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-wrench"/>
+            </button>
+
+            <button type="button" class="navbar-toggle btn-default" data-toggle="collapse" data-target="#djd-player-vol-collapse">
+                <span class="glyphicon glyphicon-volume-up"></span>
+            </button>
+        </div>
+
+        <div class="collapse navbar-collapse navbar-right" id="djd-player-vol-collapse">
+            <form class="navbar-form">
+                <button type="button"
+                        ng-click="player.setVolumeRelative(-5)"
+                        class="btn btn-default navbar-btn">
+                    <span class="glyphicon glyphicon-volume-down"/>
+                </button>
+
+                <div class="form-group" style="display: inline-block;">
+                    <input
+                           ng-model="volume"
+                           ng-change="updateVolume()"
+                           class="form-control"
+                           type="number" step="5" min="0" max="100"/>
+                </div>
+
+                <button type="button"
+                        ng-click="player.setVolumeRelative(5)"
+                        id="djd-player-volume-up"
+                        class="btn btn-default navbar-btn">
+                    <span class="glyphicon glyphicon-volume-up"/>
+                </button>
+
+            </form>
+        </div>
+    </nav>
+
+    <div ng-controller="DjdPlayerSeekDialogCtrl"
+         class="modal fade"
+         id="djd-modal-seek-dialog"
+         tabindex="-1" role="dialog"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">{{ '_seekDialogTitle_' | i18n }}</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div class='form-group'>
+                            <label class="control-label col-xs-8">{{ '_hours_' | i18n }}</label>
+                            <div class="col-xs-4">
+                              <input class="form-control"
+                                     ng-model="hours"
+                                     min="0" max="23"
+                                     type="number" placeholder=''/>
+                            </div>
+                        </div>
+
+                        <div class='form-group'>
+                            <label class="control-label col-xs-8">{{ '_minutes_' | i18n }}</label>
+                            <div class="col-xs-4">
+                              <input class="form-control"
+                                     ng-model="minutes"
+                                     min="0" max="59"
+                                     type="number" placeholder=''/>
+                            </div>
+                        </div>
+
+                        <div class='form-group'>
+                            <label class="control-label col-xs-8">{{ '_seconds_' | i18n }}</label>
+                            <div class="col-xs-4">
+                              <input class="form-control"
+                                     ng-model="seconds"
+                                     min="0" max="59"
+                                     type="number" placeholder=''/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button  type="button"
+                             class="btn btn-default"
+                             data-dismiss="modal">{{ '_close_' | i18n }}</button>
+                    <button type="button"
+                            ng-click="seek()"
+                            class="btn btn-default">{{ '_seek_' | i18n }}</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div ng-controller="DjdPlayerOptionsDialogCtrl"
+         class="modal fade"
+         id="djd-modal-player-options-dialog"
+         tabindex="-1" role="dialog"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">{{ '_videoOptions_' | i18n }}</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                      <div class='form-group'>
+                          <label class="control-label col-xs-8">{{ '_audioChannels_' | i18n }}</label>
+                          <div class="col-xs-4">
+                              <select class="form-control"
+                                      ng-options="c.ix as c.lang for c in audioChannels"
+                                      ng-change="updateAudioChannel()"
+                                      ng-model="curAudioChannel"></select>
+                          </div>
+                      </div>
+
+                      <div class='form-group'>
+                          <label class="control-label col-xs-8">{{ '_audioOffset_' | i18n }} (ms)</label>
+                          <div class="col-xs-4">
+                            <input class="form-control"
+                                   ng-model="audioOffset"
+                                   ng-change="updateAudioOffset()"
+                                   min="-10000" max="10000" step="100"
+                                   type="number" placeholder='0'/>
+                          </div>
+                      </div>
+
+                        <div class='form-group'>
+                            <label class="control-label col-xs-8">{{ '_subChannels_' | i18n }}</label>
+                            <div class="col-xs-4">
+                                <select class="form-control"
+                                        ng-options="c.ix as c.lang for c in subChannels"
+                                        ng-change="updateSubChannel()"
+                                        ng-model="curSubChannel"></select>
+                            </div>
+                        </div>
+
+                      <div class='form-group' ng-visible="hasSubtitle">
+                          <label class="control-label col-xs-8">{{ '_subOffset_' | i18n }} (ms)</label>
+                          <div class="col-xs-4">
+                            <input class="form-control"
+                                   ng-model="subOffset"
+                                   ng-change="updateSubOffset()"
+                                   min="-10000" max="10000" step="100"
+                                   type="number" placeholder='0'/>
+                          </div>
+                      </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                    <button  type="button"
+                             class="btn btn-default"
+                             data-dismiss="modal">{{ '_close_' | i18n }}</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div ng-show="loading" class="djd-loading">
+        <div class="djd-loading-inner">
+            <div class="progress progress-striped">
+                <div class="progress-bar"
+                     role="progressbar"
+                     aria-valuenow="100"
+                     aria-valuemin="0"
+                     aria-valuemax="100" style="">
+                </div>
+            </div>
+
+            <div class="djd-loading-message">
+                <p>{{ loadingMsg }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

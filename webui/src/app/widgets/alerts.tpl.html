@@ -1,0 +1,10 @@
+<div class="alert"
+     ng-class="{'alert-info': alert.type == 'info', 'alert-danger': alert.type == 'error'}"
+     ng-repeat="(id, alert) in alerts">
+    <button  type="button"
+             ng-click="remove(id)"
+             class="close">
+        &times;
+    </button>
+    {{alert.msg}}
+</div>

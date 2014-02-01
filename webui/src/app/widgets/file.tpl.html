@@ -1,0 +1,34 @@
+<div class="dropdown pull-right">
+    <button class="btn btn-default dropdown-toggle"
+            id="dropdownMenu1"
+            data-toggle="dropdown">
+        <span class="glyphicon glyphicon-align-justify"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+        <li role="presentation">
+            <a ng-click="playFile()"
+               role="menuitem" tabindex="-1" href="">
+                {{ '_play_' | i18n }}
+            </a>
+        </li>
+        <li role="presentation" class="divider"/>
+        <li role="presentation">
+            <a ng-click="addFileToPls()"
+               role="menuitem" tabindex="-1" href="">
+                {{ '_addPls_' | i18n }}
+            </a>
+        </li>
+        <li role="presentation" class="divider" ng-show="file.type == 'song'"/>
+        <li role="presentation" ng-show="file.type == 'song'">
+            <a ng-click="addFileToQueue()"
+               role="menuitem" tabindex="-1" href="">
+                {{ '_addQueue_' | i18n }}
+            </a>
+        </li>
+    </ul>
+</div>
+<h4>
+    <span ng-class="{'glyphicon-music': file.type == 'song', 'glyphicon-film': file.type == 'video'}"
+          class="glyphicon"/>
+    {{file.filename}}
+</h4>

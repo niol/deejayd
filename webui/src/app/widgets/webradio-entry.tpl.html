@@ -1,0 +1,25 @@
+<div class="dropdown pull-right">
+    <button class="btn btn-default dropdown-toggle"
+            id="dropdownMenu1"
+            data-toggle="dropdown">
+        <span class="glyphicon glyphicon-align-justify"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+        <li role="presentation">
+            <a ng-click="play()"
+               role="menuitem" tabindex="-1" href="">
+                {{ '_play_' | i18n }}
+            </a>
+        </li>
+        <li role="presentation" class="divider" ng-show="isEditable"/>
+        <li role="presentation" ng-show="isEditable">
+            <a ng-click="erase()"
+               role="menuitem" tabindex="-1" href="">
+                {{ '_erase_' | i18n }}
+            </a>
+        </li>
+    </ul>
+</div>
+<h4>
+    {{webradio.get('title')}}
+</h4>

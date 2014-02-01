@@ -98,12 +98,12 @@ def verify_arguments(__args, args):
                 except (ValueError, TypeError):
                     raise Fault(INVALID_METHOD_PARAMS, \
                         _("Arg %s is not an int") % arg["name"])
-            elif arg['type'] in ("bool", "list", "dict"):
+            elif arg['type'] in ("bool", "list", "dict", "string"):
                 types = {
                          "bool": bool,
                          "dict": dict,
                          "list": list,
-                         "string": str
+                         "string": unicode
                     }
                 if not isinstance(value, types[arg['type']]):
                     raise Fault(INVALID_METHOD_PARAMS, \

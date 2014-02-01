@@ -17,62 +17,96 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 fs     = require 'fs'
-{exec} = require 'child_process'
+{exec, spawn} = require 'child_process'
+{parser, uglify} = require "uglify-js"
+less = require('less')
 
-# omit src/ and .coffee to make the below lines a little shorter
-commonAppFiles = [
-  'utils'
-  'models/media'
-  'models/medialist'
-  'models/mediafilter'
-  'djdclient'
-  'widgets/loading'
-  'widgets/library'
-  'widgets/player-btn'
-  'widgets/webradio'
-  'views/player'
-  'controllers/base'
-  'controllers/player'
-  'controllers/library'
-  'controllers/webradio'
-]
+config =
+  srcDir:  'src/app'
+  outDir:  'gen'
+  srcLessFile: "src/less/main.less"
+  inJsFiles: [
+    'models/media'
+    'models/medialist'
+    'models/mediafilter'
+    'services/util'
+    'services/localize'
+    'services/alert'
+    'services/djdclient'
+    'services/player'
+    'services/library'
+    'services/webradio'
+    'widgets/_module'
+    'widgets/track'
+    'widgets/file'
+    'widgets/folder'
+    'widgets/alerts'
+    'widgets/webradio'
+    'player/player_ctrls'
+    'player/playlist'
+    'library/_base'
+    'library/music'
+    'library/video'
+    'webradio/webradio'
+    'app'
+  ]
+  inTplFiles: [
+    'player/playlist.tpl'
+    'widgets/track.tpl'
+    'widgets/alerts.tpl'
+    'widgets/file.tpl'
+    'widgets/folder.tpl'
+    'library/music.tpl'
+    'library/video.tpl'
+    'webradio/webradio.tpl'
+    'widgets/webradio-entry.tpl'
+    'widgets/webradio-category.tpl'
+  ]
+  outTplDir: "gen/tpl"
+  outFile: 'djd_app'
 
-mobileAppFiles  = [
-  'views/mobile/footer'
-  'views/mobile/playlist'
-  'views/mobile/library'
-  'views/mobile/webradio'
-  'mobile'
-]
+outJS    = "#{config.outDir}/#{config.outFile}"
+outCss    = "#{config.outDir}/#{config.outFile}"
+strJsFiles = ("#{config.srcDir}/#{file}.coffee" for file in config.inJsFiles).join ' '
 
-desktopAppFiles  = [
-  'views/desktop/alerts'
-  'views/desktop/player_options'
-  'views/desktop/playlist'
-  'desktop'
-]
+# deal with errors from child processes
+exerr  = (err, sout,  serr)->
+  process.stdout.write err  if err
+  process.stdout.write sout if sout
+  process.stdout.write serr if serr
 
-task 'build', 'Build deejayd webui (desktop/mobile) application from source files', ->
-    build = (files, output) ->
-        appFiles = commonAppFiles.concat(files)
-        appContents = new Array remaining = appFiles.length
-        for file, index in appFiles then do (file, index) ->
-          fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
-            throw err if err
-            appContents[index] = fileContents
-            process(appContents, output) if --remaining is 0
+task 'build', 'Build deejayd webui application from source files', ->
+  # build main css file
+  parser = new(less.Parser)({ paths: ['./src/less'] })
+  fs.readFile("#{config.srcLessFile}", 'utf8', (err, cssContents) ->
+    throw err if err
+    parser.parse(cssContents, (err, tree) ->
+      throw err if err
+      fs.writeFile "#{outCss}.css", tree.toCSS(), 'utf8', exerr
+    )
+  )
 
-    process = (input, output)->
-        fs.writeFile "gen/#{output}.coffee", input.join('\n\n'), 'utf8', (err) ->
-            throw err if err
-            exec "coffee --compile gen/#{output}.coffee", (err, stdout, stderr) ->
-                throw err if err
-                console.log stdout + stderr
-                fs.unlink "gen/#{output}.coffee", (err) ->
-                    throw err if err
-                    console.log 'Done.'
+  # build main js file
+  exec "coffee -j #{outJS}.js -c #{strJsFiles}", exerr
 
-    build(mobileAppFiles, "djd_mobile")
-    build(desktopAppFiles, "djd_desktop")
+  # copy all templates in the correct dir
+  fs.mkdir(config.outTplDir, (err) ->
+    for file, index in config.inTplFiles then do (file, index) ->
+      file_splits = file.split("/")
+      dst_file = "#{config.outTplDir}/#{file_splits[file_splits.length - 1]}.html"
+      exec "cp src/app/#{file}.html #{dst_file}", exerr
+  )
 
+task 'min', 'minify compiled *.js file', ->
+  invoke 'build'
+  fs.readFile "#{outJS}.js", 'utf8', (err, jsContents) ->
+    throw err if err
+    ast = parser.parse(jsContents);
+    #ast = uglify.ast_mangle(ast) # get a new AST with mangled names -> break angularjs
+    ast = uglify.ast_squeeze(ast) # get an AST with compression optimizations
+    fs.writeFile "#{outJS}.min.js", uglify.gen_code(ast), 'utf8', exerr
+
+task 'watch', 'watch and compile changes in source dir', ->
+  watch = exec "coffee -j #{outJS}.js -cw #{strJsFiles}"
+  watch.stdout.on 'data', (data)-> process.stdout.write data
 

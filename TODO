@@ -20,3 +20,4 @@
 
 * Do not segfault when there is no xserver and video mode is activated.
 
+* Use clean-css and uglifyjs (available in debian) to compress webui code

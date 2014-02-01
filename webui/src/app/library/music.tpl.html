@@ -1,0 +1,69 @@
+<div class="col-xs-12 col-md-3" id="djd-main-sidebar">
+    <div>
+      <ul class="nav nav-pills nav-stacked" id="djd-audio-menu">
+          <li ng-class="{'active': current=='filesystem'}">
+              <a href=""
+                 ng-click="setCurrentView('filesystem')">{{ '_filesystem_' | i18n }}</a>
+          </li>
+          <li ng-class="{'active': current=='genre'}">
+              <a href=""
+                 ng-click="setCurrentView('genre')">{{ '_genre_' | i18n }}</a>
+          </li>
+          <li ng-class="{'active': current=='album'}">
+              <a href=""
+                 ng-click="setCurrentView('album')">{{ '_album_' | i18n }}</a>
+          </li>
+          <li ng-class="{'active': current=='artist'}">
+              <a href=""
+                 ng-click="setCurrentView('artist')">{{ '_artist_' | i18n }}</a>
+          </li>
+      </ul>
+    </div>
+</div>
+<div class="col-xs-12 col-md-9">
+    <nav class="navbar navbar-default">
+        <p class="navbar-text"></p>
+        <div class="navbar-right">
+            <button type="button"
+                    ng-disabled="reloadInProgress"
+                    ng-click="reloadLibrary()"
+                    ng-class="{'djd-in-progress': reloadInProgress}"
+                    class="btn btn-default navbar-btn">
+                <span class="glyphicon glyphicon-refresh"></span>
+                {{ '_update_' | i18n }}
+            </button>
+        </div>
+    </nav>
+
+    <div ng-switch on="currentView">
+        <div ng-switch-when="filesystem">
+            <ol class="breadcrumb" ng-show="fsPath != ''">
+                <li ng-repeat="p in fsBreadcrumbs">
+                    <a ng-click="loadFolder($event, p.path)">{{p.name}}</a>
+                </li>
+                <li class="active">{{ fsName }}</li>
+            </ol>
+
+            <div class="list-group">
+                <a djd-folder
+                   folder-no="$index+1" folder="folder"
+                   load-folder="loadFolder"
+                   library-type="'music'"
+                   ng-repeat="folder in directories"
+                   href=""
+                   class="list-group-item row"/>
+                <a djd-file
+                   file-no="$index+1" file="file"
+                   ng-repeat="file in files"
+                   href=""
+                   class="list-group-item row"/>
+            </div>
+        </div>
+
+        <div ng-switch-when="genre">
+            <div class="list-group">
+            </div>
+        </div>
+    </div>
+</div>
+</div>

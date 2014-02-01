@@ -1,0 +1,24 @@
+<div class="dropdown pull-right">
+    <button class="btn btn-default dropdown-toggle"
+            id="dropdownMenu1"
+            data-toggle="dropdown">
+        <span class="glyphicon glyphicon-align-justify"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+        <li role="presentation">
+            <a ng-click="playTrack()"
+               role="menuitem" tabindex="-1" href="">
+                Play
+            </a>
+        </li>
+        <li role="presentation" class="divider"/>
+        <li role="presentation">
+            <a ng-click="removeTrack()"
+               role="menuitem" tabindex="-1" href="">
+                Remove
+            </a>
+        </li>
+    </ul>
+</div>
+<h4>{{track.formatTitle()}} ({{ util.formatTime(track.get('length'))}})</h4>
+<p>{{ desc }}</p>
