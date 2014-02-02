@@ -3,6 +3,9 @@
 <head>
     <title>Deejayd UI</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" href="images/deejayd.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="images/deejayd.ico" type="image/x-icon"/>
+    <link rel="apple-touch-icon" href="images/deejayd.ico"/>
 
     <script type="text/javascript" language="javascript"
             src="vendor/sockjs-0.3.4/sockjs.min.js"></script>
