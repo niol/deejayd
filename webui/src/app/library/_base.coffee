@@ -27,6 +27,9 @@ class _DjdBaseLibraryControl
       self.djdlibraryservice.updateLibrary().then((result) ->
         self.$scope.reloadInProgress = true
       )
+    @$scope.setCurrentView = (view) ->
+      self.$scope.currentView = view
+
 
     # fs vars and functions
     @$scope.fsPath = ""
@@ -55,9 +58,6 @@ class _DjdBaseLibraryControl
     if @$scope.currentView == "filesystem"
       @loadFilesystem()
 
-  setCurrentView: (view) ->
-    @$scope.currentView = view
-
   loadFilesystem: (path='') ->
     self = @
 
@@ -79,8 +79,6 @@ class _DjdBaseLibraryControl
           rel_path = self._pathJoin(rel_path, p)
           self.$scope.fsBreadcrumbs.push({name: p, path:rel_path})
         else
-          console.log parts
-          console.log p
           self.$scope.fsName = p
       )
 

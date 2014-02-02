@@ -45,6 +45,10 @@ class _DjdBaseLibraryService
   getFolderContent: (folder='') ->
     @djdclientservice.sendCommand("#{ @getLibraryType() }lib.getDirContent", [folder])
 
+  search: (filter) ->
+    filter = filter.dump() if filter != null
+    @djdclientservice.sendCommand("#{ @getLibraryType() }lib.search", [filter])
+
   updateLibrary: ->
     @djdclientservice.sendCommand("#{ @getLibraryType() }lib.update", [])
 

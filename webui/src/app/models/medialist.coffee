@@ -17,13 +17,16 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 class DjdApp.models.MediaList
-  constructor: (m_list) ->
+  constructor: (@raw_list) ->
     @media_list = []
-    for m in m_list
+    for m in @raw_list
       @media_list.push(new DjdApp.models.Media(m))
 
   getMediaList: ->
     return @media_list
+
+  getRawList: ->
+    return @raw_list
 
 class DjdApp.models.Playlist extends DjdApp.models.MediaList
 

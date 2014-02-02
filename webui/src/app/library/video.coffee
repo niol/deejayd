@@ -20,6 +20,26 @@ class DjdVideoLibraryControl extends _DjdBaseLibraryControl
   constructor: (@$scope, @alerts, @localize, @djdvideolibraryservice) ->
     super(@$scope, @alerts, @localize, @djdvideolibraryservice)
 
+    # search
+    self = @
+    @$scope.searchModel = {
+      input: ""
+      resultVisible: false
+      resultPatern: ""
+      results: []
+    }
+    @$scope.search = (input) ->
+      if input != ""
+        filter = new DjdApp.models.MediaBasicFilter("contains", "title", input)
+        self.djdvideolibraryservice.search(filter).then((mList) ->
+          self.$scope.searchModel.resultVisible = true
+          self.$scope.searchModel.resultPattern = input
+          self.$scope.searchModel.input = ""
+
+          self.$scope.searchModel.results = mList.getRawList()
+        )
+
+
 DjdVideoLibraryControl.$inject = ["$scope", "alerts", "localize", "djdvideolibraryservice"]
 
 angular.module('djdWebui.library.video', [
