@@ -315,6 +315,13 @@ bind_addresses = 192.168.51.2, 10.0.0.3
         </listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>cover_directory</term>
+        <listitem>
+          <para>The full path to cache album covers in.</para>
+        </listitem>
+      </varlistentry>
+
     </variablelist>
   </refsect1>
 
