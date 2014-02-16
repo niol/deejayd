@@ -16,7 +16,9 @@
     <nav class="navbar navbar-default">
         <p class="navbar-text"></p>
         <form class="navbar-form navbar-left" ng-show="currentView=='search'" ng-submit="search(searchModel.input)">
-            <input type="text" ng-model="searchModel.input"/>
+            <div class="form-group">
+                <input class="form-control" type="text" ng-model="searchModel.input"/>
+            </div>
             <button type="submit" class="btn btn-default">{{ '_search_' | i18n }}</button>
         </form>
         <div class="navbar-right">

@@ -1,6 +1,7 @@
 {
     "_nowPlaying_": "Now Playing",
     "_close_": "Close",
+    "_clear_": "Clear",
     "_music_": "Music",
     "_video_": "Video",
     "_radio_": "Radio",
@@ -33,6 +34,7 @@
     "_addQueue_": "Add to queue",
     "_loading_": "Loading...",
     "_unknown_": "Unknown",
+    "_filter_": "Filter",
     "_noMedia_": "No media",
     "_connectionLost_": "Connection with server has been lost, try to reconnect",
     "_connection_": "Try to connect to the server...",

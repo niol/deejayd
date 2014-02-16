@@ -23,6 +23,16 @@
 <div class="col-xs-12 col-md-9">
     <nav class="navbar navbar-default">
         <p class="navbar-text"></p>
+        <form class="navbar-form navbar-left" ng-show="currentView!='filesystem'">
+            <div class="form-group">
+                <input class="form-control"
+                       type="text"
+                       placeholder="{{ '_filter_' | i18n }}"
+                       ng-model="filterPattern"/>
+            </div>
+            <button ng-click="filterPattern = ''"
+                    class="btn btn-default">{{ '_clear_' | i18n }}</button>
+        </form>
         <div class="navbar-right">
             <button type="button"
                     ng-disabled="reloadInProgress"
@@ -84,6 +94,7 @@
                        tagname="activeView.type"
                        tag="tag"
                        load-albums="loadAlbums"
+                       ng-show="filterPattern == '' || tag.toLowerCase().indexOf(filterPattern.toLowerCase()) != -1"
                        ng-repeat="tag in tagList"
                        href=""
                        class="list-group-item row"></a>
@@ -93,6 +104,7 @@
                     <div djd-album
                          album="album"
                          ng-repeat="album in albumList"
+                         ng-show="filterPattern == '' || album.name.toLowerCase().indexOf(filterPattern.toLowerCase()) != -1"
                          class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
                     </div>
                 </div>
@@ -117,6 +129,7 @@
                        tagname="activeView.type"
                        tag="tag"
                        load-albums="loadAlbums"
+                       ng-show="filterPattern == '' || tag.toLowerCase().indexOf(filterPattern.toLowerCase()) != -1"
                        ng-repeat="tag in tagList"
                        href=""
                        class="list-group-item row"></a>
@@ -126,6 +139,7 @@
                     <div djd-album
                          album="album"
                          ng-repeat="album in albumList"
+                         ng-show="filterPattern == '' || album.name.toLowerCase().indexOf(filterPattern.toLowerCase()) != -1"
                          class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
                     </div>
                 </div>
@@ -140,6 +154,7 @@
                 <div class="djd-album-container row">
                     <div djd-album
                          album="album"
+                         ng-show="filterPattern == '' || album.name.toLowerCase().indexOf(filterPattern.toLowerCase()) != -1"
                          ng-repeat="album in albumList"
                          class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
                     </div>

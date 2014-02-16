@@ -19,6 +19,12 @@
 class DjdMusicLibraryControl extends _DjdBaseLibraryControl
   constructor: (@$scope, @alerts, @localize, @djdmusiclibraryservice) ->
     super(@$scope, @alerts, @localize, @djdmusiclibraryservice)
+    @$scope.filterPattern = ''
+
+    self = @
+    @$scope.$on("djd:audiolib:clearFilter", (evt) ->
+      self.$scope.filterPattern = ''
+    )
 
 DjdMusicLibraryControl.$inject = ["$scope", "alerts", "localize", "djdmusiclibraryservice"]
 
@@ -53,6 +59,8 @@ class DjdAudioTagNavigationCtrl
     @$scope.albumList = []
 
     @$scope.loadAlbums = (tagname, tag) ->
+      self.$scope.$emit("djd:audiolib:clearFilter")
+
       self.$scope.loading = true
       filter = new DjdApp.models.MediaBasicFilter("equals", tagname, tag)
       self.djdmusiclibraryservice.getAlbum(filter).then((albums) ->
@@ -70,6 +78,8 @@ class DjdAudioTagNavigationCtrl
 
 
   loadTagList: ->
+    @$scope.$emit("djd:audiolib:clearFilter")
+
     self = @
     self.$scope.loading = true
     @djdmusiclibraryservice.getTagList(self.tagName).then((tList) ->
