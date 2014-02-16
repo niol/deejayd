@@ -39,19 +39,25 @@
                 <li class="active">{{ fsName }}</li>
             </ol>
 
-            <div class="list-group">
-                <a djd-folder
-                   folder-no="$index+1" folder="folder"
-                   load-folder="loadFolder"
-                   library-type="'music'"
-                   ng-repeat="folder in directories"
-                   href=""
-                   class="list-group-item row"/>
-                <a djd-file
-                   file-no="$index+1" file="file"
-                   ng-repeat="file in files"
-                   href=""
-                   class="list-group-item row"/>
+            <div ng-show="loading" style="text-align: center">
+                <div class="djd-progress-img"></div>
+            </div>
+
+            <div ng-hide="loading">
+                <div class="list-group">
+                    <a djd-folder
+                       folder-no="$index+1" folder="folder"
+                       load-folder="loadFolder"
+                       library-type="'music'"
+                       ng-repeat="folder in directories"
+                       href=""
+                       class="list-group-item row"/>
+                    <a djd-file
+                       file-no="$index+1" file="file"
+                       ng-repeat="file in files"
+                       href=""
+                       class="list-group-item row"/>
+                </div>
             </div>
         </div>
 

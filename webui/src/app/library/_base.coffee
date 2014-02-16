@@ -20,6 +20,7 @@ class _DjdBaseLibraryControl
   constructor: (@$scope, @alerts, @localize, @djdlibraryservice) ->
     self = @
 
+    @$scope.loading = false
     @$scope.currentView = "filesystem"
     # update vars and functions
     @$scope.reloadInProgress = false
@@ -61,9 +62,11 @@ class _DjdBaseLibraryControl
   loadFilesystem: (path='') ->
     self = @
 
+    @$scope.loading = true
     @djdlibraryservice.getFolderContent(path).then((answer) ->
       self.$scope.directories = answer.directories
       self.$scope.files = answer.files
+      self.$scope.loading = false
     )
     @$scope.fsPath = path
     @$scope.current = 'filesystem'

@@ -45,6 +45,7 @@ musicModule = angular.module('djdWebui.library.music', [
 class DjdAudioTagNavigationCtrl
   constructor: (@tagName, @$scope, @localize, @djdmusiclibraryservice) ->
     self = @
+    @$scope.loading = false
     @$scope.activeView = {
       type: @tagName
     }
@@ -52,6 +53,7 @@ class DjdAudioTagNavigationCtrl
     @$scope.albumList = []
 
     @$scope.loadAlbums = (tagname, tag) ->
+      self.$scope.loading = true
       filter = new DjdApp.models.MediaBasicFilter("equals", tagname, tag)
       self.djdmusiclibraryservice.getAlbum(filter).then((albums) ->
         self.$scope.activeView.type = 'album'
@@ -59,6 +61,7 @@ class DjdAudioTagNavigationCtrl
 
         self.$scope.activeView.label = tag
         self.$scope.activeView.backLabel = self.localize._("_#{self.tagName}List_")
+        self.$scope.loading = false
       )
     @$scope.goBack = ->
       if self.$scope.activeView.type == 'album'
@@ -68,9 +71,11 @@ class DjdAudioTagNavigationCtrl
 
   loadTagList: ->
     self = @
+    self.$scope.loading = true
     @djdmusiclibraryservice.getTagList(self.tagName).then((tList) ->
       self.$scope.activeView.type = self.tagName
       self.$scope.tagList = tList
+      self.$scope.loading = false
     )
 
 class DjdGenreNavigationCtrl extends DjdAudioTagNavigationCtrl
@@ -88,8 +93,10 @@ class DjdAlbumNavigationCtrl
     @$scope.albumList = []
 
     self = @
+    @$scope.loading = true
     @djdmusiclibraryservice.getAlbum(null).then((albums) ->
       self.$scope.albumList = albums
+      self.$scope.loading = false
     )
 DjdAlbumNavigationCtrl.$inject = ["$scope", "localize", "djdmusiclibraryservice"]
 

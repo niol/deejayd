@@ -38,12 +38,18 @@
     </nav>
 
     <div id="djd-main-content">
-        <div id="djd-pls-listgroup" class="list-group djd-medialist">
-            <a djd-track
-               track-no="$index+1" track="track" pls="currentPls"
-               ng-repeat="track in playlist"
-               href=""
-               class="list-group-item row"/>
+        <div ng-show="loading" style="text-align: center">
+            <div class="djd-progress-img"></div>
+        </div>
+
+        <div ng-hide="loading">
+            <div id="djd-pls-listgroup" class="list-group djd-medialist">
+                <a djd-track
+                   track-no="$index+1" track="track" pls="currentPls"
+                   ng-repeat="track in playlist"
+                   href=""
+                   class="list-group-item row"/>
+            </div>
         </div>
     </div>
 </div>

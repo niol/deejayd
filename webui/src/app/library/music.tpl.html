@@ -44,19 +44,25 @@
                 <li class="active">{{ fsName }}</li>
             </ol>
 
-            <div class="list-group">
-                <a djd-folder
-                   folder-no="$index+1" folder="folder"
-                   load-folder="loadFolder"
-                   library-type="'music'"
-                   ng-repeat="folder in directories"
-                   href=""
-                   class="list-group-item row"/>
-                <a djd-file
-                   file-no="$index+1" file="file"
-                   ng-repeat="file in files"
-                   href=""
-                   class="list-group-item row"/>
+            <div ng-show="loading" style="text-align: center">
+                <div class="djd-progress-img"></div>
+            </div>
+
+            <div ng-hide="loading">
+                <div class="list-group">
+                    <a djd-folder
+                       folder-no="$index+1" folder="folder"
+                       load-folder="loadFolder"
+                       library-type="'music'"
+                       ng-repeat="folder in directories"
+                       href=""
+                       class="list-group-item row"/>
+                    <a djd-file
+                       file-no="$index+1" file="file"
+                       ng-repeat="file in files"
+                       href=""
+                       class="list-group-item row"/>
+                </div>
             </div>
         </div>
 
@@ -69,21 +75,26 @@
             </ol>
 
 
-            <div class="list-group" ng-show="activeView.type == 'genre'">
-                <a djd-audiotag
-                   tagname="activeView.type"
-                   tag="tag"
-                   load-albums="loadAlbums"
-                   ng-repeat="tag in tagList"
-                   href=""
-                   class="list-group-item row"></a>
+            <div ng-show="loading" style="text-align: center">
+                <div class="djd-progress-img"></div>
             </div>
+            <div ng-hide="loading">
+                <div class="list-group" ng-show="activeView.type == 'genre'">
+                    <a djd-audiotag
+                       tagname="activeView.type"
+                       tag="tag"
+                       load-albums="loadAlbums"
+                       ng-repeat="tag in tagList"
+                       href=""
+                       class="list-group-item row"></a>
+                </div>
 
-            <div class="djd-album-container row" ng-show="activeView.type == 'album'">
-                <div djd-album
-                     album="album"
-                     ng-repeat="album in albumList"
-                     class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
+                <div class="djd-album-container row" ng-show="activeView.type == 'album'">
+                    <div djd-album
+                         album="album"
+                         ng-repeat="album in albumList"
+                         class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
+                    </div>
                 </div>
             </div>
         </div>
@@ -97,31 +108,41 @@
             </ol>
 
 
-            <div class="list-group" ng-show="activeView.type == 'artist'">
-                <a djd-audiotag
-                   tagname="activeView.type"
-                   tag="tag"
-                   load-albums="loadAlbums"
-                   ng-repeat="tag in tagList"
-                   href=""
-                   class="list-group-item row"></a>
+            <div ng-show="loading" style="text-align: center">
+                <div class="djd-progress-img"></div>
             </div>
+            <div ng-hide="loading">
+                <div class="list-group" ng-show="activeView.type == 'artist'">
+                    <a djd-audiotag
+                       tagname="activeView.type"
+                       tag="tag"
+                       load-albums="loadAlbums"
+                       ng-repeat="tag in tagList"
+                       href=""
+                       class="list-group-item row"></a>
+                </div>
 
-            <div class="djd-album-container row" ng-show="activeView.type == 'album'">
-                <div djd-album
-                     album="album"
-                     ng-repeat="album in albumList"
-                     class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
+                <div class="djd-album-container row" ng-show="activeView.type == 'album'">
+                    <div djd-album
+                         album="album"
+                         ng-repeat="album in albumList"
+                         class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
+                    </div>
                 </div>
             </div>
         </div>
 
         <div ng-controller="DjdAlbumNavigationCtrl" ng-switch-when="album">
-            <div class="djd-album-container row">
-                <div djd-album
-                     album="album"
-                     ng-repeat="album in albumList"
-                     class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
+            <div ng-show="loading" style="text-align: center">
+                <div class="djd-progress-img"></div>
+            </div>
+            <div ng-hide="loading">
+                <div class="djd-album-container row">
+                    <div djd-album
+                         album="album"
+                         ng-repeat="album in albumList"
+                         class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
+                    </div>
                 </div>
             </div>
         </div>

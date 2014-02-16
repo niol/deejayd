@@ -24,6 +24,7 @@ class DjdSourcePlaylistCtrl
       audioqueue: {id: -1},
       videopls: {id: -1},
     }
+    @$scope.loading = false
     @$scope.currentPls = "audiopls"
     @$scope.player = @djdplayerservice
 
@@ -76,8 +77,10 @@ class DjdSourcePlaylistCtrl
         audioqueue: "getAudioQueue",
       }
 
+      self.$scope.loading = true
       self.djdplayerservice[funcs[pls]](0, null).then((m_list) ->
         self.$scope.playlist = m_list.getMediaList()
+        self.$scope.loading = false
       )
       self.$scope.currentPls = pls
 
