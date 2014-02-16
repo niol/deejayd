@@ -90,8 +90,3 @@ class _DjdBaseLibraryControl
       return paths.join("/")
     return ""
 
-  _formatTag: (str) ->
-    if str == ''
-      str = "<em>#{ @localize._('_unknown_') }</em>"
-    return str
-

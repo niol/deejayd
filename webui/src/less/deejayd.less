@@ -25,6 +25,7 @@ body {
 }
 
 .nav, .pagination, .carousel, .panel-title a, a { cursor: pointer; }
+.dropdown-menu { z-index: 1050; }
 
 .djd-in-progress:after {
     content: "...";
@@ -56,19 +57,43 @@ body {
 }
 
 @media (max-width: @screen-xs-max) {
-  .djd-current-track > div {
+  .djd-current-track, .djd-current-track > div {
     width: 250px;
   }
 }
-@media (max-width: @screen-sm-max) {
-  .djd-current-track > div {
+@media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+  .djd-current-track, .djd-current-track > div {
     width: 400px;
   }
 }
-@media (max-width: @screen-md-max) {
-  .djd-current-track > div {
+@media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+  .djd-current-track, .djd-current-track > div {
     width: 500px;
   }
+}
+
+/*
+ * Album grid
+ */
+.djd-album-desc {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 9px;
+}
+
+@media (max-width: @screen-xs-max) {
+  .djd-album-item { height: 320px; }
+}
+@media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+  .djd-album-item { height: 285px; }
+}
+@media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+  .djd-album-item { height: 285px; }
+}
+@media (min-width: @screen-lg-min) {
+  .djd-album-item { height: 264px; }
 }
 
 /*

@@ -96,19 +96,16 @@ class DjdMusicLibraryService extends _DjdBaseLibraryService
     filter = filter.dump() if filter != null
     @djdclientservice.sendCommand("audiolib.setRating", [filter, value])
 
-  getGenre: () ->
-    @djdclientservice.sendCommand("audiolib.tagList", ["genre"])
-
-  getArtist: () ->
-    @djdclientservice.sendCommand("audiolib.tagList", ["artist"])
+  getTagList: (tagName) ->
+    @djdclientservice.sendCommand("audiolib.tagList", [tagName])
 
   getAlbum: (filter) ->
     filter = filter.dump() if filter != null
-    @rpc_client.sendCommand("audiolib.albumList", [filter])
+    @djdclientservice.sendCommand("audiolib.albumList", [filter])
 
   getSongs: (filter) ->
     filter = filter.dump() if filter != null
-    @rpc_client.sendCommand("audiolib.search", [filter])
+    @djdclientservice.sendCommand("audiolib.search", [filter])
 DjdMusicLibraryService.$inject = ["djdclientservice", "$rootScope"]
 
 
