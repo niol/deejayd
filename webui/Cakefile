@@ -72,9 +72,9 @@ strJsFiles = ("#{config.srcDir}/#{file}.coffee" for file in config.inJsFiles).jo
 
 # deal with errors from child processes
 exerr  = (err, sout,  serr)->
-  process.stdout.write err  if err
-  process.stdout.write sout if sout
-  process.stdout.write serr if serr
+  process.stdout.write(new Buffer(err))  if err
+  process.stdout.write(new Buffer(sout)) if sout
+  process.stdout.write(new Buffer(serr)) if serr
 
 task 'build', 'Build deejayd webui application from source files', ->
   # build main css file
