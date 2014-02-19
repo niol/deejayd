@@ -19,7 +19,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import glob, os, shutil
-from distutils.errors import DistutilsOptionError
+import subprocess
+from distutils.errors import DistutilsOptionError, DistutilsExecError
+
 from distutils.command.build import build as distutils_build
 from distutils.command.clean import clean as distutils_clean
 from distutils.core import setup,Command
@@ -42,6 +44,12 @@ def force_rmdir(path):
         shutil.rmtree(path)
     except OSError:
         pass
+
+def spawn(cmdargs, cwd=None):
+    try:
+        subprocess.check_call(cmdargs, cwd=cwd)
+    except subprocess.CalledProcessError, e:
+        raise DistutilsExecError(e)
 
 
 class build_manpages(Command):
@@ -128,52 +136,34 @@ class build_i18n(Command):
         if os.path.isdir(self.mo_dir):
             remove_tree(self.mo_dir)
 
-gwt_option = [ ("gwt=", None,
-                "location of GWT SDK used to compile deejayd webui"),
-               ("ant-target=", None,
-                "ant-target use to build webui with gwt : build or builddist")]
-
 class build_webui(Command):
-    description = "Build deejayd webui with GWT SDK"
-    user_options = gwt_option
+    description = "Build deejayd webui coffeescript"
 
-    ant = find_executable('ant')
+    coffeescript = find_executable('cake.coffeescript')
     webui_directory = "webui"
 
     def initialize_options(self):
-        self.gwt = None
-        self.ant_target = None
-
-        self.build_file = os.path.join(self.webui_directory, "build.xml")
+        self.webuidir = os.path.join(os.path.dirname(__file__), self.webui_directory)
+        self.builddir = os.path.join(self.webuidir, 'gen')
 
     def finalize_options(self):
-        if self.gwt is not None:
-            os.environ["GWT_SDK"] = self.gwt
-        if self.ant_target is None:
-            self.ant_target = "builddist"
+        pass
 
     def run(self):
-        if "GWT_SDK" not in os.environ.keys():
-            # TODO : try to find gwt sdk in default java classpath
-            raise DistutilsOptionError("No GWT SDK found to build webui")
-        if self.ant is None:
+        if self.coffeescript is None:
             raise DistutilsOptionError(\
-                    "ant program not found, we can't build webui")
+                    "cake.coffeescript program not found, can't build webui")
 
-        os.environ["GWT_SDK"] = os.path.abspath(os.environ["GWT_SDK"])
-        cmd = (self.ant, "-f", self.build_file, self.ant_target)
-        self.spawn(cmd)
+        cmd = (self.coffeescript, 'build')
+        spawn(cmd, self.webuidir)
 
-        if self.ant_target == "builddist":
-            wdir = os.path.join("build", "webui")
-            data_files = self.distribution.data_files
-            for d in ('gwtwebui', 'gwtmobilewebui', 'static'):
-                data_files.extend(get_data_files(os.path.join(wdir, d),
-                                  os.path.join('share/deejayd/htdocs/', d)))
+        data_files = self.distribution.data_files
+        data_files.extend(get_data_files(self.builddir,
+                          'share/deejayd/htdocs/'))
 
     def clean(self):
-        if os.path.isfile(self.build_file) and self.ant is not None:
-            self.spawn((self.ant, "-f", self.build_file, "clean"))
+        if os.path.isdir(self.builddir):
+            remove_tree(self.builddir)
 
 
 class deejayd_build(distutils_build):
