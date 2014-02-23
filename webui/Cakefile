@@ -77,7 +77,8 @@ exerr  = (err, sout,  serr)->
   process.stdout.write(new Buffer(serr)) if serr
 
 task 'build', 'Build deejayd webui application from source files', ->
-  fs.mkdirSync(config.outDir)
+  if (!fs.existsSync(config.outDir))
+    fs.mkdirSync(config.outDir)
 
   # build main css file
   parser = new(less.Parser)({ paths: ['./src/less'] })
