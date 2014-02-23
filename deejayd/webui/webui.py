@@ -55,10 +55,13 @@ class DeejaydMainHandler(Resource):
 
     def _get_page_args(self):
         config = DeejaydConfig()
-        return  {
+        args = {
             "root_url": config.get("webui", "root_url"),
             "custom_scripts": self._djdscripts(config),
-            }
+        }
+        if args['root_url'][-1] != '/':
+            args['root_url'] = args['root_url'] + '/'
+        return args
 
     def _build(self):
         tpl_path = os.path.join(os.path.dirname(__file__), self.tpl)
