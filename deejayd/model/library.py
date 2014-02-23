@@ -246,6 +246,7 @@ class _Library(object):
 class Album(MutableMapping):
     COVER_EXT = {
         "image/jpeg": "jpg",
+        "image/jpg": "jpg", # workaround mutagen giving wrong mime type
         "image/png": "png",
     }
 
