@@ -273,7 +273,12 @@ class _Library(SignalingComponent, JSONRpcComponent):
             filepath = os.path.join(dir_obj.get_path(), file)
 
             file_obj = self.lib_obj.get_file_with_path(dir_obj, file, create=True)
-            need_update = force or os.stat(filepath).st_mtime > file_obj["lastmodified"]
+            if os.path.isfile(filepath):
+                need_update = force or os.stat(filepath).st_mtime > file_obj["lastmodified"]
+            else:
+                # filepath is a broken symlink
+                need_update = False
+
             if need_update:
                 file_obj = self._get_file_info(file_obj)
                 if file_obj is None:
