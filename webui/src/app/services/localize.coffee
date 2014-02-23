@@ -25,12 +25,12 @@ class DjdLocalization
   initLocalizedResources: ->
     self = @
 
-    url = '/i18n/djdwebui-locale_' + @language + '.json';
+    url = 'i18n/djdwebui-locale_' + @language + '.json';
     console.log url
     @$http({ method:"GET", url:url, cache:false }).success((data) ->
       self.successCallback(data)
     ).error( ->
-        url = '/i18n/djdwebui-locale_default.json'
+        url = 'i18n/djdwebui-locale_default.json'
         self.$http({ method:"GET", url:url, cache:false }).success((data) ->
           self.successCallback(data)
         )
