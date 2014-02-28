@@ -47,17 +47,22 @@ class DeejaydError(Exception):
             return unicode(self._message)
 
 
-def Singleton(cls):
+def Singleton(singleton_cls):
     class SingletonClass(object):
         # storage for the instance reference
         __instance = None
+
+        @classmethod
+        def destroy(cls):
+            if cls.__instance is not None:
+                cls.__instance = None
 
         def __init__(self, *args, **kwargs):
             """ Create DatabaseConnection instance """
             # Check whether we already have an instance
             if self.__instance is None:
                 # Create and remember instance
-                self.__class__.__instance = cls(*args, **kwargs)
+                self.__class__.__instance = singleton_cls(*args, **kwargs)
 
             # Store instance reference as the only member in the handle
             self.__dict__['_Singleton__instance'] = self.__class__.__instance
@@ -70,7 +75,7 @@ def Singleton(cls):
             """ Delegate access to implementation """
             return setattr(self.__instance, attr, value)
 
-    SingletonClass.__name__ = cls.__name__
+    SingletonClass.__name__ = singleton_cls.__name__
     return SingletonClass
 
 # vim: ts=4 sw=4 expandtab

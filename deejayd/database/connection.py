@@ -79,7 +79,7 @@ class DatabaseConnection(local):
             self.connection.commit()
             self.connection.close()
             self.connection = None
-        DatabaseConnection.__instance = None
+        DatabaseConnection.destroy()
 
     def __connect(self):
         if self.connection is None:

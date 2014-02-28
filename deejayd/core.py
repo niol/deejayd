@@ -113,6 +113,8 @@ class DeejayDaemonCore(JSONRpcComponent):
         for obj in (self.watcher, self.player, self.sources, self.audiolib, \
                     self.videolib, self.webradio):
             if obj != None: obj.close()
+        # finish with the close of the database connection
+        DatabaseConnection().close()
 
     def ping(self):  # do nothing
         pass

@@ -174,7 +174,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         if self._update_end:
             self._update_id += 1
             if sync:  # synchrone update
-                self._update(force)
+                self._update(force=force, sync=sync)
                 self._update_end = True
             else:  # asynchrone update
                 self.defered = threads.deferToThread(self._update, force)
@@ -197,7 +197,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
         raise DeejaydError(_("A library update is already running"))
 
-    def _update(self, force=False):
+    def _update(self, force=False, sync=False):
         self._update_end = False
 
         try:
@@ -211,8 +211,8 @@ class _Library(SignalingComponent, JSONRpcComponent):
             DatabaseConnection().commit()
             self.mutex.release()
         finally:
-            # close the connection
-            DatabaseConnection().close()
+            # close the connection if we are in a specific thread
+            if not sync: DatabaseConnection().close()
 
     def walk_directory(self, walk_root, force=False):
         walk_root = os.path.join(self.get_root_path(),
