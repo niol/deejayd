@@ -234,15 +234,6 @@ bind_addresses = 192.168.51.2, 10.0.0.3
       </varlistentry>
 
       <varlistentry>
-        <term>lang</term>
-        <listitem>
-          <para>Lang of the webui. Available langs are :
-          <parameter>en</parameter>, <parameter>fr</parameter>.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>root_url</term>
         <listitem>
           <para>Root URL for the webui. This defines where the webui is
