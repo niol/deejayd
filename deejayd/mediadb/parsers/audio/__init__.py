@@ -72,18 +72,20 @@ class AudioParserFactory(object):
             album.update_cover(tmp_path, infos["cover"]["mimetype"])
             os.unlink(tmp_path)
             return file_obj
-        return self.extra_parse(file_obj, album)
+        return self.extra_parse(file_obj, album=album)
 
     def extra_parse(self, file_obj, album=None):
         path = file_obj.get_path()
+        if album is None:
+            album = file_obj.get_album()
         # find cover
         cover = CoverParser().find_cover(os.path.dirname(path))
         if cover is not None:
-            if album is None:
-                album = file_obj.get_album()
             need_update = os.stat(cover["path"]).st_mtime > album["cover_lmod"]
             if need_update:
                 album.update_cover(cover["path"], cover["mimetype"])
+        else:
+            album.erase_cover()
 
         return file_obj
 

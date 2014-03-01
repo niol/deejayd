@@ -308,19 +308,32 @@ class Album(MutableMapping):
             "cover_filename": self.get_cover_filename(),
         }
 
+    def __erase_cover_file(self):
+        c_path = os.path.join(self.library.get_cover_folder(),
+                              self.get_cover_filename())
+        if os.path.isfile(c_path):
+            try: os.unlink(c_path)
+            except OSError, err:
+                log.err(_("Unable to remove cover %s: %s") \
+                        % (self.get_cover_filename(), err))
+            return True
+        return False
+
+    def erase_cover(self):
+        if self.__erase_cover_file():
+            self.update({
+                "cover_type": None,
+                "cover_lmod": -1
+            })
+        self.save()
+
     def erase(self):
         if self.db_id is not None:
             DeleteQuery(self.library.ALBUM_TABLE) \
                     .append_where("id = %s", (self.db_id,)) \
                     .execute(commit=False)
             # delete cover
-            c_path = os.path.join(self.library.get_cover_folder(),
-                                  self.get_cover_filename())
-            if os.path.isfile(c_path):
-                try: os.unlink(c_path)
-                except OSError, err:
-                    log.err(_("Unable to remove cover %s: %s") \
-                            % (self.get_cover_filename(), err))
+            self.__erase_cover_file()
 
     def save(self):
         if self.db_id is None or self.dirty:
