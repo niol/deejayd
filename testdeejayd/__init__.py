@@ -71,12 +71,15 @@ class _DeejaydTest(unittest.TestCase):
     def tearDownClass(cls):
         if cls.dbfilename is not None:  # Clean up temporary db file
             try: os.unlink(cls.dbfilename)
-            except OSError:
+            except (OSError, IOError):
                 pass
+            cls.dbfilename = None
         if cls.coverdir is not None:  # Clean up temporary db file
             try: shutil.rmtree(cls.coverdir)
-            except OSError:
-                pass
+            except (OSError, IOError), ex:
+                raise ex
+            cls.coverdir = None
+        cls.config.destroy()
 
     def hasVideoSupport(self):
         modes = self.config.getlist("general", "activated_modes")

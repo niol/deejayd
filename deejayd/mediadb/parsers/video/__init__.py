@@ -97,8 +97,40 @@ class VideoParserFactory(object):
         file_obj["external_subtitle"] = sub
         return file_obj
 
-    def inotify_parse(self, filepath):
-        # TODO : parse subtitle if necessary
-        pass
+    def inotify_extra_parse(self, file_path):
+        if self.__is_subtitle(file_path):
+            file_obj = self.__find_video(file_path)
+            if file_obj is not None:
+                file_obj["external_subtitle"] = quote_uri(file_path)
+                file_obj.save()
+                return True
+        return False
+
+    def inotify_extra_remove(self, file_path):
+        if self.__is_subtitle(file_path):
+            file_obj = self.__find_video(file_path)
+            if file_obj is not None:
+                file_obj["external_subtitle"] = ""
+                file_obj.save()
+                return True
+        return False
+
+    def __is_subtitle(self, file_path):
+        name, ext = os.path.splitext(file_path)
+        return ext in self.subtitle_ext
+
+    def __find_video(self, sub_path):
+        path, fn = os.path.split(sub_path)
+        sub_name, ext = os.path.splitext(fn)
+
+        lib_model = self.library.get_model()
+        dir_obj = lib_model.get_dir_with_path(path, create=False, raise_ex=False)
+        if dir_obj is not None:
+            for file_obj in dir_obj.get_files():
+                file_name, ext = os.path.splitext(file_obj["filename"])
+                if file_name == sub_name:
+                    return file_obj
+
+        return None
 
 # vim: ts=4 sw=4 expandtab

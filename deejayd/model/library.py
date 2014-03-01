@@ -92,11 +92,11 @@ class LibraryDir(object):
 
     def get_all_files(self):
         f_ids = ComplexSelect(self.library.LIB_TABLE) \
-                    .join(DIR_TABLE, "%s.id = %s.directory" \
-                        % (DIR_TABLE, self.library.LIB_TABLE)) \
-                    .select_column("id") \
-                    .append_where(DIR_TABLE + ".name LIKE %s", self.path + u"%%") \
-                    .execute()
+                .join(DIR_TABLE, "%s.id = %s.directory" \
+                    % (DIR_TABLE, self.library.LIB_TABLE)) \
+                .select_column("id") \
+                .append_where(DIR_TABLE + ".name LIKE %s", self.path + u"%%") \
+                .execute()
         files = self.library.get_files_with_ids(map(lambda i: i[0], f_ids))
         return files
 
@@ -149,7 +149,7 @@ class _Library(object):
     def get_root_path(self):
         return self.root_path
 
-    def get_dir_with_path(self, path, create=False):
+    def get_dir_with_path(self, path, create=False, raise_ex=True):
         rs = SimpleSelect(DIR_TABLE) \
                     .select_column("id") \
                     .append_where("name = %s", path) \
@@ -158,7 +158,8 @@ class _Library(object):
         db_id = rs and rs[0] or None
         if db_id is None:
             if not create:
-                raise DeejaydError
+                if raise_ex: raise DeejaydError
+                return None
             return LibraryDir(self, path)
 
         return self.get_dirs_with_ids((db_id,))[0]
@@ -172,8 +173,8 @@ class _Library(object):
                     .join(DIR_TABLE, "%s.id = %s.directory" \
                         % (DIR_TABLE, self.LIB_TABLE)) \
                     .select_column("id") \
-                    .append_where(DIR_TABLE + ".name = %s", dir_obj.get_path()) \
-                    .append_where(self.LIB_TABLE + ".filename = %s", filename) \
+                    .append_where(DIR_TABLE + ".name = %s", dir_obj.get_path())\
+                    .append_where(self.LIB_TABLE + ".filename = %s", filename)\
                     .execute(expected_result="fetchone")
         db_id = rs and rs[0] or None
         if db_id is None:
@@ -185,7 +186,8 @@ class _Library(object):
         return self.get_files_with_ids((db_id,))[0]
 
     def get_files_with_ids(self, file_ids):
-        return [self.loaded_files[int(id)] for id in file_ids if int(id) in self.loaded_files]
+        return [self.loaded_files[int(id)] for id in file_ids if int(id)\
+                in  self.loaded_files]
 
     def list_tags(self, tag, ft):
         query = self._build_library_query(attrs=(tag,), map_media=False)
@@ -293,7 +295,7 @@ class Album(MutableMapping):
         dest = os.path.join(self.library.get_cover_folder(),
                             self.get_cover_filename(cover_type=mimetype))
         try: shutil.copy(orig_path, dest)
-        except OSError:
+        except IOError:
             log.err(_("Unable to copy cover to correct folder"))
             return
         self.update({
@@ -367,7 +369,7 @@ class AudioLibrary(_Library):
         self.cover_folder = DeejaydConfig().get("mediadb", "cover_directory")
         if not os.path.exists(self.cover_folder):
             try: os.mkdir(self.cover_folder, 0755)
-            except OSError, err:
+            except (IOError, OSError), err:
                 raise DeejaydError(_("Unable to create cover folder %s: %s")
                                    % (self.cover_folder, err))
         # load albums
@@ -445,5 +447,13 @@ class LibraryFactory(object):
         if "video" not in self.__loaded:
             self.__loaded["video"] = VideoLibrary()
         return self.__loaded["video"]
+
+    def close_audio_library(self):
+        if "audio" in self.__loaded:
+            del self.__loaded["audio"]
+
+    def close_video_library(self):
+        if "video" in self.__loaded:
+            del self.__loaded["video"]
 
 # vim: ts=4 sw=4 expandtab

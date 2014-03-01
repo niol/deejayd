@@ -164,7 +164,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         return status
 
     def close(self):
-        pass
+        getattr(LibraryFactory(), "close_%s_library" % self.type)()
 
     #
     # Update process
@@ -317,7 +317,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
     # # Inotify actions
     #######################################################################
     def update_extrainfo_file(self, file_path):
-        pass
+        self.parser.inotify_extra_parse(file_path)
 
     def update_file(self, path, file):
         file_path = os.path.join(path, file)
@@ -335,7 +335,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
             file_obj.save(commit=True)
 
     def remove_extrainfo_file(self, file_path):
-        pass
+        self.parser.inotify_extra_remove(file_path)
 
     def remove_file(self, path, name):
         fn, ext = os.path.splitext(name)
@@ -432,36 +432,6 @@ class VideoLibrary(_Library):
     supported_search_type = ['title']
     default_search_sort = mediafilters.DEFAULT_VIDEO_SORT
 
-    # custom inotify actions
-    #
-    def update_subtitle(self, file_path):
-        path, fn = os.path.split(file_path)
-        name, ext = os.path.splitext(fn)
-        for video_ext in self.parser.get_extensions():
-            rs = self.lib_obj.is_file_exist(path, name + video_ext)
-            if rs is not None:
-                dir_id, fid, lm = rs
-                uri = quote_uri(file_path)
-                log.debug('library: updating external subtitle %s in db' % file_path)
-                self.lib_obj.set_media_infos(fid, {"external_subtitle": uri})
-                self.dispatch_mupdate(fid, 'update')
-
-    def update_extrainfo_file(self, file_path):
-        base_path, ext = os.path.splitext(file_path)
-        if ext in self.subtitle_ext:
-            self.update_subtitle(file_path)
-
-    def remove_extrainfo_file(self, file_path):
-        base_path, ext = os.path.splitext(file_path)
-        if ext in self.subtitle_ext:
-            self.remove_subtitle(file_path)
-
-    def remove_subtitle(self, file_path):
-        ids = self.lib_obj.search_id("external_subtitle", quote_uri(file_path))
-        for (id,) in ids:
-            log.debug('library: removing external subtitle %s from db' % file_path)
-            self.lib_obj.set_media_infos(id, {"external_subtitle": ""})
-            self.dispatch_mupdate(id, 'update')
 
 
 # vim: ts=4 sw=4 expandtab

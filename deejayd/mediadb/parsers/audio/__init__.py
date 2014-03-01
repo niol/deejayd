@@ -89,26 +89,40 @@ class AudioParserFactory(object):
 
         return file_obj
 
-    def inotify_parse(self, filepath):
+    def inotify_extra_parse(self, filepath):
         CoverParser().parse(filepath, self.library)
 
+    def inotify_extra_remove(self, filepath):
+        CoverParser().remove(filepath, self.library)
 
 class CoverParser(object):
     cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg", \
                   "cover.png", "folder.png", ".folder.png", \
                   "albumart.jpg", "albumart.png")
 
-    def parse(self, file, library):
+    def remove(self, file, library):
         filename = os.path.basename(file)
         if filename in self.cover_name:
-            # try to find album related to this path
             lib_model = library.get_model()
             try:
                 dir_obj = lib_model.get_dir_with_path(os.path.dirname(file))
             except DeejaydError:
                 return
-            if len(dir_obj.get_files()) > 0:
-                pass
+            for file_obj in dir_obj.get_files():
+                file_obj.get_album().erase_cover()
+
+    def parse(self, file, library):
+        filename = os.path.basename(file)
+        if filename in self.cover_name:
+            lib_model = library.get_model()
+            try:
+                dir_obj = lib_model.get_dir_with_path(os.path.dirname(file))
+            except DeejaydError:
+                return
+
+            mimetype = mimetypes.guess_type(file)
+            for file_obj in dir_obj.get_files():
+                file_obj.get_album().update_cover(file, mimetype[0])
 
     def find_cover(self, dir):
         cover, mimetype = None, None
