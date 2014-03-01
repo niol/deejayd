@@ -92,9 +92,9 @@ class VideoParserFactory(object):
         for ext_type in self.subtitle_ext:
             if os.path.isfile(os.path.join(base_path + ext_type)):
                 sub = quote_uri(base_path + ext_type)
-                file_obj["external_subtitle"] = sub
                 break
 
+        file_obj["external_subtitle"] = sub
         return file_obj
 
     def inotify_parse(self, filepath):
