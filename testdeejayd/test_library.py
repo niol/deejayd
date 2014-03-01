@@ -119,7 +119,7 @@ class _VerifyDeejayLibrary(object):
             realFile = self.testdata.getMedia(filePath)
 
         for tag in self.tested_tags:
-            self.assert_(realFile[tag] == inDBfile[tag],
+            self.assert_(unicode(realFile[tag]) == unicode(inDBfile[tag]),
                 "tag %s for %s different between DB and reality %s != %s" % \
                 (tag, realFile["filename"], realFile[tag], inDBfile[tag]))
 
