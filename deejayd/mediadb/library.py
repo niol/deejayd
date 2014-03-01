@@ -284,6 +284,8 @@ class _Library(SignalingComponent, JSONRpcComponent):
                 if file_obj is None:
                     continue
                 file_obj["lastmodified"] = int(time.time())
+            else:
+                self.parser.extra_parse(file_obj)
             parsed_files.append(file_obj)
 
         return parsed_files

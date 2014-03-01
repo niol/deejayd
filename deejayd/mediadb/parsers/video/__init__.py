@@ -82,6 +82,10 @@ class VideoParserFactory(object):
             "subtitle_channels": len(infos["subtitles"]),
         })
 
+        return self.extra_parse(file_obj)
+
+    def extra_parse(self, file_obj):
+        path = file_obj.get_path()
         # find external subtitle
         base_path = os.path.splitext(path)[0]
         sub = ""

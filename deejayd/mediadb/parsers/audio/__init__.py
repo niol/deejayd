@@ -65,18 +65,25 @@ class AudioParserFactory(object):
             if k not in ("album", "cover"):
                 file_obj[k] = infos[k]
 
-        # find cover
-        cover = CoverParser().find_cover(os.path.dirname(path))
-        if cover is not None:
-            need_update = os.stat(cover["path"]).st_mtime > album["cover_lmod"]
-            if need_update:
-                album.update_cover(cover["path"], cover["mimetype"])
-        elif "cover" in infos:
+        if "cover" in infos:
             tmp_path = os.path.join("/tmp", "djd_tmp_cover")
             with open(tmp_path, "w") as f:
                 f.write(infos["cover"]["data"])
             album.update_cover(tmp_path, infos["cover"]["mimetype"])
             os.unlink(tmp_path)
+            return file_obj
+        return self.extra_parse(file_obj, album)
+
+    def extra_parse(self, file_obj, album=None):
+        path = file_obj.get_path()
+        # find cover
+        cover = CoverParser().find_cover(os.path.dirname(path))
+        if cover is not None:
+            if album is None:
+                album = file_obj.get_album()
+            need_update = os.stat(cover["path"]).st_mtime > album["cover_lmod"]
+            if need_update:
+                album.update_cover(cover["path"], cover["mimetype"])
 
         return file_obj
 

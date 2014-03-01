@@ -143,6 +143,7 @@ class _MediaItem(MutableMapping):
             mediadb_mupdate.send(sender=self, media_id=self.db_id,
                                  type="update")
 
+        self.dirty_keys = []
         return self.db_id
 
 
@@ -178,6 +179,7 @@ class AudioItem(_MediaItem):
 
     def set_album(self, album):
         self.album = album
+        self.dirty_keys.append('album_id')
         self.data["album_id"] = album["id"]
 
     def __getitem__(self, key):
