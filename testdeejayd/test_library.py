@@ -20,6 +20,7 @@
 Deejayd DB testing module
 """
 import os, time, traceback
+import base64
 from testdeejayd import TestCaseWithDeejaydCore, unittest
 from deejayd.utils import str_decode
 from deejayd.mediadb import inotify
@@ -148,11 +149,11 @@ class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
             cover = fd.read()
             fd.close()
 
-            try: inDBCover = self.library.get_cover(inDBfile["media_id"])
-            except NotFoundException:
+            inDBCover = self.library.get_cover(inDBfile["album_id"])
+            if inDBCover is None:
                 self.assertTrue(False, "cover %s exists but not found in db"\
                                 % cover_path)
-            self.assertEqual(cover, inDBCover["cover"])
+            self.assertEqual(base64.b64encode(cover), inDBCover)
 
 class VerifyDeejayVideoLibrary(_VerifyDeejayLibrary):
     library_type = "video"
@@ -222,6 +223,10 @@ class TestAudioLibrary(TestCaseWithDeejaydCore, \
         cls.library = getattr(cls.deejayd, cls.library_type + "lib")
         cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
 
+    @classmethod
+    def tearDownClass(cls):
+        super(TestAudioLibrary, cls).tearDownClass()
+
     def testChangeTag(self):
         """Tag value change detected by audio library"""
         self.testdata.changeMediaTags()
@@ -233,7 +238,7 @@ class TestAudioLibrary(TestCaseWithDeejaydCore, \
         self.verifyMediaDBContent()
 
     def testRemoveCover(self):
-        """Add cover in audio library"""
+        """Remove cover in audio library"""
         self.testdata.remove_cover()
         self.verifyMediaDBContent()
 
@@ -246,6 +251,10 @@ class TestVideoLibrary(TestCaseWithDeejaydCore, \
         super(TestVideoLibrary, cls).setUpClass()
         cls.library = getattr(cls.deejayd, cls.library_type + "lib")
         cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestVideoLibrary, cls).tearDownClass()
 
     def testAddSubtitle(self):
         """Add a subtitle file in library"""
@@ -299,6 +308,10 @@ class TestInotifyVideoLibrary(TestCaseWithDeejaydCore, \
         cls.library = getattr(cls.deejayd, cls.library_type + "lib")
         cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
 
+    @classmethod
+    def tearDownClass(cls):
+        super(TestInotifyVideoLibrary, cls).tearDownClass()
+
     def tearDown(self):
         self.library.update(sync=True)
 
@@ -324,6 +337,10 @@ class TestInotifyAudioLibrary(TestCaseWithDeejaydCore, \
         super(TestInotifyAudioLibrary, cls).setUpClass()
         cls.library = getattr(cls.deejayd, cls.library_type + "lib")
         cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestInotifyAudioLibrary, cls).tearDownClass()
 
     def tearDown(self):
         self.library.update(sync=True)

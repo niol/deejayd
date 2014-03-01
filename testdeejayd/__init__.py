@@ -27,8 +27,6 @@ if python_version[0] < 3 and python_version[1] < 7:
 else:
     import unittest
 
-KAA_INITIALIZED = False
-
 from testdeejayd.utils.databuilder import TestData, TestAudioCollection, \
                                           TestVideoCollection
 import testdeejayd.utils.twreactor
@@ -39,6 +37,7 @@ from deejayd.ui.config import DeejaydConfig
 class _DeejaydTest(unittest.TestCase):
     media_backend = "gstreamer"
     dbfilename = None
+    coverdir = None
 
     @classmethod
     def setUpClass(cls):
@@ -55,9 +54,11 @@ class _DeejaydTest(unittest.TestCase):
         cls.config.read([custom_conf])
         cls.config.set("general", "media_backend", cls.media_backend)
 
-        cls.dbfilename = '/tmp/testdeejayddb-' + \
-                            cls.testdata.getRandomString() + '.db'
+        rnd_str = cls.testdata.getRandomString()
+        cls.dbfilename = '/tmp/testdeejayddb-' + rnd_str + '.db'
+        cls.coverdir = '/tmp/testdeejaydcovers-' + rnd_str
         cls.config.set('database', 'db_name', cls.dbfilename)
+        cls.config.set('mediadb', 'cover_directory', cls.coverdir)
 
         # disable all plugins for tests
         cls.config.set('general', 'enabled_plugins', '')
@@ -70,6 +71,10 @@ class _DeejaydTest(unittest.TestCase):
     def tearDownClass(cls):
         if cls.dbfilename is not None:  # Clean up temporary db file
             try: os.unlink(cls.dbfilename)
+            except OSError:
+                pass
+        if cls.coverdir is not None:  # Clean up temporary db file
+            try: shutil.rmtree(cls.coverdir)
             except OSError:
                 pass
 
@@ -127,17 +132,7 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
 
     @classmethod
     def setUpClass(cls):
-        global KAA_INITIALIZED
         super(TestCaseWithDeejaydCore, cls).setUpClass()
-
-        if cls.media_backend == "gstreamer" and not KAA_INITIALIZED:
-            import kaa
-            # use kaa mainloop (start when we instanciate DeejaydCore)
-            # to start glib main loop in an other thread (required by gstreamer)
-            kaa.main.select_notifier('generic')
-            kaa.gobject_set_threaded()
-            KAA_INITIALIZED = True
-
         if cls.inotify_support:
             testdeejayd.utils.twreactor.need_twisted_reactor()
 
@@ -150,10 +145,7 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
     @classmethod
     def tearDownClass(cls):
         if cls.is_running:
-            import kaa
             cls.deejayd.close()
-            # be sure that all kaa thread are stopped
-            kaa.main.stop()
         super(TestCaseWithDeejaydCore, cls).tearDownClass()
 
 

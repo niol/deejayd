@@ -456,8 +456,8 @@ class _TestMediaCollection(TestData):
     def removeDir(self):
         dirKey = self.getRandomElement(self.dirs.keys())
         dir = self.dirs[dirKey]
-        del self.dirs[dirKey]
         dir.remove()
+        del self.dirs[dirKey]
 
     def addDirLink(self):
         where = self.getRandomElement(self.dirs.values())
