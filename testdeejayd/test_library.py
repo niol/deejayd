@@ -134,6 +134,7 @@ class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
         (realFile, inDBfile) = super(VerifyDeejayAudioLibrary, self)\
                                             .verifyTag(filePath, inlink_path)
         # verify cover attribute
+        inDBCover = self.library.get_cover(inDBfile["album_id"])
         dirname = os.path.dirname(realFile.get_path())
         cover_path = os.path.join(dirname, "cover.jpg")
         if os.path.isfile(cover_path):
@@ -149,11 +150,15 @@ class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
             cover = fd.read()
             fd.close()
 
-            inDBCover = self.library.get_cover(inDBfile["album_id"])
             if inDBCover is None:
                 self.assertTrue(False, "cover %s exists but not found in db"\
                                 % cover_path)
             self.assertEqual(base64.b64encode(cover), inDBCover)
+        else:
+            if inDBCover is not None:
+                self.assertTrue(False, \
+                                "cover for %s exists in DB but not in the real library" \
+                                % filePath)
 
 class VerifyDeejayVideoLibrary(_VerifyDeejayLibrary):
     library_type = "video"

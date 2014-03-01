@@ -194,6 +194,13 @@ class _Library(object):
         query.order_by_tag(tag)
         return query.execute()
 
+    # function used only for inotify support
+    def get_all_dirs(self):
+        return SimpleSelect(DIR_TABLE) \
+                    .select_column("id", "name") \
+                    .append_where("lib_type = %s", self.TYPE) \
+                    .execute(expected_result="fetchall")
+
     def search(self, ft, orders=[], limit=None):
         query = self._build_library_query(attrs=["id"], map_media=False)
         ft.restrict(query)

@@ -360,13 +360,13 @@ class _Library(SignalingComponent, JSONRpcComponent):
 
         # Compute list of paths to avoid in case of symlink loop : paths in db
         # except paths and children crawled or updated here
-        indb_dirs = self.lib_obj.get_all_dirs('')
+        indb_dirs = self.lib_obj.get_all_dirs()
         indb_realpaths = []
         for d_id, d in indb_dirs:
             if not pathutils.is_subdir_of(dir_path, d):
                 indb_realpaths.append(os.path.realpath(d))
 
-        dcb = lambda file_path: self.add_directory(*os.path.split(file_path))
+        dcb = lambda dir_path: self.add_directory(*os.path.split(dir_path))
         fcb = lambda file_path: self.update_file(*os.path.split(file_path))
         pathutils.walk_and_do(dir_path, indb_realpaths, dcb, fcb)
 
