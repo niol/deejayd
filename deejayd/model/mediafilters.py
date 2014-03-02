@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd import DeejaydError
+from deejayd.jsonrpc import json
 from deejayd.database.querybuilders import EditRecordQuery, SimpleSelect
 from deejayd.database.querybuilders import DeleteQuery, ReplaceQuery
 from deejayd.database.connection import DatabaseConnection
@@ -126,6 +127,10 @@ class MediaFilter(object):
 
     def to_json(self):
         raise NotImplementedError
+
+    def to_json_str(self):
+        obj = self.to_json()
+        return json.dumps(obj)
 
     def _get_table(self, tag, query):
         return tag == "album" and "album" or query.table_name

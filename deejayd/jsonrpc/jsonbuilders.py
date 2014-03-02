@@ -91,15 +91,17 @@ class JSONRPCResponse(_DeejaydJSON):
 #
 class DeejaydJSONSignal(_DeejaydJSON):
 
-    def __init__(self, signal):
-        self.name = signal is not None and signal.get_name() or ""
-        self.attrs = signal is not None and signal.get_attrs() or {}
-
-    def set_name(self, name):
-        self.name = name
+    def __init__(self, signal_name, attrs):
+        self.name = signal_name
+        self.attrs = attrs
 
     def _build_obj(self):
-        return {"type": "signal", \
-                "answer": {"name": self.name, "attrs": self.attrs}}
+        return {
+            "type": "signal",
+            "answer": {
+                "name": self.name,
+                "attrs": self.attrs,
+                }
+        }
 
 # vim: ts=4 sw=4 expandtab

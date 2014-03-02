@@ -77,7 +77,7 @@ class _DeejaydTest(unittest.TestCase):
         if cls.coverdir is not None:  # Clean up temporary db file
             try: shutil.rmtree(cls.coverdir)
             except (OSError, IOError), ex:
-                raise ex
+                pass
             cls.coverdir = None
         cls.config.destroy()
 

@@ -169,14 +169,8 @@ class DeejaydFactory(protocol.ServerFactory):
         def receiver(signal=None, sender=None, **kwargs):
             interested_clients = self.signaled_clients[signal_name]
             if len(interested_clients) > 0:
-                j_sig = {
-                    "type": "signal",
-                    "answer": {
-                        "name": signal_name,
-                        "attrs": kwargs,
-                    }
-                }
-                ans = JSONRPCResponse(j_sig, None).to_json()
+                j_sig = DeejaydJSONSignal(signal_name, kwargs)
+                ans = JSONRPCResponse(j_sig.dump(), None).to_json()
                 for client in interested_clients:
                     reactor.callFromThread(client.send_buffer,\
                             ans+client.delimiter)

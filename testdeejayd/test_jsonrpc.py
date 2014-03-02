@@ -20,10 +20,9 @@
 
 import re
 from testdeejayd import TestCaseWithData
-from deejayd import DeejaydSignal
-from deejayd.mediafilters import *
+from deejayd.model.mediafilters import *
 from deejayd.jsonrpc.jsonbuilders import JSONRPCRequest, JSONRPCResponse,\
-                                     Get_json_filter, DeejaydJSONSignal
+                                        DeejaydJSONSignal
 
 def trim_json(json):
     return re.sub('(\s{2,})|(\\n)',' ', json)
@@ -65,17 +64,16 @@ class TestJSONRPCBuilders(TestCaseWithData):
                                             "id": "higher",
                                             "value": {"pattern": "4",
                                                       "tag": "Rating"}}]}]}"""
-        f = Get_json_filter(filter)
-        self.assertEqual(trim_json(f.to_json()), trim_json(expected_answer))
+        self.assertEqual(trim_json(filter.to_json_str()), \
+                         trim_json(expected_answer))
 
     def test_signal_builder(self):
         """ test JSON-RPC Signal building """
-        signal = DeejaydSignal("signal_name", {"attr1": "value1", "attr2": 22})
         expected_answer = """{"answer":
             {"name": "signal_name",
              "attrs": {"attr2": 22, "attr1": "value1"}},
             "type": "signal"}"""
-        s = DeejaydJSONSignal(signal)
+        s = DeejaydJSONSignal("signal_name", {"attr1": "value1", "attr2": 22})
         self.assertEqual(trim_json(s.to_json()), trim_json(expected_answer))
 
 # vim: ts=4 sw=4 expandtab
