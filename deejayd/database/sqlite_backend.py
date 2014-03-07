@@ -38,7 +38,7 @@ def str_adapter(data):
 class SQLiteCursorWrapper(sqlite.Cursor):
 
     def execute(self, query, params=()):
-        # print "execute query %s - %s" % (query, params)
+        #print "execute query %s - %s" % (query, params)
         query = self.convert_query(query, len(params))
         rs = sqlite.Cursor.execute(self, query, params)
         return rs

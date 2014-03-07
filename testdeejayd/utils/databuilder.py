@@ -370,7 +370,7 @@ class _TestMediaCollection(TestData):
 
         self.dir_struct_written = True
 
-    def get_song_paths(self):
+    def get_media_paths(self):
         song_paths = []
         for dirname in self.dirs.keys():
             for m in self.dirs[dirname].medias:
@@ -412,10 +412,10 @@ class _TestMediaCollection(TestData):
     def getDirs(self):
         return self.dirs.values()
 
-    def getRandomSongPaths(self, howMuch=1):
+    def getRandomMediaPaths(self, howMuch=1):
         """Returns the path of a random song in provided music"""
         random.seed(time.time())
-        return random.sample(self.get_song_paths(), howMuch)
+        return random.sample(self.get_media_paths(), howMuch)
 
     def addMedia(self):
         dir = self.getRandomElement(self.dirs.values())

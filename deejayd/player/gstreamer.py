@@ -22,7 +22,8 @@ from twisted.internet import reactor
 # gstreamer >= 1.0 import
 import gi
 gi.require_version('Gst', '1.0')
-from gi.repository import GObject, GLib, Gst, GstVideo
+#from gi.repository import GObject, GLib, Gst, GstVideo
+from gi.repository import GObject, GLib, Gst
 GObject.threads_init()
 Gst.init(None)
 
@@ -149,7 +150,8 @@ class GstreamerPlayer(_BasePlayer):
 
         # Open a Video pipeline if video support enabled
         # [<-> Ghospad -> textoverlay (for OSD support) -> video sink]
-        if self._current_is_video():
+        if self._current_is_video() and\
+                        self.__gst_options["video_p"] != "fakesink":
             try: video_sink = Gst.parse_launch(self.__gst_options["video_p"])
             except GObject.GError, err:
                 self.__destroy_pipeline()
@@ -161,17 +163,16 @@ class GstreamerPlayer(_BasePlayer):
                 except x11.X11Error:
                     raise PlayerError(_("Unable to open video display"))
 
-            if self.__gst_options["video_p"] != "fakesink":
-                try: open_display(self._video_options["display"])
-                except PlayerError, ex:  # try to get display with env var
-                    try: open_display(os.environ["DISPLAY"])
-                    except (PlayerError, KeyError):
-                        self.__destroy_pipeline()
-                        raise ex
+            try: open_display(self._video_options["display"])
+            except PlayerError, ex:  # try to get display with env var
+                try: open_display(os.environ["DISPLAY"])
+                except (PlayerError, KeyError):
+                    self.__destroy_pipeline()
+                    raise ex
 
-                bus.enable_sync_message_emission()
-                self.__bus_video_id = bus.connect('sync-message::element', \
-                                                  self.__sync_message)
+            bus.enable_sync_message_emission()
+            self.__bus_video_id = bus.connect('sync-message::element', \
+                                              self.__sync_message)
 
             bufbin = Gst.Bin()
             self.__osd = Gst.ElementFactory.make('textoverlay', None)
@@ -309,7 +310,7 @@ class GstreamerPlayer(_BasePlayer):
         self.dispatch_signame('player.current')
 
     def _set_volume(self, vol, sig=True):
-        if self.bin is not None:
+        if self.__vol_element is not None:
             v = float(vol) / 100
             self.__vol_element.set_property('volume', v)
 
@@ -346,16 +347,16 @@ class GstreamerPlayer(_BasePlayer):
         timeout = 5
 
         while state_ret == Gst.StateChangeReturn.ASYNC and timeout > 0:
-            state_ret, state, pending_state = self.bin.get_state(1 * SECOND)
-            timeout -= 1
+           state_ret, state, pending_state = self.bin.get_state(timeout=1*SECOND)
+           timeout -= 1
 
-            if state_ret != Gst.StateChangeReturn.SUCCESS:
-                raise PlayerError(_("Unable to change gstreamer state"))
+        if state_ret != Gst.StateChangeReturn.SUCCESS:
+           raise PlayerError(_("Unable to change gstreamer state"))
 
 
     def __get_gst_state(self):
         # changestatus,state,_state
-        return self.bin.get_state(1 * SECOND)[1]
+        return self.bin.get_state(timeout=1*SECOND)[1]
 
     def __sync_message(self, bus, message):
         structure = message.get_structure()
@@ -417,6 +418,23 @@ class GstreamerPlayer(_BasePlayer):
         elif message.type == Gst.MessageType.STREAM_START:
             if self.__in_gapless_transition:
                 self._end()
+        # elif message.type == Gst.MessageType.ELEMENT:
+        #     structure = message.get_structure()
+        #     if structure is None:
+        #         return
+        #     message_name = structure.get_name()
+        #     if message_name == 'prepare-window-handle':
+        #         if self.__window is None:
+        #             if self._video_options["fullscreen"]:
+        #                 self.__window = x11.X11Window(self.__display, \
+        #                                               fullscreen=True)
+        #             else:
+        #                 self.__window = x11.X11Window(self.__display, \
+        #                                               width=400, height=200)
+        #
+        #         imagesink = message.src
+        #         imagesink.set_property("force-aspect-ratio", "true")
+        #         imagesink.set_window_handle(self.__window.window_p())
 
         return True
 

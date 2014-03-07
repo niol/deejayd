@@ -167,7 +167,9 @@ class BasicFilter(MediaFilter):
     def restrict(self, query):
         query.join_on_tag(self.tag)
         where_str, arg = self._match_tag(self._get_table(self.tag, query))
-        query.append_where(where_str, (arg,))
+        if not isinstance(arg, list):
+            arg = (arg,)
+        query.append_where(where_str, arg)
 
     def _match_tag(self, table):
         raise NotImplementedError
@@ -245,8 +247,16 @@ class Lower(BasicFilter):
 
 class In(BasicFilter):
     repr_str = "(%s in (%s))"
+
+    def __init__(self, tag, pattern, db_id=None):
+        if isinstance(pattern, list):
+            pattern = ",".join(map(str, pattern))
+        super(In, self).__init__(tag, pattern, db_id=db_id)
+
     def _match_tag(self, table):
-        return "(%s.%s IN (%%s))" % (table, self.tag), self.pattern
+        keys = self.pattern.split(",")
+        q = ",".join(map(lambda k: "%s", keys))
+        return "(%s.%s IN (%s))" % (table, self.tag, q), keys
 
 BASIC_FILTERS = (
                   Equals,

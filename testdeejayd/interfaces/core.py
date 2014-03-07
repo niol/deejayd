@@ -25,30 +25,6 @@ class CoreInterfaceTests(_TestInterfaces):
         """Test ping command"""
         self.assertAckCmd(self.deejayd.ping())
 
-    def testSetMode(self):
-        """Test setMode command"""
-        # ask an unknown mode
-        mode_name = self.testdata.getRandomString()
-        self.assertRaises(DeejaydError, self.deejayd.set_mode, mode_name)
-
-        # ask for known modes
-        known_modes = ['playlist', 'panel', 'webradio']
-        if self.hasVideoSupport():
-            known_modes.append('video')
-        for known_mode in known_modes:
-            self.assertAckCmd(self.deejayd.set_mode(known_mode))
-
-            # Test if the mode has been set
-            self.assertEqual(self.deejayd.get_status()['mode'], known_mode)
-
-    def testGetModes(self):
-        """Test getModes command"""
-        known_keys = ("playlist", "panel", "webradio", "video")
-        ans = self.deejayd.get_modes()
-        for k in known_keys:
-            self.assertTrue(k in ans.keys())
-            self.assertTrue(ans[k] in (True, False))
-
     def testGetStats(self):
         """Test getStats command"""
         ans = self.deejayd.get_stats()
@@ -62,41 +38,29 @@ class CoreInterfaceTests(_TestInterfaces):
         """Test getStatus command"""
         ans = self.deejayd.get_status()
         keys = [
-            "playlist",
-            "playlistrepeat",
-            "playlistplayorder",
-            "playlistlength",
-            "playlisttimelength",
-            "panel",
-            "panelrepeat",
-            "panelplayorder",
-            "panellength",
-            "paneltimelength",
-            "queue",
-            "queueplayorder",
-            "queuelength",
-            "queuetimelength",
-            "webradio",
-            "webradiosourcecat",
-            "webradiosource",
+            "audiopls_id",
+            "audiopls_repeat",
+            "audiopls_playorder",
+            "audiopls_length",
+            "audiopls_timelength",
+            "audioqueue_id",
+            "audioqueue_playorder",
+            "audioqueue_length",
+            "audioqueue_timelength",
             "state",
-            "mode",
             "volume",
         ]
         if self.hasVideoSupport():
             keys.extend([\
-                "video",
-                "videorepeat",
-                "videoplayorder",
-                "videolength",
-                "videotimelength",
+                "videopls_id",
+                "videopls_repeat",
+                "videopls_playorder",
+                "videopls_length",
+                "videopls_timelength",
             ])
-        known_modes = ("playlist", "panel", "dvd", "webradio", "video")
         for k in keys:
             self.assertTrue(k in ans.keys())
-            if k == "mode":
-                self.assertTrue(ans[k] in known_modes)
-            elif k == "state":
+            if k == "state":
                 self.assertTrue(ans[k] in ('stop', 'play', 'pause'))
 
     def testGetServerInfo(self):
@@ -106,51 +70,6 @@ class CoreInterfaceTests(_TestInterfaces):
         for k in keys:
             self.assertTrue(k in ans.keys())
 
-    def testSetOption(self):
-        """ Test set_option commands"""
-        # unknown option
-        rnd_opt = self.testdata.getRandomString()
-        self.assertRaises(DeejaydError, self.deejayd.set_option,
-                          "playlist", rnd_opt, 1)
-        self.assertRaises(DeejaydError, self.deejayd.set_option,
-                          rnd_opt, "repeat", True)
-        self.assertRaises(DeejaydError, self.deejayd.set_option,
-                          "webradio", "playorder", "inorder")
 
-
-        modes = ["playlist", "panel", "queue"]
-        if self.hasVideoSupport(): modes.append("video")
-        for mode in modes:
-            order = self.testdata.getRandomElement(("inorder", "random", \
-                    "onemedia"))
-            self.assertAckCmd(self.deejayd.set_option(mode, "playorder", order))
-            status = self.deejayd.get_status()
-            self.assertEqual(status[mode + "playorder"], order)
-            if mode != "queue":
-                rpt = self.testdata.getRandomElement((False, True))
-                self.assertAckCmd(self.deejayd.set_option(mode, "repeat", rpt))
-
-    def testSetRating(self):
-        """Test set_rating command"""
-        # wrong media id
-        random_id = self.testdata.getRandomInt(2000, 1000)
-        self.assertRaises(DeejaydError, self.deejayd.set_rating,
-                          [random_id], "2", "audio")
-
-        ans = self.deejayd.audiolib.get_dir_content()
-        files = ans["files"]
-        file_ids = [f["media_id"] for f in files]
-        # wrong rating
-        self.assertRaises(DeejaydError, self.deejayd.set_rating,
-                          file_ids, "9", "audio")
-        # wrong library
-        rand_lib = self.testdata.getRandomString()
-        self.assertRaises(DeejaydError, self.deejayd.set_rating,
-                          file_ids, "2", rand_lib)
-
-        self.assertAckCmd(self.deejayd.set_rating(file_ids, "4", "audio"))
-        ans = self.deejayd.audiolib.get_dir_content()
-        for f in ans["files"]:
-            self.assertEqual(4, int(f["rating"]))
 
 # vim: ts=4 sw=4 expandtab

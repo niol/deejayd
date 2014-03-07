@@ -24,39 +24,34 @@ from testdeejayd.interfaces import require_video_support, _TestInterfaces
 class PlayerInterfaceTests(_TestInterfaces):
 
     def __loadVideos(self):
-        video_obj = self.deejayd.video
+        video_obj = self.deejayd.videopls
         player = self.deejayd.player
-        # set video mode
-        self.deejayd.set_mode("video")
 
         # choose directory
         ans = self.deejayd.videolib.get_dir_content()
         dir = self.testdata.getRandomElement(ans["directories"])
-        video_obj.set(dir, "directory")
+        video_obj.load_folders([dir["id"]])
 
     def __loadSongs(self):
-        # set playlist mode
-        self.deejayd.set_mode("playlist")
-
-        djpl = self.deejayd.playlist
+        djpl = self.deejayd.audiopls
         ans = self.deejayd.audiolib.get_dir_content()
         dir = self.testdata.getRandomElement(ans["directories"])
-        djpl.add_path([dir])
+        djpl.load_folders([dir["id"]])
 
     def __getPlContent(self):
-        djpl = self.deejayd.playlist
-        return djpl.get()["medias"]
+        djpl = self.deejayd.audiopls
+        return djpl.get()
 
-    def __testPlayToggle(self):
-        self.deejayd.player.play_toggle()
+    def __testPlayToggle(self, pls="audiopls"):
+        self.deejayd.player.go_to(0, "pos", pls)
         # verify status
         time.sleep(0.2)
-        self.assertEqual(self.deejayd.get_status()["state"], "play")
+        self.assertEqual(self.deejayd.player.get_status()["state"], "play")
         # pause
         self.deejayd.player.play_toggle()
         # verify status
         time.sleep(0.2)
-        self.assertEqual(self.deejayd.get_status()["state"], "pause")
+        self.assertEqual(self.deejayd.player.get_status()["state"], "pause")
 
     def testPlayToggleAudio(self):
         """Test play_toggle command for songs"""
@@ -67,19 +62,19 @@ class PlayerInterfaceTests(_TestInterfaces):
     def testPlayToggleVideo(self):
         """Test play_toggle command for videos"""
         self.__loadVideos()
-        self.__testPlayToggle()
+        self.__testPlayToggle(pls="videopls")
 
     def testPlayStop(self):
         """Test play, pause and stop command"""
         self.__loadSongs()
         # test play command
-        self.deejayd.player.play_toggle()
-        self.assertEqual(self.deejayd.get_status()["state"], "play")
+        self.deejayd.player.go_to(0, "pos", "audiopls")
+        self.assertEqual(self.deejayd.player.get_status()["state"], "play")
 
         # test pause command
         time.sleep(0.1)
         self.deejayd.player.pause()
-        self.assertEqual(self.deejayd.get_status()["state"], "pause")
+        self.assertEqual(self.deejayd.player.get_status()["state"], "pause")
 
         # test stop command
         time.sleep(0.1)
@@ -96,24 +91,22 @@ class PlayerInterfaceTests(_TestInterfaces):
         songs = self.__getPlContent()
 
         # next command
-        self.deejayd.player.play_toggle()
+        self.deejayd.player.go_to(0, "pos", "audiopls")
         time.sleep(0.1)
         self.deejayd.player.next()
         time.sleep(0.1)
         current = self.deejayd.player.get_playing()
 
-        #is_song_equals(songs[1], current)
+        self.assertEqual(self.deejayd.get_status()["state"], "play")
+        is_song_equals(songs[1], current)
 
         # previous command
         time.sleep(0.1)
         self.deejayd.player.previous()
         time.sleep(0.1)
         current = self.deejayd.player.get_playing()
-        #is_song_equals(songs[0], current)
-
-        # verify that getPlaying raise an error when player is stopped
+        is_song_equals(songs[0], current)
         self.deejayd.player.stop()
-        self.assertRaises(DeejaydError, self.deejayd.player.get_playing)
 
     def testSetVolume(self):
         """Test setVolume command"""
@@ -126,17 +119,17 @@ class PlayerInterfaceTests(_TestInterfaces):
         # correct volume value
         vol = self.testdata.getRandomElement(range(0, 101))
         self.assertAckCmd(player.set_volume(vol))
-        status = self.deejayd.get_status()
+        status = self.deejayd.player.get_status()
         self.assertEqual(status["volume"], vol)
 
     def testSeek(self):
         """Test seek command"""
         self.__loadSongs()
-        self.deejayd.player.play_toggle()
+        self.deejayd.player.go_to(0, "pos", "audiopls")
         time.sleep(0.1)
         self.deejayd.player.seek(1)
 
-        status = self.deejayd.get_status()
+        status = self.deejayd.player.get_status()
         self.assertTrue(int(status["time"].split(":")[0]) >= 1)
 
     @require_video_support
@@ -152,7 +145,7 @@ class PlayerInterfaceTests(_TestInterfaces):
         """Test set_video_option command"""
         self.__loadVideos()
         player = self.deejayd.player
-        player.play()
+        self.deejayd.player.go_to(0, "pos", "videopls")
         time.sleep(0.1)
 
         # try a wrong option

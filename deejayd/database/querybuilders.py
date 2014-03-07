@@ -158,16 +158,22 @@ class LibrarySelectQuery(ComplexSelect):
         super(LibrarySelectQuery, self).__init__(media_table)
         self.limit = None
         self.__joined_tags = []
+        self.__join_on_dir = False
         self.libdir_table = libdir_table
 
     def set_limit(self, limit):
         self.limit = limit
         return self
 
+    def join_on_dir(self):
+        if not self.__join_on_dir:
+            join_d = "JOIN %(d)s %(d)s ON %(d)s.id = %(m)s.directory" \
+                     % {"d": self.libdir_table, "m": self.table_name}
+            self.joins.append(join_d)
+            self.__join_on_dir = True
+
     def select_dir(self):
-        join_d = "JOIN %(d)s %(d)s ON %(d)s.id = %(m)s.directory" \
-                 % {"d": self.libdir_table, "m": self.table_name}
-        self.joins.append(join_d)
+        self.join_on_dir()
         self.selects = map(lambda a: "%s.%s" % (self.libdir_table, a),
                            ("id", "name", "parent_id"))
 
@@ -191,6 +197,7 @@ class LibrarySelectQuery(ComplexSelect):
 
     def __str__(self):
         if not self.orders:
+            self.join_on_dir()
             self.orders = [self.libdir_table + ".name",
                            self.table_name + ".filename"]
         orders = 'ORDER BY ' + ', '.join(self.orders)

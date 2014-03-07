@@ -62,19 +62,22 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
 
         # add songs in a wrong playlist
         rand_id = self.testdata.getRandomInt(10000, 5000)
-        self.assertRaises(DeejaydError, recpls.static_add_media, rand_id, [])
+        self.assertRaises(DeejaydError, recpls.static_add_media_by_ids,
+                          rand_id, [])
 
         # add songs in the new playlist
-        howManySongs = 3
-        song_paths = self.test_audiodata.getRandomSongPaths(howManySongs)
-        self.assertAckCmd(recpls.static_add_media(pl_id, song_paths))
+        media_ids = []
+        for media_path in self.test_audiodata.getRandomMediaPaths(3):
+            (media,) = self.deejayd.audiolib.get_file(media_path)
+            media_ids.append(media["media_id"])
+        self.assertAckCmd(recpls.static_add_media_by_ids(pl_id, media_ids))
         content = recpls.get_content(pl_id)["medias"]
-        self.assertEqual(len(content), howManySongs)
+        self.assertEqual(len(content), 3)
 
         # remove song from the playlist
         self.assertAckCmd(recpls.static_remove_media(pl_id, (1,)))
         content = recpls.get_content(pl_id)["medias"]
-        self.assertEqual(len(content), howManySongs - 1)
+        self.assertEqual(len(content), 3 - 1)
 
         # clear playlist
         self.assertAckCmd(recpls.static_clear_media(pl_id))

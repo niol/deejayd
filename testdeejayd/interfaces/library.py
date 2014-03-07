@@ -71,7 +71,7 @@ class LibraryInterfaceTests(_TestInterfaces):
                 self.assertTrue(False, "media %s not found in the lib : %s" \
                                 % (path, str(testdata.medias.keys())))
             for tag in equ_item.supportedTag:
-                self.assertEqual(equ_item.tags[tag], m[tag],
+                self.assertEqual(unicode(equ_item.tags[tag]), unicode(m[tag]),
                                  "tag %s doesn't match for media %s" \
                                  % (tag, m["filename"]))
 
@@ -92,19 +92,17 @@ class LibraryInterfaceTests(_TestInterfaces):
         testdata = getattr(self, "test_" + library_type + "data")
 
         # search an unknown terms
-        text = testdata.getRandomString()
-        self.assertEqual(library.search(text), [])
-
-        # search with None pattern (that must raise an exception)
-        self.assertRaises(DeejaydError, library.search, None)
+        f = Equals("title", testdata.getRandomString())
+        self.assertEqual(library.search(f), [])
 
         # search with an unknown type
-        rand_type = testdata.getRandomString()
-        self.assertRaises(DeejaydError, library.search, text, rand_type)
+        #f = Equals(testdata.getRandomString(), testdata.getRandomString())
+        #self.assertRaises(DeejaydError, library.search, f)
 
         # search a known terms
         media = testdata.getRandomMedia()
-        ans = library.search(media["title"], "title")
+        f = Equals("title", media["title"])
+        ans = library.search(f)
         self.assertTrue(len(ans) > 0)
 
     def testLibraryAudioSearch(self):
@@ -116,6 +114,35 @@ class LibraryInterfaceTests(_TestInterfaces):
         """Test search command for video library"""
         self.__testLibrarySearch("video")
 
+    #
+    # Test setRating command
+    #
+    def __testLibrarySetRating(self, library_type):
+        library = getattr(self.deejayd, library_type + "lib")
+        testdata = getattr(self, "test_" + library_type + "data")
+
+        ans = library.get_dir_content()
+        dir = testdata.getRandomElement(ans["directories"])
+        ans = library.get_dir_content(dir["name"])
+        files = ans["files"]
+        file_ids = [f["media_id"] for f in files]
+        f = In("id", file_ids)
+        # wrong rating
+        self.assertRaises(DeejaydError, library.set_rating, f, "9")
+
+        self.assertAckCmd(library.set_rating(f, "4"))
+        ans = library.get_dir_content(dir["name"])
+        for f in ans["files"]:
+            self.assertEqual(4, int(f["rating"]))
+
+    @require_video_support
+    def testLibraryVideoSetRating(self):
+        """Test setRating command for video library"""
+        self.__testLibrarySetRating("video")
+
+    def testLibraryAudioSetRating(self):
+        """Test setRating command for audio library"""
+        self.__testLibrarySetRating("audio")
     #
     # Test tagList command
     #

@@ -136,9 +136,8 @@ class _BaseLibrarySource(_BaseSource):
         self.dispatch_signame(self.source_signal)
 
     def add_media_by_ids(self, media_ids, queue=True):
-        medias = []
-        try: medias += self.library.get_file_withids(media_ids)
-        except NotFoundException:
+        medias = self.library.get_file_withids(media_ids)
+        if len(medias) < len(media_ids):
             raise SourceError(_("One of these media ids %s not found") % \
                               ",".join(map(str, media_ids)))
         self._load_medias(medias, queue)
@@ -167,7 +166,7 @@ class _BaseLibrarySource(_BaseSource):
         status.append(("playorder", self._playorder.name))
         if self.has_repeat:
             status.append(("repeat", self._media_list.repeat))
-        return status
+        return dict(status)
 
     def move(self, ids, new_pos):
         if not self._media_list.move(ids, new_pos):

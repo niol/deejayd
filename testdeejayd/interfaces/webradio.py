@@ -25,23 +25,18 @@ class WebradioInterfaceTests(_TestInterfaces):
         """Test webradio commands related to source management"""
         wr_list = self.deejayd.webradio
         
-        av_sources = ["local"]
+        av_sources = [{
+            "name": "local",
+            "editable": True,
+        }]
         plugins = self.config.getlist("general", "enabled_plugins")
         if "icecast" in plugins:
-            av_sources.append("icecast")
-        sources = dict(wr_list.get_available_sources())
-        self.assertEqual(av_sources, sources.keys())    
-        
-        # try to set wrong source
-        self.assertRaises(DeejaydError,
-                          wr_list.set_source, self.testdata.getRandomString())
-        # set a source
-        source = self.testdata.getRandomElement(sources.keys())
-        self.assertAckCmd(wr_list.set_source(source))
-        # verify
-        status = self.deejayd.get_status()
-        self.assertEqual(source, status["webradiosource"])
-        
+            av_sources.append({
+                "name": "icecast",
+                "editable": False
+            })
+        self.assertEqual(av_sources, wr_list.get_available_sources())
+
     def testWebradioCategories(self):
         """Test webradio commands related to category management"""
         pass
@@ -49,8 +44,7 @@ class WebradioInterfaceTests(_TestInterfaces):
     def testWebradioManagement(self):
         """Test webradio commands related to webradio management"""
         wr_list = self.deejayd.webradio
-        self.assertAckCmd(wr_list.set_source("local"))
-        
+
         # Test for bad URI and inexistant playlist
         for badURI in [[self.testdata.getRandomString(50)],\
                    ['http://' + self.testdata.getRandomString(50) + '.pls']]:
@@ -66,9 +60,10 @@ class WebradioInterfaceTests(_TestInterfaces):
                                                       testWrName, testWrUrls))
 
         # verify recorded webradios
-        wr_names = [wr['title'] for wr in wr_list.get()["medias"]]
+        webradios = wr_list.get_source_content("local")
+        wr_names = [wr['title'] for wr in webradios]
         self.assertTrue(testWrName in wr_names)
-        retrievedWr = [wr for wr in wr_list.get()["medias"]\
+        retrievedWr = [wr for wr in webradios\
                           if wr['title'] == testWrName][0]
         for url in testWrUrls:
             self.assertTrue(url in retrievedWr['urls'])

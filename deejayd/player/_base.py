@@ -347,7 +347,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
                     length = int(self._media_file["length"])
                 status.extend([ ("time", "%d:%d" % (position, length)) ])
 
-        return status
+        return dict(status)
 
     def close(self):
         # close plugins
@@ -407,13 +407,11 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
                 self._media_file["audio_idx"] = self._player_get_alang()
             else:
                 self._player_set_alang(-1)  # auto audio channel
+            self._media_file["sub_offset"] = 0
             if "subtitle" in self._media_file:
-                self._media_file["sub_offset"] = 0
                 self._media_file["subtitle_idx"] = self._player_get_slang()
             else:
                 self._player_set_slang(-1)  # auto subtitle channel
-                try: del self._media_file["sub_offset"]
-                except KeyError: pass
 
             # set video aspect ration to default value
             try:

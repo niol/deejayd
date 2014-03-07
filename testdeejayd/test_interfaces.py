@@ -25,28 +25,26 @@ from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, \
 from testdeejayd.interfaces.core import CoreInterfaceTests
 from testdeejayd.interfaces.library import LibraryInterfaceTests
 from testdeejayd.interfaces.player import PlayerInterfaceTests
-from testdeejayd.interfaces.queue import QueueInterfaceTests
-from testdeejayd.interfaces.playlist import PlaylistInterfaceTests
+from testdeejayd.interfaces.playlist import AudioPlaylistInterfaceTests
+from testdeejayd.interfaces.playlist import AudioQueueInterfaceTests
+from testdeejayd.interfaces.playlist import VideoPlaylistInterfaceTests
 from testdeejayd.interfaces.recorded_playlist import RecordedPlaylistInterfaceTests
-from testdeejayd.interfaces.video import VideoInterfaceTests
-from testdeejayd.interfaces.panel import PanelInterfaceTests
 from testdeejayd.interfaces.webradio import WebradioInterfaceTests
 from testdeejayd.interfaces.signals import SignalsInterfaceTests
 
 
 class TestCore(TestCaseWithDeejaydCore, CoreInterfaceTests, \
                LibraryInterfaceTests, PlayerInterfaceTests,\
-               QueueInterfaceTests, PlaylistInterfaceTests,\
-               RecordedPlaylistInterfaceTests, VideoInterfaceTests,\
-               PanelInterfaceTests, WebradioInterfaceTests):
+               AudioQueueInterfaceTests, AudioPlaylistInterfaceTests,\
+               RecordedPlaylistInterfaceTests, VideoPlaylistInterfaceTests,\
+               WebradioInterfaceTests):
     """Test the deejayd daemon core."""
 
     def tearDown(self):
         self.deejayd.player.stop()
-        self.deejayd.queue.clear()
-        self.deejayd.playlist.clear()
-        self.deejayd.panel.set_active_list("panel")
-        self.deejayd.panel.clear_all_filters()
+        self.deejayd.audioqueue.clear()
+        self.deejayd.audiopls.clear()
+        self.deejayd.videopls.clear()
         # remove recorded playlist
         pl_list = self.deejayd.recpls.get_list()
         self.deejayd.recpls.erase([pl["pl_id"] for pl in pl_list])
@@ -73,9 +71,9 @@ class TestHTTPClient(TestCaseWithServer, CoreInterfaceTests):
 
 class TestSyncClient(TestCaseWithServer, CoreInterfaceTests, \
                LibraryInterfaceTests, PlayerInterfaceTests,\
-               QueueInterfaceTests, PlaylistInterfaceTests,\
-               RecordedPlaylistInterfaceTests, VideoInterfaceTests,\
-               PanelInterfaceTests, WebradioInterfaceTests):
+               AudioQueueInterfaceTests, AudioPlaylistInterfaceTests,\
+               RecordedPlaylistInterfaceTests, VideoPlaylistInterfaceTests,\
+               WebradioInterfaceTests):
     """Test the DeejaydClient library in synchronous mode."""
 
     def assertAckCmd(self, cmd_res):
@@ -95,10 +93,9 @@ class TestSyncClient(TestCaseWithServer, CoreInterfaceTests, \
     
     def tearDown(self):
         self.deejayd.player.stop()
-        self.deejayd.queue.clear()
-        self.deejayd.playlist.clear()
-        self.deejayd.panel.set_active_list("panel")
-        self.deejayd.panel.clear_all_filters()
+        self.deejayd.audioqueue.clear()
+        self.deejayd.audiopls.clear()
+        self.deejayd.videopls.clear()
         # remove recorded playlist
         pl_list = self.deejayd.recpls.get_list()
         self.deejayd.recpls.erase([pl["pl_id"] for pl in pl_list])
@@ -127,10 +124,9 @@ class TestAsyncClient(TestCaseWithServer, SignalsInterfaceTests):
     
     def tearDown(self):
         self.deejayd.player.stop().wait_for_answer()
-        self.deejayd.queue.clear().wait_for_answer()
-        self.deejayd.playlist.clear().wait_for_answer()
-        self.deejayd.panel.set_active_list("panel").wait_for_answer()
-        self.deejayd.panel.clear_all_filters().wait_for_answer()
+        self.deejayd.audioqueue.clear().wait_for_answer()
+        self.deejayd.audiopls.clear().wait_for_answer()
+        self.deejayd.videopls.clear().wait_for_answer()
         # remove recorded playlist
         pl_list = self.deejayd.recpls.get_list().wait_for_answer()
         self.deejayd.recpls.erase([pl["pl_id"] for pl in pl_list]).wait_for_answer()

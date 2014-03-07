@@ -146,9 +146,9 @@ class _Library(SignalingComponent, JSONRpcComponent):
             raise DeejaydError(_("Bad rating value"))
 
         medias = self.lib_obj.search(mfilter)
-        for m in medias:
-            m["rating"] = rating
-            m.save()
+        map(lambda m: m.set_rating(rating), medias)
+        # record changes in the filesystem
+        DatabaseConnection().commit()
 
     def get_root_path(self):
         return self._path
@@ -161,7 +161,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
             status.append((self.type + "_updating_error", self._update_error))
             self._update_error = None
 
-        return status
+        return dict(status)
 
     def close(self):
         getattr(LibraryFactory(), "close_%s_library" % self.type)()

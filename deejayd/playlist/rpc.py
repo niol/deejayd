@@ -35,7 +35,7 @@ def load_playlist(type):
             pls.save()
 
             if rs is None:
-                self.dispatch_signame('recpls.update', {"pl_id": pl_id})
+                self.dispatch_signame('recpls.update', pl_id=pl_id)
             return rs
 
         return load_playlist_func
@@ -90,19 +90,8 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
         if pl_ids: self.dispatch_signame('recpls.listupdate')
 
     @load_playlist("static")
-    def static_add_media(self, pls, values, type="path"):
-        if type == "path":
-            all_medias = []
-            for path in values:
-                try: medias = self.library.get_all_files(path)
-                except deejayd.mediadb.library.NotFoundException:
-                    try: medias = self.library.get_file(path)
-                    except deejayd.mediadb.library.NotFoundException:
-                        raise DeejaydError(_('Path %s not found in library')\
-                                % path)
-                all_medias += medias
-        elif type == "id":
-            all_medias = self.library.get_file_withids(values)
+    def static_add_media_by_ids(self, pls, values):
+        all_medias = self.library.get_file_withids(values)
         pls.add(all_medias)
 
     @load_playlist("static")

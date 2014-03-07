@@ -187,7 +187,7 @@ class _Library(object):
 
     def get_files_with_ids(self, file_ids):
         return [self.loaded_files[int(id)] for id in file_ids if int(id)\
-                in  self.loaded_files]
+                in self.loaded_files]
 
     def list_tags(self, tag, ft):
         query = self._build_library_query(attrs=(tag,), map_media=False)
@@ -210,6 +210,7 @@ class _Library(object):
             descending = direction == "descending"
             query.order_by_tag(tag, descending=descending)
         query.set_limit(limit)
+
         return [self.loaded_files[m[0]] for m in query.execute()]
 
     def clean_library(self, path, dir_ids, file_ids):

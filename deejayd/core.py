@@ -121,20 +121,28 @@ class DeejayDaemonCore(JSONRpcComponent):
 
     def get_status(self):
         status = self.player.get_status()
-        status.extend(self.sources.get_status())
-        status.extend(self.audiolib.get_status())
+
+        def update_status(s, prefix=""):
+            for k in s:
+                status[prefix+"_"+k] = s[k]
+
+        status.update(self.audiolib.get_status())
+        update_status(self.audiopls.get_status(), "audiopls")
+        update_status(self.audioqueue.get_status(), "audioqueue")
         if self.videolib:
-            status.extend(self.videolib.get_status())
-        return dict(status)
+            status.update(self.videolib.get_status())
+            update_status(self.videopls.get_status(), "videopls")
+        return status
 
     def get_stats(self):
         return dict(self.stats)
 
     def get_server_info(self):
+        config = DeejaydConfig()
         return {
             "server_version": __version__,
             "protocol_version": DEEJAYD_PROTOCOL_VERSION,
-            "video_support": DeejaydConfig().getboolean("video", "enable")
+            "video_support": config.getboolean("video", "enabled")
         }
 
 # vim: ts=4 sw=4 expandtab

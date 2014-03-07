@@ -651,14 +651,11 @@ class RecordedPlaylistModule(object):
             {"name":"length", "type":"int", "req":False}
         ]
 
-    class staticAddMedia:
-        """Add songs in a recorded static playlist. Argument 'type' has to be
-  * 'path' (default) to specify folder/file path in values argument
-  * OR 'id' to specify media ids in values argument"""
+    class staticAddMediaByIds:
+        """Add songs in a recorded static playlist. Argument 'values' contains list of media ids"""
         args = [
             {"name":"pl_id", "type":"int", "req":True}, \
-            {"name":"values", "type":"list", "req":True}, \
-            {"name":"type", "type":"string", "req":False}
+            {"name":"values", "type":"list", "req":True}
         ]
 
     class staticRemoveMedia:

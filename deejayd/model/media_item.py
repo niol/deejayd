@@ -107,6 +107,10 @@ class _MediaItem(MutableMapping):
         self.data["skipcount"] = str(skip)
         self.save(commit=True)
 
+    def set_rating(self, rate, commit=False):
+        self.data["rating"] =  int(rate)
+        self.save(commit=commit)
+
     def erase(self, commit=False):
         if self.db_id is not None:
             DeleteQuery(self.TABLE).append_where("id = %s", (self.db_id,))\
