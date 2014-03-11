@@ -442,9 +442,11 @@ class MagicPlaylist(_Playlist):
         self.filters.append(filter)
         self.__update()
 
-    def remove_filter(self, filter):
-        self.filters.remove(filter)
-        filter.erase_from_db()
+    def remove_filter(self, ft):
+        for f in self.filters:
+            if f.equals(ft):
+                self.filters.remove(f)
+                f.erase_from_db()
         self.__update()
 
     def clear_filter(self):
