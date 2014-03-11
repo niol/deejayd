@@ -116,6 +116,7 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
 
     def close(self):
         self.__need_to_close = True
+        return {"answer": True, "type": "ack"}
 
 
 class DeejaydFactory(protocol.ServerFactory):
