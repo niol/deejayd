@@ -131,6 +131,10 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
         type = getattr(rpc_cmd, "answer", "ack")
         if type in ("medialist", "albumList", "playlist"):
             res = map(lambda m: m.to_json(), res)
+        elif type == 'recordedPlaylist':
+            res["medias"] = map(lambda m: m.to_json(), res["medias"])
+            if res["filter"] is not None:
+                res["filter"] = res["filter"].to_json()
         elif type == 'fileAndDirList':
             res["files"] = map(lambda m: m.to_json(), res["files"])
         elif type == "dict":
@@ -542,7 +546,9 @@ class AudioSourceModule(_SourceModule):
         ]
 
 class VideoSourceModule(_SourceModule):
-    pass
+
+    class shuffle:
+        """Shuffle the current playlist."""
 
 class QueueSourceModule(_SourceModule):
 
@@ -654,7 +660,7 @@ class RecordedPlaylistModule(object):
 
     class getContent:
         """Return the content of a recorded playlist."""
-        answer = 'mediaList'
+        answer = 'recordedPlaylist'
         args = [
             {"name":"pl_id", "type":"int", "req":True}, \
             {"name":"first", "type":"int", "req":False}, \
@@ -666,6 +672,13 @@ class RecordedPlaylistModule(object):
         args = [
             {"name":"pl_id", "type":"int", "req":True}, \
             {"name":"values", "type":"list", "req":True}
+        ]
+
+    class staticAddMediaByPath:
+        """Add song in a recorded static playlist. Argument 'path' is the path to media that we want to add """
+        args = [
+            {"name":"pl_id", "type":"int", "req":True}, \
+            {"name":"path", "type":"string", "req":True}
         ]
 
     class staticRemoveMedia:

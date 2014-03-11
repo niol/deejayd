@@ -63,7 +63,11 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
         if pls.get_type() == "magic":
             filter = pls.get_main_filter()
             sort = pls.get_sorts()
-        return {"medias": medias, "sort": sort, "filter": filter}
+        return {
+            "medias": medias,
+            "sort":  sort,
+            "filter": filter
+        }
 
     def create(self, name, type):
         if name == "":
@@ -92,6 +96,11 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
     @load_playlist("static")
     def static_add_media_by_ids(self, pls, values):
         all_medias = self.library.get_file_withids(values)
+        pls.add(all_medias)
+
+    @load_playlist("static")
+    def static_add_media_by_path(self, pls, path):
+        all_medias = self.library.get_file(path)
         pls.add(all_medias)
 
     @load_playlist("static")

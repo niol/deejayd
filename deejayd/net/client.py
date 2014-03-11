@@ -88,7 +88,7 @@ def parse_deejayd_answer(answer):
             raise DeejaydError(error)
     result = answer["result"]["answer"]
     type = answer["result"]["type"]
-    if type == "mediaList":
+    if type == "recordedPlaylist":
         if result["filter"] is not None:
             try: result["filter"] = MediaFilter.load_from_json(result["filter"])
             except Fault:
