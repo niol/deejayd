@@ -502,6 +502,16 @@ playlist, else they replace current playlist
             {"name":"queue", "type":"bool", "req":False}
         ]
 
+    class addMediaByPath:
+        """Load file identified by path argument (relative to the root of media library
+if queue args = True (default), selected medias are added at the end of the
+playlist, else they replace current playlist
+."""
+        args = [
+            {"name":"path", "type":"string", "req":True},
+            {"name":"queue", "type":"bool", "req":False}
+        ]
+
     class remove:
         """Remove songs with ids passed as argument ("ids") from the current playlist"""
         args = [{"name":"ids", "type":"int-list", "req":True}]

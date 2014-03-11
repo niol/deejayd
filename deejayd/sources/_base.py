@@ -149,6 +149,10 @@ class _BaseLibrarySource(_BaseSource):
         medias = self.library.search(ft)
         self._load_medias(medias, queue)
 
+    def add_media_by_path(self, path, queue=True):
+        medias = self.library.get_file(path)
+        self._load_medias(medias, queue)
+
     def remove(self, ids):
         super(_BaseLibrarySource, self).remove(ids)
         self.dispatch_signame(self.__class__.source_signal)
