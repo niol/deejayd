@@ -159,7 +159,9 @@ class VlcPlayer(_BasePlayer):
 
     def _set_position(self, pos):
         if self.get_state() != PLAYER_STOP and self.__player.is_seekable():
-            self.__player.set_position(pos / float(self.__media_length()))
+            total_length = float(self.__media_length())
+            if total_length > 0:
+                self.__player.set_position(pos / total_length)
 
     def get_state(self):
         vlc_state = self.__player.get_state()
