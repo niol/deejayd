@@ -19,8 +19,7 @@
 import threading
 
 from testdeejayd import TestCaseWithServer, TestCaseWithDeejaydCore
-from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync, \
-                               DeejayDaemonHTTP
+from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync
 
 from testdeejayd.interfaces.core import CoreInterfaceTests
 from testdeejayd.interfaces.library import LibraryInterfaceTests
@@ -53,20 +52,6 @@ class TestCore(TestCaseWithDeejaydCore, CoreInterfaceTests, \
           
     def assertAckCmd(self, cmd_res):
         self.assertEqual(cmd_res, None)      
-
-
-class TestHTTPClient(TestCaseWithServer, CoreInterfaceTests):
-    """Test the http client library"""
-
-    def assertAckCmd(self, cmd_res):
-        self.assertEqual(cmd_res, True)
-        
-    @classmethod
-    def setUpClass(cls):
-        super(TestHTTPClient, cls).setUpClass()
-
-        url = cls.config.get("webui", "root_url")
-        cls.deejayd = DeejayDaemonHTTP('localhost', cls.webServerPort, url)
 
 
 class TestSyncClient(TestCaseWithServer, CoreInterfaceTests, \
