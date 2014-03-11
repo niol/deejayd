@@ -59,10 +59,10 @@ class TestServer:
             sys.exit("The test server executable '%s' is not executable."\
                      % serverExec)
 
-        args = [serverExec, self.conf_file]
+        args = [os.path.realpath(serverExec), self.conf_file]
         env = {'PYTHONPATH': self.srcpath, "PATH": os.getenv('PATH'),\
                 'LANG': os.getenv('LANG')}
-        self.__serverProcess = subprocess.Popen(args = args,
+        self.__serverProcess = subprocess.Popen(args,
                                                 env = env,
                                                 stderr = subprocess.PIPE,              
                                                 stdout = sys.stdout.fileno(),
@@ -74,9 +74,14 @@ class TestServer:
             if line == 'stopped\n':
                 ready = False
                 break
-            if line == 'ready\n':
+            elif line == 'ready\n':
                 ready = True
                 break
+            else:
+                return_code = self.__serverProcess.poll()
+                if return_code > 0:
+                    raise Exception("Server stop unexpectly see log")
+
 
         if not ready:
             # Should not occur
@@ -84,8 +89,7 @@ class TestServer:
             raise Exception('Reactor does not seem to be ready')
 
     def stop(self):
-        # Send stop signal to reactor
-        os.kill(self.__serverProcess.pid, signal.SIGINT)
+        self.__serverProcess.terminate()
 
         # Wait for the process to finish
         self.__serverProcess.wait()

@@ -82,8 +82,7 @@ class _DeejaydTest(unittest.TestCase):
         cls.config.destroy()
 
     def hasVideoSupport(self):
-        modes = self.config.getlist("general", "activated_modes")
-        return "video" in modes
+        return self.config.getboolean("video", "enabled")
 
 
 class TestCaseWithData(_DeejaydTest):

@@ -68,9 +68,8 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         # add songs in the new playlist
         media_ids = []
         for media_path in self.test_audiodata.getRandomMediaPaths(3):
-            (media,) = self.deejayd.audiolib.get_file(media_path)
-            media_ids.append(media["media_id"])
-        self.assertAckCmd(recpls.static_add_media_by_ids(pl_id, media_ids))
+            self.assertAckCmd(recpls.static_add_media_by_path(pl_id,
+                                                              media_path))
         content = recpls.get_content(pl_id)["medias"]
         self.assertEqual(len(content), 3)
 

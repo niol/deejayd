@@ -1,4 +1,4 @@
-#!/usr/bin/env python -W ignore::DeprecationWarning
+#!/usr/bin/python -W ignore::DeprecationWarning
 
 # Deejayd, a media player daemon
 # Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
@@ -35,13 +35,13 @@ if len(sys.argv) != 2:
 log.startLogging(open('/tmp/testdeejayd.log', 'a'))
 
 from deejayd.ui.config import DeejaydConfig
+config = DeejaydConfig()
 conf_file = sys.argv[1]
 if os.path.isfile(conf_file):
-    DeejaydConfig.custom_conf = conf_file
+    config.read([conf_file])
 else:
     os.write(2, 'stopped\n')
     sys.exit()
-config = DeejaydConfig()
 
 # init translation
 from deejayd.ui.i18n import DeejaydTranslations
@@ -60,28 +60,27 @@ if media_backend == "gstreamer":
 from twisted.internet import reactor
 
 # start core
+from deejayd import DeejaydError
 try:
     from deejayd.core import DeejayDaemonCore
-    deejayd_core = DeejayDaemonCore(config)
+    deejayd_core = DeejayDaemonCore()
     deejayd_core.audiolib.update(sync = True)
 
-    activated_sources = config.getlist('general', "activated_modes")
-    if "video" in activated_sources: # video library activated
+    is_video = config.getboolean('video', "enabled")
+    if is_video: # video library activated
         deejayd_core.videolib.update(sync = True)
-except Exception, ex:
-    try: deejayd_core.close()
-    except:
-        pass
+except DeejaydError, ex:
+    os.write(2, 'stopped\n')
+
     from deejayd.utils import str_decode
     err = "Unable to launch deejayd core, see traceback for more details"
     log.msg(err)
     log.msg(str_decode(traceback.format_exc()))
-    os.write(2, 'stopped\n')
+    try: deejayd_core.close()
+    except:
+        pass
     sys.exit()
 
-# use twisted loop for kaa
-import kaa
-kaa.main.select_notifier('twisted')
 ###############################################################
 
 # net protocol
