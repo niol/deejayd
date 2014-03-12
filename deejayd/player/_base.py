@@ -86,7 +86,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         # Restore current media
         media_pos = int(self.state["current"])
         source = self.state["current_source"]
-        if media_pos != -1 and source not in ("queue", "none", 'webradio'):
+        if media_pos != -1 and source not in ("audioqueue", "none"):
             self._media_file = self._source.go_to(media_pos, "pos", source)
 
         # Update playing state

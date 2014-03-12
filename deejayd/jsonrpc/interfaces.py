@@ -93,18 +93,19 @@ def verify_arguments(__args, args):
                 raise Fault(INVALID_METHOD_PARAMS, \
                     _("Arg %s is required") % arg["name"])
         else:
+            types = {
+                "bool": bool,
+                "dict": dict,
+                "list": list,
+                "string": unicode
+            }
+
             if arg['type'] == "int":
                 try: value = int(value)
                 except (ValueError, TypeError):
                     raise Fault(INVALID_METHOD_PARAMS, \
                         _("Arg %s is not an int") % arg["name"])
             elif arg['type'] in ("bool", "list", "dict", "string"):
-                types = {
-                         "bool": bool,
-                         "dict": dict,
-                         "list": list,
-                         "string": unicode
-                    }
                 if not isinstance(value, types[arg['type']]):
                     raise Fault(INVALID_METHOD_PARAMS, \
                         _("Arg %s has wrong type") % arg["name"])
@@ -119,6 +120,15 @@ def verify_arguments(__args, args):
             elif arg['type'] == 'filter':
                 if value is not None:
                     value = MediaFilter.load_from_json(value)
+            elif isinstance(arg["type"], tuple):
+                find_value = False
+                for t in arg["type"]:
+                    if isinstance(value, types[t]):
+                        find_value = True
+                        break
+                if not find_value:
+                    raise Fault(INVALID_METHOD_PARAMS, \
+                                _("Arg %s has wrong type") % arg["name"])
             __new_args[idx + 1] = value
     return __new_args
 
@@ -473,7 +483,7 @@ class _SourceModule(object):
   * repeat (_bool_: True or False)"""
         args = [
             {"name":"option_name", "type":"string", "req":True}, \
-            {"name":"option_value", "type":"string", "req":True}
+            {"name":"option_value", "type":("string", "bool"), "req":True}
         ]
 
     class loadFolders:
@@ -667,6 +677,12 @@ class RecordedPlaylistModule(object):
             {"name":"length", "type":"int", "req":False}
         ]
 
+    class staticLoadFolders:
+        """Load folders identified with their ids (dir_ids) in a recorded playlist."""
+        args = [
+            {"name":"pl_id", "type":"int", "req":True},
+            {"name":"dir_ids", "type":"int-list", "req":True},
+        ]
     class staticAddMediaByIds:
         """Add songs in a recorded static playlist. Argument 'values' contains list of media ids"""
         args = [

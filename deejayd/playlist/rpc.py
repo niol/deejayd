@@ -94,6 +94,11 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
         if pl_ids: self.dispatch_signame('recpls.listupdate')
 
     @load_playlist("static")
+    def static_load_folders(self, pls, dir_ids):
+        all_medias = self.library.get_all_files(dir_ids)
+        pls.add(all_medias)
+
+    @load_playlist("static")
     def static_add_media_by_ids(self, pls, values):
         all_medias = self.library.get_file_withids(values)
         pls.add(all_medias)
