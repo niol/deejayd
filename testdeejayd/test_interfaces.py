@@ -117,14 +117,13 @@ class TestAsyncClient(TestCaseWithServer, SignalsInterfaceTests):
         self.deejayd.recpls.erase([pl["pl_id"] for pl in pl_list]).wait_for_answer()
         # remove recorded webradio
         self.deejayd.webradio.source_clear_webradios("local").wait_for_answer()
-        self.deejayd.webradio.source_clear_categories("local").wait_for_answer()
 
     def get_another_client(self):
         client = DeejayDaemonAsync()
         self.clients.append(client)
         return client
 
-    def test_answer_callback(self):
+    def testAnswerCallback(self):
         """Ping server asynchroneously and check for the callback to be triggered"""
         cb_called = threading.Event()
         def tcb(answer):
