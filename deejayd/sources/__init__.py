@@ -28,7 +28,7 @@ from deejayd import DeejaydError
 
 class SourceFactory(SignalingComponent, PersistentStateComponent):
     state_name = "source_state"
-    initial_state = {"active": "audio"}
+    initial_state = {"active": "audiopls"}
 
     def __init__(self, player, audio_library, video_library, config):
         super(SourceFactory, self).__init__()
