@@ -84,7 +84,8 @@ class _MediaItem(MutableMapping):
         if key == "media_id":
             raise DeejaydError("media id can't be modified")
         if key not in ("cover", "album"):
-            self.dirty_keys.append(key)
+            if key in self.attributes():
+                self.dirty_keys.append(key)
             self.data[key] = value
 
     def __delitem__(self, key):
