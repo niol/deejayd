@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from deejayd import DeejaydError
 from deejayd.ui import log
 from deejayd.utils import str_decode
 
@@ -38,16 +39,21 @@ def str_adapter(data):
 class SQLiteCursorWrapper(sqlite.Cursor):
 
     def execute(self, query, params=()):
-        #print "execute query %s - %s" % (query, params)
         query = self.convert_query(query, len(params))
-        rs = sqlite.Cursor.execute(self, query, params)
+        try :rs = sqlite.Cursor.execute(self, query, params)
+        except sqlite.OperationalError, ex:
+            msg = "Sqlite: Unable so execute %s, %s: %s" % (query, params, ex)
+            raise DeejaydError(msg)
         return rs
 
     def executemany(self, query, param_list):
-        # print "execute query %s - %s" % (query, param_list)
         if len(param_list) == 0: return
         query = self.convert_query(query, len(param_list[0]))
-        return sqlite.Cursor.executemany(self, query, param_list)
+        try: rs = sqlite.Cursor.executemany(self, query, param_list)
+        except sqlite.OperationalError, ex:
+            msg = "Sqlite: Unable so execute %s, %s: %s" % (query, params, ex)
+            raise DeejaydError(msg)
+        return rs
 
     def convert_query(self, query, num_params):
         return query % tuple("?" * num_params)

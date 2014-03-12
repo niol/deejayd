@@ -24,9 +24,9 @@ from deejayd.ui.config import DeejaydConfig
 from deejayd.database import sqlite_backend
 from deejayd.database.schema import DB_SCHEMA
 from deejayd import Singleton
+from deejayd import DeejaydError
 
 LOCK_TIMEOUT = 600
-DatabaseError = sqlite_backend.sqlite.DatabaseError
 
 @Singleton
 class DatabaseConnection(local):
@@ -47,7 +47,7 @@ class DatabaseConnection(local):
                                 WHERE name = 'database_version'")
             (db_version,) = cursor.fetchone()
             db_version = int(db_version)
-        except DatabaseError:  # initailise db
+        except DeejaydError:  # initailise db
             self.__create(cursor)
             self.structure_created = True
             self.connection.commit()
