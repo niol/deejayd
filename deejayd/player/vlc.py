@@ -189,7 +189,8 @@ class VlcPlayer(_BasePlayer):
 
     def _change_file(self, new_file):
         def needs_video(media):
-            if media is not None and media['type'] == 'video':
+            if self.video_enable and media is not None \
+                    and media['type'] == 'video':
                 return True
             return False
 
