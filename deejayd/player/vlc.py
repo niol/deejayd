@@ -82,7 +82,11 @@ class VlcPlayer(_BasePlayer):
                               % ', '.join([v + 'X' for v in self.LIBVLC_VERSIONS]))
 
         # init main instance
-        try: self.__vlc = _vlc.Instance()
+        self.video_enable = config.getboolean("vlc", "video_enable")
+        options = ""
+        if not self.video_enable:
+            options = "--no-video"
+        try: self.__vlc = _vlc.Instance(options)
         except _vlc.VLCException, ex:
             raise PlayerError(_("Unable to init vlc player: %s") % ex)
         super(VlcPlayer, self).__init__(plugin_manager, config)
@@ -122,7 +126,7 @@ class VlcPlayer(_BasePlayer):
         uri = self._media_file["uri"].encode("utf-8")
         media = self.__vlc.media_new(unicode(uri))
         self.__player.set_media(media)
-        needs_video = self._media_file["type"] == "video"
+        needs_video = self.video_enable and self._media_file["type"] == "video"
         if needs_video and self.__window is None:
             self.__prepare_x_window()
             self.__player.set_xwindow(self.__window.window_p())
