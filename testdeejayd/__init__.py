@@ -35,7 +35,7 @@ from deejayd.ui.config import DeejaydConfig
 
 
 class _DeejaydTest(unittest.TestCase):
-    media_backend = "gstreamer"
+    media_backend = "vlc"
     dbfilename = None
     coverdir = None
 

@@ -92,19 +92,12 @@ usage = "usage: %prog [options] [tests-list]"
 parser = OptionParser(option_class=DbOption, usage=usage)
 parser.add_option("-p","--player",dest="player",type="string",\
     help="media backend used for this test suite")
-parser.add_option("-b","--db",dest="db",type="string",\
-    help="database backend used for this test suite")
-parser.add_option("-o","--dbopts",dest="dbopts",type="dboptions",\
-    help="options to connect to mysql database")
-parser.set_defaults(player="gstreamer", db="sqlite", dbopts={})
+parser.set_defaults(player="vlc")
 (options, myargs) = parser.parse_args()
 
 # update options
 from testdeejayd import _DeejaydTest
 _DeejaydTest.media_backend = options.player
-_DeejaydTest.db = options.db
-if options.db == "mysql":
-    _DeejaydTest.db_options = options.dbopts
 
 tests_to_run = None
 list_only = False
