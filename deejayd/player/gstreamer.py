@@ -22,8 +22,7 @@ from twisted.internet import reactor
 # gstreamer >= 1.0 import
 import gi
 gi.require_version('Gst', '1.0')
-#from gi.repository import GObject, GLib, Gst, GstVideo
-from gi.repository import GObject, GLib, Gst
+from gi.repository import GObject, GLib, Gst, GstVideo
 GObject.threads_init()
 Gst.init(None)
 
@@ -152,8 +151,12 @@ class GstreamerPlayer(_BasePlayer):
         # [<-> Ghospad -> textoverlay (for OSD support) -> video sink]
         if self._current_is_video() and\
                         self.__gst_options["video_p"] != "fakesink":
-            try: video_sink = Gst.parse_launch(self.__gst_options["video_p"])
-            except GObject.GError, err:
+            try:
+                video_sink = Gst.parse_launch(self.__gst_options["video_p"])
+                ret = video_sink.set_state(Gst.State.READY)
+                if ret == Gst.StateChangeReturn.FAILURE:
+                    raise PlayerError
+            except (PlayerError, GObject.GError), err:
                 self.__destroy_pipeline()
                 raise PlayerError(_("No video sink found for Gstreamer : %s") \
                         % str(err).decode("utf8", 'replace'))
@@ -393,7 +396,6 @@ class GstreamerPlayer(_BasePlayer):
 
     def __message(self, bus, message):
         if message.type == Gst.MessageType.EOS:
-            print "receive EOS message"
             if self._media_file is not None and \
                     self._media_file["type"] == "webradio":
                 # an error happened, try the next url
