@@ -167,7 +167,10 @@ class _DeejayDaemon(object):
             result = msg["result"]["answer"]
             type = msg["result"]["type"]
             if type == 'signal':
-                signal = DeejaydSignal(result["name"], result["attrs"])
+                signal = {
+                    "name": result["name"],
+                    "attrs": result["attrs"]
+                }
                 return self._dispatch_signal(signal)
             return None
         return msg
@@ -560,6 +563,8 @@ class DeejayDaemonAsync(_DeejayDaemon):
         self.__con_cb = []
         self.__err_cb = []
         self.socket_to_server = None
+        self.__subscriptions = {}
+        self.__subscriptions_id = 0
 
     def __create_socket(self, ignore_version=False):
         self.socket_to_server = _DeejaydSocket(self.socket_thread.socket_map,
@@ -639,12 +644,40 @@ class DeejayDaemonAsync(_DeejayDaemon):
         self.command_queue.put(cmd)
         return expected_answer
 
+    def _clear_subscriptions(self):
+        self.__subscriptions = {}
+        self.__subscriptions_id = 0
+
+    def _dispatch_signal(self, signal):
+        if signal["name"] in self.__subscriptions:
+            for cb in self.__subscriptions[signal["name"]].values():
+                cb(signal)
+
+    def is_subscribed(self, signal_name):
+        return signal_name in self.__subscriptions
+
     def subscribe(self, signal_name, callback):
-        # TODO: rewrite async subscribe/unsubscribe command in client library
-        pass
+        if signal_name not in self.__subscriptions:
+            cmd = JSONRPCRequest("signal.setSubscription", [signal_name, True])
+            self._send_command(cmd).wait_for_answer()
+            self.__subscriptions[signal_name] = {}
+
+        self.__subscriptions_id += 1
+        self.__subscriptions[signal_name][self.__subscriptions_id] = callback
+        return self.__subscriptions_id
 
     def unsubscribe(self, sub_id):
-        pass
+        for signal_name in self.__subscriptions:
+            sig_subs = self.__subscriptions[signal_name]
+            if sub_id in sig_subs.keys():
+                del sig_subs[sub_id]
+                if len(sig_subs) == 0:
+                    cmd = JSONRPCRequest("signal.setSubscription",
+                                         [signal_name, False])
+                    self._send_command(cmd).wait_for_answer()
+                    del self.__subscriptions[signal_name]
+                break
+
 
 
 # vim: ts=4 sw=4 expandtab
