@@ -135,7 +135,7 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
     @classmethod
     def setUpClass(cls):
         super(TestCaseWithDeejaydCore, cls).setUpClass()
-        if cls.inotify_support:
+        if cls.inotify_support or cls.media_backend == "gstreamer":
             testdeejayd.utils.twreactor.need_twisted_reactor()
 
         from deejayd.core import DeejayDaemonCore
@@ -146,6 +146,8 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
 
     @classmethod
     def tearDownClass(cls):
+        if testdeejayd.utils.twreactor.TWISTED_REACTOR:
+            testdeejayd.utils.twreactor.stop_twisted_reactor()
         if cls.is_running:
             cls.deejayd.close()
         super(TestCaseWithDeejaydCore, cls).tearDownClass()

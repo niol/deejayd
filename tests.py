@@ -36,8 +36,6 @@ This is the test suite launcher :
       would list all the tests that are to be run from those test modules.
     * Test suite has several options :
       * --player to select media backend : gstreamer(default) or xine
-      * --db to select database backend : sqlite(default) or mysql
-      * --dbopts to specify options to connect to mysql database
 """
 
 import sys, os, glob
@@ -53,17 +51,17 @@ from optparse import OptionParser
 from copy import copy
 from optparse import Option, OptionValueError
 
-def check_dboptions(option, opt, value):
-    db_options = [opt.split("=") for opt in value.split(";")]
-    try:
-        return dict(db_options)
-    except ValueError:
-        raise OptionValueError("option %s: invalid format: %r" % (opt, value))
+usage = "usage: %prog [options] [tests-list]"
+parser = OptionParser(usage=usage)
+parser.add_option("-p","--player",dest="player",type="string", \
+                  help="media backend used for this test suite")
+parser.set_defaults(player="vlc")
+(options, myargs) = parser.parse_args()
 
-class DbOption(Option):
-    TYPES = Option.TYPES + ("dboptions",)
-    TYPE_CHECKER = copy(Option.TYPE_CHECKER)
-    TYPE_CHECKER["dboptions"] = check_dboptions
+if options.player == "gstreamer":
+    # Install GI reactor
+    from twisted.internet import gireactor
+    gireactor.install()
 
 import testdeejayd
 
@@ -87,13 +85,6 @@ def get_id_from_module(module):
 
 def get_all_tests():
     return [(x, None) for x in glob.glob(get_testfile_from_id("*"))]
-
-usage = "usage: %prog [options] [tests-list]"
-parser = OptionParser(option_class=DbOption, usage=usage)
-parser.add_option("-p","--player",dest="player",type="string",\
-    help="media backend used for this test suite")
-parser.set_defaults(player="vlc")
-(options, myargs) = parser.parse_args()
 
 # update options
 from testdeejayd import _DeejaydTest
