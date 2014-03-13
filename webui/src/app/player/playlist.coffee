@@ -26,6 +26,7 @@ class DjdSourcePlaylistCtrl
     }
     @$scope.loading = false
     @$scope.currentPls = "audiopls"
+    @$scope.currentId = {pls: "", pos: -1, id: -1}
     @$scope.player = @djdplayerservice
 
     $("#djd-pls-save").popover({
@@ -53,6 +54,18 @@ class DjdSourcePlaylistCtrl
 
       if old_id < self.pls_infos[data.pls].id
         self.$scope.loadPls(data.pls)
+    )
+
+    @$scope.$on("djd:player:current_id_changed", (evt, current_id) ->
+      if current_id != ""
+        c = current_id.split(":")
+        self.$scope.currentId = {
+          pls: c[2],
+          id: c[1],
+          pos: c[0],
+        }
+      else
+        self.$scope.currentId = {pls: "", pos: -1, id: -1}
     )
 
     @$scope.$on('$viewContentLoaded', ->

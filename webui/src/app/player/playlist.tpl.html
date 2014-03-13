@@ -2,13 +2,25 @@
     <div id="djd-pls-menu-container">
       <ul class="nav nav-pills nav-stacked" id="djd-pls-menu">
           <li ng-class="{'active': currentPls=='audiopls' }">
-              <a ng-click="loadPls('audiopls')">Audio Playlist</a>
+              <a ng-click="loadPls('audiopls')">
+                  <span ng-show="currentId.pls == 'audiopls'"
+                        class="glyphicon glyphicon-play"></span>
+                  Audio Playlist
+              </a>
           </li>
           <li ng-class="{'active': currentPls=='audioqueue' }">
-              <a ng-click="loadPls('audioqueue')">Audio Queue</a>
+              <a ng-click="loadPls('audioqueue')">
+                  <span ng-show="currentId.pls == 'audioqueue'"
+                        class="glyphicon glyphicon-play"></span>
+                  Audio Queue
+              </a>
           </li>
           <li ng-class="{'active': currentPls=='videopls' }">
-              <a ng-click="loadPls('videopls')">Video Playlist</a>
+              <a ng-click="loadPls('videopls')">
+                  <span ng-show="currentId.pls == 'videopls'"
+                        class="glyphicon glyphicon-play"></span>
+                  Video Playlist
+              </a>
           </li>
       </ul>
     </div>
@@ -48,6 +60,7 @@
                    track-no="$index+1" track="track" pls="currentPls"
                    ng-repeat="track in playlist"
                    href=""
+                   ng-class="{active: track.get('id') == currentId.id && currentPls == currentId.pls}"
                    class="list-group-item row"/>
             </div>
         </div>

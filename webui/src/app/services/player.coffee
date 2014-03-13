@@ -21,6 +21,7 @@ class DjdPlayerService
     @state = "stop"
     @volume = 0
     @time = 0
+    @current_id = ""
     self = @
 
     @$rootScope.$on("djd:client:connected", (evt, data) ->
@@ -37,6 +38,7 @@ class DjdPlayerService
   subscribeToSource: ->
     self = @
     @subscribe = () ->
+      self.$rootScope.$broadcast("djd:player:current_id_changed", self.current_id)
       for key in ["audiopls", "audioqueue", "videopls"]
         @djdclientservice.subscribe("#{ key }.update", (sig) ->
           pl  = sig.name.split(".")[0]
@@ -73,6 +75,13 @@ class DjdPlayerService
           t = status.time.split(":")
         self.time = status.time
         self.$rootScope.$broadcast("djd:player:time_changed", {current: t[0], total: t[1]})
+
+      c_id = ""
+      if status.state != "stop"
+        c_id = status.current
+      if self.current_id != c_id
+        self.current_id = c_id
+        self.$rootScope.$broadcast("djd:player:current_id_changed", self.current_id)
     )
 
   updateCurrent: ->
