@@ -503,6 +503,26 @@ panel_tags = genre,artist,album
   </refsect1>
 
   <refsect1>
+    <title>vlc section</title>
+
+    <para>This section defines the <parameter>vlc</parameter> section
+    configuration values. Those options are specific to the VLC backend.
+    </para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>video_enable</term>
+        <listitem>
+          <para>Boolean to define whether to output video (mainly for unit
+          testing purposes).</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
     <title>SEE ALSO</title>
 
     <para>&deejayd;.</para>
