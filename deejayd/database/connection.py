@@ -121,7 +121,6 @@ class DatabaseConnection(local):
                 up.upgrade(cursor, sqlite_backend, config)
             except Exception, e:
                 log.err(traceback.format_exc())
-                print e, dir(e)
                 err = _("Database schema upgrade failed.")
                 log.err(err, True)
                 self.connection.rollback()
