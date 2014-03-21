@@ -239,6 +239,7 @@ if __name__ == "__main__":
            license="GNU GPL v2",
            scripts=["scripts/deejayd","scripts/djc"],
            packages=["deejayd","deejayd.net","deejayd.mediadb",\
+                     "deejayd.dispatch",
                      "deejayd.mediadb.parsers",
                      "deejayd.mediadb.parsers.audio",\
                      "deejayd.mediadb.parsers.video","deejayd.player",\
@@ -248,7 +249,8 @@ if __name__ == "__main__":
                      "deejayd.plugins",\
                      "deejayd.webui","deejayd.playlist","pytyxi", "pytyx11",\
                      "txsockjs", "txsockjs.protocols"],
-           package_data={'deejayd.ui': ['defaults.conf'],},
+           package_data={'deejayd.ui': ['defaults.conf'],
+                         'deejayd.webui': ['webui.thtml'], },
            data_files= build_data_files_list(),
            cmdclass={"build": deejayd_build,
                      "build_i18n": build_i18n,
