@@ -52,7 +52,7 @@ class IceCastSource(_BaseWebradioSource):
             d.unpause()
 
     def __on_reload_error(self, failure):
-        log.err(_("Unable to update icecast webradio, see execption below"))
+        log.err(_("Unable to update icecast webradio, see exception below"))
         log.err(failure)
 
     def __on_reload_success(self, result, *args):
