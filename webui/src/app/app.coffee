@@ -20,7 +20,7 @@ class DjdMainCtrl
   constructor: (@$scope, @$location, @localize, @djdclientservice) ->
     # init deejayd client
     deejayd_root_url = DjdApp.options.root_url
-    rpc_url = "http://#{location.host}#{deejayd_root_url}rpc/"
+    rpc_url = "#{deejayd_root_url}rpc/"
 
     self = @
     @$scope.loading = true
