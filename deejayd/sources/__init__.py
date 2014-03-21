@@ -45,7 +45,8 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
             log.msg(_("Video support disabled"))
 
         # restore recorded source
-        if self.state["active"] not in self.sources:
+        if 'active' not in self.state\
+        or self.state["active"] not in self.sources:
             self.state["active"] = self.sources.keys()[0]
 
         player.set_source(self)

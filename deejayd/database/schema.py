@@ -52,7 +52,7 @@ class Index(object):
 
 
 DB_SCHEMA = {
-    "version": 15,
+    "version": 16,
     "tables": [
         Table('library_dir', key='id')[
             Column('id', auto_increment=True),
@@ -205,7 +205,7 @@ DB_SCHEMA = {
         "INSERT INTO variables VALUES('current_pos','0');",
         "INSERT INTO variables VALUES('state','stop');",
         "INSERT INTO variables VALUES('source','playlist');",
-        "INSERT INTO variables VALUES('database_version','15');",
+        "INSERT INTO variables VALUES('database_version','16');",
     ],
 }
 
