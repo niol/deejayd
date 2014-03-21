@@ -85,23 +85,6 @@ foo = bar
       </varlistentry>
 
       <varlistentry>
-        <term>activated_modes</term>
-        <listitem>
-          <para>Modes enabled. Available modes are :
-            <parameter>playlist</parameter> for audio playlists,
-            <parameter>panel</parameter> for audio panel mode like rhythmbox,
-            <parameter>webradio</parameter> for streamed webradios,
-            <parameter>video</parameter> for video directories playback,
-            <parameter>dvd</parameter> for DVD playback.
-            As an example :
-          </para>
-<informalexample><programlisting>
-activated_modes = playlist, panel, webradio, video
-</programlisting></informalexample>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>replaygain</term>
         <listitem>
           <para>Replaygain support, <parameter>yes</parameter> or
@@ -126,8 +109,6 @@ activated_modes = playlist, panel, webradio, video
         <listitem>
           <para>a list of plugins to activate separated by ','.
           Available plugins are :
-            <parameter>icecast</parameter> to navigate and play icecast
-            webradio
             <parameter>audioscrobbler</parameter> to activate lastfm
             audioscrobbler
           </para>
@@ -222,18 +203,6 @@ bind_addresses = 192.168.51.2, 10.0.0.3
       </varlistentry>
 
       <varlistentry>
-        <term>tmp_dir</term>
-        <listitem>
-          <para>This is a temporary directory used by the deejayd webui for
-          caching. It should probably be located in <filename>/tmp</filename>.
-          The only use case which would involve changing this would be for
-          running multiple deejayd daemons running on the same host (with both
-          webuis enabled).
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>root_url</term>
         <listitem>
           <para>Root URL for the webui. This defines where the webui is
@@ -317,31 +286,24 @@ bind_addresses = 192.168.51.2, 10.0.0.3
   </refsect1>
 
   <refsect1>
-    <title>panel section</title>
+    <title>webradio section</title>
 
-    <para>This section defines the <parameter>panel</parameter> section
-    configuration values. Those options configure the behaviour of the
-    <parameter>panel</parameter> mode.</para>
+    <para>This section defines the <parameter>webradio</parameter> section
+        configuration values.</para>
 
     <variablelist>
 
       <varlistentry>
-        <term>panel_tags</term>
+        <term>icecast</term>
         <listitem>
-          <para>Music tags that are avilable for filtering in the
-          <parameter>panel</parameter> mode. Available possibilities are :
-            <parameter>genre,artist,album</parameter> which is the default,
-            <parameter>artist,album</parameter>,
-            <parameter>genre,various_artist,album</parameter>,
-            <parameter>various_artist,album</parameter>.
-            <parameter>various_artist</parameter> here is the same as artist,
-            except compilation albums are grouped into a special
-            "Various Artists" label.</para>
+          <para>Boolean used to enable icecast webradio sources.</para>
+        </listitem>
+      </varlistentry>
 
-            <para>As an example :</para>
-<informalexample><programlisting>
-panel_tags = genre,artist,album
-</programlisting></informalexample>
+      <varlistentry>
+        <term>icecast_url</term>
+        <listitem>
+          <para>URL of the XML directory of icecast webradio to use.</para>
         </listitem>
       </varlistentry>
 
@@ -512,10 +474,47 @@ panel_tags = genre,artist,album
     <variablelist>
 
       <varlistentry>
+        <term>audio_output</term>
+        <listitem>
+          <para>The output device to use. This is usually one among
+            <parameter>auto</parameter>,
+            <parameter>alsa</parameter>,
+            <parameter>oss</parameter>,
+            <parameter>pulse</parameter>, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>video_enable</term>
         <listitem>
           <para>Boolean to define whether to output video (mainly for unit
           testing purposes).</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>lastfm section</title>
+
+    <para>This section defines the <parameter>lastfm</parameter> plugin section
+    configuration values.</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>login</term>
+        <listitem>
+          <para>Your lastfm login.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>password</term>
+        <listitem>
+          <para>A MD5 hash of your lastfm password.</para>
         </listitem>
       </varlistentry>
 
