@@ -18,6 +18,7 @@
 
 from os import path
 from threading import local
+import traceback
 
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
@@ -114,9 +115,17 @@ class DatabaseConnection(local):
             db_file = "db_%d" % i
             try: up = __import__(base_import + "." + db_file, {}, {}, base)
             except ImportError:
-                err = _("Unable to upgrade database, have to quit")
+                err = _("Unable to upgrade database, upgrade script not found, have to quit")
                 log.err(err, True)
-            up.upgrade(cursor, sqlite_backend, config)
+            try:
+                up.upgrade(cursor, sqlite_backend, config)
+            except Exception, e:
+                log.err(traceback.format_exc())
+                print e, dir(e)
+                err = _("Database schema upgrade failed.")
+                log.err(err, True)
+                self.connection.rollback()
+                raise
             i += 1
         self.connection.commit()
 
