@@ -270,15 +270,17 @@ class _Library(SignalingComponent, JSONRpcComponent):
             except UnicodeError:  # skip this directory
                 log.info("File %s skipped because of unhandled characters."\
                          % self.fs_charset2unicode(file, 'replace'))
+
             filepath = os.path.join(dir_obj.get_path(), file)
 
-            file_obj = self.lib_obj.get_file_with_path(dir_obj, file, create=True)
             if os.path.isfile(filepath):
-                need_update = force or os.stat(filepath).st_mtime > file_obj["lastmodified"]
+                log.debug('library: updating file %s' % filepath)
             else:
-                # filepath is a broken symlink
-                need_update = False
+                log.debug('library: skipping broken symlink %s' % filepath)
+                continue
 
+            file_obj = self.lib_obj.get_file_with_path(dir_obj, file, create=True)
+            need_update = force or os.stat(filepath).st_mtime > file_obj["lastmodified"]
             if need_update:
                 file_obj = self._get_file_info(file_obj)
                 if file_obj is None:
