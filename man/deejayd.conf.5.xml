@@ -97,8 +97,8 @@ foo = bar
         <listitem>
           <para>The chosen media backend. Possible values are :
             <parameter>auto</parameter> for whichever works, trying first with
-            Xine,
-            <parameter>xine</parameter> for the Xine backend,
+            Vlc,
+            <parameter>vlc</parameter> for the Vlc backend,
             <parameter>gstreamer</parameter> for the GStreamer backend.
           </para>
         </listitem>
@@ -406,57 +406,6 @@ bind_addresses = 192.168.51.2, 10.0.0.3
             <parameter>xvimagesink</parameter>, etc.
           </para>
           <para>you can also set option for this sink.
-          </para>
-        </listitem>
-      </varlistentry>
-
-    </variablelist>
-  </refsect1>
-
-  <refsect1>
-    <title>xine section</title>
-
-    <para>This section defines the <parameter>xine</parameter> section
-    configuration values. Those options are specific to the Xine backend.
-    </para>
-
-    <para>The Xine backend may be customised even more using de Xine
-    configuration file used by deejayd. This is usually
-    <filename>~/.xine/config</filename>, <parameter>~</parameter> being
-    to home directory of the user running deejayd. This should change to be
-    <filename>/etc</filename>.
-    </para>
-
-    <variablelist>
-
-      <varlistentry>
-        <term>audio_output</term>
-        <listitem>
-          <para>The output device to use. This is usually one among
-            <parameter>auto</parameter>,
-            <parameter>alsa</parameter>,
-            <parameter>oss</parameter>, etc.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>software_mixer</term>
-        <listitem>
-          <para>Set to true to use xine software mixer
-            <parameter>yes</parameter> or
-            <parameter>no</parameter>.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>video_output</term>
-        <listitem>
-          <para>The video driver to use. This is usually one among
-            <parameter>auto</parameter>,
-            <parameter>xv</parameter>,
-            <parameter>x</parameter>, etc.
           </para>
         </listitem>
       </varlistentry>

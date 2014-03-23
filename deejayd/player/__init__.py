@@ -20,7 +20,7 @@ from deejayd import DeejaydError
 from deejayd.ui import log
 
 
-AVAILABLE_BACKENDS = ('vlc', 'gstreamer', 'xine')
+AVAILABLE_BACKENDS = ('vlc', 'gstreamer')
 
 
 class PlayerError(DeejaydError):pass
@@ -49,12 +49,6 @@ def init(plugin_manager, config):
     if media_backend == "gstreamer":
         from deejayd.player import gstreamer
         try: player = gstreamer.init(plugin_manager, config)
-        except PlayerError, err:
-            log.err(str(err), fatal=True)
-
-    elif media_backend == "xine":
-        from deejayd.player import xine
-        try: player = xine.XinePlayer(plugin_manager, config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 

@@ -15,7 +15,7 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          lsb-base (>= 3.0-6), logrotate, adduser,
          deejayd-client (= ${binary:Version}),
-         deejayd-vlc (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}) | deejayd-xine (= ${binary:Version}),
+         deejayd-vlc (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
          python-twisted,
          python-mutagen
 Suggests: deejayd-webui,
@@ -26,7 +26,7 @@ Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
  through the network using XML messages.
  It suppports playlists, searching, many media tags. It can playback many
- music and video formats using either its xine (recommended) or its GStreamer
+ music and video formats using either its vlc (recommended) or its GStreamer
  backend.
 
 Package: deejayd-webui
@@ -53,15 +53,6 @@ Description: Client library and command line tool to access the deejayd server
  .
  It also includes djc, which provides a subset of deejayd commands for your
  deejayd server to be reachable from the command line.
-
-Package: deejayd-xine
-Section: video
-Architecture: all
-Depends: ${misc:Depends}, ${python:Depends},
-         python-ctypes (>= 1.0.0) | python (>= 2.5),
-         libxine2-x, libx11-6, libxext6
-Description: Deejayd XINE backend
- The deejayd media backend using the XINE library.
 
 Package: deejayd-gstreamer
 Architecture: all

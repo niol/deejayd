@@ -35,7 +35,7 @@ This is the test suite launcher :
       e.g. : ./tests.py list jsonrpc library
       would list all the tests that are to be run from those test modules.
     * Test suite has several options :
-      * --player to select media backend : gstreamer(default) or xine
+      * --player to select media backend : vlc(default) or gstreamer
 """
 
 import sys, os, glob
