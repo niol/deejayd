@@ -113,7 +113,7 @@ class LibraryDir(object):
     def erase(self, purge_files=False):
         if self.db_id is not None:
             if purge_files:
-                map(lambda f: f.erase(), self.get_files())
+                map(lambda f: f.erase(commit=False), self.get_files())
             DeleteQuery(DIR_TABLE).append_where("id = %s", (self.db_id,)) \
                                   .execute(commit=False)
             map(lambda d: d.erase(purge_files), self.get_subdirs())
@@ -213,23 +213,24 @@ class _Library(object):
 
         return [self.loaded_files[m[0]] for m in query.execute()]
 
-    def clean_library(self, path, dir_ids, file_ids):
+    def clean_library(self, dir_ids, file_ids):
         d_ids = SimpleSelect(DIR_TABLE) \
                     .select_column("id") \
-                    .append_where("name LIKE %s", path + u"%%") \
                     .append_where("id NOT IN (%s)" % ",".join(map(str, dir_ids))) \
                     .append_where("lib_type = %s", self.TYPE) \
                     .execute()
-        map(lambda d: d.erase(), self.get_dirs_with_ids([d[0] for d in d_ids]))
+        map(lambda d: d.erase(purge_files=True),
+            self.get_dirs_with_ids([d[0] for d in d_ids]))
 
         f_ids = ComplexSelect(self.LIB_TABLE) \
-            .join(DIR_TABLE, "%s.id = %s.directory" % (DIR_TABLE, self.LIB_TABLE)) \
             .select_column("id") \
-            .append_where(DIR_TABLE + ".name LIKE %s", path + u"%%") \
             .append_where(self.LIB_TABLE + ".id NOT IN (%s)" % ",".join(map(str, file_ids))) \
-            .append_where(DIR_TABLE + ".lib_type = %s", (self.TYPE,)) \
             .execute()
         map(lambda f: f.erase(), self.get_files_with_ids([f[0] for f in f_ids]))
+        # Also delete files not loaded because not in any directory
+        DeleteQuery(self.LIB_TABLE) \
+            .append_where(self.LIB_TABLE + ".id NOT IN (%s)" % ",".join(map(str, file_ids))) \
+            .execute()
 
     def get_media_attributes(self):
         return self.MEDIA_OBJECT.attributes()
@@ -414,8 +415,8 @@ class AudioLibrary(_Library):
     def get_cover_folder(self):
         return self.cover_folder
 
-    def clean_library(self, path, dir_ids, file_ids):
-        super(AudioLibrary, self).clean_library(path, dir_ids, file_ids)
+    def clean_library(self, dir_ids, file_ids):
+        super(AudioLibrary, self).clean_library(dir_ids, file_ids)
         # clean album
         used_album = SimpleSelect(self.LIB_TABLE) \
                             .select_column("album_id")

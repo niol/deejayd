@@ -259,8 +259,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
         map(lambda f: f.save(), recorded_files)
 
         # clean library
-        self.lib_obj.clean_library(walk_root,
-                                   map(lambda d: d.get_id(), recorded_dirs.values()),
+        self.lib_obj.clean_library(map(lambda d: d.get_id(), recorded_dirs.values()),
                                    map(lambda f: f["media_id"], recorded_files))
 
     def update_files(self, dir_obj, files, force=False):

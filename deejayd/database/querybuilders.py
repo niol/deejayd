@@ -285,8 +285,10 @@ class DeleteQuery(_DBActionQuery):
         super(DeleteQuery, self).__init__(table_name)
         self.wheres, self.wheres_args = [], []
 
-    def append_where(self, where_query, args):
+    def append_where(self, where_query, args=()):
         self.wheres.append(where_query)
+        if type(args) not in (list, tuple):
+            args = [args]
         self.wheres_args.extend(args)
         return self
 
