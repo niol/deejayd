@@ -323,9 +323,15 @@ class _Library(SignalingComponent, JSONRpcComponent):
     def update_file(self, path, file):
         file_path = os.path.join(path, file)
 
+        try:
+            file_mtime = os.stat(file_path).st_mtime
+        except OSError:
+            log.debug("library: file %s is gone, skipping." % file_path)
+            return
+
         dir_obj = self.lib_obj.get_dir_with_path(path, create=True)
         file_obj = self.lib_obj.get_file_with_path(dir_obj, file, create=True)
-        need_update = os.stat(file_path).st_mtime > file_obj["lastmodified"]
+        need_update = file_mtime > file_obj["lastmodified"]
         if need_update:
             file_obj = self._get_file_info(file_obj)
             if file_obj is None:
