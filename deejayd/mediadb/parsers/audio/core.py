@@ -25,7 +25,8 @@ class _AudioFile(object):
     type = "song"
     supported_tag = ("tracknumber", "title", "genre", "artist", "album", \
             "discnumber", "date", "replaygain_track_gain", \
-            "replaygain_track_peak")
+            "replaygain_track_peak", "replaygain_album_gain", \
+            "replaygain_album_peak")
 
     def _format_number(self, nb):
         numbers = nb.split("/")

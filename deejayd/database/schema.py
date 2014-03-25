@@ -81,6 +81,8 @@ DB_SCHEMA = {
             Column('date'),
             Column('replaygain_track_gain'),
             Column('replaygain_track_peak'),
+            Column('replaygain_album_gain'),
+            Column('replaygain_album_peak'),
             Column('discnumber'),
             Index(('filename', 'directory')),
             Index(('directory',), unique=False)],

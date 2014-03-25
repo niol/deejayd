@@ -162,6 +162,8 @@ class AudioItem(_MediaItem):
         "date": "",
         "replaygain_track_gain": "",
         "replaygain_track_peak": "",
+        "replaygain_album_gain": "",
+        "replaygain_album_peak": "",
         "discnumber": "",
         "album_id": "-1",
     }
@@ -190,6 +192,8 @@ class AudioItem(_MediaItem):
     def __getitem__(self, key):
         if key == "album" and self.album is not None:
             return self.album["album"]
+        elif key.startswith("replaygain_") and not self.data[key]:
+            raise ValueError
         return super(AudioItem, self).__getitem__(key)
 
     def to_json(self):
@@ -198,19 +202,31 @@ class AudioItem(_MediaItem):
             rs["album"] = self.album["album"]
         return rs
 
-    def replay_gain(self):
-        """Return the recommended Replay Gain scale factor."""
-        try:
-            db = float(self["replaygain_track_gain"].split()[0])
-            peak = self["replaygain_track_peak"] and\
-                     float(self["replaygain_track_peak"]) or 1.0
-        except (KeyError, ValueError, IndexError):
-            return 1.0
+    def replay_gain(self, profiles, pre_amp_gain=0, fallback_gain=0):
+        """Return the computed Replay Gain scale factor.
+
+        profiles is a list of Replay Gain profile names ('album',
+        'track') to try before giving up. The special profile name
+        'none' will cause no scaling to occur. pre_amp_gain will be
+        applied before checking for clipping. fallback_gain will be
+        used when the song does not have replaygain information.
+        """
+        for profile in profiles:
+            if profile is "none":
+                return 1.0
+            try:
+                db = float(self["replaygain_%s_gain" % profile].split()[0])
+                peak = float(self.get("replaygain_%s_peak" % profile, 1))
+            except (KeyError, ValueError, IndexError):
+                continue
+            else:
+                db += pre_amp_gain
+                scale = 10. ** (db / 20)
+                if scale * peak > 1:
+                    scale = 1.0 / peak  # don't clip
+                return min(15, scale)
         else:
-            scale = 10.**(db / 20)
-            if scale * peak > 1:
-                scale = 1.0 / peak  # don't clip
-            return min(15, scale)
+            return min(15, 10. ** ((fallback_gain + pre_amp_gain) / 20))
 
 
 class VideoItem(_MediaItem):

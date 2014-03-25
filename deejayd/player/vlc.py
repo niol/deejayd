@@ -83,9 +83,9 @@ class VlcPlayer(_BasePlayer):
 
         # init main instance
         self.video_enable = config.getboolean("vlc", "video_enable")
-        options = ""
+        options = "--audio-replay-gain-mode none" # rg is implemented in deejayd
         if not self.video_enable:
-            options = "--no-video"
+            options += " --no-video"
         try: self.__vlc = _vlc.Instance(options)
         except _vlc.VLCException, ex:
             raise PlayerError(_("Unable to init vlc player: %s") % ex)

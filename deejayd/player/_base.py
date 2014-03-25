@@ -67,6 +67,11 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         self._source = None
         self._media_file = None
         self._replaygain = config.getboolean("general", "replaygain")
+        self._replaygain_opts = {
+            "profiles": config.getlist("general", "replaygain_profiles"),
+            "preamp_gain": config.getfloat("general", "pre_amp_gain"),
+            "fallback_gain": config.getfloat("general", "fallback_gain"),
+        }
 
         # get video options
         self._video_options = {
@@ -168,11 +173,11 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         # replaygain support
         vol = self.__volume[type]
         if self._replaygain and self._media_file is not None:
-            try: scale = self._media_file.replay_gain()
-            except AttributeError: pass  # replaygain not supported
-            else:
-                vol = max(0.0, min(4.0, float(vol) / 100.0 * scale))
-                vol = min(100, int(vol * 100))
+            scale = self._media_file.replay_gain(\
+                self._replaygain_opts["profiles"],
+                self._replaygain_opts["preamp_gain"],
+                self._replaygain_opts["fallback_gain"])
+            vol = min(100.0, max(0.0, float(vol) * scale))
 
         # specific player implementation
         self._set_volume(vol, sig)

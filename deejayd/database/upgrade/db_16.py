@@ -45,6 +45,8 @@ def upgrade(cursor, backend, config):
             date TEXT,
             replaygain_track_gain TEXT,
             replaygain_track_peak TEXT,
+            replaygain_album_gain TEXT,
+            replaygain_album_peak TEXT,
             discnumber TEXT
         );
         CREATE UNIQUE INDEX song_filename_directory_idx ON library_dir (name, lib_type);

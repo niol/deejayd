@@ -30,13 +30,12 @@ class Mp3File(_AudioFile):
             "TPE1": "artist",
             "TALB": "album",
             }
-    replaygain_process = False
 
     def parse(self, file, library):
-        infos = _AudioFile.parse(self, file, library)
+        self.__infos = _AudioFile.parse(self, file, library)
         mp3_info = MP3(file)
 
-        infos.update([
+        self.__infos.update([
             ("title", ""),
             ("artist", ""),
             ("album", ""),
@@ -46,54 +45,45 @@ class Mp3File(_AudioFile):
             ("genre", ""),
             ("replaygain_track_gain", ""),
             ("replaygain_track_peak", ""),
+            ("replaygain_album_gain", ""),
+            ("replaygain_album_peak", ""),
             ("length", int(mp3_info.info.length)),
             ])
 
         tag = mp3_info.tags
         if not tag:
-            infos["title"] = os.path.split(file)[1]
-            return infos
+            self.__infos["title"] = os.path.split(file)[1]
+            return self.__infos
 
         for frame in tag.values():
-            if frame.FrameID == "TXXX":
-                if frame.desc in ("replaygain_track_peak", \
-                                  "replaygain_track_gain"):
-                    # Some versions of Foobar2000 write broken Replay Gain
-                    # tags in this format.
-                    infos[frame.desc] = frame.text[0]
-                    self.replaygain_process = True
-                else: continue
-            elif frame.FrameID == "RVA2":  # replaygain
-                self.__process_rg(frame, infos)
+            if frame.FrameID == "RVA2":  # replaygain
+                self.__process_rg(frame)
                 continue
             elif frame.FrameID == "TCON":  # genre
-                infos["genre"] = frame.genres[0]
+                self.__infos["genre"] = frame.genres[0]
                 continue
             elif frame.FrameID == "TDRC":  # date
                 list = [stamp.text for stamp in frame.text]
-                infos["date"] = list[0]
+                self.__infos["date"] = list[0]
                 continue
             elif frame.FrameID == "TRCK":  # tracknumber
-                infos["tracknumber"] = self._format_number(frame.text[0])
+                self.__infos["tracknumber"] = self._format_number(frame.text[0])
             elif frame.FrameID == "TPOS":  # discnumber
-                infos["discnumber"] = self._format_number(frame.text[0])
+                self.__infos["discnumber"] = self._format_number(frame.text[0])
             elif frame.FrameID in self.IDS.keys():
-                infos[self.IDS[frame.FrameID]] = frame.text[0]
+                self.__infos[self.IDS[frame.FrameID]] = frame.text[0]
             elif frame.FrameID == "APIC":  # picture
                 if frame.type == 3:  # album front cover
-                    infos["cover"] = {"data": frame.data,
+                    self.__infos["cover"] = {"data": frame.data,
                                       "mimetype": frame.mime}
             else: continue
 
-        return infos
+        return self.__infos
 
-    def __process_rg(self, frame, infos):
-        if frame.channel == 1:
-            if frame.desc == "album": return  # not supported
-            elif frame.desc == "track" or not self.replaygain_process:
-                infos["replaygain_track_gain"] = "%+f dB" % frame.gain
-                infos["replaygain_track_peak"] = str(frame.peak)
-                self.replaygain_process = True
+    def __process_rg(self, frame):
+        if frame.channel == 1 and frame.desc in ("track", "album"):
+            self.__infos["replaygain_%s_gain" % frame.desc] = "%+f dB" % frame.gain
+            self.__infos["replaygain_%s_peak" % frame.desc] = str(frame.peak)
 
 object = Mp3File
 
