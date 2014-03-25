@@ -17,6 +17,9 @@
     <link rel="stylesheet" href="vendor/bootstrap-3.1.0/css/bootstrap-theme.min.css"/>
     <script src="vendor/bootstrap-3.1.0/js/bootstrap.min.js"></script>
 
+    <!-- Font Awsome -->
+    <link rel="stylesheet" href="vendor/font-awesome-4.0.3/css/font-awesome.min.css"/>
+
     <!-- angularjs -->
     <script src="vendor/angular-1.2.10/angular.min.js"></script>
     <script src="vendor/angular-1.2.10/angular-sanitize.min.js"></script>
@@ -123,38 +126,37 @@
         <div class="navbar-header">
             <button type="button"
                     ng-click="player.previous()"
-                    class="btn btn-default navbar-btn">
-                <span class="glyphicon glyphicon-step-backward"/>
+                    class="btn btn-default navbar-btn djd-player-btn">
+                <i class="fa fa-step-backward fa-lg"></i>
             </button>
             <button type="button"
                     id="djd-player-playtoggle"
                     ng-click="player.playToggle()"
-                    class="btn btn-default navbar-btn">
-                <span
-                    ng-class="{'glyphicon-play': !isPlaying, 'glyphicon-pause': isPlaying}"
-                    class="glyphicon"/>
+                    class="btn btn-default navbar-btn djd-player-btn">
+                <i ng-class="{'fa-play': !isPlaying, 'fa-pause': isPlaying}"
+                   class="fa fa-lg"></i>
             </button>
             <button type="button"
                     ng-click="player.stop()"
-                    class="btn btn-default navbar-btn">
-                <span class="glyphicon glyphicon-stop"/>
+                    class="btn btn-default navbar-btn djd-player-btn">
+                <i class="fa fa-stop fa-lg"></i>
             </button>
             <button type="button"
                     ng-click="player.next()"
-                    class="btn btn-default navbar-btn">
-                <span class="glyphicon glyphicon-step-forward"/>
+                    class="btn btn-default navbar-btn djd-player-btn">
+                <i class="fa fa-step-forward fa-lg"></i>
             </button>
 
             <button type="button" style="margin-left: 10px;"
                     ng-disabled="!isPlayingVideo"
                     data-toggle="modal" data-target="#djd-modal-player-options-dialog"
                     id="djd-player-options-btn"
-                    class="btn btn-default navbar-btn">
-                <span class="glyphicon glyphicon-wrench"/>
+                    class="btn btn-default navbar-btn djd-player-btn">
+                <i class="fa fa-film fa-lg"></i>
             </button>
 
-            <button type="button" class="navbar-toggle btn-default" data-toggle="collapse" data-target="#djd-player-vol-collapse">
-                <span class="glyphicon glyphicon-volume-up"></span>
+            <button type="button" class="navbar-toggle btn-default djd-player-btn" data-toggle="collapse" data-target="#djd-player-vol-collapse">
+                <span class="fa fa-volume-up fa-lg"></span>
             </button>
         </div>
 
@@ -162,8 +164,8 @@
             <form class="navbar-form">
                 <button type="button"
                         ng-click="player.setVolumeRelative(-5)"
-                        class="btn btn-default navbar-btn">
-                    <span class="glyphicon glyphicon-volume-down"/>
+                        class="btn btn-default djd-player-btn">
+                    <span class="fa fa-volume-down fa-lg"/>
                 </button>
 
                 <div class="form-group" style="display: inline-block;">
@@ -177,8 +179,8 @@
                 <button type="button"
                         ng-click="player.setVolumeRelative(5)"
                         id="djd-player-volume-up"
-                        class="btn btn-default navbar-btn">
-                    <span class="glyphicon glyphicon-volume-up"/>
+                        class="btn btn-default djd-player-btn">
+                    <span class="fa fa-volume-up fa-lg"/>
                 </button>
 
             </form>
