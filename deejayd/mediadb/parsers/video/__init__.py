@@ -18,7 +18,7 @@
 
 import os
 import mimetypes
-from deejayd.utils import quote_uri
+from deejayd.server.utils import quote_uri
 from deejayd import DeejaydError
 from deejayd.mediadb.parsers import ParseError, NoParserError
 

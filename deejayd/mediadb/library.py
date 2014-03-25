@@ -18,7 +18,7 @@
 # -*- coding: utf-8 -*-
 
 from deejayd import DeejaydError
-from deejayd.component import SignalingComponent, JSONRpcComponent
+from deejayd.common.component import SignalingComponent, JSONRpcComponent
 from deejayd.database.connection import DatabaseConnection
 from deejayd.jsonrpc.interfaces import LibraryModule, jsonrpc_module
 from deejayd.jsonrpc.interfaces import AudioLibraryModule
@@ -29,7 +29,7 @@ from deejayd.model import mediafilters
 from deejayd.model.library import LibraryFactory, LibraryDir
 from deejayd.model.stats import get_stats
 from deejayd.ui import log
-from deejayd.utils import quote_uri, str_decode, log_traceback
+from deejayd.server.utils import quote_uri, str_decode, log_traceback
 from twisted.internet import threads, reactor
 import os
 import threading

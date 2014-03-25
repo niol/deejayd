@@ -22,7 +22,7 @@ import sys
 from optparse import OptionParser
 import socket
 
-from deejayd.net.client import DeejayDaemonSync, DeejaydError,\
+from deejayd.common.client import DeejayDaemonSync, DeejaydError,\
                                ConnectError, camelcase_to_underscore
 
 class DjcError(Exception): pass

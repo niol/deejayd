@@ -62,7 +62,7 @@ from twisted.internet import reactor
 # start core
 from deejayd import DeejaydError
 try:
-    from deejayd.core import DeejayDaemonCore
+    from deejayd.server.core import DeejayDaemonCore
     deejayd_core = DeejayDaemonCore()
     deejayd_core.audiolib.update(sync = True)
 
@@ -72,7 +72,7 @@ try:
 except DeejaydError, ex:
     os.write(2, 'stopped\n')
 
-    from deejayd.utils import str_decode
+    from deejayd.server.utils import str_decode
     err = "Unable to launch deejayd core, see traceback for more details"
     log.msg(err)
     log.msg(str_decode(traceback.format_exc()))
@@ -85,7 +85,7 @@ except DeejaydError, ex:
 
 # net protocol
 if config.getboolean("net","enabled"):
-    from deejayd.net.protocol import DeejaydFactory
+    from deejayd.server.protocol import DeejaydFactory
     factory = DeejaydFactory(deejayd_core)
     try:
         reactor.listenTCP(config.getint("net","port"), factory)

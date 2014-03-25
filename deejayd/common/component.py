@@ -19,7 +19,7 @@
 from twisted.python import reflect
 from deejayd.model.state import PersistentState
 from deejayd import jsonrpc as jsonrpclib
-from deejayd.signals import SIGNALS
+from deejayd.server.signals import SIGNALS
 
 class JSONRpcComponent(object):
     separator = '.'

@@ -24,7 +24,7 @@ from deejayd import DeejaydError
 from deejayd.ui import log
 
 from txsockjs.factory import SockJSResource
-from deejayd.net.protocol import DeejaydFactory
+from deejayd.server.protocol import DeejaydFactory
 from deejayd.webui.webui import DeejaydMainHandler
 
 

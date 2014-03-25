@@ -18,7 +18,7 @@
 
 from deejayd import DeejaydError
 from deejayd.ui import log
-from deejayd.utils import str_decode
+from deejayd.server.utils import str_decode
 
 try: from sqlite3 import dbapi2 as sqlite  # python 2.5
 except ImportError:

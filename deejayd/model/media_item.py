@@ -22,7 +22,7 @@ from collections import MutableMapping
 
 from deejayd.model.mediafilters import DEFAULT_AUDIO_SORT, DEFAULT_VIDEO_SORT
 from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery
-from deejayd.signals import mediadb_mupdate
+from deejayd.server.signals import mediadb_mupdate
 from deejayd import DeejaydError
 
 class _MediaItem(MutableMapping):

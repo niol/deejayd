@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
-from deejayd.utils import quote_uri
+from deejayd.server.utils import quote_uri
 from deejayd.database import schema
 
 def format_tracknumber(tckn):

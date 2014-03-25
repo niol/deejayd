@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd import DeejaydError, __version__
-from deejayd.component import JSONRpcComponent
+from deejayd.common.component import JSONRpcComponent
 from deejayd.jsonrpc import DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import jsonrpc_module, CoreModule, IntrospectionModule
 from deejayd.ui.config import DeejaydConfig

@@ -20,8 +20,8 @@ import time
 from zope.interface import implements
 from deejayd.webradio.IWebradioSource import IWebradioSource
 from deejayd.model.webradio import WebradioFactory
-from deejayd.component import PersistentStateComponent
-from deejayd.component import SignalingComponent
+from deejayd.common.component import PersistentStateComponent
+from deejayd.common.component import SignalingComponent
 
 class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
     implements(IWebradioSource)

@@ -241,7 +241,8 @@ if __name__ == "__main__":
            author_email="mickael.royer@gmail.com",
            license="GNU GPL v2",
            scripts=["scripts/deejayd","scripts/djc"],
-           packages=["deejayd","deejayd.net","deejayd.mediadb",\
+           packages=["deejayd","deejayd.common","deejayd.mediadb",\
+                     "deejayd.server",
                      "deejayd.dispatch",
                      "deejayd.mediadb.parsers",
                      "deejayd.mediadb.parsers.audio",\

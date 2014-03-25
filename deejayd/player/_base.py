@@ -16,12 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.component import SignalingComponent, JSONRpcComponent
-from deejayd.component import PersistentStateComponent
+from deejayd.common.component import SignalingComponent, JSONRpcComponent
+from deejayd.common.component import PersistentStateComponent
 from deejayd.plugins import PluginError, IPlayerPlugin
 from deejayd.player import PlayerError
 from deejayd.ui import log
-from deejayd.utils import get_uris_from_pls
+from deejayd.server.utils import get_uris_from_pls
 
 
 __all__ = ['PLAYER_PLAY', 'PLAYER_PAUSE', 'PLAYER_STOP', '_BasePlayer']

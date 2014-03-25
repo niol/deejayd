@@ -1,10 +1,5 @@
 usr/lib/python*/*-packages/deejayd/__init__.py
-usr/lib/python*/*-packages/deejayd/component.py
+usr/lib/python*/*-packages/deejayd/common/*.py
 usr/lib/python*/*-packages/deejayd/model/*.py
-usr/lib/python*/*-packages/deejayd/jsonrpc/__init__.py
-usr/lib/python*/*-packages/deejayd/jsonrpc/jsonbuilders.py
-usr/lib/python*/*-packages/deejayd/jsonrpc/jsonparsers.py
-usr/lib/python*/*-packages/deejayd/jsonrpc/interfaces.py
-usr/lib/python*/*-packages/deejayd/net/client.py
-usr/lib/python*/*-packages/deejayd/net/__init__.py
+usr/lib/python*/*-packages/deejayd/jsonrpc/*.py
 usr/bin/djc

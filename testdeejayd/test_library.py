@@ -22,7 +22,7 @@ Deejayd DB testing module
 import os, time, traceback
 import base64
 from testdeejayd import TestCaseWithDeejaydCore, unittest
-from deejayd.utils import str_decode
+from deejayd.server.utils import str_decode
 from deejayd.mediadb import inotify
 from deejayd.mediadb.library import NotFoundException
 

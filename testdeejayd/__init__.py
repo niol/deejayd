@@ -138,7 +138,7 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
         if cls.inotify_support or cls.media_backend == "gstreamer":
             testdeejayd.utils.twreactor.need_twisted_reactor()
 
-        from deejayd.core import DeejayDaemonCore
+        from deejayd.server.core import DeejayDaemonCore
         cls.deejayd = DeejayDaemonCore(start_inotify=cls.inotify_support)
         cls.deejayd.audiolib.update(sync=True)
         cls.deejayd.videolib.update(sync=True)

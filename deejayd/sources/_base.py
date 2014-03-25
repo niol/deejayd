@@ -17,8 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd import DeejaydError
-from deejayd.component import SignalingComponent, JSONRpcComponent
-from deejayd.component import PersistentStateComponent
+from deejayd.common.component import SignalingComponent, JSONRpcComponent
+from deejayd.common.component import PersistentStateComponent
 from deejayd.mediadb.library import NotFoundException
 from deejayd.model.playlist import PlaylistFactory
 from deejayd.sources._playorder import orders

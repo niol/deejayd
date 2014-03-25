@@ -18,7 +18,7 @@
 
 import os
 
-from deejayd.component import SignalingComponent, PersistentStateComponent
+from deejayd.common.component import SignalingComponent, PersistentStateComponent
 from deejayd.ui import log
 from deejayd.sources._base import SourceError
 from deejayd.sources.audio import AudioSource

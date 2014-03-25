@@ -19,7 +19,7 @@
 import collections
 from gi.repository import Gst
 
-from deejayd.utils import str_decode
+from deejayd.server.utils import str_decode
 
 class TagListWrapper(collections.Mapping):
     def __init__(self, taglist, merge=False):

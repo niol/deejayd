@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd.component import SignalingComponent, JSONRpcComponent
+from deejayd.common.component import SignalingComponent, JSONRpcComponent
 from deejayd.jsonrpc.interfaces import WebradioModule, jsonrpc_module
 from deejayd.model.webradio import WebradioFactory
 from deejayd.webradio.IWebradioSource import IEditWebradioSource

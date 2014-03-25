@@ -23,7 +23,7 @@ from testdeejayd.db.schemas import SCHEMAS
 from deejayd import DeejaydError
 from deejayd.database.schema import DB_SCHEMA
 from deejayd.database.connection import DatabaseConnection
-from deejayd.core import DeejayDaemonCore
+from deejayd.server.core import DeejayDaemonCore
 
 
 class TestDatabase(TestCaseWithMediaData):

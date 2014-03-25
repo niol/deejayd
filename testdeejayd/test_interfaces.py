@@ -19,7 +19,7 @@
 import threading
 
 from testdeejayd import TestCaseWithServer, TestCaseWithDeejaydCore
-from deejayd.net.client import DeejayDaemonSync, DeejayDaemonAsync
+from deejayd.common.client import DeejayDaemonSync, DeejayDaemonAsync
 
 from testdeejayd.interfaces.core import CoreInterfaceTests
 from testdeejayd.interfaces.library import LibraryInterfaceTests
@@ -48,10 +48,10 @@ class TestCore(TestCaseWithDeejaydCore, CoreInterfaceTests, \
         pl_list = self.deejayd.recpls.get_list()
         self.deejayd.recpls.erase([pl["pl_id"] for pl in pl_list])
         # remove recorded webradio
-        self.deejayd.webradio.source_clear_webradios("local")              
-          
+        self.deejayd.webradio.source_clear_webradios("local")
+
     def assertAckCmd(self, cmd_res):
-        self.assertEqual(cmd_res, None)      
+        self.assertEqual(cmd_res, None)
 
 
 class TestSyncClient(TestCaseWithServer, CoreInterfaceTests, \
@@ -75,7 +75,7 @@ class TestSyncClient(TestCaseWithServer, CoreInterfaceTests, \
     def tearDownClass(cls):
         cls.deejayd.disconnect()
         super(TestSyncClient, cls).tearDownClass()
-    
+
     def tearDown(self):
         self.deejayd.player.stop()
         self.deejayd.audioqueue.clear()
@@ -97,7 +97,7 @@ class TestAsyncClient(TestCaseWithServer, SignalsInterfaceTests):
         # Instanciate the server object of the client library
         cls.deejayd = DeejayDaemonAsync()
         cls.deejayd.connect('localhost', cls.serverPort)
-        
+
         # Prepare in case we need other clients
         cls.clients = [cls.deejayd]
 
@@ -106,7 +106,7 @@ class TestAsyncClient(TestCaseWithServer, SignalsInterfaceTests):
         for client in cls.clients:
             client.disconnect()
         super(TestAsyncClient, cls).tearDownClass()
-    
+
     def tearDown(self):
         self.deejayd.player.stop().wait_for_answer()
         self.deejayd.audioqueue.clear().wait_for_answer()

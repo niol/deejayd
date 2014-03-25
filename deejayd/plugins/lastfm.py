@@ -24,10 +24,10 @@ except ImportError: # python < 2.5
 
 from zope.interface import implements
 from deejayd import DeejaydError
-from deejayd.thread import DeejaydThread
+from deejayd.server.thread import DeejaydThread
 from deejayd.ui import log
 from deejayd.plugins import IPlayerPlugin, PluginError
-from deejayd.utils import str_decode
+from deejayd.server.utils import str_decode
 
 class AudioScrobblerFatalError(DeejaydError): pass
 class AudioScrobblerError(DeejaydError):

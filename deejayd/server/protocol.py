@@ -22,10 +22,10 @@ from twisted.internet.error import ConnectionDone
 from twisted.protocols.basic import LineReceiver
 
 from deejayd import __version__, DeejaydError
-from deejayd.signals import SIGNALS
+from deejayd.server.signals import SIGNALS
 from deejayd.ui import log
-from deejayd.utils import str_decode
-from deejayd.component import JSONRpcComponent
+from deejayd.server.utils import str_decode
+from deejayd.common.component import JSONRpcComponent
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import jsonrpc_module, SignalModule
 from deejayd.jsonrpc.jsonparsers import loads_request

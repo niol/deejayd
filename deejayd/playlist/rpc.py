@@ -18,7 +18,7 @@
 
 from deejayd import DeejaydError
 import deejayd.mediadb.library
-from deejayd.component import SignalingComponent, JSONRpcComponent
+from deejayd.common.component import SignalingComponent, JSONRpcComponent
 from deejayd.jsonrpc.interfaces import jsonrpc_module, RecordedPlaylistModule
 from deejayd.model.playlist import PlaylistFactory
 

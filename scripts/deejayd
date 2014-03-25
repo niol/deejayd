@@ -202,7 +202,7 @@ if __name__ == "__main__":
     import traceback
     from twisted.internet.error import CannotListenError
     from deejayd.ui import log
-    from deejayd.utils import str_decode
+    from deejayd.server.utils import str_decode
 
     def abort(exception=None, msg=None):
         if msg is not None:
@@ -226,7 +226,7 @@ if __name__ == "__main__":
 
     # start core
     try:
-        from deejayd.core import DeejayDaemonCore
+        from deejayd.server.core import DeejayDaemonCore
         deejayd_core = DeejayDaemonCore()
     except Exception, ex:
         abort(msg=\
@@ -234,7 +234,7 @@ if __name__ == "__main__":
             exception=ex)
     ###############################################################
 
-    from deejayd.net.protocol import DeejaydFactory
+    from deejayd.server.protocol import DeejaydFactory
     service = False
     # net service
     if config.getboolean("net", "enabled"):
@@ -254,7 +254,7 @@ if __name__ == "__main__":
         try:
             from deejayd import webui
         except ImportError, ex:
-            from deejayd.utils import str_decode
+            from deejayd.server.utils import str_decode
             log.err(_("Webui does not seem to be installed, disabling."))
             config.set("webui", "enabled", "no")
             log.err("----Traceback lines----")

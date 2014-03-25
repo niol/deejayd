@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from zope.interface import implements
-from deejayd.utils import get_uris_from_pls, get_uris_from_m3u
+from deejayd.server.utils import get_uris_from_pls, get_uris_from_m3u
 from deejayd.webradio.IWebradioSource import IEditWebradioSource
 from deejayd.webradio._base import _BaseWebradioSource
 from deejayd.ui import log
