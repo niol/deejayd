@@ -363,7 +363,7 @@ class MagicPlaylist(_Playlist):
             ft.combine(f)
 
         lib_model = self.library.get_model()
-        sorts = self.sorts + lib_model.MEDIA_OBJECT.default_sort()
+        sorts = self.sorts + lib_model.default_sort()
         if self.properties["use-limit"] == "1":
             sorts = [(self.properties["limit-sort-value"], \
                      self.properties["limit-sort-direction"])] + sorts

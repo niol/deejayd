@@ -20,7 +20,6 @@ import time
 import os
 from collections import MutableMapping
 
-from deejayd.model.mediafilters import DEFAULT_AUDIO_SORT, DEFAULT_VIDEO_SORT
 from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery
 from deejayd.server.signals import mediadb_mupdate
 from deejayd import DeejaydError
@@ -168,10 +167,6 @@ class AudioItem(_MediaItem):
         "album_id": "-1",
     }
 
-    @classmethod
-    def default_sort(cls):
-        return DEFAULT_AUDIO_SORT
-
     def __init__(self, library, dir, name, db_id=None, infos=None):
         self.album = None
         super(AudioItem, self).__init__(library, dir, name, db_id, infos)
@@ -240,9 +235,5 @@ class VideoItem(_MediaItem):
         "subtitle_channels": 0,
         "external_subtitle": "",
     }
-
-    @classmethod
-    def default_sort(cls):
-        return DEFAULT_VIDEO_SORT
 
 # vim: ts=4 sw=4 expandtab

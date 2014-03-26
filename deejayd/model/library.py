@@ -31,6 +31,7 @@ from deejayd import Singleton, DeejaydError
 
 DIR_TABLE = "library_dir"
 
+
 class LibraryDir(object):
 
     def __init__(self, library, path, db_id=None, parent_id=None):
@@ -78,6 +79,7 @@ class LibraryDir(object):
         rs = SimpleSelect(DIR_TABLE) \
                     .select_column("id") \
                     .append_where("parent_id = %s", self.db_id) \
+                    .order_by("name") \
                     .execute()
         return self.library.get_dirs_with_ids([id for (id,) in rs])
 
@@ -86,6 +88,7 @@ class LibraryDir(object):
             f_ids = SimpleSelect(self.library.LIB_TABLE) \
                         .select_column("id") \
                         .append_where("directory=%s", self.db_id) \
+                        .order_by("filename") \
                         .execute()
             return self.library.get_files_with_ids(map(lambda i: i[0], f_ids))
         return []
@@ -96,6 +99,8 @@ class LibraryDir(object):
                     % (DIR_TABLE, self.library.LIB_TABLE)) \
                 .select_column("id") \
                 .append_where(DIR_TABLE + ".name LIKE %s", self.path + u"%%") \
+                .order_by("name", DIR_TABLE) \
+                .order_by("filename", self.library.LIB_TABLE) \
                 .execute()
         files = self.library.get_files_with_ids(map(lambda i: i[0], f_ids))
         return files
@@ -367,6 +372,14 @@ class AudioLibrary(_Library):
     ALBUM_TABLE = "album"
     loaded_albums = {}
 
+    @staticmethod
+    def default_sort():
+        return [
+            ("album", "ascending"),
+            ("discnumber", "ascending"),
+            ("tracknumber", "ascending")
+        ]
+
     def __init__(self):
         self.cover_folder = DeejaydConfig().get("mediadb", "cover_directory")
         if not os.path.exists(self.cover_folder):
@@ -434,6 +447,10 @@ class VideoLibrary(_Library):
     MEDIA_OBJECT = VideoItem
     TYPE = "video"
     LIB_TABLE = "video"
+
+    @staticmethod
+    def default_sort():
+        return [("title", "ascending")]
 
 
 @Singleton

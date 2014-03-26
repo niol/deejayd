@@ -45,7 +45,6 @@ class NotSupportedFormat(DeejaydError):pass
 
 class _Library(SignalingComponent, JSONRpcComponent):
     supported_search_type = []
-    default_search_sort = None
     type = None
     PARSER = None
 
@@ -135,7 +134,7 @@ class _Library(SignalingComponent, JSONRpcComponent):
             ft.combine(f)
 
         if not ords:
-            ords = self.default_search_sort
+            ords = self.lib_obj.default_sort()
         return self.lib_obj.search(ft, orders=ords, limit=limit)
 
     def tag_list(self, tag, filter=None):
@@ -411,7 +410,6 @@ class AudioLibrary(_Library):
     search_type = "song"
     update_signal_name = 'mediadb.aupdate'
     supported_search_type = ['title', 'genre', 'filename', 'artist', 'album']
-    default_search_sort = mediafilters.DEFAULT_AUDIO_SORT
 
     def album_list(self, filter=None):
         return self.lib_obj.get_albums_with_filter(filter)
@@ -437,7 +435,6 @@ class VideoLibrary(_Library):
     search_type = "video"
     update_signal_name = 'mediadb.vupdate'
     supported_search_type = ['title']
-    default_search_sort = mediafilters.DEFAULT_VIDEO_SORT
 
 
 

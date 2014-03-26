@@ -30,7 +30,6 @@ __all__ = (
             'Higher', 'Lower', 'In',
             'COMPLEX_FILTERS', 'NAME2COMPLEX',
             'And', 'Or',
-            "DEFAULT_AUDIO_SORT", "DEFAULT_VIDEO_SORT"
           )
 
 
@@ -430,9 +429,5 @@ COMPLEX_FILTERS = (
                   )
 
 NAME2COMPLEX = dict([(x().get_identifier(), x) for x in COMPLEX_FILTERS])
-
-DEFAULT_AUDIO_SORT = [("album", "ascending"), ("discnumber", "ascending"), \
-        ("tracknumber", "ascending")]
-DEFAULT_VIDEO_SORT = [("title", "ascending")]
 
 # vim: ts=4 sw=4 expandtab
