@@ -70,9 +70,7 @@ class PlaylistEntry(MutableMapping):
         del self.media[key]
 
     def __getattr__(self, attr):
-        if hasattr(self.media, attr):
-            return getattr(self.media, attr)
-        raise AttributeError
+        return getattr(self.media, attr)
 
     def get_media(self):
         return self.media
