@@ -25,11 +25,18 @@ class DjdUtil
       else
         return "#{ n }"
 
-    d = new Date(t*1000)
-    if t < 3600
-      return "#{ num(d.getMinutes()) }:#{ num(d.getSeconds()) }"
-    else
-      return "#{ num(d.getHours()) }:#{ num(d.getMinutes()) }:#{ num(d.getSeconds()) }"
+    seconds_left = t
+
+    hours = Math.floor(seconds_left / 3600)
+    seconds_left = seconds_left % 3600
+
+    minutes = Math.floor(seconds_left / 60)
+    seconds_left = seconds_left % 60
+
+    t_formatted = "#{ num(minutes) }:#{ num(seconds_left) }"
+    if hours > 0
+      t_formatted = "#{ num(hours) }:" + t_formatted
+    return t_formatted
 
 angular.module("djdWebui.util", [], ($provide) ->
   $provide.factory("util", () ->
