@@ -93,7 +93,7 @@
 
         <div ng-controller="DjdPlayerNowPlayingCtrl" class="navbar-header">
             <button type="button" style="color: #ffffff;" class="navbar-toggle" data-toggle="collapse" data-target="#djd-seek-menu-collapse">
-                <span>{{ '_seek_' | i18n }}</span>
+                <span ng-bind="time"></span>
             </button>
             <p ng-bind-html="currentMedia" class="djd-current-track"/>
         </div>
@@ -103,13 +103,13 @@
                     ng-disabled="!isSeekable"
                     ng-click="player.seek(-60, true)"
                     class="btn btn-default navbar-btn">
-                <span class="glyphicon glyphicon-fast-backward"/>
+                <span class="fa fa-fast-backward"/>
             </button>
             <button type="button"
                     ng-disabled="!isSeekable"
                     ng-click="player.seek(-10, true)"
                     class="btn btn-default navbar-btn">
-                <span class="glyphicon glyphicon-backward"/>
+                <span class="fa fa-backward"/>
             </button>
             <button type="button"
                     ng-disabled="!isSeekable"
@@ -120,13 +120,13 @@
                     ng-disabled="!isSeekable"
                     ng-click="player.seek(10, true)"
                     class="btn btn-default navbar-btn">
-                <span class="glyphicon glyphicon-forward"/>
+                <span class="fa fa-forward"/>
             </button>
             <button type="button"
                     ng-disabled="!isSeekable"
                     ng-click="player.seek(60, true)"
                     class="btn btn-default navbar-btn">
-                <span class="glyphicon glyphicon-fast-forward"/>
+                <span class="fa fa-fast-forward"/>
             </button>
         </div>
     </nav>
