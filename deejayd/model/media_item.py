@@ -97,18 +97,16 @@ class _MediaItem(MutableMapping):
         return len(self.data)
 
     def played(self):
-        played = int(self.data["playcount"]) + 1
-        timestamp = int(time.time())
-        self.data.update({"playcount":str(played), "lastplayed":str(timestamp)})
+        self['playcount'] = int(self.data['playcount']) + 1
+        self['lastplayed'] = str(int(time.time()))
         self.save(commit=True)
 
     def skip(self):
-        skip = int(self.data["skipcount"]) + 1
-        self.data["skipcount"] = str(skip)
+        self['skipcount'] = str(int(self.data["skipcount"]) + 1)
         self.save(commit=True)
 
     def set_rating(self, rate, commit=False):
-        self.data["rating"] =  int(rate)
+        self['rating'] = int(rate)
         self.save(commit=commit)
 
     def erase(self, commit=False):
