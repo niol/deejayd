@@ -70,13 +70,6 @@ class _DjdBaseLibraryService
       cmd = "addMediaByFilter"
     @djdclientservice.sendCommand("#{ @getLibraryType() }pls.#{ cmd }", [value, true])
 
-  addToPls: (value, type="filter") ->
-    cmd = "loadFolders"
-    if type == "filter"
-      value = value.dump() if value != null
-      cmd = "addMediaByFilter"
-    @djdclientservice.sendCommand("#{ @getLibraryType() }pls.#{ cmd }", [value, true])
-
 class DjdMusicLibraryService extends _DjdBaseLibraryService
   constructor: (@djdclientservice, @$rootScope) ->
     super(@djdclientservice, @$rootScope)
