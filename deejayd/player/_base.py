@@ -173,11 +173,15 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         # replaygain support
         vol = self.__volume[type]
         if self._replaygain and self._media_file is not None:
-            scale = self._media_file.replay_gain(\
-                self._replaygain_opts["profiles"],
-                self._replaygain_opts["preamp_gain"],
-                self._replaygain_opts["fallback_gain"])
-            vol = min(100.0, max(0.0, float(vol) * scale))
+            try:
+                scale = self._media_file.replay_gain(\
+                    self._replaygain_opts["profiles"],
+                    self._replaygain_opts["preamp_gain"],
+                    self._replaygain_opts["fallback_gain"])
+            except AttributeError:
+                pass # replaygain not supported
+            else:
+                vol = min(100.0, max(0.0, float(vol) * scale))
 
         # specific player implementation
         self._set_volume(vol, sig)
