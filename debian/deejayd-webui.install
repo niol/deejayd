@@ -1,2 +1,3 @@
 usr/lib/python*/*-packages/deejayd/webui/*.py
+usr/lib/python*/*-packages/deejayd/webui/*.thtml
 usr/share/deejayd/htdocs/*

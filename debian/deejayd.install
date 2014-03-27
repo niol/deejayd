@@ -1,4 +1,5 @@
 usr/bin/deejayd
+usr/lib/python*/*-packages/deejayd/dispatch/*
 usr/lib/python*/*-packages/deejayd/server/*
 usr/lib/python*/*-packages/deejayd/mediadb/*
 usr/lib/python*/*-packages/deejayd/playlist/*
