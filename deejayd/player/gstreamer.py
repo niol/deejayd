@@ -447,6 +447,8 @@ class GstreamerPlayer(_BasePlayer):
         else:
             for plugin in self.plugins:
                 plugin.on_media_played(self._media_file)
+        try: self._media_file['lastpos'] = 0
+        except AttributeError: pass
 
         if self.__in_gapless_transition:
             self._media_file = self.__new_file

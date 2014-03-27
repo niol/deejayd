@@ -52,7 +52,7 @@ class _DjdBaseLibraryService
   updateLibrary: ->
     @djdclientservice.sendCommand("#{ @getLibraryType() }lib.update", [])
 
-  play: (value, type="filter") ->
+  play: (value, type="filter", position=0) ->
     cmd = "loadFolders"
     if type == "filter"
       value = value.dump() if value != null
@@ -60,7 +60,10 @@ class _DjdBaseLibraryService
 
     pls = "#{ @getLibraryType() }pls"
     @djdclientservice.sendCommand("#{ pls }.#{ cmd }", [value, false]).then( (ans) =>
-      @djdclientservice.sendCommand("player.goTo", [0, "pos", pls])
+      @djdclientservice.sendCommand("player.goTo", [0, "pos", pls]).then( (ans) =>
+        if position
+          @djdclientservice.sendCommand("player.seek", [position])
+      )
     )
 
   addToPls: (value, type="filter") ->

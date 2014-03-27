@@ -17,13 +17,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 class DjdFileCtrl
-  constructor: (@$scope, @djdmusiclibraryservice, @djdvideolibraryservice) ->
+  constructor: (@$scope, @djdmusiclibraryservice, @djdvideolibraryservice, @util) ->
     self = @
+    @$scope.util = @util
 
     @library = if @$scope.file.type == 'song' then @djdmusiclibraryservice else @djdvideolibraryservice
     @filter = new DjdApp.models.MediaBasicFilter("equals", "id", @$scope.file.media_id)
-    @$scope.playFile = () ->
-      self.library.play(self.filter)
+    @$scope.playFile = (position=0) ->
+      self.library.play(self.filter, "filter", position)
 
     @$scope.addFileToPls = () ->
       self.library.addToPls(self.filter)
@@ -40,7 +41,7 @@ angular.module('djdWebui.widgets')
     },
     replace: false,
     templateUrl: 'gen/tpl/file.tpl.html'
-    controller: ['$scope', 'djdmusiclibraryservice', 'djdvideolibraryservice', DjdFileCtrl]
+    controller: ['$scope', 'djdmusiclibraryservice', 'djdvideolibraryservice', 'util', DjdFileCtrl]
   )
 
 class DjdFolderCtrl

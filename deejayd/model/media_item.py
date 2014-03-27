@@ -101,6 +101,9 @@ class _MediaItem(MutableMapping):
         self['lastplayed'] = str(int(time.time()))
         self.save(commit=True)
 
+    def stopped(self, lastpos):
+        pass
+
     def skip(self):
         self['skipcount'] = str(int(self.data["skipcount"]) + 1)
         self.save(commit=True)
@@ -232,6 +235,12 @@ class VideoItem(_MediaItem):
         "audio_channels": 0,
         "subtitle_channels": 0,
         "external_subtitle": "",
+        'lastpos': 0,
     }
+
+    def stopped(self, lastpos):
+        self['lastpos'] = lastpos
+        self.save(commit=True)
+
 
 # vim: ts=4 sw=4 expandtab

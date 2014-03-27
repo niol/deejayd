@@ -112,6 +112,7 @@ DB_SCHEMA = {
             Column('skipcount', type='int'),
             Column('playcount', type='int'),
             Column('lastplayed', type='int'),
+            Column('lastpos', type='int'),
             Column('rating', type='int'),
             Column('lastmodified', type='int'),
             Column('videoheight', type='int'),

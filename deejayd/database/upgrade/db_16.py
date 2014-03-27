@@ -82,6 +82,7 @@ def upgrade(cursor, backend, config):
             skipcount INTEGER,
             playcount INTEGER,
             lastplayed INTEGER,
+            lastpos INTEGER,
             rating INTEGER,
             lastmodified INTEGER,
             videoheight INTEGER,

@@ -252,6 +252,8 @@ class VlcPlayer(_BasePlayer):
             else:
                 for plugin in self.plugins:
                     plugin.on_media_played(self._media_file)
+            try: self._media_file['lastpos'] = 0
+            except AttributeError: pass
 
             self._change_file(self._source.next(explicit=False))
         reactor.callFromThread(eof_cb)

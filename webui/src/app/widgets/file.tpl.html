@@ -11,6 +11,14 @@
                 {{ '_play_' | i18n }}
             </a>
         </li>
+        <li role="presentation"
+            ng-show="file.type == 'video' &&
+                     file.lastpos > 5*60 && file.lastpos < file.length - 600">
+            <a ng-click="playFile(file.lastpos - 60)"
+               role="menuitem" tabindex="-1" href="">
+                {{ '_resumeAt_' | i18n }} {{ util.formatTime(file.lastpos - 60)}}
+            </a>
+        </li>
         <li role="presentation" class="divider"/>
         <li role="presentation">
             <a ng-click="addFileToPls()"

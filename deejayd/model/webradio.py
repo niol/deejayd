@@ -66,6 +66,9 @@ class Webradio(MutableMapping):
     def to_json(self):
         return dict(self.wb_data)
 
+    def stopped(self, lastpos):
+        pass
+
 class WebradioSource(object):
     implements(IObjectModel)
 
