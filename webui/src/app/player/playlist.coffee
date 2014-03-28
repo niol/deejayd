@@ -64,6 +64,7 @@ class DjdSourcePlaylistCtrl
           id: c[1],
           pos: c[0],
         }
+        self.$scope.currentPls = self.$scope.currentId.pls
       else
         self.$scope.currentId = {pls: "", pos: -1, id: -1}
     )
