@@ -200,8 +200,7 @@ class VlcPlayer(_BasePlayer):
         self.set_volume(self.get_volume(), sig=False)
         self.play()
 
-        if self._media_file is not None:
-            self.dispatch_signame('player.status')
+        self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
 
     def _set_volume(self, vol, sig=True):

@@ -308,8 +308,8 @@ class GstreamerPlayer(_BasePlayer):
         self.play()
 
         if self._media_file is not None:
-            self.dispatch_signame('player.status')
             self.__current_change()
+        self.dispatch_signame('player.status')
         self.dispatch_signame('player.current')
 
     def _set_volume(self, vol, sig=True):

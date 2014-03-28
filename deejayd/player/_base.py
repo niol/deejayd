@@ -147,7 +147,6 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
             self._media_file.stopped(self.get_position())
             self._source.queue_reset()
             self._change_file(None)
-            self.dispatch_signame('player.status')
 
     def next(self):
         if self.get_state() != PLAYER_STOP:
