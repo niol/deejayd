@@ -76,12 +76,11 @@ class LibraryDir(object):
         return self.path
 
     def get_subdirs(self):
-        rs = SimpleSelect(DIR_TABLE) \
+        query = SimpleSelect(DIR_TABLE) \
                     .select_column("id") \
                     .append_where("parent_id = %s", self.db_id) \
-                    .order_by("name") \
-                    .execute()
-        return self.library.get_dirs_with_ids([id for (id,) in rs])
+                    .order_by("name")
+        return self.library.get_dirs_with_ids([id for (id,) in query.execute()])
 
     def get_files(self):
         if self.db_id is not None:

@@ -60,10 +60,14 @@ class SimpleSelect(_DBQuery):
         return self.wheres_args
 
     def __str__(self):
-        return "SELECT DISTINCT %s FROM %s WHERE %s"\
+        orders = None
+        if len(self.orders) >= 1:
+            orders = 'ORDER BY ' + ', '.join(self.orders)
+        return "SELECT DISTINCT %s FROM %s WHERE %s %s"\
                % (', '.join(self.selects),
                    self.table_name,
                    ' AND '.join(self.wheres) or 1,
+                   orders or '',
                  )
 
     def execute(self, expected_result="fetchall"):
