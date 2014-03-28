@@ -159,7 +159,7 @@ class build_webui(Command):
 
         data_files = self.distribution.data_files
         data_files.extend(get_data_files(self.builddir,
-                                         'share/deejayd/htdocs/'))
+                                         'share/deejayd/htdocs/gen/'))
         for d in ('i18n', 'images', 'vendor', ):
             data_files.extend(get_data_files(os.path.join(self.webuidir, d),
                                              os.path.join('share/deejayd/htdocs/', d)))
