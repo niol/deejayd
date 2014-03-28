@@ -189,7 +189,7 @@ class AudioItem(_MediaItem):
         if key == "album" and self.album is not None:
             return self.album["album"]
         elif key.startswith("replaygain_") and not self.data[key]:
-            raise ValueError
+            return None
         return super(AudioItem, self).__getitem__(key)
 
     def to_json(self):
@@ -212,8 +212,12 @@ class AudioItem(_MediaItem):
                 return 1.0
             try:
                 db = float(self["replaygain_%s_gain" % profile].split()[0])
-                peak = float(self.get("replaygain_%s_peak" % profile, 1))
-            except (KeyError, ValueError, IndexError):
+                peak = self["replaygain_%s_peak" % profile]
+                if peak is None:
+                    peak = 1.0
+                else:
+                    peak = float(peak)
+            except (AttributeError, TypeError):
                 continue
             else:
                 db += pre_amp_gain
