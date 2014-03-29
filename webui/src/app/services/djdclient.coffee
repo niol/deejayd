@@ -89,17 +89,7 @@ class DjdWebClient
 
 
   _formatAnswer: (answer) ->
-    switch answer.type
-      when "media"
-        if answer.answer != null
-          return new DjdApp.models.Media(answer.answer)
-        return null
-      when "medialist"
-        return new DjdApp.models.MediaList(answer.answer)
-      when "playlist"
-        return new DjdApp.models.Playlist(answer.answer)
-      else
-        return answer.answer
+    return answer.answer
 
   sendCommand: (cmd_name, args) ->
     deferred = @$q.defer()

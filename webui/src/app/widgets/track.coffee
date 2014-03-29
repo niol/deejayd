@@ -20,10 +20,10 @@ class DjdTrackCtrl
   constructor: (@$scope, @djdplayerservice) ->
     self = @
     @$scope.playTrack = () ->
-      self.djdplayerservice.goTo(self.$scope.track.get('id'), self.$scope.pls)
+      self.djdplayerservice.goTo(self.$scope.track.id, self.$scope.pls)
 
     @$scope.removeTrack = () ->
-      self.djdplayerservice.plsRemove(self.$scope.pls, [self.$scope.track.get('id')])
+      self.djdplayerservice.plsRemove(self.$scope.pls, [self.$scope.track.id])
 
 angular.module('djdWebui.widgets')
 .directive('djdTrack', (util) ->
@@ -39,10 +39,10 @@ angular.module('djdWebui.widgets')
   link: (scope, element, attrs) ->
     scope.util = util
     scope.desc = ""
-    if scope.track.get("type") == "song"
-      scope.desc = "#{ scope.track.get("artist") } - #{ scope.track.get("album") }"
-    else if scope.track.get("type") == "video"
-      scope.desc = if scope.track.get("external_subtitle") == "" then "Without subtitle" else "With subtitle"
+    if scope.track.type == "song"
+      scope.desc = "#{ scope.track['artist'] } - #{ scope.track['album'] }"
+    else if scope.track.type == "video"
+      scope.desc = if scope.track['external_subtitle'] == "" then "Without subtitle" else "With subtitle"
 
     scope.$on('$destroy', () ->
       return

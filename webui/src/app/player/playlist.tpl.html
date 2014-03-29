@@ -60,7 +60,7 @@
                    track-no="$index+1" track="track" pls="currentPls"
                    ng-repeat="track in playlist"
                    href=""
-                   ng-class="{active: track.get('id') == currentId.id && currentPls == currentId.pls}"
+                   ng-class="{active: track.id == currentId.id && currentPls == currentId.pls}"
                    class="list-group-item row"/>
             </div>
         </div>

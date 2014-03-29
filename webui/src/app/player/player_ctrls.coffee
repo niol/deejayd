@@ -51,7 +51,7 @@ class DjdPlayerControlsCtrl
     @$scope.isPlayingVideo = false
     @$scope.$on("djd:player:playing_changed", (evt, track) ->
       self.$scope.isPlayingVideo = false
-      if track && track.get('type') == "video"
+      if track && track.type == "video"
         self.$scope.isPlayingVideo = true
     )
 
@@ -73,10 +73,10 @@ class DjdPlayerNowPlayingCtrl
       self.$scope.isSeekable = false
       if track
         self.$scope.currentMedia = """
-<div class='djd-current-title'>#{track.get('title')}</div>
+<div class='djd-current-title'>#{track['title']}</div>
 <div class='djd-current-desc'>#{self.getDesc(track)}</div>
 """
-        if track.get('type') != 'webradio'
+        if track.type != 'webradio'
           self.$scope.isSeekable = true
       else
         self.setNoMedia()
@@ -86,12 +86,12 @@ class DjdPlayerNowPlayingCtrl
     )
 
   getDesc: (track) ->
-    if track.get('type') == 'song'
-      return "#{track.get('artist')} - #{track.get('album')}"
-    else if track.get('type') == 'video'
-      return "#{track.get('videowidth')} x #{track.get('videoheight')}"
-    else if track.get('type') == 'webradio'
-        return track.get('webradio-desc')
+    if track.type == 'song'
+      return "#{track['artist']} - #{track['album']}"
+    else if track.type == 'video'
+      return "#{track['videowidth']} x #{track['videoheight']}"
+    else if track.type == 'webradio'
+        return track['webradio-desc']
 
   setNoMedia: ->
     @$scope.currentMedia = "
@@ -146,15 +146,15 @@ class DjdPlayerOptionsDialogCtrl
 
     # listen playing change event
     @$scope.$on("djd:player:playing_changed", (evt, track) ->
-      if track && track.get('type') == "video"
-        self.$scope.audioChannels = track.get('audio')
-        self.$scope.audioOffset = track.get('av_offset')
-        self.$scope.curAudioChannel = track.get('audio_idx')
+      if track && track['type'] == "video"
+        self.$scope.audioChannels = track['audio']
+        self.$scope.audioOffset = track['av_offset']
+        self.$scope.curAudioChannel = track['audio_idx']
 
-        if track.hasAttr('subtitle')
-          self.$scope.subChannels = track.get('subtitle')
-          self.$scope.subOffset = track.get('sub_offset')
-          self.$scope.curSubChannel = track.get('subtitle_idx')
+        if track.hasOwnProperty('subtitle')
+          self.$scope.subChannels = track['subtitle']
+          self.$scope.subOffset = track['sub_offset']
+          self.$scope.curSubChannel = track['subtitle_idx']
           self.$scope.hasSubtitle = true
         else
           self.$scope.hasSubtitle = false

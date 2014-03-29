@@ -18,6 +18,14 @@
 
 class DjdUtil
 
+  hasLastPos: (media) ->
+    return media.type == 'video' &&
+           media.lastpos > 5*60 &&
+           media.lastpos < media.length - 600
+
+  formatTitle: (media) ->
+    return media["title"]
+
   formatTime: (t) ->
     num = (n) ->
       if n < 10

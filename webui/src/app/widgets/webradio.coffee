@@ -20,13 +20,13 @@ class DjdWebradioCtrl
   constructor: (@$scope, @localize, @djdwebradioservice) ->
     self = @
     @$scope.play = ->
-      self.djdwebradioservice.playWebradio(self.$scope.webradio.get('wb_id'))
+      self.djdwebradioservice.playWebradio(self.$scope.webradio['wb_id'])
 
     @$scope.erase = ->
       r = window.confirm(self.localize._("_eraseWebradioConfirm_"))
       if r
         self.djdwebradioservice.eraseWebradio(self.$scope.source.name,
-                                              self.$scope.webradio.get('wb_id'))
+                                              self.$scope.webradio['wb_id'])
 
 class DjdWbCategoryCtrl
   constructor: (@$scope, @localize, @djdwebradioservice) ->

@@ -93,7 +93,7 @@ class DjdSourcePlaylistCtrl
 
       self.$scope.loading = true
       self.djdplayerservice[funcs[pls]](0, null).then((m_list) ->
-        self.$scope.playlist = m_list.getMediaList()
+        self.$scope.playlist = m_list
         self.$scope.loading = false
       )
       self.$scope.currentPls = pls

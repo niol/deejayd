@@ -281,7 +281,9 @@
                       </div>
 
                       <div class='form-group'>
-                          <label class="control-label col-xs-8">{{ '_audioOffset_' | i18n }} (ms)</label>
+                          <label class="control-label col-xs-8">
+                              {{ '_audioVideoOffset_' | i18n }} (ms)
+                          </label>
                           <div class="col-xs-4">
                             <input class="form-control"
                                    ng-model="audioOffset"

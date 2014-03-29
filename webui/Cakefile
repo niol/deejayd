@@ -26,8 +26,6 @@ config =
   outDir:  'gen'
   srcLessFile: "src/less/main.less"
   inJsFiles: [
-    'models/media'
-    'models/medialist'
     'models/mediafilter'
     'services/util'
     'services/localize'

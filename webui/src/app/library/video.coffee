@@ -36,7 +36,7 @@ class DjdVideoLibraryControl extends _DjdBaseLibraryControl
           self.$scope.searchModel.resultPattern = input
           self.$scope.searchModel.input = ""
 
-          self.$scope.searchModel.results = mList.getRawList()
+          self.$scope.searchModel.results = mList
         )
 
 
