@@ -139,7 +139,7 @@ class VlcPlayer(_BasePlayer):
         if not playing:
             raise PlayerError(_("unable to play file %s") \
                               % self._media_file['title'])
-        if needs_video: self.__init_video_information()
+        self.__init_video_information()
 
         # start webradio metadata task
         if self._media_file["type"] == "webradio":
