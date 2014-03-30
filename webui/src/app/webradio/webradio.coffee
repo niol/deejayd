@@ -113,7 +113,7 @@ class DjdWebradioControl
       self.$scope.view = 'webradio'
 
       self.$scope.categories = []
-      self.$scope.webradios = wbs.getMediaList()
+      self.$scope.webradios = wbs
       self.$scope.loading = false
     )
 
