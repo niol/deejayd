@@ -44,9 +44,6 @@ class AudioParserFactory(object):
             for ext in mod.extensions:
                 self.parsers[ext] = filetype_class()
 
-    def get_extensions(self):
-        return self.parsers.keys()
-
     def parse(self, file_obj):
         path = file_obj.get_path()
         extension = os.path.splitext(path)[1]
