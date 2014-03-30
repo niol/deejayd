@@ -18,6 +18,7 @@
 
 import os
 import mimetypes
+import itertools
 from deejayd.server.utils import quote_uri
 from deejayd import DeejaydError
 from deejayd.mediadb.parsers import ParseError, NoParserError
@@ -27,7 +28,7 @@ __all__ = ["VideoParserFactory"]
 PARSERS = [('asf', ['video/asf'], ['asf', 'wmv', 'wma']),
            ('flv', ['video/flv'], ['flv']),
            ('mkv', ['video/x-matroska', 'application/mkv'], ['mkv', 'mka', 'webm']),
-           ('mp4', ['video/quicktime', 'video/mp4'], ['mov', 'qt', 'mp4', 'mp4a', '3gp', '3gp2', '3g2', 'mk2']),
+           ('mp4', ['video/quicktime', 'video/mp4'], ['mov', 'qt', 'mp4', 'mp4a', '3gp', '3gp2', '3g2', 'mk2', 'm4v']),
            ('mpeg', ['video/mpeg'], ['mpeg', 'mpg', 'mp4', 'ts']),
            ('ogm', ['application/ogg'], ['ogm', 'ogg', 'ogv']),
            ('riff', ['video/avi'], ['wav', 'avi'])
@@ -38,10 +39,10 @@ class VideoParserFactory(object):
 
     def __init__(self, library):
         self.library = library
+        self.extensions = set(itertools.chain(*[p[2] for p in PARSERS]))
 
     def get_extensions(self):
-        return (".avi", ".flv", ".asf", ".wmv", ".ogm", ".mkv", \
-                ".mp4", ".mov", ".m4v")
+        return self.extensions
 
     def _format_title(self, f):
         (filename, ext) = os.path.splitext(f)
