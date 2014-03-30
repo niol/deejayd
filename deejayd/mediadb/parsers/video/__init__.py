@@ -18,6 +18,7 @@
 
 import os
 import mimetypes
+import itertools
 from deejayd.server.utils import quote_uri
 from deejayd import DeejaydError
 from deejayd.mediadb.parsers import ParseError, NoParserError
@@ -38,10 +39,10 @@ class VideoParserFactory(object):
 
     def __init__(self, library):
         self.library = library
+        self.extensions = set(itertools.chain(*[p[2] for p in PARSERS]))
 
     def get_extensions(self):
-        return (".avi", ".flv", ".asf", ".wmv", ".ogm", ".mkv", \
-                ".mp4", ".mov", ".m4v")
+        return self.extensions
 
     def _format_title(self, f):
         (filename, ext) = os.path.splitext(f)
