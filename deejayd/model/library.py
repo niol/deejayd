@@ -106,9 +106,17 @@ class LibraryDir(object):
 
     def save(self):
         if self.db_id is None:
+            self.parent_id = self.get_parentid()
+            if self.parent_id is None and self.path != self.library\
+                    .get_root_path():
+                parent_path = os.path.dirname(self.path)
+                p = self.library.get_dir_with_path(parent_path, create=True)
+                p.save()
+                self.parent_id = p.get_id()
+
             self.db_id = EditRecordQuery(DIR_TABLE) \
                             .add_value("name", self.path) \
-                            .add_value("parent_id", self.get_parentid()) \
+                            .add_value("parent_id", self.parent_id) \
                             .add_value("lib_type", self.library.TYPE) \
                             .execute(commit=False)
             self.library.loaded_dirs[self.db_id] = self
