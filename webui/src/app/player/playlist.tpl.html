@@ -27,25 +27,51 @@
 </div>
 <div class="col-xs-12 col-md-9">
     <nav class="navbar navbar-default" id="djd-main-toolbar">
-        <p class="navbar-text" ng-bind="plsDesc"></p>
-        <div class="navbar-right">
-          <button ng-hide="currentPls != 'audiopls'"
-                  ng-click="player.plsShuffle(currentPls)"
-                  type="button"
-                  class="btn btn-default navbar-btn">
-              <span class="glyphicon glyphicon-random"></span>
-          </button>
-          <button ng-hide="currentPls != 'audiopls'"
-                  type="button"
-                  class="btn btn-default navbar-btn"
-                  id="djd-pls-save">
-              <span class="glyphicon glyphicon-save"></span>
-          </button>
-          <button type="button"
-                  ng-click="player.plsClear(currentPls)"
-                  class="btn btn-default navbar-btn">
-              <span class="glyphicon glyphicon-trash"></span>
-          </button>
+        <div class="navbar-header">
+            <button type="button"
+                    id="djd-playlist-menu-toggle"
+                    class="navbar-toggle"
+                    data-toggle="collapse"
+                    data-target="#djd-playlist-menu-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <p class="navbar-text" style="margin-left: 5px;"
+               ng-bind="plsDesc"></p>
+        </div>
+
+        <div class="collapse navbar-collapse" id="djd-playlist-menu-collapse">
+            <div class="navbar-right">
+                <button ng-hide="currentPls != 'audiopls'"
+                        ng-click="player.plsShuffle(currentPls)"
+                        type="button"
+                        class="btn btn-default navbar-btn">
+                    <i class="fa fa-random"></i>
+                </button>
+                <button ng-hide="currentPls != 'audiopls'"
+                        type="button"
+                        class="btn btn-default navbar-btn"
+                        id="djd-pls-save">
+                    <i class="fa fa-save"></i>
+                </button>
+                <button type="button"
+                        ng-click="player.plsClear(currentPls)"
+                        class="btn btn-default navbar-btn">
+                    <i class="fa fa-trash-o"></i>
+                </button>
+                <form class="navbar-form" style="display: inline-block;">
+                    <div class="form-group">
+                        <select ng-change="updatePlayOrder()"
+                                ng-model="currentPlayOrder"
+                                class="form-control">
+                            <option value="inorder">{{ '_inOrder_' | i18n }}</option>
+                            <option value="random">{{ '_random_' | i18n }}</option>
+                            <option value="onemedia">{{ '_oneMedia_' | i18n }}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
         </div>
     </nav>
 

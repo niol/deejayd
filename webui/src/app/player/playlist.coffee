@@ -26,6 +26,7 @@ class DjdSourcePlaylistCtrl
     }
     @$scope.loading = false
     @$scope.currentPls = "audiopls"
+    @$scope.currentPlayOrder = "inorder"
     @$scope.currentId = {pls: "", pos: -1, id: -1}
     @$scope.player = @djdplayerservice
 
@@ -54,6 +55,8 @@ class DjdSourcePlaylistCtrl
 
       if old_id < self.pls_infos[data.pls].id
         self.$scope.loadPls(data.pls)
+      else
+        self.$scope.currentPlayOrder = data.infos['playorder']
     )
 
     @$scope.$on("djd:player:current_id_changed", (evt, current_id) ->
@@ -97,6 +100,11 @@ class DjdSourcePlaylistCtrl
         self.$scope.loading = false
       )
       self.$scope.currentPls = pls
+      self.$scope.currentPlayOrder = infos['playorder']
+
+    @$scope.updatePlayOrder = () ->
+      self.djdplayerservice.plsOptions(self.$scope.currentPls, 'playorder',
+                                       self.$scope.currentPlayOrder)
 
 DjdSourcePlaylistCtrl.$inject = ["$scope", "util", "localize", "alerts", "djdplayerservice"]
 
