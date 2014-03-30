@@ -11,6 +11,13 @@
                 Play
             </a>
         </li>
+        <li role="presentation"
+            ng-show="util.hasLastPos(track)">
+            <a ng-click="playTrack(track.lastpos - 60)"
+               role="menuitem" tabindex="-1" href="">
+                {{ '_resumeAt_' | i18n }} {{ util.formatTime(track.lastpos - 60)}}
+            </a>
+        </li>
         <li role="presentation" class="divider"/>
         <li role="presentation">
             <a ng-click="removeTrack()"

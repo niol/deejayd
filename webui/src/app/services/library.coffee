@@ -59,10 +59,11 @@ class _DjdBaseLibraryService
       cmd = "addMediaByFilter"
 
     pls = "#{ @getLibraryType() }pls"
+    self = @
     @djdclientservice.sendCommand("#{ pls }.#{ cmd }", [value, false]).then( (ans) =>
-      @djdclientservice.sendCommand("player.goTo", [0, "pos", pls]).then( (ans) =>
+      self.djdclientservice.sendCommand("player.goTo", [0, "pos", pls]).then( (ans) =>
         if position
-          @djdclientservice.sendCommand("player.seek", [position])
+          self.djdclientservice.sendCommand("player.seek", [position])
       )
     )
 

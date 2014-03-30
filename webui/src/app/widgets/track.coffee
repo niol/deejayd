@@ -19,8 +19,8 @@
 class DjdTrackCtrl
   constructor: (@$scope, @djdplayerservice) ->
     self = @
-    @$scope.playTrack = () ->
-      self.djdplayerservice.goTo(self.$scope.track.id, self.$scope.pls)
+    @$scope.playTrack = (position=0) ->
+      self.djdplayerservice.goTo(self.$scope.track.id, self.$scope.pls, position)
 
     @$scope.removeTrack = () ->
       self.djdplayerservice.plsRemove(self.$scope.pls, [self.$scope.track.id])

@@ -102,8 +102,12 @@ class DjdPlayerService
   getVolume: ->
     return @volume
 
-  goTo: (id, pls) ->
-    @djdclientservice.sendCommand("player.goTo", [id, "id", pls])
+  goTo: (id, pls, position=0) ->
+    self = @
+    @djdclientservice.sendCommand("player.goTo", [id, "id", pls]).then((ans) ->
+      if position
+        self.djdclientservice.sendCommand("player.seek", [position])
+    )
 
   previous: ->
     @djdclientservice.sendCommand("player.previous", [])
