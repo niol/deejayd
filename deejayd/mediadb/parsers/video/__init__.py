@@ -39,6 +39,10 @@ class VideoParserFactory(object):
     def __init__(self, library):
         self.library = library
 
+    def get_extensions(self):
+        return (".avi", ".flv", ".asf", ".wmv", ".ogm", ".mkv", \
+                ".mp4", ".mov", ".m4v")
+
     def _format_title(self, f):
         (filename, ext) = os.path.splitext(f)
         title = filename.replace(".", " ")
