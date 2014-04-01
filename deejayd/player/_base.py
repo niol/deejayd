@@ -265,8 +265,8 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
 
     def set_aspectratio(self, aspect):
         if aspect not in self._aspect_ratios:
-            raise PlayerError(_("Video aspect ration %s is not known.") % aspect)
-        self._default_aspect_ratio = aspect
+            raise PlayerError(_("Video aspect ratio %s is not known.") % aspect)
+
         if self._current_is_video():
             self._player_set_aspectratio(aspect)
             self._media_file["aspect_ratio"] = self._default_aspect_ratio
@@ -422,7 +422,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
             else:
                 self._player_set_slang(-1)  # auto subtitle channel
 
-            # set video aspect ration to default value
+            # set video aspect ratio to default value
             try:
                 self.set_video_option("aspect_ratio",
                                       self._default_aspect_ratio)
