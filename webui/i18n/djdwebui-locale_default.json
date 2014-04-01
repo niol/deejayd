@@ -51,6 +51,7 @@
     "_subOffset_": "Audio/Subtitle offset",
     "_audioChannels_": "Audio channels",
     "_subChannels_": "Subtitle channels",
+    "_aspectRatio_": "Aspect ratio",
     "_playlistSaved_": "The playlist has been saved",
     "_libraryUpdated_": "The library has been updated",
     "_searchResultFor_": "Search results for",

@@ -135,6 +135,9 @@ class DjdPlayerOptionsDialogCtrl
     @$scope.audioOffset = 0
     @$scope.hasSubtitle = false
 
+    @$scope.aspectRatioOptions = ["auto", "1:1", "4:3", "16:9"]
+    @$scope.aspectRatio = "auto"
+
     @$scope.updateAudioChannel = ->
       self.djdplayerservice.setVideoOption("audio_lang", self.$scope.curAudioChannel)
     @$scope.updateAudioOffset = ->
@@ -143,6 +146,8 @@ class DjdPlayerOptionsDialogCtrl
       self.djdplayerservice.setVideoOption("sub_lang", self.$scope.curSubChannel)
     @$scope.updateSubOffset = ->
       self.sub_offset_timer.update(self.$scope.subOffset)
+    @$scope.updateAspectRatio = ->
+      self.djdplayerservice.setVideoOption("aspect_ratio", self.$scope.aspectRatio)
 
     # listen playing change event
     @$scope.$on("djd:player:playing_changed", (evt, track) ->
@@ -158,6 +163,11 @@ class DjdPlayerOptionsDialogCtrl
           self.$scope.hasSubtitle = true
         else
           self.$scope.hasSubtitle = false
+
+        if track.hasOwnProperty('aspect_ratio')
+          self.$scope.aspectRatio = track['aspect_ratio']
+        else
+          self.$scope.aspectRatio = "auto"
     )
 DjdPlayerOptionsDialogCtrl.$inject = ["$scope", "djdplayerservice"]
 
