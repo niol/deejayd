@@ -66,6 +66,7 @@ class VlcPlayer(_BasePlayer):
             "av_offset",
             "sub_offset",
             "sub_lang",
+            'aspect_ratio',
        )
 
     LIBVLC_VERSIONS = ('2.0.', '2.1.', )
@@ -207,8 +208,8 @@ class VlcPlayer(_BasePlayer):
         self.__player.audio_set_volume(int(vol))
 
     def _player_set_aspectratio(self, aspect_ratio):
-        # NOT SUPPORTED
-        pass
+        if aspect_ratio == 'auto': aspect_ratio = None
+        self.__player.video_set_aspect_ratio(aspect_ratio)
 
     def _player_set_avoffset(self, offset):
         if self.__player.audio_set_delay(offset * 1000) == -1:  # error
@@ -326,5 +327,9 @@ class VlcPlayer(_BasePlayer):
                 self._media_file["audio"] = audio_channels
                 self._media_file["av_offset"] = 0
                 self._media_file["audio_idx"] = self._player_get_alang()
+
+            # Reset aspect ratio
+            self.set_video_option('aspect_ratio', self._default_aspect_ratio)
+
 
 # vim: ts=4 sw=4 expandtab

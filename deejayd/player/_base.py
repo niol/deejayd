@@ -269,7 +269,8 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
 
         if self._current_is_video():
             self._player_set_aspectratio(aspect)
-            self._media_file["aspect_ratio"] = self._default_aspect_ratio
+            self._media_file["aspect_ratio"] = aspect
+            self.osd(_("Video aspect ratio: %s") % aspect)
 
     def set_avoffset(self, offset):
         if self._current_is_video():
