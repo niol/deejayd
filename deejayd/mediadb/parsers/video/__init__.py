@@ -25,13 +25,13 @@ from deejayd.mediadb.parsers import ParseError, NoParserError
 
 __all__ = ["VideoParserFactory"]
 
-PARSERS = [('asf', ['video/asf'], ['asf', 'wmv', 'wma']),
-           ('flv', ['video/flv'], ['flv']),
-           ('mkv', ['video/x-matroska', 'application/mkv'], ['mkv', 'mka', 'webm']),
-           ('mp4', ['video/quicktime', 'video/mp4'], ['mov', 'qt', 'mp4', 'mp4a', '3gp', '3gp2', '3g2', 'mk2', 'm4v']),
-           ('mpeg', ['video/mpeg'], ['mpeg', 'mpg', 'mp4', 'ts']),
-           ('ogm', ['application/ogg'], ['ogm', 'ogg', 'ogv']),
-           ('riff', ['video/avi'], ['wav', 'avi'])
+PARSERS = [('asf', ['video/asf'], ['.asf', '.wmv', '.wma']),
+           ('flv', ['video/flv'], ['.flv']),
+           ('mkv', ['video/x-matroska', 'application/mkv'], ['.mkv', '.mka', '.webm']),
+           ('mp4', ['video/quicktime', 'video/mp4'], ['.mov', '.qt', '.mp4', '.mp4a', '.3gp', '.3gp2', '.3g2', '.mk2', '.m4v']),
+           ('mpeg', ['video/mpeg'], ['.mpeg', '.mpg', '.mp4', '.ts']),
+           ('ogm', ['application/ogg'], ['.ogm', '.ogg', '.ogv']),
+           ('riff', ['video/avi'], ['.wav', '.avi'])
 ]
 
 class VideoParserFactory(object):
@@ -52,7 +52,7 @@ class VideoParserFactory(object):
 
     def parse(self, file_obj):
         path = file_obj.get_path()
-        extension = os.path.splitext(path)[1][1:]
+        extension = os.path.splitext(path)[1]
         mimetype = mimetypes.guess_type(path)[0]
         parser_ext = None
         parser_mime = None
