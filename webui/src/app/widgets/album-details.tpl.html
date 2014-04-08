@@ -1,0 +1,54 @@
+<div class="col-xs-3">
+    <img ng-src="{{ getCoverUrl(album) }}"
+         style="width:100%; height: 100%;"></img>
+</div>
+<div class="col-xs-9">
+    <p style="font-weight: bold;" ng-bind-html="album.name | audiotag"></p>
+    <p style="font-style: italic;">
+        <span ng-repeat="a in album.details.artists">{{ a }}</span>
+    </p>
+    <p>
+        {{ album.details.length }} {{ '_songs_' | i18n }}
+        ({{ util.formatTime(album.details.timelength) }})
+    </p>
+    <div class="dropdown pull-right">
+        <button class="btn btn-default dropdown-toggle"
+                id="dropdownMenu1"
+                data-toggle="dropdown">
+            <span class="glyphicon glyphicon-align-justify"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+            <li role="presentation">
+                <a ng-click="play()"
+                   role="menuitem" tabindex="-1" href="">
+                    {{ '_play_' | i18n }}
+                </a>
+            </li>
+            <li role="presentation" class="divider"/>
+            <li role="presentation">
+                <a ng-click="addToPls()"
+                   role="menuitem" tabindex="-1" href="">
+                    {{ '_addPls_' | i18n }}
+                </a>
+            </li>
+            <li role="presentation" class="divider"/>
+            <li role="presentation">
+                <a ng-click="addToQueue()"
+                   role="menuitem" tabindex="-1" href="">
+                    {{ '_addQueue_' | i18n }}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="col-xs-12" style="margin-top: 5px;">
+    <div class="list-group">
+        <a djd-file
+           file-no="$index+1" file="song"
+           ng-repeat="song in album.songs"
+           href=""
+           class="list-group-item row"/>
+    </div>
+
+</div>

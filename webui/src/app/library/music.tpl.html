@@ -23,7 +23,8 @@
 <div class="col-xs-12 col-md-9">
     <nav class="navbar navbar-default">
         <p class="navbar-text"></p>
-        <form class="navbar-form navbar-left" ng-show="currentView!='filesystem'">
+        <form class="navbar-form navbar-left"
+              ng-show="currentView!='filesystem'">
             <div class="form-group">
                 <input class="form-control"
                        type="text"
@@ -103,10 +104,16 @@
                 <div class="djd-album-container row" ng-show="activeView.type == 'album'">
                     <div djd-album
                          album="album"
+                         get-details="getDetails"
                          ng-repeat="album in albumList"
                          ng-show="filterPattern == '' || album.name.toLowerCase().indexOf(filterPattern.toLowerCase()) != -1"
                          class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
                     </div>
+                </div>
+
+                <div djd-album-details class="row"
+                     ng-show="activeView.type == 'albumDetails'"
+                     album="currentAlbum">
                 </div>
             </div>
         </div>
@@ -138,26 +145,46 @@
                 <div class="djd-album-container row" ng-show="activeView.type == 'album'">
                     <div djd-album
                          album="album"
+                         get-details="getDetails"
                          ng-repeat="album in albumList"
                          ng-show="filterPattern == '' || album.name.toLowerCase().indexOf(filterPattern.toLowerCase()) != -1"
                          class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
                     </div>
                 </div>
+
+                <div djd-album-details class="row"
+                     ng-show="activeView.type == 'albumDetails'"
+                     album="currentAlbum">
+                </div>
             </div>
         </div>
 
         <div ng-controller="DjdAlbumNavigationCtrl" ng-switch-when="album">
+            <ol class="breadcrumb" ng-show="activeView.type != 'album'">
+                <li>
+                    <a ng-click="goBack()">{{activeView.backLabel }}</a>
+                </li>
+                <li class="active">{{ activeView.label }}</li>
+            </ol>
+
             <div ng-show="loading" style="text-align: center">
                 <div class="djd-progress-img"></div>
             </div>
             <div ng-hide="loading">
-                <div class="djd-album-container row">
+                <div class="djd-album-container row"
+                     ng-show="activeView.type == 'album'">
                     <div djd-album
                          album="album"
+                         get-details="getDetails"
                          ng-show="filterPattern == '' || album.name.toLowerCase().indexOf(filterPattern.toLowerCase()) != -1"
                          ng-repeat="album in albumList"
                          class="class djd-album-item col-xs-6 col-sm-4 col-md-4 col-lg-3">
                     </div>
+                </div>
+
+                <div djd-album-details class="row"
+                     ng-show="activeView.type == 'albumDetails'"
+                     album="currentAlbum">
                 </div>
             </div>
         </div>

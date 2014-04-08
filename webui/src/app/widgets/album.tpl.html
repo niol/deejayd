@@ -31,5 +31,7 @@
         </div>
         <p class="djd-album-desc" ng-bind-html="album.name | audiotag"></p>
     </div>
-    <img ng-src="{{ getCoverUrl(album) }}"></img>
+    <a ng-click="getDetails(album.id)">
+        <img ng-src="{{ getCoverUrl(album) }}"></img>
+    </a>
 </div>

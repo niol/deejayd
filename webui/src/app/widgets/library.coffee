@@ -102,13 +102,17 @@ angular.module('djdWebui.widgets')
     controller: ['$scope', 'djdmusiclibraryservice', DjdAudioTagCtrl]
   )
 
+##########################################################################
+#### Album
+##########################################################################
 class DjdAlbumCtrl
-  constructor: (@$scope, @djdmusiclibraryservice) ->
+  constructor: (@$scope, @djdmusiclibraryservice, @util) ->
     self = @
+    @$scope.util = @util
 
     @library = @djdmusiclibraryservice
     @$scope.getCoverUrl = (album) ->
-      if album.cover_filename != ""
+      if album && album.cover_filename != ""
         return "covers/#{ album.cover_filename }"
       return "images/missing-cover.png"
     @$scope.play = () ->
@@ -128,8 +132,24 @@ angular.module('djdWebui.widgets')
     restrict: 'A',
     scope: {
       album: '='
+      getDetails: '='
     },
     replace: false,
     templateUrl: 'gen/tpl/album.tpl.html'
-    controller: ['$scope', 'djdmusiclibraryservice', DjdAlbumCtrl]
+    controller: ['$scope', 'djdmusiclibraryservice', 'util', DjdAlbumCtrl]
+  )
+
+
+##########################################################################
+  #### Album details
+##########################################################################
+angular.module('djdWebui.widgets')
+.directive('djdAlbumDetails', () ->
+    restrict: 'A',
+    scope: {
+      album: '='
+    },
+    replace: false,
+    templateUrl: 'gen/tpl/album-details.tpl.html'
+    controller: ['$scope', 'djdmusiclibraryservice', 'util', DjdAlbumCtrl]
   )

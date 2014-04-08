@@ -55,6 +55,7 @@ config =
     'widgets/folder.tpl'
     'widgets/audiotag.tpl'
     'widgets/album.tpl'
+    'widgets/album-details.tpl'
     'library/music.tpl'
     'library/video.tpl'
     'webradio/webradio.tpl'

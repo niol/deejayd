@@ -71,8 +71,18 @@ class DjdAudioTagNavigationCtrl
         self.$scope.activeView.backLabel = self.localize._("_#{self.tagName}List_")
         self.$scope.loading = false
       )
+    @$scope.getDetails = (album_id) ->
+      self.djdmusiclibraryservice.getAlbumDetails(album_id).then((album) ->
+        self.$scope.activeView.type = 'albumDetails'
+        self.$scope.currentAlbum = album
+
+        self.$scope.activeView.backLabel = self.$scope.activeView.label
+        self.$scope.activeView.label = album.name
+      )
     @$scope.goBack = ->
-      if self.$scope.activeView.type == 'album'
+      if self.$scope.activeView.type == 'albumDetails'
+        self.$scope.loadAlbums(self.tagName, self.$scope.activeView.backLabel)
+      else if self.$scope.activeView.type == 'album'
         self.loadTagList()
     @loadTagList()
 
@@ -101,13 +111,36 @@ DjdArtistNavigationCtrl.$inject = ["$scope", "localize", "djdmusiclibraryservice
 class DjdAlbumNavigationCtrl
   constructor: (@$scope, @localize, @djdmusiclibraryservice) ->
     @$scope.albumList = []
+    @$scope.activeView = {
+      type: 'album'
+    }
+    @$scope.currentAlbum = null
 
+    self = @
+    @$scope.getDetails = (album_id) ->
+      self.djdmusiclibraryservice.getAlbumDetails(album_id).then((album) ->
+        self.$scope.activeView.type = 'albumDetails'
+        self.$scope.currentAlbum = album
+
+        self.$scope.activeView.backLabel = self.localize._("_albumList_")
+        self.$scope.activeView.label = album.name
+      )
+    @$scope.goBack = ->
+      if self.$scope.activeView.type == 'albumDetails'
+        self.loadAlbums()
+    @loadAlbums()
+
+  loadAlbums: ->
     self = @
     @$scope.loading = true
     @djdmusiclibraryservice.getAlbum(null).then((albums) ->
+      self.$scope.activeView.type = 'album'
       self.$scope.albumList = albums
       self.$scope.loading = false
     )
+
+
+
 DjdAlbumNavigationCtrl.$inject = ["$scope", "localize", "djdmusiclibraryservice"]
 
 musicModule.controller('DjdGenreNavigationCtrl', DjdGenreNavigationCtrl)

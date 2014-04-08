@@ -100,6 +100,9 @@ class DjdMusicLibraryService extends _DjdBaseLibraryService
     filter = filter.dump() if filter != null
     @djdclientservice.sendCommand("audiolib.albumList", [filter])
 
+  getAlbumDetails: (aId) ->
+    @djdclientservice.sendCommand("audiolib.albumDetails", [aId])
+
   getSongs: (filter) ->
     filter = filter.dump() if filter != null
     @djdclientservice.sendCommand("audiolib.search", [filter])
