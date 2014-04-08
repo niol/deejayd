@@ -22,6 +22,7 @@ import os
 from collections import MutableMapping
 
 from deejayd.model.media_item import AudioItem, VideoItem
+from deejayd.model.mediafilters import Equals
 from deejayd.database.querybuilders import LibrarySelectQuery, ComplexSelect
 from deejayd.database.querybuilders import SimpleSelect
 from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery
@@ -325,11 +326,39 @@ class Album(MutableMapping):
         return ""
 
     def to_json(self):
-        return {
+        json_dump = {
             "id": self.db_id,
             "name": self.data["album"],
             "cover_filename": self.get_cover_filename(),
         }
+        return json_dump
+
+    def __get_songs(self):
+        a_id = self.db_id is None and -1 or self.db_id
+        ft = Equals('album_id', a_id)
+        return self.library.search(ft)
+
+    def __get_details(self):
+        details = SimpleSelect(self.library.LIB_TABLE) \
+            .select_column_with_operation("count", "id") \
+            .select_column_with_operation("sum", "length") \
+            .select_column('artist') \
+            .append_where("album_id = %s", self.db_id) \
+            .execute(expected_result="fetchall")
+        artists = map(lambda s: s[2], details)
+        return {
+            "length": details[0][0],
+            "timelength": details[0][1],
+            "artists": list(set(artists))
+
+        }
+
+    def details(self):
+        json_dump = self.to_json()
+        json_dump["details"] = self.__get_details()
+        json_dump["songs"] = map(lambda s: s.to_json(), self.__get_songs())
+
+        return json_dump
 
     def __erase_cover_file(self):
         c_path = os.path.join(self.library.get_cover_folder(),

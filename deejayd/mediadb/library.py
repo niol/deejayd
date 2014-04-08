@@ -414,6 +414,10 @@ class AudioLibrary(_Library):
     def album_list(self, filter=None):
         return self.lib_obj.get_albums_with_filter(filter)
 
+    def album_details(self, a_id):
+        album = self.lib_obj.get_album_with_id(a_id)
+        return album.details()
+
     def get_cover(self, album_id):
         album = self.lib_obj.get_album_with_id(album_id)
         cover_path = os.path.join(self.lib_obj.get_cover_folder(),

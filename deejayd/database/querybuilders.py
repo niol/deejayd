@@ -45,6 +45,10 @@ class SimpleSelect(_DBQuery):
             self.selects.append("%s.%s" % (self.table_name, col))
         return self
 
+    def select_column_with_operation(self, op, col):
+        self.selects.append("%s(%s.%s)" % (op, self.table_name, col))
+        return self
+
     def order_by(self, column):
         self.orders.append("%s.%s" % (self.table_name, column))
         return self

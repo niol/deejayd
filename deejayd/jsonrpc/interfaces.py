@@ -333,7 +333,21 @@ entry has
   * filename of the cover"""
         answer = 'albumList'
         args = [
-            {"name":"filter", "type":"filter", "req":False}
+            {"name":"filter", "type":"filter", "req":False},
+        ]
+
+    class albumDetails:
+        """Get detailed information for album identified by id a_id
+  * id of the album
+  * name of the album
+  * filename of the cover
+  * number of songs and length of the album
+  * artist(s)
+  * songs information
+"""
+        answer = 'dict'
+        args = [
+            {"name":"a_id", "type":"int", "req":True},
         ]
 
     class getCover:
