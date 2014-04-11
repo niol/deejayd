@@ -145,9 +145,22 @@ class build_webui(Command):
     def initialize_options(self):
         self.webuidir = os.path.join(os.path.dirname(__file__), self.webui_directory)
         self.builddir = os.path.join(self.webuidir, 'gen')
+        self.vendordir = os.path.join(self.webuidir, 'vendor')
+        if 'DISTUTILS_INSTALL_JSLIBS' in os.environ:
+            self.install_jslibs = os.environ['DISTUTILS_INSTALL_JSLIBS'].split(' ')
+        else:
+            self.install_jslibs = False
 
     def finalize_options(self):
         pass
+
+    def js_should_install(self, jslib):
+        if not self.install_jslibs:
+            return True
+        for install_jslib in self.install_jslibs:
+            if jslib.startswith(install_jslib):
+                return True
+        return False
 
     def run(self):
         if self.coffeescript is None:
@@ -158,11 +171,17 @@ class build_webui(Command):
         spawn(cmd, self.webuidir)
 
         data_files = self.distribution.data_files
-        data_files.extend(get_data_files(self.builddir,
-                                         'share/deejayd/htdocs/gen/'))
-        for d in ('i18n', 'images', 'vendor', ):
+        for d in ('gen', 'i18n', 'images', ):
             data_files.extend(get_data_files(os.path.join(self.webuidir, d),
                                              os.path.join('share/deejayd/htdocs/', d)))
+
+        jslibs = os.listdir(self.vendordir)
+        for d in jslibs:
+            if self.js_should_install(d):
+                jslib_data = get_data_files(os.path.join(self.vendordir, d),
+                                            os.path.join('share/deejayd/htdocs/vendor', d))
+
+                data_files.extend(jslib_data)
 
     def clean(self):
         if os.path.isdir(self.builddir):
