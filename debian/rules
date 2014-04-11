@@ -5,6 +5,9 @@
 #export DH_VERBOSE=1
 
 
+export DISTUTILS_INSTALL_JSLIBS=bootstrap
+
+
 %:
 	dh $@ --with python2
 
