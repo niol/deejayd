@@ -6,9 +6,9 @@ Build-Depends: debhelper (>= 7.0.50~), python (>= 2.6.6-3)
 Build-Depends-Indep: gettext, xsltproc, docbook-xsl, coffeescript, node-uglify, node-less
 Standards-Version: 3.9.5.0
 X-Python-Version: >= 2.4
-Homepage: http://mroy31.dyndns.org/~roy/projects/deejayd
-Vcs-Hg: http://mroy31.dyndns.org/repository/deejayd
-Vcs-Browser: http://mroy31.dyndns.org/repository/deejayd
+Homepage: http://mroy31.domring.net/~roy/projects/deejayd
+Vcs-Hg: http://mroy31.domring.net/repository/deejayd
+Vcs-Browser: http://mroy31.domring.net/repository/deejayd
 
 Package: deejayd
 Architecture: all
