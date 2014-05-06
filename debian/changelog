@@ -1,3 +1,11 @@
+deejayd (0.10.0-6) unstable; urgency=medium
+
+  * Depend on libxine2-x (Closes: #747099).
+  * Drop python-pysqlite2 or python-mysqldb dependency (sqlite support is
+    present in python standard library, mysql support is optional).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 06 May 2014 07:18:58 +0200
+
 deejayd (0.10.0-5) unstable; urgency=low
 
   * Fix typo in mozilla-devscripts versionned dep.
