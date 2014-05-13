@@ -21,7 +21,7 @@ Depends: ${misc:Depends}, ${python:Depends},
 Suggests: deejayd-webui,
           xserver-xorg, xauth, x11-utils, x11-common,
           python-zope.interface
-Breaks: deejayd-client (<< 0.8.4)
+Breaks: deejayd-xine
 Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
  through the network using XML messages.
