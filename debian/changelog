@@ -3,6 +3,8 @@ deejayd (0.14.0~pre+1-1) unstable; urgency=low
   * New upstream pre-release.
   * Drop use-xine12 patch not required anymore (xine dep dropped by
     upstream)
+  * Add orig_source target.
+  * Add Breaks: deejayd-xine in control.
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Tue, 13 May 2014 12:02:16 +0200
 
