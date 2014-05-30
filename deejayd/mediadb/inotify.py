@@ -88,7 +88,8 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
             or self.__occured_on_dirlink(library, fpath):
                 library.crawl_directory(path, name)
         elif mask & twisted.internet.inotify.IN_DELETE:
-            if self.__occured_on_dirlink(library, fpath):
+            if self.__isdir_event(mask)\
+            or self.__occured_on_dirlink(library, fpath):
                 library.remove_directory(path, name)
             elif not self.__isdir_event(mask):
                 library.remove_file(path, name)
