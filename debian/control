@@ -7,9 +7,9 @@ Build-Depends-Indep: gettext, xsltproc, docbook-xsl,
                      mozilla-devscripts (>>0.16~)
 Standards-Version: 3.9.2.0
 X-Python-Version: >= 2.4
-Homepage: http://mroy31.dyndns.org/~roy/projects/deejayd
-Vcs-Hg: http://mroy31.dyndns.org/repository/deejayd
-Vcs-Browser: http://mroy31.dyndns.org/repository/deejayd
+Homepage: http://mroy31.domring.net/~roy/projects/deejayd
+Vcs-Hg: http://mroy31.domring.net/repository/deejayd
+Vcs-Browser: http://mroy31.domring.net/repository/deejayd
 
 Package: deejayd
 Architecture: all
