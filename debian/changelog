@@ -1,3 +1,10 @@
+deejayd (0.10.0-7) unstable; urgency=medium
+
+  * Update homepage and watch file.
+  * Add jQuery 1.3.2 source (Closes: #753954).
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 07 Jul 2014 10:10:43 +0000
+
 deejayd (0.10.0-6) unstable; urgency=medium
 
   * Depend on libxine2-x (Closes: #747099).
