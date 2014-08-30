@@ -83,11 +83,11 @@ Usage:
 
 Test deejayd without installing it:
 -----------------------------------
-If you want to test deejayd without installing it, launch prepare.sh script
-  $./prepare.sh PathToGwtSdk
+If you want to test deejayd without installing it, you need to build the webui:
+  $ ./setup.py build
 Then prepare a configuration file based on deejayd/ui/defaults.conf. After that,
 you can launch deejayd with
-  $PYTHONPATH="." python ./scripts/deejayd -n -c YourConfigFile
+  $ PYTHONPATH=. python scripts/deejayd -n -c $cfg_file
 
 Documentation and more informations:
 ------------------------------------
