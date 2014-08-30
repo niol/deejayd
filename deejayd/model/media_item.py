@@ -101,8 +101,12 @@ class _MediaItem(MutableMapping):
         self['lastplayed'] = str(int(time.time()))
         self.save(commit=True)
 
-    def stopped(self, lastpos):
-        pass
+    def stopped(self, lastpos, save=True):
+        if lastpos > 90 * self['length'] / 100:
+            # If stopped after most of the track, consider played
+            self.played()
+            if save:
+                self.save(commit=True)
 
     def skip(self):
         self['skipcount'] = str(int(self.data["skipcount"]) + 1)
@@ -243,6 +247,7 @@ class VideoItem(_MediaItem):
     }
 
     def stopped(self, lastpos):
+        super(VideoItem, self).stopped(lastpos, save=False)
         self['lastpos'] = lastpos
         self.save(commit=True)
 
