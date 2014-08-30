@@ -69,7 +69,7 @@ class VlcPlayer(_BasePlayer):
             'aspect_ratio',
        )
 
-    LIBVLC_VERSIONS = ('2.0.', '2.1.', )
+    LIBVLC_VERSIONS = ('2.0.', '2.1.', '2.2', )
 
     def __init__(self, plugin_manager, config):
         # test version, this backend only works with specific versions of libvlc
