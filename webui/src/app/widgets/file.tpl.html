@@ -37,5 +37,7 @@
 <h4>
     <span ng-class="{'glyphicon-music': file.type == 'song', 'glyphicon-film': file.type == 'video'}"
           class="glyphicon"/>
-    {{file.filename}} ({{ util.formatTime(file['length']) }})
+    <span ng-class="{'neverplayed': file.playcount == 0 }">
+        {{file.filename}} ({{ util.formatTime(file['length']) }})
+    </span>
 </h4>

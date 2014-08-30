@@ -27,5 +27,7 @@
         </li>
     </ul>
 </div>
-<h4>{{ util.formatTitle(track) }} ({{ util.formatTime(track['length']) }})</h4>
+<h4 ng-class="{'neverplayed': track.playcount == 0 }">
+    {{ util.formatTitle(track) }} ({{ util.formatTime(track['length']) }})
+</h4>
 <p>{{ desc }}</p>
