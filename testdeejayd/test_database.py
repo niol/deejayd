@@ -18,7 +18,7 @@
 
 
 import os
-from testdeejayd import TestCaseWithMediaData, KAA_INITIALIZED
+from testdeejayd import TestCaseWithMediaData
 from testdeejayd.db.schemas import SCHEMAS
 from deejayd import DeejaydError
 from deejayd.database.schema import DB_SCHEMA
@@ -42,16 +42,6 @@ class TestDatabase(TestCaseWithMediaData):
             return DatabaseConnection(config=self.config, schema=SCHEMAS[version])
         raise DeejaydError("db version %d not found" % version)
 
-    def __init_core(self):
-        if self.media_backend == "gstreamer" and not KAA_INITIALIZED:
-            import kaa
-            # use kaa mainloop (start when we instanciate DeejaydCore)
-            # to start glib main loop in an other thread (required by gstreamer)
-            kaa.main.select_notifier('generic')
-            kaa.gobject_set_threaded()
-            KAA_INITIALIZED = True
-        return DeejayDaemonCore(start_inotify=False)
-
     def test_migration_14(self):
         self.__init_db(14)
         # record a local webradio
@@ -71,7 +61,7 @@ class TestDatabase(TestCaseWithMediaData):
                                      14)
         cursor.close()
 
-        deejayd = self.__init_core()
+        deejayd = DeejayDaemonCore(start_inotify=False)
         categories = deejayd.webradio.get_source_categories("local")
         self.assertEqual(len(categories), 1)
         self.assertTrue(wb_category in categories)
