@@ -25,7 +25,7 @@ from deejayd.jsonrpc.interfaces import AudioLibraryModule
 from deejayd.mediadb import pathutils
 from deejayd.mediadb.parsers import NoParserError, ParseError
 from deejayd.mediadb.parsers import AudioParserFactory, VideoParserFactory
-from deejayd.model import mediafilters
+from deejayd.jsonrpc import mediafilters
 from deejayd.model.library import LibraryFactory, LibraryDir
 from deejayd.model.stats import get_stats
 from deejayd.ui import log

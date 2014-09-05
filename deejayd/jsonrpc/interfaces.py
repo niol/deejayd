@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd import DeejaydError
-from deejayd.model.mediafilters import MediaFilter
+from .mediafilters import filter_factory
 from deejayd.jsonrpc import *
 import inspect
 
@@ -119,7 +119,7 @@ def verify_arguments(__args, args):
                       _("Arg %s is not an int-list") % arg["name"])
             elif arg['type'] == 'filter':
                 if value is not None:
-                    value = MediaFilter.load_from_json(value)
+                    value = filter_factory.load_from_json(value)
             elif isinstance(arg["type"], tuple):
                 find_value = False
                 for t in arg["type"]:

@@ -20,7 +20,7 @@ import os
 
 from deejayd import DeejaydError
 from testdeejayd.interfaces import require_video_support, _TestInterfaces
-from deejayd.model.mediafilters import *
+from deejayd.jsonrpc.mediafilters import *
 
 class LibraryInterfaceTests(_TestInterfaces):
 

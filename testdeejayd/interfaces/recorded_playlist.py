@@ -18,7 +18,7 @@
 
 
 from deejayd import DeejaydError
-from deejayd.model import mediafilters
+from deejayd.jsonrpc import mediafilters
 from testdeejayd.interfaces import _TestInterfaces
 
 class RecordedPlaylistInterfaceTests(_TestInterfaces):

@@ -28,7 +28,7 @@ from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import JSONRPC_MODULES
 from deejayd.jsonrpc.jsonbuilders import JSONRPCRequest
 from deejayd.jsonrpc.jsonparsers import loads_response
-from deejayd.model.mediafilters import MediaFilter
+from ..jsonrpc import mediafilters
 
 
 MSG_DELIMITER = 'ENDJSON\n'
@@ -90,7 +90,7 @@ def parse_deejayd_answer(answer):
     type = answer["result"]["type"]
     if type == "recordedPlaylist":
         if result["filter"] is not None:
-            try: result["filter"] = MediaFilter.load_from_json(result["filter"])
+            try: result["filter"] = mediafilters.filter_factory.load_from_json(result["filter"])
             except Fault:
                 raise DeejaydError("Unable to parse filter in answer")
     return result

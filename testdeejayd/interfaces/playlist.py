@@ -19,7 +19,7 @@
 import random, time, os
 from deejayd import DeejaydError
 from testdeejayd.interfaces import _TestInterfaces
-from deejayd.model.mediafilters import Contains
+from deejayd.jsonrpc.mediafilters import Contains
 
 class _PlaylistInterfaceTests(_TestInterfaces):
 

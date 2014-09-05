@@ -21,7 +21,7 @@ from deejayd import DeejaydError
 from deejayd.mediadb import inotify
 from testdeejayd import unittest
 from testdeejayd.interfaces import require_video_support, _TestInterfaces
-from deejayd.model.mediafilters import *
+from deejayd.jsonrpc.mediafilters import *
 
 class SignalsInterfaceTests(_TestInterfaces):
     possible_clients = ("net_async",)

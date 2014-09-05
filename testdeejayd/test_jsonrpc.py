@@ -20,7 +20,7 @@
 
 import re
 from testdeejayd import TestCaseWithData
-from deejayd.model.mediafilters import *
+from deejayd.jsonrpc.mediafilters import *
 from deejayd.jsonrpc.jsonbuilders import JSONRPCRequest, JSONRPCResponse,\
                                         DeejaydJSONSignal
 

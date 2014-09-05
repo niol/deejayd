@@ -22,7 +22,8 @@ import os
 from collections import MutableMapping
 
 from deejayd.model.media_item import AudioItem, VideoItem
-from deejayd.model.mediafilters import Equals
+from deejayd.jsonrpc.mediafilters import Equals
+from deejayd.model.mediafilters import DBMediaFilter
 from deejayd.database.querybuilders import LibrarySelectQuery, ComplexSelect
 from deejayd.database.querybuilders import SimpleSelect
 from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery
@@ -205,7 +206,7 @@ class _Library(object):
     def list_tags(self, tag, ft):
         query = self._build_library_query(attrs=(tag,), map_media=False)
         if ft is not None:
-            ft.restrict(query)
+            DBMediaFilter.new(ft).restrict(query)
         query.order_by_tag(tag)
         return query.execute()
 
@@ -216,7 +217,8 @@ class _Library(object):
                     .append_where("lib_type = %s", self.TYPE) \
                     .execute(expected_result="fetchall")
 
-    def search(self, ft, orders=[], limit=None):
+    def search(self, f, orders=[], limit=None):
+        ft = DBMediaFilter.new(f)
         query = self._build_library_query(attrs=["id"], map_media=False)
         ft.restrict(query)
         for (tag, direction) in orders:

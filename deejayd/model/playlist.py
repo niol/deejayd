@@ -23,7 +23,8 @@ from zope.interface import implements
 from deejayd import DeejaydError
 from deejayd.database.connection import DatabaseConnection
 from deejayd.model._model import IObjectModel
-from deejayd.model.mediafilters import MediaFilter, And, Or
+from .mediafilters import DBMediaFilter
+from deejayd.jsonrpc.mediafilters import And, Or
 from deejayd.database.querybuilders import DeleteQuery, EditRecordQuery, \
     ReplaceQuery
 from deejayd.database.querybuilders import SimpleSelect
@@ -345,7 +346,8 @@ class MagicPlaylist(_Playlist):
                               .select_column('filter_id')\
                               .append_where("medialist_id = %s", (db_id,))\
                               .execute()
-            self.filters = map(lambda i: MediaFilter.load_from_db(i[0]), f_ids)
+            self.filters = map(lambda i: DBMediaFilter.load_from_db(i[0]),
+                               f_ids)
             # load properties
             self.properties = dict(SimpleSelect(self.PROPERTY_TABLE)\
                                   .select_column('ikey', 'value')\
@@ -358,9 +360,7 @@ class MagicPlaylist(_Playlist):
                                   .execute()
 
     def load(self):
-        ft = self.properties["use-or-filter"] == "1" and Or() or And()
-        for f in self.filters:
-            ft.combine(f)
+        ft = self.get_main_filter()
 
         lib_model = self.library.get_model()
         sorts = self.sorts + lib_model.default_sort()
@@ -370,7 +370,7 @@ class MagicPlaylist(_Playlist):
             limit = int(self.properties["limit-value"])
         else:
             limit = None
-        medias = self.library.search(ft, sorts, limit)
+        medias = self.library.search(ft.media_filter, sorts, limit)
         self._playlist = map(self._format, medias)
         self._update_time_length()
 
@@ -428,7 +428,8 @@ class MagicPlaylist(_Playlist):
         self.__update()
 
     def get_main_filter(self):
-        filter = self.properties["use-or-filter"] == "1" and Or() or And()
+        mf = self.properties["use-or-filter"] == "1" and Or() or And()
+        filter = DBMediaFilter.new(mf)
         for f in self.filters:
             filter.combine(f)
         return filter
@@ -437,12 +438,12 @@ class MagicPlaylist(_Playlist):
         return self.filters
 
     def add_filter(self, filter):
-        self.filters.append(filter)
+        self.filters.append(DBMediaFilter.new(filter))
         self.__update()
 
     def remove_filter(self, ft):
         for f in self.filters:
-            if f.equals(ft):
+            if f.media_filter.equals(ft):
                 self.filters.remove(f)
                 f.erase_from_db()
         self.__update()
@@ -450,11 +451,6 @@ class MagicPlaylist(_Playlist):
     def clear_filter(self):
         map(lambda f: f.erase_from_db(), self.filters)
         self.filters = []
-        self.__update()
-
-    def set_filters(self, filter_list):
-        map(lambda f: f.erase_from_db(), [f for f in self.filters if f is not None])
-        self.filters = list(filter_list)
         self.__update()
 
     def get_sorts(self):
