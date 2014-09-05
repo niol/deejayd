@@ -152,12 +152,16 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         if self.get_state() != PLAYER_STOP:
             try: self._media_file.skip()
             except AttributeError: pass
+        self._media_file.played()
         self._change_file(self._source.next())
 
     def previous(self):
+        self._media_file.played()
         self._change_file(self._source.previous())
 
     def go_to(self, nb, type='id', source=None):
+        if self._media_file is not None:
+            self._media_file.played()
         self._change_file(self._source.go_to(nb, type, source))
 
     def get_volume(self):
