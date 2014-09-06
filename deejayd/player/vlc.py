@@ -318,11 +318,12 @@ class VlcPlayer(_BasePlayer):
                 self._media_file["subtitle_idx"] = self._player_get_slang()
 
             # audio channels
-            audio_channels = [{"lang": "none", "ix":-1}]
             if "audio_channels" in self._media_file.keys():
-                for i in range(int(self._media_file["audio_channels"])):
-                    audio_channels.append(\
-                            {"lang": _("Audio channel %d") % (i + 1,), "ix": i + 1})
+                audio_channels = [{"lang": name, "ix": idx}\
+                    for (idx, name)
+                    in self.__player.audio_get_track_description()]
+            else:
+                audio_channels = [{"lang": "none", "ix":-1}]
             if len(audio_channels) > 0:
                 self._media_file["audio"] = audio_channels
                 self._media_file["av_offset"] = 0
