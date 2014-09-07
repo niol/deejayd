@@ -246,7 +246,8 @@ class StaticPlaylist(_Playlist):
                     .append_where("medialist_id = %s", self.db_id) \
                     .order_by("position") \
                     .execute()
-        medias = self.library.get_file_withids([m[0] for m in m_ids])
+        medias = self.library.get_file_withids([m[0] for m in m_ids if m[0]
+                                                is not None])
         self._playlist = map(self._format, medias)
         self._update_time_length()
 
