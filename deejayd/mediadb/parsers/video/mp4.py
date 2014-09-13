@@ -184,7 +184,7 @@ class MPEG4(core.AVContainer):
             h = file.read(8)
             (size, type) = struct.unpack('>I4s', h)
 
-        while type in ['mdat', 'skip']:
+        while type in ['mdat', 'skip', 'free']:
             # movie data at the beginning, skip
 
             # Extended size
@@ -195,7 +195,7 @@ class MPEG4(core.AVContainer):
             h = file.read(8)
             (size, type) = struct.unpack('>I4s', h)
 
-        if not type in ['moov', 'wide', 'free']:
+        if not type in ['moov', 'wide']:
             log.debug(u'invalid header: %r' % type)
             raise ParseError()
 
@@ -472,5 +472,19 @@ class MPEG4(core.AVContainer):
 
 
 Parser = MPEG4
+
+if __name__ == "__main__":
+    from deejayd.ui.i18n import DeejaydTranslations
+    import sys
+
+    if len(sys.argv) < 2:
+        sys.stderr.write('Usage: mp4.py filename ')
+        sys.exit(1)
+
+    log.log_level = 2
+    DeejaydTranslations().install()
+    with open(sys.argv[1]) as f:
+        parser = MPEG4(f)
+        print parser
 
 # vim: ts=4 sw=4 expandtab
