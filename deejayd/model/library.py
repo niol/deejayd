@@ -190,14 +190,15 @@ class _Library(object):
                     .append_where(DIR_TABLE + ".name = %s", dir_obj.get_path())\
                     .append_where(self.LIB_TABLE + ".filename = %s", filename)\
                     .execute(expected_result="fetchone")
-        db_id = rs and rs[0] or None
-        if db_id is None:
-            if not create:
-                if raise_ex:
-                    raise DeejaydError
-                return None
-            return self.MEDIA_OBJECT(self, dir_obj, filename)
-        return self.get_files_with_ids((db_id,))[0]
+        db_id = rs and int(rs[0]) or None
+        if db_id in self.loaded_files:
+            return self.loaded_files[db_id]
+
+        if not create:
+            if raise_ex:
+                raise DeejaydError
+            return None
+        return self.MEDIA_OBJECT(self, dir_obj, filename)
 
     def get_files_with_ids(self, file_ids):
         return [self.loaded_files[int(id)] for id in file_ids if int(id)\
@@ -459,7 +460,7 @@ class AudioLibrary(_Library):
                         .order_by_tag("album") \
                         .select_column("id", self.ALBUM_TABLE)
         if filter is not None:
-            filter.restrict(query)
+            DBMediaFilter.new(filter).restrict(query)
         a_ids = query.execute()
         return map(lambda id: self.loaded_albums[id[0]], a_ids)
 
