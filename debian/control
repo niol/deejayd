@@ -58,8 +58,10 @@ Description: Client library and command line tool to access the deejayd server
 Package: deejayd-gstreamer
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
-         gstreamer0.10-plugins-base, python-gst0.10
-Recommends: gstreamer0.10-gnomevfs, lsdvd
+         libgstreamer1.0-0, gir1.2-gstreamer-1.0,
+         gir1.2-gst-plugins-base-1.0, gstreamer1.0-plugins-base,
+         gstreamer1.0-plugins-good
+Recommends: gstreamer1.0-libav, gstreamer1.0-plugins-bad, gstreamer1.0-x
 Description: Deejayd GStreamer backend
  The deejayd media backend using the GStreamer library.
 
