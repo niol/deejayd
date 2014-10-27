@@ -17,29 +17,37 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 class DjdLocalization
-  constructor: (@$http, @$rootScope, @$window, @$filter) ->
+  constructor: (@$http, @$rootScope, @$window, @$q, @$log) ->
     @language = @$window.navigator.userLanguage || @$window.navigator.language
-    @dictionary = {}
     @resourceFileLoaded = false
+    @dictionary = {}
 
   initLocalizedResources: ->
     self = @
+    deferred = @$q.defer();
 
     url = 'i18n/djdwebui-locale_' + @language + '.json';
-    console.log url
     @$http({ method:"GET", url:url, cache:false }).success((data) ->
-      self.successCallback(data)
+      deferred.resolve(data)
     ).error( ->
         url = 'i18n/djdwebui-locale_default.json'
         self.$http({ method:"GET", url:url, cache:false }).success((data) ->
-          self.successCallback(data)
+          deferred.resolve(data)
+        ).error( ->
+          deferred.resolve({})
         )
     )
+    deferred.promise
 
   getLocalizedString: (key) ->
     if (!@resourceFileLoaded)
-      @initLocalizedResources()
       @resourceFileLoaded = true
+      self = @
+      promise = @initLocalizedResources()
+      promise.then((dict) ->
+        self.dictionary = dict
+        self.$rootScope.$emit('djd:localize:resourcesUpdates')
+      )
       return key
 
     if @dictionary.hasOwnProperty(key)
@@ -49,16 +57,14 @@ class DjdLocalization
   _: (key) -> # shortcut
     return @getLocalizedString(key)
 
-  successCallback:(data) ->
-    @dictionary = data
-    @resourceFileLoaded = true
-    @$rootScope.$broadcast('djd:localize:resourcesUpdates')
-
 module = angular.module("djdWebui.localization", [ ], ($provide) ->
-  $provide.factory("localize", ['$http', '$rootScope', '$window', '$filter', ($http, $rootScope, $window, $filter) ->
-    return new DjdLocalization($http, $rootScope, $window, $filter)
+  $provide.factory("localize", ['$http', '$rootScope', '$window', '$q', '$log', ($http, $rootScope, $window, $q, $log) ->
+    return new DjdLocalization($http, $rootScope, $window, $q, $log)
   ])
 ).filter('i18n', ['localize', (localize) ->
-  (input) ->
+  filterFunc = (input) ->
     return localize.getLocalizedString(input)
+
+  filterFunc.$stateful = true
+  return filterFunc
 ])
