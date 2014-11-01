@@ -16,6 +16,9 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="vendor/bootstrap-3.2.0/css/bootstrap-theme.min.css"/>
     <script src="vendor/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <!-- bootstrap-slider -->
+    <script src="vendor/bootstrap-slider-4.0.12/bootstrap-slider.min.js"></script>
+    <link rel="stylesheet" href="vendor/bootstrap-slider-4.0.12/bootstrap-slider.min.css"/>
 
     <!-- Font Awsome -->
     <link rel="stylesheet" href="vendor/font-awesome-4.0.3/css/font-awesome.min.css"/>
@@ -169,8 +172,8 @@
                 <i class="fa fa-film fa-lg"></i>
             </button>
 
-            <button type="button" class="navbar-toggle btn-default djd-player-btn" data-toggle="collapse" data-target="#djd-player-vol-collapse">
-                <span class="fa fa-volume-up fa-lg"></span>
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#djd-player-vol-collapse">
+                <span class="fa fa-volume-up fa-lg" style="color:white;"></span>
             </button>
         </div>
 
@@ -183,10 +186,10 @@
                 </button>
 
                 <div class="form-group" style="display: inline-block;">
-                    <input
+                    <djd-slider
                            ng-model="volume"
                            ng-change="updateVolume()"
-                           class="form-control"
+                           class="form-control djd-volume-slider"
                            type="number" step="5" min="0" max="100"/>
                 </div>
 

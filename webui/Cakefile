@@ -38,6 +38,7 @@ config =
     'widgets/track'
     'widgets/library'
     'widgets/alerts'
+    'widgets/slider'
     'widgets/webradio'
     'player/player_ctrls'
     'player/playlist'
