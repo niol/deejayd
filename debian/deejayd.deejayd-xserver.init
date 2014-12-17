@@ -126,7 +126,7 @@ do_start()
     while [ "`xorg_ping`" != "pong" ] && [ $tries -lt $maxtries ]
     do
         tries=`expr $tries + 1`
-        sleep 0.5
+        sleep 1
     done
 }
 
