@@ -304,11 +304,12 @@ class VlcPlayer(_BasePlayer):
     def __init_video_information(self):
         if self._current_is_video():
             # subtitles
-            sub_channels = [{"lang": "none", "ix": -1}]
             if "subtitle_channels" in self._media_file.keys():
-                for i in range(int(self._media_file["subtitle_channels"])):
-                    sub_channels.append(\
-                        {"lang": _("Sub channel %d") % (i,), "ix": i})
+                sub_channels = [{"lang": name, "ix": idx}\
+                    for (idx, name)
+                    in self.__player.video_get_spu_description()]
+            else:
+                sub_channels = [{"lang": "none", "ix":-1}]
             if self._has_external_subtitle():
                 sub_channels.append({"lang": "external", \
                                      "ix": len(sub_channels)+1})
