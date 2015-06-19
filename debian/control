@@ -32,8 +32,10 @@ Description: Network controllable media player daemon
 Package: deejayd-webui
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
-         deejayd (= ${binary:Version}), logrotate, python-twisted-web,
-         libjs-jquery, libjs-angularjs, fonts-font-awesome, libjs-sockjs
+         deejayd (= ${binary:Version}), logrotate,
+         python-twisted-web, # python-twisted-sockjs,
+         fonts-font-awesome, libjs-sockjs, # libjs-jquery, libjs-angularjs,
+         libjs-bootstrap
 Description: Web interface for deejayd
  This package provides, in order to control your deejayd server, two HTML and
  AJAX web interfaces:
