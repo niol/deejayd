@@ -146,8 +146,12 @@ class build_webui(Command):
         self.webuidir = os.path.join(os.path.dirname(__file__), self.webui_directory)
         self.builddir = os.path.join(self.webuidir, 'gen')
         self.vendordir = os.path.join(self.webuidir, 'vendor')
-        if 'DISTUTILS_INSTALL_JSLIBS' in os.environ:
-            self.install_jslibs = os.environ['DISTUTILS_INSTALL_JSLIBS'].split(' ')
+        self.env_jslibs_ctrl = 'DISTUTILS_INSTALL_JSLIBS' in os.environ
+        if self.env_jslibs_ctrl:
+            if os.environ['DISTUTILS_INSTALL_JSLIBS'].strip() == '':
+                self.install_jslibs = []
+            else:
+                self.install_jslibs = os.environ['DISTUTILS_INSTALL_JSLIBS'].split(' ')
         else:
             self.install_jslibs = False
 
@@ -155,7 +159,7 @@ class build_webui(Command):
         pass
 
     def js_should_install(self, jslib):
-        if not self.install_jslibs:
+        if not self.env_jslibs_ctrl:
             return True
         for install_jslib in self.install_jslibs:
             if jslib.startswith(install_jslib):
