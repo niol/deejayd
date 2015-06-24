@@ -33,9 +33,9 @@ Package: deejayd-webui
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          deejayd (= ${binary:Version}), logrotate,
-         python-twisted-web, # python-twisted-sockjs,
-         fonts-font-awesome, libjs-sockjs, # libjs-jquery, libjs-angularjs,
-         libjs-bootstrap
+         python-twisted-web,
+         fonts-font-awesome, libjs-sockjs, libjs-bootstrap
+# python-twisted-sockjs, libjs-jquery, libjs-angularjs,
 Description: Web interface for deejayd
  This package provides, in order to control your deejayd server, two HTML and
  AJAX web interfaces:
