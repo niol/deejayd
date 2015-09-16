@@ -158,7 +158,7 @@ License: MIT
 
 Files: webui/vendor/bootstrap-slider-4.0.12/*
 Copyright: Kyle Kemp, Rohit Kalkur
-License: Apache-2.0 MIT
+License: Apache-2.0 or MIT
 
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a copy
