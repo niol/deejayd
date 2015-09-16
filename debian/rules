@@ -8,7 +8,7 @@
 UVERSION := $(shell ./setup.py --version)
 VERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p' | sed -e 's/^[[:digit:]]*://' -e 's/[-].*//')
 # tell build system not to install JSLIBS as they are provided by deps
-export DISTUTILS_INSTALL_JSLIBS=bootstrap-slider angular jquery
+export DISTUTILS_INSTALL_JSLIBS=bootstrap-slider jquery
 
 
 %:

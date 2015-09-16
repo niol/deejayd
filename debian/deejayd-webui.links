@@ -1,4 +1,4 @@
-#/usr/share/javascript/angular.js usr/share/deejayd/htdocs/vendor/angular-1.3.0
+/usr/share/javascript/angular.js usr/share/deejayd/htdocs/vendor/angular-1.3.0
 /usr/share/fonts-font-awesome usr/share/deejayd/htdocs/vendor/font-awesome-4.0.3
 /usr/share/javascript/sockjs usr/share/deejayd/htdocs/vendor/sockjs-0.3.4
 #/usr/share/javascript/jquery usr/share/deejayd/htdocs/vendor/jquery-2.1.0
