@@ -6,11 +6,13 @@ deejayd (0.14.0~hg+1+9ef373dd259e-1) UNRELEASED; urgency=low
   * Add orig_source target.
   * Add missing python-gi dependency for deejayd-gstreamer.
   * Update package to new angularjs webui and depend on available web libs
-    and ressources: bootstrap, font-awesome, sockjs.
+    and resources: bootstrap, font-awesome, sockjs, angularjs. New python
+    dependency: twisted-sockjs.
   * Add vlc backend binary package.
   * Upstream has moved to gst1.0: fix gstreamer backend dependencies
     (Closes: #785907).
   * Move debian/copyright to dep-5.
+  * Update policy compliance to 3.9.6 (nothing to do).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 16 Sep 2015 06:59:03 +0200
 
