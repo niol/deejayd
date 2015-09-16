@@ -274,8 +274,7 @@ if __name__ == "__main__":
                      "deejayd.database","deejayd.database.upgrade",\
                      "deejayd.model", "deejayd.webradio",
                      "deejayd.plugins",\
-                     "deejayd.webui","deejayd.playlist","pytyx11",\
-                     "txsockjs", "txsockjs.protocols"],
+                     "deejayd.webui","deejayd.playlist","pytyx11"],
            package_data={'deejayd.ui': ['defaults.conf'],
                          'deejayd.webui': ['webui.thtml'], },
            data_files= build_data_files_list(),
