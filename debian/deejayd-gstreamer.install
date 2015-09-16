@@ -1,1 +1,2 @@
 usr/lib/python*/*-packages/deejayd/player/gstreamer.py
+usr/lib/python*/*-packages/deejayd/player/_gstutils.py
