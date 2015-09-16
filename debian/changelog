@@ -1,4 +1,4 @@
-deejayd (0.14.0~hg+1+9ef373dd259e-1) UNRELEASED; urgency=low
+deejayd (0.14.0~hg+1+9ef373dd259e-1) unstable; urgency=low
 
   * New upstream pre-release from hg 9ef373dd259e.
   * Drop use-xine12 patch not required anymore (xine dep dropped by
@@ -14,7 +14,7 @@ deejayd (0.14.0~hg+1+9ef373dd259e-1) UNRELEASED; urgency=low
   * Move debian/copyright to dep-5.
   * Update policy compliance to 3.9.6 (nothing to do).
 
- -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 16 Sep 2015 06:59:03 +0200
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 16 Sep 2015 08:29:11 +0200
 
 deejayd (0.10.0-8) UNRELEASED; urgency=low
 
