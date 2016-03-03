@@ -80,7 +80,8 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
                 "osd": self.config.getboolean("video", "osd_support"),
                 "osd_size": self.config.getint("video", "osd_font_size"),
             }
-        self._aspect_ratios = ("auto", "1:1", "4:3", "16:9")
+        self._aspect_ratios = ("auto", "1:1", "4:3", "16:9", "16:10",
+                                       "221:100", "235:100", "239:100", "5:4")
         self._default_aspect_ratio = "auto"
 
     def load_state(self):

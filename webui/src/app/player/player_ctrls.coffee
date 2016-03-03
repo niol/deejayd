@@ -135,7 +135,7 @@ class DjdPlayerOptionsDialogCtrl
     @$scope.audioOffset = 0
     @$scope.hasSubtitle = false
 
-    @$scope.aspectRatioOptions = ["auto", "1:1", "4:3", "16:9"]
+    @$scope.aspectRatioOptions = ["auto", "1:1", "4:3", "16:9", "16:10", "221:100", "235:100", "239:100", "5:4"]
     @$scope.aspectRatio = "auto"
 
     @$scope.updateAudioChannel = ->
