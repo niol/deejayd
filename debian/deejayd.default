@@ -43,7 +43,7 @@ DEEJAYD_DAEMON_OPTS=""
 #
 # "standalone" and "reuse" mode specific options
 #
-DEEJAYD_DISPLAYNAME=:0
+DEEJAYD_DISPLAYNAME=:0.0
 DEEJAYD_XAUTHORITY=/var/lib/deejayd/Xauthority
 #
 # "standalone" mode specific options
