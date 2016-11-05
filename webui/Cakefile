@@ -91,7 +91,7 @@ task 'build', 'Build deejayd webui application from source files', ->
   )
 
   # build main js file
-  exec "coffee -j #{outJS}.js -c #{strJsFiles}", exerr
+  exec "cat #{strJsFiles} | coffee -c --stdio > #{outJS}.js", exerr
 
   # copy all templates in the correct dir
   fs.mkdir(config.outTplDir, (err) ->
