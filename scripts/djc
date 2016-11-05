@@ -201,6 +201,14 @@ class AvailableCommands:
            ex: djc get_video_dir "dirname"
            if no dirname has been entered, return root directory content"""
 
+    @command("player.setVideoOption",
+            cmd_args=[{"name":"option", "type":"string", "req":True},
+                      {"name":"value", "type":"int", "req":True},
+                     ],
+            cmd_ans="bool")
+    def set_video_option(self, args):
+        """Adjust playback settings among av_offset, sub_offset, audio_lang, sub_lang, aspect_ratio"""
+
 
 def get_cmds():
     import types
