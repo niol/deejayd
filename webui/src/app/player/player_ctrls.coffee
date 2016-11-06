@@ -139,9 +139,9 @@ class DjdPlayerOptionsDialogCtrl
     @$scope.updateAudioOffset = ->
       self.av_offset_timer.update(self.$scope.audioOffset)
     @$scope.updateSubChannel = ->
-      self.djdplayerservice.setVideoOption("sub_lang", self.$scope.curSubChannel)
+      self.djdplayerservice.setVideoOption("sub_lang", self.$scope.subOptions.channel)
     @$scope.updateSubOffset = ->
-      self.sub_offset_timer.update(self.$scope.subOffset)
+      self.sub_offset_timer.update(self.$scope.subOptions.offset)
     @$scope.updateAspectRatio = ->
       self.djdplayerservice.setVideoOption("aspect_ratio", self.$scope.aspectRatio)
 
@@ -154,8 +154,10 @@ class DjdPlayerOptionsDialogCtrl
 
         if track.hasOwnProperty('subtitle')
           self.$scope.subChannels = track['subtitle']
-          self.$scope.subOffset = track['sub_offset']
-          self.$scope.curSubChannel = track['subtitle_idx']
+          self.$scope.subOptions = {
+            offset  : track['sub_offset'],
+            channel : track['subtitle_idx']
+          }
           self.$scope.hasSubtitle = true
         else
           self.$scope.hasSubtitle = false

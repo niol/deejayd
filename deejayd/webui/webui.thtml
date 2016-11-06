@@ -302,7 +302,7 @@
                                 <select class="form-control"
                                         ng-options="c.ix as c.lang for c in subChannels"
                                         ng-change="updateSubChannel()"
-                                        ng-model="curSubChannel"></select>
+                                        ng-model="subOptions.channel"></select>
                             </div>
                         </div>
 
@@ -310,7 +310,7 @@
                           <label class="control-label col-xs-8">{{ '_subOffset_' | i18n }} (ms)</label>
                           <div class="col-xs-4">
                             <input class="form-control"
-                                   ng-model="subOffset"
+                                   ng-model="subOptions.offset"
                                    ng-change="updateSubOffset()"
                                    min="-10000" max="10000" step="100"
                                    type="number" placeholder='0'/>
