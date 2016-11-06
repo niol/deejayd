@@ -304,8 +304,7 @@ class VlcPlayer(_BasePlayer):
     def __init_video_information(self):
         if self._current_is_video():
             # subtitles
-            if 'subtitle_channels' in self._media_file.keys() \
-            and self._media_file['subtitle_channels'] > 0:
+            if 'subtitle_channels' in self._media_file.keys():
                 sub_channels = [{"lang": name, "ix": idx}\
                     for (idx, name)
                     in self.__player.video_get_spu_description()]
