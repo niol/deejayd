@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,18 +17,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
-from twisted.web import static,server
+from twisted.web import static, server
 from twisted.web.resource import Resource, NoResource
-
 from deejayd import DeejaydError
 from deejayd.ui import log
-
 from txsockjs.factory import SockJSResource
 from deejayd.server.protocol import DeejaydFactory
 from deejayd.webui.webui import DeejaydMainHandler
 
 
-class DeejaydWebError(DeejaydError): pass
+class DeejaydWebError(DeejaydError):
+    pass
 
 
 class DeejaydRootRedirector(Resource):
@@ -40,7 +39,8 @@ class DeejaydRootRedirector(Resource):
         self.webui_handler = webui_handler
 
     def getChild(self, name, request):
-        if name == '': return self
+        if name == '':
+            return self
 
         prepath = '/%s/' % '/'.join(request.prepath)
         if prepath.startswith(self.root_url):
@@ -79,7 +79,7 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
     cover_folder = config.get("mediadb", "cover_directory")
     main_handler.putChild("covers", static.File(cover_folder))
 
-    for d in ('gen', 'i18n', 'vendor', 'images'):
+    for d in ('dist', 'resources'):
         main_handler.putChild(d, static.File(os.path.join(htdocs_dir, d)))
 
     root_url = config.get('webui', 'root_url')
@@ -90,6 +90,3 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
         root = DeejaydRootRedirector(root_url, main_handler)
 
     return SiteWithCustomLogging(root, logPath=webui_logfile)
-
-
-# vim: ts=4 sw=4 expandtab

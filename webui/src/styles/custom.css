@@ -1,0 +1,157 @@
+
+body {
+    font-family: Roboto,"Helvetica Neue",sans-seRoboto,"Helvetica Neue",sans-serif;
+}
+
+/*
+ * Layout
+ */
+.djd-main-container {
+    margin-top: 64px;
+    margin-bottom: 85px;
+    height: 100%;
+    min-height: 400px;
+}
+
+.djd-sidenav-container {
+    background-color: #f8f8f8;
+    color: #404040;
+    min-width: 200px;
+    height: 100%;
+}
+
+.djd-toolbar {
+    position: fixed;
+    top: 0; left:0;
+    height: 64px;
+    z-index: 10;
+}
+
+.djd-player-container {
+    position: fixed;
+    bottom: 0; left:0;
+    height: 85px; width: 100%;
+    z-index: 10;
+}
+
+.djd-loading-container {
+    width: 100%;
+    min-height: 100px;
+    display: flex;
+    align-content: center;
+    align-items: center;
+}
+/*
+ * Player
+ */
+#djd-player-toolbar {
+    width: 100%;
+    background-color: #ccc;
+    opacity: 0.9;
+}
+
+.djd-current-media {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 16px;
+    padding: 2px;
+    margin-top: 5px;
+}
+
+.djd-mini-vslider-box {
+    position: absolute;
+    bottom: 45px;
+}
+
+.djd-mini-vslider {
+  min-height: 250px;
+}
+
+/*
+ * Sidenav
+ */
+ .djd-sidenav-container > a.mat-button {
+    text-align: left;
+ }
+ .mat-button.djd-menu-active {
+     font-weight: bold;
+ }
+
+/*
+ * medialist
+ */
+.djd-medialist-header {
+    padding: 5px;
+    border-bottom: 1px solid #999;
+}
+.djd-medialist-header > h3 {
+    color: #999;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+ul.djd-medialist {
+    list-style: none;
+    padding: 8px;
+}
+ul.djd-medialist>li {
+    display: inline-block;
+    width: 100%;
+    font-size: 14px;
+    padding: 4px;
+}
+
+.djd-medialist-item {
+    width: 100%;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.djd-medialist-item h4, .djd-medialist-item p {
+    margin: 2px;
+}
+
+/*
+ * Library
+ */
+.djd-library-item, .djd-list-item {
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    font-size: 14px;
+}
+ol.djd-breadcrumb {
+    list-style: none;
+    padding: 8px;
+    margin-bottom: 10px;
+    background-color: #d8d8d8;
+    border-radius: 4px;
+}
+ol.djd-breadcrumb>li {
+    display: inline-block;
+    font-size: 14px;
+}
+ol.djd-breadcrumb>li+li:before {
+    content: "/\00a0";
+    padding: 0 5px;
+    color: #ccc;
+}
+ol.djd-breadcrumb>li>a {
+    color: #3f51b5;
+    cursor: pointer;
+}
+ol.djd-breadcrumb>li.djd-active {
+    color: #404040;
+}
+
+/*
+ * Options dialog
+ */
+ div.djd-dialog-option {
+     margin-bottom: 15px;
+ }
+ .djd-dialog-label {
+     font-size: 14px;
+     font-weight: 500;
+ }

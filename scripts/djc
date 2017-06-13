@@ -201,6 +201,14 @@ class AvailableCommands:
            ex: djc get_video_dir "dirname"
            if no dirname has been entered, return root directory content"""
 
+    @command("audiopls.loadFolders",
+            cmd_args=[{"name":"dir_ids", "type":"int-list", "req":True}],
+            cmd_ans="ack")
+    def audiopls_load_folder(self, args):
+        """load folder in the audio playlist.
+           ex: djc audiopls_load_folder 1,2"""
+
+
     @command("player.setVideoOption",
             cmd_args=[{"name":"option", "type":"string", "req":True},
                       {"name":"value", "type":"int", "req":True},

@@ -1,0 +1,195 @@
+// Deejayd, a media player daemon
+// Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
+//                         Alexandre Rossi <alexandre.rossi@gmail.com>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+import { Component, Input } from '@angular/core';
+import { OnInit } from '@angular/core';
+import { DjdClientService } from '../../services/djd-client.service';
+import { PlayerService } from '../../services/player.service';
+import { Folder, Media } from '../../models/media.model';
+import { UtilsService } from '../../services/utils.service';
+
+interface PathObject {
+  path: string,
+  name: string
+}
+
+@Component({
+  selector: 'djd-folder-view',
+  template: `
+  <ol *ngIf="currentPath.length > 0" class="djd-breadcrumb" >
+    <li *ngFor="let pObj of currentPath">
+      <a (click)="getPath(pObj.path)">
+        {{ pObj.name }}
+      </a>
+    </li>
+    <li class="djd-active">{{ currentFolder }}</li>
+  </ol>
+
+  <div [ngSwitch]="loading">
+    <md-nav-list *ngSwitchCase="false" [disableRipple]="true">
+      <md-menu #libraryMenu="mdMenu">
+        <button md-menu-item (click)="play()" i18n>Play</button>
+        <button md-menu-item
+                    *ngIf="utils.hasLastPos(selectedMedia)"
+                    (click)="resume()"
+                    i18n>
+          Resume at {{ utils.formatTime(selectedMedia.lastpos) }}
+        </button>
+        <button md-menu-item (click)="loadToPlaylist()" i18n>Add to playlist</button>
+        <button md-menu-item
+                *ngIf="type == 'audio'"
+                (click)="loadToQueue()" i18n>Add to queue</button>
+      </md-menu>
+
+      <!-- folder -->
+      <md-list-item *ngFor="let folder of folders" (click)="getPath(folder.root)">
+        <md-icon md-list-icon>folder</md-icon>
+        <div class="djd-library-item">
+          <div>
+            <span>{{ folder.name }}</span>
+          </div>
+          <div style="flex: 1 1 auto;"></div>
+          <div>
+            <button md-icon-button
+                    (click)="selectFolder(folder); $event.stopPropagation()"
+                    [mdMenuTriggerFor]="libraryMenu">
+                <md-icon>menu</md-icon>
+            </button>
+          </div>
+        </div>
+      </md-list-item>
+
+      <!-- media -->
+      <md-list-item *ngFor="let media of medias">
+        <md-icon md-list-icon>music_video</md-icon>
+        <div class="djd-library-item">
+          <div>
+            <span>{{ media.filename }}</span>
+          </div>
+          <div style="flex: 1 1 auto;"></div>
+          <div>
+            <button md-icon-button
+                    (click)="selectMedia(media)"
+                    [mdMenuTriggerFor]="libraryMenu">
+                <md-icon>menu</md-icon>
+            </button>
+          </div>
+        </div>
+      </md-list-item>
+    </md-nav-list>
+
+    <div *ngSwitchCase="true" class="djd-loading-container">
+      <md-spinner></md-spinner>
+    </div>
+  </div>
+    `
+})
+export class FolderViewComponent implements OnInit {
+  @Input() type:string;
+  currentPath:PathObject[] = [];
+  currentFolder:string = "";
+  loading:boolean = true;
+  folders:Folder[] = [];
+  medias:Media[] = [];
+  selectedMedia:Media = null;
+  selectedFolder:Folder = null;
+
+  constructor(private client:DjdClientService, private player:PlayerService,
+              private utils:UtilsService) { }
+
+  ngOnInit(): void {
+    this.client.isConnected$.subscribe((connected:boolean) => {
+      if (connected) {
+        this.getPath('');
+      }
+    });
+  }
+
+  getPath(path:string) {
+    this.loading = true;
+    this.client.sendCommand(`${this.type}lib.getDirContent`, [path])
+               .subscribe((answer:any) => {
+      this.folders = answer.directories as Folder[];
+      this.medias = answer.files as Media[];
+
+      this.currentPath = []
+      if (path != "") {
+        let parts:string[] = path.split("/");
+        let rel_path:string = "";
+
+        this.currentPath = [{path: "", name:"Home"}];
+        parts.forEach((p:string, idx:number) => {
+          if (idx < (parts.length-1)) {
+            rel_path = rel_path == "" ? p : rel_path+"/"+p;
+            this.currentPath.push({name: p, path:rel_path})
+          } else {
+            this.currentFolder = p
+          }
+        });
+      }
+      this.loading = false;
+    });
+  }
+
+  isNew(media:Media) {
+    return this.type == "video" && media.playcount == 0;
+  }
+
+  selectMedia(m: Media) {
+    this.selectedMedia = m;
+    this.selectedFolder = null;
+  }
+
+  selectFolder(f: Folder) {
+    this.selectedFolder = f;
+    this.selectedMedia = null;
+  }
+
+  play() {
+    if (this.selectedFolder != null) {
+      this.player.playFolder(this.selectedFolder.id, `${this.type}pls`);
+    } else if (this.selectedMedia != null) {
+      this.player.playMedia(this.selectedMedia.media_id, `${this.type}pls`);
+    }
+  }
+
+  resume() {
+    this.player.resumeMedia(this.selectedMedia.media_id, `${this.type}pls`,
+                            this.selectedMedia.lastpos - 30);
+  }
+
+  loadToPlaylist() {
+    if (this.selectedFolder != null) {
+      this.client.sendSimpleCmd(`${this.type}pls.loadFolder`,
+                                [[this.selectedFolder.id], true]);
+    } else if (this.selectedMedia != null) {
+      this.client.sendSimpleCmd(`${this.type}pls.addMediaByIds`,
+                                [[this.selectedMedia.media_id], true]);
+    }
+  }
+
+  loadToQueue() {
+    if (this.selectedFolder != null) {
+      this.client.sendSimpleCmd(`${this.type}queue.loadFolder`,
+                                [[this.selectedFolder.id], true]);
+    } else if (this.selectedMedia != null) {
+      this.client.sendSimpleCmd(`${this.type}queue.addMediaByIds`,
+                                [[this.selectedMedia.media_id], true]);
+    }
+  }
+}

@@ -1,0 +1,19 @@
+syntax: glob
+db/*
+conf*
+*.orig
+*.rej
+.DS_Store
+*~
+*.pyc
+build*
+webui/gen*
+.vscode*
+webui/node_modules*
+webui/dist/aot/*
+
+syntax: regexp
+.*\#.*\#$
+
+syntax: regexp
+^.idea

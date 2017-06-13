@@ -89,7 +89,7 @@ if options.conffile:
     if os.path.isfile(options.conffile):
         config.read([options.conffile])
     else:
-        sys.exit(_("The config file does not exist."))
+        sys.exit(_("The config file %s does not exist.") % options.conffile)
 
 if options.debug:
     config.set('general', 'log', 'debug')

@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,21 +17,24 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
-
 from twisted.web.resource import Resource, NoResource
 from deejayd.ui.config import DeejaydConfig
-from deejayd.jsonrpc import json
 
 
 class DeejaydMainHandler(Resource):
     tpl = 'webui.thtml'
     scripts = [
-        ("gen/djd_app.js", "text/javascript"),
-        ]
+        ("dist/vendor.bundle.js", "text/javascript"),
+        ("dist/app.bundle.js", "text/javascript"),
+    ]
 
     def getChild(self, name, request):
-        if name == '': return self
-        return Resource.getChild(self,name,request)
+        if name == '':
+            return self
+        r = Resource.getChild(self, name, request)
+        if isinstance(r, NoResource):
+            return self
+        return r
 
     def render_GET(self, request):
         # Trailing slash is required for js script paths in the mobile webui,
@@ -70,5 +73,3 @@ class DeejaydMainHandler(Resource):
             tpl_content = tpl.read()
         page_content = tpl_content % self._get_page_args()
         return page_content.encode("utf-8")
-
-# vim: ts=4 sw=4 expandtab

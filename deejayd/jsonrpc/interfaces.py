@@ -254,12 +254,6 @@ class CoreModule(object):
   * videotimelength : _int_ time length of the current video list
   * videorepeat : _bool_ false (not activated) or true (activated)
   * videoplayorder : inorder | random | onemedia | random-weighted
-  * dvd : _int_ id of the current dvd
-  * dvdlength : _int_ number of tracks on the current dvd
-  * volume : `[0-100]` current volume value
-  * state : [play-pause-stop] the current state of the player
-  * current : _int_:_int_:_str_ current media pos : current media file id : playing source name
-  * time : _int_:_int_ position:length of the current media file
   * mode : [playlist-webradio-video] the current mode
   * audio_updating_db : _int_ show when a audio library update is in progress
   * audio_updating_error : _string_ error message that appears when the audio library update has failed
