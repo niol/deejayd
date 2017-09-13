@@ -221,5 +221,3 @@ class AudioScrobblerPlugin(DeejaydThread):
     def __get_stamp(self, track):
         stamp = str(int(time.time())--int(int(track['length'])/2))
         return stamp.encode("utf-8")
-
-# vim: ts=4 sw=4 expandtab

@@ -1,7 +1,7 @@
 #!/usr/bin/python -W ignore::DeprecationWarning
 
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -22,10 +22,15 @@
 This is a deejayd test server executable
 """
 
-import sys, os, traceback
-
+import sys
+import os
+import traceback
 from twisted.python import log
 import twisted.internet.error
+from deejayd.db import connection
+from deejayd.ui.config import DeejaydConfig
+from deejayd.ui.i18n import DeejaydTranslations
+from deejayd import DeejaydError
 
 
 # argv[1] should be configuration files
@@ -34,7 +39,6 @@ if len(sys.argv) != 2:
 
 log.startLogging(open('/tmp/testdeejayd.log', 'a'))
 
-from deejayd.ui.config import DeejaydConfig
 config = DeejaydConfig()
 conf_file = sys.argv[1]
 if os.path.isfile(conf_file):
@@ -44,7 +48,6 @@ else:
     sys.exit()
 
 # init translation
-from deejayd.ui.i18n import DeejaydTranslations
 t = DeejaydTranslations()
 t.install()
 
@@ -59,64 +62,68 @@ if media_backend == "gstreamer":
     glib2reactor.install()
 from twisted.internet import reactor
 
+# configure database connection
+uri = DeejaydConfig().get("database", "uri")
+connection.init(uri)
+
 # start core
-from deejayd import DeejaydError
 try:
     from deejayd.server.core import DeejayDaemonCore
-    deejayd_core = DeejayDaemonCore()
-    deejayd_core.audiolib.update(sync = True)
-
-    is_video = config.getboolean('video', "enabled")
-    if is_video: # video library activated
-        deejayd_core.videolib.update(sync = True)
+    deejayd_core = DeejayDaemonCore(library_update=False)
+    deejayd_core.audiolib.update(sync=True)
+    if deejayd_core.videolib is not None:
+        deejayd_core.videolib.update(sync=True)
 except DeejaydError, ex:
-    os.write(2, 'stopped\n')
-
     from deejayd.server.utils import str_decode
     err = "Unable to launch deejayd core, see traceback for more details"
     log.msg(err)
     log.msg(str_decode(traceback.format_exc()))
-    try: deejayd_core.close()
+    try:
+        deejayd_core.close()
     except:
         pass
+    os.write(2, 'stopped\n')
     sys.exit()
 
 ###############################################################
 
 # net protocol
-if config.getboolean("net","enabled"):
+if config.getboolean("net", "enabled"):
     from deejayd.server.protocol import DeejaydFactory
     factory = DeejaydFactory(deejayd_core)
+    port = config.getint("net", "port")
     try:
-        reactor.listenTCP(config.getint("net","port"), factory)
+        reactor.listenTCP(port, factory)
     except twisted.internet.error.CannotListenError:
+        log.msg("Unable to listen on port %d for net protocol" % port)
         # This is to avoid locking the test suite when the server used in the
         # previous test has not stopped listenning.
         deejayd_core.close()
         os.write(2, 'stopped\n')
         sys.exit()
 # http protocol
-if config.getboolean("webui","enabled"):
+if config.getboolean("webui", "enabled"):
     from deejayd import webui
-    htdocs_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),\
-            '..', 'data', 'htdocs'))
+    htdocs_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                              '..', 'data', 'htdocs'))
     site = webui.init(deejayd_core, config,
-                '/tmp/testdeejayd-webui.log', htdocs_dir)
+                      '/tmp/testdeejayd-webui.log', htdocs_dir)
+    port = config.getint("webui", "port")
     try:
-        reactor.listenTCP(config.getint("webui","port"), site)
+        reactor.listenTCP(port, site)
     except twisted.internet.error.CannotListenError:
+        log.msg("Unable to listen on port %d for http protocol" % port)
         # This is to avoid locking the test suite when the server used in the
         # previous test has not stopped listenning.
         deejayd_core.close()
         os.write(2, 'stopped\n')
         sys.exit()
 
+
 def printReady():
     os.write(2, 'ready\n')
+
 
 reactor.addSystemEventTrigger('after', 'startup', printReady)
 reactor.addSystemEventTrigger('before', 'shutdown', deejayd_core.close)
 reactor.run()
-
-
-# vim: ts=4 sw=4 expandtab

@@ -18,7 +18,8 @@
 
 import locale
 
-__version__ = "0.13.1"
+__version__ = "0.14.0"
+
 
 class DeejaydError(Exception):
     """General purpose error structure."""

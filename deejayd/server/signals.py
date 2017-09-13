@@ -23,10 +23,10 @@ player_status = Signal()      # Player status change (play/pause/stop/
                               # random/repeat/volume/manseek)
 player_current = Signal()     # Currently played song change
 
-# mediadb specific signals
-mediadb_aupdate = Signal()    # Media library audio update
-mediadb_vupdate = Signal()    # Media library video update
-mediadb_mupdate = Signal(providing_args=["media_id", "type"])    # Media item
+# library specific signals
+library_aupdate = Signal()    # Media library audio update
+library_vupdate = Signal()    # Media library video update
+library_mupdate = Signal(providing_args=["media_id", "type"])    # Media item
                                                                  # update
 
 recpls_listupdate = Signal()
@@ -42,9 +42,9 @@ SIGNALS = {
     'player.status': player_status,
     'player.current': player_current,
 
-    'mediadb.aupdate': mediadb_aupdate,
-    'mediadb.vupdate': mediadb_vupdate,
-    'mediadb.mupdate': mediadb_mupdate,
+    'library.aupdate': library_aupdate,
+    'library.vupdate': library_vupdate,
+    'library.mupdate': library_mupdate,
 
     "recpls.listupdate": recpls_listupdate,
     "recpls.update": recpls_update,

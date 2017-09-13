@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -20,16 +20,18 @@ import urllib2
 import time
 from twisted.internet import threads, task, reactor
 from xml.etree import cElementTree as ET
-
 from deejayd import DeejaydError
+from deejayd.db.connection import Session
+from deejayd.db.models import WebradioCategory, Webradio
+from deejayd.db.models import WebradioEntry, WebradioSource
 from deejayd.ui import log
 from deejayd.ui.config import DeejaydConfig
 from deejayd.webradio._base import _BaseWebradioSource
-from deejayd.database.connection import DatabaseConnection
 
 
 UPDATE_INTERVAL = 7 * 24 * 60 * 60  # 7 days
 TIMEOUT = 2  # 2 seconds
+
 
 class IceCastSource(_BaseWebradioSource):
     NAME = "icecast"
@@ -43,7 +45,8 @@ class IceCastSource(_BaseWebradioSource):
         self.__task.start(60 * 60)  # check every hour
 
     def __check_update(self):
-        if int(time.time()) > int(self.state["last_modified"]) + UPDATE_INTERVAL:
+        now = int(time.time())
+        if int(now) > int(self.state["last_modified"]) + UPDATE_INTERVAL:
             d = threads.deferToThread(self.__reload_list)
             d.pause()
 
@@ -58,7 +61,7 @@ class IceCastSource(_BaseWebradioSource):
     def __on_reload_success(self, result, *args):
         if result is not None:
             self._update_state()
-            reactor.callFromThread(self.dispatch_signame, self.signal_name,\
+            reactor.callFromThread(self.dispatch_signame, self.signal_name,
                                    source=self.NAME)
 
     def __reload_list(self):
@@ -76,13 +79,22 @@ class IceCastSource(_BaseWebradioSource):
         except ET.XMLSyntaxError:
             raise DeejaydError(_("Unable to parse icecast webradio list"))
         except:
-            raise DeejaydError(_("Unable to read result from icecast webradio list"))
+            raise DeejaydError(_("Unable to read result from icecast "
+                                 "webradio list"))
         finally:
             page_handle.close()
 
-        # start with erase all recorded webradio
-        self.source.clear_webradios(commit=True)
-        self.source.clear_categories(commit=True)
+        session = Session()
+        source = session.query(WebradioSource)\
+                        .filter(WebradioSource.name == self.NAME)\
+                        .one()
+        # delete old entries from the database
+        session.query(Webradio)\
+               .filter(Webradio.source_id == source.id)\
+               .delete(synchronize_session='fetch')
+        session.query(WebradioCategory)\
+               .filter(WebradioCategory.source_id == source.id)\
+               .delete(synchronize_session='fetch')
 
         categories = {}
         webradios = {}
@@ -96,32 +108,24 @@ class IceCastSource(_BaseWebradioSource):
                 continue
 
             if server_type.startswith("audio") or \
-                    (server_type == "application/ogg" and \
+                    (server_type == "application/ogg" and
                      not listen_url.endswith("ogv")):
                 if name not in webradios:
                     genres = genres.split(" ")
-                    webradios[name] = {
-                        "name": name,
-                        "urls": [],
-                        "categories": []
-                    }
+                    webradios[name] = Webradio(source=source, name=name)
                     for genre in genres:
                         if len(genre) <= 2 or genre.startswith("."):
                             continue
                         genre = genre.capitalize()
                         if genre not in categories.keys():
-                            categories[genre] = self.source\
-                                                    .add_categorie(genre,
-                                                                   commit=False)
-                        cat_id = categories[genre]["id"]
-                        webradios[name]["categories"].append(cat_id)
-                webradios[name]["urls"].append(listen_url)
+                            categories[genre] = WebradioCategory(name=genre,
+                                                                 source=source)
+                        webradios[name].categories.append(categories[genre])
+                    session.add(webradios[name])
+                webradios[name].entries.append(WebradioEntry(url=listen_url))
                 log.debug('Added icecast webradio %s' % name)
-        # save wb
-        for wb in webradios.values():
-            self.source.add_webradio(wb["name"], wb["categories"], wb["urls"],
-                                     commit=False)
-        DatabaseConnection().commit()
+        session.commit()
+        Session.remove()
         log.msg(_("Finish to reload icecast webradio source"))
         return {
             "wb_count": len(webradios),
@@ -142,5 +146,3 @@ class IceCastSource(_BaseWebradioSource):
         if self.__task is not None:
             self.__task.stop()
         super(IceCastSource, self).close()
-
-# vim: ts=4 sw=4 expandtab

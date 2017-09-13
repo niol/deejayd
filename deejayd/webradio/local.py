@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,25 +18,55 @@
 
 from zope.interface import implements
 from deejayd.server.utils import get_uris_from_pls, get_uris_from_m3u
+from deejayd.db.connection import Session
+from deejayd.db.models import WebradioCategory, Webradio, WebradioEntry
+from deejayd.db.models import WebradioSource
 from deejayd.webradio.IWebradioSource import IEditWebradioSource
 from deejayd.webradio._base import _BaseWebradioSource
 from deejayd.ui import log
 from deejayd import DeejaydError
+
+
+def save_session(func):
+    def new_func(*args, **kwargs):
+        self = args[0]
+        source = Session.query(WebradioSource)\
+                        .filter(WebradioSource.name == self.NAME)\
+                        .one()
+        res = func(self, source, *args[1:], **kwargs)
+        self._update_state()
+        Session.commit()
+        return res
+
+    return new_func
+
 
 class WebradioLocalSource(_BaseWebradioSource):
     implements(IEditWebradioSource)
     NAME = "local"
     state_name = "webradio_local"
 
-    def add_categorie(self, cat):
-        self._update_state()
-        return self.source.add_categorie(cat)
+    @save_session
+    def add_category(self, source, cat_name):
+        category = Session.query(WebradioCategory)\
+                          .filter(WebradioCategory.source == source)\
+                          .filter(WebradioCategory.name == cat_name)\
+                          .one_or_none()
+        if category is not None:
+            raise DeejaydError(_("Category %s already exists") % cat_name)
+        category = WebradioCategory(source=source, name=cat_name)
+        Session.add(category)
+        return category.to_json()
 
-    def remove_categories(self, ids):
-        self._update_state()
-        return self.source.delete_categories(ids)
+    @save_session
+    def remove_categories(self, source, ids):
+        Session.query(WebradioCategory)\
+               .filter(WebradioCategory.source == source)\
+               .filter(WebradioCategory.id.in_(ids))\
+               .delete(synchronize_session='fetch')
 
-    def add_webradio(self, name, urls, cat=None):
+    @save_session
+    def add_webradio(self, source, name, urls, cat=None):
         provided_urls = []
         for url in urls:
             if url.lower().startswith("http://"):
@@ -65,19 +95,33 @@ class WebradioLocalSource(_BaseWebradioSource):
                     needed_urls.append(url)
 
         if len(needed_urls) < 1:
-            raise DeejaydError(_("Given urls %s is not supported")\
-                    % ",".join(urls))
+            raise DeejaydError(_("Given urls %s is not "
+                                 "supported") % ",".join(urls))
         cats = cat is not None and [cat] or []
 
-        self._update_state()
-        self.source.add_webradio(name, cats, needed_urls)
+        webradio = Session.query(Webradio)\
+                          .filter(Webradio.source == source)\
+                          .filter(Webradio.name == name)\
+                          .one_or_none()
+        if webradio is not None:
+            raise DeejaydError(_("Webradio %s already exists") % name)
+        webradio = Webradio(source=source, name=name)
+        Session.add(webradio)
 
-    def remove_webradios(self, ids):
-        self._update_state()
-        self.source.delete_webradios(ids)
+        for c in cats:
+            webradio.categories.append(Session.query(WebradioCategory).get(c))
+        for url in needed_urls:
+            webradio.entries.append(WebradioEntry(url=url))
 
-    def clear_webradios(self):
-        self._update_state()
-        self.source.clear_webradios()
+    @save_session
+    def remove_webradios(self, source, ids):
+        Session.query(Webradio)\
+               .filter(Webradio.source == source)\
+               .filter(Webradio.id.in_(ids))\
+               .delete(synchronize_session='fetch')
 
-# vim: ts=4 sw=4 expandtab
+    @save_session
+    def clear_webradios(self, source):
+        Session.query(Webradio)\
+               .filter(Webradio.source == source)\
+               .delete(synchronize_session='fetch')

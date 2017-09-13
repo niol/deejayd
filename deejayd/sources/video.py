@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,15 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
-
 from deejayd.jsonrpc.interfaces import VideoSourceModule, jsonrpc_module
-from deejayd.sources._base import _BaseLibrarySource
+from deejayd.sources._base import _BaseSource
+
 
 @jsonrpc_module(VideoSourceModule)
-class VideoSource(_BaseLibrarySource):
+class VideoSource(_BaseSource):
     name = "videopls"
     mlist_name = "__djvideo__"
     source_signal = 'videopls.update'
-
-# vim: ts=4 sw=4 expandtab

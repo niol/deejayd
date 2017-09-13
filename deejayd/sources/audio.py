@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,32 +17,27 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from deejayd.jsonrpc.interfaces import AudioSourceModule, jsonrpc_module
-from deejayd.sources._base import _BaseLibrarySource
-from deejayd.model.playlist import StaticPlaylist
-from deejayd.model.playlist import PlaylistFactory
-from deejayd import DeejaydError
+from deejayd.sources._base import _BaseSource
+from deejayd.db.models import StaticMediaList, StaticMediaListItem
+from deejayd.db.connection import Session
+
 
 @jsonrpc_module(AudioSourceModule)
-class AudioSource(_BaseLibrarySource):
+class AudioSource(_BaseSource):
     base_medialist = "__djaudio__"
     name = "audiopls"
     source_signal = 'audiopls.update'
 
-    def save(self, playlist_name):
-        pls = StaticPlaylist(self.library, playlist_name)
-        pls.set(self._media_list.get())
-        id = pls.save()
+    def save(self, pls_name):
+        pls = Session.query(StaticMediaList)\
+                     .filter(StaticMediaList.name == pls_name)\
+                     .one_or_none()
+        if pls is None:
+            pls = StaticMediaList(name=pls_name)    
+            Session.add(pls)
+        pls.items = [StaticMediaListItem(media_id=it["m_id"])
+                     for it in self._playlist.get()]
 
+        Session.commit()    
         self.dispatch_signame('recpls.listupdate')
-        return {"playlist_id": id}
-
-    def load_playlist(self, pl_ids, pos=None):
-        try:
-            pls_list = [PlaylistFactory().load_byid(self.library, pl_id)
-                        for pl_id in pl_ids]
-        except IndexError:
-            raise DeejaydError(_("Some asked playlist are not found."))
-        self._media_list.add(reduce(lambda ms, p: ms + p.get(), pls_list, []))
-        self.dispatch_signame(self.source_signal)
-
-# vim: ts=4 sw=4 expandtab
+        return {"playlist_id": pls.id}

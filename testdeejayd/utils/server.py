@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,12 @@
 """
 Tools to create a test server.
 """
-import os, signal, os.path, sys, subprocess
+import os
+import signal
+import os.path
+import sys
+import subprocess
+
 
 logfiles = ['/tmp/testdeejayd.log', '/tmp/testdeejayd-webui.log']
 for logfile in logfiles:
@@ -56,17 +61,20 @@ class TestServer:
         serverExec = os.path.join(self.srcpath, self.serverExecRelPath)
 
         if not os.access(serverExec, os.X_OK):
-            sys.exit("The test server executable '%s' is not executable."\
-                     % serverExec)
+            sys.exit("The test server executable '%s' is not "
+                     "executable." % serverExec)
 
         args = [os.path.realpath(serverExec), self.conf_file]
-        env = {'PYTHONPATH': self.srcpath, "PATH": os.getenv('PATH'),\
-                'LANG': os.getenv('LANG')}
+        env = {
+            'PYTHONPATH': self.srcpath,
+            "PATH": os.getenv('PATH'),
+            'LANG': os.getenv('LANG')
+        }
         self.__serverProcess = subprocess.Popen(args,
-                                                env = env,
-                                                stderr = subprocess.PIPE,              
-                                                stdout = sys.stdout.fileno(),
-                                                close_fds = True)
+                                                env=env,
+                                                stderr=subprocess.PIPE,              
+                                                stdout=sys.stdout.fileno(),
+                                                close_fds=True)
         
         ready = False
         while True:
@@ -81,7 +89,6 @@ class TestServer:
                 return_code = self.__serverProcess.poll()
                 if return_code > 0:
                     raise Exception("Server stop unexpectly see log")
-
 
         if not ready:
             # Should not occur

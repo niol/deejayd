@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import threading, os
+import os
+import threading
 from twisted.internet import reactor, task
 from deejayd.player import _vlc
 from deejayd.jsonrpc.interfaces import jsonrpc_module, PlayerModule
@@ -24,7 +25,9 @@ from deejayd.player import PlayerError
 from pytyx11 import x11
 from deejayd.player._base import _BasePlayer, PLAYER_PAUSE, \
                                  PLAYER_PLAY, PLAYER_STOP
-from deejayd.ui import log
+
+
+LIBVLC_VERSIONS = ('2.2', )
 
 
 @jsonrpc_module(PlayerModule)
@@ -35,8 +38,10 @@ class VlcPlayer(_BasePlayer):
             self.__lock = threading.Lock()
             self.__event = threading.Event()
             self.__playing = False
-            evt_mg.event_attach(_vlc.EventType.MediaPlayerPlaying, self.on_playing_event)
-            evt_mg.event_attach(_vlc.EventType.MediaPlayerEncounteredError, self.on_error_event)
+            evt_mg.event_attach(_vlc.EventType.MediaPlayerPlaying,
+                                self.on_playing_event)
+            evt_mg.event_attach(_vlc.EventType.MediaPlayerEncounteredError,
+                                self.on_error_event)
 
         def on_error_event(self, instance):
             self.__event.set()
@@ -61,90 +66,93 @@ class VlcPlayer(_BasePlayer):
             evt_mg.event_detach(_vlc.EventType.MediaPlayerEncounteredError)
 
     NAME = "vlc"
-    supported_options = (\
-            "audio_lang",
-            "av_offset",
-            "sub_offset",
-            "sub_lang",
-            'aspect_ratio',
-       )
-
-    LIBVLC_VERSIONS = ('2.0.', '2.1.', '2.2', )
+    supported_options = (
+        "current-audio",
+        "av-offset",
+        "sub-offset",
+        "current-sub",
+        'aspect-ratio',
+    )
 
     def __init__(self, plugin_manager, config):
-        # test version, this backend only works with specific versions of libvlc
+        super(VlcPlayer, self).__init__(plugin_manager, config)
+        # test version, this backend only works with specific versions of vlc
         version = _vlc.libvlc_get_version()
         good_version = False
-        for v in self.LIBVLC_VERSIONS:
+        for v in LIBVLC_VERSIONS:
             if version.startswith(v):
                 good_version = True
         if not good_version:
-            raise PlayerError(_("Vlc backend only works with versions %s of libvlc")\
-                              % ', '.join([v + 'X' for v in self.LIBVLC_VERSIONS]))
+            raise PlayerError(_("Vlc backend only works with versions %s of "
+                             "libvlc") % ', '.join([v + 'X'
+                                                    for v in LIBVLC_VERSIONS]))
 
         # init main instance
-        self.video_enable = config.getboolean("vlc", "video_enable")
-        options = "--audio-replay-gain-mode none" # rg is implemented in deejayd
+        options = "--audio-replay-gain-mode none"
         if not self.video_enable:
             options += " --no-video"
-        try: self.__vlc = _vlc.Instance(options)
+        try:
+            self.__vlc = _vlc.Instance(options)
         except _vlc.VLCException, ex:
             raise PlayerError(_("Unable to init vlc player: %s") % ex)
-        super(VlcPlayer, self).__init__(plugin_manager, config)
 
         # init vlc player and event manager
         self.__player = self.__vlc.media_player_new()
         self.__evt_manager = self.__player.event_manager()
-        self.__evt_manager.event_attach(_vlc.EventType.MediaPlayerEndReached, self.__on_eof)
+        self.__evt_manager.event_attach(_vlc.EventType.MediaPlayerEndReached,
+                                        self.__on_eof)
         # set audio output
         wanted_aout = config.get("vlc", "audio_output")
         if wanted_aout != "auto":
-            audio_outputs = self.__vlc.audio_output_enumerate_devices()
-            find = False
-            for aout in audio_outputs:
-                if aout['name'] == wanted_aout:
-                    self.__player.audio_output_set(aout['name'])
-                    find = True
-                    break
-            if not find:
-                raise PlayerError(_("VLC does not support audio output %s") \
-                        % wanted_aout)
+            try:
+                self.__player.audio_output_set(wanted_aout)
+            except Exception:
+                raise PlayerError(_("VLC does not support audio "
+                                    "output %s") % wanted_aout)
 
         # other variables
         self.__osd_call_id = None
         self.__display = None
         self.__window = None
         self.__playing_handler = None
-        # task to update webradio metadata
+        # task to update metadata, useful for webradio
         # because no event is fired when the playing song changes
-        self.__wb_task = task.LoopingCall(self.__check_webradio_metadata)
+        self.__metadata_task = task.LoopingCall(self.__check_metadata)
 
     def play(self):
-        super(VlcPlayer, self).play()
-        if self._media_file is None: return
+        if self._playing_media is None:
+            return
 
-        # format correctly the uri
-        uri = self._media_file["uri"].encode("utf-8")
-        media = self.__vlc.media_new(unicode(uri))
-        self.__player.set_media(media)
-        needs_video = self.video_enable and self._media_file["type"] == "video"
-        if needs_video and self.__window is None:
-            self.__prepare_x_window()
-            self.__player.set_xwindow(self.__window.window_p())
+        playing = False
+        uris = iter(self._playing_media.get_uris())
+        try:
+            while not playing:
+                uri = uris.next()
+                media = self.__vlc.media_new(uri)
+                self.__player.set_media(media)
+                needs_video = self.video_enable and self._playing_media.has_video()
+                if needs_video and self.__window is None:
+                    self.__prepare_x_window()
+                    self.__player.set_xwindow(self.__window.window_p())
 
-        self.__playing_handler = VlcPlayer.PlayingEventHandler(self.__evt_manager)
-        self.__player.play()
-        self.__playing_handler.wait(3)
-        playing = self.__playing_handler.get_playing()
-        self.__playing_handler.release(self.__evt_manager)
-        if not playing:
-            raise PlayerError(_("unable to play file %s") \
-                              % self._media_file['title'])
-        self.__init_video_information()
-
-        # start webradio metadata task
-        if self._media_file["type"] == "webradio":
-            self.__wb_task.start(2)
+                self.__playing_handler = VlcPlayer.PlayingEventHandler(self.__evt_manager)
+                self.__player.play()
+                self.__playing_handler.wait(3)
+                playing = self.__playing_handler.get_playing()
+                self.__playing_handler.release(self.__evt_manager)
+        except StopIteration:
+            raise PlayerError(_("unable to play file "
+                                "%s") % self._playing_media['title'])
+        else:
+            # check metadata periodically if necessary
+            if self._playing_media.need_metadata_refresh():
+                self.__metadata_task.start(2)
+            
+            # restore video state for this media
+            if self._playing_media.has_video():
+                p_state = self._playing_media["playing_state"]
+                self._player_set_zoom(p_state["zoom"])
+                self._player_set_aspectratio(p_state["aspect-ratio"])
 
     def pause(self):
         self.__player.pause()
@@ -152,15 +160,12 @@ class VlcPlayer(_BasePlayer):
 
     def get_position(self):
         if self.get_state() != PLAYER_STOP:
-            return int(self.__player.get_position() * \
-                    float(self.__media_length()))
+            return int(self.__player.get_time() / 1000)
         return 0
 
     def _set_position(self, pos):
         if self.get_state() != PLAYER_STOP and self.__player.is_seekable():
-            total_length = float(self.__media_length())
-            if total_length > 0:
-                self.__player.set_position(pos / total_length)
+            self.__player.set_time(pos * 1000)
 
     def get_state(self):
         vlc_state = self.__player.get_state()
@@ -174,29 +179,19 @@ class VlcPlayer(_BasePlayer):
         # TODO : find a way to know list of available module to implement this
         return True
 
-    def set_zoom(self, zoom):
-        if zoom == 100:
-            value = 0
-        else:
-            value = float(zoom) / float(100)
-        self.__player.video_set_scale(value)
-        self._media_file["zoom"] = zoom
-
     def _change_file(self, new_file):
-        def needs_video(media):
-            if self.video_enable and media is not None \
-                    and media['type'] == 'video':
-                return True
-            return False
+        def needs_video(m):
+            return self.video_enable and m is not None and m.has_video()
 
         self.__player.stop()
-        try: self.__wb_task.stop()
+        try:
+            self.__metadata_task.stop()
         except:
             pass
-        if needs_video(self._media_file) and not needs_video(new_file):
+        if needs_video(self._playing_media) and not needs_video(new_file):
             # destroy window since it does not useful anymore
             self.__destroy_x_window()
-        self._media_file = new_file
+        self._playing_media = new_file
         # replaygain reset
         self.set_volume(self.get_volume(), sig=False)
         self.play()
@@ -207,8 +202,16 @@ class VlcPlayer(_BasePlayer):
     def _set_volume(self, vol, sig=True):
         self.__player.audio_set_volume(int(vol))
 
+    def _player_set_zoom(self, zoom):
+        if zoom == 100:
+            value = 0
+        else:
+            value = float(zoom) / float(100)
+        self.__player.video_set_scale(value)
+
     def _player_set_aspectratio(self, aspect_ratio):
-        if aspect_ratio == 'auto': aspect_ratio = None
+        if aspect_ratio == 'auto':
+            aspect_ratio = None
         self.__player.video_set_aspect_ratio(aspect_ratio)
 
     def _player_set_avoffset(self, offset):
@@ -234,7 +237,8 @@ class VlcPlayer(_BasePlayer):
     def _osd_set(self, text):
         if self.__osd_call_id is not None:
             self.__osd_call_id.cancel()
-        self.__player.video_set_marquee_string(_vlc.VideoMarqueeOption.Text, text)
+        self.__player.video_set_marquee_string(_vlc.VideoMarqueeOption.Text,
+                                               text)
         self.__player.video_set_marquee_int(_vlc.VideoMarqueeOption.Size,
                                             self._video_options['osd_size'])
         self.__player.video_set_marquee_int(_vlc.VideoMarqueeOption.Enable, 1)
@@ -246,52 +250,43 @@ class VlcPlayer(_BasePlayer):
 
     def __on_eof(self, instance):
         def eof_cb():
-            try: self._media_file.played()
-            except AttributeError:
-                pass
-            else:
-                for plugin in self.plugins:
-                    plugin.on_media_played(self._media_file)
-            try: self._media_file['lastpos'] = 0
-            except AttributeError: pass
+            self._playing_media.played()
+            for plugin in self.plugins:
+                plugin.on_media_played(self._playing_media)
 
+            self._playing_media['last_position'] = 0
             self._change_file(self._source.next(explicit=False))
         reactor.callFromThread(eof_cb)
 
-    def __check_webradio_metadata(self):
+    def __check_metadata(self):
         m = self.__player.get_media()
-        if (m is not None):
+        if m is not None:
             desc = m.get_meta(_vlc.Meta.NowPlaying)
-            if "webradio-desc" not in self._media_file.keys() or\
-                    self._media_file["webradio-desc"] != desc:
-                self._media_file["webradio-desc"] = desc
-                self.dispatch_signame('player.current')
-
-    def __media_length(self):
-        if self._media_file is not None and "length" in self._media_file:
-            return int(self._media_file['length'])
-        return 0
+            # TODO update title if necessary
+            self.dispatch_signame('player.current')
 
     def __prepare_x_window(self):
-        # open display
-        def open_display(d):
-            try: self.__display = x11.X11Display(id=d)
-            except x11.X11Error:
-                raise PlayerError(_("Unable to open video display"))
-
-        try: open_display(self._video_options["display"])
-        except PlayerError, ex:  # try to get display with env var
-            try: open_display(os.environ["DISPLAY"])
-            except (PlayerError, KeyError):
-                raise ex
+        d_list = [self._video_options["display"]]
+        if "DISPLAY" in os.environ:
+            d_list.append(os.environ["DISPLAY"])
+        display_ids = iter(d_list)
+        try:
+            while self.__display is None:
+                display_id = display_ids.next()
+                try:
+                    self.__display = x11.X11Display(id=display_id)
+                except (x11.X11Error, KeyError):
+                    self.__display = None
+        except StopIteration:
+            raise PlayerError(_("Unable to open video display"))
 
         self.__display.set_dpms(False)
         if self._video_options["fullscreen"]:
-            self.__window = x11.X11Window(self.__display, \
-                    fullscreen=True)
+            self.__window = x11.X11Window(self.__display,
+                                          fullscreen=True)
         else:
-            self.__window = x11.X11Window(self.__display, \
-                    width=400, height=200)
+            self.__window = x11.X11Window(self.__display,
+                                          width=400, height=200)
 
     def __destroy_x_window(self):
         if self.__window is not None:
@@ -300,38 +295,3 @@ class VlcPlayer(_BasePlayer):
             self.__display.destroy()
             self.__window = None
             self.__display = None
-
-    def __init_video_information(self):
-        if self._current_is_video():
-            # subtitles
-            if 'subtitle_channels' in self._media_file.keys():
-                sub_channels = [{"lang": name, "ix": idx}\
-                    for (idx, name)
-                    in self.__player.video_get_spu_description()]
-            else:
-                sub_channels = [{"lang": "none", "ix":-1}]
-            if self._has_external_subtitle():
-                sub_channels.append({"lang": "external", \
-                                     "ix": len(sub_channels)+1})
-            if len(sub_channels) > 1:
-                self._media_file['subtitle'] = sub_channels
-                self._media_file["sub_offset"] = 0
-                self._media_file["subtitle_idx"] = self._player_get_slang()
-
-            # audio channels
-            if "audio_channels" in self._media_file.keys():
-                audio_channels = [{"lang": name, "ix": idx}\
-                    for (idx, name)
-                    in self.__player.audio_get_track_description()]
-            else:
-                audio_channels = [{"lang": "none", "ix":-1}]
-            if len(audio_channels) > 0:
-                self._media_file["audio"] = audio_channels
-                self._media_file["av_offset"] = 0
-                self._media_file["audio_idx"] = self._player_get_alang()
-
-            # Reset aspect ratio
-            self.set_video_option('aspect_ratio', self._default_aspect_ratio)
-
-
-# vim: ts=4 sw=4 expandtab

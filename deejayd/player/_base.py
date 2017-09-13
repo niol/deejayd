@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,6 @@ from deejayd.common.component import PersistentStateComponent
 from deejayd.plugins import PluginError, IPlayerPlugin
 from deejayd.player import PlayerError
 from deejayd.ui import log
-from deejayd.server.utils import get_uris_from_pls
 
 
 __all__ = ['PLAYER_PLAY', 'PLAYER_PAUSE', 'PLAYER_STOP', '_BasePlayer']
@@ -30,25 +29,37 @@ PLAYER_PLAY = "play"
 PLAYER_PAUSE = "pause"
 PLAYER_STOP = "stop"
 
-class _BasePlayer(SignalingComponent, JSONRpcComponent, \
+
+class _BasePlayer(SignalingComponent, JSONRpcComponent,
                   PersistentStateComponent):
     state_name = "player"
     # initial value for player state
     initial_state = {
         "volume": {"song": 100, "video": 100, "webradio": 100},
         "state": "stop",
-        "current":-1,
+        "current": -1,
         "current_source": "none",
         "current_pos": 0,
     }
-    options = (\
-            "audio_lang",
-            "sub_lang",
-            "av_offset",
-            "sub_offset",
-            "zoom",
-            "aspect_ratio"\
-        )
+    options = (
+        "current-audio",
+        "current-sub",
+        "av-offset",
+        "sub-offset",
+        "zoom",
+        "aspect-ratio"
+    )
+    aspect_ratios = (
+        "auto",
+        "1:1",
+        "4:3",
+        "16:9",
+        "16:10",
+        "221:100",
+        "235:100",
+        "239:100",
+        "5:4"
+    )
     supported_options = []
     default_channels = []
 
@@ -59,13 +70,14 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         self.plugins = []
         plugins_cls = plugin_manager.get_plugins(IPlayerPlugin)
         for plugin in plugins_cls:
-            try: self.plugins.append(plugin(config))
+            try:
+                self.plugins.append(plugin(config))
             except PluginError, err:
                 log.err(_("Unable to init %s plugin: %s") % (plugin.NAME, err))
 
         # Initialise var
         self._source = None
-        self._media_file = None
+        self._playing_media = None
         self._replaygain = config.getboolean("general", "replaygain")
         self._replaygain_opts = {
             "profiles": config.getlist("general", "replaygain_profiles"),
@@ -74,15 +86,14 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         }
 
         # get video options
+        self.video_enable = config.getboolean("video", "enabled")
         self._video_options = {
                 "display": self.config.get("video", "display"),
                 "fullscreen": self.config.getboolean("video", "fullscreen"),
                 "osd": self.config.getboolean("video", "osd_support"),
                 "osd_size": self.config.getint("video", "osd_font_size"),
             }
-        self._aspect_ratios = ("auto", "1:1", "4:3", "16:9", "16:10",
-                                       "221:100", "235:100", "239:100", "5:4")
-        self._default_aspect_ratio = "auto"
+        self.load_state()
 
     def load_state(self):
         super(_BasePlayer, self).load_state()
@@ -93,11 +104,11 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         media_pos = int(self.state["current"])
         source = self.state["current_source"]
         if media_pos != -1 and source not in ("audioqueue", "none"):
-            self._media_file = self._source.go_to(media_pos, "pos", source)
+            self._playing_media = self._source.go_to(media_pos, "pos", source)
 
         # Update playing state
         playing_state = self.state["state"]
-        if playing_state != PLAYER_STOP and self._media_file is not None:
+        if playing_state != PLAYER_STOP and self._playing_media is not None:
             try:
                 self.play()
             except PlayerError:
@@ -117,35 +128,20 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
 
     def play_toggle(self):
         if self.get_state() == PLAYER_STOP:
-            file = self._media_file or self._source.get_current()
-            self._change_file(file)
+            f = self._playing_media or self._source.get_current()
+            self._change_file(f)
         elif self.get_state() in (PLAYER_PAUSE, PLAYER_PLAY):
             self.pause()
 
     def play(self):
-        if not self._media_file: return
-        if self._media_file["type"] == "webradio":
-            if self._media_file["url-type"] == "pls":
-                try:
-                    urls = get_uris_from_pls(self._media_file["url"])
-                except IOError:
-                    raise PlayerError(_("Unable to get pls for webradio %s")\
-                                      % self._media_file["title"])
-                if not len(urls):  # we don't succeed to extract uri
-                    raise PlayerError(\
-                            _("Unable to extract uri from pls playlist"))
-                self._media_file.update({"urls": urls, "url-index": 0, \
-                                         "url-type": "urls"})
-            idx = self._media_file["url-index"]
-            self._media_file["uri"] = \
-                    self._media_file["urls"][idx].encode("utf-8")
+        raise NotImplementedError
 
     def pause(self):
         raise NotImplementedError
 
     def on_media_stopped(self):
-        if self._media_file is not None:
-            self._media_file.stopped(self.get_position())
+        if self._playing_media is not None:
+            self._playing_media.stopped(self.get_position())
 
     def stop(self):
         if self.get_state() != PLAYER_STOP:
@@ -155,8 +151,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
 
     def next(self):
         if self.get_state() != PLAYER_STOP:
-            try: self._media_file.skip()
-            except AttributeError: pass
+            self._playing_media.skip()
         self.on_media_stopped()
         self._change_file(self._source.next())
 
@@ -171,23 +166,21 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
     def get_volume(self):
         return self.__volume[self.__get_vol_type()]
 
-    def set_volume(self, v, sig=True):
-        if int(v) not in range(0, 101):
-            raise PlayerError(_("Volume value has to be between 0 and 100"))
-        new_volume = min(100, int(v))
-        type = self.__get_vol_type()
-        self.__volume[type] = new_volume
+    def set_volume(self, vol, relative=False, sig=True):
+        if relative:
+            vol = self.get_volume() + vol
+        vol = min(max(0, vol), 100)
+        self.__volume[self.__get_vol_type()] = vol
 
         # replaygain support
-        vol = self.__volume[type]
-        if self._replaygain and self._media_file is not None:
+        if self._replaygain and self._playing_media is not None:
             try:
-                scale = self._media_file.replay_gain(\
+                scale = self._playing_media.replay_gain(
                     self._replaygain_opts["profiles"],
                     self._replaygain_opts["preamp_gain"],
                     self._replaygain_opts["fallback_gain"])
             except AttributeError:
-                pass # replaygain not supported
+                pass  # replaygain not supported
             else:
                 vol = min(100.0, max(0.0, float(vol) * scale))
 
@@ -197,37 +190,30 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
             self.dispatch_signame('player.status')
             self.osd("Volume: %d" % self.get_volume())
 
-    def set_volume_relative(self, step):
-        new_vol = self.get_volume() + step
-        self.set_volume(min(max(0, new_vol), 100))
-
     def _set_volume(self, v, sig=True):
         raise NotImplementedError
 
     def __get_vol_type(self):
-        if self._media_file is None:
+        if self._playing_media is None:
             mediatype_by_source = {
-                    "audiopls": "song",
-                    "audioqueue": "song",
-                    "videopls": "video",
-                    "webradio": "webradio"
-                }
+                "audiopls": "song",
+                "audioqueue": "song",
+                "videopls": "video",
+                "webradio": "webradio"
+            }
             return mediatype_by_source[self._source.get_current_sourcename()]
         else:
-            return self._media_file['type']
+            return self._playing_media['type']
 
     def get_position(self):
         raise NotImplementedError
 
     def seek(self, pos, relative=False):
-        if self.get_state() == PLAYER_STOP \
-            or self._media_file["type"] == "webradio":
-            return # we can't seek
-
-        if relative:
-            pos = int(pos) + self.get_position()
-        self._set_position(pos)
-        self.dispatch_signame('player.status')
+        if self.get_state() != PLAYER_STOP and self._playing_media.is_seekable():
+            if relative:
+                pos = int(pos) + self.get_position()
+            self._set_position(pos)
+            self.dispatch_signame('player.status')
 
     def _set_position(self, pos):
         raise NotImplementedError
@@ -236,102 +222,73 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         raise NotImplementedError
 
     def get_available_video_options(self):
-        ans = {}
-        for opt in self.options:
-            ans[opt] = opt in self.supported_options
-        return ans
+        return dict([(opt, opt in self.supported_options)
+                     for opt in self.options])
 
     def set_video_option(self, name, value):
-        if name not in self.options:
-            raise PlayerError(_("Video option %s is not known") % name)
-        elif name not in self.supported_options:
-            raise PlayerError(_(\
-                        "Video option %s is not supported by %s player")\
-                               % (name, self.NAME))
+        if name not in self.supported_options:
+            raise PlayerError(_("Video option %s is not supported "
+                                "by %s player") % (name, self.NAME))
 
-        options = {
-            "audio_lang": self.set_alang,
-            "sub_lang": self.set_slang,
-            "av_offset": self.set_avoffset,
-            "sub_offset": self.set_suboffset,
-            "zoom": self.set_zoom,
-            "aspect_ratio": self.set_aspectratio,
-            }
-        if name not in ("aspect_ratio",):
-            try: value = int(value)
-            except (ValueError, TypeError):
-                raise PlayerError(_("Value %s not allowed for this option")\
-                        % str(value))
+        if self._playing_media is not None and self._playing_media.has_video():
+            func = {
+                "current-audio": self.set_current_audio,
+                "current-sub": self.set_current_sub,
+                "av-offset": self.set_avoffset,
+                "sub-offset": self.set_suboffset,
+                "zoom": self.set_zoom,
+                "aspect-ratio": self.set_aspectratio,
+            }[name]
+            if name not in ("aspect-ratio",):
+                try:
+                    value = int(value)
+                except (ValueError, TypeError):
+                    raise PlayerError(_("Value %s not allowed "
+                                        "for this option") % str(value))
 
-        if not self._current_is_video():
-            return
-        options[name](value)
-        self.dispatch_signame('player.current')
+            func(value)
+            self._playing_media.playing_state[name] = value
+            self.dispatch_signame('player.current')
 
     def set_zoom(self, zoom):
-        raise NotImplementedError
+        self._player_set_zoom(zoom)
+        self.osd(_("Zoom: %s") % zoom)
 
     def set_aspectratio(self, aspect):
-        if aspect not in self._aspect_ratios:
-            raise PlayerError(_("Video aspect ratio %s is not known.") % aspect)
+        if aspect not in self.aspect_ratios:
+            raise PlayerError(_("Video aspect ratio %s is not known") % aspect)
 
-        if self._current_is_video():
-            self._player_set_aspectratio(aspect)
-            self._media_file["aspect_ratio"] = aspect
-            self.osd(_("Video aspect ratio: %s") % aspect)
+        self._player_set_aspectratio(aspect)
+        self.osd(_("Video aspect ratio: %s") % aspect)
 
     def set_avoffset(self, offset):
-        if self._current_is_video():
-            self._player_set_avoffset(offset)
-            self._media_file["av_offset"] = offset
-            self.osd(_("Audio/Video offset: %d ms") % offset)
+        self._player_set_avoffset(offset)
+        self.osd(_("Audio/Video offset: %d ms") % offset)
 
     def set_suboffset(self, offset):
-        if "subtitle" in self._media_file.keys():
+        if self._playing_media.has_subtitle():
             self._player_set_suboffset(offset)
-            self._media_file["sub_offset"] = offset
             self.osd(_("Subtitle offset: %d ms") % offset)
 
-    def set_alang(self, lang_idx):
-        try: audio_tracks = self._media_file["audio"]
+    def set_current_audio(self, idx):
+        try:
+            track = self._playing_media.audio_channels[idx]
         except KeyError:
             raise PlayerError(_("Current media hasn't multiple audio channel"))
-        else:
-            if lang_idx in (-2, -1):  # disable/auto audio channel
-                self._player_set_alang(lang_idx)
-                self._media_file["audio_idx"] = self._player_get_alang()
-                return
-            found = False
-            for track in audio_tracks:
-                if track['ix'] == lang_idx:  # audio track exists
-                    self._player_set_alang(lang_idx)
-                    found = True
-                    break
-            if not found:
-                raise PlayerError(_("Audio channel %d not found") % lang_idx)
-            self._media_file["audio_idx"] = self._player_get_alang()
+        self._player_set_alang(track.ix)
+        self.osd(_("Audio channel: %s") % track.language)
 
-    def set_slang(self, lang_idx):
-        try: sub_tracks = self._media_file["subtitle"]
+    def set_current_sub(self, idx):
+        try:
+            track = self._playing_media.subtitle_channels[idx]
         except KeyError:
-            raise PlayerError(_("Current media hasn't multiple sub channel"))
-        else:
-            if lang_idx in (-2, -1):  # disable/auto subtitle channel
-                self._player_set_slang(lang_idx)
-                self._media_file["subtitle_idx"] = self._player_get_slang()
-                return
-            found = False
-            for track in sub_tracks:
-                if track['ix'] == lang_idx:  # audio track exists
-                    self._player_set_slang(lang_idx)
-                    found = True
-                    break
-            if not found:
-                raise PlayerError(_("Sub channel %d not found") % lang_idx)
-            self._media_file["subtitle_idx"] = self._player_get_slang()
+            raise PlayerError(_("Current media hasn't multiple audio channel"))
+        self._player_set_slang(track.ix)
+        self.osd(_("Subtitle channel: %s") % track.language)
 
     def osd(self, text):
-        if self._video_options["osd"] and self._current_is_video():
+        if self._video_options["osd"] and self.is_playing() \
+                and self._playing_media.has_video():
             self._osd_set(text)
 
     def _osd_set(self, text):
@@ -339,7 +296,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
 
     def get_playing(self):
         if self.is_playing():
-            return self._media_file
+            return self._playing_media
         return None
 
     def is_playing(self):
@@ -348,23 +305,22 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
     def get_status(self):
         status = [("state", self.get_state()), ("volume", self.get_volume())]
 
-        if self._media_file:
-            if self._media_file["type"] == "webradio":
-                status.append(("current", "%d:%d:%s" % (-1 , -1, "webradio")))
+        if self._playing_media is not None:
+            if not self._playing_media.is_seekable():
+                status.append(("current", "%d:%d:%s" % (-1, -1, "webradio")))
             else:
-                status.append(("current", \
-                  "%d:%s:%s" % (self._media_file["pos"], \
-                        str(self._media_file["id"]), self._media_file["source"])))
+                status.append(
+                    ("current", "%d:%s:%s" % (self._playing_media["pos"],
+                                              self._playing_media["id"],
+                                              self._playing_media["source"])))
 
             if self.get_state() != PLAYER_STOP:
                 position = self.get_position()
-                if "length" not in self._media_file.keys() or \
-                                              self._media_file["length"] == 0:
+                if not self._playing_media.is_seekable():
                     length = position
                 else:
-                    length = int(self._media_file["length"])
-                status.extend([ ("time", "%d:%d" % (position, length)) ])
-
+                    length = self._playing_media["length"]
+                status.append(("time", "%d:%d" % (position, length)))
         return dict(status)
 
     def close(self):
@@ -373,7 +329,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
             plugin.close()
 
         # save state
-        current = self._media_file or {"pos": "-1", "source": "none"}
+        current = self._playing_media or {"pos": "-1", "source": "none"}
         self.state.update({
             "volume": self.__volume,
             "current": current["pos"],
@@ -384,58 +340,4 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent, \
         # stop player if necessary
         if self.get_state() != PLAYER_STOP:
             self.stop()
-        super(_BasePlayer, self).close()
-
-    def _current_is_video(self):
-        return self._media_file is not None \
-                and self._media_file['type'] == 'video'
-
-    def _has_external_subtitle(self, media=None):
-        media_file = media or self._media_file
-        return media_file is not None \
-            and "external_subtitle" in media_file \
-            and media_file["external_subtitle"].startswith("file://")
-
-    def _init_video_information(self):
-        if self._current_is_video():
-            # subtitles
-            if self._has_external_subtitle():
-                self._media_file["subtitle"] = list(self.default_channels) + \
-                                               [{"lang": "external", "ix":1}]
-            elif "subtitle_channels" in self._media_file.keys() and\
-                    int(self._media_file["subtitle_channels"]) > 0:
-                self._media_file["subtitle"] = list(self.default_channels)
-                for i in range(int(self._media_file["subtitle_channels"])):
-                    self._media_file["subtitle"].append(\
-                        {"lang": _("Sub channel %d") % (i + 1,), "ix": i})
-
-            # audio channels
-            if "audio_channels" in self._media_file.keys() and \
-                    int(self._media_file["audio_channels"]) > 1:
-                audio_channels = list(self.default_channels)
-                for i in range(int(self._media_file["audio_channels"])):
-                    audio_channels.append(\
-                            {"lang": _("Audio channel %d") % (i + 1,), "ix": i})
-                self._media_file["audio"] = audio_channels
-
-            self._media_file["av_offset"] = 0
-            self._media_file["zoom"] = 100
-
-            if "audio" in self._media_file:
-                self._media_file["audio_idx"] = self._player_get_alang()
-            else:
-                self._player_set_alang(-1)  # auto audio channel
-            self._media_file["sub_offset"] = 0
-            if "subtitle" in self._media_file:
-                self._media_file["subtitle_idx"] = self._player_get_slang()
-            else:
-                self._player_set_slang(-1)  # auto subtitle channel
-
-            # set video aspect ratio to default value
-            try:
-                self.set_video_option("aspect_ratio",
-                                      self._default_aspect_ratio)
-            except PlayerError:  # not supported by the player
-                pass
-
-# vim: ts=4 sw=4 expandtab
+        self.save_state()

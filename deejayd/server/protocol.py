@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@ from deejayd.server.signals import SIGNALS
 from deejayd.ui import log
 from deejayd.server.utils import str_decode
 from deejayd.common.component import JSONRpcComponent
+from deejayd.db.connection import Session
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import jsonrpc_module, SignalModule
 from deejayd.jsonrpc.jsonparsers import loads_request
@@ -55,9 +56,11 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
 
     def lineReceived(self, line):
         line = line.strip("\r")
-        try: line = str_decode(line)
+        try:
+            line = str_decode(line)
         except UnicodeDecodeError:
-            ans = JSONRPCResponse(Fault(_("Command is not correctly encoded")), "1")
+            ans = JSONRPCResponse(Fault(_("Command is not correctly "
+                                          "encoded")), "1")
         else:
             # DEBUG Informations
             log.debug("Receive command ---> '%s'" % line)
@@ -74,24 +77,33 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
                 else:
                     function = self.deejayd_core.get_function(function_path)
             except Fault, f:
-                try: id = parsed["id"]
+                try:
+                    r_id = parsed["id"]
                 except:
-                    id = None
-                ans = JSONRPCResponse(f, id)
+                    r_id = None
+                ans = JSONRPCResponse(f, r_id)
             else:
-                try: result = function(*args)
+                # explicitly init session for this request
+                Session()
+                try:
+                    result = function(*args)
+                    Session.commit()
                 except Exception, ex:
+                    Session.rollback()
                     if not isinstance(ex, Fault):
                         log.err(str_decode(traceback.format_exc()))
                         result = Fault(self.FAILURE, _("error, see deejayd log"))
                     else:
                         result = ex
+                finally:
+                    Session.remove()
                 ans = JSONRPCResponse(result, parsed["id"])
 
         self.send_buffer(ans.to_json()+self.delimiter)
         log.debug("Send answer ---> '%s'" % ans.to_json())
         if self.__need_to_close:
             self.transport.loseConnection()
+            self.__need_to_close = False
 
     def send_buffer(self, buf):
         if isinstance(buf, unicode):
@@ -125,8 +137,8 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def __init__(self, deejayd_core):
         self.deejayd_core = deejayd_core
-        self.signaled_clients = dict([(signame, [])\
-                for signame in SIGNALS.keys()])
+        self.signaled_clients = dict([(signame, []) 
+                                      for signame in SIGNALS.keys()])
         self.core_sub_ids = {}
 
     def buildProtocol(self, addr):
@@ -150,7 +162,7 @@ class DeejaydFactory(protocol.ServerFactory):
         self.signaled_clients[signal_name].append(connector)
 
     def set_not_signaled(self, connector, signal_name):
-        client_list =  self.signaled_clients[signal_name]
+        client_list = self.signaled_clients[signal_name]
         if connector in client_list:
             client_list.remove(connector)
         if len(client_list) < 1:
@@ -173,11 +185,9 @@ class DeejaydFactory(protocol.ServerFactory):
                 j_sig = DeejaydJSONSignal(signal_name, kwargs)
                 ans = JSONRPCResponse(j_sig.dump(), None).to_json()
                 for client in interested_clients:
-                    reactor.callFromThread(client.send_buffer,\
-                            ans+client.delimiter)
-                    reactor.callFromThread(log.debug, "Send signal ---> '%s'"\
-                            % ans)
+                    reactor.callFromThread(client.send_buffer,
+                                           ans+client.delimiter)
+                    reactor.callFromThread(log.debug, "Send signal ---> "
+                                                      "'%s'" % ans)
 
         return receiver
-
-# vim: ts=4 sw=4 expandtab

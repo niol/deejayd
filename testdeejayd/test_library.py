@@ -19,12 +19,16 @@
 """
 Deejayd DB testing module
 """
-import os, time, traceback
-import base64
+import os
+import time
+from deejayd import DeejaydError
+from deejayd.library.audio import AudioLibrary
+from deejayd.library.video import VideoLibrary
 from testdeejayd import TestCaseWithDeejaydCore, unittest
-from deejayd.server.utils import str_decode
-from deejayd.mediadb import inotify
-from deejayd.mediadb.library import NotFoundException
+from testdeejayd import TestData, TestAudioCollection
+from testdeejayd import TestVideoCollection
+#from deejayd.mediadb import inotify
+inotify = False
 
 
 #####################################
@@ -33,137 +37,136 @@ from deejayd.mediadb.library import NotFoundException
 #                                   #
 #####################################
 class _VerifyDeejayLibrary(object):
-    tested_tags = []
+    SUPPORTED_EXT = []
+    TESTED_TAGS = []
+    inotify_support = False
 
-    def verifyMediaDBContent(self, testTag=True):
+    def verify_content(self, test_tag=True):
         if not self.inotify_support:
             self.library.update(sync=True)
         else:
             time.sleep(1)
 
-        self.assertRaises(NotFoundException,
-                  self.library.get_dir_content, self.testdata.getRandomString())
-        self.assertRaises(NotFoundException,
-                  self.library.get_file, self.testdata.getRandomString())
+        self.assertRaises(DeejaydError,
+                          self.library.get_dir_content, 
+                          self.testdata.get_random_string())
+        self.__verify_root(self.collection.get_root_dir(), test_tag)
 
-        self.__verifyRoot(self.testdata.getRootDir(), testTag)
-
-    def __verifyRoot(self, requested_root, testTag=True, inlink_path=None):
+    def __verify_root(self, requested_root, test_tag=True, inlink_path=None):
         for root, dirs, files in os.walk(requested_root):
-            try: root = root.decode("utf-8", "strict").encode("utf-8")
+            try:
+                root = root.decode("utf-8", "strict").encode("utf-8")
             except UnicodeError:
                 continue
-            strip_root = self.testdata.stripRoot(root)
+            strip_root = self.collection.strip_root(root)
 
             new_dirs = []
             for d in dirs:
-                try: d = d.decode("utf-8", "strict").encode("utf-8")
+                try:
+                    d = d.decode("utf-8", "strict").encode("utf-8")
                 except UnicodeError:
                     continue
                 dir_path = os.path.join(root, d)
                 if os.path.islink(dir_path):
                     rel_path = os.path.join(strip_root, d)
-                    self.__verifyRoot(dir_path, testTag, rel_path)
+                    self.__verify_root(dir_path, test_tag, rel_path)
                 new_dirs.append(d)
             dirs = new_dirs
 
             new_files = []
             for f in files:
-                try: f = f.decode("utf-8", "strict").encode("utf-8")
+                try:
+                    f = f.decode("utf-8", "strict").encode("utf-8")
                 except UnicodeError:
                     continue
                 if f != "cover.jpg" and not f.endswith(".srt"):
                     new_files.append(f)
             files = new_files
 
-            try: contents = self.library.get_dir_content(strip_root)
-            except NotFoundException:
-                allContents = self.library.get_dir_content('')
+            try:
+                contents = self.library.get_dir_content(strip_root)
+            except DeejaydError:
+                all_contents = self.library.get_dir_content('')
                 self.assertTrue(False,
-                    "'%s' is in directory tree but was not found in DB %s" % \
-                    (root, str(allContents)))
+                                "'%s' is in directory tree but was not found"
+                                " in DB %s" % (root, str(all_contents)))
 
             # First, verify directory list
             self.assertEqual(contents["directories"].sort(), dirs.sort(),
-                             "Directory list is different for folder %s" % root)
+                             "Directory list is different for %s" % root)
 
             # then, verify file list
             self.assertEqual(len(contents["files"]), len(files),
-                    "Files list different for folder %s : %s != %s"\
-                    % (root, [f["filename"] for f in contents["files"]], files))
-            db_files = [f["filename"] for f in contents["files"]]
+                             "Files list different for folder %s : %s != %s"
+                             % (root,
+                                [fl["filename"] for fl in contents["files"]], 
+                                files))
+            db_files = [fl["filename"] for fl in contents["files"]]
             for file in files:
                 (name, ext) = os.path.splitext(file)
-                if ext.lower() in self.__class__.supported_ext:
+                if ext.lower() in self.SUPPORTED_EXT:
                     self.assertTrue(file in db_files,
-                    "'%s' is a file in directory tree but was not found in DB"\
-                    % file)
-                    relPath = os.path.join(strip_root, file)
-                    if testTag:
-                        self.verifyTag(relPath, inlink_path)
+                                    "'%s' is a file in directory tree but was"
+                                    " not found in DB" % file)
+                    rel_path = os.path.join(strip_root, file)
+                    if test_tag:
+                        self.verify_tag(rel_path, inlink_path)
 
-    def verifyTag(self, filePath, inlink_path=None):
-        try: inDBfile = self.library.get_file(filePath)
-        except NotFoundException:
+    def verify_tag(self, file_path, inlink_path=None):
+        try:
+            db_file = self.library.get_file(file_path).to_json()
+        except DeejaydError:
             self.assertTrue(False,
-                "'%s' is a file in directory tree but was not found in DB"\
-                % filePath)
-        inDBfile = inDBfile[0]
+                            "'%s' is a file in directory tree but was not "
+                            "found in DB" % file_path)
 
         if inlink_path:
-            link_full_path = os.path.join(self.testdata.getRootDir(),
+            link_full_path = os.path.join(self.testdata.get_root_dir(),
                                           inlink_path)
-            abs_path = filePath[len(inlink_path) + 1:]
-            realFile = self.testdata.dirlinks[link_full_path].medias[abs_path]
+            abs_path = file_path[len(inlink_path) + 1:]
+            real_file = self.testdata.dirlinks[link_full_path].medias[abs_path]
         else:
-            realFile = self.testdata.getMedia(filePath)
+            real_file = self.collection.get_media(file_path)
 
-        for tag in self.tested_tags:
-            self.assert_(unicode(realFile[tag]) == unicode(inDBfile[tag]),
-                "tag %s for %s different between DB and reality %s != %s" % \
-                (tag, realFile["filename"], realFile[tag], inDBfile[tag]))
+        for tag in self.TESTED_TAGS:
+            self.assertTrue(unicode(real_file[tag]) == unicode(db_file[tag]),
+                            "tag %s for %s different between DB and reality %s"
+                            " != %s" % (tag, real_file["filename"], 
+                                        real_file[tag], db_file[tag]))
 
-        return (realFile, inDBfile)
+        return real_file, db_file
+
 
 class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
     library_type = "audio"
-    supported_ext = (".ogg", ".mp3", ".mp4", ".flac")
-    tested_tags = ("title", "artist", "album", "genre")
+    SUPPORTED_EXT = (".ogg", ".mp3", ".mp4", ".flac")
+    TESTED_TAGS = ("title", "artist", "album", "genre")
 
-    def verifyTag(self, filePath, inlink_path=None):
-        (realFile, inDBfile) = super(VerifyDeejayAudioLibrary, self)\
-                                            .verifyTag(filePath, inlink_path)
+    def verify_tag(self, file_path, inlink_path=None):
+        (real_file, db_file) = super(VerifyDeejayAudioLibrary, self)\
+                                .verify_tag(file_path, inlink_path)
         # verify cover attribute
-        inDBCover = self.library.get_cover(inDBfile["album_id"])
-        dirname = os.path.dirname(realFile.get_path())
+        db_cover = self.library.get_cover(db_file["album_id"])
+        dirname = os.path.dirname(real_file.get_path())
         cover_path = os.path.join(dirname, "cover.jpg")
         if os.path.isfile(cover_path):
-            try: fd = open(cover_path)
-            except Exception:
-                self.assertTrue(False, \
-                    "Cover %s exists but we don't succeed to open it" \
-                    % cover_path)
-                print "------------------Traceback lines--------------------"
-                print str_decode(traceback.format_exc(), errors='replace')
-                print "-----------------------------------------------------"
-                return
-            cover = fd.read()
-            fd.close()
+            with open(cover_path) as fd:
+                cover = fd.read()
 
-            if inDBCover is None:
-                self.assertTrue(False, "cover %s exists but not found in db"\
-                                % cover_path)
-            self.assertEqual(base64.b64encode(cover), inDBCover)
+            if db_cover is None:
+                self.assertTrue(False, "cover %s exists but not "
+                                "found in db" % cover_path)
+            self.assertEqual(cover, db_cover["data"])
         else:
-            if inDBCover is not None:
-                self.assertTrue(False, \
-                                "cover for %s exists in DB but not in the real library" \
-                                % filePath)
+            if db_cover is not None:
+                self.assertTrue(False, "cover for %s exists in DB but not "
+                                       "in the real library" % file_path)
+
 
 class VerifyDeejayVideoLibrary(_VerifyDeejayLibrary):
     library_type = "video"
-    supported_ext = (".mpg", ".avi")
-    tested_tags = ('length', 'videowidth', 'videoheight', 'external_subtitle')
+    SUPPORTED_EXT = (".mpg", ".avi")
+    TESTED_TAGS = ('length', 'width', 'height', 'external_subtitle')
 
 
 #####################################
@@ -171,105 +174,125 @@ class VerifyDeejayVideoLibrary(_VerifyDeejayLibrary):
 # test functions                    #
 #                                   #
 #####################################
-class _TestDeejayLibrary(object):
+class _TestDeejayLibrary(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.testdata = TestData()
+        # load translation files
+        from deejayd.ui.i18n import DeejaydTranslations
+        t = DeejaydTranslations()
+        t.install()
+        # init database
+        from deejayd.db import connection
+        connection.init("sqlite://")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.library.close()
 
     @unittest.skip("dirlinks test not work for now")
     def testDirlinks(self):
-        self.testdata.addDirLink()
-        self.verifyMediaDBContent()
+        self.collection.add_dir_link()
+        self.verify_content()
 
-        self.testdata.moveDirLink()
-        self.verifyMediaDBContent()
+        self.collection.move_dir_link()
+        self.verify_content()
 
-        self.testdata.removeDirLink()
-        self.verifyMediaDBContent()
+        self.collection.remove_dir_link()
+        self.verify_content()
 
     def testGetDir(self):
         """built directory detected by library"""
-        self.verifyMediaDBContent()
+        self.verify_content()
 
     def testAddSubdirectory(self):
         """Add a subdirectory in library"""
-        self.testdata.addSubdir()
-        self.verifyMediaDBContent()
+        self.collection.add_subdir()
+        self.verify_content()
 
     def testRenameDirectory(self):
         """Rename a directory in library"""
-        self.testdata.renameDir()
-        self.verifyMediaDBContent(False)
+        self.collection.rename_dir()
+        self.verify_content(False)
 
     def testRemoveDirectory(self):
         """Remove a directory in library"""
-        self.testdata.removeDir()
-        self.verifyMediaDBContent()
+        self.collection.remove_dir()
+        self.verify_content()
 
     def testAddMedia(self):
         """Add a media file in library"""
-        self.testdata.addMedia()
-        self.verifyMediaDBContent()
+        self.collection.add_media()
+        self.verify_content()
 
     def testRenameMedia(self):
         """Rename a media file in library"""
-        self.testdata.renameMedia()
-        self.verifyMediaDBContent(False)
+        self.collection.rename_media()
+        self.verify_content(False)
 
     def testRemoveMedia(self):
         """Remove a media file in library"""
-        self.testdata.removeMedia()
-        self.verifyMediaDBContent()
+        self.collection.remove_media()
+        self.verify_content()
 
 
-class TestAudioLibrary(TestCaseWithDeejaydCore, \
-        _TestDeejayLibrary, VerifyDeejayAudioLibrary):
+class TestAudioLibrary(_TestDeejayLibrary, VerifyDeejayAudioLibrary):
 
     @classmethod
     def setUpClass(cls):
         super(TestAudioLibrary, cls).setUpClass()
-        cls.library = getattr(cls.deejayd, cls.library_type + "lib")
-        cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
+        cls.collection = TestAudioCollection()
+        cls.collection.build()
+        cls.library = AudioLibrary(cls.collection.get_root_dir())
+        cls.library.update(sync=True)
 
     @classmethod
     def tearDownClass(cls):
         super(TestAudioLibrary, cls).tearDownClass()
+        cls.collection.clean()
 
     def testChangeTag(self):
         """Tag value change detected by audio library"""
-        self.testdata.changeMediaTags()
-        self.verifyMediaDBContent()
+        self.collection.change_media_tags()
+        self.verify_content()
 
     def testAddCover(self):
         """Add cover in audio library"""
-        self.testdata.add_cover()
-        self.verifyMediaDBContent()
+        self.collection.add_cover()
+        self.verify_content()
 
     def testRemoveCover(self):
         """Remove cover in audio library"""
-        self.testdata.remove_cover()
-        self.verifyMediaDBContent()
+        self.collection.remove_cover()
+        self.verify_content()
 
 
-class TestVideoLibrary(TestCaseWithDeejaydCore, \
-        _TestDeejayLibrary, VerifyDeejayVideoLibrary):
+class TestVideoLibrary(_TestDeejayLibrary, VerifyDeejayVideoLibrary):
 
     @classmethod
     def setUpClass(cls):
         super(TestVideoLibrary, cls).setUpClass()
-        cls.library = getattr(cls.deejayd, cls.library_type + "lib")
-        cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
+        cls.collection = TestVideoCollection()
+        cls.collection.build()
+        cls.library = VideoLibrary(cls.collection.get_root_dir())
+        cls.library.update(sync=True)
 
     @classmethod
     def tearDownClass(cls):
         super(TestVideoLibrary, cls).tearDownClass()
+        cls.collection.clean()
 
     def testAddSubtitle(self):
         """Add a subtitle file in library"""
-        self.testdata.add_subtitle()
-        self.verifyMediaDBContent()
+        self.collection.add_subtitle()
+        self.verify_content()
 
     def testRemoveSubtitle(self):
         """Remove a subtitle file in library"""
-        self.testdata.remove_subtitle()
-        self.verifyMediaDBContent()
+        self.collection.remove_subtitle()
+        self.verify_content()
+
 
 #####################################
 #                                   #

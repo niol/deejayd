@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,21 +18,25 @@
 
 """The Deejayd python client library"""
 
-import socket, asyncore, threading
-import sys, inspect, re, new, posixpath
-
+import socket
+import asyncore
+import threading
+import sys
+import inspect
+import re
+import new
+import posixpath
 from Queue import Queue, Empty
-
 from deejayd import DeejaydError
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import JSONRPC_MODULES
 from deejayd.jsonrpc.jsonbuilders import JSONRPCRequest
-from deejayd.jsonrpc.jsonparsers import loads_response
-from ..jsonrpc import mediafilters
+from deejayd.jsonrpc.jsonparsers import loads_response, load_mediafilter
 
 
 MSG_DELIMITER = 'ENDJSON\n'
 MAX_BANNER_LENGTH = 50
+
 
 #
 # generic functions used by client library
@@ -41,36 +45,42 @@ def camelcase_to_underscore(s):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', s)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+
 def build_command(cmd_name, cmd_args, cmd_doc, prefix):
     def func(*args, **kwargs):
         request_args = []
         for idx, arg in enumerate(cmd_args):
-            try: value = args[idx + 1]
+            try:
+                value = args[idx + 1]
             except IndexError:
                 if arg["req"] is True:
                     raise DeejaydError("argument %s is required" % arg["name"])
                 # perhaps argument is available in key/value arguments
-                try : value = kwargs[arg["name"]]
+                try:
+                    value = kwargs[arg["name"]]
                 except KeyError:
                     continue
             # TODO verify arguments
             if arg["type"] == "filter" and value is not None:
-                try: value = value.to_json()
+                try:
+                    value = value.to_json()
                 except:
-                    raise DeejaydError("arg %s is not a valid filter"\
-                            % arg["name"])
+                    raise DeejaydError("arg %s is not a valid "
+                                       "filter" % arg["name"])
             request_args.append(value)
         self = args[0]
 
         cmd = prefix == "" and cmd_name or prefix + "." + cmd_name
         request = JSONRPCRequest(cmd, request_args)
-        try: return self._send_command(request)
+        try:
+            return self._send_command(request)
         except AttributeError:  # we are in a submodule
             return self.core._send_command(request)
     func.__name__ = camelcase_to_underscore(cmd_name)
     func.__doc__ = cmd_doc
 
     return func
+
 
 def build_module(instance, CmdClass, prefix=""):
     cmd_names = [n for n in dir(CmdClass) if not n.startswith("__")]
@@ -81,16 +91,17 @@ def build_module(instance, CmdClass, prefix=""):
             setattr(instance, camelcase_to_underscore(cmd_name),
                     build_command(cmd_name, args, cmd.__doc__, prefix))
 
+
 def parse_deejayd_answer(answer):
     if answer["error"] is not None:  # an error is returned
-            error = "Deejayd Server Error - %s - %s"\
-                % (answer["error"]["code"], answer["error"]["message"])
-            raise DeejaydError(error)
+        error = "Deejayd Server Error - %s - %s"\
+            % (answer["error"]["code"], answer["error"]["message"])
+        raise DeejaydError(error)
     result = answer["result"]["answer"]
-    type = answer["result"]["type"]
-    if type == "recordedPlaylist":
+    r_type = answer["result"]["type"]
+    if r_type == "recordedPlaylist":
         if result["filter"] is not None:
-            try: result["filter"] = mediafilters.filter_factory.load_from_json(result["filter"])
+            try: result["filter"] = load_mediafilter(result["filter"])
             except Fault:
                 raise DeejaydError("Unable to parse filter in answer")
     return result

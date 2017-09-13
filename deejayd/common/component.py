@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,9 +17,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from twisted.python import reflect
-from deejayd.model.state import PersistentState
+from deejayd import DeejaydError
+from deejayd.db.connection import Session
+from deejayd.db.models import State
 from deejayd import jsonrpc as jsonrpclib
 from deejayd.server.signals import SIGNALS
+
 
 class JSONRpcComponent(object):
     separator = '.'
@@ -54,16 +57,16 @@ class JSONRpcComponent(object):
             handler = self.get_sub_handler(prefix)
             if handler is None:
                 raise jsonrpclib.Fault(jsonrpclib.METHOD_NOT_FOUND,
-                    "no such sub-handler %s" % prefix)
+                                       "no such sub-handler %s" % prefix)
             return handler.get_function(function_path)
 
         f = getattr(self, "jsonrpc_%s" % function_path, None)
         if not f:
             raise jsonrpclib.Fault(jsonrpclib.METHOD_NOT_FOUND,
-                "function %s not found" % function_path)
+                                   "function %s not found" % function_path)
         elif not callable(f):
             raise jsonrpclib.Fault(jsonrpclib.METHOD_NOT_CALLABLE,
-                "function %s not callable" % function_path)
+                                   "function %s not callable" % function_path)
         else:
             return f
 
@@ -71,22 +74,38 @@ class JSONRpcComponent(object):
         """Return a list of the names of all jsonrpc methods."""
         return reflect.prefixedMethodNames(self.__class__, 'jsonrpc_')
 
+
 class SignalingComponent(object):
 
     def dispatch_signame(self, signal_name, **kwargs):
         signal = SIGNALS[signal_name]
         signal.send(sender=self, **kwargs)
 
+
 class PersistentStateComponent(object):
-    state_name = ""
     initial_state = {}
 
+    def __init__(self):
+        self.state = None
+
     def load_state(self):
-        st_name = self.state_name == "" and "%s_state" % self.name \
-                or self.state_name
-        self.state = PersistentState.load_from_db(st_name, self.initial_state)
+        st_name = "%s_state" % self.state_name
+        s = Session.query(State) \
+                   .filter(State.name == st_name) \
+                   .one_or_none()
+        if s is None:
+            s = State(name=st_name)
+            s.state = self.initial_state
+            Session.add(s)
+            Session.commit()
+        self.state = s.state
 
-    def close(self):
-        self.state.save()
-
-# vim: ts=4 sw=4 expandtab
+    def save_state(self):
+        if self.state is None:
+            raise DeejaydError(_("You try to save a state "
+                                 "which has not been loaded !"))
+        st_name = "%s_state" % self.state_name
+        s = Session.query(State) \
+                   .filter(State.name == st_name) \
+                   .one()
+        s.state = self.state

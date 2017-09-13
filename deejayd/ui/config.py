@@ -16,8 +16,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import ConfigParser, os, string
+import ConfigParser
+import os
+import string
 from deejayd import Singleton
+
 
 @Singleton
 class DeejaydConfig(ConfigParser.SafeConfigParser):
@@ -45,5 +48,3 @@ class DeejaydConfig(ConfigParser.SafeConfigParser):
             return ['']
         else:
             return bind_addresses
-
-# vim: ts=4 sw=4 expandtab

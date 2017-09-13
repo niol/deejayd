@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2012 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 from deejayd import DeejaydError
 from testdeejayd.interfaces import _TestInterfaces
 
+
 class WebradioInterfaceTests(_TestInterfaces):
     
     def testWebradioSource(self):
@@ -29,8 +30,8 @@ class WebradioInterfaceTests(_TestInterfaces):
             "name": "local",
             "editable": True,
         }]
-        plugins = self.config.getlist("general", "enabled_plugins")
-        if "icecast" in plugins:
+        icecast = self.config.getboolean("webradio", "icecast")
+        if icecast:
             av_sources.append({
                 "name": "icecast",
                 "editable": False
@@ -45,7 +46,7 @@ class WebradioInterfaceTests(_TestInterfaces):
         """Test webradio.sourceCategoryAdd command"""
         wr_list = self.deejayd.webradio
 
-        cat_name = self.testdata.getRandomString()
+        cat_name = self.testdata.get_random_string()
         self.__add_category(cat_name)
 
         # verify
@@ -56,8 +57,8 @@ class WebradioInterfaceTests(_TestInterfaces):
     def __add_webradio(self, testWrName):
         wr_list = self.deejayd.webradio
         testWrUrls = []
-        for urlCount in range(self.testdata.getRandomInt(10)):
-            testWrUrls.append('http://' + self.testdata.getRandomString(50))
+        for urlCount in range(self.testdata.get_random_int(10)):
+            testWrUrls.append('http://' + self.testdata.get_random_string(50))
         self.assertAckCmd(wr_list.source_add_webradio("local",
                                                       testWrName, testWrUrls))
         return testWrUrls
@@ -67,21 +68,24 @@ class WebradioInterfaceTests(_TestInterfaces):
         wr_list = self.deejayd.webradio
 
         # Test for bad URI and inexistant playlist
-        for badURI in [[self.testdata.getRandomString(50)],\
-                   ['http://' + self.testdata.getRandomString(50) + '.pls']]:
-            self.assertRaises(DeejaydError, wr_list.source_add_webradio, 
-                              "local", self.testdata.getRandomString(), badURI)
+        for badURI in [
+                    [self.testdata.get_random_string(50)],
+                    ['http://' + self.testdata.get_random_string(50) + '.pls']
+                ]:
+            self.assertRaises(DeejaydError, wr_list.source_add_webradio,
+                              "local", self.testdata.get_random_string(), 
+                              badURI)
         
         # Add correct URI
-        testWrName = self.testdata.getRandomString()
+        testWrName = self.testdata.get_random_string()
         testWrUrls = self.__add_webradio(testWrName)
 
         # verify recorded webradios
         webradios = wr_list.get_source_content("local")
         wr_names = [wr['title'] for wr in webradios]
         self.assertTrue(testWrName in wr_names)
-        retrievedWr = [wr for wr in webradios\
-                          if wr['title'] == testWrName][0]
+        retrievedWr = [wr for wr in webradios
+                       if wr['title'] == testWrName][0]
         for url in testWrUrls:
             self.assertTrue(url in retrievedWr['urls'])
 
@@ -89,8 +93,8 @@ class WebradioInterfaceTests(_TestInterfaces):
         """Test webradio.sourceClearWebradios command"""
         wr_list = self.deejayd.webradio
 
-        testWrName = self.testdata.getRandomString()
-        testWrUrls = self.__add_webradio(testWrName)
+        testWrName = self.testdata.get_random_string()
+        self.__add_webradio(testWrName)
         webradios = wr_list.get_source_content("local")
         self.assertEqual(len(webradios), 1)
 
@@ -103,7 +107,7 @@ class WebradioInterfaceTests(_TestInterfaces):
         """Test webradio.sourceDeleteWebradios command"""
         wr_list = self.deejayd.webradio
 
-        testWrName = self.testdata.getRandomString()
+        testWrName = self.testdata.get_random_string()
         self.__add_webradio(testWrName)
         webradios = wr_list.get_source_content("local")
         self.assertEqual(len(webradios), 1)
@@ -111,8 +115,6 @@ class WebradioInterfaceTests(_TestInterfaces):
         # delete recorded webradios
         wb = webradios[0]
         self.assertAckCmd(wr_list.source_delete_webradios("local",
-                                                          [wb["wb_id"]]))
+                                                          [wb["w_id"]]))
         webradios = wr_list.get_source_content("local")
         self.assertEqual(webradios, [])
-
-# vim: ts=4 sw=4 expandtab

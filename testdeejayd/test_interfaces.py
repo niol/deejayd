@@ -19,6 +19,7 @@
 import threading
 
 from testdeejayd import TestCaseWithServer, TestCaseWithDeejaydCore
+from deejayd.db.connection import Session
 from deejayd.common.client import DeejayDaemonSync, DeejayDaemonAsync
 
 from testdeejayd.interfaces.core import CoreInterfaceTests
@@ -32,33 +33,37 @@ from testdeejayd.interfaces.webradio import WebradioInterfaceTests
 from testdeejayd.interfaces.signals import SignalsInterfaceTests
 
 
-class TestCore(TestCaseWithDeejaydCore, CoreInterfaceTests, \
-               LibraryInterfaceTests, PlayerInterfaceTests,\
-               AudioQueueInterfaceTests, AudioPlaylistInterfaceTests,\
-               RecordedPlaylistInterfaceTests, VideoPlaylistInterfaceTests,\
+class TestCore(TestCaseWithDeejaydCore, CoreInterfaceTests,
+               LibraryInterfaceTests, PlayerInterfaceTests,
+               AudioQueueInterfaceTests, AudioPlaylistInterfaceTests,
+               RecordedPlaylistInterfaceTests, VideoPlaylistInterfaceTests,
                WebradioInterfaceTests):
     """Test the deejayd daemon core."""
 
     def tearDown(self):
         self.deejayd.player.stop()
-        self.deejayd.audioqueue.clear()
         self.deejayd.audiopls.clear()
         self.deejayd.videopls.clear()
+        self.deejayd.audioqueue.clear()
         # remove recorded playlist
         pl_list = self.deejayd.recpls.get_list()
         self.deejayd.recpls.erase([pl["pl_id"] for pl in pl_list])
         # remove recorded webradio
         self.deejayd.webradio.source_clear_webradios("local")
 
+        # close session
+        Session.commit()
+        Session.remove()
+
     def assertAckCmd(self, cmd_res):
         self.assertEqual(cmd_res, None)
 
 
-class TestSyncClient(TestCaseWithServer, CoreInterfaceTests, \
-               LibraryInterfaceTests, PlayerInterfaceTests,\
-               AudioQueueInterfaceTests, AudioPlaylistInterfaceTests,\
-               RecordedPlaylistInterfaceTests, VideoPlaylistInterfaceTests,\
-               WebradioInterfaceTests):
+class TestSyncClient(TestCaseWithServer, CoreInterfaceTests,
+                     LibraryInterfaceTests, PlayerInterfaceTests,
+                     AudioQueueInterfaceTests, AudioPlaylistInterfaceTests,
+                     RecordedPlaylistInterfaceTests,
+                     VideoPlaylistInterfaceTests, WebradioInterfaceTests):
     """Test the DeejaydClient library in synchronous mode."""
 
     def assertAckCmd(self, cmd_res):
@@ -78,9 +83,9 @@ class TestSyncClient(TestCaseWithServer, CoreInterfaceTests, \
 
     def tearDown(self):
         self.deejayd.player.stop()
-        self.deejayd.audioqueue.clear()
         self.deejayd.audiopls.clear()
         self.deejayd.videopls.clear()
+        self.deejayd.audioqueue.clear()
         # remove recorded playlist
         pl_list = self.deejayd.recpls.get_list()
         self.deejayd.recpls.erase([pl["pl_id"] for pl in pl_list])
@@ -126,9 +131,9 @@ class TestAsyncClient(TestCaseWithServer, SignalsInterfaceTests):
     def testAnswerCallback(self):
         """Ping server asynchroneously and check for the callback to be triggered"""
         cb_called = threading.Event()
+
         def tcb(answer):
             cb_called.set()
-
         ans = self.deejayd.ping()
         ans.add_callback(tcb)
         # some seconds should be enough for the callback to be called
@@ -137,10 +142,10 @@ class TestAsyncClient(TestCaseWithServer, SignalsInterfaceTests):
 
     def testCallbackProcess(self):
         """ Send three commands asynchroneously at the same time and check callback """
-
         firstcb_called = threading.Event()
         secondcb_called = threading.Event()
         thirdcb_called = threading.Event()
+
         def first_cb(answer):
             firstcb_called.set()
 
@@ -155,21 +160,19 @@ class TestAsyncClient(TestCaseWithServer, SignalsInterfaceTests):
         self.deejayd.ping().add_callback(third_cb)
 
         firstcb_called.wait(2)
-        self.assertTrue(firstcb_called.isSet(), \
-            '1st Answer callback was not triggered.')
+        self.assertTrue(firstcb_called.isSet(), 
+                        "1st Answer callback was not triggered.")
         secondcb_called.wait(2)
-        self.assertTrue(secondcb_called.isSet(), \
-            '2nd Answer callback was not triggered.')
+        self.assertTrue(secondcb_called.isSet(),
+                        "2nd Answer callback was not triggered.")
         thirdcb_called.wait(2)
-        self.assertTrue(thirdcb_called.isSet(), \
-            '3rd Answer callback was not triggered.')
+        self.assertTrue(thirdcb_called.isSet(),
+                        "3rd Answer callback was not triggered.")
 
-    def test_two_clients(self):
+    def testTwoClients(self):
         """Checks that it is possible to instanciate two clients in the same process."""
         client2 = self.get_another_client()
         client2.connect('localhost', self.serverPort)
 
         self.assertTrue(self.deejayd.ping().wait_for_answer())
         self.assertTrue(client2.ping().wait_for_answer())
-
-# vim: ts=4 sw=4 expandtab

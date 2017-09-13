@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,8 +18,9 @@
 
 from zope.interface import Interface, Attribute
 
+
 class IWebradioSource(Interface):
-    NAME = Attribute("Name of the plugin")
+    NAME = Attribute("Name of the webradio source")
 
     def get_categories(self):
         """return list of categories supported by this plugin
@@ -51,5 +52,3 @@ class IEditWebradioSource(IWebradioSource):
 
     def clear_webradios(self):
         """remove all webradios from the source"""
-
-# vim: ts=4 sw=4 expandtab

@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import random
+
 
 class Order(object):
 
@@ -57,6 +58,7 @@ class Order(object):
     def reset(self, medialist):
         pass
 
+
 class OrderInOrder(Order):
     name = "inorder"
 
@@ -80,6 +82,7 @@ class OrderInOrder(Order):
                 previous = medialist.get_item_last()
             return previous
 
+
 class OrderRemembered(Order):
     # Shared class for all the shuffle modes that keep a memory
     # of their previously played medias.
@@ -92,9 +95,12 @@ class OrderRemembered(Order):
             self._played.append(current["id"])
 
     def previous(self, medialist, current):
-        try: id = self._played.pop()
-        except IndexError: return None
-        else: return medialist.get_item(id)
+        try: 
+            id = self._played.pop()
+        except IndexError: 
+            return None
+        else: 
+            return medialist.get_item(id)
 
     def set(self, medialist, media_id):
         self._played.append(media_id)
@@ -102,6 +108,7 @@ class OrderRemembered(Order):
 
     def reset(self, medialist):
         self._played = []
+
 
 class OrderShuffle(OrderRemembered):
     name = "random"
@@ -121,16 +128,17 @@ class OrderShuffle(OrderRemembered):
             del(self._played[:])
             return None
 
+
 class OrderWeighted(OrderRemembered):
     name = "random-weighted"
 
     def next(self, medialist, current):
         super(OrderWeighted, self).next(medialist, current)
         played = set(self._played)
-        remaining = [(m["id"],int(m["rating"])) \
-                        for m in medialist.get() if m["id"] not in played]
+        remaining = [(m["id"], int(m["rating"])) 
+                     for m in medialist.get() if m["id"] not in played]
 
-        max_score = sum([r for (id,r) in remaining])
+        max_score = sum([r for (id, r) in remaining])
         choice = int(random.random() * max_score)
         current = 0
         for id, rating in remaining:
@@ -145,6 +153,7 @@ class OrderWeighted(OrderRemembered):
             del(self._played[:])
             return None
 
+
 class OrderOneMedia(OrderInOrder):
     name = "onemedia"
 
@@ -154,11 +163,10 @@ class OrderOneMedia(OrderInOrder):
         else:
             return None
 
+
 orders = {
     "onemedia": OrderOneMedia(),
     "inorder": OrderInOrder(),
     "random": OrderShuffle(),
     "random-weighted": OrderWeighted(),
     }
-
-# vim: ts=4 sw=4 expandtab

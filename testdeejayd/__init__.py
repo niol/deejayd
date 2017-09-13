@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,28 +16,20 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys, os, shutil
-python_version = sys.version_info
-if python_version[0] < 3 and python_version[1] < 7:
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        sys.exit(\
-            "For python version < 2.7, deejayd tests require unittest2 module")
-else:
-    import unittest
-
-from testdeejayd.utils.databuilder import TestData, TestAudioCollection, \
-                                          TestVideoCollection
+import os
+import shutil
+from testdeejayd.utils.databuilder import TestData, TestAudioCollection
+from testdeejayd.utils.databuilder import TestVideoCollection
 import testdeejayd.utils.twreactor
 from testdeejayd.utils.server import TestServer
 from deejayd.ui.config import DeejaydConfig
+from deejayd.db import connection
+import unittest
 
 
 class _DeejaydTest(unittest.TestCase):
     media_backend = "vlc"
     dbfilename = None
-    coverdir = None
 
     @classmethod
     def setUpClass(cls):
@@ -49,16 +41,15 @@ class _DeejaydTest(unittest.TestCase):
         t.install()
 
         # prepare config object
-        custom_conf = os.path.join(os.path.dirname(__file__), "utils", "defaults.conf")
+        custom_conf = os.path.join(os.path.dirname(__file__), 
+                                   "utils", "defaults.conf")
         cls.config = DeejaydConfig()
         cls.config.read([custom_conf])
         cls.config.set("general", "media_backend", cls.media_backend)
 
-        rnd_str = cls.testdata.getRandomString()
+        rnd_str = cls.testdata.get_random_string()
         cls.dbfilename = '/tmp/testdeejayddb-' + rnd_str + '.db'
-        cls.coverdir = '/tmp/testdeejaydcovers-' + rnd_str
-        cls.config.set('database', 'db_name', cls.dbfilename)
-        cls.config.set('mediadb', 'cover_directory', cls.coverdir)
+        cls.config.set('database', 'uri', "sqlite:///"+cls.dbfilename)
 
         # disable all plugins for tests
         cls.config.set('general', 'enabled_plugins', '')
@@ -66,19 +57,14 @@ class _DeejaydTest(unittest.TestCase):
         # disable icecast, not supported in test
         cls.config.set('webradio', 'icecast', 'no')
 
-
     @classmethod
     def tearDownClass(cls):
-        if cls.dbfilename is not None:  # Clean up temporary db file
-            try: os.unlink(cls.dbfilename)
+        if cls.dbfilename is not None:
+            try:
+                os.unlink(cls.dbfilename)
             except (OSError, IOError):
                 pass
             cls.dbfilename = None
-        if cls.coverdir is not None:  # Clean up temporary db file
-            try: shutil.rmtree(cls.coverdir)
-            except (OSError, IOError), ex:
-                pass
-            cls.coverdir = None
         cls.config.destroy()
 
     def hasVideoSupport(self):
@@ -111,20 +97,20 @@ class TestCaseWithMediaData(_DeejaydTest):
 
         # audio library
         cls.test_audiodata = TestAudioCollection()
-        cls.test_audiodata.buildLibraryDirectoryTree()
+        cls.test_audiodata.build()
         cls.config.set('mediadb', 'music_directory',
-                        cls.test_audiodata.getRootDir())
+                       cls.test_audiodata.get_root_dir())
 
         # video library
         cls.test_videodata = TestVideoCollection()
-        cls.test_videodata.buildLibraryDirectoryTree()
+        cls.test_videodata.build()
         cls.config.set('mediadb', 'video_directory',
-                       cls.test_videodata.getRootDir())
+                       cls.test_videodata.get_root_dir())
 
     @classmethod
     def tearDownClass(cls):
-        cls.test_audiodata.cleanLibraryDirectoryTree()
-        cls.test_videodata.cleanLibraryDirectoryTree()
+        cls.test_audiodata.clean()
+        cls.test_videodata.clean()
 
         super(TestCaseWithMediaData, cls).tearDownClass()
 
@@ -138,11 +124,18 @@ class TestCaseWithDeejaydCore(TestCaseWithMediaData):
         if cls.inotify_support or cls.media_backend == "gstreamer":
             testdeejayd.utils.twreactor.need_twisted_reactor()
 
+        # configure database connection
+        uri = DeejaydConfig().get("database", "uri")
+        connection.init(uri)
+
+        # init deejayd core
         from deejayd.server.core import DeejayDaemonCore
-        cls.deejayd = DeejayDaemonCore(start_inotify=cls.inotify_support)
+        cls.deejayd = DeejayDaemonCore(start_inotify=cls.inotify_support,
+                                       library_update=False)
         cls.deejayd.audiolib.update(sync=True)
         cls.deejayd.videolib.update(sync=True)
         cls.is_running = True
+        connection.Session.remove()
 
     @classmethod
     def tearDownClass(cls):
@@ -165,12 +158,13 @@ class TestCaseWithServer(TestCaseWithMediaData):
         cls.webServerPort = cls.config.getint('webui', 'port')
 
         # define a tmp directory for webui
-        cls.tmp_dir = '/tmp/testdeejayd-tmpdir-' + cls.testdata.getRandomString()
+        cls.tmp_dir = '/tmp/testdeejayd-tmpdir-' \
+                      + cls.testdata.get_random_string()
         cls.config.set("webui", "tmp_dir", cls.tmp_dir)
 
         # record config to be used by the test server
         cls.conf_file = "/tmp/testdeejayd-server-conf-" + \
-                        cls.testdata.getRandomString()
+                        cls.testdata.get_random_string()
         fp = open(cls.conf_file, "w")
         cls.config.write(fp)
         fp.close()
@@ -184,10 +178,9 @@ class TestCaseWithServer(TestCaseWithMediaData):
     def tearDownClass(cls):
         cls.testserver.stop()
 
-        try: shutil.rmtree(cls.tmp_dir)
+        try:
+            shutil.rmtree(cls.tmp_dir)
         except (IOError, OSError):
             pass
         os.unlink(cls.conf_file)
         super(TestCaseWithServer, cls).tearDownClass()
-
-# vim: ts=4 sw=4 expandtab

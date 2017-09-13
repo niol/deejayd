@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,15 +16,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
-
-from deejayd.common.component import SignalingComponent, PersistentStateComponent
+from deejayd.common.component import SignalingComponent
+from deejayd.common.component import PersistentStateComponent
 from deejayd.ui import log
-from deejayd.sources._base import SourceError
 from deejayd.sources.audio import AudioSource
 from deejayd.sources.video import VideoSource
 from deejayd.sources.queue import QueueSource
 from deejayd import DeejaydError
+
 
 class SourceFactory(SignalingComponent, PersistentStateComponent):
     state_name = "source_state"
@@ -44,29 +43,24 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         else:
             log.msg(_("Video support disabled"))
 
-        # restore recorded source
         if 'active' not in self.state\
-        or self.state["active"] not in self.sources:
+                or self.state["active"] not in self.sources:
             self.state["active"] = self.sources.keys()[0]
-
         player.set_source(self)
         player.load_state()
 
     def get_source(self, s):
         if s not in self.sources.keys():
             raise DeejaydError(_("Source %s not found") % s)
-
         return self.sources[s]
 
     def set_source(self, s):
         if s not in self.sources.keys():
             raise DeejaydError(_("Source %s not found") % s)
-
         self.state["active"] = s
-        return True
 
     def close(self):
-        super(SourceFactory, self).close()
+        self.save_state()
         for s in self.sources.values():
             s.close()
 
@@ -76,10 +70,10 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
     def get_current_sourcename(self):
         return self.state['active']
 
-    def go_to(self, id, type="id", source_name=None):
+    def go_to(self, item_id, id_type="id", source_name=None):
         if source_name is not None:
             self.state["active"] = source_name
-        return self.sources[self.state["active"]].go_to(id, type)
+        return self.sources[self.state["active"]].go_to(item_id, id_type)
 
     def get_current(self):
         queue_media = self.sources["audioqueue"].get_current() or \
@@ -87,15 +81,12 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         if queue_media:
             return queue_media
 
-        current = self.sources[self.state["active"]].get_current() or \
+        return self.sources[self.state["active"]].get_current() or \
             self.sources[self.state["active"]].next(explicit=False)
-        return current
 
     def next(self, explicit=True):
         queue_media = self.sources["audioqueue"].next(explicit)
-        if queue_media:
-            return queue_media
-        return self.sources[self.state["active"]].next(explicit)
+        return queue_media or self.sources[self.state["active"]].next(explicit)
 
     def previous(self):
         return self.sources[self.state["active"]].previous()
@@ -104,9 +95,5 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         self.sources["audioqueue"].reset()
 
 
-def init(player, audio_library, video_library, config):
-    source = SourceFactory(player, audio_library, video_library, config)
-    return source
-
-
-# vim: ts=4 sw=4 expandtab
+def init(player, a_library, v_library, config):
+    return SourceFactory(player, a_library, v_library, config)

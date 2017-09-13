@@ -17,8 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-import signal, sys, locale
-
+import sys
+import locale
 from twisted.python import log
 from deejayd.ui.config import DeejaydConfig
 
@@ -26,9 +26,8 @@ ERROR = 0
 INFO = 1
 DEBUG = 2
 
-level = DeejaydConfig().get("general","log")
-log_level = {"error": ERROR, "info": INFO, \
-             "debug": DEBUG}[level]
+level = DeejaydConfig().get("general", "log")
+log_level = {"error": ERROR, "info": INFO, "debug": DEBUG}[level]
 
 
 class LogFile:
@@ -66,28 +65,31 @@ class SignaledFileLogObserver(log.FileLogObserver):
 
 
 def __log(log_msg):
-    try: log.msg(log_msg.encode(locale.getpreferredencoding()))
+    try:
+        log.msg(log_msg.encode(locale.getpreferredencoding()))
     except UnicodeError:
         # perharps prefered encoding not correctly set, force to UTF-8
         log.msg(log_msg.encode('utf-8'))
-    
-def err(err, fatal = False):
+
+
+def err(err, fatal=False):
     msg = _("ERROR - %s") % err
     __log(msg)
-    if fatal: sys.exit(err)
+    if fatal:
+        sys.exit(err)
+
 
 def msg(msg):
     __log(msg)
+
 
 def info(msg):
     if log_level >= INFO:
         msg = _("INFO - %s") % msg
         __log(msg)
 
+
 def debug(msg):
     if log_level >= DEBUG:
         msg = _("DEBUG - %s") % msg
         __log(msg)
-
-
-# vim: ts=4 sw=4 expandtab

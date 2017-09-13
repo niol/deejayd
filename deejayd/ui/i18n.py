@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import __builtin__
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
 import gettext
+
 
 class DeejaydTranslations(gettext.GNUTranslations):
 
@@ -26,12 +30,10 @@ class DeejaydTranslations(gettext.GNUTranslations):
         self.plural = lambda n: n > 1
         gettext.GNUTranslations.__init__(self, *args, **kwargs)
 
-    def install(self, unicode = True):
-        if unicode:
-            __builtin__.__dict__["_"] = self.ugettext
-            __builtin__.__dict__["ngettext"] = self.ungettext
+    def install(self, is_unicode=True):
+        if is_unicode:
+            builtins.__dict__["_"] = self.ugettext
+            builtins.__dict__["ngettext"] = self.ungettext
         else:
-            __builtin__.__dict__["_"] = self.gettext
-            __builtin__.__dict__["ngettext"] = self.ngettext
-
-# vim: ts=4 sw=4 expandtab
+            builtins.__dict__["_"] = self.gettext
+            builtins.__dict__["ngettext"] = self.ngettext

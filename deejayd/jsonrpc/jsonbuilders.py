@@ -16,8 +16,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import json
 from datetime import datetime
-from deejayd.jsonrpc import *
+from deejayd.jsonrpc import NOT_WELLFORMED_ERROR, Fault
 import time
 
 
@@ -41,7 +42,7 @@ class _DeejaydJSON:
 
     def to_pretty_json(self):
         s = json.dumps(self._build_obj(), sort_keys=True, indent=4)
-        return '\n'.join([l.rstrip() for l in  s.splitlines()])
+        return '\n'.join([l.rstrip() for l in s.splitlines()])
 
 
 class JSONRPCRequest(_DeejaydJSON):
@@ -87,6 +88,7 @@ class JSONRPCResponse(_DeejaydJSON):
             obj = {"result": None, "error": error, "id": self.id}
             return json.dumps(obj)
 
+
 # JSON signal serializer
 #
 class DeejaydJSONSignal(_DeejaydJSON):
@@ -103,5 +105,3 @@ class DeejaydJSONSignal(_DeejaydJSON):
                 "attrs": self.attrs,
                 }
         }
-
-# vim: ts=4 sw=4 expandtab

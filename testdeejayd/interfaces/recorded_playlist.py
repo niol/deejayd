@@ -18,23 +18,29 @@
 
 
 from deejayd import DeejaydError
-from deejayd.jsonrpc import mediafilters
+from deejayd.db.models import Equals
 from testdeejayd.interfaces import _TestInterfaces
+
 
 class RecordedPlaylistInterfaceTests(_TestInterfaces):
 
-    def __createRecordedPlaylist(self, pl_type='magic'):
-        djplname = self.testdata.getRandomString()
+    def __get_medias(self):
+        library = self.deejayd.audiolib
+        library_data = self.test_audiodata
+        r_dir = library_data.get_random_dir()
+        return library.get_dir_content(r_dir.rel_path)["files"]
 
+    def __createRecordedPlaylist(self, pl_type='magic'):
+        djplname = self.testdata.get_random_string()
         return self.deejayd.recpls.create(djplname, pl_type)
 
-    def testRecPlsCreateGetListErase(self):
+    def testRecPlsCreateErase(self):
         """test recpls.create, recpls.erase and recpls.getList command"""
         recpls = self.deejayd.recpls
 
         # try to create playlist with wrong type
-        rand_type = self.testdata.getRandomString()
-        djplname = self.testdata.getRandomString()
+        rand_type = self.testdata.get_random_string()
+        djplname = self.testdata.get_random_string()
         self.assertRaises(DeejaydError, recpls.create, djplname, rand_type)
 
         pl_infos = self.__createRecordedPlaylist()
@@ -52,7 +58,7 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         recpls = self.deejayd.recpls
 
         # try with a wrong pl id
-        rand_id = self.testdata.getRandomInt()
+        rand_id = self.testdata.get_random_int()
         self.assertRaises(DeejaydError, recpls.get_content, rand_id)
 
     def testRecPlsStaticCommands(self):
@@ -61,25 +67,24 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         pl_id = self.__createRecordedPlaylist("static")["pl_id"]
 
         # add songs in a wrong playlist
-        rand_id = self.testdata.getRandomInt(10000, 5000)
-        self.assertRaises(DeejaydError, recpls.static_add_media_by_ids,
+        rand_id = self.testdata.get_random_int(10000, 5000)
+        self.assertRaises(DeejaydError, recpls.static_load_medias,
                           rand_id, [])
 
         # add songs in the new playlist
-        media_ids = []
-        for media_path in self.test_audiodata.getRandomMediaPaths(3):
-            self.assertAckCmd(recpls.static_add_media_by_path(pl_id,
-                                                              media_path))
+        songs = self.__get_medias()
+        song_ids = [s["m_id"] for s in songs]
+        self.assertAckCmd(recpls.static_load_medias(pl_id, song_ids))
         content = recpls.get_content(pl_id)["medias"]
-        self.assertEqual(len(content), 3)
+        self.assertEqual(len(content), len(song_ids))
 
         # remove song from the playlist
-        self.assertAckCmd(recpls.static_remove_media(pl_id, (1,)))
+        self.assertAckCmd(recpls.static_remove_medias(pl_id, (1,)))
         content = recpls.get_content(pl_id)["medias"]
-        self.assertEqual(len(content), 3 - 1)
+        self.assertEqual(len(content), len(song_ids) - 1)
 
         # clear playlist
-        self.assertAckCmd(recpls.static_clear_media(pl_id))
+        self.assertAckCmd(recpls.static_clear(pl_id))
         content = recpls.get_content(pl_id)["medias"]
         self.assertEqual(content, [])
 
@@ -88,17 +93,16 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         recpls = self.deejayd.recpls
         pl_id = self.__createRecordedPlaylist("magic")["pl_id"]
 
-        genre = self.test_audiodata.getRandomGenre()
-        r_filter = mediafilters.Equals('genre', genre)
-        rnd_filter = mediafilters.Equals('genre',
-                                         self.testdata.getRandomString())
+        genre = self.test_audiodata.get_random_genre()
+        r_filter = Equals('genre', genre)
+        rnd_filter = Equals('genre', self.testdata.get_random_string())
 
         # add correct filter
         self.assertAckCmd(recpls.magic_add_filter(pl_id, r_filter))
         # verify playlist content
         ans = recpls.get_content(pl_id)
         self.assertEqual(len(ans["filter"]), 1)
-        self.assertTrue(r_filter.equals(ans["filter"][0]))
+        self.assertTrue(r_filter.equals(ans["filter"].subfilters[0]))
         for m in ans['medias']:
             self.assertEqual(m['genre'], genre)
 
@@ -113,7 +117,7 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         ans = recpls.get_content(pl_id)
         self.assertEqual(len(ans["filter"]), 1)
         self.assertEqual(len(ans["medias"]), 0)
-        self.assertTrue(rnd_filter.equals(ans["filter"][0]))
+        self.assertTrue(rnd_filter.equals(ans["filter"].subfilters[0]))
 
         # clear filter
         self.assertAckCmd(recpls.magic_clear_filter(pl_id))
@@ -143,6 +147,4 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         for key in known_keys:
             self.assertTrue(key in properties.keys())
             if key in ("use-limit", "limit-value"):
-                self.assertEqual(properties[key], "1")
-
-# vim: ts=4 sw=4 expandtab
+                self.assertEqual(properties[key], True)

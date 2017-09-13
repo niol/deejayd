@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from testdeejayd.interfaces import _TestInterfaces
-from deejayd import DeejaydError
+
 
 class CoreInterfaceTests(_TestInterfaces):
 
@@ -28,11 +28,12 @@ class CoreInterfaceTests(_TestInterfaces):
     def testGetStats(self):
         """Test getStats command"""
         ans = self.deejayd.get_stats()
+        print(ans)
         keys = ["audio_library_update", "songs", "artists", "albums"]
         if self.hasVideoSupport():
-            keys.append("video_library_update")
+            keys.extend(["video_library_update", "videos"])
         for k in keys:
-            self.assertTrue(k in ans.keys())
+            self.assertTrue(k in ans.keys(), "%s is no in stats" % k)
 
     def testGetStatus(self):
         """Test getStatus command"""
@@ -51,7 +52,7 @@ class CoreInterfaceTests(_TestInterfaces):
             "volume",
         ]
         if self.hasVideoSupport():
-            keys.extend([\
+            keys.extend([
                 "videopls_id",
                 "videopls_repeat",
                 "videopls_playorder",
@@ -69,7 +70,3 @@ class CoreInterfaceTests(_TestInterfaces):
         keys = ('server_version', 'protocol_version')
         for k in keys:
             self.assertTrue(k in ans.keys())
-
-
-
-# vim: ts=4 sw=4 expandtab

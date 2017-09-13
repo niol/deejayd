@@ -36,6 +36,7 @@ from pytyx11 import x11
 
 SUB_EXTERNAL = 0
 
+
 @jsonrpc_module(PlayerModule)
 class GstreamerPlayer(_BasePlayer):
     NAME = 'gstreamer'
@@ -253,6 +254,9 @@ class GstreamerPlayer(_BasePlayer):
             channels = 6
         elif wanted_output == 'ac3passthrough':
             channels = -1
+        else:
+            raise PlayerError(_("'%s' is not allowed for speaker_setup "
+                                "option") % wanted_output)
         return channels
 
     def play(self):
@@ -512,5 +516,3 @@ def init(plugin_manager, config):
             _("Unable to open input files"),
             _("GStreamer has no element to handle reading files. Check "
                 "your GStreamer installation settings."))
-
-# vim: ts=4 sw=4 expandtab

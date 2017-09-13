@@ -75,9 +75,6 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
     main_handler = DeejaydMainHandler()
     # json-rpc handler
     main_handler.putChild("rpc", SockJSResource(DeejaydFactory(deejayd_core)))
-    # cover folder
-    cover_folder = config.get("mediadb", "cover_directory")
-    main_handler.putChild("covers", static.File(cover_folder))
 
     for d in ('dist', 'resources'):
         main_handler.putChild(d, static.File(os.path.join(htdocs_dir, d)))

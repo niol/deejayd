@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,9 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-try: import json # python 2.6
-except ImportError: # if python < 2.6, require simplejson
-    import simplejson as json
 from deejayd import DeejaydError
 
 # Deejayd protocol version number
@@ -26,12 +23,12 @@ DEEJAYD_PROTOCOL_VERSION = 4
 
 # from specification
 # http://groups.google.com/group/json-rpc/web/json-rpc-1-2-proposal
-NOT_WELLFORMED_ERROR  = -32700
-INVALID_JSONRPC       = -32600
-METHOD_NOT_FOUND      = -32601
+NOT_WELLFORMED_ERROR = -32700
+INVALID_JSONRPC = -32600
+METHOD_NOT_FOUND = -32601
 INVALID_METHOD_PARAMS = -32602
-INTERNAL_ERROR        = -32603
-METHOD_NOT_CALLABLE   = -32604
+INTERNAL_ERROR = -32603
+METHOD_NOT_CALLABLE = -32604
 
 
 class Fault(DeejaydError):
@@ -39,5 +36,3 @@ class Fault(DeejaydError):
     def __init__(self, code, message):
         super(Fault, self).__init__(message)
         self.code = code
-
-# vim: ts=4 sw=4 expandtab

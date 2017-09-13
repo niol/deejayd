@@ -20,113 +20,121 @@
 """
 This module generates the test data.
 """
-import os, sys, shutil, urllib, random, time, string
-
-from deejayd.model.mediafilters import *
-
+import os
+import sys
+import shutil
+import urllib
+import random
+import time
+import string
+from mutagen.easyid3 import EasyID3
+from mutagen.mp4 import MP4
+from mutagen.oggvorbis import OggVorbis
+from mutagen.flac import FLAC
+from deejayd.db.models import And, Equals, Contains, Or
 from testdeejayd.utils.data import sample_genres
 
+
+random.seed(time.time())
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
-class TestDataError: pass
+class TestDataError(Exception): 
+    pass
+
 
 class TestData(object):
 
     def __init__(self):
         # Grab some sample data
         import testdeejayd.utils.data
-        self.sampleLibrary = testdeejayd.utils.data.songlibrary
+        self.sample_library = testdeejayd.utils.data.songlibrary
 
-    def getRandomString(self, length=5, charset=string.letters, \
-                        special=False):
-        random.seed(time.time())
+    def get_random_string(self, length=5, charset=string.letters):
         rs = ''.join(random.sample(charset, length - 1))
-        # if special:
-        #    rs += ''.join(random.sample(['é','è',"'","`","?","-","ç","à"], 2))
         return rs
 
-    def getRandomInt(self, maxValue=10, minValue=1):
-        random.seed(time.time())
-        return random.randint(minValue, maxValue)
+    def get_random_int(self, max_value=10, min_value=1):
+        return random.randint(min_value, max_value)
 
-    def getRandomElement(self, list):
-        random.seed(time.time())
-        return random.sample(list, 1).pop()
+    def get_random_element(self, elt_list):
+        return random.sample(elt_list, 1).pop()
 
-    def getBadCaracter(self):
+    def get_bad_caracter(self):
         return "\xe0"
 
-    def getRandomGenre(self):
-        return self.getRandomElement(sample_genres)
+    def get_random_genre(self):
+        return self.get_random_element(sample_genres)
 
-    def getSampleParmDict(self, howMuch=2):
-        parmDict = {}
+    def get_sample_parm_dict(self, howMuch=2):
+        parm_dict = {}
         for i in range(howMuch):
-            parmDict['parmName' + str(i)] = 'parmValue' + str(i)
-        return parmDict
+            parm_dict['parmName' + str(i)] = 'parmValue' + str(i)
+        return parm_dict
 
     def get_sample_filter(self):
-        filter = And(Contains('artist', 'Britney'),
-                     Or(Equals('genre', 'Classical'),
-                        Equals('genre', 'Disco')
-                     )
-                    )
+        filter = And(Contains(tag='artist', pattern='Britney'),
+                     Or(Equals(tag='genre', pattern='Classical'),
+                        Equals(tag='genre', pattern='Disco')))
         return filter
 
 
 class TestMedia(TestData):
-    supportedTag = []
-    ext = ""
+    SUPPORTED_TAGS = []
+    EXT = ""
+    FILE = None
 
     def __init__(self):
         self.root_path = None
-        self.name = self.getRandomString(special=True) + self.ext
+        self.filepath = None
+        self.name = self.get_random_string() + self.EXT
         self.tags = {"filename": self.name}
 
     def build(self, path):
         self.root_path = path
-        filepath = os.path.join(path, self.name)
-        shutil.copy(self.testFile, filepath)
-        self.tags["uri"] = "file://%s" % urllib.quote(filepath)
+        self.filepath = os.path.join(path, self.name)
+        shutil.copy(self.FILE, self.filepath)
+        self.tags["uri"] = "file://%s" % urllib.quote(self.filepath)
 
-        self.setRandomTag()
+        self.set_random_tags()
 
     def remove(self):
-        os.unlink(os.path.join(self.root_path, self.name))
+        os.unlink(self.filepath)
         self.tags = None
 
     def rename(self):
-        newName = self.getRandomString(special=True) + self.ext
-        newPath = os.path.join(self.root_path, newName)
-        os.rename(os.path.join(self.root_path, self.name), newPath)
-        self.tags["filename"] = newName
-        self.name = newName
+        new_name = self.get_random_string() + self.EXT
+        new_path = os.path.join(self.root_path, new_name)
+        os.rename(self.filepath, new_path)
+        self.tags["filename"] = new_name
+        self.name = new_name
+        self.filepath = new_path
 
     def update_root_path(self, new_root):
         self.root_path = new_root
+        self.filepath = os.path.join(new_root, self.name)
 
     def get_path(self):
-        return os.path.join(self.root_path, self.name)
+        return self.filepath
 
-    def get_random_tag_value(self, tagname):
-        if tagname == "date":
-            value = str(self.getRandomInt(2010, 1971))
-        elif tagname == "tracknumber":
-            value = "%02d" % self.getRandomInt(15)
-        elif tagname == "genre":
-            value = self.getRandomGenre()
+    def get_random_tag_value(self, tag_name):
+        if tag_name == "date":
+            value = str(self.get_random_int(2010, 1971))
+        elif tag_name == "tracknumber":
+            value = "%02d" % self.get_random_int(15)
+        elif tag_name == "genre":
+            value = self.get_random_genre()
         else:
-            value = self.getRandomString(special=False)
+            value = self.get_random_string()
         return value
 
-    def setRandomTag(self):
-        tagInfo = self._getTagObject()
-        for tag in self.__class__.supportedTag:
+    def set_random_tags(self):
+        tag_info = self._get_tag_object()
+        for tag in self.SUPPORTED_TAGS:
             value = self.get_random_tag_value(tag)
-            tagInfo[tag] = unicode(value)
+            tag_info[tag] = unicode(value)
             self.tags[tag] = unicode(value)
-        tagInfo.save()
+        tag_info.save()
 
     def __getitem__(self, key):
         try:
@@ -136,15 +144,19 @@ class TestMedia(TestData):
 
 
 class TestVideo(TestMedia):
-    supportedTag = ("length", "videowidth", "videoheight",)
-    ext = ".avi"
-    testFile = os.path.join(DATA_DIR, "video_test.avi")
+    SUPPORTED_TAGS = ("length", "width", "height",)
+    EXT = ".avi"
+    FILE = os.path.join(DATA_DIR, "video_test.avi")
 
     def __init__(self):
         super(TestVideo, self).__init__()
-        self.tags.update({"length": u'2', "videowidth": u'640', \
-                     "videoheight": u'480', "external_subtitle": u"", \
-                     "title": self.__format_title(self.name)})
+        self.tags.update({
+            "length": 2.0,
+            "width": 640,
+            "height": 480,
+            "external_subtitle": u"",
+            "title": self.__format_title(self.name)
+        })
 
     def __format_title(self, f):
         (filename, ext) = os.path.splitext(f)
@@ -158,25 +170,32 @@ class TestVideo(TestMedia):
         else:
             self.tags["external_subtitle"] = ""
 
-    def setRandomTag(self):pass
+    def set_random_tags(self):
+        pass
 
 
 class TestSong(TestMedia):
-    supportedTag = ("tracknumber", "title", "genre", "artist", "album", "date")
+    SUPPORTED_TAGS = (
+        "tracknumber",
+        "title",
+        "genre",
+        "artist",
+        "album",
+        "date"
+    )
 
 
 class TestMP3Song(TestSong):
-    ext = ".mp3"
-    testFile = os.path.join(DATA_DIR, "mp3_test.mp3")
+    EXT = ".mp3"
+    FILE = os.path.join(DATA_DIR, "mp3_test.mp3")
 
-    def _getTagObject(self):
-        from mutagen.easyid3 import EasyID3
+    def _get_tag_object(self):
         return EasyID3(self.get_path())
 
 
 class TestMP4Song(TestSong):
-    ext = ".mp4"
-    testFile = os.path.join(DATA_DIR, "mp4_test.mp4")
+    EXT = ".mp4"
+    FILE = os.path.join(DATA_DIR, "mp4_test.mp4")
     __translate = {
         "\xa9nam": "title",
         "\xa9alb": "album",
@@ -188,8 +207,7 @@ class TestMP4Song(TestSong):
         "trkn": "tracknumber",
         }
 
-    def setRandomTag(self):
-        from mutagen.mp4 import MP4
+    def set_random_tags(self):
         tag_info = MP4(self.get_path())
         for tag, name in self.__translate.iteritems():
             value = unicode(self.get_random_tag_value(name))
@@ -197,7 +215,7 @@ class TestMP4Song(TestSong):
             self.tags[name] = value
 
         for tag, name in self.__tupletranslate.iteritems():
-            cur = self.getRandomInt(15)
+            cur = self.get_random_int(15)
             value = (cur, 15)
             tag_info[tag] = [value]
             self.tags[name] = unicode("%02d/15" % cur)
@@ -206,96 +224,97 @@ class TestMP4Song(TestSong):
 
 
 class TestOggSong(TestSong):
-    ext = ".ogg"
-    testFile = os.path.join(DATA_DIR, "ogg_test.ogg")
+    EXT = ".ogg"
+    FILE = os.path.join(DATA_DIR, "ogg_test.ogg")
 
-    def _getTagObject(self):
-        from mutagen.oggvorbis import OggVorbis
+    def _get_tag_object(self):
         return OggVorbis(self.get_path())
 
 
 class TestFlacSong(TestSong):
-    ext = ".flac"
-    testFile = os.path.join(DATA_DIR, "flac_test.flac")
+    EXT = ".flac"
+    FILE = os.path.join(DATA_DIR, "flac_test.flac")
 
-    def _getTagObject(self):
-        from mutagen.flac import FLAC
+    def _get_tag_object(self):
+        print(self.get_path())
         return FLAC(self.get_path())
 
 
 class _TestDir(TestData):
-    supported_files_class = []
+    SUPPORTED_FILES = []
+    FILE_NUMBER = 2
 
     def __init__(self):
         self.is_built = False
-        self.name = self.getRandomString(special=True)
-        self.dirPath = None
-        self.relPath = None
+        self.name = self.get_random_string()
+        self.dir_path = None
+        self.rel_path = None
         self.medias = []
 
-    def findMedia(self, filename):
+    def find_media(self, filename):
         for media in self.medias:
             if media["filename"] == filename:
                 return media
         raise KeyError("media %s not found" % filename)
 
-    def addMedia(self, media):
+    def add_media(self, media):
         if self.is_built:
-            media.build(self.dirPath)
+            media.build(self.dir_path)
         self.medias.append(media)
 
-    def addRandomMedia(self):
-        media_class = self.getRandomElement(self.__class__.supported_files_class)
-        self.addMedia(media_class())
+    def add_random_media(self):
+        media_class = self.get_random_element(self.SUPPORTED_FILES)
+        self.add_media(media_class())
 
-    def removeMedia(self):
-        m = self.getRandomElement(self.medias)
+    def remove_media(self):
+        m = self.get_random_element(self.medias)
         m.remove()
         self.medias.remove(m)
 
-    def build(self, destDir, rel_path=""):
-        self.relPath = os.path.join(rel_path, self.name)
-        self.dirPath = os.path.join(destDir, self.name)
-        if not os.path.exists(self.dirPath):
-            os.mkdir(self.dirPath)
+    def build(self, dest, rel_path=""):
+        self.rel_path = os.path.join(rel_path, self.name)
+        self.dir_path = os.path.join(dest, self.name)
+        if not os.path.exists(self.dir_path):
+            os.mkdir(self.dir_path)
         else:
-            sys.exit('folder already exists, I do not want to mess your stuff.')
+            sys.exit("folder already exists, I do'nt want to mess your stuff.")
 
         self.is_built = True
         # Add medias
-        for media_class in self.__class__.supported_files_class:
-            for i in range(2):
-                self.addMedia(media_class())
+        for media_class in self.SUPPORTED_FILES:
+            for i in range(self.FILE_NUMBER):
+                self.add_media(media_class())
 
     def rename(self):
-        newName = self.getRandomString(special=True)
-        root_dir = os.path.dirname(self.dirPath)
-        os.rename(self.dirPath, os.path.join(root_dir, newName))
-        self.name = newName
-        self.dirPath = os.path.join(root_dir, newName)
+        new_name = self.get_random_string()
+        root_dir = os.path.dirname(self.dir_path)
+        os.rename(self.dir_path, os.path.join(root_dir, new_name))
+        self.name = new_name
+        self.dir_path = os.path.join(root_dir, new_name)
         for media in self.medias:
-            media.update_root_path(self.dirPath)
+            media.update_root_path(self.dir_path)
 
     def remove(self):
-        shutil.rmtree(self.dirPath)
+        shutil.rmtree(self.dir_path)
         self.build = False
 
 
 class TestAudioDir(_TestDir):
-    supported_files_class = (TestOggSong, TestMP3Song, TestMP4Song, TestFlacSong)
+    SUPPORTED_FILES = (TestOggSong, TestMP3Song, TestMP4Song)
 
     def __init__(self):
         super(TestAudioDir, self).__init__()
         self.cover = None
 
-    def build(self, destDir, rel_path="", with_cover=False):
-        super(TestAudioDir, self).build(destDir, rel_path)
-        if with_cover: self.add_cover()
+    def build(self, dest, rel_path="", with_cover=False):
+        super(TestAudioDir, self).build(dest, rel_path)
+        if with_cover:
+            self.add_cover()
 
     def add_cover(self):
         if not self.cover:
             cover_path = os.path.join(DATA_DIR, "cover.jpg")
-            self.cover = os.path.join(self.dirPath, "cover.jpg")
+            self.cover = os.path.join(self.dir_path, "cover.jpg")
             shutil.copy(cover_path, self.cover)
 
     def remove_cover(self):
@@ -305,14 +324,15 @@ class TestAudioDir(_TestDir):
 
 
 class TestVideoDir(_TestDir):
-    supported_files_class = (TestVideo,)
+    SUPPORTED_FILES = (TestVideo,)
+    FILE_NUMBER = 3
 
     def __init__(self):
         super(TestVideoDir, self).__init__()
         self.has_sub = False
 
-    def build(self, destDir, rel_path="", with_subtitle=False):
-        super(TestVideoDir, self).build(destDir, rel_path)
+    def build(self, dest, rel_path="", with_subtitle=False):
+        super(TestVideoDir, self).build(dest, rel_path)
         if with_subtitle:
             self.add_subtitle()
 
@@ -322,7 +342,7 @@ class TestVideoDir(_TestDir):
             if not media["external_subtitle"]:
                 sub_name = media["filename"]
                 (sub_name, ext) = os.path.splitext(sub_name)
-                dest = os.path.join(self.dirPath, sub_name + ".srt")
+                dest = os.path.join(self.dir_path, sub_name + ".srt")
                 shutil.copy(sub_path, dest)
                 media.set_subtitle(dest)
         self.has_sub = True
@@ -336,37 +356,36 @@ class TestVideoDir(_TestDir):
 
 
 class _TestMediaCollection(TestData):
+    DIR_CLS = None
 
     def __init__(self):
         self.datadir = None
         self.dir_struct_written = False
         self.clean_library = True
-        self.songPaths = []
+        self.song_paths = []
         self.dirs = {}
         self.dirlinks = {}
 
-    def cleanLibraryDirectoryTree(self):
+    def clean(self):
         if self.dir_struct_written and self.clean_library:
             shutil.rmtree(self.datadir)
             for dirlink in self.dirlinks.values():
                 shutil.rmtree(dirlink.datadir)
 
-    def buildLibraryDirectoryTree(self, destDir="/tmp"):
+    def build(self, dest="/tmp"):
         # create test data directory in random subdirectory of destDir
-        self.datadir = os.path.join(os.path.normpath(destDir),
-                                   'testdeejayd-media' + self.getRandomString())
+        self.datadir = os.path.join(os.path.normpath(dest),
+                                    'testdeejayd-media' +
+                                    self.get_random_string())
         if not os.path.exists(self.datadir):
             os.mkdir(self.datadir)
         else:
-            sys.exit('folder already exists, I do not want to mess your stuff.')
+            sys.exit("folder already exists, I don't want to mess your stuff.")
 
-        # Create several directories
-        for i in range(self.getRandomInt(10, 5)):
-            self.addDir()
-
-        # Add a subdirectories
-        for i in range(self.getRandomInt(10, 5)):
-            self.addSubdir()
+        for i in range(self.get_random_int(10, 5)):
+            self.add_dir()
+        for i in range(self.get_random_int(10, 5)):
+            self.add_subdir()
 
         self.dir_struct_written = True
 
@@ -377,152 +396,159 @@ class _TestMediaCollection(TestData):
                 song_paths.append(os.path.join(dirname, m["filename"]))
         return song_paths
 
-    def getRootDir(self):
+    def get_root_dir(self):
         return self.datadir
 
-    def stripRoot(self, path):
+    def strip_root(self, path):
         """Strips the root directory path turning the argument into a
         path relative to the media root directory."""
         abs_path = os.path.abspath(path)
-        rel_path = os.path.normpath(abs_path[len(self.getRootDir()):])
+        rel_path = os.path.normpath(abs_path[len(self.get_root_dir()):])
 
-        if rel_path != '.': rel_path = rel_path.strip("/")
-        else: rel_path = ''
+        if rel_path != '.':
+            rel_path = rel_path.strip("/")
+        else:
+            rel_path = ''
 
         return rel_path
 
-    def getMedia(self, filepath):
+    def get_media(self, filepath):
         dirname, filename = os.path.split(filepath)
         try:
             d = self.dirs[dirname]
         except KeyError:
             raise KeyError("folder %s not found" % dirname)
-        return d.findMedia(filename)
+        return d.find_media(filename)
 
-    def getRandomMedia(self):
-        d = self.getRandomElement(self.dirs.values())
-        return self.getRandomElement(d.medias)
+    def get_random_media(self):
+        d = self.get_random_element(self.dirs.values())
+        return self.get_random_element(d.medias)
 
-    def getMedias(self):
+    def get_random_medias(self, how_much):
+        d = self.get_random_element(self.dirs.values())
+        return self.get_random_element(d.medias)
+
+    def get_medias(self):
         medias = []
         for d in self.dirs.values():
             medias.extend(d.medias)
         return medias
 
-    def getDirs(self):
+    def get_dirs(self):
         return self.dirs.values()
 
-    def getRandomMediaPaths(self, howMuch=1):
+    def get_random_dir(self):
+        return self.get_random_element(self.dirs.values())
+
+    def get_random_media_paths(self, how_much=1):
         """Returns the path of a random song in provided music"""
-        random.seed(time.time())
-        return random.sample(self.get_media_paths(), howMuch)
+        return random.sample(self.get_media_paths(), how_much)
 
-    def addMedia(self):
-        dir = self.getRandomElement(self.dirs.values())
-        dir.addRandomMedia()
+    def add_media(self):
+        d = self.get_random_element(self.dirs.values())
+        d.add_random_media()
 
-    def renameMedia(self):
-        dir = self.getRandomElement(self.dirs.values())
-        media = self.getRandomElement(dir.medias)
+    def rename_media(self):
+        folder = self.get_random_element(self.dirs.values())
+        media = self.get_random_element(folder.medias)
         media.rename()
 
-    def removeMedia(self):
-        d = self.getRandomElement(self.dirs.values())
-        d.removeMedia()
+    def remove_media(self):
+        d = self.get_random_element(self.dirs.values())
+        d.remove_media()
 
-    def addDir(self):
-        dir = self.dir_class()
-        dir.build(self.datadir, "", random.choice((True, False)))
+    def add_dir(self):
+        d = self.DIR_CLS()
+        d.build(self.datadir, "", random.choice((True, False)))
 
-        self.dirs[dir.name] = dir
+        self.dirs[d.name] = d
 
-    def addSubdir(self):
-        dir = self.getRandomElement(self.dirs.values())
-        subdir = self.dir_class()
-        subdir_path = os.path.join(self.datadir, dir.relPath)
-        subdir.build(subdir_path, dir.relPath)
+    def add_subdir(self):
+        d = self.get_random_element(self.dirs.values())
+        subdir = self.DIR_CLS()
+        subdir_path = os.path.join(self.datadir, d.rel_path)
+        subdir.build(subdir_path, d.rel_path)
 
-        self.dirs[os.path.join(dir.relPath, subdir.name)] = subdir
+        self.dirs[os.path.join(d.rel_path, subdir.name)] = subdir
 
-    def renameDir(self):
-        dirname = self.getRandomElement(self.dirs.keys())
-        dir = self.dirs[dirname]
+    def rename_dir(self):
+        dirname = self.get_random_element(self.dirs.keys())
+        d = self.dirs[dirname]
         del self.dirs[dirname]
 
-        dir.rename()
-        dirpath = os.path.join(os.path.dirname(dirname), dir.name)
-        self.dirs[dirpath] = dir
+        d.rename()
+        dirpath = os.path.join(os.path.dirname(dirname), d.name)
+        self.dirs[dirpath] = d
 
-    def removeDir(self):
-        dirKey = self.getRandomElement(self.dirs.keys())
-        dir = self.dirs[dirKey]
-        dir.remove()
-        del self.dirs[dirKey]
+    def remove_dir(self):
+        dirname = self.get_random_element(self.dirs.keys())
+        d = self.dirs[dirname]
+        d.remove()
+        del self.dirs[dirname]
 
-    def addDirLink(self):
-        where = self.getRandomElement(self.dirs.values())
+    def add_dir_link(self):
+        where = self.get_random_element(self.dirs.values())
         dirlink = self.__class__()
-        linkname = self.getRandomString()
+        linkname = self.get_random_string()
         linkpath = os.path.join(self.datadir, where.name, linkname)
-        dirlink.buildLibraryDirectoryTree()
+        dirlink.build()
         self.dirlinks[linkpath] = dirlink
 
         os.symlink(dirlink.datadir, linkpath)
 
-    def moveDirLink(self):
-        dirlinkpath = self.getRandomElement(self.dirlinks.keys())
+    def move_dir_link(self):
+        dirlinkpath = self.get_random_element(self.dirlinks.keys())
         linkname = os.path.basename(dirlinkpath)
 
-        new_location = self.getRandomElement([d for d in self.dirs.keys()\
-                                              if d != linkname])
-        new_location = os.path.join(self.getRootDir(), new_location, linkname)
+        new_location = self.get_random_element([d for d in self.dirs.keys()
+                                                if d != linkname])
+        new_location = os.path.join(self.get_root_dir(), new_location, 
+                                    linkname)
         os.rename(dirlinkpath, new_location)
 
         dirlink = self.dirlinks[dirlinkpath]
         del self.dirlinks[dirlinkpath]
         self.dirlinks[new_location] = dirlink
 
-    def removeDirLink(self):
-        dirlinkpath, dirlink = self.getRandomElement(self.dirlinks.items())
+    def remove_dir_link(self):
+        dirlinkpath, dirlink = self.get_random_element(self.dirlinks.items())
         os.unlink(dirlinkpath)
-        dirlink.cleanLibraryDirectoryTree()
+        dirlink.clean()
         del self.dirlinks[dirlinkpath]
 
 
 class TestAudioCollection(_TestMediaCollection):
-    dir_class = TestAudioDir
+    DIR_CLS = TestAudioDir
 
     def remove_cover(self):
-        for dir in self.dirs.values():
-            if dir.cover:
-                dir.remove_cover()
+        for d in self.dirs.values():
+            if d.cover:
+                d.remove_cover()
                 return
 
     def add_cover(self):
-        for dir in self.dirs.values():
-            if not dir.cover:
-                dir.add_cover()
+        for d in self.dirs.values():
+            if not d.cover:
+                d.add_cover()
                 return
 
-    def changeMediaTags(self):
-        d = self.getRandomElement(self.dirs.values())
-        media = self.getRandomElement(d.medias)
-        media.setRandomTag()
+    def change_media_tags(self):
+        d = self.get_random_element(self.dirs.values())
+        media = self.get_random_element(d.medias)
+        media.set_random_tags()
 
 
 class TestVideoCollection(_TestMediaCollection):
-    dir_class = TestVideoDir
+    DIR_CLS = TestVideoDir
 
     def remove_subtitle(self):
-        for dir in self.dirs.values():
-            if dir.has_sub:
-                dir.remove_subtitle()
+        for d in self.dirs.values():
+            if d.has_sub:
+                d.remove_subtitle()
                 return
 
     def add_subtitle(self):
-        for dir in self.dirs.values():
-            if not dir.has_sub:
-                dir.add_subtitle()
+        for d in self.dirs.values():
+            if not d.has_sub:
+                d.add_subtitle()
                 return
-
-# vim: ts=4 sw=4 expandtab

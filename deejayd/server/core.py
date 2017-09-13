@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,20 +16,17 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from deejayd import DeejaydError, __version__
+from deejayd import __version__
 from deejayd.common.component import JSONRpcComponent
 from deejayd.jsonrpc import DEEJAYD_PROTOCOL_VERSION
-from deejayd.jsonrpc.interfaces import jsonrpc_module, CoreModule, IntrospectionModule
+from deejayd.jsonrpc.interfaces import jsonrpc_module, CoreModule
+from deejayd.jsonrpc.interfaces import IntrospectionModule
 from deejayd.ui.config import DeejaydConfig
-from deejayd.database.connection import DatabaseConnection
-from deejayd import player, sources, mediadb, plugins
+from deejayd.db.connection import Session
+from deejayd import player, sources, library, plugins
 from deejayd.playlist.rpc import DeejaydRecordedPlaylist
 from deejayd.ui import log
-from deejayd.model.stats import get_stats
 from deejayd.webradio.rpc import DeejaydWebradio
-
-# Exception imports
-import deejayd.mediadb.library
 
 
 @jsonrpc_module(IntrospectionModule)
@@ -44,10 +41,10 @@ class JSONRPCIntrospection(JSONRpcComponent):
         todo = [(self._jsonrpc_parent, '')]
         while todo:
             obj, prefix = todo.pop(0)
-            functions.extend([ prefix + name for name in obj.list_functions() ])
-            todo.extend([ (obj.get_sub_handler(name),
-                           prefix + name + obj.separator)
-                          for name in obj.get_sub_handler_prefixes() ])
+            functions.extend([prefix + name for name in obj.list_functions()])
+            todo.extend([(obj.get_sub_handler(name),
+                         prefix + name + obj.separator)
+                         for name in obj.get_sub_handler_prefixes()])
         return functions
 
     def method_help(self, method):
@@ -62,20 +59,18 @@ class JSONRPCIntrospection(JSONRpcComponent):
 @jsonrpc_module(CoreModule)
 class DeejayDaemonCore(JSONRpcComponent):
 
-    def __init__(self, start_inotify=True):
+    def __init__(self, start_inotify=True, library_update=True):
         super(DeejayDaemonCore, self).__init__()
         config = DeejaydConfig()
-        self.stats = get_stats()
-
         self.plugin_manager = plugins.PluginManager(config)
 
         self.player = player.init(self.plugin_manager, config)
         self.put_sub_handler('player', self.player)
 
-        self.audiolib, self.videolib, self.watcher = \
-            mediadb.init(self.player, config)
+        self.audiolib, self.videolib, self.watcher = library.init(self.player,
+                                                                  config)
         self.put_sub_handler('audiolib', self.audiolib)
-        if self.videolib:
+        if self.videolib is not None:
             self.put_sub_handler('videolib', self.videolib)
 
         self.recpls = DeejaydRecordedPlaylist(self.audiolib)
@@ -96,9 +91,9 @@ class DeejayDaemonCore(JSONRpcComponent):
             log.err(_("Player is not able to play http streams"))
             self.webradio = None
 
-        if not DatabaseConnection().structure_created:
+        if library_update:
             self.audiolib.update()
-            if self.videolib:
+            if self.videolib is not None:
                 self.videolib.update()
 
         # enable JSON-RPC introspection
@@ -108,13 +103,17 @@ class DeejayDaemonCore(JSONRpcComponent):
         if self.watcher and start_inotify:
             log.debug(_("Start inotify watcher"))
             self.watcher.start()
+        # record changes and close session after the initialization
+        Session.commit()
+        Session.remove()
 
     def close(self):
-        for obj in (self.watcher, self.player, self.sources, self.audiolib, \
+        for obj in (self.watcher, self.player, self.sources, self.audiolib,
                     self.videolib, self.webradio):
-            if obj != None: obj.close()
-        # finish with the close of the database connection
-        DatabaseConnection().close()
+            if obj is not None:
+                obj.close()
+        Session.commit()
+        Session.remove()
 
     def ping(self):  # do nothing
         pass
@@ -126,16 +125,19 @@ class DeejayDaemonCore(JSONRpcComponent):
             for k in s:
                 status[prefix+"_"+k] = s[k]
 
-        status.update(self.audiolib.get_status())
+        update_status(self.audiolib.get_status(), "audiolib")
         update_status(self.audiopls.get_status(), "audiopls")
         update_status(self.audioqueue.get_status(), "audioqueue")
-        if self.videolib:
-            status.update(self.videolib.get_status())
+        if self.videolib is not None:
+            update_status(self.videolib.get_status(), "videolib")
             update_status(self.videopls.get_status(), "videopls")
         return status
 
     def get_stats(self):
-        return dict(self.stats)
+        stats = self.audiolib.get_stats()
+        if self.videolib is not None:
+            stats.update(self.videolib.get_stats())
+        return stats
 
     def get_server_info(self):
         config = DeejaydConfig()
@@ -144,5 +146,3 @@ class DeejayDaemonCore(JSONRpcComponent):
             "protocol_version": DEEJAYD_PROTOCOL_VERSION,
             "video_support": config.getboolean("video", "enabled")
         }
-
-# vim: ts=4 sw=4 expandtab

@@ -22,8 +22,17 @@
 This is the script used to launch deejayd
 """
 
-import errno, random, sys, os, pwd, grp, traceback
+import errno
+import random
+import sys
+import os
+import pwd
+import grp
+import traceback
 from optparse import OptionParser
+import gettext
+from deejayd.db import connection
+from deejayd.ui.i18n import DeejaydTranslations
 from deejayd.ui.config import DeejaydConfig
 
 
@@ -37,8 +46,6 @@ if binsuffix == 'bin':
 
 # init translation
 ######################################################
-import gettext
-from deejayd.ui.i18n import DeejaydTranslations
 if INSTALL_MODE == 'source':
     LOCALES_PATH = os.path.join(INSTALL_BIN_DIR, '..', 'build', 'mo')
 else:
@@ -117,7 +124,8 @@ def daemonize():
 
 def killDeejayd(pidfile):
     if os.path.exists(pidfile):
-        try: pid = int(open(pidfile).read())
+        try:
+            pid = int(open(pidfile).read())
         except ValueError:
             sys.exit(_('Pidfile %s contains non-numeric value') % pidfile)
         try:
@@ -132,7 +140,8 @@ def killDeejayd(pidfile):
 
 
 def removePID(pidfile):
-    try: os.unlink(pidfile)
+    try:
+        os.unlink(pidfile)
     except OSError, e:
         if e.errno == errno.EACCES or e.errno == errno.EPERM:
             sys.exit(_("Unable to remove pid file : %s") % (e,))
@@ -199,7 +208,6 @@ if __name__ == "__main__":
     setEnv(options)
     flo = startLog(options)
 
-    import traceback
     from twisted.internet.error import CannotListenError
     from deejayd.ui import log
     from deejayd.server.utils import str_decode
@@ -214,16 +222,16 @@ if __name__ == "__main__":
 
         sys.exit(1)
 
-    ###################
-    # install reactor
-    ##################
+    # install right reactor according to the media backend
     media_backend = config.get("general", "media_backend")
     if media_backend == "gstreamer":
-        # Install GI reactor
         from twisted.internet import gireactor
         gireactor.install()
     from twisted.internet import reactor
 
+    # configure database connection
+    uri = DeejaydConfig().get("database", "uri")
+    connection.init(uri)
     # start core
     try:
         from deejayd.server.core import DeejayDaemonCore
@@ -292,7 +300,7 @@ if __name__ == "__main__":
 
     # setup SIGHUP handler
     import signal
-    import deejayd.database.connection
+    import deejayd.db.connection
     def sig_HUP_cb():
         log.debug("received SIGHUP.")
         if flo is not None:

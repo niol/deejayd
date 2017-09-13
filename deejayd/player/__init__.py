@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,9 @@ from deejayd.ui import log
 AVAILABLE_BACKENDS = ('vlc', 'gstreamer')
 
 
-class PlayerError(DeejaydError):pass
+class PlayerError(DeejaydError):
+    pass
+
 
 def init(plugin_manager, config):
     media_backend = config.get("general", "media_backend")
@@ -48,18 +50,19 @@ def init(plugin_manager, config):
 
     if media_backend == "gstreamer":
         from deejayd.player import gstreamer
-        try: player = gstreamer.init(plugin_manager, config)
+        try:
+            player = gstreamer.init(plugin_manager, config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 
     elif media_backend == "vlc":
         from deejayd.player import vlc
-        try: player = vlc.VlcPlayer(plugin_manager, config)
+        try:
+            player = vlc.VlcPlayer(plugin_manager, config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 
-    else: log.err(_("Invalid media backend"), fatal=True)
+    else:
+        log.err(_("Invalid media backend"), fatal=True)
 
     return player
-
-# vim: ts=4 sw=4 expandtab

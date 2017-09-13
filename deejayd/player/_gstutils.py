@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,10 +18,11 @@
 
 import collections
 from gi.repository import Gst
-
 from deejayd.server.utils import str_decode
 
+
 class TagListWrapper(collections.Mapping):
+
     def __init__(self, taglist, merge=False):
         self._list = taglist
         self._merge = merge
@@ -89,7 +90,7 @@ def parse_gstreamer_taglist(tags):
                 value = str_decode(value)
 
             if not isinstance(value, unicode) and \
-                not isinstance(value, (int, long, float)):
+                    not isinstance(value, (int, long, float)):
                 value = unicode(value)
 
             merged[key] = value

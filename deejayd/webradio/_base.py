@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,10 +18,14 @@
 
 import time
 from zope.interface import implements
+from deejayd import DeejaydError
 from deejayd.webradio.IWebradioSource import IWebradioSource
-from deejayd.model.webradio import WebradioFactory
+from deejayd.db.connection import Session
+from deejayd.db.models import WebradioSource, WebradioCategory
+from deejayd.db.models import Webradio
 from deejayd.common.component import PersistentStateComponent
 from deejayd.common.component import SignalingComponent
+
 
 class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
     implements(IWebradioSource)
@@ -31,26 +35,55 @@ class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
     signal_name = "webradio.listupdate"
 
     def __init__(self):
-        self.source = WebradioFactory().get_source(self.NAME)
+        super(_BaseWebradioSource, self).__init__()
+
+        source = Session.query(WebradioSource)\
+                        .filter(WebradioSource.name == self.NAME)\
+                        .one_or_none()
+        if source is None:
+            source = WebradioSource(name=self.NAME)
+            Session.add(source)
+            Session.commit()
         self.load_state()
 
     def get_categories(self):
-        return [
-            {
-                "name": name,
-                "id": int(i),
-            } for name, i in self.source.get_categories().items()
-        ]
+        categories = Session.query(WebradioCategory)\
+                            .join(WebradioSource)\
+                            .filter(WebradioSource.name == self.NAME)\
+                            .all()
+        return [c.to_json() for c in categories]
 
-    def get_webradios(self, cat_id=None):
-        return self.source.get_webradios(cat_id)
+    def get_webradios(self, cat_id=None, first=0, length=None):
+        if cat_id is None:
+            query = Session.query(Webradio)\
+                           .join(WebradioSource)\
+                           .filter(WebradioSource.name == self.NAME)\
+                           .offset(first)
+            if length is not None:
+                query = query.limit(length)
+            webradios = query.all()
+        else:
+            category = Session.query(WebradioCategory).get(cat_id)
+            if category is None:
+                raise DeejaydError(_("Category with id %s "
+                                     "is not found") % cat_id)
+            if length is not None:
+                stop = min(first + int(length), len(category.webradios))
+            else:
+                stop = len(category.webradios)
+            first = min(first, stop)
+            webradios = category.webradios[first:stop]
+        return [w.to_json() for w in webradios]
 
     def get_status(self):
+        source = Session.query(WebradioSource)\
+                        .filter(WebradioSource.name == self.NAME)\
+                        .one()
         return {
             "last_modified": self.state["last_modified"],
-            "categories_count": self.source.get_categories_count(),
-            "webradios_count": self.source.get_webradios_count(),
-            }
+            "categories_count": len(source.categories),
+            "webradios_count": len(source.webradios),
+        }
 
     def get_name(self):
         return self.NAME
@@ -59,6 +92,4 @@ class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
         self.state["last_modified"] += int(time.time())
 
     def close(self):
-        PersistentStateComponent.close(self)
-
-# vim: ts=4 sw=4 expandtab
+        self.save_state()
