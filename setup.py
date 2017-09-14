@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,18 +18,17 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import glob, os, shutil
+import glob
+import os
+import shutil
 import subprocess
-from distutils.errors import DistutilsOptionError, DistutilsExecError
-
+from distutils.errors import DistutilsExecError
 from distutils.command.build import build as distutils_build
 from distutils.command.clean import clean as distutils_clean
-from distutils.core import setup,Command
-from distutils.errors import DistutilsFileError
+from distutils.core import setup, Command
 from distutils.dep_util import newer
 from distutils.dir_util import remove_tree
 from distutils.spawn import find_executable
-
 import deejayd
 
 
@@ -39,11 +38,13 @@ def force_unlink(path):
     except OSError:
         pass
 
+
 def force_rmdir(path):
     try:
         shutil.rmtree(path)
     except OSError:
         pass
+
 
 def spawn(cmdargs, cwd=None):
     try:
@@ -73,7 +74,7 @@ class build_manpages(Command):
         self.manpages = glob.glob(os.path.join(self.mandir, "*.xml"))
 
     def __get_manpage(self, xmlmanpage):
-        return xmlmanpage[:-4] # remove '.xml' at the end
+        return xmlmanpage[:-4]  # remove '.xml' at the end
 
     def run(self):
         data_files = self.distribution.data_files
@@ -90,7 +91,7 @@ class build_manpages(Command):
                        xmlmanpage)
                 self.spawn(cmd)
 
-            targetpath = os.path.join("share", "man","man%s" % manpage[-1])
+            targetpath = os.path.join("share", "man", "man%s" % manpage[-1])
             data_files.append((targetpath, (manpage, ), ))
 
     def clean(self):
@@ -121,7 +122,7 @@ class build_i18n(Command):
 
         for po_file in self.po_files:
             lang = os.path.basename(po_file[:-3])
-            mo_dir =  os.path.join(self.mo_dir, lang, "LC_MESSAGES")
+            mo_dir = os.path.join(self.mo_dir, lang, "LC_MESSAGES")
             mo_file = os.path.join(mo_dir, "%s.mo" % self.po_package)
             if not os.path.exists(mo_dir):
                 os.makedirs(mo_dir)
@@ -136,60 +137,24 @@ class build_i18n(Command):
         if os.path.isdir(self.mo_dir):
             remove_tree(self.mo_dir)
 
-class build_webui(Command):
-    description = "Build deejayd webui coffeescript"
 
-    coffeescript = find_executable('cake.coffeescript')
+class build_webui(Command):
+    description = "Install deejayd webui"
     webui_directory = "webui"
 
     def initialize_options(self):
-        self.webuidir = os.path.join(os.path.dirname(__file__), self.webui_directory)
-        self.builddir = os.path.join(self.webuidir, 'gen')
-        self.vendordir = os.path.join(self.webuidir, 'vendor')
-        self.env_jslibs_ctrl = 'DISTUTILS_INSTALL_JSLIBS' in os.environ
-        if self.env_jslibs_ctrl:
-            if os.environ['DISTUTILS_INSTALL_JSLIBS'].strip() == '':
-                self.install_jslibs = []
-            else:
-                self.install_jslibs = os.environ['DISTUTILS_INSTALL_JSLIBS'].split(' ')
-        else:
-            self.install_jslibs = False
+        self.webuidir = os.path.join(os.path.dirname(__file__), 
+                                     self.webui_directory)
 
     def finalize_options(self):
         pass
 
-    def js_should_install(self, jslib):
-        if not self.env_jslibs_ctrl:
-            return True
-        for install_jslib in self.install_jslibs:
-            if jslib.startswith(install_jslib):
-                return True
-        return False
-
     def run(self):
-        if self.coffeescript is None:
-            raise DistutilsOptionError(\
-                    "cake.coffeescript program not found, can't build webui")
-
-        cmd = (self.coffeescript, 'build')
-        spawn(cmd, self.webuidir)
-
         data_files = self.distribution.data_files
-        for d in ('gen', 'i18n', 'images', ):
+        for d in ('dist', 'ressources'):
+            dist = os.path.join('share/deejayd/htdocs/', d)
             data_files.extend(get_data_files(os.path.join(self.webuidir, d),
-                                             os.path.join('share/deejayd/htdocs/', d)))
-
-        jslibs = os.listdir(self.vendordir)
-        for d in jslibs:
-            if self.js_should_install(d):
-                jslib_data = get_data_files(os.path.join(self.vendordir, d),
-                                            os.path.join('share/deejayd/htdocs/vendor', d))
-
-                data_files.extend(jslib_data)
-
-    def clean(self):
-        if os.path.isdir(self.builddir):
-            remove_tree(self.builddir)
+                                             dist))
 
 
 class deejayd_build(distutils_build):
@@ -204,16 +169,17 @@ class deejayd_build(distutils_build):
     def __has_manpages(self, command):
         has_db2man = False
         for path in build_manpages.db2mans:
-            if os.path.exists(path): has_db2man = True
-        return self.distribution.cmdclass.has_key("build_manpages")\
-            and has_db2man and build_manpages.executable != None
+            if os.path.exists(path):
+                has_db2man = True
+        return "build_manpages"in self.distribution.cmdclass\
+            and has_db2man and build_manpages.executable is not None
 
     def __has_i18n(self, command):
-        return self.distribution.cmdclass.has_key("build_i18n")\
-            and build_i18n.executable != None
+        return "build_i18n" in self.distribution.cmdclass\
+            and build_i18n.executable is not None
 
     def __has_webui(self, command):
-        return self.distribution.cmdclass.has_key("build_webui")
+        return "build_webui" in self.distribution.cmdclass
 
     def clean(self):
         for subcommand_name in self.get_sub_commands():
@@ -247,14 +213,16 @@ def get_data_files(walking_root, dest_dir):
         data_files.append((dest_path, paths))
     return data_files
 
+
 def build_data_files_list():
     data = [
         ('share/doc/deejayd', ("doc/deejayd_rpc_protocol", )),
         ('share/doc/deejayd', ("README", "NEWS", )),
         ('share/doc/deejayd', ["scripts/deejayd_rgscan"]),
-        ]
+    ]
 
     return data
+
 
 if __name__ == "__main__":
     setup( name="deejayd", version=deejayd.__version__,
@@ -263,27 +231,25 @@ if __name__ == "__main__":
            author="Mikael Royer, Alexandre Rossi",
            author_email="mickael.royer@gmail.com",
            license="GNU GPL v2",
-           scripts=["scripts/deejayd","scripts/djc"],
-           packages=["deejayd","deejayd.common","deejayd.mediadb",\
+           scripts=["scripts/deejayd", "scripts/djc"],
+           packages=["deejayd", "deejayd.common", "deejayd.library",
                      "deejayd.server",
                      "deejayd.dispatch",
-                     "deejayd.mediadb.parsers",
-                     "deejayd.mediadb.parsers.audio",\
-                     "deejayd.mediadb.parsers.video","deejayd.player",\
-                     "deejayd.sources","deejayd.ui","deejayd.jsonrpc",\
-                     "deejayd.database","deejayd.database.upgrade",\
-                     "deejayd.model", "deejayd.webradio",
-                     "deejayd.plugins",\
-                     "deejayd.webui","deejayd.playlist","pytyx11"],
+                     "deejayd.library.parsers",
+                     "deejayd.library.parsers.audio",
+                     "deejayd.library.parsers.video", "deejayd.player",
+                     "deejayd.sources", "deejayd.ui", "deejayd.jsonrpc",
+                     "deejayd.db", "deejayd.db.migrate",
+                     "deejayd.db.migrate.versions", "deejayd.webradio",
+                     "deejayd.webui", "deejayd.playlist", "pytyx11"],
            package_data={'deejayd.ui': ['defaults.conf'],
                          'deejayd.webui': ['webui.thtml'], },
-           data_files= build_data_files_list(),
-           cmdclass={"build": deejayd_build,
-                     "build_i18n": build_i18n,
-                     "build_manpages": build_manpages,
-                     "build_webui": build_webui,
-                     "clean"          : deejayd_clean,
-                    }
+           data_files=build_data_files_list(),
+           cmdclass={
+               "build": deejayd_build,
+               "build_i18n": build_i18n,
+               "build_manpages": build_manpages,
+               "build_webui": build_webui,
+               "clean": deejayd_clean,
+           }
         )
-
-# vim: ts=4 sw=4 expandtab
