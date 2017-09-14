@@ -42,8 +42,8 @@ class GstreamerPlayer(_BasePlayer):
     NAME = 'gstreamer'
     supported_options = ("audio_lang", "sub_lang", "av_offset",)
 
-    def __init__(self, plugin_manager, config):
-        super(GstreamerPlayer, self).__init__(plugin_manager, config)
+    def __init__(self, config):
+        super(GstreamerPlayer, self).__init__(config)
         self.__gst_options = {
                 "audio_p": self.config.get("gstreamer", "audio_output"),
                 "video_p": self.config.get("gstreamer", "video_output"),
@@ -445,11 +445,10 @@ class GstreamerPlayer(_BasePlayer):
         try: self._media_file.played()
         except AttributeError:
             pass
-        else:
-            for plugin in self.plugins:
-                plugin.on_media_played(self._media_file)
-        try: self._media_file['lastpos'] = 0
-        except AttributeError: pass
+        try:
+            self._media_file['lastpos'] = 0
+        except AttributeError:
+            pass
 
         if self.__in_gapless_transition:
             self._media_file = self.__new_file

@@ -23,7 +23,7 @@ from deejayd.jsonrpc.interfaces import jsonrpc_module, CoreModule
 from deejayd.jsonrpc.interfaces import IntrospectionModule
 from deejayd.ui.config import DeejaydConfig
 from deejayd.db.connection import Session
-from deejayd import player, sources, library, plugins
+from deejayd import player, sources, library
 from deejayd.playlist.rpc import DeejaydRecordedPlaylist
 from deejayd.ui import log
 from deejayd.webradio.rpc import DeejaydWebradio
@@ -62,9 +62,8 @@ class DeejayDaemonCore(JSONRpcComponent):
     def __init__(self, start_inotify=True, library_update=True):
         super(DeejayDaemonCore, self).__init__()
         config = DeejaydConfig()
-        self.plugin_manager = plugins.PluginManager(config)
 
-        self.player = player.init(self.plugin_manager, config)
+        self.player = player.init(config)
         self.put_sub_handler('player', self.player)
 
         self.audiolib, self.videolib, self.watcher = library.init(self.player,

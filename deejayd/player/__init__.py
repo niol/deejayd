@@ -27,7 +27,7 @@ class PlayerError(DeejaydError):
     pass
 
 
-def init(plugin_manager, config):
+def init(config):
     media_backend = config.get("general", "media_backend")
 
     if media_backend == "auto":
@@ -51,14 +51,14 @@ def init(plugin_manager, config):
     if media_backend == "gstreamer":
         from deejayd.player import gstreamer
         try:
-            player = gstreamer.init(plugin_manager, config)
+            player = gstreamer.init(config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 
     elif media_backend == "vlc":
         from deejayd.player import vlc
         try:
-            player = vlc.VlcPlayer(plugin_manager, config)
+            player = vlc.VlcPlayer(config)
         except PlayerError, err:
             log.err(str(err), fatal=True)
 

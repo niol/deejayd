@@ -74,8 +74,8 @@ class VlcPlayer(_BasePlayer):
         'aspect-ratio',
     )
 
-    def __init__(self, plugin_manager, config):
-        super(VlcPlayer, self).__init__(plugin_manager, config)
+    def __init__(self, config):
+        super(VlcPlayer, self).__init__(config)
         # test version, this backend only works with specific versions of vlc
         version = _vlc.libvlc_get_version()
         good_version = False
@@ -251,9 +251,6 @@ class VlcPlayer(_BasePlayer):
     def __on_eof(self, instance):
         def eof_cb():
             self._playing_media.played()
-            for plugin in self.plugins:
-                plugin.on_media_played(self._playing_media)
-
             self._playing_media['last_position'] = 0
             self._change_file(self._source.next(explicit=False))
         reactor.callFromThread(eof_cb)

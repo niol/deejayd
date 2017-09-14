@@ -18,9 +18,7 @@
 
 from deejayd.common.component import SignalingComponent, JSONRpcComponent
 from deejayd.common.component import PersistentStateComponent
-from deejayd.plugins import PluginError, IPlayerPlugin
 from deejayd.player import PlayerError
-from deejayd.ui import log
 
 
 __all__ = ['PLAYER_PLAY', 'PLAYER_PAUSE', 'PLAYER_STOP', '_BasePlayer']
@@ -63,18 +61,9 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent,
     supported_options = []
     default_channels = []
 
-    def __init__(self, plugin_manager, config):
+    def __init__(self, config):
         super(_BasePlayer, self).__init__()
         self.config = config
-        # Init plugins
-        self.plugins = []
-        plugins_cls = plugin_manager.get_plugins(IPlayerPlugin)
-        for plugin in plugins_cls:
-            try:
-                self.plugins.append(plugin(config))
-            except PluginError, err:
-                log.err(_("Unable to init %s plugin: %s") % (plugin.NAME, err))
-
         # Initialise var
         self._source = None
         self._playing_media = None
@@ -324,10 +313,6 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent,
         return dict(status)
 
     def close(self):
-        # close plugins
-        for plugin in self.plugins:
-            plugin.close()
-
         # save state
         current = self._playing_media or {"pos": "-1", "source": "none"}
         self.state.update({
