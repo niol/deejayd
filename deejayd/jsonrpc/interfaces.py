@@ -147,11 +147,8 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
         except DeejaydError, ex:
             raise Fault(INTERNAL_ERROR, unicode(ex))
         t = getattr(rpc_cmd, "answer", "ack")
-        if t in ("medialist", "playlist"):
+        if t in ("medialist", "playlist", "filterList"):
             res = [m.to_json() for m in res]
-        elif t == 'recordedPlaylist':
-            if res["filter"] is not None:
-                res["filter"] = res["filter"].to_json()
         elif t == "dict":
             res = dict(res)
         elif t == "media":
@@ -671,7 +668,7 @@ class RecordedPlaylistModule(object):
 
     class getContent:
         """Return the content of a recorded playlist."""
-        answer = 'recordedPlaylist'
+        answer = 'list'
         args = [
             {"name": "pl_id", "type": "int", "req": True},
             {"name": "first", "type": "int", "req": False},
@@ -701,6 +698,13 @@ class RecordedPlaylistModule(object):
 
     class staticClear:
         """Remove all songs in a recorded static playlist."""
+        args = [
+            {"name": "pl_id", "type": "int", "req": True},
+        ]
+
+    class magicGetFilters:
+        """Return the list of filters used by this recorded magic playlist."""
+        answer = 'filterList'
         args = [
             {"name": "pl_id", "type": "int", "req": True},
         ]

@@ -99,15 +99,16 @@ def parse_deejayd_answer(answer):
         raise DeejaydError(error)
     result = answer["result"]["answer"]
     r_type = answer["result"]["type"]
-    if r_type == "recordedPlaylist":
-        if result["filter"] is not None:
-            try: result["filter"] = load_mediafilter(result["filter"])
-            except Fault:
-                raise DeejaydError("Unable to parse filter in answer")
+    if r_type == "filterList":
+        try:
+            result = [load_mediafilter(f) for f in result]
+        except Fault:
+            raise DeejaydError("Unable to parse filter in answer")
     return result
 
 ############################################################
 ############################################################
+
 
 class ConnectError(DeejaydError):
     pass

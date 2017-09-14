@@ -72,12 +72,7 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
                      .one_or_none()
         if pls is None:
             raise DeejaydError(_("Playlist with id %s does not exist"))
-        return {
-            "medias": [m.to_json() 
-                       for m in pls.get_medias(Session, first, length)],
-            "sort": pls.get_sorts(),
-            "filter": pls.get_filter()
-        }
+        return [m.to_json() for m in pls.get_medias(Session, first, length)]
 
     def create(self, name, p_type):
         if name == "":
@@ -137,6 +132,10 @@ class DeejaydRecordedPlaylist(SignalingComponent, JSONRpcComponent):
                .filter(StaticMediaListItem.medialist == pls)\
                .delete(synchronize_session='fetch')
         return True
+
+    @load_playlist("magic")
+    def magic_get_filters(self, pls):
+        return [f for f in pls.filters]
 
     @load_playlist("magic")
     def magic_add_filter(self, pls, ft):

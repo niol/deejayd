@@ -300,12 +300,6 @@ class StaticMediaList(MediaList):
             query = query.limit(length)
         return [it for it in query.all()]
 
-    def get_sorts(self):
-        return None  # for magic playlist only
-
-    def get_filter(self):
-        return None  # for magic playlist only
-
 
 class StaticMediaListItem(Base):
     __tablename__ = "st_medialist_item"
@@ -352,9 +346,6 @@ class MagicMediaList(MediaList):
                         .filter(db_filter) \
                         .all()
         return medias
-
-    def get_sorts(self):
-        return None
 
     def get_filter(self):
         c_ft = self.use_or_filter and Or() or And()

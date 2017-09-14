@@ -75,17 +75,17 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         songs = self.__get_medias()
         song_ids = [s["m_id"] for s in songs]
         self.assertAckCmd(recpls.static_load_medias(pl_id, song_ids))
-        content = recpls.get_content(pl_id)["medias"]
+        content = recpls.get_content(pl_id)
         self.assertEqual(len(content), len(song_ids))
 
         # remove song from the playlist
         self.assertAckCmd(recpls.static_remove_medias(pl_id, (1,)))
-        content = recpls.get_content(pl_id)["medias"]
+        content = recpls.get_content(pl_id)
         self.assertEqual(len(content), len(song_ids) - 1)
 
         # clear playlist
         self.assertAckCmd(recpls.static_clear(pl_id))
-        content = recpls.get_content(pl_id)["medias"]
+        content = recpls.get_content(pl_id)
         self.assertEqual(content, [])
 
     def testRecPlsMagicAddFilter(self):
@@ -100,29 +100,29 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         # add correct filter
         self.assertAckCmd(recpls.magic_add_filter(pl_id, r_filter))
         # verify playlist content
-        ans = recpls.get_content(pl_id)
-        self.assertEqual(len(ans["filter"]), 1)
-        self.assertTrue(r_filter.equals(ans["filter"].subfilters[0]))
-        for m in ans['medias']:
+        medias = recpls.get_content(pl_id)
+        filters = recpls.magic_get_filters(pl_id)
+        self.assertEqual(len(filters), 1)
+        self.assertTrue(r_filter.equals(filters[0]))
+        for m in medias:
             self.assertEqual(m['genre'], genre)
 
         # remove filter
         self.assertAckCmd(recpls.magic_remove_filter(pl_id, r_filter))
-        ans = recpls.get_content(pl_id)
-        self.assertEqual(len(ans["filter"]), 0)
+        self.assertEqual(len(recpls.magic_get_filters(pl_id)), 0)
 
         # add random filter
         self.assertAckCmd(recpls.magic_add_filter(pl_id, rnd_filter))
         # verify playlist content
-        ans = recpls.get_content(pl_id)
-        self.assertEqual(len(ans["filter"]), 1)
-        self.assertEqual(len(ans["medias"]), 0)
-        self.assertTrue(rnd_filter.equals(ans["filter"].subfilters[0]))
+        medias = recpls.get_content(pl_id)
+        filters = recpls.magic_get_filters(pl_id)
+        self.assertEqual(len(filters), 1)
+        self.assertEqual(len(medias), 0)
+        self.assertTrue(rnd_filter.equals(filters[0]))
 
         # clear filter
         self.assertAckCmd(recpls.magic_clear_filter(pl_id))
-        ans = recpls.get_content(pl_id)
-        self.assertEqual(len(ans["filter"]), 0)
+        self.assertEqual(len(recpls.magic_get_filters(pl_id)), 0)
 
     def testRecPlsMagicGetSetProperty(self):
         """test recpls.magicGetProperties/magicSetProperty commands"""
