@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -53,6 +53,3 @@ module = sys.modules[__name__]
 for name in dir(_libXext):
     if name.startswith('DPMS'):
         setattr(module, name, getattr(_libXext, name))
-
-
-# vim: ts=4 sw=4 expandtab

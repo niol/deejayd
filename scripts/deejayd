@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -32,6 +32,7 @@ import traceback
 from optparse import OptionParser
 import gettext
 from deejayd.db import connection
+from deejayd.server.utils import str_decode
 from deejayd.ui.i18n import DeejaydTranslations
 from deejayd.ui.config import DeejaydConfig
 
@@ -51,22 +52,18 @@ if INSTALL_MODE == 'source':
 else:
     LOCALES_PATH = os.path.join(INSTALL_PREFIX, 'share', 'locale')
 try:
-    t = gettext.translation("deejayd", LOCALES_PATH, class_=DeejaydTranslations)
+    t = gettext.translation("deejayd", LOCALES_PATH,
+                            class_=DeejaydTranslations)
 except IOError:
     t = DeejaydTranslations()
 t.install()
 
-############ Parse Option ############################
-######################################################
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
-
 # List options
 parser.set_defaults(pidfile="deejayd.pid", kill=False, daemon=True)
-
 # The help option must be changed to comply with i18n.
 parser.get_option('-h').help = _("Show this help message and exit.")
-
 parser.add_option("-u", "--uid", dest="uid", type="string", \
     help=_("The uid to run as"))
 parser.add_option("-g", "--gid", dest="gid", type="string", \
@@ -111,12 +108,12 @@ def daemonize():
     os.setsid()
     if os.fork():  # launch child and...
         os._exit(0)  # kill off parent again.
-    os.umask(077)
+    os.umask(0o77)
     null = os.open('/dev/null', os.O_RDWR)
     for i in range(3):
         try:
             os.dup2(null, i)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.EBADF:
                 raise
     os.close(null)
@@ -131,10 +128,9 @@ def killDeejayd(pidfile):
         try:
             os.kill(pid, 15)
             removePID(pidfile)
-        except OSError, err:
-            sys.exit(\
-                _('Unable to stop deejayd : %s, are you sure it running ?')\
-                 % (err,))
+        except OSError as err:
+            sys.exit(_("Unable to stop deejayd : %s, are you sure "
+                       "it running ?") % (err,))
     else:
         sys.exit(_('no PidFile found, are you sure deejayd running ?'))
 
@@ -142,7 +138,7 @@ def killDeejayd(pidfile):
 def removePID(pidfile):
     try:
         os.unlink(pidfile)
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.EACCES or e.errno == errno.EPERM:
             sys.exit(_("Unable to remove pid file : %s") % (e,))
 
@@ -161,7 +157,8 @@ def setEnv(options):
         gids = options.gid.split(',')
         ngids = []
         for gid in gids:
-            try: ngid = int(gid)
+            try:
+                ngid = int(gid)
             except ValueError:
                 ngid = grp.getgrnam(gid)[2]
             ngids.append(ngid)
@@ -171,7 +168,8 @@ def setEnv(options):
         except OSError:
             sys.exit(_("Unable to change gid of the process"))
     if options.uid:
-        try: uid = int(options.uid)
+        try:
+            uid = int(options.uid)
         except ValueError:
             uid = pwd.getpwnam(options.uid)[2]
         try:
@@ -210,7 +208,6 @@ if __name__ == "__main__":
 
     from twisted.internet.error import CannotListenError
     from deejayd.ui import log
-    from deejayd.server.utils import str_decode
 
     def abort(exception=None, msg=None):
         if msg is not None:
@@ -236,10 +233,9 @@ if __name__ == "__main__":
     try:
         from deejayd.server.core import DeejayDaemonCore
         deejayd_core = DeejayDaemonCore()
-    except Exception, ex:
-        abort(msg=\
-            _("Unable to launch deejayd core, see traceback for more details"),
-            exception=ex)
+    except Exception as ex:
+        abort(msg=_("Unable to launch deejayd core, "
+                    "see traceback for more details"), exception=ex)
     ###############################################################
 
     from deejayd.server.protocol import DeejaydFactory
@@ -251,8 +247,9 @@ if __name__ == "__main__":
         factory = DeejaydFactory(deejayd_core)
         port = config.getint("net", "port")
         for bind_address in config.get_bind_addresses('net'):
-            try: reactor.listenTCP(port, factory, interface=bind_address)
-            except CannotListenError, err:
+            try:
+                reactor.listenTCP(port, factory, interface=bind_address)
+            except CannotListenError as err:
                 deejayd_core.close()
                 abort(msg=str(err))
 
@@ -261,8 +258,7 @@ if __name__ == "__main__":
     if config.getboolean("webui", "enabled"):
         try:
             from deejayd import webui
-        except ImportError, ex:
-            from deejayd.server.utils import str_decode
+        except ImportError as ex:
             log.err(_("Webui does not seem to be installed, disabling."))
             config.set("webui", "enabled", "no")
             log.err("----Traceback lines----")
@@ -275,21 +271,22 @@ if __name__ == "__main__":
                 htdocs_dir = os.path.abspath(os.path.join(INSTALL_BIN_DIR, '..',
                                                           'webui'))
             elif INSTALL_MODE == 'installed':
-               htdocs_dir = os.path.abspath(os.path.join(INSTALL_PREFIX,
-                                                         'share', 'deejayd',
-                                                         'htdocs'))
+                htdocs_dir = os.path.abspath(os.path.join(INSTALL_PREFIX,
+                                                          'share', 'deejayd',
+                                                          'htdocs'))
 
             try:
                 webui_site = webui.init(deejayd_core, config,
                                         options.webui_logfile, htdocs_dir)
-            except webui.DeejaydWebError, err:
+            except webui.DeejaydWebError as err:
                 deejayd_core.close()
                 abort(msg=str(err))
 
             port = config.getint("webui", "port")
             for bind_address in config.get_bind_addresses('webui'):
-                try: reactor.listenTCP(port, webui_site, interface=bind_address)
-                except CannotListenError, err:
+                try:
+                    reactor.listenTCP(port, webui_site, interface=bind_address)
+                except CannotListenError as err:
                     deejayd_core.close()
                     abort(msg=str(err))
 
@@ -300,15 +297,14 @@ if __name__ == "__main__":
 
     # setup SIGHUP handler
     import signal
-    import deejayd.db.connection
+
     def sig_HUP_cb():
         log.debug("received SIGHUP.")
         if flo is not None:
             flo.reopen_cb()
         if webui_site is not None:
             webui_site.reopen_log()
-        # ensure db gets written to disk
-        deejayd.database.connection.DatabaseConnection().close()
+
     def sig_HUP(signal, frame):
         reactor.callFromThread(sig_HUP_cb)
     signal.signal(signal.SIGHUP, sig_HUP)
@@ -317,5 +313,3 @@ if __name__ == "__main__":
     from twisted.internet import reactor
     reactor.addSystemEventTrigger('before', 'shutdown', deejayd_core.close)
     reactor.run()
-
-# vim: ts=4 sw=4 expandtab

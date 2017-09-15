@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -131,7 +131,7 @@ class XColor(ctypes.Structure):
                )
 
 class MWMHints(ctypes.Structure):
-    MWM_HINTS_DECORATIONS   = (1L << 1)
+    MWM_HINTS_DECORATIONS   = (1 << 1)
     PROP_MWM_HINTS_ELEMENTS = 5
 
     _fields_ = (
@@ -186,7 +186,7 @@ _libX11.XChangeWindowAttributes.argtypes = (ctypes.POINTER(Display),
                                     ctypes.c_ulong, ctypes.c_ulong,
                                     ctypes.POINTER(XSetWindowAttributes))
 
-CWOverrideRedirect = (1L<<9)
+CWOverrideRedirect = (1<<9)
 
 # Colormap XDefaultColormap(Display *display, int screen)
 _libX11.XDefaultColormap.restype = ctypes.c_ulong
@@ -258,6 +258,3 @@ module = sys.modules[__name__]
 for name in dir(_libX11):
     if name.startswith('X'):
         setattr(module, name, getattr(_libX11, name))
-
-
-# vim: ts=4 sw=4 expandtab

@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -21,40 +21,41 @@
 
 
 import ctypes
-import _libX11 as libX11
-import _libXext as libXext
+from . import _libX11 as libX11
+from . import _libXext as libXext
 
 
-class X11Error(Exception): pass
+class X11Error(Exception):
+    pass
 
 
 class X11Event:
-    NoEventMask              = 0L
-    KeyPressMask             = (1L<<0)
-    KeyReleaseMask           = (1L<<1)
-    ButtonPressMask          = (1L<<2)
-    ButtonReleaseMask        = (1L<<3)
-    EnterWindowMask          = (1L<<4)
-    LeaveWindowMask          = (1L<<5)
-    PointerMotionMask        = (1L<<6)
-    PointerMotionHintMask    = (1L<<7)
-    Button1MotionMask        = (1L<<8)
-    Button2MotionMask        = (1L<<9)
-    Button3MotionMask        = (1L<<10)
-    Button4MotionMask        = (1L<<11)
-    Button5MotionMask        = (1L<<12)
-    ButtonMotionMask         = (1L<<13)
-    KeymapStateMask          = (1L<<14)
-    ExposureMask             = (1L<<15)
-    VisibilityChangeMask     = (1L<<16)
-    StructureNotifyMask      = (1L<<17)
-    ResizeRedirectMask       = (1L<<18)
-    SubstructureNotifyMask   = (1L<<19)
-    SubstructureRedirectMask = (1L<<20)
-    FocusChangeMask          = (1L<<21)
-    PropertyChangeMask       = (1L<<22)
-    ColormapChangeMask       = (1L<<23)
-    OwnerGrabButtonMask      = (1L<<24)
+    NoEventMask              = 0
+    KeyPressMask             = (1<<0)
+    KeyReleaseMask           = (1<<1)
+    ButtonPressMask          = (1<<2)
+    ButtonReleaseMask        = (1<<3)
+    EnterWindowMask          = (1<<4)
+    LeaveWindowMask          = (1<<5)
+    PointerMotionMask        = (1<<6)
+    PointerMotionHintMask    = (1<<7)
+    Button1MotionMask        = (1<<8)
+    Button2MotionMask        = (1<<9)
+    Button3MotionMask        = (1<<10)
+    Button4MotionMask        = (1<<11)
+    Button5MotionMask        = (1<<12)
+    ButtonMotionMask         = (1<<13)
+    KeymapStateMask          = (1<<14)
+    ExposureMask             = (1<<15)
+    VisibilityChangeMask     = (1<<16)
+    StructureNotifyMask      = (1<<17)
+    ResizeRedirectMask       = (1<<18)
+    SubstructureNotifyMask   = (1<<19)
+    SubstructureRedirectMask = (1<<20)
+    FocusChangeMask          = (1<<21)
+    PropertyChangeMask       = (1<<22)
+    ColormapChangeMask       = (1<<23)
+    OwnerGrabButtonMask      = (1<<24)
 
 
 class X11Window(object):
@@ -156,7 +157,7 @@ class X11Window(object):
         root = ctypes.c_ulong()
         x = ctypes.c_int()
         y = ctypes.c_int()
-        width =ctypes. c_uint()
+        width = ctypes.c_uint()
         height = ctypes.c_uint()
         border_width = ctypes.c_uint()
         depth = ctypes.c_uint()
@@ -212,6 +213,7 @@ class X11Window(object):
         libX11.XUnlockDisplay(self.__display_p)
 
         self.video_area_info = None
+
 
 class X11Display(object):
 
@@ -283,6 +285,3 @@ if __name__ == '__main__':
     time.sleep(5)
     w.close()
     d.destroy()
-
-
-# vim: ts=4 sw=4 expandtab

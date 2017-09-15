@@ -73,7 +73,7 @@ try:
     deejayd_core.audiolib.update(sync=True)
     if deejayd_core.videolib is not None:
         deejayd_core.videolib.update(sync=True)
-except DeejaydError, ex:
+except DeejaydError as ex:
     from deejayd.server.utils import str_decode
     err = "Unable to launch deejayd core, see traceback for more details"
     log.msg(err)
