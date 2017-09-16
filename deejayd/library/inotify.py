@@ -25,7 +25,7 @@ import twisted.python.filepath
 import twisted.python._inotify
 from deejayd.ui import log
 from deejayd.library import pathutils
-from deejayd.db.connection import DatabaseConnection
+from deejayd.db.connection import Session
 
 
 class DeejaydInotify(twisted.internet.inotify.INotify):
@@ -72,7 +72,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         # symlinks on directories. Therefore, paths must be fixed to use
         # symlinks before being passed on to the library. This is why
         # the library dir_path is passed and used here.
-        session = DatabaseConnection().get_session()
+        session = Session()
         filename = library.fs_charset2unicode(filepath.basename())
         fpath = library.fs_charset2unicode(os.path.join(dir_path, filename))
 
@@ -84,27 +84,27 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         if mask & twisted.internet.inotify.IN_CREATE:
             if self.__isdir_event(mask)\
                     or self.__occured_on_dirlink(library, fpath):
-                library.crawl_directory(path, name, session)
+                library.crawl_directory(path, name)
         elif mask & twisted.internet.inotify.IN_DELETE:
             if self.__isdir_event(mask)\
                     or self.__occured_on_dirlink(library, fpath):
-                library.remove_directory(path, name, session)
+                library.remove_directory(path, name)
             elif not self.__isdir_event(mask):
-                library.remove_file(path, name, session)
+                library.remove_file(path, name)
         elif mask & twisted.internet.inotify.IN_MOVED_FROM:
             if not self.__isdir_event(mask):
-                library.remove_file(path, name, session)
+                library.remove_file(path, name)
             else:
                 library.remove_directory(path, name)
         elif mask & twisted.internet.inotify.IN_MOVED_TO:
             if not self.__isdir_event(mask):
                 library.update_file(path, name, session)
             else:
-                library.crawl_directory(path, name, session)
+                library.crawl_directory(path, name)
         elif mask & twisted.internet.inotify.IN_CLOSE_WRITE:
-            library.update_file(path, name, session)
+            library.update_file(path, name)
 
-        session.save()
+        session.commit()
         session.close()
 
     def watch_dir(self, dir_path, library):

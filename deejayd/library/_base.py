@@ -363,7 +363,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
     def update_extrainfo_file(self, file_path):
         self.parser.inotify_extra_parse(file_path)
 
-    def update_file(self, path, filename, session):
+    def update_file(self, path, filename):
         file_path = os.path.join(path, filename).encode("utf-8")
 
         try:
@@ -372,42 +372,42 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
             log.debug("library: file %s is gone, skipping." % file_path)
             return
 
-        folder = self._get_folder(path, session)
+        folder = self._get_folder(path)
         if folder is not None:
-            file_obj = self._get_file(folder, filename, session)
+            file_obj = self._get_file(folder, filename)
             if file_obj is None:
-                file_obj = self.OBJECT_CLASS(filename=f, folder=folder,
+                file_obj = self.OBJECT_CLASS(filename=filename, folder=folder,
                                              last_modified=-1)
             if file_mtime > file_obj.last_modified:
                 file_obj = self._get_file_info(file_obj)
                 if file_obj is None:
                     self.update_extrainfo_file(file_path)
                     return
-            session.add(file_obj)
+            Session.add(file_obj)
         else:
-            log.info("Inotify: a media has been added in an unknown folder")
+            log.info("Inotify: a media has been updated in an unknown folder")
 
     def remove_extrainfo_file(self, file_path):
         self.parser.inotify_extra_remove(file_path)
 
-    def remove_file(self, path, name, session):
+    def remove_file(self, path, name):
         fn, ext = os.path.splitext(name)
         if ext in self.parser.get_extensions():
-            self.remove_media(path, name, session)
+            self.remove_media(path, name)
         else:
             self.remove_extrainfo_file(os.path.join(path, name))
 
-    def remove_media(self, path, name, session):
-        file_obj = self._get_file_with_path(os.path.join(path, name), session)
+    def remove_media(self, path, name):
+        file_obj = self._get_file_with_path(os.path.join(path, name))
         if file_obj is not None:
-            session.delete(file_obj)
+            Session.delete(file_obj)
 
-    def crawl_directory(self, path, name, session):
+    def crawl_directory(self, path, name):
         dir_path = os.path.join(path, name)
 
         # Compute list of paths to avoid in case of symlink loop : paths in db
         # except paths and children crawled or updated here
-        indb_dirs = session.query(LibraryFolder.id, LibraryFolder.name).all()
+        indb_dirs = Session.query(LibraryFolder.id, LibraryFolder.path).all()
         indb_realpaths = []
         for d_id, d in indb_dirs:
             if not pathutils.is_subdir_of(dir_path, d):
@@ -415,28 +415,30 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
 
         def dcb(dir_path):
             dirname, filename = os.path.split(dir_path)
-            self.add_directory(dirname, filename, session)
+            self.add_directory(dirname, filename)
 
         def fcb(dir_path):
             dirname, filename = os.path.split(dir_path)
-            self.add_file(dirname, filename, session)
-        pathutils.walk_and_do(dir_path, indb_realpaths, dcb, fcb)
+            self.update_file(dirname, filename)
+        pathutils.walk_and_do(dir_path, indb_realpaths, dcb, fcb,
+                              topdown=True)
 
-    def add_directory(self, path, name, session):
-        parent = self._get_folder(path, session)
+    def add_directory(self, path, name):
+        parent = self._get_folder(path)
         if parent is not None:
             dir_path = os.path.join(path, name)
-            folder = LibraryFolder(name=name, parent=parent,
-                                   library_id=self.library_id)
-            session.add(folder)
-        self.watcher.watch_dir(dir_path, self)
+            folder = LibraryFolder(name=name, parent_folder=parent,
+                                   path=dir_path, library_id=self.library_id)
+            Session.add(folder)
+            self.watcher.watch_dir(dir_path, self)
 
-    def remove_directory(self, path, name, session):
+    def remove_directory(self, path, name):
         dir_path = os.path.join(path, name)
-        folder = self._get_folder(dir_path, session)
+        folder = self._get_folder(dir_path)
 
-        def stop_watchers(d_obj):
-            map(stop_watchers, d_obj.get_subdirs())
-            self.watcher.stop_watching_dir(d_obj.get_path())
-        stop_watchers(folder)
-        session.delete(folder)
+        if folder is not None:
+            def stop_watchers(d_obj):
+                map(stop_watchers, d_obj.child_folders)
+                self.watcher.stop_watching_dir(d_obj.path)
+            stop_watchers(folder)
+            Session.delete(folder)

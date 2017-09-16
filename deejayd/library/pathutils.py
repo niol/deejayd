@@ -80,7 +80,7 @@ def url_path(physical_path, input_pathmodule=os.path):
     return posixpath.join(*path_list)
 
 
-def walk(top, walked=None):
+def walk(top, walked=None, topdown=False):
     """
     This is a wrapper around os.walk() from the standard library:
     - browsing with topdown=False
@@ -92,7 +92,7 @@ def walk(top, walked=None):
     if walked is None:
         walked = []
 
-    for root, dirs, files in os.walk(top, topdown=False):
+    for root, dirs, files in os.walk(top, topdown=topdown):
         walked.append(os.path.realpath(root))
 
         # Follow symlinks if they have not been walked yet
@@ -110,13 +110,13 @@ def walk(top, walked=None):
         yield root, dirs, files
 
 
-def walk_and_do(top=None, walked=None, dcb=None, fcb=None):
+def walk_and_do(top=None, walked=None, dcb=None, fcb=None, topdown=False):
     """
     This walk calls dcb on each found directory and fcb on each found
     file with the following arguments :
         - path
     """
-    for root, dirs, files in walk(top, walked):
+    for root, dirs, files in walk(top, walked, topdown=topdown):
         if dcb is not None:
             dcb(root)
         if fcb is not None:

@@ -294,6 +294,11 @@ class _TestDir(TestData):
         for media in self.medias:
             media.update_root_path(self.dir_path)
 
+    def update_parent_path(self, p_path):
+        self.dir_path = os.path.join(p_path, self.name)
+        for media in self.medias:
+            media.update_root_path(self.dir_path)
+
     def remove(self):
         shutil.rmtree(self.dir_path)
         self.build = False
@@ -402,8 +407,11 @@ class _TestMediaCollection(TestData):
     def strip_root(self, path):
         """Strips the root directory path turning the argument into a
         path relative to the media root directory."""
+        return self.strip_path(path, self.get_root_dir())
+
+    def strip_path(self, path, root_dir):
         abs_path = os.path.abspath(path)
-        rel_path = os.path.normpath(abs_path[len(self.get_root_dir()):])
+        rel_path = os.path.normpath(abs_path[len(root_dir):])
 
         if rel_path != '.':
             rel_path = rel_path.strip("/")
@@ -474,11 +482,20 @@ class _TestMediaCollection(TestData):
     def rename_dir(self):
         dirname = self.get_random_element(self.dirs.keys())
         d = self.dirs[dirname]
-        del self.dirs[dirname]
+        subdirs = {} 
+        for d_path in self.dirs:
+            if d_path.startswith(dirname+"/"):
+                subdirs[self.strip_path(d_path, dirname)] = self.dirs[d_path]
+                del self.dirs[d_path]
 
         d.rename()
         dirpath = os.path.join(os.path.dirname(dirname), d.name)
         self.dirs[dirpath] = d
+        # update subdirs
+        for sub_path in subdirs:
+            newpath = os.path.join(dirpath, sub_path)
+            subdirs[sub_path].update_parent_path(os.path.dirname(newpath))
+            self.dirs[newpath] = subdirs[sub_path]
 
     def remove_dir(self):
         dirname = self.get_random_element(self.dirs.keys())

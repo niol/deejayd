@@ -22,7 +22,9 @@ import itertools
 import time
 from deejayd.server.utils import quote_uri
 from deejayd.library.parsers import ParseError, NoParserError
+from deejayd.db.connection import Session
 from deejayd.db.models import AudioChannel, SubtitleChannel
+from deejayd.db.models import LibraryFolder, Video
 
 __all__ = ["VideoParserFactory"]
 
@@ -136,8 +138,7 @@ class VideoParserFactory(object):
         if self.__is_subtitle(file_path):
             file_obj = self.__find_video(file_path)
             if file_obj is not None:
-                file_obj["external_subtitle"] = quote_uri(file_path)
-                file_obj.save()
+                file_obj.external_subtitle = quote_uri(file_path)
                 return True
         return False
 
@@ -145,8 +146,7 @@ class VideoParserFactory(object):
         if self.__is_subtitle(file_path):
             file_obj = self.__find_video(file_path)
             if file_obj is not None:
-                file_obj["external_subtitle"] = ""
-                file_obj.save()
+                file_obj.external_subtitle = ""
                 return True
         return False
 
@@ -158,12 +158,12 @@ class VideoParserFactory(object):
         path, fn = os.path.split(sub_path)
         sub_name, ext = os.path.splitext(fn)
 
-        lib_model = self.library.get_model()
-        dir_obj = lib_model.get_dir_with_path(path, create=False, raise_ex=False)
+        dir_obj = self.library._get_folder(path)
         if dir_obj is not None:
-            for file_obj in dir_obj.get_files():
-                file_name, ext = os.path.splitext(file_obj["filename"])
-                if file_name == sub_name:
-                    return file_obj
+            return Session.query(Video)\
+                          .join(LibraryFolder)\
+                          .filter(Video.folder == dir_obj)\
+                          .filter(Video.filename.ilike(sub_name+".%"))\
+                          .one_or_none()
 
         return None

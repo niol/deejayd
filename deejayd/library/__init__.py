@@ -28,9 +28,6 @@ except ImportError:
     log.msg("Inotify is not supported on this platform")
     inotify = None
 
-# TODO: fix inotify support
-inotify = None
-
 
 def init(player, config):
     audio_library, video_library, lib_watcher = None, None, None

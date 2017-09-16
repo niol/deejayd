@@ -21,7 +21,8 @@ import mimetypes
 import glob
 import time
 from deejayd import DeejaydError
-from deejayd.db.models import Album
+from deejayd.db.models import Album, Song
+from deejayd.db.connection import Session
 from deejayd.library.parsers import NoParserError
 
 __all__ = ["AudioParserFactory"]
@@ -111,26 +112,29 @@ class CoverParser(object):
     def remove(self, file, library):
         filename = os.path.basename(file)
         if filename in self.cover_name:
-            lib_model = library.get_model()
-            try:
-                dir_obj = lib_model.get_dir_with_path(os.path.dirname(file))
-            except DeejaydError:
-                return
-            for file_obj in dir_obj.get_files():
-                file_obj.get_album().erase_cover()
+            dir_obj = library._get_folder(os.path.dirname(file))
+            if dir_obj is not None:
+                albums = Session.query(Album)\
+                                .join(Song)\
+                                .filter(Song.folder_id == dir_obj.id)\
+                                .all()
+                for album in albums:
+                    album.erase_cover()
 
     def parse(self, file, library):
         filename = os.path.basename(file)
         if filename in self.cover_name:
-            lib_model = library.get_model()
-            try:
-                dir_obj = lib_model.get_dir_with_path(os.path.dirname(file))
-            except DeejaydError:
-                return
-
-            mimetype = mimetypes.guess_type(file)
-            for file_obj in dir_obj.get_files():
-                file_obj.get_album().update_cover(file, mimetype[0])
+            dir_obj = library._get_folder(os.path.dirname(file))
+            if dir_obj is not None:
+                mimetype = mimetypes.guess_type(file)
+                albums = Session.query(Album)\
+                                .join(Song)\
+                                .filter(Song.folder_id == dir_obj.id)\
+                                .all()
+                with open(file) as c_data:
+                    data = c_data.read()
+                    for album in albums:
+                        album.update_cover(data, mimetype[0])
 
     def find_cover(self, dir):
         cover, mimetype = None, None

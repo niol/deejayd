@@ -27,8 +27,7 @@ from deejayd.library.video import VideoLibrary
 from testdeejayd import TestCaseWithDeejaydCore, unittest
 from testdeejayd import TestData, TestAudioCollection
 from testdeejayd import TestVideoCollection
-#from deejayd.mediadb import inotify
-inotify = False
+from deejayd.library import inotify
 
 
 #####################################
@@ -303,38 +302,39 @@ class _TestInotifyDeejayLibrary(object):
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyAddMedia(self):
-        """Inotify support : Add a media in audio library"""
-        self.testdata.addMedia()
-        self.verifyMediaDBContent()
+        """Inotify support : Add a media"""
+        self.collection.add_media()
+        self.verify_content()
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyAddSubdirectory(self):
         """Inotify support : Add a subdirectory"""
-        self.testdata.addSubdir()
-        self.verifyMediaDBContent()
+        self.collection.add_subdir()
+        self.verify_content()
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyRenameDirectory(self):
         """Inotify support : Rename a directory"""
-        self.testdata.renameDir()
-        self.verifyMediaDBContent(False)
+        self.collection.rename_dir()
+        self.verify_content()
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyRemoveDirectory(self):
         """Inotify support : Remove a directory"""
-        self.testdata.removeDir()
-        self.verifyMediaDBContent()
+        self.collection.remove_dir()
+        self.verify_content()
 
 
-class TestInotifyVideoLibrary(TestCaseWithDeejaydCore, \
-        _TestInotifyDeejayLibrary, VerifyDeejayVideoLibrary):
+class TestInotifyVideoLibrary(TestCaseWithDeejaydCore,
+                              _TestInotifyDeejayLibrary,
+                              VerifyDeejayVideoLibrary):
     inotify_support = True
 
     @classmethod
     def setUpClass(cls):
         super(TestInotifyVideoLibrary, cls).setUpClass()
         cls.library = getattr(cls.deejayd, cls.library_type + "lib")
-        cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
+        cls.collection = getattr(cls, "test_" + cls.library_type + "data")
 
     @classmethod
     def tearDownClass(cls):
@@ -346,25 +346,26 @@ class TestInotifyVideoLibrary(TestCaseWithDeejaydCore, \
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyAddSubtitle(self):
         """Inotify support : add subtitle detected"""
-        self.testdata.add_subtitle()
-        self.verifyMediaDBContent()
+        self.collection.add_subtitle()
+        self.verify_content()
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyRemoveSubtitle(self):
         """Inotify support : remove subtitle detected"""
-        self.testdata.remove_subtitle()
-        self.verifyMediaDBContent()
+        self.collection.remove_subtitle()
+        self.verify_content()
 
 
-class TestInotifyAudioLibrary(TestCaseWithDeejaydCore, \
-        _TestInotifyDeejayLibrary, VerifyDeejayAudioLibrary):
+class TestInotifyAudioLibrary(TestCaseWithDeejaydCore,
+                              _TestInotifyDeejayLibrary,
+                              VerifyDeejayAudioLibrary):
     inotify_support = True
 
     @classmethod
     def setUpClass(cls):
         super(TestInotifyAudioLibrary, cls).setUpClass()
         cls.library = getattr(cls.deejayd, cls.library_type + "lib")
-        cls.testdata = getattr(cls, "test_" + cls.library_type + "data")
+        cls.collection = getattr(cls, "test_" + cls.library_type + "data")
 
     @classmethod
     def tearDownClass(cls):
@@ -376,19 +377,17 @@ class TestInotifyAudioLibrary(TestCaseWithDeejaydCore, \
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyAddCover(self):
         """Inotify support : add cover detected"""
-        self.testdata.add_cover()
-        self.verifyMediaDBContent()
+        self.collection.add_cover()
+        self.verify_content()
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyRemoveCover(self):
         """Inotify support : remove cover detected"""
-        self.testdata.remove_cover()
-        self.verifyMediaDBContent()
+        self.collection.remove_cover()
+        self.verify_content()
 
     @unittest.skipIf(inotify is False, "inotify is not supported")
     def testInotifyChangeTag(self):
         """Inotify support : Tag value change detected"""
-        self.testdata.changeMediaTags()
-        self.verifyMediaDBContent()
-
-# vim: ts=4 sw=4 expandtab
+        self.collection.change_media_tags()
+        self.verify_content()
