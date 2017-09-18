@@ -58,7 +58,7 @@ class LibraryFolder(Base):
     medias = relationship("Media",
                           backref="folder",
                           order_by="Media.filename",
-                          cascade="delete, delete-orphan")
+                          cascade="save-update, delete, delete-orphan")
 
     def to_json(self, subfolders=False, medias=False):
         result = {
@@ -122,7 +122,6 @@ class Album(Base):
 
     songs = relationship("Song",
                          lazy="dynamic",
-                         cascade="all, delete-orphan",
                          order_by="Song.discnumber",
                          backref="album")
 

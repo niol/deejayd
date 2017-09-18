@@ -18,6 +18,7 @@
 
 import time
 import os.path
+from sqlalchemy.orm import util
 from twisted.internet import threads
 from deejayd import DeejaydError
 from deejayd.db.connection import Session
@@ -224,12 +225,15 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         return True
 
     def walk_directory(self, walk_root, force=False):
+        self.delay = 0
         walk_root = os.path.join(self.get_root_path(),
                                  self.fs_charset2unicode(walk_root))
         walk_root = walk_root.rstrip("/")
         walked_folders = []
-        db_media_ids = [i for (i,)
-                        in Session.query(self.OBJECT_CLASS.m_id).all()]
+        # cache all medias recorded in database
+        media_dict = {}
+        for m in Session.query(self.OBJECT_CLASS).all():
+            media_dict[m.get_path()] = m
 
         for root, subdirs, files in pathutils.walk(walk_root.encode('utf-8')):
             root = root.rstrip("/")
@@ -250,20 +254,20 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
                                        path=root,
                                        name=os.path.basename(root))
                 Session.add(folder)
-            parsed_files = self.parse_files(folder, files, db_media_ids,
-                                            force)
+            self.parse_files(folder, files, media_dict, force)
+
             subdirs_obj = self.get_subdirs(folder, subdirs)
             for sd in subdirs_obj:
                 sd.parent_folder = folder
             walked_folders.append(root)
-            Session.add_all(parsed_files)
 
         # clean library
         Session.query(LibraryFolder) \
                .filter(LibraryFolder.library_id == self.library_id) \
                .filter(LibraryFolder.path.notin_(walked_folders)) \
                .delete(synchronize_session='fetch')
-        if len(db_media_ids) > 0:
+        if len(media_dict) > 0:
+            db_media_ids = [media_dict[k].m_id for k in media_dict]
             erased_files = Session.query(self.OBJECT_CLASS) \
                             .filter(self.OBJECT_CLASS.m_id.in_(db_media_ids)) \
                             .all()
@@ -287,8 +291,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
                                           LibraryFolder.path.in_(subdirs)) \
                                   .all()
 
-    def parse_files(self, folder, files, db_ids, force):
-        parsed_files = []
+    def parse_files(self, folder, files, media_dict, force):
         for f in files:
             try:
                 f = self.fs_charset2unicode(f)
@@ -304,11 +307,16 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
                 log.debug('library: skipping broken symlink %s' % filepath)
                 continue
 
-            file_obj = self._get_file(folder, f)
-            if file_obj is None:
+            need_update = True
+            if filepath in media_dict:
+                file_obj = media_dict[filepath]
+                need_update = force or os.stat(
+                    filepath.encode('utf-8')).st_mtime > file_obj.last_modified
+            elif self.parser.is_supported(filepath):
                 file_obj = self.OBJECT_CLASS(filename=f, folder=folder)
-            need_update = force or os.stat(
-                filepath.encode('utf-8')).st_mtime > file_obj.last_modified
+            else:
+                continue
+
             if need_update:
                 file_obj = self._get_file_info(file_obj)
                 if file_obj is None:
@@ -317,11 +325,8 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
             else:
                 self.parser.extra_parse(file_obj)
 
-            if file_obj.m_id is not None:
-                db_ids.remove(file_obj.m_id)
-            parsed_files.append(file_obj)
-
-        return parsed_files
+            if filepath in media_dict:
+                del media_dict[filepath]
 
     #
     # internal functions
@@ -349,10 +354,11 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
     def _get_file_info(self, file_obj):
         try:
             file_obj = self.parser.parse(file_obj, Session)
-        except NoParserError:
-            log.info(_("File %s not supported") % file_obj.get_path())
-            return None
         except Exception:
+            if util.has_identity(file_obj):
+                Session.delete(file_obj)
+            else:
+                Session.expunge(file_obj)
             log_traceback(level="info")
             return None
         return file_obj

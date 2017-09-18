@@ -64,8 +64,7 @@ class VideoParserFactory(object):
         title = title.replace("_", " ")
         return title.title()
 
-    def parse(self, file_obj, session):
-        path = file_obj.get_path().encode("utf-8")
+    def _find_parser(self, path):
         extension = os.path.splitext(path)[1]
         mimetype = mimetypes.guess_type(path)[0]
         parser_ext = None
@@ -75,8 +74,15 @@ class VideoParserFactory(object):
                 parser_mime = parser_name
             if extension in parser_extensions:
                 parser_ext = parser_name
-        parser = parser_mime or parser_ext
-        if not parser:
+        return parser_mime or parser_ext
+
+    def is_supported(self, filepath):
+        return self._find_parser(filepath) is not None
+
+    def parse(self, file_obj, session):
+        path = file_obj.get_path().encode("utf-8")
+        parser = self._find_parser(path)
+        if parser is None:
             raise NoParserError()
         mod = __import__(parser, globals=globals(), locals=locals(), 
                          fromlist=[], level=-1)

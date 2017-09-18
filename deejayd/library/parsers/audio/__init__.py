@@ -20,7 +20,6 @@ import os
 import mimetypes
 import glob
 import time
-from deejayd import DeejaydError
 from deejayd.db.models import Album, Song
 from deejayd.db.connection import Session
 from deejayd.library.parsers import NoParserError
@@ -50,6 +49,10 @@ class AudioParserFactory(object):
 
     def get_extensions(self):
         return self.parsers.keys()
+
+    def is_supported(self, filepath):
+        extension = os.path.splitext(filepath)[1]
+        return extension in self.parsers
 
     def parse(self, file_obj, session):
         path = file_obj.get_path()

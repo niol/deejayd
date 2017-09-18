@@ -21,6 +21,7 @@
 This module generates the test data.
 """
 import os
+import copy
 import sys
 import shutil
 import urllib
@@ -483,7 +484,7 @@ class _TestMediaCollection(TestData):
         dirname = self.get_random_element(self.dirs.keys())
         d = self.dirs[dirname]
         subdirs = {} 
-        for d_path in self.dirs:
+        for d_path in copy.copy(self.dirs):
             if d_path.startswith(dirname+"/"):
                 subdirs[self.strip_path(d_path, dirname)] = self.dirs[d_path]
                 del self.dirs[d_path]
