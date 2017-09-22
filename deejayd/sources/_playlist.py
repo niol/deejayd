@@ -103,6 +103,9 @@ class PlaylistEntry(MutableMapping):
             "skip_count": self.media["skip_count"] + 1
         })
 
+    def set_description(self, desc):
+        pass
+
     def is_seekable(self):
         return True
 

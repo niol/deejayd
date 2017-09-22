@@ -56,7 +56,9 @@ class WebradioObject(object):
         self.__obj = {
             "w_id": wb_dbobject.id,
             "name": wb_dbobject.name,
-            "uris": [w_entry.url for w_entry in wb_dbobject.entries]
+            "uris": [w_entry.url for w_entry in wb_dbobject.entries],
+            "desc": "",
+            "type": "webradio"
         }
 
     def to_json(self):
@@ -82,6 +84,10 @@ class WebradioObject(object):
 
     def need_metadata_refresh(self):
         return True
+
+    def set_description(self, desc):
+        self.__obj["desc"] = desc
+
 
 
 @jsonrpc_module(WebradioModule)
