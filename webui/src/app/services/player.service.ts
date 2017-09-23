@@ -98,7 +98,7 @@ export class PlayerService {
   }
 
   setVolumeRelative(step: number):void {
-    this.client.sendSimpleCmd("player.setVolumeRelative", [step]);
+    this.client.sendSimpleCmd("player.setVolume", [step, true]);
   }
 
   seek(pos: number, relative:boolean = false):void {
@@ -124,14 +124,14 @@ export class PlayerService {
   }
 
   playMedia(m_id:number, source:string):void {
-    this.client.sendCommand(`${source}.addMediaByIds`, [[m_id], false])
+    this.client.sendCommand(`${source}.loadMedias`, [[m_id], false])
                .subscribe((answer:any) => {
       this.goTo(0, "pos", source);
     }, this.displayError)
   }
 
   resumeMedia(m_id:number, source:string, pos:number):void {
-    this.client.sendCommand(`${source}.addMediaByIds`, [[m_id], false])
+    this.client.sendCommand(`${source}.loadMedias`, [[m_id], false])
                .subscribe((answer:any) => {
       this.goTo(0, "pos", source, pos);
     }, this.displayError);

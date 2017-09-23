@@ -149,7 +149,7 @@ export class WebradioSourceComponent implements OnInit {
     }
 
     playWebradio() {
-        this.webradio.playWebradio(this.selectedWebradio.wb_id);
+        this.webradio.playWebradio(this.selectedWebradio.w_id);
     }
 
     eraseWebradio() {
@@ -161,7 +161,7 @@ export class WebradioSourceComponent implements OnInit {
         });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.webradio.eraseWebradio(this.name, this.selectedWebradio.wb_id);
+                this.webradio.eraseWebradio(this.name, this.selectedWebradio.w_id);
             }
         });
     }

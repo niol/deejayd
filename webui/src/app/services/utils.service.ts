@@ -30,8 +30,8 @@ function num(n:number):string {
 export class UtilsService {
     hasLastPos(media:Media) {
         return media != null && media.type == 'video' &&
-            media.lastpos > 5*60 &&
-            media.lastpos < media.length - 600;
+            media.last_position > 5*60 &&
+            media.last_position < media.length - 600;
     }
 
     formatTime(t:number):string {
@@ -56,7 +56,7 @@ export class UtilsService {
             return ` ${audio_m.album} -- ${audio_m.artist} `;
         } else if (m.type == "video") {
             let video_m = m as VideoMedia;
-            return ` ${video_m.videowidth}x${video_m.videoheight} `;
+            return ` ${video_m.width}x${video_m.height} `;
         }
         return "";
     }

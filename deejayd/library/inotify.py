@@ -108,6 +108,8 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         session.close()
 
     def watch_dir(self, dir_path, library):
+        if isinstance(dir_path, str):
+            dir_path = dir_path.decode("utf-8")
         # inotify bindings need encoded strings
         e_path = dir_path.encode("utf-8")
 

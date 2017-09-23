@@ -33,7 +33,7 @@ export interface WebradioCategory {
 
 export interface Webradio {
   title: string,
-  wb_id: number,
+  w_id: number,
 }
 
 @Injectable()

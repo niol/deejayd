@@ -48,7 +48,7 @@ interface PathObject {
                     *ngIf="utils.hasLastPos(selectedMedia)"
                     (click)="resume()"
                     i18n>
-          Resume at {{ utils.formatTime(selectedMedia.lastpos) }}
+          Resume at {{ utils.formatTime(selectedMedia.last_position) }}
         </button>
         <button md-menu-item (click)="loadToPlaylist()" i18n>Add to playlist</button>
         <button md-menu-item
@@ -57,7 +57,7 @@ interface PathObject {
       </md-menu>
 
       <!-- folder -->
-      <md-list-item *ngFor="let folder of folders" (click)="getPath(folder.root)">
+      <md-list-item *ngFor="let folder of folders" (click)="getPath(folder.path)">
         <md-icon md-list-icon>folder</md-icon>
         <div class="djd-library-item">
           <div>
@@ -147,7 +147,7 @@ export class FolderViewComponent implements OnInit {
   }
 
   isNew(media:Media) {
-    return this.type == "video" && media.playcount == 0;
+    return this.type == "video" && media.play_count == 0;
   }
 
   selectMedia(m: Media) {
@@ -164,32 +164,32 @@ export class FolderViewComponent implements OnInit {
     if (this.selectedFolder != null) {
       this.player.playFolder(this.selectedFolder.id, `${this.type}pls`);
     } else if (this.selectedMedia != null) {
-      this.player.playMedia(this.selectedMedia.media_id, `${this.type}pls`);
+      this.player.playMedia(this.selectedMedia.m_id, `${this.type}pls`);
     }
   }
 
   resume() {
-    this.player.resumeMedia(this.selectedMedia.media_id, `${this.type}pls`,
-                            this.selectedMedia.lastpos - 30);
+    this.player.resumeMedia(this.selectedMedia.m_id, `${this.type}pls`,
+                            this.selectedMedia.last_position - 30);
   }
 
   loadToPlaylist() {
     if (this.selectedFolder != null) {
-      this.client.sendSimpleCmd(`${this.type}pls.loadFolder`,
+      this.client.sendSimpleCmd(`${this.type}pls.loadFolders`,
                                 [[this.selectedFolder.id], true]);
     } else if (this.selectedMedia != null) {
-      this.client.sendSimpleCmd(`${this.type}pls.addMediaByIds`,
-                                [[this.selectedMedia.media_id], true]);
+      this.client.sendSimpleCmd(`${this.type}pls.loadMedias`,
+                                [[this.selectedMedia.m_id], true]);
     }
   }
 
   loadToQueue() {
     if (this.selectedFolder != null) {
-      this.client.sendSimpleCmd(`${this.type}queue.loadFolder`,
+      this.client.sendSimpleCmd(`${this.type}queue.loadFolders`,
                                 [[this.selectedFolder.id], true]);
     } else if (this.selectedMedia != null) {
-      this.client.sendSimpleCmd(`${this.type}queue.addMediaByIds`,
-                                [[this.selectedMedia.media_id], true]);
+      this.client.sendSimpleCmd(`${this.type}queue.loadMedias`,
+                                [[this.selectedMedia.m_id], true]);
     }
   }
 }

@@ -259,8 +259,9 @@ class VlcPlayer(_BasePlayer):
         m = self.__player.get_media()
         if m is not None:
             desc = m.get_meta(_vlc.Meta.NowPlaying)
-            # TODO update title if necessary
-            self.dispatch_signame('player.current')
+            if desc != self._playing_media["desc"]:
+                self._playing_media.set_description(desc)
+                self.dispatch_signame('player.current')
 
     def __prepare_x_window(self):
         d_list = [self._video_options["display"]]

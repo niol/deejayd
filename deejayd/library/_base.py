@@ -51,6 +51,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         # get root path for this library
         try:
             self.root_path = self.fs_charset2unicode(os.path.abspath(path))
+            self.root_path = self.root_path.rstrip("/")
         except UnicodeError:
             raise DeejaydError(_("Root library path has wrong caracters"))
         # test library path
@@ -63,7 +64,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
                          .filter(Library.name == self.TYPE) \
                          .one_or_none()
         if library is None:
-            library = Library(name=self.TYPE)
+            library = Library(name=self.TYPE, path=self.root_path)
             Session.add(library)
             Session.commit()
         self.library_id = library.id
@@ -93,7 +94,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         if folder is not None:
             return folder.to_json(subfolders=True, medias=True)
         elif f_name == "":
-            return {"root": "", "files": [], "directories": []}
+            return {"path": "", "files": [], "directories": []}
         else:
             err = _("Unable to find '%s' folder in library") % f_name
             raise DeejaydError(err)

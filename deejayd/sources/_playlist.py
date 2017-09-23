@@ -37,11 +37,12 @@ def update_action(func):
 
 class PlaylistEntry(MutableMapping):
 
-    def __init__(self, medialist, p_id, media, source):
-        self.medialist = medialist
+    def __init__(self, playlist, p_id, media, source):
+        self.playlist = playlist
         self.id = p_id
         self.media = media.to_json()
         self.source = source
+        self.desc = ""
 
     def __len__(self):
         return len(self.media) + 2
@@ -59,12 +60,14 @@ class PlaylistEntry(MutableMapping):
         if key == "id":
             return self.id
         elif key == "pos":
-            for index, entry in enumerate(self.medialist):
+            for index, entry in enumerate(self.playlist.medialist):
                 if entry.id == self.id:
                     return index
             return -1  # entry not in the list anymore
         elif key == "source":
             return self.source
+        elif key == "desc":
+            return self.desc
         return self.media[key]
 
     def __update_media(self, attrs):
@@ -104,7 +107,7 @@ class PlaylistEntry(MutableMapping):
         })
 
     def set_description(self, desc):
-        pass
+        self.desc = desc
 
     def is_seekable(self):
         return True
@@ -182,7 +185,7 @@ class Playlist(object):
             db_list = StaticMediaList(name="__"+source)
             Session.add(db_list)
             Session.commit()
-        self.medialist = [PlaylistEntry(self.medialist,
+        self.medialist = [PlaylistEntry(self,
                                         self.__get_next_id(),
                                         i.media,
                                         self.source
@@ -262,10 +265,8 @@ class Playlist(object):
     def load(self, medias, queue=True):
         if not queue:
             self.medialist = []
-        self.medialist += [PlaylistEntry(self.medialist,
-                                         self.__get_next_id(),
-                                         media,
-                                         self.source
+        self.medialist += [PlaylistEntry(self, self.__get_next_id(),
+                                         media, self.source
                                          ) for media in medias]
 
     @update_action

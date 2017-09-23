@@ -60,11 +60,15 @@ class LibraryFolder(Base):
                           order_by="Media.filename",
                           cascade="save-update, delete, delete-orphan")
 
+    def __strip_path(self):
+        rel_path = self.path.replace(self.library.path, "")
+        return rel_path.lstrip("/")
+
     def to_json(self, subfolders=False, medias=False):
         result = {
             "id": self.id,
             "name": self.name,
-            "path": self.path
+            "path": self.__strip_path()
         }
         if subfolders:
             result["directories"] = [f.to_json() for f in self.child_folders]

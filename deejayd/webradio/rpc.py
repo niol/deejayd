@@ -57,9 +57,13 @@ class WebradioObject(object):
             "w_id": wb_dbobject.id,
             "name": wb_dbobject.name,
             "uris": [w_entry.url for w_entry in wb_dbobject.entries],
+            "title": wb_dbobject.name,
             "desc": "",
             "type": "webradio"
         }
+
+    def __getitem__(self, key):
+        return self.__obj[key]
 
     def to_json(self):
         return self.__obj
@@ -87,6 +91,7 @@ class WebradioObject(object):
 
     def set_description(self, desc):
         self.__obj["desc"] = desc
+        self.__obj["title"] = self.__obj["name"] + "-" + desc
 
 
 

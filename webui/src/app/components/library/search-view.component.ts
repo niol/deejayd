@@ -53,7 +53,7 @@ import { UtilsService } from '../../services/utils.service';
                         *ngIf="utils.hasLastPos(selectedMedia)"
                         (click)="resume()"
                         i18n>
-              Resume at {{ utils.formatTime(selectedMedia.lastpos) }}
+              Resume at {{ utils.formatTime(selectedMedia.last_position) }}
             </button>
             <button md-menu-item (click)="loadToPlaylist()" i18n>Add to playlist</button>
             <button md-menu-item
@@ -109,22 +109,22 @@ export class SearchViewComponent implements OnInit {
   }
 
   play() {
-    this.player.playMedia(this.selectedMedia.media_id, `${this.type}pls`);
+    this.player.playMedia(this.selectedMedia.m_id, `${this.type}pls`);
   }
 
   resume() {
-    this.player.resumeMedia(this.selectedMedia.media_id, `${this.type}pls`,
-                            this.selectedMedia.lastpos - 30);
+    this.player.resumeMedia(this.selectedMedia.m_id, `${this.type}pls`,
+                            this.selectedMedia.last_position - 30);
   }
 
   loadToPlaylist() {
-    this.client.sendSimpleCmd(`${this.type}pls.addMediaByIds`,
-                              [[this.selectedMedia.media_id], true]);
+    this.client.sendSimpleCmd(`${this.type}pls.loadMedias`,
+                              [[this.selectedMedia.m_id], true]);
   }
 
   loadToQueue() {
-    this.client.sendSimpleCmd(`${this.type}queue.addMediaByIds`,
-                              [[this.selectedMedia.media_id], true]);
+    this.client.sendSimpleCmd(`${this.type}queue.loadMedias`,
+                              [[this.selectedMedia.m_id], true]);
   }
   search(pattern:string) {
     this.loading = true;

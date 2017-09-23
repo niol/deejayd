@@ -18,20 +18,19 @@
 
 export interface Folder {
     name: string,
-    root: string,
+    path: string,
     id: number
 }
 
 export interface Media {
     id: number,
-    media_id: number,
+    m_id: number,
     filename: string,
-    lastmodified: number,
-    lastpos: number,
+    last_position: number,
     title: string,
     type: string,
     length: number,
-    playcount: number
+    play_count: number
 }
 
 export interface AudioMedia extends Media {
@@ -41,7 +40,7 @@ export interface AudioMedia extends Media {
 }
 
 export interface VideoMedia extends Media {
-    videowidth: string,
-    videoheight: string,
+    width: string,
+    height: string,
 }
 

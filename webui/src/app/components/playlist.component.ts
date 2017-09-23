@@ -42,7 +42,7 @@ interface MediaListStatus {
                 *ngIf="utils.hasLastPos(selectedMedia)"
                 (click)="resume()"
                 i18n>
-      Resume at {{ utils.formatTime(selectedMedia.lastpos) }}
+      Resume at {{ utils.formatTime(selectedMedia.last_position) }}
     </button>
     <button md-menu-item (click)="remove()" i18n>Remove</button>
   </md-menu>
@@ -155,7 +155,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
   resume():void {
     this.player.goTo(this.selectedMedia.id, "id", this.name,
-                     this.selectedMedia.lastpos);
+                     this.selectedMedia.last_position);
   }
 
   remove():void {

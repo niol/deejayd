@@ -137,10 +137,10 @@ class IceCastSource(_BaseWebradioSource):
             raise DeejaydError("Unable to parse icecast webradio list")
         return super(IceCastSource, self).get_categories()
 
-    def get_webradios(self, cat_id=None):
+    def get_webradios(self, cat_id=None, first=0, length=None):
         if self.state["last_modified"] == -1:
             raise DeejaydError("Unable to parse icecast webradio list")
-        return super(IceCastSource, self).get_webradios(cat_id)
+        return super(IceCastSource, self).get_webradios(cat_id, first, length)
 
     def close(self):
         if self.__task is not None:
