@@ -71,7 +71,7 @@ class GstreamerPlayer(_BasePlayer):
                 if linked_result is not None:
                     linked_result.link(elt)
                 linked_result = elt
-        except Exception, e:
+        except Exception as e:
             err = str(e).decode("utf8", 'replace')
             raise PlayerError(_("Could not link GStreamer pipeline: '%s'")
                                % err)
@@ -96,7 +96,7 @@ class GstreamerPlayer(_BasePlayer):
             ret = audio_sink.set_state(Gst.State.READY)
             if ret == Gst.StateChangeReturn.FAILURE:
                 raise PlayerError
-        except (PlayerError, GObject.GError), err:
+        except (PlayerError, GObject.GError) as err:
             raise PlayerError(_("No audio sink found for Gstreamer : %s")
                               % str(err).decode("utf8", 'replace'))
         finally:
@@ -144,7 +144,7 @@ class GstreamerPlayer(_BasePlayer):
             d_list.append(os.environ["DISPLAY"])
         for d in d_list:
             try:
-                self.__display = x11.X11Display(id=d)
+                self.__display = x11.X11Display(d_id=d)
             except x11.X11Error:
                 continue
             else:
@@ -159,7 +159,7 @@ class GstreamerPlayer(_BasePlayer):
             ret = video_sink.set_state(Gst.State.READY)
             if ret == Gst.StateChangeReturn.FAILURE:
                 raise PlayerError
-        except (PlayerError, GObject.GError), err:
+        except (PlayerError, GObject.GError) as err:
             self.__destroy_pipeline()
             raise PlayerError(_("No video sink found for Gstreamer : %s")
                               % str(err).decode("utf8", 'replace'))
@@ -171,7 +171,7 @@ class GstreamerPlayer(_BasePlayer):
         self.__osd.set_property("valignment", 2)  # top
         try:
             self.__gst_add_elts_to_sink(bufbin, [self.__osd, video_sink])
-        except PlayerError, ex:
+        except PlayerError as ex:
             self.__destroy_pipeline()
             raise ex
         # create ghostpad
@@ -281,7 +281,7 @@ class GstreamerPlayer(_BasePlayer):
         uris = iter(self._playing_media.get_uris())
         try:
             while not playing:
-                uri = uris.next()
+                uri = next(uris)
                 self.bin.set_property('uri', uri)
                 if "external_subtitle" in self._playing_media:
                     suburi = self._playing_media["external_subtitle"]
@@ -443,9 +443,9 @@ class GstreamerPlayer(_BasePlayer):
         tags = TagListWrapper(tags)
         tags = parse_gstreamer_taglist(tags)
 
-        if "title" in tags.keys():
+        if "title" in tags:
             desc = tags["title"]
-            if "artist" in tags.keys():
+            if "artist" in tags:
                 desc = tags["artist"] + " - " + desc
             self._playing_media.set_description(desc)
             self.dispatch_signame('player.current')

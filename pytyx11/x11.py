@@ -111,7 +111,7 @@ class X11Window(object):
         mwmhints.flags = libX11.MWMHints.MWM_HINTS_DECORATIONS
         data = ctypes.cast(ctypes.byref(mwmhints), ctypes.c_char_p)
         xa_no_border = libX11.XInternAtom(self.__display_p,
-                                          "_MOTIF_WM_HINTS",
+                                          b"_MOTIF_WM_HINTS",
                                           False)
         libX11.XChangeProperty(self.__display_p, self.__window_p,
                                xa_no_border, xa_no_border,
@@ -128,11 +128,12 @@ class X11Window(object):
         black = libX11.XColor()
         dummy = libX11.XColor()
         bitmap_struct = ctypes.c_char * 8
-        bm_no_data = bitmap_struct('0', '0', '0', '0', '0', '0', '0', '0')
+        bm_no_data = bitmap_struct(b'0', b'0', b'0', b'0', 
+                                   b'0', b'0', b'0', b'0')
 
         cmap = libX11.XDefaultColormap(self.__display_p,
                                    self.__display.get_default_screen_number())
-        libX11.XAllocNamedColor(self.__display_p, cmap, "black",
+        libX11.XAllocNamedColor(self.__display_p, cmap, b"black",
                                 ctypes.byref(black), ctypes.byref(dummy))
 
         bm_no = libX11.XCreateBitmapFromData(self.__display_p,
@@ -217,8 +218,11 @@ class X11Window(object):
 
 class X11Display(object):
 
-    def __init__(self, id=':0.0'):
-        self.id = id
+    def __init__(self, d_id=':0.0'):
+        if isinstance(d_id, str):
+            # in python3 c_char_p is bytes
+            d_id = d_id.encode("utf-8")
+        self.id = d_id
 
         if not libX11.XInitThreads():
             raise X11Error('Could not init threads')
@@ -249,9 +253,9 @@ class X11Display(object):
         if not screen_number:
             screen_number = self.get_default_screen_number()
 
-        res_h = float(self.get_width(screen_number) * 1000 /\
+        res_h = float(self.get_width(screen_number) * 1000 /
                       libX11.XDisplayWidthMM(self.__display_p, screen_number))
-        res_v = float(self.get_height(screen_number) * 1000 /\
+        res_v = float(self.get_height(screen_number) * 1000 /
                       libX11.XDisplayHeightMM(self.__display_p, screen_number))
         return res_v / res_h
 

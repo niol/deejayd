@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import time
 from twisted.internet import threads, task, reactor
 from xml.etree import cElementTree as ET
@@ -68,7 +68,7 @@ class IceCastSource(_BaseWebradioSource):
         log.msg(_("Start to reload icecast webradio source"))
         url = DeejaydConfig().get("webradio", "icecast_url")
         try:
-            page_handle = urllib2.urlopen(url, timeout=TIMEOUT)
+            page_handle = urllib.request.urlopen(url, timeout=TIMEOUT)
             xml_page = page_handle.read()
         except:
             raise DeejaydError(_("Unable to connect to icecast website"))
@@ -117,7 +117,7 @@ class IceCastSource(_BaseWebradioSource):
                         if len(genre) <= 2 or genre.startswith("."):
                             continue
                         genre = genre.capitalize()
-                        if genre not in categories.keys():
+                        if genre not in categories:
                             categories[genre] = WebradioCategory(name=genre,
                                                                  source=source)
                         webradios[name].categories.append(categories[genre])

@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -21,37 +21,43 @@
 import sys
 from optparse import OptionParser
 import socket
+from deejayd.common.client import DeejayDaemonSync, DeejaydError
+from deejayd.commmon.client import ConnectError, camelcase_to_underscore
 
-from deejayd.common.client import DeejayDaemonSync, DeejaydError,\
-                               ConnectError, camelcase_to_underscore
 
-class DjcError(Exception): pass
+class DjcError(Exception):
+    pass
+
 
 # Decorators
-def command(cmd_path, cmd_args = [], cmd_ans = "ack"):
+def command(cmd_path, cmd_args=[], cmd_ans="ack"):
     def command_instance(func):
         def command_func(self, __args):
             __new_args = list(__args)
             # verify args
             for idx, arg in enumerate(cmd_args):
-                try: value = __args[idx]
+                try:
+                    value = __args[idx]
                 except IndexError:
                     if arg["req"] is True:
                         raise DjcError("Arg %s is required" % arg["name"])
                 else:
                     if arg['type'] == "int":
-                        try: value = int(value)
-                        except (ValueError,TypeError):
-                            raise DjcError("Arg %s is not an int" % arg["name"])
+                        try:
+                            value = int(value)
+                        except (ValueError, TypeError):
+                            raise DjcError("Arg %s is not an "
+                                           "int" % arg["name"])
                     elif arg['type'] == "bool":
                         value = value.lower() in ("on", "true", "1")
                     elif arg['type'] in ("int-list", "list"):
                         value = value.split(",")
                         if arg['type'] == "int-list":
-                            try: value = map(int, value)
-                            except (ValueError,TypeError):
-                                raise DjcError("Arg %s is not an int-list"\
-                                        % arg["name"])
+                            try:
+                                value = [int(v) for v in value]
+                            except (ValueError, TypeError):
+                                raise DjcError("Arg %s is not an "
+                                               "int-list" % arg["name"])
                     __new_args[idx] = value
 
             # find the right client func
@@ -64,22 +70,25 @@ def command(cmd_path, cmd_args = [], cmd_ans = "ack"):
 
             ans = func(*__new_args)
             if cmd_ans == "dict":
-                for key, value in ans.items():
-                    print key, ':', value
+                for key, value in list(ans.items()):
+                    print(key, ':', value)
             elif cmd_ans == "fileAndDirList":
-                for dir in ans["directories"]: print "directory:", dir
-                for file in ans["files"]: print "file:", file["filename"]
+                for d in ans["directories"]:
+                    print("directory:", d)
+                for f in ans["files"]:
+                    print("file:", f["filename"])
             elif cmd_ans == "media":
                 if ans is None:
-                    print "No media"
+                    print("No media")
                 else:
-                    for (k, v) in ans.items():
-                        print "%s: %s" % (k, v)
+                    for (k, v) in list(ans.items()):
+                        print("%s: %s" % (k, v))
 
         command_func.__name__ = func.__name__
         command_func.__doc__ = func.__doc__
         return command_func
     return command_instance
+
 
 class AvailableCommands:
 
@@ -90,15 +99,18 @@ class AvailableCommands:
     def ping(self, args):
         """Ping server using the protocol"""
 
-    @command("setMode", cmd_args=[{"name":"mode", "type":"string", "req":True}])
+    @command("setMode", cmd_args=[{
+        "name": "mode",
+        "type": "string",
+        "req": True}])
     def set_mode(self, args):
         """Set active mode to argument value. ex: djc set_mode webradio"""
 
-    @command("getStatus", cmd_ans = "dict")
+    @command("getStatus", cmd_ans="dict")
     def status(self, args):
         """Get full deejayd status"""
 
-    @command("getStats", cmd_ans = "dict")
+    @command("getStats", cmd_ans="dict")
     def stats(self, args):
         """Get audio/video library stats"""
 
@@ -118,7 +130,7 @@ class AvailableCommands:
     def next(self, args):
         """Next element in player"""
 
-    @command("player.getPlaying", cmd_ans = "media")
+    @command("player.getPlaying", cmd_ans="media")
     def current(self, args):
         """Return the current playing media (if it exists)"""
 
@@ -149,7 +161,6 @@ class AvailableCommands:
         except (ValueError, IndexError):
             raise DjcError('Bad command line')
 
-
     VOLUME_STEP = 10
 
     def volume(self, args):
@@ -174,48 +185,47 @@ class AvailableCommands:
             raise DjcError('Bad command line')
 
     @command("audiolib.update",
-            cmd_args={"name":"force", "type":"bool", "req":False},
-            cmd_ans="dict")
+             cmd_args={"name": "force", "type": "bool", "req": False},
+             cmd_ans="dict")
     def audio_update(self, args):
         """Update audio library"""
 
     @command("audiolib.getDirContent",
-            cmd_args=[{"name":"dir", "type":"string", "req":False}],
-            cmd_ans="fileAndDirList")
+             cmd_args=[{"name": "dir", "type": "string", "req": False}],
+             cmd_ans="fileAndDirList")
     def get_audio_dir(self, args):
         """Get the content of an directory in audio library.
            ex: djc get_audio_dir "dirname"
            if no dirname has been entered, return root directory content"""
 
     @command("videolib.update",
-            cmd_args=[{"name":"force", "type":"bool", "req":False}],
-            cmd_ans="dict")
+             cmd_args=[{"name": "force", "type": "bool", "req": False}],
+             cmd_ans="dict")
     def video_update(self, args):
         """Update video library"""
 
     @command("videolib.getDirContent",
-            cmd_args=[{"name":"dir", "type":"string", "req":False}],
-            cmd_ans="fileAndDirList")
+             cmd_args=[{"name": "dir", "type": "string", "req": False}],
+             cmd_ans="fileAndDirList")
     def get_video_dir(self, args):
         """Get the content of an directory in video library.
            ex: djc get_video_dir "dirname"
            if no dirname has been entered, return root directory content"""
 
     @command("audiopls.loadFolders",
-            cmd_args=[{"name":"dir_ids", "type":"int-list", "req":True}],
-            cmd_ans="ack")
+             cmd_args=[{"name": "dir_ids", "type": "int-list", "req": True}],
+             cmd_ans="ack")
     def audiopls_load_folder(self, args):
         """load folder in the audio playlist.
            ex: djc audiopls_load_folder 1,2"""
 
-
     @command("player.setVideoOption",
-            cmd_args=[{"name":"option", "type":"string", "req":True},
-                      {"name":"value", "type":"int", "req":True},
-                     ],
-            cmd_ans="bool")
+             cmd_args=[{"name": "option", "type": "string", "req": True},
+                       {"name": "value", "type": "int", "req": True}],
+             cmd_ans="bool")
     def set_video_option(self, args):
-        """Adjust playback settings among av_offset, sub_offset, audio_lang, sub_lang, aspect_ratio"""
+        """Adjust playback settings among av_offset, sub_offset, audio_lang,
+           sub_lang, aspect_ratio"""
 
 
 def get_cmds():
@@ -238,19 +248,21 @@ parser = OptionParser(usage=usage)
 parser.add_option("", "--host",
                   action="store", type="string",
                   dest="host", default="localhost",
-                  help="Hostname or ip address on which deejayd listens. Default is localhost.")
+                  help="Hostname or ip address on which deejayd listens. "
+                       "Default is localhost.")
 parser.add_option("", "--port",
                   action="store", type="int",
                   dest="port", default=6800,
                   help="Port on which deejayd listens. Default is 6800.")
 (options, args) = parser.parse_args()
 
+
 def fail_cmdline():
     parser.print_help()
     sys.exit("Bad command line.")
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     deejayd = DeejayDaemonSync()
 
     if len(args) < 1:
@@ -260,22 +272,22 @@ if __name__ == '__main__':
 
     cmds = AvailableCommands(deejayd)
     if command in dir(cmds):
-        try: deejayd.connect(options.host, options.port)
-        except ConnectError, msg:
-            print msg
+        try:
+            deejayd.connect(options.host, options.port)
+        except ConnectError as msg:
+            print(msg)
         else:
-            try: getattr(AvailableCommands, command)(cmds, args[1:])
-            except DeejaydError, msg:
-                print "Deejayd Error:", msg
-            except DjcError, msg:
-                print "Djc Error:", msg
+            try:
+                getattr(AvailableCommands, command)(cmds, args[1:])
+            except DeejaydError as msg:
+                print("Deejayd Error:", msg)
+            except DjcError as msg:
+                print("Djc Error:", msg)
             except socket.error:
-                print "Error: the server closes the socket"
-            try: deejayd.disconnect()
+                print("Error: the server closes the socket")
+            try:
+                deejayd.disconnect()
             except socket.error:
                 pass
     else:
         fail_cmdline()
-
-
-# vim: ts=4 sw=4 expandtab

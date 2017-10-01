@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,36 +16,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import locale
-
 __version__ = "0.14.0"
 
 
 class DeejaydError(Exception):
     """General purpose error structure."""
-
-    def __init__(self, *args, **kwargs):
-        super(DeejaydError, self).__init__(*args, **kwargs)
-        if len(args) > 0:
-            self._message = args[0]
-
-    # Handle unicode messages, what Exceptions cannot. See Python issue at
-    # http://bugs.python.org/issue2517
-    def __str__(self):
-        if type(self._message) is unicode:
-            try:
-                return str(self._message.encode(locale.getpreferredencoding()))
-            except UnicodeError:
-                # perharps prefered encoding not correctly set, force to UTF-8
-                return str(self._message.encode("utf-8"))
-        else:
-            return str(self._message)
-
-    def __unicode__(self):
-        if type(self._message) is unicode:
-            return self._message
-        else:
-            return unicode(self._message)
 
 
 def Singleton(singleton_cls):
@@ -78,5 +53,3 @@ def Singleton(singleton_cls):
 
     SingletonClass.__name__ = singleton_cls.__name__
     return SingletonClass
-
-# vim: ts=4 sw=4 expandtab

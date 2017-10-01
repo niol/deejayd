@@ -29,6 +29,8 @@ class JSONRPCEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime):
             return obj.strftime("%Y%m%dT%H:%M:%S")
+        elif isinstance(obj, bytes):
+            return obj.decode('utf-8')
         raise TypeError("%r is not JSON serializable" % (obj,))
 
 
@@ -83,7 +85,7 @@ class JSONRPCResponse(_DeejaydJSON):
     def to_json(self):
         try:
             return json.dumps(self._build_obj(), cls=JSONRPCEncoder)
-        except TypeError, ex:
+        except TypeError as ex:
             error = {"code": NOT_WELLFORMED_ERROR, "message": str(ex)}
             obj = {"result": None, "error": error, "id": self.id}
             return json.dumps(obj)

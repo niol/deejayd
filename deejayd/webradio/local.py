@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from zope.interface import implements
+from zope.interface import implementer
 from deejayd.server.utils import get_uris_from_pls, get_uris_from_m3u
 from deejayd.db.connection import Session
 from deejayd.db.models import WebradioCategory, Webradio, WebradioEntry
@@ -41,8 +41,8 @@ def save_session(func):
     return new_func
 
 
+@implementer(IEditWebradioSource)
 class WebradioLocalSource(_BaseWebradioSource):
-    implements(IEditWebradioSource)
     NAME = "local"
     state_name = "webradio_local"
 

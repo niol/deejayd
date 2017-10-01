@@ -1,4 +1,4 @@
-#!/usr/bin/python -W ignore::DeprecationWarning
+#!/usr/bin/python3 -W ignore::DeprecationWarning
 
 # Deejayd, a media player daemon
 # Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>

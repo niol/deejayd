@@ -23,8 +23,8 @@
 import re
 from deejayd.library.parsers.video import fourcc
 from deejayd.library.parsers.video import language
-from deejayd.library.parsers.video.strutils import str_to_unicode
-from deejayd.library.parsers.video.strutils import unicode_to_str
+from deejayd.library.parsers.video.strutils import str_to_bytes
+from deejayd.library.parsers.video.strutils import bytes_to_str
 
 # media type definitions
 MEDIA_AUDIO = 'MEDIA_AUDIO'
@@ -66,8 +66,9 @@ class Media(object):
     def __init__(self, hash=None):
         if hash is not None:
             # create Media based on dict
-            for key, value in hash.items():
-                if isinstance(value, list) and value and isinstance(value[0], dict):
+            for key, value in list(hash.items()):
+                if isinstance(value, list) and value and \
+                        isinstance(value[0], dict):
                     value = [Media(x) for x in value]
                 self._set(key, value)
             return
@@ -78,31 +79,33 @@ class Media(object):
         # either Tag objects, other dicts (for nested tags), or lists of either
         # (for multiple instances of the tag, e.g. actor).  Where possible,
         # parsers should transform tag names to conform to the Official
-        # Matroska tags defined at http://www.matroska.org/technical/specs/tagging/index.html
+        # Matroska tags defined at 
+        # http://www.matroska.org/technical/specs/tagging/index.html
         # All tag names will be lower-cased.
         self.tags = Tags()
         for key in set(self._keys) - set(['media', 'tags']):
             setattr(self, key, None)
 
     #
-    # unicode and string convertion for debugging
+    # string convertion for debugging
     #
     # TODO: Fix that mess
-    def __unicode__(self):
-        result = u''
+    def __str__(self):
+        result = ''
 
         # print normal attributes
         lists = []
         for key in self._keys:
             value = getattr(self, key, None)
-            if value == None or key == 'url':
+            if value is None or key == 'url':
                 continue
             if isinstance(value, list):
                 if not value:
                     continue
-                elif isinstance(value[0], basestring):
-                    # Just a list of strings (keywords?), so don't treat it specially.
-                    value = u', '.join(value)
+                elif isinstance(value[0], str):
+                    # Just a list of strings (keywords?),
+                    # so don't treat it specially.
+                    value = ', '.join(value)
                 else:
                     lists.append((key, value))
                     continue
@@ -111,18 +114,20 @@ class Media(object):
                 continue
             if key in UNPRINTABLE_KEYS:
                 value = '<unprintable data, size=%d>' % len(value)
-            result += u'| %10s: %s\n' % (unicode(key), unicode(value))
+            result += '| %10s: %s\n' % (str(key), str(value))
 
         # print tags (recursively, to support nested tags).
         def print_tags(tags, suffix, show_label):
             result = ''
             for n, (name, tag) in enumerate(tags.items()):
-                result += u'| %12s%s%s = ' % (u'tags: ' if n == 0 and show_label else '', suffix, name)
+                result += "| %12s%s%s" \
+                          " = " % ('tags: ' if n == 0 and show_label else '',
+                                   suffix, name)
                 if isinstance(tag, list):
                     # TODO: doesn't support lists/dicts within lists.
-                    result += u'%s\n' % ', '.join(subtag.value for subtag in tag)
+                    result += '%s\n' % ', '.join(subtag.value for subtag in tag)
                 else:
-                    result += u'%s\n' % (tag.value or '')
+                    result += '%s\n' % (tag.value or '')
                 if isinstance(tag, dict):
                     result += print_tags(tag, '    ', False)
             return result
@@ -134,29 +139,9 @@ class Media(object):
                 label = '+-- ' + key.rstrip('s').capitalize()
                 if key not in ['tracks', 'subtitles', 'chapters']:
                     label += ' Track'
-                result += u'%s #%d\n' % (label, n + 1)
-                result += '|    ' + re.sub(r'\n(.)', r'\n|    \1', unicode(item))
-
-        # print tables
-        # FIXME: WTH?
-#        if log.level >= 10:
-#            for name, table in self.tables.items():
-#                result += '+-- Table %s\n' % str(name)
-#                for key, value in table.items():
-#                    try:
-#                        value = unicode(value)
-#                        if len(value) > 50:
-#                            value = u'<unprintable data, size=%d>' % len(value)
-#                    except (UnicodeDecodeError, TypeError):
-#                        try:
-#                            value = u'<unprintable data, size=%d>' % len(value)
-#                        except AttributeError:
-#                            value = u'<unprintable data>'
-#                    result += u'|    | %s: %s\n' % (unicode(key), value)
+                result += '%s #%d\n' % (label, n + 1)
+                result += '|    ' + re.sub(r'\n(.)', r'\n|    \1', str(item))
         return result
-
-    def __str__(self):
-        return unicode(self).encode()
 
     def __repr__(self):
         if hasattr(self, 'url'):
@@ -188,9 +173,9 @@ class Media(object):
         if value is None and getattr(self, key, None) is None:
             return
         if isinstance(value, str):
-            value = str_to_unicode(value)
+            value = str_to_bytes(value)
         setattr(self, key, value)
-        if not key in self._keys:
+        if key not in self._keys:
             self._keys.append(key)
 
     def _set_url(self, url):
@@ -211,33 +196,35 @@ class Media(object):
             if value is None:
                 continue
             if key == 'image':
-                if isinstance(value, unicode):
-                    setattr(self, key, unicode_to_str(value))
+                if isinstance(value, bytes):
+                    setattr(self, key, bytes_to_str(value))
                 continue
+            if isinstance(value, bytes):
+                setattr(self, key, bytes_to_str(value))
             if isinstance(value, str):
-                setattr(self, key, str_to_unicode(value))
-            if isinstance(value, unicode):
-                setattr(self, key, value.strip().rstrip().replace(u'\0', u''))
-            if isinstance(value, list) and value and isinstance(value[0], Media):
+                setattr(self, key, value.strip().rstrip().replace('\0', ''))
+            if isinstance(value, list) and value \
+                    and isinstance(value[0], Media):
                 for submenu in value:
                     submenu._finalize()
 
         # copy needed tags from tables
-        for name, table in self.tables.items():
+        for name, table in list(self.tables.items()):
             mapping = self.table_mapping.get(name, {})
-            for tag, attr in mapping.items():
+            for tag, attr in list(mapping.items()):
                 if self.get(attr):
                     continue
                 value = table.get(tag, None)
                 if value is not None:
-                    if not isinstance(value, (str, unicode)):
-                        value = str_to_unicode(str(value))
+                    if not isinstance(value, str):
+                        value = str_to_bytes(str(value))
                     elif isinstance(value, str):
-                        value = str_to_unicode(value)
-                    value = value.strip().rstrip().replace(u'\0', u'')
+                        value = str_to_bytes(value)
+                    value = value.strip().rstrip().replace(b'\0', b'')
                     setattr(self, attr, value)
 
-        if 'fourcc' in self._keys and 'codec' in self._keys and self.codec is not None:
+        if 'fourcc' in self._keys and 'codec' in self._keys \
+                and self.codec is not None:
             # Codec may be a fourcc, in which case we resolve it to its actual
             # name and set the fourcc attribute.
             self.fourcc, self.codec = fourcc.resolve(self.codec)
@@ -285,7 +272,8 @@ class Media(object):
         result = {}
         for k in self._keys:
             value = getattr(self, k, None)
-            if isinstance(value, list) and value and isinstance(value[0], Media):
+            if isinstance(value, list) and value \
+                    and isinstance(value[0], Media):
                 value = [x.convert() for x in value]
             result[k] = value
         return result
@@ -320,9 +308,6 @@ class Tag(object):
         self.value = value
         self.langcode = langcode
         self.binary = binary
-
-    def __unicode__(self):
-        return unicode(self.value)
 
     def __str__(self):
         return str(self.value)
@@ -427,6 +412,7 @@ class AVContainer(Media):
         self.video = []
         self.subtitles = []
         self.chapters = []
+        self.length = 0
 
     def _finalize(self):
         """
@@ -440,5 +426,3 @@ class AVContainer(Media):
             for track in self.video + self.audio:
                 if track.length:
                     self.length = max(self.length, track.length)
-
-# vim: ts=4 sw=4 expandtab

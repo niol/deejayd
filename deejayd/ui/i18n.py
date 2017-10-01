@@ -16,10 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
+import builtins
 import gettext
 
 
@@ -30,10 +27,6 @@ class DeejaydTranslations(gettext.GNUTranslations):
         self.plural = lambda n: n > 1
         gettext.GNUTranslations.__init__(self, *args, **kwargs)
 
-    def install(self, is_unicode=True):
-        if is_unicode:
-            builtins.__dict__["_"] = self.ugettext
-            builtins.__dict__["ngettext"] = self.ungettext
-        else:
-            builtins.__dict__["_"] = self.gettext
-            builtins.__dict__["ngettext"] = self.ngettext
+    def install(self):
+        builtins.__dict__["_"] = self.gettext
+        builtins.__dict__["ngettext"] = self.ngettext

@@ -27,7 +27,7 @@ from deejayd.player._base import _BasePlayer, PLAYER_PAUSE, \
                                  PLAYER_PLAY, PLAYER_STOP
 
 
-LIBVLC_VERSIONS = ('2.2', )
+LIBVLC_VERSIONS = ("2.2", )
 
 
 @jsonrpc_module(PlayerModule)
@@ -77,7 +77,7 @@ class VlcPlayer(_BasePlayer):
     def __init__(self, config):
         super(VlcPlayer, self).__init__(config)
         # test version, this backend only works with specific versions of vlc
-        version = _vlc.libvlc_get_version()
+        version = _vlc.libvlc_get_version().decode('utf-8')
         good_version = False
         for v in LIBVLC_VERSIONS:
             if version.startswith(v):
@@ -93,7 +93,7 @@ class VlcPlayer(_BasePlayer):
             options += " --no-video"
         try:
             self.__vlc = _vlc.Instance(options)
-        except _vlc.VLCException, ex:
+        except _vlc.VLCException as ex:
             raise PlayerError(_("Unable to init vlc player: %s") % ex)
 
         # init vlc player and event manager
@@ -127,7 +127,7 @@ class VlcPlayer(_BasePlayer):
         uris = iter(self._playing_media.get_uris())
         try:
             while not playing:
-                uri = uris.next()
+                uri = next(uris)
                 media = self.__vlc.media_new(uri)
                 self.__player.set_media(media)
                 needs_video = self.video_enable and self._playing_media.has_video()
@@ -270,9 +270,9 @@ class VlcPlayer(_BasePlayer):
         display_ids = iter(d_list)
         try:
             while self.__display is None:
-                display_id = display_ids.next()
+                display_id = next(display_ids)
                 try:
-                    self.__display = x11.X11Display(id=display_id)
+                    self.__display = x11.X11Display(d_id=display_id)
                 except (x11.X11Error, KeyError):
                     self.__display = None
         except StopIteration:

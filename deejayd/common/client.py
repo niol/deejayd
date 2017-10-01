@@ -25,8 +25,7 @@ import sys
 import inspect
 import re
 import new
-import posixpath
-from Queue import Queue, Empty
+from queue import Queue, Empty
 from deejayd import DeejaydError
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
 from deejayd.jsonrpc.interfaces import JSONRPC_MODULES
@@ -121,7 +120,7 @@ class _DeejayDaemon(object):
         self.connected = False
 
         # builds commands based on JSONRPC_COMMANDS attr
-        for module, CmdClass in JSONRPC_MODULES.items():
+        for module, CmdClass in list(JSONRPC_MODULES.items()):
             if module == "core":
                 prefix = ""
                 instance = self.__class__
@@ -150,7 +149,7 @@ class _DeejayDaemon(object):
         except IndexError:
             raise ValueError
         else:
-            numerical_version = map(int, version.split('.'))
+            numerical_version = [int(v) for v in version.split('.')]
             try:
                 if tokenized_banner[3] == 'protocol':
                     protocol_version = tokenized_banner[4]
@@ -173,7 +172,7 @@ class _DeejayDaemon(object):
 
     def _build_answer(self, msg):
         try: msg = loads_response(msg)
-        except Fault, f:
+        except Fault as f:
             raise DeejaydError("JSONRPC error - %s - %s" % (f.code, f.message))
         if msg["id"] is None:  # it is a notification
             result = msg["result"]["answer"]
@@ -208,11 +207,11 @@ class DeejayDaemonSync(_DeejayDaemon):
         self.port = port
 
         try: self.socket_to_server.connect((self.host, self.port))
-        except socket.timeout, msg:
+        except socket.timeout as msg:
             # reset connection
             self._reset_socket()
             raise ConnectError('Connection timeout')
-        except socket.error, msg:
+        except socket.error as msg:
             raise ConnectError('Connection with server failed : %s' % msg)
 
         self.socket_to_server.settimeout(None)
@@ -329,7 +328,7 @@ class DeejaydAsyncAnswer(object):
 
     def answer_received(self, answer):
         try: answer = parse_deejayd_answer(answer)
-        except DeejaydError, err:
+        except DeejaydError as err:
             self.error = str(err)
             for cb in self.errbacks:
                 cb(self.error)
@@ -375,27 +374,27 @@ class DeejaydDictAnswer(DeejaydAsyncAnswer):
 
     def keys(self):
         self.wait_for_answer()
-        return self.answer.keys()
+        return list(self.answer.keys())
 
     def items(self):
         self.wait_for_answer()
-        return self.answer.items()
+        return list(self.answer.items())
 
     def iteritems(self):
         self.wait_for_answer()
-        return self.answer.iteritems()
+        return iter(self.answer.items())
 
     def iterkeys(self):
         self.wait_for_answer()
-        return self.answer.iterkeys()
+        return iter(self.answer.keys())
 
     def itervalues(self):
         self.wait_for_answer()
-        return self.answer.itervalues()
+        return iter(self.answer.values())
 
     def values(self):
         self.wait_for_answer()
-        return self.answer.values()
+        return list(self.answer.values())
 
     def has_key(self, key):
         self.wait_for_answer()
@@ -625,7 +624,7 @@ class DeejayDaemonAsync(_DeejayDaemon):
 
         self.__create_socket(ignore_version)
         try: self.socket_to_server.connect((host, port))
-        except socket.error, msg:
+        except socket.error as msg:
             raise ConnectError('Connection error %s' % str(msg))
 
         if len(self.socket_thread.socket_map) < 2:
@@ -662,7 +661,7 @@ class DeejayDaemonAsync(_DeejayDaemon):
 
     def _dispatch_signal(self, signal):
         if signal["name"] in self.__subscriptions:
-            for cb in self.__subscriptions[signal["name"]].values():
+            for cb in list(self.__subscriptions[signal["name"]].values()):
                 cb(signal)
 
     def is_subscribed(self, signal_name):
@@ -681,7 +680,7 @@ class DeejayDaemonAsync(_DeejayDaemon):
     def unsubscribe(self, sub_id):
         for signal_name in self.__subscriptions:
             sig_subs = self.__subscriptions[signal_name]
-            if sub_id in sig_subs.keys():
+            if sub_id in list(sig_subs.keys()):
                 del sig_subs[sub_id]
                 if len(sig_subs) == 0:
                     cmd = JSONRPCRequest("signal.setSubscription",

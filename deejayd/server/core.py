@@ -78,7 +78,7 @@ class DeejayDaemonCore(JSONRpcComponent):
         # add audio queue/playlist and video playlist
         self.sources = sources.init(self.player, self.audiolib,
                                     self.videolib, config)
-        for source in self.sources.sources.values():
+        for source in list(self.sources.sources.values()):
             self.put_sub_handler(source.name, source)
             setattr(self, source.name, source)
 

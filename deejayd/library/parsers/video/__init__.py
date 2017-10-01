@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2013-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import runpy
 import os
 import mimetypes
 import itertools
@@ -49,7 +50,7 @@ PARSERS = [
 
 
 class VideoParserFactory(object):
-    subtitle_ext = (".srt",)
+    subtitle_ext = (b".srt",)
 
     def __init__(self, library):
         self.library = library
@@ -60,11 +61,14 @@ class VideoParserFactory(object):
 
     def _format_title(self, f):
         (filename, ext) = os.path.splitext(f)
-        title = filename.replace(".", " ")
-        title = title.replace("_", " ")
+        title = filename.replace(b".", b" ")
+        title = title.replace(b"_", b" ")
         return title.title()
 
     def _find_parser(self, path):
+        if isinstance(path, bytes):
+            # mimetypes module works with str
+            path = path.decode("utf-8")
         extension = os.path.splitext(path)[1]
         mimetype = mimetypes.guess_type(path)[0]
         parser_ext = None
@@ -80,18 +84,18 @@ class VideoParserFactory(object):
         return self._find_parser(filepath) is not None
 
     def parse(self, file_obj, session):
-        path = file_obj.get_path().encode("utf-8")
+        path = file_obj.get_path()
         parser = self._find_parser(path)
         if parser is None:
             raise NoParserError()
-        mod = __import__(parser, globals=globals(), locals=locals(), 
-                         fromlist=[], level=-1)
+        mod_path = os.path.join(os.path.dirname(__file__), parser+".py")
+        mod = runpy.run_path(mod_path, init_globals=globals())
         with open(path, 'rb') as f:
-            infos = mod.Parser(f)
+            infos = mod["Parser"](f)
             if infos:
                 infos._finalize()
         if infos is None:
-            raise ParseError(_("Video media %s not supported") % file)
+            raise ParseError(_("Video media %s not supported") % path)
         if len(infos["video"]) == 0:
             raise ParseError(_("This file is not a video"))
         # update video object
@@ -114,12 +118,12 @@ class VideoParserFactory(object):
             setattr(file_obj, k, f_infos[k])
         file_obj.last_modified = int(time.time())
         # set audio and subtitle channels
-        map(file_obj.audio_channels.remove, file_obj.audio_channels)
+        file_obj.audio_channels = []
         for idx, a_channel in enumerate(infos["audio"]):
             lang = a_channel.get("language", "Unknown") 
             ch_obj = AudioChannel(lang=lang, c_idx=idx+1)
             file_obj.audio_channels.append(ch_obj)
-        map(file_obj.sub_channels.remove, file_obj.sub_channels)
+        file_obj.sub_channels = []
         for idx, s_channel in enumerate(infos["subtitles"]):
             lang = s_channel.get("language", "Unknown") 
             ch_obj = SubtitleChannel(lang=lang, c_idx=idx+1)
@@ -128,10 +132,10 @@ class VideoParserFactory(object):
         return self.extra_parse(file_obj)
 
     def extra_parse(self, file_obj):
-        path = file_obj.get_path().encode("utf-8")
+        path = file_obj.get_path()
         # find external subtitle
         base_path = os.path.splitext(path)[0]
-        sub = ""
+        sub = b""
         for ext_type in self.subtitle_ext:
             if os.path.isfile(os.path.join(base_path + ext_type)):
                 sub = quote_uri(base_path + ext_type)

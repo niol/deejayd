@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 import os
 from deejayd.library.parsers.audio.core import _AudioFile
 
-extensions = [".mp3", ".mp2", ".aac"]
+extensions = [b".mp3", b".mp2", b".aac"]
 try:
     from mutagen.mp3 import MP3
 except ImportError:
@@ -27,10 +27,11 @@ except ImportError:
 
 
 class Mp3File(_AudioFile):
-    IDS = { "TIT2": "title",
-            "TPE1": "artist",
-            "TALB": "album",
-            }
+    IDS = {
+        "TIT2": "title",
+        "TPE1": "artist",
+        "TALB": "album",
+    }
 
     def parse(self, file, library):
         self.__infos = _AudioFile.parse(self, file, library)
@@ -56,7 +57,7 @@ class Mp3File(_AudioFile):
             self.__infos["title"] = os.path.split(file)[1]
             return self.__infos
 
-        for frame in tag.values():
+        for frame in list(tag.values()):
             if frame.FrameID == "RVA2":  # replaygain
                 self.__process_rg(frame)
                 continue
@@ -64,20 +65,23 @@ class Mp3File(_AudioFile):
                 self.__infos["genre"] = frame.genres[0]
                 continue
             elif frame.FrameID == "TDRC":  # date
-                list = [stamp.text for stamp in frame.text]
-                self.__infos["date"] = list[0]
+                d_list = [stamp.text for stamp in frame.text]
+                self.__infos["date"] = d_list[0]
                 continue
             elif frame.FrameID == "TRCK":  # tracknumber
                 self.__infos["tracknumber"] = self._format_number(frame.text[0])
             elif frame.FrameID == "TPOS":  # discnumber
                 self.__infos["discnumber"] = self._format_number(frame.text[0])
-            elif frame.FrameID in self.IDS.keys():
+            elif frame.FrameID in list(self.IDS.keys()):
                 self.__infos[self.IDS[frame.FrameID]] = frame.text[0]
             elif frame.FrameID == "APIC":  # picture
                 if frame.type == 3:  # album front cover
-                    self.__infos["cover"] = {"data": frame.data,
-                                      "mimetype": frame.mime}
-            else: continue
+                    self.__infos["cover"] = {
+                        "data": frame.data,
+                        "mimetype": frame.mime
+                    }
+            else:
+                continue
 
         return self.__infos
 
@@ -86,6 +90,5 @@ class Mp3File(_AudioFile):
             self.__infos["replaygain_%s_gain" % frame.desc] = "%+f dB" % frame.gain
             self.__infos["replaygain_%s_peak" % frame.desc] = str(frame.peak)
 
-object = Mp3File
 
-# vim: ts=4 sw=4 expandtab
+object = Mp3File

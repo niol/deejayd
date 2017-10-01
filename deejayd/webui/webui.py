@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
-from twisted.web.resource import Resource, NoResource
+from twisted.web.resource import Resource
 from deejayd.ui.config import DeejaydConfig
 
 
@@ -29,20 +29,18 @@ class DeejaydMainHandler(Resource):
     ]
 
     def getChild(self, name, request):
-        if name == '':
-            return self
-        r = Resource.getChild(self, name, request)
-        if isinstance(r, NoResource):
-            return self
-        return r
+        name = name.decode("utf-8")
+        if name in self.children:
+            return self.children[name]
+        return self
 
     def render_GET(self, request):
         # Trailing slash is required for js script paths in the mobile webui,
         # therefore we need to add it if it is missing, by issuing a redirect
         # to the web browser.
-        if request.prepath[-1] != '':
-            request.redirect(request.path + '/')
-            return 'redirected'
+        if request.prepath[-1] != b'':
+            request.redirect(request.path + b'/')
+            return b'redirected'
 
         return self._build()
 
@@ -53,8 +51,7 @@ class DeejaydMainHandler(Resource):
             }
 
     def _djdscripts(self, config):
-        return "\n".join(map(lambda s: self._load_script(s[0], s[1]),
-                             self.scripts))
+        return "\n".join([self._load_script(s[0], s[1]) for s in self.scripts])
 
     def _get_page_args(self):
         config = DeejaydConfig()

@@ -24,6 +24,7 @@ from deejayd import DeejaydError
 from deejayd.db.connection import Session
 from deejayd.db.models import StaticMediaList, StaticMediaListItem
 from deejayd.db.models import Media, Video, Song
+from functools import reduce
 
 
 def update_action(func):

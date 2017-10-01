@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Deejayd, a media player daemon
-# Copyright (C) 2013 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2017 Mickael Royer <mickael.royer@gmail.com>
 #                    Alexandre Rossi <alexandre.rossi@gmail.com>
 # Copyright 2011-2012 Antoine Bertin <diaoulael@gmail.com>
 # Copyright 2003-2006 Thomas Schueppel <stain@acm.org>
@@ -184,31 +184,31 @@ def matroska_bps_to_bitrate(bps):
 # attributes.  tag name -> attr, filter
 TAGS_MAP = {
     # From Media core
-    u'title': ('title', None),
-    u'subtitle': ('caption', None),
-    u'comment': ('comment', None),
-    u'url': ('url', None),
-    u'artist': ('artist', None),
-    u'keywords': ('keywords', lambda s: [word.strip() for word in s.split(',')]),
-    u'composer_nationality': ('country', None),
-    u'date_released': ('datetime', None),
-    u'date_recorded': ('datetime', None),
-    u'date_written': ('datetime', None),
+    'title': ('title', None),
+    'subtitle': ('caption', None),
+    'comment': ('comment', None),
+    'url': ('url', None),
+    'artist': ('artist', None),
+    'keywords': ('keywords', lambda s: [word.strip() for word in s.split(',')]),
+    'composer_nationality': ('country', None),
+    'date_released': ('datetime', None),
+    'date_recorded': ('datetime', None),
+    'date_written': ('datetime', None),
 
     # From Video core
-    u'encoder': ('encoder', None),
-    u'bps': ('bitrate', matroska_bps_to_bitrate),
-    u'part_number': ('trackno', int),
-    u'total_parts': ('trackof', int),
-    u'copyright': ('copyright', None),
-    u'genre': ('genre', None),
-    u'actor': ('actors', None),
-    u'written_by': ('writer', None),
-    u'producer': ('producer', None),
-    u'production_studio': ('studio', None),
-    u'law_rating': ('rating', None),
-    u'summary': ('summary', None),
-    u'synopsis': ('synopsis', None),
+    'encoder': ('encoder', None),
+    'bps': ('bitrate', matroska_bps_to_bitrate),
+    'part_number': ('trackno', int),
+    'total_parts': ('trackof', int),
+    'copyright': ('copyright', None),
+    'genre': ('genre', None),
+    'actor': ('actors', None),
+    'written_by': ('writer', None),
+    'producer': ('producer', None),
+    'production_studio': ('studio', None),
+    'law_rating': ('rating', None),
+    'summary': ('summary', None),
+    'synopsis': ('synopsis', None),
 }
 
 
@@ -235,7 +235,7 @@ class EbmlEntity:
         self.compute_id(inbuf)
 
         if self.id_len == 0:
-            log.err(u'EBML entity not found, bad file format')
+            log.err('EBML entity not found, bad file format')
             raise ParseError()
 
         self.entity_len, self.len_size = self.compute_len(inbuf[self.id_len:])
@@ -246,8 +246,8 @@ class EbmlEntity:
         # if the data size is 8 or less, it could be a numeric value
         self.value = 0
         if self.entity_len <= 8:
-            for pos, shift in zip(range(self.entity_len), range((self.entity_len - 1) * 8, -1, -8)):
-                self.value |= ord(self.entity_data[pos]) << shift
+            for pos, shift in zip(list(range(self.entity_len)), list(range((self.entity_len - 1) * 8, -1, -8))):
+                self.value |= self.entity_data[pos] << shift
 
 
     def add_data(self, data):
@@ -262,7 +262,7 @@ class EbmlEntity:
         self.id_len = 0
         if len(inbuf) < 1:
             return 0
-        first = ord(inbuf[0])
+        first = inbuf[0]
         if first & 0x80:
             self.id_len = 1
             self.entity_id = first
@@ -270,19 +270,19 @@ class EbmlEntity:
             if len(inbuf) < 2:
                 return 0
             self.id_len = 2
-            self.entity_id = ord(inbuf[0]) << 8 | ord(inbuf[1])
+            self.entity_id = inbuf[0] << 8 | inbuf[1]
         elif first & 0x20:
             if len(inbuf) < 3:
                 return 0
             self.id_len = 3
-            self.entity_id = (ord(inbuf[0]) << 16) | (ord(inbuf[1]) << 8) | \
-                             (ord(inbuf[2]))
+            self.entity_id = (inbuf[0]) << 16 | (inbuf[1] << 8) | \
+                             (inbuf[2])
         elif first & 0x10:
             if len(inbuf) < 4:
                 return 0
             self.id_len = 4
-            self.entity_id = (ord(inbuf[0]) << 24) | (ord(inbuf[1]) << 16) | \
-                             (ord(inbuf[2]) << 8) | (ord(inbuf[3]))
+            self.entity_id = (inbuf[0] << 24) | (inbuf[1] << 16) | \
+                             (inbuf[2] << 8) | (inbuf[3])
         self.entity_str = inbuf[0:self.id_len]
 
 
@@ -291,7 +291,7 @@ class EbmlEntity:
             return 0, 0
         i = num_ffs = 0
         len_mask = 0x80
-        len = ord(inbuf[0])
+        len = inbuf[0]
         while not len & len_mask:
             i += 1
             len_mask >>= 1
@@ -302,7 +302,7 @@ class EbmlEntity:
         if len == len_mask - 1:
             num_ffs += 1
         for p in range(i):
-            len = (len << 8) | ord(inbuf[p + 1])
+            len = (len << 8) | inbuf[p + 1]
             if len & 0xff == 0xff:
                 num_ffs += 1
         if num_ffs == i + 1:
@@ -331,11 +331,11 @@ class EbmlEntity:
 
 
     def get_utf8(self):
-        return unicode(self.entity_data, 'utf-8', 'replace')
+        return str(self.entity_data, 'utf-8', 'replace')
 
 
     def get_str(self):
-        return unicode(self.entity_data, 'ascii', 'replace')
+        return str(self.entity_data, 'ascii', 'replace')
 
 
     def get_id(self):
@@ -380,7 +380,7 @@ class Matroska(core.AVContainer):
         if header.get_id() != MATROSKA_HEADER_ID:
             raise ParseError()
 
-        log.debug(u'HEADER ID found %08X' % header.get_id())
+        log.debug('HEADER ID found %08X' % header.get_id())
         self.mime = 'video/x-matroska'
         self.type = 'Matroska'
         self.has_idx = False
@@ -391,10 +391,10 @@ class Matroska(core.AVContainer):
         # Record file offset of segment data for seekheads
         self.segment.offset = header.get_total_len() + segment.get_header_len()
         if segment.get_id() != MATROSKA_SEGMENT_ID:
-            log.debug(u'SEGMENT ID not found %08X' % segment.get_id())
+            log.debug('SEGMENT ID not found %08X' % segment.get_id())
             return
 
-        log.debug(u'SEGMENT ID found %08X' % segment.get_id())
+        log.debug('SEGMENT ID found %08X' % segment.get_id())
         try:
             for elem in self.process_one_level(segment):
                 if elem.get_id() == MATROSKA_SEEKHEAD_ID:
@@ -403,12 +403,12 @@ class Matroska(core.AVContainer):
             pass
 
         if not self.has_idx:
-            log.info(u'File has no index')
+            log.info('File has no index')
             self._set('corrupt', True)
 
     def process_elem(self, elem):
         elem_id = elem.get_id()
-        log.debug(u'BEGIN: process element %r' % hex(elem_id))
+        log.debug('BEGIN: process element %r' % hex(elem_id))
         if elem_id == MATROSKA_SEGMENT_INFO_ID:
             duration = 0
             scalecode = 1000000.0
@@ -446,7 +446,7 @@ class Matroska(core.AVContainer):
         elif elem_id == MATROSKA_CUES_ID:
             self.has_idx = True
 
-        log.debug(u'END: process element %r' % hex(elem_id))
+        log.debug('END: process element %r' % hex(elem_id))
         return True
 
 
@@ -478,7 +478,7 @@ class Matroska(core.AVContainer):
         index = 0
         while index < tracks.get_len():
             trackelem = EbmlEntity(tracksbuf[index:])
-            log.debug (u'ELEMENT %X found' % trackelem.get_id())
+            log.debug ('ELEMENT %X found' % trackelem.get_id())
             self.process_track(trackelem)
             index += trackelem.get_total_len() + trackelem.get_crc_len()
 
@@ -502,20 +502,20 @@ class Matroska(core.AVContainer):
         elements = [x for x in self.process_one_level(track)]
         track_type = [x.get_value() for x in elements if x.get_id() == MATROSKA_TRACK_TYPE_ID]
         if not track_type:
-            log.debug(u'Bad track: no type id found')
+            log.debug('Bad track: no type id found')
             return
 
         track_type = track_type[0]
         track = None
 
         if track_type == MATROSKA_VIDEO_TRACK:
-            log.debug(u'Video track found')
+            log.debug('Video track found')
             track = self.process_video_track(elements)
         elif track_type == MATROSKA_AUDIO_TRACK:
-            log.debug(u'Audio track found')
+            log.debug('Audio track found')
             track = self.process_audio_track(elements)
         elif track_type == MATROSKA_SUBTITLES_TRACK:
-            log.debug(u'Subtitle track found')
+            log.debug('Subtitle track found')
             track = core.Subtitle()
             self.set_track_defaults(track)
             track.id = len(self.subtitles)
@@ -528,7 +528,7 @@ class Matroska(core.AVContainer):
         elem_id = elem.get_id()
         if elem_id == MATROSKA_TRACK_LANGUAGE_ID:
             track.language = elem.get_str()
-            log.debug(u'Track language found: %r' % track.language)
+            log.debug('Track language found: %r' % track.language)
         elif elem_id == MATROSKA_NAME_ID:
             track.title = elem.get_utf8()
         elif elem_id == MATROSKA_TRACK_NUMBER_ID:
@@ -548,7 +548,7 @@ class Matroska(core.AVContainer):
     def process_video_track(self, elements):
         track = core.VideoStream()
         # Defaults
-        track.codec = u'Unknown'
+        track.codec = 'Unknown'
         track.fps = 0
         self.set_track_defaults(track)
 
@@ -606,7 +606,7 @@ class Matroska(core.AVContainer):
 
     def process_audio_track(self, elements):
         track = core.AudioStream()
-        track.codec = u'Unknown'
+        track.codec = 'Unknown'
         self.set_track_defaults(track)
 
         for elem in elements:
@@ -670,7 +670,7 @@ class Matroska(core.AVContainer):
             elif elem_id == MATROSKA_CHAPTER_UID_ID:
                 self.objects_by_uid[elem.get_value()] = chap
 
-        log.debug(u'Chapter %r found' % chap.name)
+        log.debug('Chapter %r found' % chap.name)
         chap.id = len(self.chapters)
         self.chapters.append(chap)
 
@@ -703,10 +703,10 @@ class Matroska(core.AVContainer):
 
         # Right now we only support attachments that could be cover images.
         # Make a guess to see if this attachment is a cover image.
-        if mimetype.startswith("image/") and u"cover" in (name + desc).lower() and data:
+        if mimetype.startswith("image/") and "cover" in (name + desc).lower() and data:
             self.thumbnail = data
 
-        log.debug(u'Attachment %r found' % name)
+        log.debug('Attachment %r found' % name)
 
 
     def process_tags(self, tags):
@@ -743,7 +743,7 @@ class Matroska(core.AVContainer):
                         self.objects_by_uid[target].tags.update(tags_dict)
                         self.tags_to_attributes(self.objects_by_uid[target], tags_dict)
                     except KeyError:
-                        log.info(u'Tags assigned to unknown/unsupported target uid %d' % target)
+                        log.info('Tags assigned to unknown/unsupported target uid %d' % target)
             else:
                 self.tags.update(tags_dict)
                 self.tags_to_attributes(self, tags_dict)
@@ -795,7 +795,7 @@ class Matroska(core.AVContainer):
 
     def tags_to_attributes(self, obj, tags):
         # Convert tags to core attributes.
-        for name, tag in tags.items():
+        for name, tag in list(tags.items()):
             if isinstance(tag, dict):
                 # Nested tags dict, recurse.
                 self.tags_to_attributes(obj, tag)
@@ -813,9 +813,9 @@ class Matroska(core.AVContainer):
             value = [item.value for item in tag] if isinstance(tag, list) else tag.value
             if filter:
                 try:
-                    value = [filter(item) for item in value] if isinstance(value, list) else filter(value)
-                except Exception, e:
-                    log.info(u'Failed to convert tag to core attribute: %r' % e)
+                    value = [list(filter(item)) for item in value] if isinstance(value, list) else list(filter(value))
+                except Exception as e:
+                    log.info('Failed to convert tag to core attribute: %r' % e)
             # Special handling for tv series recordings. The 'title' tag
             # can be used for both the series and the episode name. The
             # same is true for trackno which may refer to the season
@@ -839,4 +839,15 @@ class Matroska(core.AVContainer):
 
 Parser = Matroska
 
-# vim: ts=4 sw=4 expandtab
+
+if __name__ == "__main__":
+    import sys
+    import os
+
+    f_path = sys.argv[1]
+    if os.path.isfile(f_path):
+        with open(f_path, 'rb') as f:
+            infos = Parser(f)
+            if infos:
+                infos._finalize()
+            print(infos)

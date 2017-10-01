@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import time
-from zope.interface import implements
+from zope.interface import implementer
 from deejayd import DeejaydError
 from deejayd.webradio.IWebradioSource import IWebradioSource
 from deejayd.db.connection import Session
@@ -27,8 +27,8 @@ from deejayd.common.component import PersistentStateComponent
 from deejayd.common.component import SignalingComponent
 
 
+@implementer(IWebradioSource)
 class _BaseWebradioSource(PersistentStateComponent, SignalingComponent):
-    implements(IWebradioSource)
     NAME = ""
     state_name = ""
     initial_state = {"last_modified": -1}

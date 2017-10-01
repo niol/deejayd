@@ -20,7 +20,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import core
+from . import core
 import struct
 from deejayd.ui import log
 from deejayd.library.parsers import ParseError
@@ -61,13 +61,14 @@ FLVINFO = {
     'creator': 'copyright',
 }
 
+
 class FlashVideo(core.AVContainer):
     """
     Experimental parser for Flash videos. It requires certain flags to
     be set to report video resolutions and in most cases it does not
     provide that information.
     """
-    table_mapping = { 'FLVINFO' : FLVINFO }
+    table_mapping = {'FLVINFO': FLVINFO}
 
     def __init__(self, file):
         core.AVContainer.__init__(self)
@@ -87,7 +88,7 @@ class FlashVideo(core.AVContainer):
             size = (chunk[1] << 8) + chunk[2]
 
             if chunk[0] == FLV_TAG_TYPE_AUDIO:
-                flags = ord(file.read(1))
+                flags = file.read(1)
                 if not self.audio:
                     a = core.AudioStream()
                     a.channels = (flags & FLV_AUDIO_CHANNEL_MASK) + 1
@@ -101,7 +102,7 @@ class FlashVideo(core.AVContainer):
                 file.seek(size - 1, 1)
 
             elif chunk[0] == FLV_TAG_TYPE_VIDEO:
-                flags = ord(file.read(1))
+                flags = file.read(1)
                 if not self.video:
                     v = core.VideoStream()
                     codec = (flags & FLV_VIDEO_CODECID_MASK) - 2
@@ -115,13 +116,13 @@ class FlashVideo(core.AVContainer):
                 file.seek(size - 1, 1)
 
             elif chunk[0] == FLV_TAG_TYPE_META:
-                log.info(u'metadata %r' % str(chunk))
+                log.info('metadata %r' % str(chunk))
                 metadata = file.read(size)
                 try:
                     while metadata:
                         length, value = self._parse_value(metadata)
                         if isinstance(value, dict):
-                            log.info(u'metadata: %r' % value)
+                            log.info('metadata: %r' % value)
                             if value.get('creator'):
                                 self.copyright = value.get('creator')
                             if value.get('width'):
@@ -138,7 +139,7 @@ class FlashVideo(core.AVContainer):
                 except (IndexError, struct.error, TypeError):
                     pass
             else:
-                log.info(u'unkown %r' % str(chunk))
+                log.info('unkown %r' % str(chunk))
                 file.seek(size, 1)
 
             file.seek(4, 1)
@@ -147,24 +148,24 @@ class FlashVideo(core.AVContainer):
         """
         Parse the next metadata value.
         """
-        if ord(data[0]) == FLV_DATA_TYPE_NUMBER:
+        if data[0] == FLV_DATA_TYPE_NUMBER:
             value = struct.unpack('>d', data[1:9])[0]
             return 9, value
 
-        if ord(data[0]) == FLV_DATA_TYPE_BOOL:
+        if data[0] == FLV_DATA_TYPE_BOOL:
             return 2, bool(data[1])
 
-        if ord(data[0]) == FLV_DATA_TYPE_STRING:
-            length = (ord(data[1]) << 8) + ord(data[2])
+        if data[0] == FLV_DATA_TYPE_STRING:
+            length = (data[1] << 8) + data[2]
             return length + 3, data[3:length + 3]
 
-        if ord(data[0]) == FLV_DATA_TYPE_ECMARRAY:
+        if data[0] == FLV_DATA_TYPE_ECMARRAY:
             init_length = len(data)
             num = struct.unpack('>I', data[1:5])[0]
             data = data[5:]
             result = {}
             for _ in range(num):
-                length = (ord(data[0]) << 8) + ord(data[1])
+                length = (data[0] << 8) + data[1]
                 key = data[2:length + 2]
                 data = data[length + 2:]
                 length, value = self._parse_value(data)
@@ -174,7 +175,7 @@ class FlashVideo(core.AVContainer):
                 data = data[length:]
             return init_length - len(data), result
 
-        log.info(u'unknown code: %x. Stop metadata parser' % ord(data[0]))
+        log.info('unknown code: %x. Stop metadata parser' % data[0])
         return 0, None
 
 

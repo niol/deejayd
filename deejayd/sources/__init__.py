@@ -43,26 +43,25 @@ class SourceFactory(SignalingComponent, PersistentStateComponent):
         else:
             log.msg(_("Video support disabled"))
 
-        if 'active' not in self.state\
-                or self.state["active"] not in self.sources:
-            self.state["active"] = self.sources.keys()[0]
+        if self.state["active"] not in self.sources:
+            self.state["active"] = self.sources["audiopls"]
         player.set_source(self)
         player.load_state()
 
     def get_source(self, s):
-        if s not in self.sources.keys():
+        if s not in self.sources:
             raise DeejaydError(_("Source %s not found") % s)
         return self.sources[s]
 
     def set_source(self, s):
-        if s not in self.sources.keys():
+        if s not in self.sources:
             raise DeejaydError(_("Source %s not found") % s)
         self.state["active"] = s
 
     def close(self):
         self.save_state()
-        for s in self.sources.values():
-            s.close()
+        for s in self.sources:
+            self.sources[s].close()
 
     #
     # Functions called from the player

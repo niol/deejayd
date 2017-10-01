@@ -267,19 +267,18 @@ class Riff(core.AVContainer):
         i += sz - 8
         return (retval, i)
 
-
     def _parseVPRP(self, t):
         retval = {}
         v = struct.unpack('<IIIIIIIIII', t[:4 * 10])
 
         (retval['VideoFormat'],
-          retval['VideoStandard'],
-          retval['RefreshRate'],
-          retval['HTotalIn'],
-          retval['VTotalIn'],
-          retval['FrameAspectRatio'],
-          retval['wPixel'],
-          retval['hPixel']) = v[1:-1]
+         retval['VideoStandard'],
+         retval['RefreshRate'],
+         retval['HTotalIn'],
+         retval['VTotalIn'],
+         retval['FrameAspectRatio'],
+         retval['wPixel'],
+         retval['hPixel']) = v[1:-1]
 
         # I need an avi with more informations
         # enum {FORMAT_UNKNOWN, FORMAT_PAL_SQUARE, FORMAT_PAL_CCIR_601,
@@ -291,9 +290,9 @@ class Riff(core.AVContainer):
         r = float(r >> 16) / (r & 0xFFFF)
         retval['FrameAspectRatio'] = r
         if self.video:
-            map(lambda v: setattr(v, 'aspect', r), self.video)
+            for v in self.video:
+                setattr(v, 'aspect', r)
         return (retval, v[0])
-
 
     def _parseLISTmovi(self, size, file):
         """
@@ -308,7 +307,7 @@ class Riff(core.AVContainer):
         # pathological cases.
         while i < min(1024 * 1024 * 5, size - 8) and n_dc < 5:
             data = file.read(8)
-            if ord(data[0]) == 0:
+            if data[0] == 0:
                 # Eat leading nulls.
                 data = data[1:] + file.read(1)
                 i += 1
@@ -338,7 +337,7 @@ class Riff(core.AVContainer):
                 return (v & 2 ** n - 1 << (64 - n - o)) >> 64 - n - o
 
             while pos < sz:
-                startcode = ((startcode << 8) | ord(data[pos])) & 0xffffffff
+                startcode = ((startcode << 8) | data[pos]) & 0xffffffff
                 pos += 1
                 if startcode & 0xFFFFFF00 != 0x100:
                     # No startcode found yet
@@ -393,7 +392,7 @@ class Riff(core.AVContainer):
 
         while i < size - 8:
             # skip zero
-            if ord(t[i]) == 0: i += 1
+            if t[i] == 0: i += 1
             key = t[i:i + 4]
             sz = 0
 
@@ -403,7 +402,7 @@ class Riff(core.AVContainer):
                 key = "LIST:" + t[i:i + 4]
                 value = self._parseLIST(t[i:i + sz])
                 if key == 'strl':
-                    for k in value.keys():
+                    for k in list(value.keys()):
                         retval[k] = value[k]
                 else:
                     retval[key] = value
@@ -436,7 +435,7 @@ class Riff(core.AVContainer):
                 sz = struct.unpack('<I', t[i + 4:i + 8])[0]
                 i += 8
                 # in most cases this is some info stuff
-                if not key in AVIINFO.keys() and key != 'IDIT':
+                if not key in list(AVIINFO.keys()) and key != 'IDIT':
                     log.debug("Unknown Key: %s, len: %d" % (key, sz))
                 value = t[i:i + sz]
                 if key == 'ISFT':

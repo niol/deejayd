@@ -18,7 +18,6 @@
 
 
 import os
-import sys
 import functools
 import twisted.internet.inotify
 import twisted.python.filepath
@@ -35,9 +34,10 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
                     twisted.internet.inotify.IN_MOVED_TO | \
                     twisted.internet.inotify.IN_CLOSE_WRITE
 
-    def __init__(self, audio_library, video_library):
+    def __init__(self, audio_library, video_library, encoding="utf-8"):
         super(DeejaydInotify, self).__init__()
 
+        self.__encoding = encoding
         self.__audio_library = audio_library
         self.__video_library = video_library
 
@@ -45,8 +45,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
             if library:
                 library.watcher = self
                 dcb = lambda dir_path: self.watch_dir(dir_path, library)
-                pathutils.walk_and_do(library.root_path.encode("utf-8"), 
-                                      dcb=dcb)
+                pathutils.walk_and_do(library.root_path, dcb=dcb)
 
     def start(self):
         self.startReading()
@@ -73,8 +72,8 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         # symlinks before being passed on to the library. This is why
         # the library dir_path is passed and used here.
         session = Session()
-        filename = library.fs_charset2unicode(filepath.basename())
-        fpath = library.fs_charset2unicode(os.path.join(dir_path, filename))
+        filename = library._encode_path(filepath.basename())
+        fpath = library._encode_path(os.path.join(dir_path, filename))
 
         log.debug("inotify: %s event on '%s'"
                   % (twisted.internet.inotify.humanReadableMask(mask), fpath))
@@ -108,15 +107,10 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         session.close()
 
     def watch_dir(self, dir_path, library):
-        if isinstance(dir_path, str):
-            dir_path = dir_path.decode("utf-8")
-        # inotify bindings need encoded strings
-        e_path = dir_path.encode("utf-8")
-
         event_processor = functools.partial(self.process_event,
                                             library=library, dir_path=dir_path)
         try:
-            self.watch(twisted.python.filepath.FilePath(e_path),
+            self.watch(twisted.python.filepath.FilePath(dir_path),
                        self.IN_WATCH_MASK,
                        callbacks=[event_processor])
         except twisted.python._inotify.INotifyError:
@@ -125,11 +119,8 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
             log.debug("inotify: watching directory '%s'" % dir_path)
 
     def stop_watching_dir(self, dir_path):
-        # inotify bindings need encoded strings
-        e_path = dir_path.encode(sys.getfilesystemencoding())
-
         try:
-            self.ignore(twisted.python.filepath.FilePath(e_path))
+            self.ignore(twisted.python.filepath.FilePath(dir_path))
         except KeyError:
             log.info("inotify: failed to stop watching directory '%s' "
                      "(not watched?)" % dir_path)

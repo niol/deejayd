@@ -82,7 +82,6 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent,
                 "osd": self.config.getboolean("video", "osd_support"),
                 "osd_size": self.config.getint("video", "osd_font_size"),
             }
-        self.load_state()
 
     def load_state(self):
         super(_BasePlayer, self).load_state()
@@ -111,6 +110,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent,
 
     def set_source(self, source):
         self._source = source
+        self.load_state()
 
     def play_webradio(self, webradio):
         self._change_file(webradio)

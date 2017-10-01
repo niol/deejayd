@@ -1,6 +1,6 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2013 Mickael Royer <mickael.royer@gmail.com>
-#                    Alexandre Rossi <alexandre.rossi@gmail.com>
+# Copyright (C) 2013-2017 Mickael Royer <mickael.royer@gmail.com>
+#                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,13 +35,6 @@ if sys.platform == 'win32':
     is_root = is_root_win32
 else:
     is_root = is_root_posix
-
-
-def path2unicode(path, errors='strict'):
-    if type(path) is unicode:
-        return path
-    else:
-        return path.decode(sys.getfilesystemencoding(), errors)
 
 
 def is_subdir_of(dir_path, path):
@@ -120,4 +113,5 @@ def walk_and_do(top=None, walked=None, dcb=None, fcb=None, topdown=False):
         if dcb is not None:
             dcb(root)
         if fcb is not None:
-            map(lambda f: fcb(os.path.join(root, f)), files)
+            for f in files:
+                fcb(os.path.join(root, f))

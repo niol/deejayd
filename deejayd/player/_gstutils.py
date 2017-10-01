@@ -31,7 +31,7 @@ class TagListWrapper(collections.Mapping):
         return self._list.n_tags()
 
     def __iter__(self):
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self._list.nth_tag_name(i)
 
     def __getitem__(self, key):
@@ -64,7 +64,7 @@ def parse_gstreamer_taglist(tags):
     numeric and unicode values and str keys."""
 
     merged = {}
-    for key in tags.keys():
+    for key in tags:
         value = tags[key]
         # extended-comment sometimes containes a single vorbiscomment or
         # a list of them ["key=value", "key=value"]
@@ -72,10 +72,8 @@ def parse_gstreamer_taglist(tags):
             if not isinstance(value, list):
                 value = [value]
             for val in value:
-                if not isinstance(val, unicode):
-                    continue
                 split = val.split("=", 1)
-                sub_key = str_decode(split[0])
+                sub_key = split[0]
                 val = split[-1]
                 if sub_key in merged:
                     if val not in merged[sub_key].split("\n"):
@@ -86,13 +84,6 @@ def parse_gstreamer_taglist(tags):
             value = value.to_iso8601_string()
             merged[key] = value
         else:
-            if isinstance(value, str):
-                value = str_decode(value)
-
-            if not isinstance(value, unicode) and \
-                    not isinstance(value, (int, long, float)):
-                value = unicode(value)
-
             merged[key] = value
 
     return merged

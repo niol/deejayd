@@ -82,6 +82,6 @@ def load_mediafilter(json_filter):
         else:
             raise TypeError
         return ft
-    except Exception, err:
+    except Exception as err:
         raise DeejaydError(_("%s is not a json encoded "
                              "filter: %s") % (json_filter, err))

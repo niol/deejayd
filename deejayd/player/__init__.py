@@ -35,7 +35,7 @@ def init(config):
         media_backend = None
         try:
             while not media_backend:
-                backend = backend_it.next()
+                backend = next(backend_it)
                 try:
                     __import__('.'.join(('deejayd', 'player', backend,)))
                 except ImportError:
@@ -52,14 +52,14 @@ def init(config):
         from deejayd.player import gstreamer
         try:
             player = gstreamer.init(config)
-        except PlayerError, err:
+        except PlayerError as err:
             log.err(str(err), fatal=True)
 
     elif media_backend == "vlc":
         from deejayd.player import vlc
         try:
             player = vlc.VlcPlayer(config)
-        except PlayerError, err:
+        except PlayerError as err:
             log.err(str(err), fatal=True)
 
     else:

@@ -30,7 +30,7 @@ from deejayd.ui.config import DeejaydConfig
 def require_source(editable=False):
     def require_editable_source(func):
         def impl(self, source_name, *args, **kwargs):
-            if source_name not in self.wb_sources.keys():
+            if source_name not in self.wb_sources:
                 raise DeejaydError(_("Webradio source %s not "
                                      "supported") % source_name)
             source = self.wb_sources[source_name]
@@ -90,9 +90,9 @@ class WebradioObject(object):
         return True
 
     def set_description(self, desc):
-        self.__obj["desc"] = desc
-        self.__obj["title"] = self.__obj["name"] + "-" + desc
-
+        if desc is not None:
+            self.__obj["desc"] = desc
+            self.__obj["title"] = self.__obj["name"] + "-" + desc
 
 
 @jsonrpc_module(WebradioModule)
@@ -110,7 +110,7 @@ class DeejaydWebradio(SignalingComponent, JSONRpcComponent):
         return [{
             "name": s.NAME,
             "editable": IEditWebradioSource.providedBy(s)
-        } for s in self.wb_sources.values()]
+        } for s in list(self.wb_sources.values())]
 
     def play_webradio(self, w_id):
         w = Session.query(Webradio).get(w_id)
@@ -159,5 +159,5 @@ class DeejaydWebradio(SignalingComponent, JSONRpcComponent):
         self.dispatch_signame('webradio.listupdate', source=source.get_name())
 
     def close(self):
-        for source in self.wb_sources.values():
-            source.close()
+        for s_name in self.wb_sources:
+            self.wb_sources[s_name].close()

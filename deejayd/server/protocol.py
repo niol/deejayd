@@ -24,7 +24,6 @@ from twisted.protocols.basic import LineReceiver
 from deejayd import __version__, DeejaydError
 from deejayd.server.signals import SIGNALS
 from deejayd.ui import log
-from deejayd.server.utils import str_decode
 from deejayd.common.component import JSONRpcComponent
 from deejayd.db.connection import Session
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
@@ -37,7 +36,7 @@ from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, DeejaydJSONSignal
 class DeejaydProtocol(LineReceiver, JSONRpcComponent):
     NOT_FOUND = 8001
     FAILURE = 8002
-    delimiter = 'ENDJSON\n'
+    delimiter = b'ENDJSON\n'
 
     def __init__(self, deejayd_core):
         super(DeejaydProtocol, self).__init__()
@@ -55,58 +54,53 @@ class DeejaydProtocol(LineReceiver, JSONRpcComponent):
         self.factory.close_signals(self)
 
     def lineReceived(self, line):
-        line = line.strip("\r")
+        # use str instead of bytes to decode json commands
+        # and return answer
+        line = line.strip(b"\r").decode("utf-8")
+        delimiter = self.delimiter.decode("utf-8")
+
         try:
-            line = str_decode(line)
-        except UnicodeDecodeError:
-            ans = JSONRPCResponse(Fault(_("Command is not correctly "
-                                          "encoded")), "1")
-        else:
-            # DEBUG Informations
-            log.debug("Receive command ---> '%s'" % line)
-
-            try:
-                parsed = loads_request(line)
-                args, function_path = parsed['params'], parsed["method"]
-                if function_path.startswith("signal"):
-                    # it's a command linked with this connection
-                    method = function_path.split(self.separator, 1)[1]
-                    function = self.get_function(method)
-                elif function_path == "close":
-                    function = self.close
-                else:
-                    function = self.deejayd_core.get_function(function_path)
-            except Fault, f:
-                try:
-                    r_id = parsed["id"]
-                except:
-                    r_id = None
-                ans = JSONRPCResponse(f, r_id)
+            parsed = loads_request(line)
+            args, function_path = parsed['params'], parsed["method"]
+            if function_path.startswith("signal"):
+                # it's a command linked with this connection
+                method = function_path.split(self.separator, 1)[1]
+                function = self.get_function(method)
+            elif function_path == "close":
+                function = self.close
             else:
-                # explicitly init session for this request
-                Session()
-                try:
-                    result = function(*args)
-                    Session.commit()
-                except Exception, ex:
-                    Session.rollback()
-                    if not isinstance(ex, Fault):
-                        log.err(str_decode(traceback.format_exc()))
-                        result = Fault(self.FAILURE, _("error, see deejayd log"))
-                    else:
-                        result = ex
-                finally:
-                    Session.remove()
-                ans = JSONRPCResponse(result, parsed["id"])
+                function = self.deejayd_core.get_function(function_path)
+        except Fault as f:
+            try:
+                r_id = parsed["id"]
+            except:
+                r_id = None
+            ans = JSONRPCResponse(f, r_id)
+        else:
+            # explicitly init session for this request
+            Session()
+            try:
+                result = function(*args)
+                Session.commit()
+            except Exception as ex:
+                Session.rollback()
+                if not isinstance(ex, Fault):
+                    log.err(traceback.format_exc())
+                    result = Fault(self.FAILURE, _("error, see deejayd log"))
+                else:
+                    result = ex
+            finally:
+                Session.remove()
+            ans = JSONRPCResponse(result, parsed["id"])
 
-        self.send_buffer(ans.to_json()+self.delimiter)
-        log.debug("Send answer ---> '%s'" % ans.to_json())
+        self.send_buffer(ans.to_json()+delimiter)
         if self.__need_to_close:
             self.transport.loseConnection()
             self.__need_to_close = False
 
     def send_buffer(self, buf):
-        if isinstance(buf, unicode):
+        if isinstance(buf, str):
+            # twisted expects bytes for the method write
             buf = buf.encode("utf-8")
         self.transport.write(buf)
 
@@ -137,8 +131,7 @@ class DeejaydFactory(protocol.ServerFactory):
 
     def __init__(self, deejayd_core):
         self.deejayd_core = deejayd_core
-        self.signaled_clients = dict([(signame, []) 
-                                      for signame in SIGNALS.keys()])
+        self.signaled_clients = dict([(signame, []) for signame in SIGNALS])
         self.core_sub_ids = {}
 
     def buildProtocol(self, addr):
@@ -148,7 +141,7 @@ class DeejaydFactory(protocol.ServerFactory):
         return p
 
     def clientConnectionLost(self, connector, reason):
-        for signal_name in SIGNALS.keys():
+        for signal_name in SIGNALS:
             self.set_not_signaled(connector, signal_name)
 
     def set_signaled(self, connector, signal_name):
@@ -174,7 +167,7 @@ class DeejaydFactory(protocol.ServerFactory):
                 pass
 
     def close_signals(self, connector):
-        for signal_name in self.signaled_clients.keys():
+        for signal_name in self.signaled_clients:
             if len(self.signaled_clients[signal_name]) > 0:
                 self.set_not_signaled(connector, signal_name)
 
@@ -184,9 +177,9 @@ class DeejaydFactory(protocol.ServerFactory):
             if len(interested_clients) > 0:
                 j_sig = DeejaydJSONSignal(signal_name, kwargs)
                 ans = JSONRPCResponse(j_sig.dump(), None).to_json()
+                buf = ans.encode('utf-8') + interested_clients[0].delimiter
                 for client in interested_clients:
-                    reactor.callFromThread(client.send_buffer,
-                                           ans+client.delimiter)
+                    reactor.callFromThread(client.send_buffer, buf)
                     reactor.callFromThread(log.debug, "Send signal ---> "
                                                       "'%s'" % ans)
 

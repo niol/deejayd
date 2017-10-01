@@ -21,9 +21,9 @@ from deejayd.library.parsers._base import _VideoFile
 
 class VideoFile(_VideoFile):
     extensions = (".avi", ".asf", ".wmv", ".ogm", ".mkv", ".mp4", ".mov", ".m4v")
-    mime_type = (u"video/x-msvideo", u"video/x-ms-asf", u"video/x-ms-wmv",\
-                 u"video/x-ogg", u"video/x-theora", u"application/ogg",
-                 u"video/x-matroska", u'video/quicktime', u'video/mp4')
+    mime_type = ("video/x-msvideo", "video/x-ms-asf", "video/x-ms-wmv",\
+                 "video/x-ogg", "video/x-theora", "application/ogg",
+                 "video/x-matroska", 'video/quicktime', 'video/mp4')
 
 
 type = "main"

@@ -80,10 +80,10 @@ def build_help(cmd):
     return """
 Description :
 %(description)s
-Answer type : %(answer)s %(p_desc)s""" % {\
-            "description": cmd.__doc__, \
-            "answer": answer, \
-            "p_desc": p_desc, \
+Answer type : %(answer)s %(p_desc)s""" % {
+            "description": cmd.__doc__,
+            "answer": answer,
+            "p_desc": p_desc,
         }
 
 
@@ -101,7 +101,7 @@ def verify_arguments(__args, args):
                 "bool": bool,
                 "dict": dict,
                 "list": list,
-                "string": unicode
+                "string": str
             }
 
             if arg['type'] == "int":
@@ -144,8 +144,8 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
         args = verify_arguments(args, getattr(rpc_cmd, "args", []))
         try:
             res = func(*args, **kwargs)
-        except DeejaydError, ex:
-            raise Fault(INTERNAL_ERROR, unicode(ex))
+        except DeejaydError as ex:
+            raise Fault(INTERNAL_ERROR, str(ex))
         t = getattr(rpc_cmd, "answer", "ack")
         if t in ("medialist", "playlist", "filterList"):
             res = [m.to_json() for m in res]
@@ -169,17 +169,12 @@ def jsonrpc_func(cmd_name, rpc_cmd, func):
 
 def jsonrpc_module(module):
     def impl_func(orig_cls):
-        for attr in dir(orig_cls):
-            try:
-                m = getattr(orig_cls, attr)
-            except AttributeError:
-                continue
-
-            if inspect.ismethod(m):
-                camel_case_attr = underscore_to_camelcase(attr)
+        for name, c_obj in inspect.getmembers(orig_cls):
+            if not name.startswith("__") and inspect.isfunction(c_obj):
+                camel_case_attr = underscore_to_camelcase(name)
                 rpc_cmd = getattr(module, camel_case_attr, None)
                 if inspect.isclass(rpc_cmd):
-                    func = m.__func__
+                    func = c_obj
                     cmd_name = "jsonrpc_%s" % camel_case_attr
                     setattr(orig_cls, cmd_name,
                             jsonrpc_func(cmd_name, rpc_cmd, func))

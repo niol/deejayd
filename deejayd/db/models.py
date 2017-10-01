@@ -21,7 +21,7 @@ import time
 from sqlalchemy.orm import with_polymorphic
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import or_, and_
-from sqlalchemy import Table, Column, Integer, ForeignKey, String
+from sqlalchemy import Table, Column, Integer, ForeignKey, String, Unicode
 from sqlalchemy import Float, LargeBinary
 from sqlalchemy import Boolean, PickleType
 from sqlalchemy import UniqueConstraint
@@ -40,7 +40,7 @@ class Library(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(64))
-    path = Column(String(1024))
+    path = Column(Unicode(1024))
 
 
 class LibraryFolder(Base):
@@ -49,8 +49,8 @@ class LibraryFolder(Base):
     id = Column(Integer, primary_key=True)
     parent_id = Column(Integer, ForeignKey("library_folder.id"), nullable=True)
     library_id = Column(Integer, ForeignKey("library.id"))
-    name = Column(String(128))
-    path = Column(String(1024))
+    name = Column(Unicode(128))
+    path = Column(Unicode(1024))
 
     library = relationship("Library", backref="folders")
     child_folders = relationship(
@@ -61,8 +61,8 @@ class LibraryFolder(Base):
                           cascade="save-update, delete, delete-orphan")
 
     def __strip_path(self):
-        rel_path = self.path.replace(self.library.path, "")
-        return rel_path.lstrip("/")
+        rel_path = self.path.replace(self.library.path, b"")
+        return rel_path.lstrip(b"/")
 
     def to_json(self, subfolders=False, medias=False):
         result = {
@@ -83,7 +83,7 @@ class Media(Base):
     m_id = Column(Integer, primary_key=True)
     folder_id = Column(Integer, ForeignKey('library_folder.id'))
     m_type = Column(String(32))
-    filename = Column(String(128))
+    filename = Column(Unicode(128))
     length = Column(Float)
     last_modified = Column(Integer, default=-1)
     last_played = Column(Integer, nullable=True, default=None)
@@ -91,8 +91,8 @@ class Media(Base):
     play_count = Column(Integer, default=0)
     skip_count = Column(Integer, default=0)
     rating = Column(Integer, default=2)
-    uri = Column(String(512))
-    title = Column(String(512))
+    uri = Column(Unicode(512))
+    title = Column(Unicode(512))
 
     __mapper_args__ = {
         'polymorphic_on': m_type

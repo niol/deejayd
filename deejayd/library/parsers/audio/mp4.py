@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 
 from deejayd.library.parsers.audio.core import _AudioFile
 
-extensions = ['.mp4', '.m4a']
+extensions = [b'.mp4', b'.m4a']
 try:
     from mutagen.mp4 import MP4
 except ImportError:
@@ -45,29 +45,34 @@ class Mp4File(_AudioFile):
         mp4_info = MP4(file)
         infos["length"] = int(mp4_info.info.length)
 
-        for tag, name in self.__translate.iteritems():
-            try: infos[name] = mp4_info[tag][0]
-            except: infos[name] = '';
+        for tag, name in self.__translate.items():
+            try:
+                infos[name] = mp4_info[tag][0]
+            except:
+                infos[name] = ''
 
-        for tag, name in self.__tupletranslate.iteritems():
+        for tag, name in self.__tupletranslate.items():
             try:
                 cur, total = mp4_info[tag][0]
-                if total: infos[name] = "%02d/%02d" % (cur, total)
-                else: infos[name] = "%02d" % cur
-            except: infos[name] = '';
+                if total:
+                    infos[name] = "%02d/%02d" % (cur, total)
+                else:
+                    infos[name] = "%02d" % cur
+            except:
+                infos[name] = ''
 
         # extract cover
-        try: cover = mp4_info["covr"][0]
+        try:
+            cover = mp4_info["covr"][0]
         except (KeyError, ValueError):
             pass
         else:
             mime = "image/jpeg"
-            if cover.format == cover.FORMAT_PNG:
+            if cover.imageformat == cover.FORMAT_PNG:
                 mime = "image/png"
             infos["cover"] = {"mimetype": mime, "data": cover}
 
         return infos
 
-object = Mp4File
 
-# vim: ts=4 sw=4 expandtab
+object = Mp4File

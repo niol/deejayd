@@ -48,7 +48,7 @@ class AudioParserFactory(object):
                 self.parsers[ext] = filetype_class()
 
     def get_extensions(self):
-        return self.parsers.keys()
+        return list(self.parsers.keys())
 
     def is_supported(self, filepath):
         extension = os.path.splitext(filepath)[1]
@@ -59,8 +59,7 @@ class AudioParserFactory(object):
         extension = os.path.splitext(path)[1]
         if extension not in self.parsers:
             raise NoParserError()
-        infos = self.parsers[extension].parse(path.encode("utf-8"), 
-                                              self.library)
+        infos = self.parsers[extension].parse(path, self.library)
 
         # find and save album
         album = session.query(Album)\
@@ -85,7 +84,7 @@ class AudioParserFactory(object):
         return self.extra_parse(file_obj, album=album)
 
     def extra_parse(self, file_obj, album=None):
-        path = file_obj.get_path().encode('utf-8')
+        path = file_obj.get_path()
         if album is None:
             album = file_obj.album
         # find cover
@@ -93,7 +92,7 @@ class AudioParserFactory(object):
         if cover is not None:
             need_update = os.stat(cover["path"]).st_mtime > album.cover_lmod
             if need_update:
-                with open(cover["path"]) as c_data:
+                with open(cover["path"], 'rb') as c_data:
                     album.update_cover(c_data.read(), cover["mimetype"])
         else:
             album.erase_cover()
@@ -108,9 +107,9 @@ class AudioParserFactory(object):
 
 
 class CoverParser(object):
-    cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg",
-                  "cover.png", "folder.png", ".folder.png",
-                  "albumart.jpg", "albumart.png")
+    cover_name = (b"cover.jpg", b"folder.jpg", b".folder.jpg",
+                  b"cover.png", b"folder.png", b".folder.png",
+                  b"albumart.jpg", b"albumart.png")
 
     def remove(self, file, library):
         filename = os.path.basename(file)
@@ -134,7 +133,7 @@ class CoverParser(object):
                                 .join(Song)\
                                 .filter(Song.folder_id == dir_obj.id)\
                                 .all()
-                with open(file) as c_data:
+                with open(file, 'rb') as c_data:
                     data = c_data.read()
                     for album in albums:
                         album.update_cover(data, mimetype[0])
@@ -144,6 +143,7 @@ class CoverParser(object):
         for name in self.cover_name:
             cover = os.path.join(dir, name)
             if os.path.isfile(cover):
-                mimetype = mimetypes.guess_type(cover)
+                # mimetypes module expects str
+                mimetype = mimetypes.guess_type(cover.decode("utf-8"))
                 return {"path": cover, "mimetype": mimetype[0]}
         return None

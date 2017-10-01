@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,19 +16,18 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import ConfigParser
+import configparser
 import os
-import string
 from deejayd import Singleton
 
 
 @Singleton
-class DeejaydConfig(ConfigParser.SafeConfigParser):
+class DeejaydConfig(configparser.SafeConfigParser):
     __global_conf = '/etc/deejayd.conf'
     __user_conf = '~/.deejayd.conf'
 
     def __init__(self):
-        ConfigParser.SafeConfigParser.__init__(self)
+        configparser.SafeConfigParser.__init__(self)
 
         default_config_path = os.path.abspath(os.path.dirname(__file__))
         conf_files = [
@@ -36,11 +35,11 @@ class DeejaydConfig(ConfigParser.SafeConfigParser):
             self.__global_conf,
             os.path.expanduser(self.__user_conf),
         ]
-        self.read(conf_files)
+        self.read(conf_files, encoding="utf-8")
 
     def getlist(self, section, variable):
         list_items = self.get(section, variable).split(',')
-        return map(string.strip, list_items)
+        return [l_it.strip() for l_it in list_items]
 
     def get_bind_addresses(self, service='net'):
         bind_addresses = self.getlist(service, 'bind_addresses')

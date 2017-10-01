@@ -25,11 +25,11 @@ from deejayd.db.connection import Session
 from deejayd.db.models import LibraryFolder, Media, Library
 from deejayd.common.component import SignalingComponent, JSONRpcComponent
 from deejayd.common.component import PersistentStateComponent
-from deejayd.server.utils import str_decode, log_traceback
+from deejayd.server.utils import log_traceback
 from deejayd.db.models import And
 from deejayd.ui import log
 from deejayd.library import pathutils
-from deejayd.library.parsers import NoParserError
+from deejayd.server.utils import str_to_bytes
 
 
 class BaseLibrary(SignalingComponent, JSONRpcComponent,
@@ -49,15 +49,11 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
 
         self.fs_charset = fs_charset
         # get root path for this library
-        try:
-            self.root_path = self.fs_charset2unicode(os.path.abspath(path))
-            self.root_path = self.root_path.rstrip("/")
-        except UnicodeError:
-            raise DeejaydError(_("Root library path has wrong caracters"))
+        path = os.path.abspath(path).rstrip("/")
+        self.root_path = self._encode_path(path)
         # test library path
-        if not os.path.isdir(self.root_path.encode("utf-8")):
-            msg = _("Unable to find '%s' folder in library") \
-                % self.fs_charset2unicode(self.root_path)
+        if not os.path.isdir(self.root_path):
+            msg = _("Unable to find '%s' folder in library") % self.root_path
             raise DeejaydError(msg)
 
         library = Session.query(Library) \
@@ -68,7 +64,6 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
             Session.add(library)
             Session.commit()
         self.library_id = library.id
-        self.fs_charset = fs_charset
         self.updating_state = {
             "id": 0,
             "running": False,
@@ -78,18 +73,21 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         self.watcher = None
         self.load_state()
 
-    def fs_charset2unicode(self, path, errors='strict'):
-        """
-        This function translate file paths from the filesystem encoded form to
-        unicode for internal processing.
-        """
-        return str_decode(path, self.fs_charset, errors)
+    def _encode_path(self, path):
+        if not isinstance(path, bytes):
+            try:
+                path = str_to_bytes(path, encoding=self.fs_charset)
+            except UnicodeError:
+                path = path.encode(self.fs_charset, errors="replace")
+                raise DeejaydError(_("path %s has wrong caracters") % path)
+        return path
 
     #
     # RPC interfaces
     #
     def get_dir_content(self, f_name=""):
-        f_path = os.path.join(self.root_path, f_name).rstrip("/")
+        f_name = self._encode_path(f_name)
+        f_path = os.path.join(self.root_path, f_name).rstrip(b"/")
         folder = self._get_folder(f_path)
         if folder is not None:
             return folder.to_json(subfolders=True, medias=True)
@@ -122,7 +120,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         return [t for (t,) in q.all()]
 
     def set_rating(self, ft, rating):
-        if int(rating) not in range(0, 5):
+        if int(rating) not in list(range(0, 5)):
             raise DeejaydError(_("Bad rating value"))
 
         q = Session.query(self.OBJECT_CLASS)
@@ -145,7 +143,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
 
         self.updating_state["id"] += 1
         if sync:  # synchrone update
-            self.walk_directory('', force=force)
+            self.walk_directory(b'', force=force)
             self.state["last_update"] = time.time()
         else:  # asynchrone update
             self.updating_state["running"] = True
@@ -171,7 +169,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
     # functions used by other modules of deejayd
     #
     def get_file(self, file_path):
-        abs_path = os.path.join(self.root_path, file_path)
+        abs_path = os.path.join(self.root_path, self._encode_path(file_path))
         media = self._get_file_with_path(abs_path)
         if media is None:
             raise DeejaydError(_("file %s is not found in the db") % file_path)
@@ -185,7 +183,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         for f in folders:
             medias.extend(Session.query(self.OBJECT_CLASS)
                                  .join(LibraryFolder)
-                                 .filter(LibraryFolder.path.like(f.path+"%"))
+                                 .filter(LibraryFolder.path.startswith(f.path))
                                  .all())
         return medias
 
@@ -226,27 +224,18 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         return True
 
     def walk_directory(self, walk_root, force=False):
-        self.delay = 0
-        walk_root = os.path.join(self.get_root_path(),
-                                 self.fs_charset2unicode(walk_root))
-        walk_root = walk_root.rstrip("/")
+        walk_root = os.path.join(self.root_path, self._encode_path(walk_root))
+        walk_root = walk_root.rstrip(b"/")
         walked_folders = []
         # cache all medias recorded in database
         media_dict = {}
         for m in Session.query(self.OBJECT_CLASS).all():
             media_dict[m.get_path()] = m
 
-        for root, subdirs, files in pathutils.walk(walk_root.encode('utf-8')):
-            root = root.rstrip("/")
+        for root, subdirs, files in pathutils.walk(walk_root):
+            root = root.rstrip(b"/")
             log.debug('library: update crawling %s' % root)
-            try:
-                root = self.fs_charset2unicode(root)
-            except UnicodeError:  # skip this directory
-                log.info("Directory %s skipped because of "
-                         "unhandled characters."
-                         % self.fs_charset2unicode(root, 'replace'))
-                continue
-            if os.path.basename(root).startswith("."):
+            if os.path.basename(root).startswith(b"."):
                 continue  # skip hidden folder
 
             folder = self._get_folder(root)
@@ -278,10 +267,6 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
 
     def get_subdirs(self, parent, subdirs):
         def subdir_path(subdir):
-            try:
-                subdir = self.fs_charset2unicode(subdir)
-            except UnicodeError:
-                return None
             return os.path.join(parent.path, subdir)
         subdirs = [subdir_path(sd) for sd in subdirs
                    if subdir_path(sd) is not None]
@@ -294,15 +279,8 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
 
     def parse_files(self, folder, files, media_dict, force):
         for f in files:
-            try:
-                f = self.fs_charset2unicode(f)
-            except UnicodeError:  # skip this directory
-                log.info("File %s skipped because of unhandled characters."
-                         % self.fs_charset2unicode(f, 'replace'))
-                continue
-
             filepath = os.path.join(folder.path, f)
-            if os.path.isfile(filepath.encode('utf-8')):
+            if os.path.isfile(filepath):
                 log.debug('library: updating file %s' % filepath)
             else:
                 log.debug('library: skipping broken symlink %s' % filepath)
@@ -312,7 +290,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
             if filepath in media_dict:
                 file_obj = media_dict[filepath]
                 need_update = force or os.stat(
-                    filepath.encode('utf-8')).st_mtime > file_obj.last_modified
+                    filepath).st_mtime > file_obj.last_modified
             elif self.parser.is_supported(filepath):
                 file_obj = self.OBJECT_CLASS(filename=f, folder=folder)
             else:
@@ -371,8 +349,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         self.parser.inotify_extra_parse(file_path)
 
     def update_file(self, path, filename):
-        file_path = os.path.join(path, filename).encode("utf-8")
-
+        file_path = os.path.join(path, filename)
         try:
             file_mtime = os.stat(file_path).st_mtime
         except OSError:
@@ -445,7 +422,8 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
 
         if folder is not None:
             def stop_watchers(d_obj):
-                map(stop_watchers, d_obj.child_folders)
+                for ch_obj in d_obj.child_folders:
+                    stop_watchers(ch_obj)
                 self.watcher.stop_watching_dir(d_obj.path)
             stop_watchers(folder)
             Session.delete(folder)

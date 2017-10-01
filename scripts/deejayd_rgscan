@@ -122,7 +122,7 @@ class MP3Process(_SongProcess):
         except id3.error:
             return False
 
-        for frame in tag.values():
+        for frame in list(tag.values()):
             if frame.FrameID == "RVA2" and frame.desc == "track":
                 return True
         return False
@@ -176,8 +176,8 @@ class MP4Process(_SongProcess):
         except mp4.error:
             return False
 
-        return "----:com.apple.iTunes:replaygain_track_gain" in info.keys() and\
-               "----:com.apple.iTunes:replaygain_track_peak" in info.keys()
+        return "----:com.apple.iTunes:replaygain_track_gain" in list(info.keys()) and\
+               "----:com.apple.iTunes:replaygain_track_peak" in list(info.keys())
 
 
 class OggProcess(_SongProcess):
@@ -189,8 +189,8 @@ class OggProcess(_SongProcess):
         except oggvorbis.error:
             return False
 
-        return "replaygain_track_gain" in info.keys() and\
-               "replaygain_track_peak" in info.keys()
+        return "replaygain_track_gain" in list(info.keys()) and\
+               "replaygain_track_peak" in list(info.keys())
 
 
 class FlacProcess(_SongProcess):
@@ -203,8 +203,8 @@ class FlacProcess(_SongProcess):
         except flac.error:
             return False
 
-        return "replaygain_track_gain" in info.keys() and\
-               "replaygain_track_peak" in info.keys()
+        return "replaygain_track_gain" in list(info.keys()) and\
+               "replaygain_track_peak" in list(info.keys())
 
 
 class TimeStamp:
@@ -229,12 +229,12 @@ class TimeStamp:
         if self.__fn is None: return
         if os.path.isfile(self.__fn):
             try: os.unlink(self.__fn)
-            except OSError, e:
+            except OSError as e:
                 if e.errno == errno.EACCES or e.errno == errno.EPERM:
                     log.warning("Unable to remove ts file : %s" % (e,))
                     return
         try: open(self.__fn,'wb').write(str(int(time.time()+1)))
-        except OSError, e:
+        except OSError as e:
             if e.errno == errno.EACCES or e.errno == errno.EPERM:
                     log.warning("Unable to write ts file : %s" % (e,))
 
@@ -313,13 +313,13 @@ class Library:
                         continue
 
                     try: file_object.process()
-                    except CmdError, e:
+                    except CmdError as e:
                         log.error("Unable to analyse file %s : %s"\
                             % (file_path, e))
 
                 elif self.__options.force:
                     try: file_object.process()
-                    except CmdError, e:
+                    except CmdError as e:
                         log.error("Unable to analyse file %s : %s"\
                             % (file_path, e))
 

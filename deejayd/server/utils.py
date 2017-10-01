@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,35 +16,35 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import urllib, traceback
+import urllib.request
+import urllib.parse
+import urllib.error
+import traceback
 from deejayd import DeejaydError
 from deejayd.ui import log
 
-def quote_uri(path):
-    if type(path) is unicode:
-        path = path.encode('utf-8')
-    return "file://%s" % urllib.quote(path)
 
-def str_decode(data, charset='utf-8', errors='strict'):
-    """
-    Decode the string given a supplied charset into a unicode string, and
-    log errors.
-    """
-    if type(data) is unicode:
-        return data
-    try: rs = data.decode(charset, errors)
-    except UnicodeError:
-        err = _("'%s' string has badly encoded characters") % \
-                data.decode(charset, "replace")
-        log.err(err)
-        raise
-    return rs
+def quote_uri(path):
+    if type(path) is str:
+        path = path.encode('utf-8')
+    return "file://%s" % urllib.parse.quote(path)
+
+
+def str_to_bytes(data, encoding="utf-8", errors="strict"):
+    try:
+        return data.encode(encoding, errors=errors)
+    except UnicodeDecodeError as ex:
+        data = data.encode(encoding, errors="replace")
+        log.err("Unable to encode string %s" % data)
+        raise ex
+
 
 def log_traceback(level="info"):
     log_func = level == "info" and log.info or log.err
     log_func("------------------Traceback lines--------------------")
-    log_func(str_decode(traceback.format_exc(), errors='replace'))
+    log_func(traceback.format_exc())
     log_func("-----------------------------------------------------")
+
 
 def format_time(time):
     """Turn a time value in seconds into hh:mm:ss or mm:ss."""
@@ -54,6 +54,7 @@ def format_time(time):
     else:
         # time, in minutes:seconds
         return "%d:%02d" % (time // 60, time % 60)
+
 
 def format_time_long(time):
     """Turn a time value in seconds into x hours, x minutes, etc."""
@@ -67,12 +68,17 @@ def format_time_long(time):
     ]
     time_str = []
     for divisor, plural, single in cutoffs:
-        if time < 1: break
-        if divisor is None: time, unit = 0, time
-        else: time, unit = divmod(time, divisor)
-        if unit: time_str.append(ngettext(single, plural, unit) % unit)
+        if time < 1:
+            break
+        if divisor is None:
+            time, unit = 0, time
+        else:
+            time, unit = divmod(time, divisor)
+        if unit:
+            time_str.append(ngettext(single, plural, unit) % unit)
     time_str.reverse()
-    if len(time_str) > 2: time_str.pop()
+    if len(time_str) > 2:
+        time_str.pop()
     return ", ".join(time_str)
 
     ngettext("%d second", "%d seconds", 1)
@@ -81,11 +87,13 @@ def format_time_long(time):
     ngettext("%d day", "%d days", 1)
     ngettext("%d year", "%d years", 1)
 
+
 def get_playlist_file_lines(URL):
-    pls_handle = urllib.urlopen(URL)
+    pls_handle = urllib.request.urlopen(URL)
     playlist = pls_handle.read()
 
     return playlist.splitlines()
+
 
 def get_uris_from_pls(URL):
     uris = []
@@ -99,6 +107,7 @@ def get_uris_from_pls(URL):
 
     return uris
 
+
 def get_uris_from_m3u(URL):
     uris = []
     lines = get_playlist_file_lines(URL)
@@ -109,5 +118,3 @@ def get_uris_from_m3u(URL):
             uris.append(line.strip())
 
     return uris
-
-# vim: ts=4 sw=4 expandtab

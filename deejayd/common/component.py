@@ -38,7 +38,7 @@ class JSONRpcComponent(object):
         return self.sub_handlers.get(prefix, None)
 
     def get_sub_handler_prefixes(self):
-        return self.sub_handlers.keys()
+        return list(self.sub_handlers.keys())
 
     def get_function(self, function_path):
         """Given a string, return a function, or raise jsonrpclib.Fault.

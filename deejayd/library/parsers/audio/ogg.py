@@ -1,5 +1,5 @@
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 
 from deejayd.library.parsers.audio.core import _AudioFile
 
-extensions = [".ogg"]
+extensions = [b".ogg"]
 try:
     from mutagen.oggvorbis import OggVorbis
 except ImportError:

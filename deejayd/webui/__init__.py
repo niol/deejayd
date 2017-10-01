@@ -35,14 +35,14 @@ class DeejaydRootRedirector(Resource):
     def __init__(self, root_url, webui_handler):
         Resource.__init__(self)
 
-        self.root_url = root_url
+        self.root_url = root_url.encode("utf-8")
         self.webui_handler = webui_handler
 
     def getChild(self, name, request):
         if name == '':
             return self
 
-        prepath = '/%s/' % '/'.join(request.prepath)
+        prepath = b'/%s/' % b'/'.join(request.prepath)
         if prepath.startswith(self.root_url):
             # In webui
             return self.webui_handler
@@ -53,9 +53,9 @@ class DeejaydRootRedirector(Resource):
             return NoResource()
 
     def render_GET(self, request):
-        if request.path == '/':
+        if request.path == b'/':
             request.redirect(self.root_url)
-            return 'redirected'
+            return b'redirected'
 
 
 class SiteWithCustomLogging(server.Site):
@@ -77,7 +77,8 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
     main_handler.putChild("rpc", SockJSResource(DeejaydFactory(deejayd_core)))
 
     for d in ('dist', 'resources'):
-        main_handler.putChild(d, static.File(os.path.join(htdocs_dir, d)))
+        path = os.path.join(htdocs_dir, d)
+        main_handler.putChild(d, static.File(path))
 
     root_url = config.get('webui', 'root_url')
     root_url = root_url[-1] == '/' and root_url or root_url + '/'
