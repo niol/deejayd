@@ -47,7 +47,7 @@ class TestServer:
         notFound = True
         sysPathIterator = iter(sys.path)
         while notFound:
-            absPath = sysPathIterator.next()
+            absPath = next(sysPathIterator)
             serverScriptPath = os.path.join(absPath, self.serverExecRelPath)
             if os.path.exists(serverScriptPath):
                 notFound = False
@@ -79,10 +79,10 @@ class TestServer:
         ready = False
         while True:
             line = self.__serverProcess.stderr.readline()
-            if line == 'stopped\n':
+            if line == b'stopped\n':
                 ready = False
                 break
-            elif line == 'ready\n':
+            elif line == b'ready\n':
                 ready = True
                 break
             else:

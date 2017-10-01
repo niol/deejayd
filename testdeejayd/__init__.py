@@ -168,7 +168,7 @@ class TestCaseWithServer(TestCaseWithMediaData):
         fp = open(cls.conf_file, "w")
         cls.config.write(fp)
         fp.close()
-        os.chmod(cls.conf_file, 0644)
+        os.chmod(cls.conf_file, 0o644)
 
         # launch server
         cls.testserver = TestServer(cls.conf_file)

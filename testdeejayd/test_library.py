@@ -53,18 +53,10 @@ class _VerifyDeejayLibrary(object):
 
     def __verify_root(self, requested_root, test_tag=True, inlink_path=None):
         for root, dirs, files in os.walk(requested_root):
-            try:
-                root = root.decode("utf-8", "strict").encode("utf-8")
-            except UnicodeError:
-                continue
             strip_root = self.collection.strip_root(root)
 
             new_dirs = []
             for d in dirs:
-                try:
-                    d = d.decode("utf-8", "strict").encode("utf-8")
-                except UnicodeError:
-                    continue
                 dir_path = os.path.join(root, d)
                 if os.path.islink(dir_path):
                     rel_path = os.path.join(strip_root, d)
@@ -74,10 +66,6 @@ class _VerifyDeejayLibrary(object):
 
             new_files = []
             for f in files:
-                try:
-                    f = f.decode("utf-8", "strict").encode("utf-8")
-                except UnicodeError:
-                    continue
                 if f != "cover.jpg" and not f.endswith(".srt"):
                     new_files.append(f)
             files = new_files
@@ -91,7 +79,8 @@ class _VerifyDeejayLibrary(object):
                                 " in DB %s" % (root, str(all_contents)))
 
             # First, verify directory list
-            self.assertEqual(contents["directories"].sort(), dirs.sort(),
+            db_dirs = [d["name"] for d in contents["directories"]]
+            self.assertEqual(db_dirs.sort(), dirs.sort(),
                              "Directory list is different for %s" % root)
 
             # then, verify file list
@@ -128,7 +117,7 @@ class _VerifyDeejayLibrary(object):
             real_file = self.collection.get_media(file_path)
 
         for tag in self.TESTED_TAGS:
-            self.assertTrue(unicode(real_file[tag]) == unicode(db_file[tag]),
+            self.assertTrue(real_file[tag] == db_file[tag],
                             "tag %s for %s different between DB and reality %s"
                             " != %s" % (tag, real_file["filename"], 
                                         real_file[tag], db_file[tag]))
@@ -149,7 +138,7 @@ class VerifyDeejayAudioLibrary(_VerifyDeejayLibrary):
         dirname = os.path.dirname(real_file.get_path())
         cover_path = os.path.join(dirname, "cover.jpg")
         if os.path.isfile(cover_path):
-            with open(cover_path) as fd:
+            with open(cover_path, "rb") as fd:
                 cover = fd.read()
 
             if db_cover is None:

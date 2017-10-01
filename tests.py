@@ -135,10 +135,10 @@ def print_tests(class_name, test_name=None):
             if fun_name.startswith('test')\
             and (not test_name or fun_name == test_name):
                 has_tests = True
-                print "%s/%s.%s" % (get_id_from_module(test_module),
-                                    class_name, fun_name)
+                print("%s/%s.%s" % (get_id_from_module(test_module),
+                                    class_name, fun_name))
         if has_tests:
-            print "%s/%s" % (get_id_from_module(test_module), class_name)
+            print("%s/%s" % (get_id_from_module(test_module), class_name))
 
 if list_only:
     for test_id in tests_to_consider:

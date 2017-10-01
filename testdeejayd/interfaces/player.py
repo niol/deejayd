@@ -110,19 +110,19 @@ class PlayerInterfaceTests(_TestInterfaces):
         player = self.deejayd.player
 
         # wrong volume value
-        vol = self.testdata.get_random_element(range(1000, 2000))
+        vol = self.testdata.get_random_element(list(range(1000, 2000)))
         self.assertAckCmd(player.set_volume(vol))
         status = self.deejayd.player.get_status()
         self.assertEqual(status["volume"], 100)
 
         # correct volume value
-        vol = self.testdata.get_random_element(range(0, 80))
+        vol = self.testdata.get_random_element(list(range(0, 80)))
         self.assertAckCmd(player.set_volume(vol))
         status = self.deejayd.player.get_status()
         self.assertEqual(status["volume"], vol)
 
         # test relative option
-        step = self.testdata.get_random_element(range(1, 10))
+        step = self.testdata.get_random_element(list(range(1, 10)))
         self.assertAckCmd(player.set_volume(step, True))
         status = self.deejayd.player.get_status()
         self.assertEqual(status["volume"], vol+step)

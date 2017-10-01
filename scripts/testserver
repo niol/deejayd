@@ -44,7 +44,7 @@ conf_file = sys.argv[1]
 if os.path.isfile(conf_file):
     config.read([conf_file])
 else:
-    os.write(2, 'stopped\n')
+    os.write(2, b'stopped\n')
     sys.exit()
 
 # init translation
@@ -82,7 +82,7 @@ except DeejaydError as ex:
         deejayd_core.close()
     except:
         pass
-    os.write(2, 'stopped\n')
+    os.write(2, b'stopped\n')
     sys.exit()
 
 ###############################################################
@@ -99,7 +99,7 @@ if config.getboolean("net", "enabled"):
         # This is to avoid locking the test suite when the server used in the
         # previous test has not stopped listenning.
         deejayd_core.close()
-        os.write(2, 'stopped\n')
+        os.write(2, b'stopped\n')
         sys.exit()
 # http protocol
 if config.getboolean("webui", "enabled"):
@@ -116,12 +116,12 @@ if config.getboolean("webui", "enabled"):
         # This is to avoid locking the test suite when the server used in the
         # previous test has not stopped listenning.
         deejayd_core.close()
-        os.write(2, 'stopped\n')
+        os.write(2, b'stopped\n')
         sys.exit()
 
 
 def printReady():
-    os.write(2, 'ready\n')
+    os.write(2, b'ready\n')
 
 
 reactor.addSystemEventTrigger('after', 'startup', printReady)

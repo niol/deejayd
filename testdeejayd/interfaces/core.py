@@ -33,7 +33,7 @@ class CoreInterfaceTests(_TestInterfaces):
         if self.hasVideoSupport():
             keys.extend(["video_library_update", "videos"])
         for k in keys:
-            self.assertTrue(k in ans.keys(), "%s is no in stats" % k)
+            self.assertTrue(k in ans, "%s is no in stats" % k)
 
     def testGetStatus(self):
         """Test getStatus command"""
@@ -60,7 +60,7 @@ class CoreInterfaceTests(_TestInterfaces):
                 "videopls_timelength",
             ])
         for k in keys:
-            self.assertTrue(k in ans.keys())
+            self.assertTrue(k in ans)
             if k == "state":
                 self.assertTrue(ans[k] in ('stop', 'play', 'pause'))
 
@@ -69,4 +69,4 @@ class CoreInterfaceTests(_TestInterfaces):
         ans = self.deejayd.get_server_info()
         keys = ('server_version', 'protocol_version')
         for k in keys:
-            self.assertTrue(k in ans.keys())
+            self.assertTrue(k in ans)

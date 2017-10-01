@@ -24,7 +24,7 @@ import os
 import copy
 import sys
 import shutil
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import random
 import time
 import string
@@ -51,7 +51,7 @@ class TestData(object):
         import testdeejayd.utils.data
         self.sample_library = testdeejayd.utils.data.songlibrary
 
-    def get_random_string(self, length=5, charset=string.letters):
+    def get_random_string(self, length=5, charset=string.ascii_letters):
         rs = ''.join(random.sample(charset, length - 1))
         return rs
 
@@ -59,6 +59,8 @@ class TestData(object):
         return random.randint(min_value, max_value)
 
     def get_random_element(self, elt_list):
+        if isinstance(elt_list, dict):
+            elt_list = list(elt_list)
         return random.sample(elt_list, 1).pop()
 
     def get_bad_caracter(self):
@@ -95,7 +97,7 @@ class TestMedia(TestData):
         self.root_path = path
         self.filepath = os.path.join(path, self.name)
         shutil.copy(self.FILE, self.filepath)
-        self.tags["uri"] = "file://%s" % urllib.quote(self.filepath)
+        self.tags["uri"] = "file://%s" % urllib.parse.quote(self.filepath)
 
         self.set_random_tags()
 
@@ -133,8 +135,8 @@ class TestMedia(TestData):
         tag_info = self._get_tag_object()
         for tag in self.SUPPORTED_TAGS:
             value = self.get_random_tag_value(tag)
-            tag_info[tag] = unicode(value)
-            self.tags[tag] = unicode(value)
+            tag_info[tag] = value
+            self.tags[tag] = value
         tag_info.save()
 
     def __getitem__(self, key):
@@ -155,7 +157,7 @@ class TestVideo(TestMedia):
             "length": 2.0,
             "width": 640,
             "height": 480,
-            "external_subtitle": u"",
+            "external_subtitle": "",
             "title": self.__format_title(self.name)
         })
 
@@ -210,16 +212,16 @@ class TestMP4Song(TestSong):
 
     def set_random_tags(self):
         tag_info = MP4(self.get_path())
-        for tag, name in self.__translate.iteritems():
-            value = unicode(self.get_random_tag_value(name))
+        for tag, name in self.__translate.items():
+            value = self.get_random_tag_value(name)
             tag_info[tag] = value
             self.tags[name] = value
 
-        for tag, name in self.__tupletranslate.iteritems():
+        for tag, name in self.__tupletranslate.items():
             cur = self.get_random_int(15)
             value = (cur, 15)
             tag_info[tag] = [value]
-            self.tags[name] = unicode("%02d/15" % cur)
+            self.tags[name] = str("%02d/15" % cur)
 
         tag_info.save()
 
@@ -237,7 +239,7 @@ class TestFlacSong(TestSong):
     FILE = os.path.join(DATA_DIR, "flac_test.flac")
 
     def _get_tag_object(self):
-        print(self.get_path())
+        print((self.get_path()))
         return FLAC(self.get_path())
 
 
@@ -375,7 +377,7 @@ class _TestMediaCollection(TestData):
     def clean(self):
         if self.dir_struct_written and self.clean_library:
             shutil.rmtree(self.datadir)
-            for dirlink in self.dirlinks.values():
+            for dirlink in list(self.dirlinks.values()):
                 shutil.rmtree(dirlink.datadir)
 
     def build(self, dest="/tmp"):
@@ -397,7 +399,7 @@ class _TestMediaCollection(TestData):
 
     def get_media_paths(self):
         song_paths = []
-        for dirname in self.dirs.keys():
+        for dirname in self.dirs:
             for m in self.dirs[dirname].medias:
                 song_paths.append(os.path.join(dirname, m["filename"]))
         return song_paths
@@ -430,40 +432,40 @@ class _TestMediaCollection(TestData):
         return d.find_media(filename)
 
     def get_random_media(self):
-        d = self.get_random_element(self.dirs.values())
+        d = self.get_random_element(list(self.dirs.values()))
         return self.get_random_element(d.medias)
 
     def get_random_medias(self, how_much):
-        d = self.get_random_element(self.dirs.values())
+        d = self.get_random_element(list(self.dirs.values()))
         return self.get_random_element(d.medias)
 
     def get_medias(self):
         medias = []
-        for d in self.dirs.values():
+        for d in list(self.dirs.values()):
             medias.extend(d.medias)
         return medias
 
     def get_dirs(self):
-        return self.dirs.values()
+        return list(self.dirs.values())
 
     def get_random_dir(self):
-        return self.get_random_element(self.dirs.values())
+        return self.get_random_element(list(self.dirs.values()))
 
     def get_random_media_paths(self, how_much=1):
         """Returns the path of a random song in provided music"""
         return random.sample(self.get_media_paths(), how_much)
 
     def add_media(self):
-        d = self.get_random_element(self.dirs.values())
+        d = self.get_random_element(list(self.dirs.values()))
         d.add_random_media()
 
     def rename_media(self):
-        folder = self.get_random_element(self.dirs.values())
+        folder = self.get_random_element(list(self.dirs.values()))
         media = self.get_random_element(folder.medias)
         media.rename()
 
     def remove_media(self):
-        d = self.get_random_element(self.dirs.values())
+        d = self.get_random_element(list(self.dirs.values()))
         d.remove_media()
 
     def add_dir(self):
@@ -473,7 +475,7 @@ class _TestMediaCollection(TestData):
         self.dirs[d.name] = d
 
     def add_subdir(self):
-        d = self.get_random_element(self.dirs.values())
+        d = self.get_random_element(list(self.dirs.values()))
         subdir = self.DIR_CLS()
         subdir_path = os.path.join(self.datadir, d.rel_path)
         subdir.build(subdir_path, d.rel_path)
@@ -481,7 +483,7 @@ class _TestMediaCollection(TestData):
         self.dirs[os.path.join(d.rel_path, subdir.name)] = subdir
 
     def rename_dir(self):
-        dirname = self.get_random_element(self.dirs.keys())
+        dirname = self.get_random_element(self.dirs)
         d = self.dirs[dirname]
         subdirs = {} 
         for d_path in copy.copy(self.dirs):
@@ -499,13 +501,13 @@ class _TestMediaCollection(TestData):
             self.dirs[newpath] = subdirs[sub_path]
 
     def remove_dir(self):
-        dirname = self.get_random_element(self.dirs.keys())
+        dirname = self.get_random_element(list(self.dirs.keys()))
         d = self.dirs[dirname]
         d.remove()
         del self.dirs[dirname]
 
     def add_dir_link(self):
-        where = self.get_random_element(self.dirs.values())
+        where = self.get_random_element(list(self.dirs.values()))
         dirlink = self.__class__()
         linkname = self.get_random_string()
         linkpath = os.path.join(self.datadir, where.name, linkname)
@@ -515,10 +517,10 @@ class _TestMediaCollection(TestData):
         os.symlink(dirlink.datadir, linkpath)
 
     def move_dir_link(self):
-        dirlinkpath = self.get_random_element(self.dirlinks.keys())
+        dirlinkpath = self.get_random_element(list(self.dirlinks.keys()))
         linkname = os.path.basename(dirlinkpath)
 
-        new_location = self.get_random_element([d for d in self.dirs.keys()
+        new_location = self.get_random_element([d for d in list(self.dirs.keys())
                                                 if d != linkname])
         new_location = os.path.join(self.get_root_dir(), new_location, 
                                     linkname)
@@ -529,7 +531,7 @@ class _TestMediaCollection(TestData):
         self.dirlinks[new_location] = dirlink
 
     def remove_dir_link(self):
-        dirlinkpath, dirlink = self.get_random_element(self.dirlinks.items())
+        dirlinkpath, dirlink = self.get_random_element(list(self.dirlinks.items()))
         os.unlink(dirlinkpath)
         dirlink.clean()
         del self.dirlinks[dirlinkpath]
@@ -539,19 +541,19 @@ class TestAudioCollection(_TestMediaCollection):
     DIR_CLS = TestAudioDir
 
     def remove_cover(self):
-        for d in self.dirs.values():
+        for d in list(self.dirs.values()):
             if d.cover:
                 d.remove_cover()
                 return
 
     def add_cover(self):
-        for d in self.dirs.values():
+        for d in list(self.dirs.values()):
             if not d.cover:
                 d.add_cover()
                 return
 
     def change_media_tags(self):
-        d = self.get_random_element(self.dirs.values())
+        d = self.get_random_element(list(self.dirs.values()))
         media = self.get_random_element(d.medias)
         media.set_random_tags()
 
@@ -560,13 +562,13 @@ class TestVideoCollection(_TestMediaCollection):
     DIR_CLS = TestVideoDir
 
     def remove_subtitle(self):
-        for d in self.dirs.values():
+        for d in list(self.dirs.values()):
             if d.has_sub:
                 d.remove_subtitle()
                 return
 
     def add_subtitle(self):
-        for d in self.dirs.values():
+        for d in list(self.dirs.values()):
             if not d.has_sub:
                 d.add_subtitle()
                 return

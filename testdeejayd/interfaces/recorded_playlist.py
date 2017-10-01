@@ -145,6 +145,6 @@ class RecordedPlaylistInterfaceTests(_TestInterfaces):
         )
         properties = recpls.magic_get_properties(pl_id)
         for key in known_keys:
-            self.assertTrue(key in properties.keys())
+            self.assertTrue(key in properties)
             if key in ("use-limit", "limit-value"):
                 self.assertEqual(properties[key], True)

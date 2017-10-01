@@ -24,7 +24,6 @@ import threading
 import sys
 import inspect
 import re
-import new
 from queue import Queue, Empty
 from deejayd import DeejaydError
 from deejayd.jsonrpc import Fault, DEEJAYD_PROTOCOL_VERSION
@@ -126,7 +125,7 @@ class _DeejayDaemon(object):
                 instance = self.__class__
             else:
                 prefix = module
-                instance = new.classobj(module + "Class", (object,), {})
+                instance = type(module + "Class", (object,), {})
                 obj = instance()
                 # add core attr to allow this module to send commands
                 setattr(obj, "core", self)
@@ -260,7 +259,8 @@ class DeejayDaemonSync(_DeejayDaemon):
         self.socket_to_server.settimeout(self.__timeout)
 
     def _sendmsg(self, buf):
-        self.socket_to_server.send(buf + MSG_DELIMITER)
+        buf = buf + MSG_DELIMITER
+        self.socket_to_server.send(buf.encode("utf-8"))
 
     def _readmsg(self):
         msg_chunks = ''
@@ -275,7 +275,7 @@ class DeejayDaemonSync(_DeejayDaemon):
                 (rs, self.next_msg) = split_msg(self.next_msg, index)
                 break
 
-            msg_chunk = self.socket_to_server.recv(4096)
+            msg_chunk = self.socket_to_server.recv(4096).decode('utf-8')
             # socket.recv returns an empty string if the socket is closed, so
             # catch this.
             if msg_chunk == '':

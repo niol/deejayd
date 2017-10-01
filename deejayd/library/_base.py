@@ -131,7 +131,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
 
         self.updating_state["id"] += 1
         if sync:  # synchrone update
-            self.walk_directory(b'', force=force)
+            self.walk_directory('', force=force)
             self.state["last_update"] = time.time()
         else:  # asynchrone update
             self.updating_state["running"] = True

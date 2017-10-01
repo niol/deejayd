@@ -59,7 +59,7 @@ class LibraryInterfaceTests(_TestInterfaces):
         self.assertRaises(DeejaydError, library.get_dir_content, rand_folder)
 
         # now, test with an known folder
-        directories = testdata.dirs.keys()
+        directories = list(testdata.dirs.keys())
         dirname = testdata.get_random_element(directories)
         medias = library.get_dir_content(dirname)["files"]
 
@@ -70,9 +70,9 @@ class LibraryInterfaceTests(_TestInterfaces):
                 equ_item = testdata.get_media(path)
             except KeyError:
                 self.assertTrue(False, "media %s not found in the lib : %s"
-                                % (path, str(testdata.medias.keys())))
+                                % (path, str(list(testdata.medias.keys()))))
             for tag in equ_item.SUPPORTED_TAGS:
-                self.assertEqual(unicode(equ_item.tags[tag]), unicode(m[tag]),
+                self.assertEqual(equ_item.tags[tag], m[tag],
                                  "tag %s doesn't match for media %s"
                                  % (tag, m["filename"]))
 
