@@ -107,9 +107,9 @@ class AudioParserFactory(object):
 
 
 class CoverParser(object):
-    cover_name = (b"cover.jpg", b"folder.jpg", b".folder.jpg",
-                  b"cover.png", b"folder.png", b".folder.png",
-                  b"albumart.jpg", b"albumart.png")
+    cover_name = ("cover.jpg", "folder.jpg", ".folder.jpg",
+                  "cover.png", "folder.png", ".folder.png",
+                  "albumart.jpg", "albumart.png")
 
     def remove(self, file, library):
         filename = os.path.basename(file)
@@ -143,7 +143,6 @@ class CoverParser(object):
         for name in self.cover_name:
             cover = os.path.join(dir, name)
             if os.path.isfile(cover):
-                # mimetypes module expects str
-                mimetype = mimetypes.guess_type(cover.decode("utf-8"))
+                mimetype = mimetypes.guess_type(cover)
                 return {"path": cover, "mimetype": mimetype[0]}
         return None

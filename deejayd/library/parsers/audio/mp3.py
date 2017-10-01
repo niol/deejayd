@@ -19,7 +19,7 @@
 import os
 from deejayd.library.parsers.audio.core import _AudioFile
 
-extensions = [b".mp3", b".mp2", b".aac"]
+extensions = [".mp3", ".mp2", ".aac"]
 try:
     from mutagen.mp3 import MP3
 except ImportError:

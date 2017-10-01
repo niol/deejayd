@@ -18,7 +18,7 @@
 
 from deejayd.library.parsers.audio.core import _AudioFile
 
-extensions = [b'.mp4', b'.m4a']
+extensions = ['.mp4', '.m4a']
 try:
     from mutagen.mp4 import MP4
 except ImportError:

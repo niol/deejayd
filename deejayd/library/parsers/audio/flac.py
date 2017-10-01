@@ -18,7 +18,7 @@
 
 from deejayd.library.parsers.audio.core import _AudioFile
 
-extensions = [b".flac"]
+extensions = [".flac"]
 try:
     from mutagen.flac import FLAC
 except ImportError:

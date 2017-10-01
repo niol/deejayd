@@ -55,7 +55,8 @@ class PlaylistEntry(MutableMapping):
         raise NotImplementedError
 
     def __setitem__(self, key, value):
-        raise NotImplementedError
+        if key in ["last_position"]:
+            self.__update_media(dict([(key, value)]))
 
     def __getitem__(self, key):
         if key == "id":

@@ -29,7 +29,6 @@ from deejayd.server.utils import log_traceback
 from deejayd.db.models import And
 from deejayd.ui import log
 from deejayd.library import pathutils
-from deejayd.server.utils import str_to_bytes
 
 
 class BaseLibrary(SignalingComponent, JSONRpcComponent,
@@ -44,13 +43,12 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         "last_update": -1
     }
 
-    def __init__(self, path, fs_charset="utf-8"):
+    def __init__(self, path):
         super(BaseLibrary, self).__init__()
 
-        self.fs_charset = fs_charset
         # get root path for this library
         path = os.path.abspath(path).rstrip("/")
-        self.root_path = self._encode_path(path)
+        self.root_path = path
         # test library path
         if not os.path.isdir(self.root_path):
             msg = _("Unable to find '%s' folder in library") % self.root_path
@@ -73,21 +71,11 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         self.watcher = None
         self.load_state()
 
-    def _encode_path(self, path):
-        if not isinstance(path, bytes):
-            try:
-                path = str_to_bytes(path, encoding=self.fs_charset)
-            except UnicodeError:
-                path = path.encode(self.fs_charset, errors="replace")
-                raise DeejaydError(_("path %s has wrong caracters") % path)
-        return path
-
     #
     # RPC interfaces
     #
     def get_dir_content(self, f_name=""):
-        f_name = self._encode_path(f_name)
-        f_path = os.path.join(self.root_path, f_name).rstrip(b"/")
+        f_path = os.path.join(self.root_path, f_name).rstrip("/")
         folder = self._get_folder(f_path)
         if folder is not None:
             return folder.to_json(subfolders=True, medias=True)
@@ -169,7 +157,7 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
     # functions used by other modules of deejayd
     #
     def get_file(self, file_path):
-        abs_path = os.path.join(self.root_path, self._encode_path(file_path))
+        abs_path = os.path.join(self.root_path, file_path)
         media = self._get_file_with_path(abs_path)
         if media is None:
             raise DeejaydError(_("file %s is not found in the db") % file_path)
@@ -224,8 +212,8 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
         return True
 
     def walk_directory(self, walk_root, force=False):
-        walk_root = os.path.join(self.root_path, self._encode_path(walk_root))
-        walk_root = walk_root.rstrip(b"/")
+        walk_root = os.path.join(self.root_path, walk_root)
+        walk_root = walk_root.rstrip("/")
         walked_folders = []
         # cache all medias recorded in database
         media_dict = {}
@@ -233,9 +221,9 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
             media_dict[m.get_path()] = m
 
         for root, subdirs, files in pathutils.walk(walk_root):
-            root = root.rstrip(b"/")
+            root = root.rstrip("/")
             log.debug('library: update crawling %s' % root)
-            if os.path.basename(root).startswith(b"."):
+            if os.path.basename(root).startswith("."):
                 continue  # skip hidden folder
 
             folder = self._get_folder(root)

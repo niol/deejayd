@@ -18,7 +18,7 @@
 
 from deejayd.library.parsers.audio.core import _AudioFile
 
-extensions = [b".ogg"]
+extensions = [".ogg"]
 try:
     from mutagen.oggvorbis import OggVorbis
 except ImportError:

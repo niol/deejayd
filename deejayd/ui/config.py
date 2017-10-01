@@ -22,12 +22,12 @@ from deejayd import Singleton
 
 
 @Singleton
-class DeejaydConfig(configparser.SafeConfigParser):
+class DeejaydConfig(configparser.RawConfigParser):
     __global_conf = '/etc/deejayd.conf'
     __user_conf = '~/.deejayd.conf'
 
     def __init__(self):
-        configparser.SafeConfigParser.__init__(self)
+        configparser.RawConfigParser.__init__(self)
 
         default_config_path = os.path.abspath(os.path.dirname(__file__))
         conf_files = [
@@ -35,7 +35,7 @@ class DeejaydConfig(configparser.SafeConfigParser):
             self.__global_conf,
             os.path.expanduser(self.__user_conf),
         ]
-        self.read(conf_files, encoding="utf-8")
+        self.read(conf_files)
 
     def getlist(self, section, variable):
         list_items = self.get(section, variable).split(',')

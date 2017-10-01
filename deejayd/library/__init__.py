@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Deejayd, a media player daemon
 # Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
@@ -31,18 +32,17 @@ except ImportError:
 
 def init(player, config):
     audio_library, video_library, lib_watcher = None, None, None
-    fc = config.get("mediadb", "filesystem_charset")
 
     audio_dir = config.get("mediadb", "music_directory")
     try:
-        audio_library = AudioLibrary(audio_dir, fc)
+        audio_library = AudioLibrary(audio_dir)
     except DeejaydError as msg:
         log.err(_("Unable to init audio library : %s") % msg, fatal=True)
 
     if config.getboolean("video", "enabled"):
         video_dir = config.get('mediadb', 'video_directory')
         try:
-            video_library = VideoLibrary(video_dir, fc)
+            video_library = VideoLibrary(video_dir)
         except DeejaydError as msg:
             log.err(_("Unable to init video library : %s") % msg, fatal=True)
 

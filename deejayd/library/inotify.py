@@ -37,7 +37,6 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
     def __init__(self, audio_library, video_library, encoding="utf-8"):
         super(DeejaydInotify, self).__init__()
 
-        self.__encoding = encoding
         self.__audio_library = audio_library
         self.__video_library = video_library
 
@@ -72,8 +71,8 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
         # symlinks before being passed on to the library. This is why
         # the library dir_path is passed and used here.
         session = Session()
-        filename = library._encode_path(filepath.basename())
-        fpath = library._encode_path(os.path.join(dir_path, filename))
+        filename = filepath.basename().decode("utf-8")
+        fpath = os.path.join(dir_path, filename)
 
         log.debug("inotify: %s event on '%s'"
                   % (twisted.internet.inotify.humanReadableMask(mask), fpath))

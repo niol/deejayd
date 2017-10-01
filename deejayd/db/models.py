@@ -39,7 +39,7 @@ class Library(Base):
     __tablename__ = 'library'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(64))
+    name = Column(Unicode(64))
     path = Column(Unicode(1024))
 
 
@@ -61,8 +61,8 @@ class LibraryFolder(Base):
                           cascade="save-update, delete, delete-orphan")
 
     def __strip_path(self):
-        rel_path = self.path.replace(self.library.path, b"")
-        return rel_path.lstrip(b"/")
+        rel_path = self.path.replace(self.library.path, "")
+        return rel_path.lstrip("/")
 
     def to_json(self, subfolders=False, medias=False):
         result = {
@@ -82,7 +82,7 @@ class Media(Base):
 
     m_id = Column(Integer, primary_key=True)
     folder_id = Column(Integer, ForeignKey('library_folder.id'))
-    m_type = Column(String(32))
+    m_type = Column(Unicode(32))
     filename = Column(Unicode(128))
     length = Column(Float)
     last_modified = Column(Integer, default=-1)
@@ -119,9 +119,9 @@ class Album(Base):
     __tablename__ = 'album'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(512))
+    name = Column(Unicode(512))
     cover = Column(LargeBinary, nullable=True)
-    cover_type = Column(String(64), nullable=True)  # 'jpeg' or 'png'
+    cover_type = Column(Unicode(64), nullable=True)  # 'jpeg' or 'png'
     cover_lmod = Column(Integer)
 
     songs = relationship("Song",
@@ -161,11 +161,11 @@ class Song(Media):
     m_id = Column(Integer, ForeignKey('media.m_id', ondelete='CASCADE'),
                   primary_key=True)
     album_id = Column(Integer, ForeignKey('album.id'))
-    artist = Column(String(128))
-    genre = Column(String(128))
-    tracknumber = Column(String(32))
-    discnumber = Column(String(32))
-    date = Column(String(16))
+    artist = Column(Unicode(128))
+    genre = Column(Unicode(128))
+    tracknumber = Column(Unicode(32))
+    discnumber = Column(Unicode(32))
+    date = Column(Unicode(16))
     replaygain_track_gain = Column(String(512))
     replaygain_track_peak = Column(String(512))
     replaygain_album_gain = Column(String(512))
@@ -196,7 +196,7 @@ class Video(Media):
                   primary_key=True)
     width = Column(Integer)
     height = Column(Integer)
-    external_subtitle = Column(String(1024))
+    external_subtitle = Column(Unicode(1024))
     playing_state = Column(PickleType())
 
     audio_channels = relationship("AudioChannel",
@@ -232,7 +232,7 @@ class AudioChannel(Base):
 
     id = Column(Integer, primary_key=True)
     video_id = Column(Integer, ForeignKey('video.m_id'))
-    lang = Column(String(32))
+    lang = Column(Unicode(32))
     c_idx = Column(Integer)
 
     def to_json(self):
@@ -247,7 +247,7 @@ class SubtitleChannel(Base):
 
     id = Column(Integer, primary_key=True)
     video_id = Column(Integer, ForeignKey('video.m_id'))
-    lang = Column(String(32))
+    lang = Column(Unicode(32))
     c_idx = Column(Integer)
     is_external = Column(Boolean, default=False)
 
@@ -266,8 +266,8 @@ class MediaList(Base):
     __tablename__ = "medialist"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(128), unique=True)
-    p_type = Column(String(32))
+    name = Column(Unicode(128), unique=True)
+    p_type = Column(Unicode(32))
 
     __mapper_args__ = {
         'polymorphic_on': p_type
@@ -386,7 +386,7 @@ class BasicFilter(Filter):
     id = Column(Integer, ForeignKey('filter.id'), primary_key=True)
     tag = Column(String(32))
     operator = Column(String(32))
-    pattern = Column(String(128))
+    pattern = Column(Unicode(128))
 
     __mapper_args__ = {
         'polymorphic_identity': 'basic',
@@ -559,7 +559,7 @@ class WebradioCategory(Base):
 
     id = Column(Integer, primary_key=True)
     source_id = Column(Integer, ForeignKey('webradio_source.id'))
-    name = Column(String(128))
+    name = Column(Unicode(128))
 
     UniqueConstraint('source_id', 'name', name='sname_idx')
     webradios = relationship("Webradio",
@@ -578,7 +578,7 @@ class Webradio(Base):
 
     id = Column(Integer, primary_key=True)
     source_id = Column(Integer, ForeignKey('webradio_source.id'))
-    name = Column(String(256))
+    name = Column(Unicode(256))
 
     UniqueConstraint('source_id', 'name', name='sname_idx')
     entries = relationship("WebradioEntry",
@@ -598,7 +598,7 @@ class WebradioEntry(Base):
 
     id = Column(Integer, primary_key=True)
     webradio_id = Column(Integer, ForeignKey('webradio.id'))
-    url = Column(String(512))
+    url = Column(Unicode(512))
 
 
 #

@@ -50,7 +50,7 @@ PARSERS = [
 
 
 class VideoParserFactory(object):
-    subtitle_ext = (b".srt",)
+    subtitle_ext = (".srt",)
 
     def __init__(self, library):
         self.library = library
@@ -61,14 +61,11 @@ class VideoParserFactory(object):
 
     def _format_title(self, f):
         (filename, ext) = os.path.splitext(f)
-        title = filename.replace(b".", b" ")
-        title = title.replace(b"_", b" ")
+        title = filename.replace(".", " ")
+        title = title.replace("_", " ")
         return title.title()
 
     def _find_parser(self, path):
-        if isinstance(path, bytes):
-            # mimetypes module works with str
-            path = path.decode("utf-8")
         extension = os.path.splitext(path)[1]
         mimetype = mimetypes.guess_type(path)[0]
         parser_ext = None
@@ -135,7 +132,7 @@ class VideoParserFactory(object):
         path = file_obj.get_path()
         # find external subtitle
         base_path = os.path.splitext(path)[0]
-        sub = b""
+        sub = ""
         for ext_type in self.subtitle_ext:
             if os.path.isfile(os.path.join(base_path + ext_type)):
                 sub = quote_uri(base_path + ext_type)
