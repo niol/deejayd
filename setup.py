@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Deejayd, a media player daemon
 # Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
@@ -49,7 +49,7 @@ def force_rmdir(path):
 def spawn(cmdargs, cwd=None):
     try:
         subprocess.check_call(cmdargs, cwd=cwd)
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         raise DistutilsExecError(e)
 
 
@@ -239,8 +239,8 @@ if __name__ == "__main__":
                      "deejayd.library.parsers.audio",
                      "deejayd.library.parsers.video", "deejayd.player",
                      "deejayd.sources", "deejayd.ui", "deejayd.jsonrpc",
-                     "deejayd.db", "deejayd.db.migrate",
-                     "deejayd.db.migrate.versions", "deejayd.webradio",
+                     "deejayd.db", "deejayd.db.dbmigrate",
+                     "deejayd.db.dbmigrate.versions", "deejayd.webradio",
                      "deejayd.webui", "deejayd.playlist", "pytyx11"],
            package_data={'deejayd.ui': ['defaults.conf'],
                          'deejayd.webui': ['webui.thtml'], },

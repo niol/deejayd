@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -20,223 +20,351 @@
 
 """
 This is the script used to scan audio file and process replaygain.
-It depends on python-mutagen >= 1.9 (for new module mutagen.mp4).
-It also depends on the following executables :
-- aacgain for both mp4/m4a and mp3 support
-- mp3gain for mp3 support
-- vorbisgain for ogg support
-- metaflac for flac support.
+It depends on python-mutagen and gstreamer associated to gir
 """
 
-import os,subprocess,time
+import sys
+import os
+from contextlib import contextmanager
 import logging as log
-from mutagen import id3, oggvorbis, mp4, flac
-
-############ Parse Option ############################
-######################################################
+from mutagen import id3, oggvorbis, mp4
 from optparse import OptionParser
-usage = "usage: %prog [options] directory"
-parser = OptionParser(usage=usage)
 
-# List options
-parser.set_defaults(\
-        verbose=False,\
-        timestamp_file=None,\
-        log_file=None,\
-        force=False)
-parser.add_option("-t","--timestamp-file",type="string",dest="timestamp_file",\
-    metavar="FILE", help="Specify the timestamp file")
-parser.add_option("-l","--log-file",type="string",dest="log_file",\
-    metavar="FILE", help="Specify the log file")
-parser.add_option("-f","--force",action="store_true",dest="force",\
-    help="force to scan all files")
-parser.add_option("-v","--verbose",action="store_true",dest="verbose",\
-    help="no output")
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GObject, Gst
 
-(options, args) = parser.parse_args()
-######################################################
+# Initialise gstreamer.
+GObject.threads_init()
+Gst.init(None)
 
-# init log
-log_level = options.verbose and log.DEBUG or log.WARNING
-log_format = '%(levelname)s - %(message)s'
-if options.log_file:
-    log.basicConfig(level=log_level,format=log_format,filename=options.log_file)
-else:
-    log.basicConfig(level=log_level,format=log_format)
 
-class CmdError(Exception): pass
+class CmdError(Exception):
+    pass
 
-class _SongProcess:
-    commands = None
-    command = None
-    options = "\"%s\""
 
-    def __init__(self, filename = None):
-        self._filename = filename
-        self.command = self.get_best_command()
+@contextmanager
+def gobject_signals(obj, *signals):
+    """Context manager to connect and disconnect GObject signals using a ``with``
+    statement.
+    """
+    signal_ids = []
+    try:
+        for signal in signals:
+            signal_ids.append(obj.connect(*signal))
+        yield
+    finally:
+        for signal_id in signal_ids:
+            obj.disconnect(signal_id)
 
-    def cmd_exists(self, command=None):
-        if not command:
-            if self.command:
-                command = self.command
-            else:
-                return False
 
-        path = os.getenv('PATH')
-        if not path: return False
-        for p in path.split(':'):
-            if os.path.isfile(os.path.join(p, command)):
-                return True
-        return False
+class ReplayGain(GObject.GObject):
+    """Perform a Replay Gain analysis on some files."""
 
-    def get_best_command(self):
-        if not self.commands:
-            return self.command
+    __gsignals__ = {
+        "all-finished": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+                         (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+        "track-started": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+                          (GObject.TYPE_STRING,)),
+        "track-finished": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+                           (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
+        "error": (GObject.SIGNAL_RUN_LAST, GObject.TYPE_NONE,
+                  (GObject.TYPE_PYOBJECT,)),
+    }
+
+    def __init__(self, files, ref_lvl=89):
+        GObject.GObject.__init__(self)
+        self.files = files
+        self.ref_lvl = ref_lvl
+
+        self._setup_pipeline()
+        self._setup_rg_elem()
+
+        self._files_iter = iter(self.files)
+
+        # this holds all track gain data
+        self.track_data = {}
+        self.album_data = {}
+
+    def start(self):
+        """Start processing.
+
+        For it to work correctly, you'll need to run some GObject main loop
+        (e.g. the Gtk one)
+        """
+        if not self._next_file():
+            raise ValueError("no file names supplied")
+        self.pipe.set_state(Gst.State.PLAYING)
+
+    def pause(self, pause):
+        if pause:
+            self.pipe.set_state(Gst.State.PAUSED)
         else:
-            for command in self.commands:
-                if self.cmd_exists(command):
-                    return command
-            return None
+            self.pipe.set_state(Gst.State.PLAYING)
+
+    def stop(self):
+        self.pipe.set_state(Gst.State.NULL)
+
+    # internal stuff
+    def _check_elem(self, elem):
+        if elem is None:
+            # that element couldn't be created, maybe because plugins are
+            # missing?
+            raise CmdError("failed to construct pipeline (did you "
+                           "install all necessary GStreamer "
+                           "plugins?)")
+        else:
+            return elem
+
+    def _setup_pipeline(self):
+        """Setup the pipeline."""
+        self.pipe = Gst.Pipeline()
+
+        # elements
+        self.src = self._check_elem(Gst.ElementFactory.make("filesrc", "src"))
+        self.pipe.add(self.src)
+        self.decbin = self._check_elem(Gst.ElementFactory.make("decodebin",
+                                                               "decbin"))
+        self.pipe.add(self.decbin)
+        self.conv = self._check_elem(Gst.ElementFactory.make("audioconvert",
+                                                             "conv"))
+        self.pipe.add(self.conv)
+        self.res = self._check_elem(Gst.ElementFactory.make("audioresample",
+                                                            "res"))
+        self.pipe.add(self.res)
+        self.rg = self._check_elem(Gst.ElementFactory.make("rganalysis", "rg"))
+        self.pipe.add(self.rg)
+        self.sink = self._check_elem(Gst.ElementFactory.make("fakesink",
+                                                             "sink"))
+        self.pipe.add(self.sink)
+
+        # link
+        self.src.link(self.decbin)
+        self.conv.link(self.res)
+        self.res.link(self.rg)
+        self.rg.link(self.sink)
+        self.decbin.connect("pad-added", self._on_pad_added)
+        self.decbin.connect("pad-removed", self._on_pad_removed)
+
+        bus = self.pipe.get_bus()
+        bus.add_signal_watch()
+        bus.connect("message", self._on_message)
+
+    def _setup_rg_elem(self):
+        # Set num-tracks to the number of files we have to process so they're
+        # all treated as one album.
+        self.rg.set_property("num-tracks", len(self.files))
+        self.rg.set_property("forced", True)
+        self.rg.set_property("reference-level", self.ref_lvl)
+
+    def _next_file(self):
+        try:
+            fname = next(self._files_iter)
+        except StopIteration:
+            self.emit("all-finished", self.track_data, self.album_data)
+            return False
+
+        self.src.set_property("location", fname)
+        self._current_file = fname
+        self.emit("track-started", fname)
+        log.debug("\t Start to analyse %s" % fname)
+        return True
+
+    def _process_tags(self, msg):
+        """Process a tag message."""
+        tags = msg.parse_tag()
+        trackdata = {
+            "gain": 0,
+            "peak": 0,
+            "ref_level": self.ref_lvl
+        }
+
+        def handle_tag(taglist, tag, userdata):
+            if tag == Gst.TAG_TRACK_GAIN:
+                _, trackdata["gain"] = taglist.get_double(tag)
+            elif tag == Gst.TAG_TRACK_PEAK:
+                _, trackdata["peak"] = taglist.get_double(tag)
+            elif tag == Gst.TAG_REFERENCE_LEVEL:
+                _, trackdata["ref_level"] = taglist.get_double(tag)
+
+            elif tag == Gst.TAG_ALBUM_GAIN:
+                _, self.album_data["gain"] = taglist.get_double(tag)
+            elif tag == Gst.TAG_ALBUM_PEAK:
+                _, self.album_data["peak"] = taglist.get_double(tag)
+
+        tags.foreach(handle_tag, None)
+        self.track_data[self._current_file] = trackdata
+
+    # event handlers
+    def _on_pad_added(self, decbin, new_pad):
+        sinkpad = self.conv.get_compatible_pad(new_pad, None)
+        if sinkpad is not None:
+            new_pad.link(sinkpad)
+
+    def _on_pad_removed(self, decbin, old_pad):
+        peer = old_pad.get_peer()
+        if peer is not None:
+            old_pad.unlink(peer)
+
+    def _on_message(self, bus, msg):
+        if msg.type == Gst.MessageType.TAG:
+            self._process_tags(msg)
+        elif msg.type == Gst.MessageType.EOS:
+            log.debug("\t Finish to analyse %s" % self._current_file)
+
+            # Preserve rganalysis state
+            self.rg.set_locked_state(True)
+            self.pipe.set_state(Gst.State.NULL)
+            ret = self._next_file()
+            if ret:
+                self.pipe.set_state(Gst.State.PLAYING)
+                # For some reason, GStreamer 1.0's rganalysis element produces
+                # an error here unless a flush has been performed.
+                pad = self.rg.get_static_pad("src")
+                pad.send_event(Gst.Event.new_flush_start())
+                pad.send_event(Gst.Event.new_flush_stop(True))
+            self.rg.set_locked_state(False)
+        elif msg.type == Gst.MessageType.ERROR:
+            self.pipe.set_state(Gst.State.NULL)
+            err, debug = msg.parse_error()
+            self.emit("error", CmdError(err))
+
+
+class _Song:
+    extensions = []
+
+    def __init__(self, filename=None):
+        self._filename = filename
+
+    def get_album(self):
+        raise NotImplementedError
 
     def has_rg_tag(self):
         raise NotImplementedError
 
-    def process(self):
-        log.debug("Process file : %s" % os.path.basename(self._filename))
-        cmd = " ".join([self.command, self.options % self._filename])
-        null = open("/dev/null")
-        process = subprocess.Popen(cmd, shell=True,\
-            stdin=None, stdout=subprocess.PIPE, stderr=null)
-        process.wait()
-
-        return process.stdout.read()
+    def record_rg_tag(self, track_data, album_data):
+        raise NotImplementedError
 
 
-class MP3Process(_SongProcess):
+class MP3File(_Song):
     extensions = [".mp3"]
-    commands = ("aacgain", "mp3gain")
-    options = "-o -s s \"%s\""
+
+    def __get_id3(self):
+        try:
+            tag = id3.ID3(self._filename)
+        except id3.error:
+            return None
+        return tag
+
+    def get_album(self):
+        tag = self.__get_id3()
+        if tag is not None and "TALB" in tag:
+            return tag["TALB"].text[0]
+        return None
 
     def has_rg_tag(self):
-        try: tag = id3.ID3(self._filename)
-        except id3.error:
-            return False
-
-        for frame in list(tag.values()):
-            if frame.FrameID == "RVA2" and frame.desc == "track":
-                return True
+        tag = self.__get_id3()
+        if tag is not None:
+            for frame in list(tag.values()):
+                if frame.FrameID == "RVA2" and frame.desc == "track":
+                    return True
         return False
 
-    def process(self):
-        rs = _SongProcess.process(self)
+    def record_rg_tag(self, track_data, album_data):
         try:
-            infos = rs.split("\n")[1]
-            infos = infos.split("\t")
-
-            # File MP3gain dBgain MaxAmplitude Maxglobal_gain Minglobal_gain
-            t_gain = float(infos[2])
-            # peak = MaxAmplitud / 32768.0
-            t_peak = float(infos[3]) / 32768.0
-        except (ValueError, TypeError, IndexError):
-            log.error("Unable to extract information from %s" % self._filename)
-            log.error("Infos for this file are : %s" % str(infos))
-            return
-
-        # record infos in the song
-        try: tag = id3.ID3(self._filename)
+            tag = id3.ID3(self._filename)
         except id3.error:
-            log.info("File %s has no id3 header. Creating one."\
-                        % os.path.basename(self._filename))
+            log.info("File %s has no id3 header. "
+                     "Creating one." % os.path.basename(self._filename))
             tag = id3.ID3()
-        else: # erase replaygain tag
-            for k in ["normalize", "track"]:
-                try: del(tag["RVA2:"+k])
-                except KeyError: pass
-
-            #for k in ["track_peak", "track_gain", "album_peak", "album_gain"]:
-                # Delete Foobar droppings.
-                #try: del(tag["TXXX:replaygain_" + k])
-                #except KeyError: pass
+        else:  # erase replaygain tag
+            for k in ["normalize", "track", "album"]:
+                try:
+                    del(tag["RVA2:"+k])
+                except KeyError:
+                    pass
 
         try:
-            rg_tag = id3.RVA2(desc="track", channel=1, gain=t_gain, peak=t_peak)
-            tag.add(rg_tag)
+            t_rg_tag = id3.RVA2(desc="track", channel=1,
+                                gain=track_data["gain"],
+                                peak=track_data["peak"])
+            a_rg_tag = id3.RVA2(desc="album", channel=1,
+                                gain=album_data["gain"],
+                                peak=album_data["peak"])
+            for rg_tag in (a_rg_tag, t_rg_tag):
+                tag.add(rg_tag)
             tag.save(self._filename)
-        except:
-            log.error("Unable to record id3 tag for file %s" % self._filename)
+        except Exception as ex:
+            log.error("Unable to record id3 tag for file "
+                      "%s -> %s" % (os.path.basename(self._filename), ex))
 
 
-class MP4Process(_SongProcess):
+class MP4File(_Song):
     extensions = [".mp4", ".m4a"]
-    command = "aacgain"
-    options = "-s r \"%s\""
 
-    def has_rg_tag(self):
-        try: info = mp4.MP4(self._filename)
+    def __get_obj(self):
+        try:
+            return mp4.MP4(self._filename)
         except mp4.error:
-            return False
+            return None
 
-        return "----:com.apple.iTunes:replaygain_track_gain" in list(info.keys()) and\
-               "----:com.apple.iTunes:replaygain_track_peak" in list(info.keys())
+    def has_rg_tag(self):
+        obj = self.__get_obj()
+        if obj is not None:
+            return "----:com.apple.iTunes:replaygain_track_gain" in obj and \
+                "----:com.apple.iTunes:replaygain_track_peak" in obj
+        return False
+
+    def get_album(self):
+        obj = self.__get_obj()
+        if obj is not None and "\xa9alb" in obj:
+            return obj["\xa9alb"][0]
+        return None
+
+    def record_rg_tag(self, track_data, album_data):
+        obj = self.__get_obj()
+        if obj is not None:
+            prefix = "----:com.apple.iTunes:replaygain_"
+            obj[prefix+"track_gain"] = ("%.7f dB" % track_data["gain"]).encode("ascii")
+            obj[prefix+"track_peak"] = str(track_data["peak"]).encode("ascii")
+            obj[prefix+"album_gain"] = ("%.7f dB" % album_data["gain"]).encode("ascii")
+            obj[prefix+"album_peak"] = str(album_data["peak"]).encode("ascii")
+            # save changes
+            obj.save()
 
 
-class OggProcess(_SongProcess):
+class OggFile(_Song):
     extensions = [".ogg"]
-    command = "vorbisgain"
 
-    def has_rg_tag(self):
-        try: info = oggvorbis.OggVorbis(self._filename)
+    def __get_obj(self):
+        try:
+            return oggvorbis.OggVorbis(self._filename)
         except oggvorbis.error:
-            return False
-
-        return "replaygain_track_gain" in list(info.keys()) and\
-               "replaygain_track_peak" in list(info.keys())
-
-
-class FlacProcess(_SongProcess):
-    extensions = [".flac"]
-    command = "metaflac"
-    options = "--add-replay-gain \"%s\""
+            return None
 
     def has_rg_tag(self):
-        try: info = flac.FLAC(self._filename)
-        except flac.error:
-            return False
+        ogg_obj = self.__get_obj()
+        if ogg_obj is not None:
+            return "replaygain_track_gain" in ogg_obj and \
+                "replaygain_track_peak" in ogg_obj
+        return False
 
-        return "replaygain_track_gain" in list(info.keys()) and\
-               "replaygain_track_peak" in list(info.keys())
+    def get_album(self):
+        obj = self.__get_obj()
+        if obj is not None and "album" in obj:
+            return obj["album"][0]
+        return None
 
-
-class TimeStamp:
-    __fn = None
-
-    def __init__(self, filename):
-        if filename:
-            self.__fn = os.path.abspath(filename)
-
-    def read(self):
-        ts = 0
-        if self.__fn and os.path.isfile(self.__fn):
-            try: ts = int(open(self.__fn).read())
-            except ValueError:
-                log.warning('ts file %s contains non-numeric value' % self.__fn)
-            except OSError:
-                log.warning("Unable to read ts file %s" % self.__fn)
-
-        return ts
-
-    def write(self):
-        if self.__fn is None: return
-        if os.path.isfile(self.__fn):
-            try: os.unlink(self.__fn)
-            except OSError as e:
-                if e.errno == errno.EACCES or e.errno == errno.EPERM:
-                    log.warning("Unable to remove ts file : %s" % (e,))
-                    return
-        try: open(self.__fn,'wb').write(str(int(time.time()+1)))
-        except OSError as e:
-            if e.errno == errno.EACCES or e.errno == errno.EPERM:
-                    log.warning("Unable to write ts file : %s" % (e,))
+    def record_rg_tag(self, track_data, album_data):
+        obj = self.__get_obj()
+        if obj is not None:
+            prefix = "replaygain_"
+            obj[prefix+"track_gain"] = ("%.7f dB" % track_data["gain"])
+            obj[prefix+"track_peak"] = str(track_data["peak"])
+            obj[prefix+"album_gain"] = ("%.7f dB" % album_data["gain"])
+            obj[prefix+"album_peak"] = str(album_data["peak"])
+            # save changes
+            obj.save()
 
 
 class Library:
@@ -245,18 +373,10 @@ class Library:
     def __init__(self, directory, options):
         self.__root = directory
         self.__options = options
-        self.__ts = TimeStamp(options.timestamp_file)
 
-        for cls in (MP3Process, MP4Process, OggProcess, FlacProcess):
-            if cls().cmd_exists():
-                for ext in cls.extensions: self.extensions[ext] = cls
-            else:
-                if cls.commands:
-                    apps = " or ".join(cls.commands)
-                else:
-                    apps = cls.command
-                log.info("%s support disabled, missing apps %s" %\
-                            (",".join(cls.extensions), apps))
+        for cls in (MP3File, MP4File, OggFile):
+                for ext in cls.extensions:
+                    self.extensions[ext] = cls
 
     def is_in_root(self, path, root=None):
         """Checks if a directory is physically in the supplied root
@@ -283,57 +403,94 @@ class Library:
         return False
 
     def scan(self):
-        self.walk_directory(self.__root, self.__ts.read())
-        self.__ts.write()
+        files_to_process = self.walk_directory(self.__root)
+        for album in files_to_process:
+            log.debug("process files for album %s" % album)
+            t_data, a_data = self.__calculate(list(files_to_process[album]))
+            for f_path in files_to_process[album]:
+                f_object = files_to_process[album][f_path]
+                f_object.record_rg_tag(t_data[f_path], a_data)
 
-    def walk_directory(self, walk_root, ts, forbidden_roots=None):
+    def __calculate(self, files):
+        exc_slot = [None]
+
+        def on_finished(evsrc, trackdata, albumdata):
+            # all done
+            loop.quit()
+
+        def on_error(evsrc, exc):
+            exc_slot[0] = exc
+            loop.quit()
+        rg = ReplayGain(files)
+        with gobject_signals(
+                rg,
+                ("all-finished", on_finished),
+                ("error", on_error),):
+            loop = GObject.MainLoop()
+            rg.start()
+            loop.run()
+        if exc_slot[0] is not None:
+            raise exc_slot[0]
+        return (rg.track_data, rg.album_data)
+
+    def walk_directory(self, walk_root, forbidden_roots=None):
         if not forbidden_roots:
             forbidden_roots = [self.__root]
 
+        files_to_process = {}
         for (root, dirs, files) in os.walk(walk_root):
             for dir in dirs:
                 dir_path = os.path.join(root, dir)
                 if os.path.islink(dir_path):
                     if not self.is_in_a_root(dir_path, forbidden_roots):
                         forbidden_roots.append(dir_path)
-                        self.walk_directory(dir_path, ts, forbidden_roots)
+                        self.walk_directory(dir_path, forbidden_roots)
 
-            for file in files:
-                file_path = os.path.join(root,file)
-                (dummy, ext) = os.path.splitext(file)
-                ext = ext.lower()
-                try: file_object = self.extensions[ext](file_path)
-                except KeyError: # format not supported
+            for f in files:
+                file_path = os.path.join(root, f)
+                (_, ext) = os.path.splitext(f.lower())
+                if ext not in self.extensions:
+                    log.debug("Skipping file %s, not supported" % f)
                     continue
+                file_object = self.extensions[ext](file_path)
 
-                if not self.__options.force and \
-                       os.stat(file_path).st_mtime >= ts:
-                    if file_object.has_rg_tag():
-                        log.info("file %s has already rg tag. skipped" % file)
-                        continue
-
-                    try: file_object.process()
-                    except CmdError as e:
-                        log.error("Unable to analyse file %s : %s"\
-                            % (file_path, e))
-
-                elif self.__options.force:
-                    try: file_object.process()
-                    except CmdError as e:
-                        log.error("Unable to analyse file %s : %s"\
-                            % (file_path, e))
+                if not self.__options.force and file_object.has_rg_tag():
+                    log.info("file %s has already rg tag. skipped" % f)
+                    continue
+                album = file_object.get_album() or "__unknown__"
+                if album not in files_to_process:
+                    files_to_process[album] = {}
+                files_to_process[album][file_path] = file_object
+        return files_to_process
 
 
-# Start
 if __name__ == "__main__":
-    try: directory = args[0]
-    except IndexError:
+    usage = "usage: %prog [options] directory"
+    parser = OptionParser(usage=usage)
+    parser.set_defaults(verbose=False, timestamp_file=None,
+                        log_file=None, force=False)
+    parser.add_option("-l", "--log-file", type="string", dest="log_file",
+                      metavar="FILE", help="Specify the log file")
+    parser.add_option("-f", "--force", action="store_true", dest="force",
+                      help="force to scan all files")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                      help="no output")
+    (options, args) = parser.parse_args()
+
+    # init log
+    log_level = options.verbose and log.DEBUG or log.WARNING
+    log_format = '%(levelname)s - %(message)s'
+    if options.log_file:
+        log.basicConfig(level=log_level, format=log_format,
+                        filename=options.log_file)
+    else:
+        log.basicConfig(level=log_level, format=log_format)
+
+    if len(args) < 1:
         sys.exit("You have to enter a directory name")
-    directory = os.path.abspath(directory)
+    directory = os.path.abspath(args[0])
     if not os.path.isdir(directory):
         sys.exit("Directory %s not found" % directory)
 
     library = Library(directory, options)
     library.scan()
-
-# vim: ts=4 sw=4 expandtab
