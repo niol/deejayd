@@ -22,16 +22,16 @@ import { MenuService } from '../../services/menu.service';
 @Component({
   selector: 'djd-video-library',
   template: `
-  <md-tab-group>
-    <md-tab label="Folder">
+  <mat-tab-group>
+    <mat-tab label="Folder">
       <djd-folder-view type="video"></djd-folder-view>
-    </md-tab>
-    <md-tab label="Search">
+    </mat-tab>
+    <mat-tab label="Search">
       <djd-search-view type="video"
                        [tags]="searchTags">
       </djd-search-view>
-    </md-tab>
-  </md-tab-group>
+    </mat-tab>
+  </mat-tab-group>
   `
 })
 export class VideoLibraryComponent implements OnInit {

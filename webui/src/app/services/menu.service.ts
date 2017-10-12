@@ -19,7 +19,7 @@
 import { Injectable, Component } from '@angular/core';
 import { Observable, BehaviorSubject } from "rxjs/Rx";
 import { DjdClientService } from './djd-client.service';
-import { MdDialog } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { WrCategoryDialogComponent } from '../components/webradio/category-dialog.component';
 import { WebradioDialogComponent } from '../components/webradio/webradio-dialog.component';
 
@@ -37,7 +37,7 @@ export class MenuService {
   });
   public libUpdateState$: Observable<LibraryUpdateState> = this.libUpdateState.asObservable();
 
-  constructor(private client: DjdClientService, public dialog: MdDialog) { }
+  constructor(private client: DjdClientService, public dialog: MatDialog) { }
 
   register(component: string) {
     this.activeChild = component;

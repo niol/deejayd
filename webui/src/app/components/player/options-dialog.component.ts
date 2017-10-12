@@ -17,30 +17,30 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import { Component, Inject, OnInit } from '@angular/core';
-import { MD_DIALOG_DATA, MdDialogRef, MdSelectChange } from '@angular/material';
+import { MAT_DIALOG_DATA, MatDialogRef, MatSelectChange } from '@angular/material';
 import { PlayerService } from '../../services/player.service';
 import { Media } from '../../models/media.model';
 
 @Component({
   selector: 'djd-options-dialog',
   template: `
-    <h2 md-dialog-title i18n>
+    <h2 mat-dialog-title i18n>
       Video options
     </h2>
 
-    <div md-dialog-content fxLayout="column">
+    <div mat-dialog-content fxLayout="column">
       <div fxLayout="row"
            fxLayoutAlign="center center"
            class="djd-dialog-option"
            *ngIf="data.options.aspect-ratio">
         <div fxFlex="1 1 100%" class="djd-dialog-label">Aspect Ratio</div>
         <div fxFlex="2 2 100%">
-            <md-select [ngModel]="playingMedia.aspect_ratio"
+            <mat-select [ngModel]="playingMedia.aspect_ratio"
                        (change)="setOption('aspect-ratio', $event.value)">
-              <md-option *ngFor="let aspect of aspectRatios" [value]="aspect">
+              <mat-option *ngFor="let aspect of aspectRatios" [value]="aspect">
                 {{aspect}}
-              </md-option>
-            </md-select>
+              </mat-option>
+            </mat-select>
         </div>
       </div>
 
@@ -50,13 +50,13 @@ import { Media } from '../../models/media.model';
            *ngIf="data.options.current-audio">
         <div fxFlex="1 1 100%" class="djd-dialog-label">Audio channels</div>
         <div fxFlex="2 2 100%">
-            <md-select [ngModel]="playingMedia.audio_idx"
+            <mat-select [ngModel]="playingMedia.audio_idx"
                        (change)="setOption('current-audio', $event.value)">
-              <md-option *ngFor="let channel of playingMedia.audio"
+              <mat-option *ngFor="let channel of playingMedia.audio"
                          [value]="channel.ix">
                 {{channel.lang}}
-              </md-option>
-            </md-select>
+              </mat-option>
+            </mat-select>
         </div>
       </div>
 
@@ -66,18 +66,18 @@ import { Media } from '../../models/media.model';
            *ngIf="data.options.av-offset">
         <div fxFlex="1 1 100%" class="djd-dialog-label">Audio/Video offset</div>
         <div fxFlex="2 2 100%">
-            <md-input-container>
-              <input mdInput #avOffsetInput placeholder="A/V offset"
+            <mat-input-container>
+              <input matInput #avOffsetInput placeholder="A/V offset"
                      (keyUp)=0
                      type=number
                      step=100
                      [value]="playingMedia.av_offset">
-            </md-input-container>
+            </mat-input-container>
         </div>
         <div fxFlex="2 2 100%">
             <button (click)="setOption('av-offset', avOffsetInput.value)"
-                    md-icon-button>
-              <md-icon>send</md-icon>
+                    mat-icon-button>
+              <mat-icon>send</mat-icon>
             </button>
         </div>
       </div>
@@ -88,13 +88,13 @@ import { Media } from '../../models/media.model';
            *ngIf="data.options.current-sub && playingMedia.hasOwnProperty('subtitle')">
         <div fxFlex="1 1 100%" class="djd-dialog-label">Subtitle channels</div>
         <div fxFlex="2 2 100%">
-            <md-select [ngModel]="playingMedia.subtitle_idx"
+            <mat-select [ngModel]="playingMedia.subtitle_idx"
                        (change)="setOption('current-text', $event.value)">
-              <md-option *ngFor="let channel of playingMedia.subtitle"
+              <mat-option *ngFor="let channel of playingMedia.subtitle"
                          [value]="channel.ix">
                 {{channel.lang}}
-              </md-option>
-            </md-select>
+              </mat-option>
+            </mat-select>
         </div>
       </div>
 
@@ -104,26 +104,26 @@ import { Media } from '../../models/media.model';
            *ngIf="data.options.sub-offset">
         <div fxFlex="1 1 100%" class="djd-dialog-label">Audio/Subtitle offset</div>
         <div fxFlex="2 2 100%">
-            <md-input-container>
-              <input mdInput #subOffsetInput placeholder="Subtitle offset"
+            <mat-input-container>
+              <input matInput #subOffsetInput placeholder="Subtitle offset"
                      (keyUp)=0
                      type=number
                      step=100
                      [value]="playingMedia.sub_offset">
-            </md-input-container>
+            </mat-input-container>
         </div>
         <div fxFlex="2 2 100%">
             <button (click)="setOption('sub-offset', subOffsetInput.value)"
-                    md-icon-button>
-              <md-icon>send</md-icon>
+                    mat-icon-button>
+              <mat-icon>send</mat-icon>
             </button>
         </div>
       </div>
     </div>
 
-    <div md-dialog-actions>
-      <button md-raised-button (click)="dialogRef.close()">
-        <md-icon>close</md-icon>
+    <div mat-dialog-actions>
+      <button mat-raised-button (click)="dialogRef.close()">
+        <mat-icon>close</mat-icon>
         Close
       </button>
     </div>
@@ -139,8 +139,8 @@ export class VideoOptionsDialog implements OnInit {
         "16:10",
         "5:4"
     ]
-  constructor(@Inject(MD_DIALOG_DATA) public data: any,
-              public dialogRef: MdDialogRef<VideoOptionsDialog>,
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any,
+              public dialogRef: MatDialogRef<VideoOptionsDialog>,
               private player:PlayerService) {
     this.playingMedia = data.media;
   }

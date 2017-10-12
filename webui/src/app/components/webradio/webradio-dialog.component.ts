@@ -17,40 +17,40 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import { Component, Inject, OnInit } from '@angular/core';
-import { MD_DIALOG_DATA, MdDialogRef } from '@angular/material';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 import { WebradioService, WebradioCategory } from '../../services/webradio.service'
 
 
 @Component({
   selector: 'djd-wr-dialog',
   template: `
-    <h2 md-dialog-title i18n>
+    <h2 mat-dialog-title i18n>
       Add new webradio
     </h2>
 
-    <div md-dialog-content fxLayout="column">
-        <md-select [(ngModel)]="selectedCategory">
-          <md-option *ngFor="let cat of categories" [value]="cat.id">
+    <div mat-dialog-content fxLayout="column">
+        <mat-select [(ngModel)]="selectedCategory">
+          <mat-option *ngFor="let cat of categories" [value]="cat.id">
             {{cat.name}}
-          </md-option>
-        </md-select>
-        <md-input-container>
-            <input mdInput #wrName placeholder="Webradio name">
-        </md-input-container>
-        <md-input-container>
-            <input mdInput #wrUrl placeholder="Webradio url">
-        </md-input-container>
+          </mat-option>
+        </mat-select>
+        <mat-input-container>
+            <input matInput #wrName placeholder="Webradio name">
+        </mat-input-container>
+        <mat-input-container>
+            <input matInput #wrUrl placeholder="Webradio url">
+        </mat-input-container>
     </div>
 
-    <div md-dialog-actions>
-      <button md-raised-button (click)="dialogRef.close()">
-        <md-icon>cancel</md-icon>
+    <div mat-dialog-actions>
+      <button mat-raised-button (click)="dialogRef.close()">
+        <mat-icon>cancel</mat-icon>
         Cancel
       </button>
-      <button md-raised-button
+      <button mat-raised-button
               [disabled]="wrName.value == '' || wrUrl.value == '' || categories.length == 0"
               (click)="addWebradio(wrName.value, wrUrl.value)">
-        <md-icon>done</md-icon>
+        <mat-icon>done</mat-icon>
         Add
       </button>
     </div>
@@ -60,9 +60,9 @@ export class WebradioDialogComponent implements OnInit {
   public selectedCategory:number = -1;
   public categories:WebradioCategory[] = [];
 
-  constructor( @Inject(MD_DIALOG_DATA) public data: any,
+  constructor( @Inject(MAT_DIALOG_DATA) public data: any,
                public webradio: WebradioService,
-               public dialogRef: MdDialogRef<WebradioDialogComponent>) { }
+               public dialogRef: MatDialogRef<WebradioDialogComponent>) { }
 
   ngOnInit() {
     this.webradio.getCategories(this.data.source).subscribe((catList: WebradioCategory[]) => {

@@ -17,7 +17,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import { Injectable } from '@angular/core';
-import { MdSnackBar } from '@angular/material';
+import { MatSnackBar } from '@angular/material';
 import { Observable, BehaviorSubject } from "rxjs/Rx";
 import * as SockJS from 'sockjs-client'
 
@@ -34,7 +34,7 @@ export class DjdClientService {
     private cmdCallbacks: any = {};
     private signals: Object = {}
 
-    constructor(private snackbar: MdSnackBar) {}
+    constructor(private snackbar: MatSnackBar) {}
 
     debugMsg(msg: string) {
         if (this.debug) {

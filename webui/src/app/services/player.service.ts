@@ -17,7 +17,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import { Injectable } from '@angular/core';
-import { MdSnackBar } from '@angular/material';
+import { MatSnackBar } from '@angular/material';
 import { Subject, Observable, BehaviorSubject } from "rxjs/Rx";
 import { DjdClientService } from './djd-client.service';
 import { Media } from '../models/media.model';
@@ -37,7 +37,7 @@ export class PlayerService {
   private playingMedia:BehaviorSubject<Media> = new BehaviorSubject<Media>(null);
   public playingMedia$ = this.playingMedia.asObservable();
 
-  constructor(private client:DjdClientService, private snackbar: MdSnackBar) {
+  constructor(private client:DjdClientService, private snackbar: MatSnackBar) {
     client.isConnected$.subscribe((connected:boolean) => {
       if (connected) {
         this.updateStatus();

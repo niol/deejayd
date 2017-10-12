@@ -17,34 +17,34 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import { Component, OnInit, Input } from '@angular/core';
-import { MdDialog } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { WebradioService, WebradioSource, WebradioCategory, Webradio } from '../../services/webradio.service'
 import { ConfirmDialogComponent } from '../common/confirm-dialog.component';
 
 @Component({
     selector: 'djd-webradio-source',
     template: `
-      <md-nav-list *ngIf="state == 'category'">
-        <md-menu #wrCatMenu="mdMenu">
-            <button md-menu-item (click)="eraseCategory()" i18n>Erase</button>
-        </md-menu>
+      <mat-nav-list *ngIf="state == 'category'">
+        <mat-menu #wrCatMenu="matMenu">
+            <button mat-menu-item (click)="eraseCategory()" i18n>Erase</button>
+        </mat-menu>
 
-        <md-list-item *ngFor="let cat of categories"
+        <mat-list-item *ngFor="let cat of categories"
                       (click)="viewWebradioList(cat)">
             <div class="djd-list-item">
                 <div> {{ cat.name }} </div>
                 <div style="flex: 1 1 auto;"></div>
                 <div>
-                    <button md-icon-button
+                    <button mat-icon-button
                             *ngIf="editable"
                             (click)="selectCategory(cat); $event.stopPropagation()"
-                            [mdMenuTriggerFor]="wrCatMenu">
-                        <md-icon>menu</md-icon>
+                            [matMenuTriggerFor]="wrCatMenu">
+                        <mat-icon>menu</mat-icon>
                     </button>
                 </div>
             </div>
-        </md-list-item>
-      </md-nav-list>
+        </mat-list-item>
+      </mat-nav-list>
 
       <div *ngIf="state == 'webradio'">
         <ol class="djd-breadcrumb" >
@@ -53,30 +53,30 @@ import { ConfirmDialogComponent } from '../common/confirm-dialog.component';
             </li>
             <li class="djd-active">{{selectedCategory.name}}</li>
         </ol>
-        <md-nav-list>
-            <md-menu #wrMenu="mdMenu">
-                <button md-menu-item (click)="playWebradio()" i18n>Play</button>
-                <button md-menu-item *ngIf="editable" (click)="eraseWebradio()" i18n>Erase</button>
-            </md-menu>
+        <mat-nav-list>
+            <mat-menu #wrMenu="matMenu">
+                <button mat-menu-item (click)="playWebradio()" i18n>Play</button>
+                <button mat-menu-item *ngIf="editable" (click)="eraseWebradio()" i18n>Erase</button>
+            </mat-menu>
 
-            <md-list-item *ngFor="let wr of webradios">
+            <mat-list-item *ngFor="let wr of webradios">
                 <div class="djd-list-item">
                     <div> {{ wr.title }} </div>
                     <div style="flex: 1 1 auto;"></div>
                     <div>
-                        <button md-icon-button
+                        <button mat-icon-button
                                 (click)="selectWebradio(wr); $event.stopPropagation()"
-                                [mdMenuTriggerFor]="wrMenu">
-                            <md-icon>menu</md-icon>
+                                [matMenuTriggerFor]="wrMenu">
+                            <mat-icon>menu</mat-icon>
                         </button>
                     </div>
                 </div>
-            </md-list-item>
-        </md-nav-list>
+            </mat-list-item>
+        </mat-nav-list>
       </div>
 
       <div fxLayout="row" *ngIf="state == 'loading'" class="djd-loading-container">
-        <md-spinner></md-spinner>
+        <mat-spinner></mat-spinner>
       </div>
   `
 })
@@ -90,7 +90,7 @@ export class WebradioSourceComponent implements OnInit {
     public selectedWebradio: Webradio = null;
 
     constructor(private webradio: WebradioService,
-        private dialog: MdDialog) { }
+        private dialog: MatDialog) { }
 
     ngOnInit() {
         this.updateView();

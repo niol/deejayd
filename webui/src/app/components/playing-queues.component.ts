@@ -17,23 +17,23 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import { Component, EventEmitter, Output, OnInit } from '@angular/core';
-import { MdTabChangeEvent } from '@angular/material';
+import { MatTabChangeEvent } from '@angular/material';
 import { MenuService } from '../services/menu.service';
 
 @Component({
   selector: 'djd-playing-queues',
   template: `
-  <md-tab-group (change)="onTabChange($event)">
-    <md-tab label="Music">
+  <mat-tab-group (change)="onTabChange($event)">
+    <mat-tab label="Music">
       <djd-playlist name="audiopls" [hasRepeat]="true"></djd-playlist>
-    </md-tab>
-    <md-tab label="Queue">
+    </mat-tab>
+    <mat-tab label="Queue">
       <djd-playlist name="audioqueue" [hasRepeat]="false"></djd-playlist>
-    </md-tab>
-    <md-tab label="Video">
+    </mat-tab>
+    <mat-tab label="Video">
       <djd-playlist name="videopls" [hasRepeat]="true"></djd-playlist>
-    </md-tab>
-  </md-tab-group>
+    </mat-tab>
+  </mat-tab-group>
   `
 })
 export class PlayingQueuesComponent implements OnInit {
@@ -44,7 +44,7 @@ export class PlayingQueuesComponent implements OnInit {
     this.menu.register("nowplaying."+this.selectedSource);
   }
 
-  onTabChange(event: MdTabChangeEvent):void {
+  onTabChange(event: MatTabChangeEvent):void {
     switch(event.index) {
       case 1:
         this.selectedSource = "audiopls";

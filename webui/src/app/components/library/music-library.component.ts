@@ -22,16 +22,16 @@ import { MenuService } from '../../services/menu.service';
 @Component({
   selector: 'djd-music-library',
   template: `
-  <md-tab-group>
-    <md-tab label="Filesystem">
+  <mat-tab-group>
+    <mat-tab label="Filesystem">
       <djd-folder-view type="audio"></djd-folder-view>
-    </md-tab>
-    <md-tab label="Search">
+    </mat-tab>
+    <mat-tab label="Search">
       <djd-search-view type="audio"
                        [tags]="searchTags">
       </djd-search-view>
-    </md-tab>
-  </md-tab-group>
+    </mat-tab>
+  </mat-tab-group>
   `
 })
 export class MusicLibraryComponent implements OnInit {

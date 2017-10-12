@@ -18,7 +18,7 @@
 
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { Media } from '../models/media.model';
-import { MdSelectChange, MdButtonToggleChange } from '@angular/material';
+import { MatSelectChange, MatButtonToggleChange } from '@angular/material';
 import { Subscription } from 'rxjs/Rx';
 import { DjdClientService } from '../services/djd-client.service';
 import { PlayerService } from '../services/player.service';
@@ -36,16 +36,16 @@ interface MediaListStatus {
 @Component({
   selector: 'djd-playlist',
   template: `
-  <md-menu #mediaMenu="mdMenu">
-    <button md-menu-item (click)="play()" i18n>Play</button>
-    <button md-menu-item
+  <mat-menu #mediaMenu="matMenu">
+    <button mat-menu-item (click)="play()" i18n>Play</button>
+    <button mat-menu-item
                 *ngIf="utils.hasLastPos(selectedMedia)"
                 (click)="resume()"
                 i18n>
       Resume at {{ utils.formatTime(selectedMedia.last_position) }}
     </button>
-    <button md-menu-item (click)="remove()" i18n>Remove</button>
-  </md-menu>
+    <button mat-menu-item (click)="remove()" i18n>Remove</button>
+  </mat-menu>
 
   <div fxLayout="row" fxLayoutAlign="start center" class="djd-medialist-header">
     <h3 fxFlex="1 1 100%">
@@ -57,19 +57,22 @@ interface MediaListStatus {
       </span>
       <span>({{ timeDesc }})</span>
     </h3>
-    <md-button-toggle
+    <mat-button-toggle
               #repeatToggleButton
               *ngIf="hasRepeat"
               (change)="setRepeatOption(repeatToggleButton.checked)"
               [checked]="repeat">
-      <md-icon>repeat</md-icon>
-    </md-button-toggle>
-    <md-select [ngModel]="playOrder"
-               (change)="setOrderOption($event)">
-      <md-option value="inorder">In order</md-option>
-      <md-option value="random">Random</md-option>
-      <md-option value="onemedia">One Media</md-option>
-    </md-select>
+      <mat-icon>repeat</mat-icon>
+    </mat-button-toggle>
+    <span style="width: 10px;"></span>
+    <mat-form-field>
+      <mat-select [ngModel]="playOrder"
+                (change)="setOrderOption($event)">
+        <mat-option value="inorder">In order</mat-option>
+        <mat-option value="random">Random</mat-option>
+        <mat-option value="onemedia">One Media</mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 
   <ul class="djd-medialist">
@@ -80,10 +83,10 @@ interface MediaListStatus {
               <p><em>{{utils.getMediaDesc(media)}}</em></p>
           </div>
           <div fxFlex="0 0 auto">
-            <button md-icon-button
+            <button mat-icon-button
                     (click)="select(media)"
-                    [mdMenuTriggerFor]="mediaMenu">
-                <md-icon>menu</md-icon>
+                    [matMenuTriggerFor]="mediaMenu">
+                <mat-icon>menu</mat-icon>
             </button>
           </div>
         </div>
@@ -166,7 +169,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     this.client.sendSimpleCmd(`${this.name}.setOption`, ["repeat", value]);
   }
 
-  setOrderOption(evt:MdSelectChange) {
+  setOrderOption(evt:MatSelectChange) {
     this.client.sendSimpleCmd(`${this.name}.setOption`, ["playorder", evt.value]);
   }
 }

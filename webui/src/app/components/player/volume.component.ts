@@ -18,7 +18,7 @@
 
 import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
-import { MdSliderChange } from '@angular/material';
+import { MatSliderChange } from '@angular/material';
 import { Timer } from '../../models/timer.model';
 import { PlayerService, PlayerStatus } from '../../services/player.service'
 
@@ -26,10 +26,10 @@ import { PlayerService, PlayerStatus } from '../../services/player.service'
   selector: 'djd-volume',
   template: `
         <div fxFlex="1 1 100%" fxLayoutAlign="center center">
-            <button fxFlex="0 0 auto" md-icon-button (click)=player.setVolumeRelative(-5)>
-                <md-icon>volume_down</md-icon>
+            <button fxFlex="0 0 auto" mat-icon-button (click)=player.setVolumeRelative(-5)>
+                <mat-icon>volume_down</mat-icon>
             </button>
-            <md-slider
+            <mat-slider
                 fxFlex="1 1 100%"
                 class="djd-volume-slider"
                 (change)="updateVolume($event)"
@@ -37,9 +37,9 @@ import { PlayerService, PlayerStatus } from '../../services/player.service'
                 [min]=0
                 [max]=100
                 [tick-interval]=10
-                [step]=5></md-slider>
-            <button fxFlex="0 0 auto" md-icon-button (click)=player.setVolumeRelative(5)>
-                <md-icon>volume_up</md-icon>
+                [step]=5></mat-slider>
+            <button fxFlex="0 0 auto" mat-icon-button (click)=player.setVolumeRelative(5)>
+                <mat-icon>volume_up</mat-icon>
             </button>
         </div>
     `
@@ -60,7 +60,7 @@ export class VolumeComponent implements OnInit {
     });
   }
 
-  updateVolume(event: MdSliderChange):void {
+  updateVolume(event: MatSliderChange):void {
     this.volumeTimer.update(event.value);
   }
 }

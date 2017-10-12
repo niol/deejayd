@@ -41,60 +41,60 @@ interface PathObject {
   </ol>
 
   <div [ngSwitch]="loading">
-    <md-nav-list *ngSwitchCase="false" [disableRipple]="true">
-      <md-menu #libraryMenu="mdMenu">
-        <button md-menu-item (click)="play()" i18n>Play</button>
-        <button md-menu-item
+    <mat-nav-list *ngSwitchCase="false" [disableRipple]="true">
+      <mat-menu #libraryMenu="matMenu">
+        <button mat-menu-item (click)="play()" i18n>Play</button>
+        <button mat-menu-item
                     *ngIf="utils.hasLastPos(selectedMedia)"
                     (click)="resume()"
                     i18n>
           Resume at {{ utils.formatTime(selectedMedia.last_position) }}
         </button>
-        <button md-menu-item (click)="loadToPlaylist()" i18n>Add to playlist</button>
-        <button md-menu-item
+        <button mat-menu-item (click)="loadToPlaylist()" i18n>Add to playlist</button>
+        <button mat-menu-item
                 *ngIf="type == 'audio'"
                 (click)="loadToQueue()" i18n>Add to queue</button>
-      </md-menu>
+      </mat-menu>
 
       <!-- folder -->
-      <md-list-item *ngFor="let folder of folders" (click)="getPath(folder.path)">
-        <md-icon md-list-icon>folder</md-icon>
+      <mat-list-item *ngFor="let folder of folders" (click)="getPath(folder.path)">
+        <mat-icon mat-list-icon>folder</mat-icon>
         <div class="djd-library-item">
           <div>
             <span>{{ folder.name }}</span>
           </div>
           <div style="flex: 1 1 auto;"></div>
           <div>
-            <button md-icon-button
+            <button mat-icon-button
                     (click)="selectFolder(folder); $event.stopPropagation()"
-                    [mdMenuTriggerFor]="libraryMenu">
-                <md-icon>menu</md-icon>
+                    [matMenuTriggerFor]="libraryMenu">
+                <mat-icon>menu</mat-icon>
             </button>
           </div>
         </div>
-      </md-list-item>
+      </mat-list-item>
 
       <!-- media -->
-      <md-list-item *ngFor="let media of medias">
-        <md-icon md-list-icon>music_video</md-icon>
+      <mat-list-item *ngFor="let media of medias">
+        <mat-icon mat-list-icon>music_video</mat-icon>
         <div class="djd-library-item">
           <div>
             <span>{{ media.filename }}</span>
           </div>
           <div style="flex: 1 1 auto;"></div>
           <div>
-            <button md-icon-button
+            <button mat-icon-button
                     (click)="selectMedia(media)"
-                    [mdMenuTriggerFor]="libraryMenu">
-                <md-icon>menu</md-icon>
+                    [matMenuTriggerFor]="libraryMenu">
+                <mat-icon>menu</mat-icon>
             </button>
           </div>
         </div>
-      </md-list-item>
-    </md-nav-list>
+      </mat-list-item>
+    </mat-nav-list>
 
     <div *ngSwitchCase="true" class="djd-loading-container">
-      <md-spinner></md-spinner>
+      <mat-spinner></mat-spinner>
     </div>
   </div>
     `

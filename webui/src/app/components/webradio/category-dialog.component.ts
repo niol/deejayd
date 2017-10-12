@@ -17,31 +17,31 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import { Component, Inject } from '@angular/core';
-import { MD_DIALOG_DATA, MdDialogRef } from '@angular/material';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 import { WebradioService } from '../../services/webradio.service'
 
 
 @Component({
   selector: 'djd-wr-cat-dialog',
   template: `
-    <h2 md-dialog-title i18n>
+    <h2 mat-dialog-title i18n>
       Add new category
     </h2>
 
-    <div md-dialog-content fxLayout="column">
-        <md-input-container>
-            <input mdInput #catName placeholder="Category name">
-        </md-input-container>
+    <div mat-dialog-content fxLayout="column">
+        <mat-input-container>
+            <input matInput #catName placeholder="Category name">
+        </mat-input-container>
     </div>
 
-    <div md-dialog-actions>
-      <button md-raised-button (click)="dialogRef.close()">
-        <md-icon>cancel</md-icon>
+    <div mat-dialog-actions>
+      <button mat-raised-button (click)="dialogRef.close()">
+        <mat-icon>cancel</mat-icon>
         Cancel
       </button>
-      <button md-raised-button
+      <button mat-raised-button
               (click)="addCategory(catName.value)">
-        <md-icon>done</md-icon>
+        <mat-icon>done</mat-icon>
         Add
       </button>
     </div>
@@ -49,9 +49,9 @@ import { WebradioService } from '../../services/webradio.service'
 })
 export class WrCategoryDialogComponent {
 
-  constructor( @Inject(MD_DIALOG_DATA) public data: any,
+  constructor( @Inject(MAT_DIALOG_DATA) public data: any,
     public webradio: WebradioService,
-    public dialogRef: MdDialogRef<WrCategoryDialogComponent>) { }
+    public dialogRef: MatDialogRef<WrCategoryDialogComponent>) { }
 
   addCategory(catName: string) {
     this.webradio.addCategory(this.data.source, catName);

@@ -17,7 +17,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import { Component, OnInit } from '@angular/core';
-import { MdTabChangeEvent } from '@angular/material';
+import { MatTabChangeEvent } from '@angular/material';
 import { WebradioService, WebradioSource } from '../../services/webradio.service'
 import { MenuService } from '../../services/menu.service';
 
@@ -25,12 +25,12 @@ import { MenuService } from '../../services/menu.service';
 @Component({
   selector: 'djd-webradio',
   template: `
-  <md-tab-group (change)="onTabChange($event)">
-    <md-tab *ngFor="let source of sources" [label]="source.label">
+  <mat-tab-group (change)="onTabChange($event)">
+    <mat-tab *ngFor="let source of sources" [label]="source.label">
         <djd-webradio-source [name]="source.name" [editable]="source.editable">
         </djd-webradio-source>
-    </md-tab>
-  </md-tab-group>
+    </mat-tab>
+  </mat-tab-group>
   `
 })
 export class WebradioComponent implements OnInit {
@@ -44,7 +44,7 @@ export class WebradioComponent implements OnInit {
     });
   }
 
-  onTabChange(event: MdTabChangeEvent): void {
+  onTabChange(event: MatTabChangeEvent): void {
     this.menu.register("webradio." + this.sources[event.index].name);
   }
 }

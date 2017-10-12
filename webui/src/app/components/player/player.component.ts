@@ -18,8 +18,8 @@
 
 import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
-import { MdSliderChange } from '@angular/material';
-import {MdDialog} from '@angular/material';
+import { MatSliderChange } from '@angular/material';
+import {MatDialog} from '@angular/material';
 import { Timer } from '../../models/timer.model';
 import { Media } from '../../models/media.model';
 import { PlayerService, PlayerStatus } from '../../services/player.service';
@@ -49,21 +49,21 @@ interface SeekbarState {
              fxFlex.sm="1 1 300px"
              fxFlex.lt-sm="1 1 100%"
              fxLayoutAlign="center center">
-            <button md-icon-button (click)=player.previous()>
-                <md-icon>skip_previous</md-icon>
+            <button mat-icon-button (click)=player.previous()>
+                <mat-icon>skip_previous</mat-icon>
             </button>
-            <button md-icon-button (click)=player.playToggle()>
-                <md-icon *ngIf="!isPlaying">play_arrow</md-icon>
-                <md-icon *ngIf="isPlaying">pause</md-icon>
+            <button mat-icon-button (click)=player.playToggle()>
+                <mat-icon *ngIf="!isPlaying">play_arrow</mat-icon>
+                <mat-icon *ngIf="isPlaying">pause</mat-icon>
             </button>
-            <button md-icon-button (click)=player.stop()>
-                <md-icon>stop</md-icon>
+            <button mat-icon-button (click)=player.stop()>
+                <mat-icon>stop</mat-icon>
             </button>
-            <button md-icon-button (click)=player.next()>
-                <md-icon>skip_next</md-icon>
+            <button mat-icon-button (click)=player.next()>
+                <mat-icon>skip_next</mat-icon>
             </button>
 
-            <button md-button fxHide [fxShow.lt-md]="true"
+            <button mat-button fxHide [fxShow.lt-md]="true"
                     (click)="openSeekDialog()"
                     [disabled]="seekbarState.length == 0">
                 {{seekbarState.formatedPosition}} /
@@ -71,21 +71,21 @@ interface SeekbarState {
             </button>
 
             <div fxHide [fxShow.lt-sm]="true">
-                <button md-icon-button
+                <button mat-icon-button
                         #vMiniButton
                         (click)="toggleVolumeMenu()">
-                    <md-icon>volume_up</md-icon>
+                    <mat-icon>volume_up</mat-icon>
                 </button>
 
                 <div #volMenu class="djd-mini-vslider-box">
-                    <md-slider vertical
+                    <mat-slider vertical
                         class="djd-mini-vslider"
                         *ngIf="!vSliderHidden"
                         (change)="player.setVolume($event.value)"
                         [ngModel]="volume"
                         [min]=0
                         [max]=100
-                        [step]=5></md-slider>
+                        [step]=5></mat-slider>
                 </div>
             </div>
         </div>
@@ -96,10 +96,10 @@ interface SeekbarState {
             <button fxFlex="0 0 auto"
                     [disabled]="seekbarState.length == 0"
                     (click)="openSeekDialog()"
-                    md-button>
+                    mat-button>
                 {{seekbarState.formatedPosition}}
             </button>
-            <md-slider
+            <mat-slider
                 fxFlex="1 1 100%"
                 (change)="seek($event)"
                 (input)="onSeekbarSlide($event.value)"
@@ -107,11 +107,11 @@ interface SeekbarState {
                 [disabled]="seekbarState.length == 0"
                 [min]=0
                 [max]=seekbarState.length
-                [step]=seekbarState.step></md-slider>
+                [step]=seekbarState.step></mat-slider>
             <button fxFlex="0 0 auto"
                     [disabled]="seekbarState.length == 0"
                     (click)="openSeekDialog()"
-                    md-button>
+                    mat-button>
                 {{seekbarState.formatedLength}}
             </button>
         </div>
@@ -130,7 +130,7 @@ export class PlayerComponent implements OnInit {
   public volume:number = 0;
   public vSliderHidden:boolean = true;
 
-  constructor(public player:PlayerService, public dialog:MdDialog,
+  constructor(public player:PlayerService, public dialog:MatDialog,
               private utils:UtilsService) {
     this.resetSeekbar();
     this.seekTimer = new Timer((val: number) => {
@@ -181,7 +181,7 @@ export class PlayerComponent implements OnInit {
     }
   }
 
-  seek(event: MdSliderChange):void {
+  seek(event: MatSliderChange):void {
     this.seekbarState.formatedPosition = this.utils.formatTime(event.value);
     this.seekTimer.update(event.value);
   }

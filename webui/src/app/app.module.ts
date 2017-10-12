@@ -30,11 +30,11 @@ import {DEFAULT_BREAKPOINTS_PROVIDER, BreakPointRegistry, MatchMedia,
 
 // material styles and components
 import "../../node_modules/@angular/material/prebuilt-themes/indigo-pink.css";
-import { MdSidenavModule, MdToolbarModule,
-         MdButtonModule, MdIconModule, MdButtonToggleModule,
-         MdSliderModule, MdTabsModule, MdListModule,
-         MdMenuModule, MdDialogModule, MdSnackBarModule,
-         MdSelectModule, MdInputModule, MdProgressSpinnerModule } from '@angular/material';
+import { MatSidenavModule, MatToolbarModule,
+         MatButtonModule, MatIconModule, MatButtonToggleModule,
+         MatSliderModule, MatTabsModule, MatListModule,
+         MatMenuModule, MatDialogModule, MatSnackBarModule,
+         MatSelectModule, MatInputModule, MatProgressSpinnerModule } from '@angular/material';
 
 // app custom styles
 import "../styles/custom.css"
@@ -96,20 +96,20 @@ import { appRoutes } from './app.routes';
     FormsModule,
     BrowserAnimationsModule,
     FlexLayoutModule,
-    MdToolbarModule,
-    MdSidenavModule,
-    MdButtonModule,
-    MdButtonToggleModule,
-    MdIconModule,
-    MdSliderModule,
-    MdTabsModule,
-    MdListModule,
-    MdMenuModule,
-    MdDialogModule,
-    MdSelectModule,
-    MdInputModule,
-    MdProgressSpinnerModule,
-    MdSnackBarModule
+    MatToolbarModule,
+    MatSidenavModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatIconModule,
+    MatSliderModule,
+    MatTabsModule,
+    MatListModule,
+    MatMenuModule,
+    MatDialogModule,
+    MatSelectModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule
   ],
   providers: [
     DEFAULT_BREAKPOINTS_PROVIDER,

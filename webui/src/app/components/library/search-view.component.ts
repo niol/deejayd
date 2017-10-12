@@ -28,38 +28,38 @@ import { UtilsService } from '../../services/utils.service';
   template: `
   <div style="width:99%" fxLayout="column">
     <div fxLayout="row" fxLayoutAlign="center center">
-        <md-input-container fxFlex="1 1 100%">
-            <input mdInput #pattern placeholder="search">
-        </md-input-container>
+        <mat-input-container fxFlex="1 1 100%">
+            <input matInput #pattern placeholder="search">
+        </mat-input-container>
         <div fxFlex="0 0 auto">
-            <md-select [(ngModel)]="selectedTag">
-              <md-option *ngFor="let tag of tags" [value]="tag">
+            <mat-select [(ngModel)]="selectedTag">
+              <mat-option *ngFor="let tag of tags" [value]="tag">
                 {{tag}}
-              </md-option>
-            </md-select>
+              </mat-option>
+            </mat-select>
         </div>
-        <button fxFlex="0 0 auto" md-raised-button
+        <button fxFlex="0 0 auto" mat-raised-button
                 (click)="search(pattern.value)">
-            <md-icon>search</md-icon>
+            <mat-icon>search</mat-icon>
             Search
         </button>
     </div>
 
     <div fxFlex="1 1 100%" fxLayout="column">
         <h4 i18n>Search results</h4>
-        <md-menu #searchMenu="mdMenu">
-            <button md-menu-item (click)="play()" i18n>Play</button>
-            <button md-menu-item
+        <mat-menu #searchMenu="matMenu">
+            <button mat-menu-item (click)="play()" i18n>Play</button>
+            <button mat-menu-item
                         *ngIf="utils.hasLastPos(selectedMedia)"
                         (click)="resume()"
                         i18n>
               Resume at {{ utils.formatTime(selectedMedia.last_position) }}
             </button>
-            <button md-menu-item (click)="loadToPlaylist()" i18n>Add to playlist</button>
-            <button md-menu-item
+            <button mat-menu-item (click)="loadToPlaylist()" i18n>Add to playlist</button>
+            <button mat-menu-item
                     *ngIf="type == 'audio'"
                     (click)="loadToQueue()" i18n>Add to queue</button>
-        </md-menu>
+        </mat-menu>
         <div [ngSwitch]="loading">
             <ul *ngSwitchCase="false" class="djd-medialist">
                 <li *ngFor="let media of results" style="width: 100%">
@@ -69,10 +69,10 @@ import { UtilsService } from '../../services/utils.service';
                         <p><em>{{utils.getMediaDesc(media)}}</em></p>
                     </div>
                     <div fxFlex="0 0 auto">
-                      <button md-icon-button
+                      <button mat-icon-button
                               (click)="select(media)"
-                              [mdMenuTriggerFor]="searchMenu">
-                          <md-icon>menu</md-icon>
+                              [matMenuTriggerFor]="searchMenu">
+                          <mat-icon>menu</mat-icon>
                       </button>
                     </div>
                   </div>
@@ -80,7 +80,7 @@ import { UtilsService } from '../../services/utils.service';
             </ul>
 
             <div *ngSwitchCase="true" class="djd-loading-container">
-                <md-spinner></md-spinner>
+                <mat-spinner></mat-spinner>
             </div>
         </div>
     </div>
