@@ -220,8 +220,14 @@ class Video(Media):
             "width": self.width,
             "height": self.height,
             "external_subtitle": self.external_subtitle,
-            "audio_channels": [c.to_json() for c in self.audio_channels],
-            "sub_channels": [c.to_json() for c in self.sub_channels],
+            "audio_channels": [
+                {"is_external": False, "idx": 0, "lang": "Auto"},
+                {"is_external": False, "idx": -1, "lang": _("Disabled")},
+            ] + [c.to_json() for c in self.audio_channels],
+            "sub_channels": [
+                {"is_external": False, "idx": 0, "lang": "Auto"},
+                {"is_external": False, "idx": -1, "lang": _("Disabled")},
+            ] + [c.to_json() for c in self.sub_channels],
             "playing_state": self.playing_state
         })
         return result

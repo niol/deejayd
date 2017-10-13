@@ -192,6 +192,7 @@ class Playlist(object):
                                         i.media,
                                         self.source
                                         ) for i in db_list.items]
+        self.time_length = reduce(lambda t, m: t + m["length"], self.medialist, 0)
 
     def save(self):
         db_list = Session.query(StaticMediaList)\

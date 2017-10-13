@@ -236,7 +236,7 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent,
                                         "for this option") % str(value))
 
             func(value)
-            self._playing_media.playing_state[name] = value
+            self._playing_media['playing_state'][name] = value
             self.dispatch_signame('player.current')
 
     def set_zoom(self, zoom):
@@ -260,20 +260,22 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent,
             self.osd(_("Subtitle offset: %d ms") % offset)
 
     def set_current_audio(self, idx):
-        try:
-            track = self._playing_media.audio_channels[idx]
-        except KeyError:
-            raise PlayerError(_("Current media hasn't multiple audio channel"))
-        self._player_set_alang(track.ix)
-        self.osd(_("Audio channel: %s") % track.language)
+        for t in self._playing_media["audio_channels"]:
+            if t["idx"] == idx:
+                self._player_set_alang(idx)
+                self.osd(_("Audio channel: %s") % t['lang'])
+                return
+        raise PlayerError(_("Current media hasn't audio "
+                            "channel with idx %d") % idx)
 
     def set_current_sub(self, idx):
-        try:
-            track = self._playing_media.subtitle_channels[idx]
-        except KeyError:
-            raise PlayerError(_("Current media hasn't multiple audio channel"))
-        self._player_set_slang(track.ix)
-        self.osd(_("Subtitle channel: %s") % track.language)
+        for t in self._playing_media["sub_channels"]:
+            if t["idx"] == idx:
+                self._player_set_slang(idx)
+                self.osd(_("Subtitle channel: %s") % t['lang'])
+                return
+        raise PlayerError(_("Current media hasn't subtitle "
+                            "channel with idx %d") % idx)
 
     def osd(self, text):
         if self._video_options["osd"] and self.is_playing() \
