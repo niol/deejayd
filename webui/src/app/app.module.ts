@@ -34,7 +34,8 @@ import { MatSidenavModule, MatToolbarModule,
          MatButtonModule, MatIconModule, MatButtonToggleModule,
          MatSliderModule, MatTabsModule, MatListModule,
          MatMenuModule, MatDialogModule, MatSnackBarModule,
-         MatSelectModule, MatInputModule, MatProgressSpinnerModule } from '@angular/material';
+         MatSelectModule, MatInputModule, MatProgressSpinnerModule,
+         MatSlideToggleModule } from '@angular/material';
 
 // app custom styles
 import "../styles/custom.css"
@@ -108,6 +109,7 @@ import { appRoutes } from './app.routes';
     MatDialogModule,
     MatSelectModule,
     MatInputModule,
+    MatSlideToggleModule,
     MatProgressSpinnerModule,
     MatSnackBarModule
   ],

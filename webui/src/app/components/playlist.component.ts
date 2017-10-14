@@ -58,21 +58,22 @@ interface MediaListStatus {
       <span>({{ timeDesc }})</span>
     </h3>
     <mat-button-toggle
+              style="min-width: 50px"
               #repeatToggleButton
               *ngIf="hasRepeat"
               (change)="setRepeatOption(repeatToggleButton.checked)"
               [checked]="repeat">
       <mat-icon>repeat</mat-icon>
     </mat-button-toggle>
-    <span style="width: 10px;"></span>
-    <mat-form-field>
-      <mat-select [ngModel]="playOrder"
+    <span style="width: 15px;"></span>
+      <mat-select
+                style="width: 200px;" 
+                [ngModel]="playOrder"
                 (change)="setOrderOption($event)">
         <mat-option value="inorder">In order</mat-option>
         <mat-option value="random">Random</mat-option>
         <mat-option value="onemedia">One Media</mat-option>
       </mat-select>
-    </mat-form-field>
   </div>
 
   <ul class="djd-medialist">
