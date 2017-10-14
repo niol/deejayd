@@ -32,7 +32,7 @@ import { UtilsService } from '../../services/utils.service';
             <input matInput #pattern placeholder="search">
         </mat-input-container>
         <div fxFlex="0 0 auto">
-            <mat-select [(ngModel)]="selectedTag">
+            <mat-select style="width: 200px;" [(ngModel)]="selectedTag">
               <mat-option *ngFor="let tag of tags" [value]="tag">
                 {{tag}}
               </mat-option>

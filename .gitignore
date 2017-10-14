@@ -8,6 +8,7 @@ conf*
 *.pyc
 build*
 webui/gen*
+webui/dist/*.map
 .vscode*
 webui/node_modules*
 webui/dist/aot/*
