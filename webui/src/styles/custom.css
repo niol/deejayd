@@ -6,11 +6,26 @@ body {
 /*
  * Layout
  */
+.djd-app {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    padding-top: 64px;
+    padding-bottom: 85px;
+}
+
 .djd-main-container {
-    margin-top: 64px;
-    margin-bottom: 85px;
-    height: 100%;
-    min-height: 400px;
+    flex: 1 1 auto;
+    overflow-y: auto;
 }
 
 .djd-sidenav-container {

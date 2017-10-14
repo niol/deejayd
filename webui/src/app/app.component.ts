@@ -32,8 +32,9 @@ declare var DeejaydApp: any;
 
 
 @Component({
-  selector: 'my-app',
+  selector: 'djd-app',
   template: `
+  <div class="djd-main-container" fxLayout="column">
     <mat-menu #mainMenu="matMenu">
       <button mat-menu-item
               *ngIf="menu.isClearActive()"
@@ -70,7 +71,7 @@ declare var DeejaydApp: any;
       </button>
     </mat-toolbar>
 
-    <mat-sidenav-container class="djd-main-container">
+    <mat-sidenav-container fxFlex="1 1 auto" style="overflow-y: auto;">
       <mat-sidenav #sidenav mode="{{sidenavMode}}" opened="{{sidenavOpened}}">
         <div fxLayout="column" class="djd-sidenav-container">
           <a mat-button
@@ -107,6 +108,7 @@ declare var DeejaydApp: any;
     <div class="djd-player-container">
       <djd-player></djd-player>
     </div>
+  </div>
     `
 })
 export class AppComponent implements OnInit {

@@ -22,7 +22,7 @@
 </head>
 
 <body>
-    <my-app class='djd-main-container'></my-app>
+    <djd-app class='djd-app'></djd-app>
     %(custom_scripts)s
 </body>
 </html>
