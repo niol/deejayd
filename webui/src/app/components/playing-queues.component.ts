@@ -23,7 +23,7 @@ import { MenuService } from '../services/menu.service';
 @Component({
   selector: 'djd-playing-queues',
   template: `
-  <mat-tab-group (change)="onTabChange($event)">
+  <mat-tab-group (selectedTabChange)="onTabChange($event)">
     <mat-tab label="Music">
       <djd-playlist name="audiopls" [hasRepeat]="true"></djd-playlist>
     </mat-tab>
@@ -45,11 +45,12 @@ export class PlayingQueuesComponent implements OnInit {
   }
 
   onTabChange(event: MatTabChangeEvent):void {
+
     switch(event.index) {
-      case 1:
+      case 0:
         this.selectedSource = "audiopls";
         break;
-      case 2:
+      case 1:
         this.selectedSource = "audioqueue";
         break;
       case 2:
