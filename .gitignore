@@ -1,6 +1,7 @@
 syntax: glob
 db/*
 conf*
+MANIFEST
 *.orig
 *.rej
 .DS_Store

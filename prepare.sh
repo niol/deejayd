@@ -10,7 +10,9 @@ makeexec scripts/testserver
 makeexec tests.py
 makeexec debian/rules
 
-# build webui for test
+# build webui
+# nodejs and npm are required
 cd webui
-cake build
+npm install
+npm run build
 
