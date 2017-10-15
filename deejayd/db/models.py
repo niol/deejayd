@@ -230,6 +230,12 @@ class Video(Media):
             ] + [c.to_json() for c in self.sub_channels],
             "playing_state": self.playing_state
         })
+        if self.external_subtitle != "":
+            result["sub_channels"].append({
+                "is_external": True,
+                "idx": self.sub_channels.count()+1,
+                "lang": "external"
+            })
         return result
 
 

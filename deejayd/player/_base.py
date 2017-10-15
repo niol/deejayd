@@ -316,7 +316,9 @@ class _BasePlayer(SignalingComponent, JSONRpcComponent,
 
     def close(self):
         # save state
-        current = self._playing_media or {"pos": "-1", "source": "none"}
+        current = self._playing_media
+        if current is None or not current.is_seekable():
+            current = {"pos": "-1", "source": "none"}
         self.state.update({
             "volume": self.__volume,
             "current": current["pos"],

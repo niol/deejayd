@@ -283,7 +283,8 @@ class GstreamerPlayer(_BasePlayer):
             while not playing:
                 uri = next(uris)
                 self.bin.set_property('uri', uri)
-                if "external_subtitle" in self._playing_media:
+                if self._playing_media.has_video() \
+                        and "external_subtitle" in self._playing_media:
                     suburi = self._playing_media["external_subtitle"]
                     self.bin.set_property('suburi', suburi)
                 try:
@@ -303,13 +304,12 @@ class GstreamerPlayer(_BasePlayer):
         return self.bin.get_property("current-audio")
 
     def _player_set_slang(self, lang_idx):
-        if self._has_external_subtitle():
-            return
-        self.bin.set_property("current-text", lang_idx)
+        for ch in self._playing_media["sub_channels"]:
+            if ch["idx"] == lang_idx:
+                if not ch["is_external"]:               
+                    self.bin.set_property("current-text", lang_idx)
 
     def _player_get_slang(self):
-        if self._has_external_subtitle():
-            return SUB_EXTERNAL
         return self.bin.get_property("current-text")
 
     def _player_set_avoffset(self, offset):
@@ -416,10 +416,8 @@ class GstreamerPlayer(_BasePlayer):
             self.__update_metadata(message.parse_tag())
         elif message.type == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
-            err = str(err).decode("utf8", 'replace')
-            log.err("Gstreamer Error: %s" % err)
-            debug = str(debug).decode("utf8", 'replace')
-            log.debug("Gstreamer Error debug: %s" % debug)
+            log.err("Gstreamer Error: %s" % str(err))
+            log.debug("Gstreamer Error debug: %s" % str(debug))
         elif message.type == Gst.MessageType.STREAM_START:
             if self.__in_gapless_transition:
                 self._end()
@@ -444,9 +442,9 @@ class GstreamerPlayer(_BasePlayer):
         tags = parse_gstreamer_taglist(tags)
 
         if "title" in tags:
-            desc = tags["title"]
+            desc = tags["title"][0]
             if "artist" in tags:
-                desc = tags["artist"] + " - " + desc
+                desc = tags["artist"][0] + " - " + desc
             self._playing_media.set_description(desc)
             self.dispatch_signame('player.current')
 

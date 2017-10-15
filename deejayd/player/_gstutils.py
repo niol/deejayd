@@ -18,7 +18,6 @@
 
 import collections
 from gi.repository import Gst
-from deejayd.server.utils import str_decode
 
 
 class TagListWrapper(collections.Mapping):
