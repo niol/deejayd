@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Deejayd, a media player daemon
-# Copyright (C) 2007-2009 Mickael Royer <mickael.royer@gmail.com>
+# Copyright (C) 2007-2017 Mickael Royer <mickael.royer@gmail.com>
 #                         Alexandre Rossi <alexandre.rossi@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -23,42 +23,46 @@ Use to create documentation of the protocol
 """
 
 # init translation
-import gettext, inspect
+import gettext
+import inspect
 from deejayd.ui.i18n import DeejaydTranslations
-try: t = gettext.translation("deejayd", class_=DeejaydTranslations)
+from deejayd.db.models import And, Equals, Or, Contains, NotEquals
+from deejayd.jsonrpc import interfaces
+from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest
+
+
+try: 
+    t = gettext.translation("deejayd", class_=DeejaydTranslations)
 except IOError:
     t = DeejaydTranslations()
 t.install()
 
-from deejayd.model.mediafilters import *
-from deejayd.jsonrpc import interfaces
-from deejayd.jsonrpc.jsonbuilders import JSONRPCResponse, JSONRPCRequest,\
-                                         DeejaydJSONSignal
 
 common_request = [
-        {"prefix": "", "desc": "General Commands",\
-                       "object": interfaces.CoreModule},
-        {"prefix": "introspection.", "desc": "Introspection Commands",\
-                       "object": interfaces.IntrospectionModule},
-        {"prefix": "player.", "desc": "Player Commands",\
-                       "object": interfaces.PlayerModule},
-        {"prefix": "audiolib.", "desc": "Audio Library Commands",\
-                       "object": interfaces.AudioLibraryModule},
-        {"prefix": "videolib.", "desc": "Video Library Commands",\
-                       "object": interfaces.LibraryModule},
-        {"prefix": "audiopls.", "desc": "Playlist Mode Commands",\
-                       "object": interfaces.AudioSourceModule},
-        {"prefix": "videopls.", "desc": "Video Mode Commands",\
-                       "object": interfaces.VideoSourceModule},
-        {"prefix": "audioqueue.", "desc": "Queue Commands",\
-                       "object": interfaces.QueueSourceModule},
-        {"prefix": "webradio.", "desc": "Webradio Mode Commands",\
-                       "object": interfaces.WebradioModule},
-        {"prefix": "recpls.", "desc": "Recorded Playlist Commands",\
-                       "object": interfaces.RecordedPlaylistModule},
-        {"prefix": "signal.", "desc": "Signal commands",
-                       "object": interfaces.SignalModule},
-    ]
+    {"prefix": "", "desc": "General Commands",
+        "object": interfaces.CoreModule},
+    {"prefix": "introspection.", "desc": "Introspection Commands",
+        "object": interfaces.IntrospectionModule},
+    {"prefix": "player.", "desc": "Player Commands",
+        "object": interfaces.PlayerModule},
+    {"prefix": "audiolib.", "desc": "Audio Library Commands",
+        "object": interfaces.AudioLibraryModule},
+    {"prefix": "videolib.", "desc": "Video Library Commands",
+        "object": interfaces.LibraryModule},
+    {"prefix": "audiopls.", "desc": "Playlist Mode Commands",
+        "object": interfaces.AudioSourceModule},
+    {"prefix": "videopls.", "desc": "Video Mode Commands",
+        "object": interfaces.VideoSourceModule},
+    {"prefix": "audioqueue.", "desc": "Queue Commands",
+        "object": interfaces.QueueSourceModule},
+    {"prefix": "webradio.", "desc": "Webradio Mode Commands",
+        "object": interfaces.WebradioModule},
+    {"prefix": "recpls.", "desc": "Recorded Playlist Commands",
+        "object": interfaces.RecordedPlaylistModule},
+    {"prefix": "signal.", "desc": "Signal commands",
+        "object": interfaces.SignalModule},
+]
+
 
 class WikiFormat:
 
@@ -70,9 +74,9 @@ As written in specification, request is like that :
 }}}
 
 """ % {
-    "request": JSONRPCRequest("method_name",\
-                          ["params1", "params2"], id="id").to_pretty_json(),\
-    }
+    "request": JSONRPCRequest("method_name",
+                              ["params1", "params2"], id="id").to_pretty_json(),
+}
 
     def answerDoc(self):
         return """
@@ -98,24 +102,26 @@ With response types equals to:
 """ % JSONRPCResponse("deejayd_response", "id").to_pretty_json()
 
     def formatSectionDoc(self, section):
-        cmds = []
+        cmd_docs = []
         for c_name in dir(section["object"]):
             if not c_name.startswith("__"):
-                try: c = getattr(section["object"], c_name)
+                try: 
+                    c = getattr(section["object"], c_name)
                 except AttributeError:
                     continue
-                if inspect.isclass(c): cmds.append(c)
+                if inspect.isclass(c):
+                    cmd_docs.append(self.formatCommandDoc(c, section["prefix"]))
+        
         return """
 === `%(section)s` ===
 
 %(commands)s
 """ % {
-        "section": section["desc"],
-        "commands": "\n\n".join(map(self.formatCommandDoc, cmds,\
-                        [section["prefix"] for i in range(len(cmds))])),
-    }
+    "section": section["desc"],
+    "commands": "\n\n".join(cmd_docs)
+}
 
-    def formatCommandDoc(self, cmd, prefix = ""):
+    def formatCommandDoc(self, cmd, prefix=""):
         args = ''
 
         command_args = getattr(cmd, "args", [])
@@ -123,9 +129,7 @@ With response types equals to:
             props = []
 
             # An argument is optional by default
-            if 'req' not in arg.keys():
-                arg['req'] = False
-            if arg['req']:
+            if 'req' in arg and arg['req']:
                 props.append('Mandatory')
             else:
                 props.append('Optional')
@@ -161,8 +165,8 @@ Expected return value : ''`%(rvalues)s`''
         'rvalues' : rvalues }
 
     def build(self, sections):
-        filter = And(Equals("artist", "artist_name"),\
-                Or(Contains("genre", "Rock"), Higher("Rating", "4")))
+        filter = And(Equals("artist", "artist_name"),
+                     Or(Contains("genre", "Rock"), NotEquals("Rating", 4)))
         j_sig = {
             "type": "signal",
             "answer": {
@@ -228,16 +232,13 @@ An example is given here.
         "cmd_format": self.commandDoc(),
         "answer": self.answerDoc(),
         "filter": filter.to_json(),
-        "commands": "\n\n".join(map(self.formatSectionDoc, sections)),
+        "commands": "\n\n".join([self.formatSectionDoc(s) for s in sections]),
         "signal": signal,
     }
+
 
 if __name__ == "__main__":
     docs = WikiFormat().build(common_request)
 
-    f = open("doc/deejayd_rpc_protocol","w")
-    try: f.write(docs)
-    finally: f.close()
-
-
-# vim: ts=4 sw=4 expandtab
+    with open("doc/deejayd_rpc_protocol", "w") as f:
+        f.write(docs)

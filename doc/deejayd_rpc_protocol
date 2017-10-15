@@ -62,7 +62,7 @@ separator.
 Mediafilter object has been serialized in a specific way to be passed as
 an method argument or receive with an answer. An example is given here.
 {{{
-`{'type': 'complex', 'id': 'and', 'value': [{'type': 'basic', 'id': 'equals', 'value': {'pattern': 'artist_name', 'tag': 'artist'}}, {'type': 'complex', 'id': 'or', 'value': [{'type': 'basic', 'id': 'contains', 'value': {'pattern': 'Rock', 'tag': 'genre'}}, {'type': 'basic', 'id': 'higher', 'value': {'pattern': '4', 'tag': 'Rating'}}]}]}`
+`{'value': [{'value': {'pattern': 'artist_name', 'tag': 'artist'}, 'type': 'basic', 'id': 'equals'}, {'value': [{'value': {'pattern': 'Rock', 'tag': 'genre'}, 'type': 'basic', 'id': 'contains'}, {'value': {'pattern': 4, 'tag': 'Rating'}, 'type': 'basic', 'id': 'not_equals'}], 'type': 'complex', 'id': 'or'}], 'type': 'complex', 'id': 'and'}`
 }}}
 
 === Sort Objects ===
@@ -81,7 +81,7 @@ Signal is available for TCP connection only.
 Signal object has been serialized in a specific way to be send to client.
 An example is given here.
 {{{
-`{"id": null, "result": {"answer": {"name": "signal_name", "attrs": {"attr1": "value1"}}, "type": "signal"}, "error": null}`
+`{"result": {"answer": {"name": "signal_name", "attrs": {"attr1": "value1"}}, "type": "signal"}, "id": null, "error": null}`
 }}}
 
 == Common Available Commands ==
@@ -117,12 +117,12 @@ Expected return value : ''`['dict']`''
 ==== `getStats` ====
 
 Return statistical informations :
-  * audio_library_update : UNIX time of the last audio library update
-  * video_library_update : UNIX time of the last video library update
-  * videos : number of videos known by the database
-  * songs : number of songs known by the database
-  * artists : number of artists in the database
-  * albums : number of albums in the database
+  * audio_library_update: UNIX time of the last audio library update
+  * video_library_update: UNIX time of the last video library update
+  * videos: number of videos known by the database
+  * songs: number of songs known by the database
+  * artists: number of distinct artists in the database
+  * albums: number of distinct albums in the database
 
 Arguments :
   * ''This command does not accept any argument.''
@@ -134,35 +134,26 @@ Expected return value : ''`['dict']`''
 ==== `getStatus` ====
 
 Return status of deejayd. Given informations are :
-  * playlist : _int_ id of the current playlist
-  * playlistlength : _int_ length of the current playlist
-  * playlisttimelength : _int_ time length of the current playlist
-  * playlistrepeat : _bool_ false (not activated) or true (activated)
-  * playlistplayorder : inorder | random | onemedia | random-weighted
-  * webradio : _int_ id of the current webradio list
-  * webradiolength : _int_ number of recorded webradio
-  * webradiosource : _str_ current source for webradio streams
-  * webradiosourcecat : _str_ current categorie for webradio
-  * queue : _int_ id of the current queue
-  * queuelength : _int_ length of the current queue
-  * queuetimelength : _int_ time length of the current queue
-  * queueplayorder : _str_ inorder | random
-  * video : _int_ id of the current video list
-  * videolength : _int_ length of the current video list
-  * videotimelength : _int_ time length of the current video list
-  * videorepeat : _bool_ false (not activated) or true (activated)
-  * videoplayorder : inorder | random | onemedia | random-weighted
-  * dvd : _int_ id of the current dvd
-  * dvdlength : _int_ number of tracks on the current dvd
-  * volume : `[0-100]` current volume value
-  * state : [play-pause-stop] the current state of the player
-  * current : _int_:_int_:_str_ current media pos : current media file id : playing source name
-  * time : _int_:_int_ position:length of the current media file
-  * mode : [playlist-webradio-video] the current mode
+  * audiopls_id : _int_ id of the current playlist
+  * audiopls_length : _int_ length of the current playlist
+  * audiopls_timelength : _int_ time length of the current playlist
+  * audiopls_repeat : _bool_ false (not activated) or true (activated)
+  * audiopls_playorder : inorder | random | onemedia | random-weighted
+  * audioqueue_id : _int_ id of the current queue
+  * audioqueue_length : _int_ length of the current queue
+  * audioqueue_timelength : _int_ time length of the current queue
+  * audioqueue_playorder : _str_ inorder | random
+  * videopls_id : _int_ id of the current video list
+  * videopls_length : _int_ length of the current video list
+  * videopls_timelength : _int_ time length of the current video list
+  * videopls_repeat : _bool_ false (not activated) or true (activated)
+  * videopls_playorder : inorder | random | onemedia | random-weighted
   * audio_updating_db : _int_ show when a audio library update is in progress
   * audio_updating_error : _string_ error message that appears when the audio library update has failed
   * video_updating_db : _int_ show when a video library update is in progress
   * video_updating_error : _string_ error message that appears when the video library update has failed
+  * state : player state (PLAY|PAUSE|STOP)
+  * volume : current volume
 
 Arguments :
   * ''This command does not accept any argument.''
@@ -232,7 +223,7 @@ Expected return value : ''`['list']`''
 ==== `player.getAvailableVideoOptions` ====
 
 Get video options supported by the active player. the answer is a dict of option_name=is_supported where
-    * option_name is in this list : "audio_lang", "sub_lang", "av_offset", "sub_offset", "zoom", "aspect_ratio"
+    * option_name is in this list : "current-audio", "current-sub", "av-offset", "sub-offset", "zoom", "aspect-ratio"
     * is_supported is a boolean equals to True if the option is supported by the player, False else
 
 Arguments :
@@ -342,7 +333,7 @@ Seeks to the position "pos" (in seconds) of the current media set relative argum
 
 Arguments :
   * {{{pos}}} (Mandatory) : int
-  * {{{relative}}} (Optional) : boolean
+  * {{{relative}}} (Optional) : bool
 
 Expected return value : ''`['ack']`''
 
@@ -352,11 +343,11 @@ Expected return value : ''`['ack']`''
 
 Set player video option for the current media. Possible options are :
   * zoom : set zoom, min=-85, max=400
-  * audio_lang : select audio channel
-  * sub_lang : select subtitle channel
-  * av_offset : set audio/video offset
-  * sub_offset : set subtitle/video offset
-  * aspect_ratio : set video aspect ratio, available values are :
+  * current-audio : select audio channel
+  * current-sub : select subtitle channel
+  * av-offset : set audio/video offset
+  * sub-offset : set subtitle/video offset
+  * aspect-ratio : set video aspect ratio, available values are :
     * auto
     * 1:1
     * 16:9
@@ -377,17 +368,7 @@ Set volume to "volume". The volume range is 0-100.
 
 Arguments :
   * {{{volume}}} (Mandatory) : int
-
-Expected return value : ''`['ack']`''
-
-
-
-==== `player.setVolumeRelative` ====
-
-Update volume with the step argument. IF it is negative, the volume decreases, else it increases
-
-Arguments :
-  * {{{step}}} (Mandatory) : int
+  * {{{relative}}} (Optional) : bool
 
 Expected return value : ''`['ack']`''
 
@@ -408,24 +389,41 @@ Expected return value : ''`['ack']`''
 
 === `Audio Library Commands` ===
 
+==== `audiolib.albumDetails` ====
+
+Get detailed information for album identified by id a_id
+  * id of the album
+  * name of the album
+  * cover if available
+  * time length of the album
+  * songs information
+
+Arguments :
+  * {{{a_id}}} (Mandatory) : int
+
+Expected return value : ''`['dict']`''
+
+
+
 ==== `audiolib.albumList` ====
 
 Get Albums that match the 'filter', the answer is list where each
 entry has
   * id of the album
   * name of the album
-  * filename of the cover
+  * the cover if args 'cover' is set to true
 
 Arguments :
   * {{{filter}}} (Optional) : filter
+  * {{{cover}}} (Optional) : bool
 
-Expected return value : ''`['albumList']`''
+Expected return value : ''`['list']`''
 
 
 
 ==== `audiolib.getCover` ====
 
-
+Get cover informations for the album identified with a_id
 
 Arguments :
   * {{{id}}} (Mandatory) : int
@@ -441,7 +439,7 @@ List the files of the directory supplied as argument.
 Arguments :
   * {{{directory}}} (Optional) : string
 
-Expected return value : ''`['fileAndDirList']`''
+Expected return value : ''`['dict']`''
 
 
 
@@ -451,9 +449,9 @@ Search files in library that match "filter"
         .
 
 Arguments :
-  * {{{filter}}} (Optional) : filter
+  * {{{filter}}} (Mandatory) : filter
 
-Expected return value : ''`['medialist']`''
+Expected return value : ''`['list']`''
 
 
 
@@ -504,7 +502,7 @@ List the files of the directory supplied as argument.
 Arguments :
   * {{{directory}}} (Optional) : string
 
-Expected return value : ''`['fileAndDirList']`''
+Expected return value : ''`['dict']`''
 
 
 
@@ -514,9 +512,9 @@ Search files in library that match "filter"
         .
 
 Arguments :
-  * {{{filter}}} (Optional) : filter
+  * {{{filter}}} (Mandatory) : filter
 
-Expected return value : ''`['medialist']`''
+Expected return value : ''`['list']`''
 
 
 
@@ -559,36 +557,6 @@ Expected return value : ''`['dict']`''
 
 
 === `Playlist Mode Commands` ===
-
-==== `audiopls.addMediaByFilter` ====
-
-Load files that match the filter argument
-if queue args = True (default), selected medias are added at the end of the
-playlist, else they replace current playlist
-.
-
-Arguments :
-  * {{{filter}}} (Mandatory) : filter
-  * {{{queue}}} (Optional) : bool
-
-Expected return value : ''`['ack']`''
-
-
-
-==== `audiopls.addMediaByIds` ====
-
-Load files identified with ids (media_ids).
-if queue args = True (default), selected medias are added at the end of the
-playlist, else they replace current playlist
-.
-
-Arguments :
-  * {{{media_ids}}} (Mandatory) : int-list
-  * {{{queue}}} (Optional) : bool
-
-Expected return value : ''`['ack']`''
-
-
 
 ==== `audiopls.clear` ====
 
@@ -638,6 +606,21 @@ playlist, else they replace current playlist
 
 Arguments :
   * {{{dir_ids}}} (Mandatory) : int-list
+  * {{{queue}}} (Optional) : bool
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `audiopls.loadMedias` ====
+
+Load files identified with ids (media_ids).
+if queue args = True (default), selected medias are added at the end of the
+playlist, else they replace current playlist
+.
+
+Arguments :
+  * {{{media_ids}}} (Mandatory) : int-list
   * {{{queue}}} (Optional) : bool
 
 Expected return value : ''`['ack']`''
@@ -699,7 +682,7 @@ Set player options "name" to "value". Available options are :
 
 Arguments :
   * {{{option_name}}} (Mandatory) : string
-  * {{{option_value}}} (Mandatory) : string
+  * {{{option_value}}} (Mandatory) : ('string', 'bool')
 
 Expected return value : ''`['ack']`''
 
@@ -719,36 +702,6 @@ Expected return value : ''`['ack']`''
 
 
 === `Video Mode Commands` ===
-
-==== `videopls.addMediaByFilter` ====
-
-Load files that match the filter argument
-if queue args = True (default), selected medias are added at the end of the
-playlist, else they replace current playlist
-.
-
-Arguments :
-  * {{{filter}}} (Mandatory) : filter
-  * {{{queue}}} (Optional) : bool
-
-Expected return value : ''`['ack']`''
-
-
-
-==== `videopls.addMediaByIds` ====
-
-Load files identified with ids (media_ids).
-if queue args = True (default), selected medias are added at the end of the
-playlist, else they replace current playlist
-.
-
-Arguments :
-  * {{{media_ids}}} (Mandatory) : int-list
-  * {{{queue}}} (Optional) : bool
-
-Expected return value : ''`['ack']`''
-
-
 
 ==== `videopls.clear` ====
 
@@ -804,6 +757,21 @@ Expected return value : ''`['ack']`''
 
 
 
+==== `videopls.loadMedias` ====
+
+Load files identified with ids (media_ids).
+if queue args = True (default), selected medias are added at the end of the
+playlist, else they replace current playlist
+.
+
+Arguments :
+  * {{{media_ids}}} (Mandatory) : int-list
+  * {{{queue}}} (Optional) : bool
+
+Expected return value : ''`['ack']`''
+
+
+
 ==== `videopls.move` ====
 
 Move songs with id in "ids" to position "pos". Set pos to -1 if you want to move song at the end of the playlist (default)
@@ -835,7 +803,18 @@ Set player options "name" to "value". Available options are :
 
 Arguments :
   * {{{option_name}}} (Mandatory) : string
-  * {{{option_value}}} (Mandatory) : string
+  * {{{option_value}}} (Mandatory) : ('string', 'bool')
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `videopls.shuffle` ====
+
+Shuffle the current playlist.
+
+Arguments :
+  * ''This command does not accept any argument.''
 
 Expected return value : ''`['ack']`''
 
@@ -844,36 +823,6 @@ Expected return value : ''`['ack']`''
 
 
 === `Queue Commands` ===
-
-==== `audioqueue.addMediaByFilter` ====
-
-Load files that match the filter argument
-if queue args = True (default), selected medias are added at the end of the
-playlist, else they replace current playlist
-.
-
-Arguments :
-  * {{{filter}}} (Mandatory) : filter
-  * {{{queue}}} (Optional) : bool
-
-Expected return value : ''`['ack']`''
-
-
-
-==== `audioqueue.addMediaByIds` ====
-
-Load files identified with ids (media_ids).
-if queue args = True (default), selected medias are added at the end of the
-playlist, else they replace current playlist
-.
-
-Arguments :
-  * {{{media_ids}}} (Mandatory) : int-list
-  * {{{queue}}} (Optional) : bool
-
-Expected return value : ''`['ack']`''
-
-
 
 ==== `audioqueue.clear` ====
 
@@ -929,6 +878,21 @@ Expected return value : ''`['ack']`''
 
 
 
+==== `audioqueue.loadMedias` ====
+
+Load files identified with ids (media_ids).
+if queue args = True (default), selected medias are added at the end of the
+playlist, else they replace current playlist
+.
+
+Arguments :
+  * {{{media_ids}}} (Mandatory) : int-list
+  * {{{queue}}} (Optional) : bool
+
+Expected return value : ''`['ack']`''
+
+
+
 ==== `audioqueue.loadPlaylist` ====
 
 Load recorded playlist at a specific position
@@ -972,7 +936,7 @@ Set player options "name" to "value". Available options are :
 
 Arguments :
   * {{{option_name}}} (Mandatory) : string
-  * {{{option_value}}} (Mandatory) : string
+  * {{{option_value}}} (Mandatory) : ('string', 'bool')
 
 Expected return value : ''`['ack']`''
 
@@ -1018,7 +982,7 @@ Arguments :
   * {{{first}}} (Optional) : int
   * {{{length}}} (Optional) : int
 
-Expected return value : ''`['medialist']`''
+Expected return value : ''`['list']`''
 
 
 
@@ -1067,7 +1031,7 @@ Add a webradio in 'source_name' source. Its name is "name" and the url of the we
 Arguments :
   * {{{source_name}}} (Mandatory) : string
   * {{{name}}} (Mandatory) : string
-  * {{{url}}} (Mandatory) : list
+  * {{{urls}}} (Mandatory) : list
   * {{{cat}}} (Optional) : int
 
 Expected return value : ''`['ack']`''
@@ -1148,7 +1112,7 @@ Arguments :
   * {{{first}}} (Optional) : int
   * {{{length}}} (Optional) : int
 
-Expected return value : ''`['mediaList']`''
+Expected return value : ''`['list']`''
 
 
 
@@ -1186,6 +1150,17 @@ Arguments :
   * {{{pl_id}}} (Mandatory) : int
 
 Expected return value : ''`['ack']`''
+
+
+
+==== `recpls.magicGetFilters` ====
+
+Return the list of filters used by this recorded magic playlist.
+
+Arguments :
+  * {{{pl_id}}} (Mandatory) : int
+
+Expected return value : ''`['filterList']`''
 
 
 
@@ -1230,22 +1205,7 @@ Expected return value : ''`['ack']`''
 
 
 
-==== `recpls.staticAddMedia` ====
-
-Add songs in a recorded static playlist. Argument 'type' has to be
-  * 'path' (default) to specify folder/file path in values argument
-  * OR 'id' to specify media ids in values argument
-
-Arguments :
-  * {{{pl_id}}} (Mandatory) : int
-  * {{{values}}} (Mandatory) : list
-  * {{{type}}} (Optional) : string
-
-Expected return value : ''`['ack']`''
-
-
-
-==== `recpls.staticClearMedia` ====
+==== `recpls.staticClear` ====
 
 Remove all songs in a recorded static playlist.
 
@@ -1256,13 +1216,37 @@ Expected return value : ''`['ack']`''
 
 
 
-==== `recpls.staticRemoveMedia` ====
+==== `recpls.staticLoadFolders` ====
+
+Load folders identified with their ids (dir_ids) in a recorded playlist.
+
+Arguments :
+  * {{{pl_id}}} (Mandatory) : int
+  * {{{dir_ids}}} (Mandatory) : int-list
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `recpls.staticLoadMedias` ====
+
+Add songs in a recorded static playlist. Argument 'values' contains list of media ids
+
+Arguments :
+  * {{{pl_id}}} (Mandatory) : int
+  * {{{m_ids}}} (Mandatory) : list
+
+Expected return value : ''`['ack']`''
+
+
+
+==== `recpls.staticRemoveMedias` ====
 
 Remove songs in a recorded static playlist. Argument 'values' specify position of media to remove from the playlist
 
 Arguments :
   * {{{pl_id}}} (Mandatory) : int
-  * {{{values}}} (Mandatory) : list
+  * {{{m_ids}}} (Mandatory) : list
 
 Expected return value : ''`['ack']`''
 
