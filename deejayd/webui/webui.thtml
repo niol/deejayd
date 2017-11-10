@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Deejayd UI</title>
-    <base href="/">
+    <base href="%(root_url)s">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="icon" href="ressources/deejayd.ico" type="image/x-icon"/>
     <link rel="shortcut icon" href="images/deejayd.ico" type="image/x-icon"/>

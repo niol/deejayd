@@ -17,6 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
+import posixpath
+
 from twisted.web.resource import Resource
 from deejayd.ui.config import DeejaydConfig
 
@@ -45,9 +47,10 @@ class DeejaydMainHandler(Resource):
         return self._build()
 
     def _load_script(self, script, type="text/javascript"):
+        config = DeejaydConfig()
         return "<script type='%(t)s' src='%(src)s'></script>" % {
             "t": type,
-            "src": script,
+            "src": posixpath.join(config.get("webui", "root_url"), script),
             }
 
     def _djdscripts(self, config):
