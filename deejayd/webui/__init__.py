@@ -39,7 +39,7 @@ class DeejaydRootRedirector(Resource):
         self.webui_handler = webui_handler
 
     def getChild(self, name, request):
-        if name == '':
+        if name == b'' or name == b'/':
             return self
 
         prepath = b'/%s/' % b'/'.join(request.prepath)
