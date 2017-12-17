@@ -21,8 +21,9 @@
 
 
 import ctypes
-from . import _libX11 as libX11
-from . import _libXext as libXext
+from pytyx11 import _libX11 as libX11
+from pytyx11 import _libXext as libXext
+from pytyx11._libGL import attach_opengl_context, destroy_opengl_context
 
 
 class X11Error(Exception):
@@ -60,7 +61,7 @@ class X11Event:
 
 class X11Window(object):
 
-    def __init__(self, display, width=None, height=None, fullscreen=False):
+    def __init__(self, display, width=None, height=None, fullscreen=False, opengl=False):
         self.__display = display
         self.__display_p = self.__display.display_p()
 
@@ -97,6 +98,11 @@ class X11Window(object):
                              X11Event.PointerMotionMask))
         libX11.XMapRaised(self.__display_p, self.__window_p)
         libX11.XSync(self.__display_p, False)
+        self.opengl_ctx = None
+        if opengl:
+            self.opengl_ctx = attach_opengl_context(self.__display,
+                                                    self.__window_p)
+
         libX11.XUnlockDisplay(self.__display_p)
 
         self.video_area_info = {}
@@ -211,6 +217,8 @@ class X11Window(object):
         libX11.XLockDisplay(self.__display_p)
         libX11.XUnmapWindow(self.__display_p, self.__window_p)
         libX11.XDestroyWindow(self.__display_p, self.__window_p)
+        if self.opengl_ctx is not None:
+            destroy_opengl_context(self.__display, self.opengl_ctx)
         libX11.XUnlockDisplay(self.__display_p)
 
         self.video_area_info = None
@@ -274,8 +282,8 @@ class X11Display(object):
             else:
                 libXext.DPMSDisable(self.__display_p)
 
-    def do_create_window(self, width=None, height=None, fullscreen=False):
-        return X11Window(self, width, height, fullscreen)
+    def do_create_window(self, width=None, height=None, fullscreen=False, opengl=False):
+        return X11Window(self, width, height, fullscreen, opengl)
 
     def destroy(self):
         self.set_dpms(self.__dpms_orig)
@@ -285,7 +293,7 @@ class X11Display(object):
 if __name__ == '__main__':
     import time
     d = X11Display()
-    w = d.do_create_window(320, 200)
+    w = d.do_create_window(320, 200, opengl=True)
     time.sleep(5)
     w.close()
     d.destroy()

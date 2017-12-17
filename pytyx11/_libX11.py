@@ -18,9 +18,10 @@
 
 import sys
 import ctypes
+from ctypes.util import find_library
 
 
-lib = ctypes.util.find_library('X11')
+lib = find_library('X11')
 if lib is not None:
     _libX11 = ctypes.cdll.LoadLibrary(lib)
 else:
@@ -34,9 +35,11 @@ else:
 # int XInitThreads()
 _libX11.XInitThreads.restype = ctypes.c_int
 
+
 # Display base class definition
 class Display(ctypes.Structure):
     pass
+
 
 # Display *XOpenDisplay(char *display_name)
 _libX11.XOpenDisplay.restype = ctypes.POINTER(Display)
