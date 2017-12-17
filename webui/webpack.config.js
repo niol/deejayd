@@ -2,7 +2,7 @@
 
 const path = require('path');
 const webpack = require('webpack');
-const AotPlugin = require('@ngtools/webpack').AotPlugin;
+const AotPlugin = require('@ngtools/webpack').AngularCompilerPlugin;
 const rootDir = path.resolve(__dirname);
 
 function root(args) {

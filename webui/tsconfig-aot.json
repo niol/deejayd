@@ -11,10 +11,9 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "sourceMap": true,
-        "noEmit": true,
-        "inlineSource": true
+        "outDir": "aot"
     },
    "angularCompilerOptions": {
-        "skipMetadataEmit" : true
+       "genDir": "aot"
     }
 }
