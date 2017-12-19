@@ -16,12 +16,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 import time
 from twisted.internet import threads, task, reactor
 from xml.etree import cElementTree as ET
 from deejayd import DeejaydError
-from deejayd.db.connection import Session
+from deejayd.db.connection import Session, DatabaseLock
 from deejayd.db.models import WebradioCategory, Webradio
 from deejayd.db.models import WebradioEntry, WebradioSource
 from deejayd.ui import log
@@ -70,7 +72,7 @@ class IceCastSource(_BaseWebradioSource):
         try:
             page_handle = urllib.request.urlopen(url, timeout=TIMEOUT)
             xml_page = page_handle.read()
-        except:
+        except Exception:
             raise DeejaydError(_("Unable to connect to icecast website"))
 
         # try to parse result
@@ -78,12 +80,13 @@ class IceCastSource(_BaseWebradioSource):
             root = ET.fromstring(xml_page)
         except ET.XMLSyntaxError:
             raise DeejaydError(_("Unable to parse icecast webradio list"))
-        except:
+        except Exception:
             raise DeejaydError(_("Unable to read result from icecast "
                                  "webradio list"))
         finally:
             page_handle.close()
 
+        DatabaseLock.acquire()
         session = Session()
         source = session.query(WebradioSource)\
                         .filter(WebradioSource.name == self.NAME)\
@@ -126,6 +129,8 @@ class IceCastSource(_BaseWebradioSource):
                 log.debug('Added icecast webradio %s' % name)
         session.commit()
         Session.remove()
+        DatabaseLock.release()
+
         log.msg(_("Finish to reload icecast webradio source"))
         return {
             "wb_count": len(webradios),

@@ -21,7 +21,7 @@ import os.path
 from sqlalchemy.orm import util
 from twisted.internet import threads
 from deejayd import DeejaydError
-from deejayd.db.connection import Session
+from deejayd.db.connection import Session, DatabaseLock
 from deejayd.db.models import LibraryFolder, Media, Library
 from deejayd.common.component import SignalingComponent, JSONRpcComponent
 from deejayd.common.component import PersistentStateComponent
@@ -194,10 +194,12 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
     #
     def update_in_thread(self, walk_root, force=False):
         # init session for this thread
+        DatabaseLock.acquire()
         Session()
         self.walk_directory(walk_root, force)
         # close session to avoid problems
         Session.remove()
+        DatabaseLock.release()
 
     def end_update(self, result=True):
         self.updating_state["running"] = False

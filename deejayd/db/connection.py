@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
+import threading
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.engine.reflection import Inspector
@@ -25,13 +26,25 @@ from deejayd.ui import log
 
 # use scoped session to guarantee that one session is used per thread
 Session = scoped_session(sessionmaker())
+# init an global DatabaseLock
+DatabaseLock = None
+
+
+class FakeLock(object):
+
+    def acquire(self):
+        pass
+
+    def release(self):
+        pass
 
 
 def init(uri, debug=False):
+    global DatabaseLock
+
     repository = os.path.join(os.path.dirname(__file__), "dbmigrate")
     last_version = migrate.versioning.api.version(url=uri,
                                                   repository=repository)
-
     # create engine based on config
     log.debug("Connection to database %s" % uri)
     engine = create_engine(uri, echo=debug)
@@ -52,7 +65,7 @@ def init(uri, debug=False):
         try:
             vers = migrate.versioning.api.db_version(url=uri,
                                                      repository=repository)
-        except:  # set db_version to 0
+        except Exception:  # set db_version to 0
             migrate.versioning.api.version_control(url=uri,
                                                    repository=repository,
                                                    version=0)
@@ -61,5 +74,6 @@ def init(uri, debug=False):
             log.msg("Upgrade database schema to %d" % last_version)
             migrate.versioning.api.upgrade(url=uri, repository=repository)
 
-    # configure scoped session
+    # configure scoped session and init lock
     Session.configure(bind=engine)
+    DatabaseLock = uri.startswith("sqlite") and threading.Lock() or FakeLock()
