@@ -551,7 +551,7 @@ class Riff(core.AVContainer):
             log.debug("Define length with size / byterate")
             self._set('length', size / float(self.byterate))
             file.seek(size, 1)
-        elif not name.strip(string.printable + string.whitespace):
+        elif not name.strip((string.printable + string.whitespace).encode('ascii')):
             # check if name is something usefull at all, maybe it is no
             # avi or broken
             t = file.seek(size, 1)

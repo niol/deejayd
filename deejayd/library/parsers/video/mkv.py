@@ -703,7 +703,7 @@ class Matroska(core.AVContainer):
 
         # Right now we only support attachments that could be cover images.
         # Make a guess to see if this attachment is a cover image.
-        if mimetype.startswith("image/") and "cover" in (name + desc).lower() and data:
+        if mimetype.startswith(b"image/") and "cover" in (name + desc).lower() and data:
             self.thumbnail = data
 
         log.debug('Attachment %r found' % name)

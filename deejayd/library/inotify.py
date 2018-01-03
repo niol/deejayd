@@ -96,7 +96,7 @@ class DeejaydInotify(twisted.internet.inotify.INotify):
                 library.remove_directory(path, name)
         elif mask & twisted.internet.inotify.IN_MOVED_TO:
             if not self.__isdir_event(mask):
-                library.update_file(path, name, session)
+                library.update_file(path, name)
             else:
                 library.crawl_directory(path, name)
         elif mask & twisted.internet.inotify.IN_CLOSE_WRITE:
