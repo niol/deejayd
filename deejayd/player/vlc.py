@@ -27,7 +27,7 @@ from deejayd.player._base import _BasePlayer, PLAYER_PAUSE, \
                                  PLAYER_PLAY, PLAYER_STOP
 
 
-LIBVLC_VERSIONS = ("2.2", )
+LIBVLC_VERSIONS = ("2.2", "3.0")
 
 
 @jsonrpc_module(PlayerModule)
