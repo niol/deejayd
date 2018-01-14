@@ -70,16 +70,19 @@ interface MediaListStatus {
                 style="width: 200px;" 
                 [ngModel]="playOrder"
                 (change)="setOrderOption($event)">
-        <mat-option value="inorder">In order</mat-option>
-        <mat-option value="random">Random</mat-option>
-        <mat-option value="onemedia">One Media</mat-option>
+        <mat-option value="inorder" i18n>In order</mat-option>
+        <mat-option value="random" i18n>Random</mat-option>
+        <mat-option value="onemedia" i18n>One Media</mat-option>
       </mat-select>
   </div>
 
   <ul class="djd-medialist">
-      <li *ngFor="let media of medias">
+      <li *ngFor="let media of medias" 
+          [ngClass]="{'active': media.id == playingMediaId}">
         <div fxLayout="row" fxLayoutAlign="start center">
-          <div fxFlex="1 1 100%" class="djd-medialist-item">
+          <div fxFlex="1 1 100%" 
+               (dblclick)="playMedia(media)"
+               class="djd-medialist-item">
               <h4>{{getTitle(media)}}</h4>
               <p><em>{{utils.getMediaDesc(media)}}</em></p>
           </div>
@@ -98,6 +101,7 @@ interface MediaListStatus {
 export class PlaylistComponent implements OnInit, OnDestroy {
   @Input() name:string;
   @Input() hasRepeat:boolean;
+  @Input() playingMediaId:number;
   medias: Media[] = [];
   selectedMedia:Media = null;
   lastMediaPos:number = 0;
@@ -153,8 +157,12 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     this.selectedMedia = m;
   }
 
+  playMedia(m: Media):void {
+    this.player.goTo(m.id, "id", this.name);
+  }
+
   play():void {
-    this.player.goTo(this.selectedMedia.id, "id", this.name);
+    this.playMedia(this.selectedMedia);
   }
 
   resume():void {

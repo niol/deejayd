@@ -23,10 +23,10 @@ import { MenuService } from '../../services/menu.service';
   selector: 'djd-music-library',
   template: `
   <mat-tab-group>
-    <mat-tab label="Filesystem">
+    <mat-tab i18n-label label="Filesystem">
       <djd-folder-view type="audio"></djd-folder-view>
     </mat-tab>
-    <mat-tab label="Search">
+    <mat-tab i18n-label label="Search">
       <djd-search-view type="audio"
                        [tags]="searchTags">
       </djd-search-view>
@@ -34,12 +34,8 @@ import { MenuService } from '../../services/menu.service';
   </mat-tab-group>
   `
 })
-export class MusicLibraryComponent implements OnInit {
+export class MusicLibraryComponent {
   public searchTags:string[] = ["title", "album", "artist"]
 
   constructor(private menu:MenuService) {}
-  ngOnInit() {
-    this.menu.register("audiolib");
-  }
-
 }

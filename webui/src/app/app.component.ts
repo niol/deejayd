@@ -16,12 +16,13 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, LOCALE_ID, Inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { MatSidenav } from '@angular/material';
 import { MatDialog } from '@angular/material';
 import { ObservableMedia, MediaChange } from '@angular/flex-layout';
 import { OnInit } from '@angular/core';
+
 import { DjdClientService } from './services/djd-client.service';
 import { MenuService } from './services/menu.service';
 import { PlayerService } from './services/player.service';
@@ -59,7 +60,12 @@ declare var DeejaydApp: any;
       <button fxHide [fxShow.lt-md]="true" mat-icon-button (click)=sidenav.toggle()>
         <mat-icon>menu</mat-icon>
       </button>
-      <span>{{title}}</span>
+
+      <span *ngIf="router.url == '/playing'" i18n>Now Playing</span>
+      <span *ngIf="router.url == '/music'" i18n>Music Library</span>
+      <span *ngIf="router.url == '/video'" i18n>Video Library</span>
+      <span *ngIf="router.url == '/radio'" i18n>Radio</span>
+
       <div style="flex: 1 1 auto;"></div>
       <button mat-icon-button
               [disabled]="playingMedia == null || playingMedia.type != 'video'"
@@ -75,25 +81,25 @@ declare var DeejaydApp: any;
       <mat-sidenav #sidenav mode="{{sidenavMode}}" opened="{{sidenavOpened}}">
         <div fxLayout="column" class="djd-sidenav-container">
           <a mat-button
-             [class.djd-menu-active]="router.url == '/playing'"
+             routerLinkActive="djd-menu-active"
              routerLink="/playing">
             <mat-icon style="color:#404040;">queue</mat-icon>
             <ng-container i18n>Now Playing</ng-container>
           </a>
           <a mat-button
-             [class.djd-menu-active]="router.url == '/music'"
+             routerLinkActive="djd-menu-active"
              routerLink="/music">
             <mat-icon style="color:#404040;">library_music</mat-icon>
             <ng-container i18n>Music Library</ng-container>
           </a>
           <a mat-button
-             [class.djd-menu-active]="router.url == '/video'"
+             routerLinkActive="djd-menu-active"
              routerLink="/video">
             <mat-icon style="color:#404040;">video_library</mat-icon>
             <ng-container i18n>Video Library</ng-container>
           </a>
           <a mat-button
-             [class.djd-menu-active]="router.url == '/radio'"
+             routerLinkActive="djd-menu-active"
              routerLink="/radio">
             <mat-icon style="color:#404040;">radio</mat-icon>
             <ng-container i18n>Radio</ng-container>
@@ -120,7 +126,8 @@ export class AppComponent implements OnInit {
 
   constructor(public router: Router, public media: ObservableMedia,
     public client: DjdClientService, public menu: MenuService,
-    public player: PlayerService, public dialog: MatDialog) {
+    public player: PlayerService, public dialog: MatDialog,
+    @Inject(LOCALE_ID) protected localeId: string) {
     media.asObservable().subscribe((change: MediaChange) => {
       this.setLayout();
     });
@@ -135,21 +142,21 @@ export class AppComponent implements OnInit {
     // adapt layout to device
     this.setLayout();
 
-    // watch route changes to update title
+    // watch route changes to update title and global menu
     this.router.events.filter((evt) => evt instanceof NavigationEnd)
       .subscribe((evt: NavigationEnd) => {
         switch (evt.urlAfterRedirects) {
           case "/playing":
-            this.title = "Now Playing";
+            this.menu.register("nowplaying.audiopls");
             break;
           case "/music":
-            this.title = "Music Library";
+            this.menu.register("audiolib");
             break;
           case "/video":
-            this.title = "Video Library";
+            this.menu.register("videolib");
             break;
           case "/radio":
-            this.title = "Radio";
+            this.menu.register("webradio.local");
             break;
         }
         if (this.isMobile()) { // close the sidenav

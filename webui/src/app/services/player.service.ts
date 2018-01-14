@@ -31,7 +31,10 @@ export interface PlayerStatus {
 
 @Injectable()
 export class PlayerService {
-  private playerStatus:Subject<PlayerStatus> = new Subject<PlayerStatus>();
+  private playerStatus:BehaviorSubject<PlayerStatus> = new BehaviorSubject<PlayerStatus>({
+    state: "stop",
+    volume: 0,
+  });
   public playerStatus$ = this.playerStatus.asObservable();
 
   private playingMedia:BehaviorSubject<Media> = new BehaviorSubject<Media>(null);

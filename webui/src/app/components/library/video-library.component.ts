@@ -23,10 +23,10 @@ import { MenuService } from '../../services/menu.service';
   selector: 'djd-video-library',
   template: `
   <mat-tab-group>
-    <mat-tab label="Folder">
+    <mat-tab i18n-label label="Folder">
       <djd-folder-view type="video"></djd-folder-view>
     </mat-tab>
-    <mat-tab label="Search">
+    <mat-tab i18n-label label="Search">
       <djd-search-view type="video"
                        [tags]="searchTags">
       </djd-search-view>
@@ -34,12 +34,8 @@ import { MenuService } from '../../services/menu.service';
   </mat-tab-group>
   `
 })
-export class VideoLibraryComponent implements OnInit {
+export class VideoLibraryComponent {
   public searchTags:string[] = ["title"]
 
   constructor(public menu:MenuService) {}
-  ngOnInit() {
-    this.menu.register("videolib");
-  }
-
 }

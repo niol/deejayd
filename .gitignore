@@ -10,6 +10,7 @@ MANIFEST
 build*
 webui/gen*
 webui/dist/*.map
+webui/dist/*.js
 .vscode*
 webui/node_modules*
 webui/dist/aot/*

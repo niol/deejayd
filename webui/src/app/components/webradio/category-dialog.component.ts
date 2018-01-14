@@ -30,19 +30,19 @@ import { WebradioService } from '../../services/webradio.service'
 
     <div mat-dialog-content fxLayout="column">
         <mat-input-container>
-            <input matInput #catName placeholder="Category name">
+            <input matInput #catName i18n-placeholder placeholder="Category name">
         </mat-input-container>
     </div>
 
     <div mat-dialog-actions>
       <button mat-raised-button (click)="dialogRef.close()">
         <mat-icon>cancel</mat-icon>
-        Cancel
+        <ng-container i18n>Cancel</ng-container>
       </button>
       <button mat-raised-button
               (click)="addCategory(catName.value)">
         <mat-icon>done</mat-icon>
-        Add
+        <ng-container i18n>Add</ng-container>
       </button>
     </div>
   `

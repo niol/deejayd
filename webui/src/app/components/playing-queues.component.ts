@@ -19,33 +19,74 @@
 import { Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { MatTabChangeEvent } from '@angular/material';
 import { MenuService } from '../services/menu.service';
+import { PlayerService, PlayerStatus } from '../services/player.service';
 
 @Component({
   selector: 'djd-playing-queues',
   template: `
   <mat-tab-group (selectedTabChange)="onTabChange($event)">
-    <mat-tab label="Music">
-      <djd-playlist name="audiopls" [hasRepeat]="true"></djd-playlist>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon *ngIf="playingState == 'play:audiopls'">play_arrow</mat-icon>
+        <mat-icon *ngIf="playingState == 'pause:audiopls'">pause</mat-icon>
+        <ng-container i18n>Music</ng-container>
+      </ng-template>
+      <djd-playlist name="audiopls" 
+                    [playingMediaId]="playingMedia.audiopls"
+                    [hasRepeat]="true"></djd-playlist>
     </mat-tab>
-    <mat-tab label="Queue">
-      <djd-playlist name="audioqueue" [hasRepeat]="false"></djd-playlist>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon *ngIf="playingState == 'play:audioqueue'">play_arrow</mat-icon>
+        <mat-icon *ngIf="playingState == 'pause:audioqueue'">pause</mat-icon>
+        <ng-container i18n>Queue</ng-container>
+      </ng-template>
+      <djd-playlist name="audioqueue" 
+                    [playingMediaId]="playingMedia.audioqueue"
+                    [hasRepeat]="false"></djd-playlist>
     </mat-tab>
-    <mat-tab label="Video">
-      <djd-playlist name="videopls" [hasRepeat]="true"></djd-playlist>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon *ngIf="playingState == 'play:videopls'">play_arrow</mat-icon>
+        <mat-icon *ngIf="playingState == 'pause:videopls'">pause</mat-icon>
+        <ng-container i18n>Video</ng-container>
+      </ng-template>
+      <djd-playlist name="videopls"
+                    [hasRepeat]="true" 
+                    [playingMediaId]="playingMedia.videopls"></djd-playlist>
     </mat-tab>
   </mat-tab-group>
   `
 })
 export class PlayingQueuesComponent implements OnInit {
   public selectedSource:string = "audiopls";
+  public playingState:string = "stop";
+  public playingMedia:any = {
+    audiopls: -1,
+    audioqueue: -1,
+    videopls: -1
+  };
 
-  constructor(private menu:MenuService) {}
+  constructor(public player:PlayerService, private menu:MenuService) {}
+
   ngOnInit() {
-    this.menu.register("nowplaying."+this.selectedSource);
+    this.player.playerStatus$.subscribe((status:PlayerStatus) => {
+      this.playingState = status.state;
+      this.playingMedia = {
+        audiopls: -1,
+        audioqueue: -1,
+        videopls: -1
+      };
+
+      if (status.state != "stop") { // update seekbar
+        let current:string[] = status.current.split(":");
+        this.playingState += ":"+current[2];
+        this.playingMedia[current[2]] = parseInt(current[1]);
+      }
+    });
   }
 
   onTabChange(event: MatTabChangeEvent):void {
-
     switch(event.index) {
       case 0:
         this.selectedSource = "audiopls";

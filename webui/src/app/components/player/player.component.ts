@@ -41,7 +41,10 @@ interface SeekbarState {
   <div fxLayout='column' id="djd-player-toolbar">
     <div fxFlex="30px" fxLayout='row'>
         <div fxFlexFill fxLayoutAlign="center center">
-            <span class="djd-current-media">{{currentMedia}}</span>
+            <span class="djd-current-media">
+                <ng-container *ngIf="currentMedia != null; else noMedia">{{ currentMedia.title }}</ng-container>
+                <ng-template #noMedia i18n>No playing media</ng-template>
+            </span>
         </div>
     </div>
     <div fxFlex="55px" fxLayout='row'>
@@ -124,7 +127,7 @@ interface SeekbarState {
 })
 export class PlayerComponent implements OnInit {
   public isPlaying:boolean = false;
-  public currentMedia:string = "no playing media";
+  public currentMedia:Media = null;
   public seekbarState:SeekbarState;
   private seekTimer:Timer;
   public volume:number = 0;
@@ -160,14 +163,7 @@ export class PlayerComponent implements OnInit {
       }
     });
     this.player.playingMedia$.subscribe((media: Media) => {
-        if (media == null) {
-            this.currentMedia = "no playing media";
-        } else {
-            this.currentMedia = media.title;
-            if (media.type == "song") {
-                this.currentMedia += " - "+media["artist"];
-            }
-        }
+        this.currentMedia = media;
     });
   }
 

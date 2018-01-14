@@ -33,10 +33,9 @@ import { Media } from '../../models/media.model';
            fxLayoutAlign="center center"
            class="djd-dialog-option"
            [hidden]="data <= 3600">
-        <div fxFlex="1 1 100%" class="djd-dialog-label">Hours</div>
         <div fxFlex="2 2 100%">
             <mat-input-container>
-              <input matInput #hoursInput placeholder="Hours"
+              <input matInput #hoursInput i18n-placeholder placeholder="Hours"
                      type=number
                      min=0
                      max=60
@@ -50,10 +49,9 @@ import { Media } from '../../models/media.model';
            fxLayoutAlign="center center"
            class="djd-dialog-option"
            [hidden]="data <= 60">
-        <div fxFlex="1 1 100%" class="djd-dialog-label">Minutes</div>
         <div fxFlex="2 2 100%">
             <mat-input-container>
-              <input matInput #minutesInput placeholder="Minutes"
+              <input matInput #minutesInput i18n-placeholder placeholder="Minutes"
                      type=number
                      min=0
                      max=60
@@ -66,10 +64,9 @@ import { Media } from '../../models/media.model';
       <div fxLayout="row"
            fxLayoutAlign="center center"
            class="djd-dialog-option">
-        <div fxFlex="1 1 100%" class="djd-dialog-label">Seconds</div>
         <div fxFlex="2 2 100%">
             <mat-input-container>
-              <input matInput #secondsInput placeholder="Seconds"
+              <input matInput #secondsInput i18n-placeholder placeholder="Seconds"
                      type=number
                      min=0
                      max=60
@@ -83,12 +80,12 @@ import { Media } from '../../models/media.model';
     <div mat-dialog-actions>
       <button mat-raised-button (click)="dialogRef.close()">
         <mat-icon>close</mat-icon>
-        Close
+        <ng-container i18n>Close</ng-container>
       </button>
       <button mat-raised-button
               (click)="seek(hoursInput.value, minutesInput.value, secondsInput.value)">
         <mat-icon>send</mat-icon>
-        Seek
+        <ng-container i18n>Seek</ng-container>
       </button>
     </div>
   `

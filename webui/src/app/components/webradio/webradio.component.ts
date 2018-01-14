@@ -40,7 +40,6 @@ export class WebradioComponent implements OnInit {
   ngOnInit() {
     this.webradio.sources$.subscribe((sList: WebradioSource[]) => {
       this.sources = sList;
-      this.menu.register("webradio.local");
     });
   }
 

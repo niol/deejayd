@@ -35,23 +35,23 @@ import { WebradioService, WebradioCategory } from '../../services/webradio.servi
           </mat-option>
         </mat-select>
         <mat-input-container>
-            <input matInput #wrName placeholder="Webradio name">
+            <input matInput #wrName i18n-placeholder placeholder="Webradio name">
         </mat-input-container>
         <mat-input-container>
-            <input matInput #wrUrl placeholder="Webradio url">
+            <input matInput #wrUrl i18n-placeholder placeholder="Webradio url">
         </mat-input-container>
     </div>
 
     <div mat-dialog-actions>
       <button mat-raised-button (click)="dialogRef.close()">
         <mat-icon>cancel</mat-icon>
-        Cancel
+        <ng-container i18n>Cancel</ng-container>
       </button>
       <button mat-raised-button
               [disabled]="wrName.value == '' || wrUrl.value == '' || categories.length == 0"
               (click)="addWebradio(wrName.value, wrUrl.value)">
         <mat-icon>done</mat-icon>
-        Add
+        <ng-container i18n>Add</ng-container>
       </button>
     </div>
   `

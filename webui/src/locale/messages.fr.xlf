@@ -3,25 +3,324 @@
   <file source-language="en" datatype="plaintext" original="ng2.template">
     <body>
       <trans-unit id="de494ebdaba2cb926deb417d20affdb271cac9da" datatype="html" approved="yes">
-        <source>Now Playing</source> <target state="signed-off">En cours de lecture</target> <context-group purpose="location">
+        <source>Now Playing</source> <target state="translated">En cours de lecture</target> <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">28</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">51</context></context-group></trans-unit>
+      <trans-unit id="45cadbf05a528d49c159d03be2757587ffc16706" datatype="html" approved="yes">
+        <source>Music Library</source> <target state="translated">Musique</target> 
+        
+      <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">29</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">57</context></context-group></trans-unit>
+      <trans-unit id="253467c74089d166f445380561322f90cabed8b6" datatype="html" approved="yes">
+        <source>Video Library</source> <target state="translated">Vidéos</target> <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">30</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">63</context></context-group></trans-unit>
+    <trans-unit id="11af766af5b487d044e5b1894707d3b062666e79" datatype="html" approved="yes">
+        <source>
+      Add new category
+    </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/category-dialog.component.ts</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      <target state="translated">Ajouter une catégorie</target></trans-unit><trans-unit id="f6aaca87141e0fbba81835c9f32d536c1a6bc297" datatype="html" approved="yes">
+        <source>
+      Add new webradio
+    </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/webradio-dialog.component.ts</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      <target state="translated">Ajouter une radio</target></trans-unit><trans-unit id="d6d922248db220d533737ef181e1499b015b686c" datatype="html" approved="yes">
+        <source>
+      Video options
+    </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      <target state="translated">Options vidéos</target></trans-unit><trans-unit id="99ee4faa69cd2ea8e3678c1f557c0ff1f05aae46" datatype="html" approved="yes">
+        <source>Clear</source> <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">6</context>
         </context-group>
-        <note priority="1" from="description">nowPlaying</note>
-      </trans-unit>
-      <trans-unit id="45cadbf05a528d49c159d03be2757587ffc16706" datatype="html" approved="yes">
-        <source>Music Library</source> <target state="translated">Musique</target> <context-group purpose="location">
+      <target state="translated">Effacer</target></trans-unit><trans-unit id="e8f5e70b54d8996df748be9d3bb034542e321389" datatype="html" approved="yes">
+        <source>Shuffle</source> <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">10</context>
+          <context context-type="linenumber">9</context>
         </context-group>
-        <note priority="1" from="description">musicLibrary</note>
-      </trans-unit>
-      <trans-unit id="253467c74089d166f445380561322f90cabed8b6" datatype="html" approved="yes">
-        <source>Video Library</source> <target state="translated">Vidéos</target> <context-group purpose="location">
+      <target state="translated">Mélanger</target></trans-unit><trans-unit id="7168c666d5c9fc1ca6f6ab862b86fcc29c8601b4" datatype="html" approved="yes">
+        <source>Update library</source> <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      <target state="translated">Mettre à jour la librarie</target></trans-unit><trans-unit id="7386c7a338a5261135d68f288c46896fe57a5df5" datatype="html" approved="yes">
+        <source>Add a category</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.ts</context>
+          <context context-type="linenumber">17</context>
+        </context-group>
+      <target state="translated">Ajouter une catégorie</target></trans-unit><trans-unit id="12d70cfff0ba8e60c5d9b9193d22a88e79f38209" datatype="html" approved="yes">
+        <source>Add a Webradio</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.ts</context>
+          <context context-type="linenumber">20</context>
+        </context-group>
+      <target state="translated">Ajouter une radio</target></trans-unit><trans-unit id="606fcae51bc2429fae850f55ed2218dc42d7a877" datatype="html" approved="yes">
+        <source>Radio</source> 
+      <target state="translated">Radio</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">31</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">69</context></context-group></trans-unit><trans-unit id="c8af2ab9b697604aa64e4fbc59668cc6980f2849" datatype="html" approved="yes">
+        <source>
+      Seek Dialog
+    </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/seek-dialog.component.ts</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      <target state="translated">Aller à...</target></trans-unit><trans-unit id="9b00b4b718d67ef6351bba15acd4ad0f2bc47927" datatype="html" approved="yes">
+        <source>Play</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">3</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/folder-view.component.ts</context>
           <context context-type="linenumber">14</context>
         </context-group>
-      </trans-unit>
-    </body>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/search-view.component.ts</context>
+          <context context-type="linenumber">24</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/webradio-source.component.ts</context>
+          <context context-type="linenumber">33</context>
+        </context-group>
+      <target state="translated">Jouer</target></trans-unit><trans-unit id="dbfb17e804ddbca1d51c6fbc09252afa1cbf1d58" datatype="html" approved="yes">
+        <source>
+      Resume at <x id="INTERPOLATION" equiv-text="{{ utils.formatTime(selectedMedia.last_position) }}"/>
+    </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      <target state="translated">Reprendre à <x id="INTERPOLATION" equiv-text="{{ utils.formatTime(selectedMedia.last_position) }}"/> </target></trans-unit><trans-unit id="019d4bd6a5690f0cfa0ecf346a4e6bf7f0d8debb" datatype="html" approved="yes">
+        <source>Remove</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">10</context>
+        </context-group>
+      <target state="translated">Supprimer</target></trans-unit><trans-unit id="157c023dc19faaf7c1365a20d83511a093dd0ff2" datatype="html">
+        <source>
+        <x id="ICU" equiv-text="{medias.length, plural, =0 {...} =1 {...} other {...}}"/>
+      </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+      <target state="new"><x id="ICU" equiv-text="{medias.length, plural, =0 {...} =1 {...} other {...}}"/> </target></trans-unit><trans-unit id="6f65812c4678ddeb077cbbb1187c0f5ddc4bafca" datatype="html" approved="yes">
+        <source>{VAR_PLURAL, plural, =0 {no song} =1 {one song} other {<x id="INTERPOLATION" equiv-text="{{medias.length}}"/> songs} }</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      <target state="translated">{VAR_PLURAL, plural, =0 {Aucune chanson} =1 {Une chanson} other {<x id="INTERPOLATION" equiv-text="{{medias.length}}"/> chansons} }</target></trans-unit><trans-unit id="8845c5cc956f81bd0572ac6d16e4c9d4ec23d802" datatype="html">
+        <source>
+        <x id="ICU" equiv-text="{medias.length, plural, =0 {...} =1 {...} other {...}}"/>
+      </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+      <target state="new"><x id="ICU" equiv-text="{medias.length, plural, =0 {...} =1 {...} other {...}}"/> </target></trans-unit><trans-unit id="ad91e683bf68b2a2963bed5ed9e2a59303ad0f38" datatype="html" approved="yes">
+        <source>{VAR_PLURAL, plural, =0 {no video} =1 {one video} other {<x id="INTERPOLATION" equiv-text="{{medias.length}}"/> videos} }</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">19</context>
+        </context-group>
+      <target state="translated">{VAR_PLURAL, plural, =0 {Aucune vidéo} =1 {Une vidéo} other {<x id="INTERPOLATION" equiv-text="{{medias.length}}"/> vidéos} }</target></trans-unit><trans-unit id="76a46e4dc038f4d58e42353807da03fd95c13fd1" datatype="html" approved="yes">
+        <source>
+          Resume at <x id="INTERPOLATION" equiv-text="{{ utils.formatTime(selectedMedia.last_position) }}"/>
+        </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/folder-view.component.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+      <target state="translated">Reprendre à <x id="INTERPOLATION" equiv-text="{{ utils.formatTime(selectedMedia.last_position) }}"/> </target></trans-unit><trans-unit id="50e85c3b33fb74c0d3c0f97182611f6c1d9cf10e" datatype="html" approved="yes">
+        <source>Add to playlist</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/folder-view.component.ts</context>
+          <context context-type="linenumber">21</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/search-view.component.ts</context>
+          <context context-type="linenumber">31</context>
+        </context-group>
+      <target state="translated">Ajouter à la liste de lecture</target></trans-unit><trans-unit id="190bbf84c3c04a171751335155b9a82956dae837" datatype="html" approved="yes">
+        <source>Add to queue</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/folder-view.component.ts</context>
+          <context context-type="linenumber">24</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/search-view.component.ts</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      <target state="translated">Ajouter à a file d'attente</target></trans-unit><trans-unit id="49c9ede51100b454f7841b24cd02355c6622bf44" datatype="html" approved="yes">
+        <source>Search results</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/search-view.component.ts</context>
+          <context context-type="linenumber">22</context>
+        </context-group>
+      <target state="translated">Résultats de la recherche</target></trans-unit><trans-unit id="b6e4884a79f446d0f35c7967b21fe87c37aefe5c" datatype="html" approved="yes">
+        <source>
+              Resume at <x id="INTERPOLATION" equiv-text="{{ utils.formatTime(selectedMedia.last_position) }}"/>
+            </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/search-view.component.ts</context>
+          <context context-type="linenumber">28</context>
+        </context-group>
+      <target state="translated">Reprendre à <x id="INTERPOLATION" equiv-text="{{ utils.formatTime(selectedMedia.last_position) }}"/> </target></trans-unit><trans-unit id="f236c1c30d799bc9a502cc920b71f5312a007b97" datatype="html" approved="yes">
+        <source>
+      Confirm dialog
+    </source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/common/confirm-dialog.component.ts</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      <target state="translated">Confirmation</target></trans-unit><trans-unit id="a2a6e14fef5b951ded5285068ccbdc21a4e773bf" datatype="html" approved="yes">
+        <source>Erase</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/webradio-source.component.ts</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/webradio-source.component.ts</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      <target state="translated">Effacer</target></trans-unit><trans-unit id="5240cc00fc6484a94ceababa0d3d58e77cade307" datatype="html" approved="yes">
+        <source>View all categories</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/webradio-source.component.ts</context>
+          <context context-type="linenumber">27</context>
+        </context-group>
+      <target state="translated">Voir toutes les catégories</target></trans-unit><trans-unit id="4c0b78ed9d5d0b5e556ad985e4ea675476ab2f1b" datatype="html" approved="yes">
+        <source>Category name</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/category-dialog.component.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+      <target state="translated">Catégorie</target></trans-unit><trans-unit id="d7b35c384aecd25a516200d6921836374613dfe7" datatype="html" approved="yes">
+        <source>Cancel</source> 
+        
+      <target state="translated">Annuler</target><context-group purpose="location"><context context-type="sourcefile">src/app/components/webradio/category-dialog.component.ts</context><context context-type="linenumber">15</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/components/webradio/webradio-dialog.component.ts</context><context context-type="linenumber">23</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/components/common/confirm-dialog.component.ts</context><context context-type="linenumber">13</context></context-group></trans-unit><trans-unit id="f6755cff4957d5c3c89bafce5651f1b6fa2b1fd9" datatype="html" approved="yes">
+        <source>Add</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/category-dialog.component.ts</context>
+          <context context-type="linenumber">20</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/webradio-dialog.component.ts</context>
+          <context context-type="linenumber">29</context>
+        </context-group>
+      <target state="translated">Ajouter</target></trans-unit><trans-unit id="af63d512280fd6b36bb2362795d90ca9791acbcf" datatype="html" approved="yes">
+        <source>Webradio name</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/webradio-dialog.component.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      <target state="translated">Nom de la radio</target></trans-unit><trans-unit id="39cd846db328b76ea3f1b6b1cae55295d814b6b1" datatype="html" approved="yes">
+        <source>Webradio url</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/webradio/webradio-dialog.component.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      <target state="translated">Url de la radio</target></trans-unit><trans-unit id="06a9c25174be5c4e9fca4e8b423410b1900d5a55" datatype="html" approved="yes">
+        <source>Music</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playing-queues.component.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      <target state="translated">Musique</target></trans-unit><trans-unit id="91f9d49fca8f40714f2dda92688a0a05197f0bd6" datatype="html" approved="yes">
+        <source>Queue</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playing-queues.component.ts</context>
+          <context context-type="linenumber">17</context>
+        </context-group>
+      <target state="translated">File d'atten</target></trans-unit><trans-unit id="2d1ea268a6a9f483dbc2cbfe19bf4256a57a6af4" datatype="html" approved="yes">
+        <source>Video</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playing-queues.component.ts</context>
+          <context context-type="linenumber">27</context>
+        </context-group>
+      <target state="translated">Vidéo</target></trans-unit><trans-unit id="52ffdef07b3c282bc2af11454f3e843b287481e8" datatype="html" approved="yes">
+        <source>In order</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">36</context>
+        </context-group>
+      <target state="translated">Dans l'ordre</target></trans-unit><trans-unit id="3efbc55094b3e633835a1866fcfb14b0601376dc" datatype="html" approved="yes">
+        <source>Random</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      <target state="translated">Aléatoire</target></trans-unit><trans-unit id="a7d28d379784efdbd7bd0ae6b2c621477a4c6c43" datatype="html" approved="yes">
+        <source>One Media</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/playlist.component.ts</context>
+          <context context-type="linenumber">38</context>
+        </context-group>
+      <target state="translated">Un média</target></trans-unit><trans-unit id="d5a6db764ecb9e06d3c5fda4dfd17802758406f9" datatype="html" approved="yes">
+        <source>Filesystem</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/music-library.component.ts</context>
+          <context context-type="linenumber">3</context>
+        </context-group>
+      <target state="translated">Système de fichiers</target></trans-unit><trans-unit id="7e892ba15f2c6c17e83510e273b3e10fc32ea016" datatype="html" approved="yes">
+        <source>Search</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/music-library.component.ts</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/video-library.component.ts</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+      <target state="translated">Rechercher</target></trans-unit><trans-unit id="d8e057d4fa08fbdb6f98af2073eff5ae0b47f5e1" datatype="html" approved="yes">
+        <source>Folder</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/library/video-library.component.ts</context>
+          <context context-type="linenumber">3</context>
+        </context-group>
+      <target state="translated">Dossier</target></trans-unit><trans-unit id="5e5ce1b19f15edca252be5ee4778391814142a0b" datatype="html" approved="yes">
+        <source>Aspect Ratio</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+      <target state="translated">Ratio</target></trans-unit><trans-unit id="3333c4b3ef87e52eb272742012f9f0aef5f593d9" datatype="html" approved="yes">
+        <source>Audio channels</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">26</context>
+        </context-group>
+      <target state="translated">Canaux audio</target></trans-unit><trans-unit id="b4a11564b9ff08997e2b75074177d405b4edd1bd" datatype="html" approved="yes">
+        <source>Audio/Video offset</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      <target state="translated">Décalage Audio/Vidéo</target></trans-unit><trans-unit id="3b7ea39a89b30326d8884942075943f95142620d" datatype="html" approved="yes">
+        <source>A/V offset</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">45</context>
+        </context-group>
+      <target state="translated">Décalage A/V</target></trans-unit><trans-unit id="f711643bd43265b142909926b9baaa8125b66fb3" datatype="html" approved="yes">
+        <source>Subtitle channels</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">64</context>
+        </context-group>
+      <target state="translated">Canaux de sous-titre</target></trans-unit><trans-unit id="9c2b24292f423bca839123ac3940f28508aaa921" datatype="html" approved="yes">
+        <source>Audio/Subtitle offset</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">80</context>
+        </context-group>
+      <target state="translated">Décalage des sous-titres</target></trans-unit><trans-unit id="919fb469200b22038a2e0b0ebb00e5bfe616b60e" datatype="html" approved="yes">
+        <source>Subtitle offset</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">83</context>
+        </context-group>
+      <target state="translated">Décalage des sous-titres</target></trans-unit><trans-unit id="f4e529ae5ffd73001d1ff4bbdeeb0a72e342e5c8" datatype="html" approved="yes">
+        <source>Close</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
+          <context context-type="linenumber">102</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/seek-dialog.component.ts</context>
+          <context context-type="linenumber">58</context>
+        </context-group>
+      <target state="translated">Fermer</target></trans-unit><trans-unit id="3bbce5fef7e1151da052a4e529453edb340e3912" datatype="html" approved="yes">
+        <source>Hours</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/seek-dialog.component.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      <target state="translated">Heures</target></trans-unit><trans-unit id="41e62daa962947c0d23ded0981975d1bddf0bf38" datatype="html" approved="yes">
+        <source>Minutes</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/seek-dialog.component.ts</context>
+          <context context-type="linenumber">29</context>
+        </context-group>
+      <target state="translated">Minutes</target></trans-unit><trans-unit id="4f2ed9e71a7c981db3e50ae2fedb28aff2ec4e6c" datatype="html" approved="yes">
+        <source>Seconds</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/seek-dialog.component.ts</context>
+          <context context-type="linenumber">44</context>
+        </context-group>
+      <target state="translated">Secondes</target></trans-unit><trans-unit id="19013c1e71edb20202e43f070d737113e92e40e7" datatype="html" approved="yes">
+        <source>Seek</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/seek-dialog.component.ts</context>
+          <context context-type="linenumber">63</context>
+        </context-group>
+      <target state="translated">Aller à</target></trans-unit><trans-unit id="48b5008b2889af40e80e9f5f7f8eb74a68d13f0d" datatype="html">
+        <source>No playing media</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/components/player/player.component.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      <target state="needs-review-translation">Aucune lecture en cours</target></trans-unit></body>
   </file>
 </xliff>

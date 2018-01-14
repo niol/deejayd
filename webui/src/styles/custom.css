@@ -115,6 +115,9 @@ ul.djd-medialist>li {
     font-size: 14px;
     padding: 4px;
 }
+ul.djd-medialist>li.active {
+    border-bottom: 2px solid #3f51b5;
+}
 
 .djd-medialist-item {
     width: 100%;
@@ -123,6 +126,9 @@ ul.djd-medialist>li {
 }
 .djd-medialist-item h4, .djd-medialist-item p {
     margin: 2px;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
 }
 
 /*
