@@ -27,8 +27,8 @@ from distutils.command.build import build as distutils_build
 from distutils.command.clean import clean as distutils_clean
 from distutils.core import setup, Command
 from distutils.dep_util import newer
-from distutils.dir_util import remove_tree
 from distutils.spawn import find_executable
+from babel.messages import frontend as babel
 import deejayd
 
 
@@ -100,42 +100,33 @@ class build_manpages(Command):
 
 
 class build_i18n(Command):
-    description = "Build deejayd .po files"
+    description = "Compile deejayd .po files"
     user_options = []
 
-    po_package = None
+    po_filename = None
     po_directory = None
-    po_files = None
-    executable = find_executable('msgfmt')
 
     def initialize_options(self):
         pass
 
     def finalize_options(self):
-        self.po_directory = "po"
-        self.po_package = "deejayd"
-        self.po_files = glob.glob(os.path.join(self.po_directory, "*.po"))
-        self.mo_dir = os.path.join('build', 'mo')
+        self.po_directory = "locale"
+        self.po_filename = "deejayd.mo"
 
     def run(self):
         data_files = self.distribution.data_files
+        self.run_command("compile_catalog")
 
-        for po_file in self.po_files:
-            lang = os.path.basename(po_file[:-3])
-            mo_dir = os.path.join(self.mo_dir, lang, "LC_MESSAGES")
-            mo_file = os.path.join(mo_dir, "%s.mo" % self.po_package)
-            if not os.path.exists(mo_dir):
-                os.makedirs(mo_dir)
-
-            cmd = (self.executable, po_file, "-o", mo_file)
-            self.spawn(cmd)
-
-            targetpath = os.path.join("share/locale", lang, "LC_MESSAGES")
-            data_files.append((targetpath, (mo_file,)))
+        for root, dirs, files in os.walk(self.po_directory):
+            if self.po_filename in files:
+                path = os.path.join(root, self.po_filename)
+                data_files.append(("share", (path,)))
 
     def clean(self):
-        if os.path.isdir(self.mo_dir):
-            remove_tree(self.mo_dir)
+        for root, dirs, files in os.walk(self.po_directory):
+            if self.po_filename in files:
+                f_path = os.path.join(root, self.po_filename)
+                force_unlink(f_path)
 
 
 class build_webui(Command):
@@ -143,7 +134,7 @@ class build_webui(Command):
     webui_directory = "webui"
 
     def initialize_options(self):
-        self.webuidir = os.path.join(os.path.dirname(__file__), 
+        self.webuidir = os.path.join(os.path.dirname(__file__),
                                      self.webui_directory)
 
     def finalize_options(self):
@@ -162,9 +153,9 @@ class deejayd_build(distutils_build):
     def finalize_options(self):
         distutils_build.finalize_options(self)
 
-        self.sub_commands.append(("build_i18n", self.__has_i18n))
+        self.sub_commands.append(("build_i18n", None))
+        self.sub_commands.append(("build_webui", None))
         self.sub_commands.append(("build_manpages", self.__has_manpages))
-        self.sub_commands.append(("build_webui", self.__has_webui))
 
     def __has_manpages(self, command):
         has_db2man = False
@@ -173,13 +164,6 @@ class deejayd_build(distutils_build):
                 has_db2man = True
         return "build_manpages"in self.distribution.cmdclass\
             and has_db2man and build_manpages.executable is not None
-
-    def __has_i18n(self, command):
-        return "build_i18n" in self.distribution.cmdclass\
-            and build_i18n.executable is not None
-
-    def __has_webui(self, command):
-        return "build_webui" in self.distribution.cmdclass
 
     def clean(self):
         for subcommand_name in self.get_sub_commands():
@@ -193,7 +177,8 @@ class deejayd_clean(distutils_clean):
     def run(self):
         distutils_clean.run(self)
 
-        for cmd in self.distribution.command_obj.values():
+        commands = list(self.distribution.command_obj.values())
+        for cmd in commands:
             if hasattr(cmd, 'clean'):
                 cmd.clean()
 
@@ -248,6 +233,10 @@ if __name__ == "__main__":
            cmdclass={
                "build": deejayd_build,
                "build_i18n": build_i18n,
+               "compile_catalog": babel.compile_catalog,
+               "extract_messages": babel.extract_messages,
+               "init_catalog": babel.init_catalog,
+               "update_catalog": babel.update_catalog,
                "build_manpages": build_manpages,
                "build_webui": build_webui,
                "clean": deejayd_clean,
