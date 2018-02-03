@@ -26,11 +26,20 @@ ERROR = 0
 INFO = 1
 DEBUG = 2
 
-level = DeejaydConfig().get("general", "log")
-log_level = {"error": ERROR, "info": INFO, "debug": DEBUG}[level]
+
+log_level = None
 
 
-class LogFile:
+def set_log_level():
+    global log_level
+    level = DeejaydConfig().get("general", "log")
+    log_level = {"error": ERROR, "info": INFO, "debug": DEBUG}[level]
+    return
+
+set_log_level()
+
+
+class LogFile(object):
 
     def __init__(self, path):
         self.path = path
