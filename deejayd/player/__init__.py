@@ -16,28 +16,41 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+
+import os
+import pkgutil
+import importlib
+
+
 from deejayd import DeejaydError
 from deejayd.ui import log
 
 
-AVAILABLE_BACKENDS = ('vlc', 'gstreamer')
+DEFAULT_BACKEND = 'vlc'
+AVAILABLE_BACKENDS = [m[1]
+                      for m in pkgutil.iter_modules([os.path.dirname(__file__)])
+                      if not m[1].startswith('_')]
 
 
 class PlayerError(DeejaydError):
     pass
 
 
+def get_backend_module(backend_name):
+    return importlib.import_module('.'.join(('deejayd', 'player',
+                                             backend_name,)))
+
 def init(config):
     media_backend = config.get("general", "media_backend")
 
     if media_backend == "auto":
-        backend_it = iter(AVAILABLE_BACKENDS)
+        backend_it = iter([DEFAULT_BACKEND] + AVAILABLE_BACKENDS)
         media_backend = None
         try:
             while not media_backend:
                 backend = next(backend_it)
                 try:
-                    __import__('.'.join(('deejayd', 'player', backend,)))
+                    backend_module = get_backend_module(backend)
                 except ImportError:
                     # Do nothing, simply ignore
                     pass
@@ -47,22 +60,16 @@ def init(config):
                     log.msg(_("Autodetected %s backend." % backend))
         except StopIteration:
             log.err(_("Could not find suitable media backend."), fatal=True)
-
-    if media_backend == "gstreamer":
-        from deejayd.player import gstreamer
-        try:
-            player = gstreamer.init(config)
-        except PlayerError as err:
-            log.err(str(err), fatal=True)
-
-    elif media_backend == "vlc":
-        from deejayd.player import vlc
-        try:
-            player = vlc.VlcPlayer(config)
-        except PlayerError as err:
-            log.err(str(err), fatal=True)
-
+    elif media_backend in AVAILABLE_BACKENDS:
+        backend_module = get_backend_module(media_backend)
     else:
-        log.err(_("Invalid media backend"), fatal=True)
+        log.err(_("Invalid media backend %s" % media_backend), fatal=True)
+
+    try:
+        player_class = getattr(backend_module,
+                               '%sPlayer' % media_backend.capitalize())
+        player = player_class(config)
+    except PlayerError as err:
+        log.err(str(err), fatal=True)
 
     return player
