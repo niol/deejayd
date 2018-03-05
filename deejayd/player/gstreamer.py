@@ -45,6 +45,9 @@ class GstreamerPlayer(_BasePlayer):
 
     def __init__(self, config):
         super(GstreamerPlayer, self).__init__(config)
+
+        init(config)
+
         self.__gst_options = {
             "audio_p": self.config.get("gstreamer", "audio_output"),
             "video_p": self.config.get("gstreamer", "video_output"),
@@ -478,15 +481,22 @@ class GstreamerPlayer(_BasePlayer):
         return True
 
 
+INITED = False
+
+
 def init(config):
+    global INITED
+    if INITED:
+        return
+    else:
+        INITED = True
+
     # Enable error messages by default
     if Gst.debug_get_default_threshold() == Gst.DebugLevel.NONE:
         Gst.debug_set_default_threshold(Gst.DebugLevel.ERROR)
 
-    if Gst.Element.make_from_uri(
+    if not Gst.Element.make_from_uri(
             Gst.URIType.SRC, "file:///fake/path/for/gst", ""):
-        return GstreamerPlayer(config)
-    else:
         raise PlayerError(
             _("Unable to open input files"),
             _("GStreamer has no element to handle reading files. Check "
