@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.13.1 (2014-01-10)
+Actual version : 0.14.0 (2018-XX-XX)
 ------------------------------------
 
 Description:
@@ -18,58 +18,38 @@ Clients:
       djc is a command line client available in this package
   * deejayd-webui :
     --------
-      It is a web based client built with Google Web Toolkit SDK
-      (http://code.google.com/webtoolkit/). It is replace firefox extension and
-      it is included in deejayd. It can be configured in webui section of
-      deejayd configuration file. It has to work with all browsers based on
-      gecko or webkit engine (tested on firefox, chrominium and safari).
-      url to use this interface : http://host:webuiport/webui/
-  * mobile-webui :
-    --------
-      It is a web based client also built with GWT but optimized
-      for mobile device. url to use this interface once you have activate
-      webui in configuration file is :
-      http://host:webuiport/m/
+      It is a web based client included in this package and built 
+      with angular.io (https://angular.io) and angular material 
+      (https://material.angular.io/). It has to work with recent versions of 
+      firefox and chrome.
+      url to use this interface : http://host:webuiport/
 
 Requirements:
 -------------
-    * python >= 2.6
-    * twisted >= 2.0 (http://twistedmatrix.com/trac)
-    * lxml >= 2.0 (http://codespeak.net/lxml/)
-    * mutagen >= 1.6
+    * python >= 3.4
+    * twisted >= 16.6.0 (http://twistedmatrix.com/trac)
+    * sqlalchemy >= 1.0.0 (https://www.sqlalchemy.org/)
+    * mutagen >= 1.30
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
-    * twisted-web >= 0.6.0 if you want to use deejayd-webui
     * if you want to use gstreamer backend
-        * pygobject >= 2.12 (http://www.pygtk.org/)
         * gstreamer >= 0.10.24 (http://gstreamer.freedesktop.org)
-        * gstreamer plugins :
-            * Required :
-              * gst-python >= 0.10
-            * Optionnal :
-              * alsa, oss, esd ...
-              * mad to play mp3
-              * ogg to play ogg
-              * for webradio, gst-plugins-gnomevfs >= 0.10
-              * for video playback, gst-plugins-ffmpeg is recommended
-    * if you want to use xine backend
-        * xine-lib >= 1.1.0
     * if you want to use vlc backend
-        * libvlc >= 2.0.0
+        * libvlc >= 2.2.0
     * To be abble to play video medias
         * libX11, libXext
-    * ant, a JDK (like openjdk) and GWT SDK == 2.4.X if you want to build webui
+    * nodejs 6 or higher and npm to build the webui
 
 If you want to build deejayd (distutils distribution), you also need
-the gettext package installed because of the usage of the msgfmt binary.
+the python3-babel package installed to build .mo file
 
 Installation:
 -------------
 Download deejayd and extract it:
-  $tar xzvf deejayd-0.13.1.tar.gz
+  $tar xzvf deejayd-0.14.0.tar.gz
 
 Then, install it with:
-  $cd deejayd-0.13.1
-  $GWT_SDK="PathToGwtSdk" python setup.py install
+  $cd deejayd-0.14.0
+  $python setup.py install
 
 Usage:
 ------

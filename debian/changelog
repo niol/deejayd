@@ -1,3 +1,9 @@
+deejayd (0.14.0-1) stretch; urgency=medium
+
+  * new upstream version 
+
+ -- roy <roy@stretch>  Sat, 10 Mar 2018 12:03:31 +0100
+
 deejayd (0.14.0~hg+1+9ef373dd259e-1) unstable; urgency=low
 
   * New upstream pre-release from hg 9ef373dd259e.

@@ -1,0 +1,11 @@
+[Unit]
+Description=Media player daemon
+After=network.target
+
+[Service]
+Environment=DEEJAYD_DAEMON_OPTS=
+EnvironmentFile=-/etc/default/deejayd
+ExecStart=/usr/bin/deejayd -n -u deejayd -g audio,video -c /etc/deejayd.conf -l /var/log/deejayd.log -w /var/log/deejayd-webui.log $DEEJAYD_DAEMON_OPTS
+
+[Install]
+WantedBy=multi-user.target

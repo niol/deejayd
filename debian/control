@@ -2,40 +2,40 @@ Source: deejayd
 Section: sound
 Priority: extra
 Maintainer: Alexandre Rossi <alexandre.rossi@gmail.com>
-Build-Depends: debhelper (>= 7.0.50~), python (>= 2.6.6-3)
-Build-Depends-Indep: gettext, xsltproc, docbook-xsl, coffeescript, node-uglify, node-less
+Build-Depends: debhelper (>= 10.0.0), python3 (>= 3.4.0)
+Build-Depends-Indep: python3-babel, xsltproc, docbook-xsl, dh-python
 Standards-Version: 3.9.6.0
-X-Python-Version: >= 2.4
-Homepage: http://mroy31.domring.net/~roy/projects/deejayd
-Vcs-Hg: http://mroy31.domring.net/repository/deejayd
-Vcs-Browser: http://mroy31.domring.net/repository/deejayd
+X-Python3-Version: >= 3.4
+Homepage: https://mroy31.domring.net/~roy/repositories.git/deejayd/
+Vcs-Git: https://mroy31.domring.net/~roy/repositories.git/deejayd/
+Vcs-Browser: https://mroy31.domring.net/~roy/repositories.git/deejayd/
 
 Package: deejayd
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends},
+Depends: ${misc:Depends}, ${python3:Depends},
          lsb-base (>= 3.0-6), logrotate, adduser,
          deejayd-client (= ${binary:Version}),
          deejayd-vlc (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
-         python-twisted,
-         python-mutagen
+         python3-twisted,
+         python3-mutagen,
+         python3-sqlalchemy,
+         python3-migrate
 Suggests: deejayd-webui,
           xserver-xorg, xauth, x11-utils, x11-common,
-          python-zope.interface
+          python3-zope.interface
 Breaks: deejayd-xine (<= 0.10)
 Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
- through the network using XML messages.
+ through the network using JSON messages.
  It supports playlists, searching, many media tags. It can playback many
  music and video formats using either its vlc (recommended) or its GStreamer
  backend.
 
 Package: deejayd-webui
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends},
+Depends: ${misc:Depends}, ${python3:Depends},
          deejayd (= ${binary:Version}), logrotate,
-         python-twisted-web, python-twisted-sockjs,
-         fonts-font-awesome, libjs-sockjs, libjs-bootstrap, libjs-angularjs
-# libjs-jquery
+         python3-twisted-sockjs,
 Description: Web interface for deejayd
  This package provides, in order to control your deejayd server, two HTML and
  AJAX web interfaces:
@@ -46,7 +46,7 @@ Description: Web interface for deejayd
 
 Package: deejayd-client
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-simplejson | python (>= 2.6)
+Depends: ${misc:Depends}, ${python3:Depends}
 Breaks: djc (<= 0.8.1)
 Replaces: djc
 Description: Client library and command line tool to access the deejayd server
@@ -59,7 +59,7 @@ Description: Client library and command line tool to access the deejayd server
 
 Package: deejayd-gstreamer
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-gi,
+Depends: ${misc:Depends}, ${python3:Depends}, python-gi,
          libgstreamer1.0-0, gir1.2-gstreamer-1.0,
          gir1.2-gst-plugins-base-1.0, gstreamer1.0-plugins-base,
          gstreamer1.0-plugins-good
@@ -69,6 +69,6 @@ Description: Deejayd GStreamer backend
 
 Package: deejayd-vlc
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, libvlc5
+Depends: ${misc:Depends}, ${python3:Depends}, vlc-nox
 Description: Deejayd VLC backend
  The deejayd media backend using the VLC library.

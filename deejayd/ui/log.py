@@ -47,7 +47,7 @@ class LogFile(object):
 
     def open(self):
         try:
-            self.fd = open(self.path, 'a')
+            self.fd = open(self.path, 'ab')
         except IOError:
             sys.exit("Unable to open the log file %s" % self.path)
 

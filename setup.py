@@ -120,7 +120,9 @@ class build_i18n(Command):
         for root, dirs, files in os.walk(self.po_directory):
             if self.po_filename in files:
                 path = os.path.join(root, self.po_filename)
-                data_files.append(("share", (path,)))
+                t_path = os.path.join("share", root)
+                data_files.append((t_path, (path,)))
+        print(data_files)
 
     def clean(self):
         for root, dirs, files in os.walk(self.po_directory):
@@ -228,7 +230,8 @@ if __name__ == "__main__":
                      "deejayd.db.dbmigrate.versions", "deejayd.webradio",
                      "deejayd.webui", "deejayd.playlist", "pytyx11"],
            package_data={'deejayd.ui': ['defaults.conf'],
-                         'deejayd.webui': ['webui.thtml'], },
+                         'deejayd.webui': ['webui.thtml'], 
+                         'deejayd.db.dbmigrate': ['migrate.cfg', 'README']},
            data_files=build_data_files_list(),
            cmdclass={
                "build": deejayd_build,

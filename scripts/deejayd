@@ -30,6 +30,7 @@ import pwd
 import grp
 import traceback
 from optparse import OptionParser
+from pathlib import Path
 import gettext
 from deejayd.db import connection
 from deejayd.ui.i18n import DeejaydTranslations
@@ -48,7 +49,7 @@ if binsuffix == 'bin':
 # init translation
 ######################################################
 if INSTALL_MODE == 'source':
-    LOCALES_PATH = os.path.join(INSTALL_BIN_DIR, '..', 'build', 'mo')
+    LOCALES_PATH = 'locale'
 else:
     LOCALES_PATH = os.path.join(INSTALL_PREFIX, 'share', 'locale')
 try:
@@ -64,22 +65,23 @@ parser = OptionParser(usage=usage)
 parser.set_defaults(pidfile="deejayd.pid", kill=False, daemon=True)
 # The help option must be changed to comply with i18n.
 parser.get_option('-h').help = _("Show this help message and exit.")
-parser.add_option("-u", "--uid", dest="uid", type="string", \
-    help=_("The uid to run as"))
-parser.add_option("-g", "--gid", dest="gid", type="string", \
-    help=_("The gid to run as (the first one), and the supplementary gids separated by commas."))
-parser.add_option("-n", "--nodaemon", action="store_false", dest="daemon", \
-    help=_("No daemonize deejayd"))
-parser.add_option("-l", "--log-file", type="string", dest="logfile", \
-    metavar="FILE", help=_("Specify the log file"))
-parser.add_option("-w", "--webui-log", type="string", dest="webui_logfile", \
-    metavar="FILE", help=_("Specify the log file for the webui"))
-parser.add_option("-p", "--pid-file", type="string", dest="pidfile", \
-    metavar="FILE", help=_("Specify the log file"))
-parser.add_option("-c", "--conf-file", type="string", dest="conffile", \
-    metavar="FILE", help=_("Specify a custom conf file"))
-parser.add_option("-k", "--kill", action="store_true", dest="kill", \
-    help=_("Kill the actual deejayd process"))
+parser.add_option("-u", "--uid", dest="uid", type="string",
+                  help=_("The uid to run as"))
+parser.add_option("-g", "--gid", dest="gid", type="string",
+                  help=_("The gid to run as (the first one), and the "
+                         "supplementary gids separated by commas."))
+parser.add_option("-n", "--nodaemon", action="store_false", dest="daemon",
+                  help=_("No daemonize deejayd"))
+parser.add_option("-l", "--log-file", type="string", dest="logfile",
+                  metavar="FILE", help=_("Specify the log file"))
+parser.add_option("-w", "--webui-log", type="string", dest="webui_logfile",
+                  metavar="FILE", help=_("Specify the log file for the webui"))
+parser.add_option("-p", "--pid-file", type="string", dest="pidfile",
+                  metavar="FILE", help=_("Specify the log file"))
+parser.add_option("-c", "--conf-file", type="string", dest="conffile",
+                  metavar="FILE", help=_("Specify a custom conf file"))
+parser.add_option("-k", "--kill", action="store_true", dest="kill",
+                  help=_("Kill the actual deejayd process"))
 parser.add_option("-d", "--debug",
                   action="store_true", dest="debug",
                   help=_("Log more debug informations"))
@@ -146,9 +148,25 @@ def removePID(pidfile):
 
 
 def setEnv(options):
+    def get_uid(uid_arg):
+        try:
+            uid = int(options.uid)
+        except ValueError:
+            uid = pwd.getpwnam(options.uid)[2]
+        return uid
+
     # Init random generator
     random.seed()
 
+    # create log files if necessary
+    for l_file in (options.logfile, options.webui_logfile):
+        if l_file is None:
+            continue
+        Path(l_file).touch(mode=0o644)
+        if options.uid:
+            os.chown(l_file, get_uid(options.uid), -1)
+
+    # daemonize if necessary
     if options.daemon:
         daemonize()
         # Store the pid
@@ -171,11 +189,7 @@ def setEnv(options):
             sys.exit(_("Unable to change gid of the process"))
     if options.uid:
         try:
-            uid = int(options.uid)
-        except ValueError:
-            uid = pwd.getpwnam(options.uid)[2]
-        try:
-            os.setuid(uid)
+            os.setuid(get_uid(options.uid))
         except OSError:
             sys.exit(_("Unable to change uid of the process"))
 

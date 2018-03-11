@@ -1,5 +1,4 @@
 usr/lib/python*/*-packages/deejayd/__init__.py
 usr/lib/python*/*-packages/deejayd/common/*.py
-usr/lib/python*/*-packages/deejayd/model/*.py
 usr/lib/python*/*-packages/deejayd/jsonrpc/*.py
 usr/bin/djc

@@ -1,17 +1,16 @@
 usr/bin/deejayd
 usr/lib/python*/*-packages/deejayd/dispatch/*
 usr/lib/python*/*-packages/deejayd/server/*
-usr/lib/python*/*-packages/deejayd/mediadb/*
+usr/lib/python*/*-packages/deejayd/library/*
 usr/lib/python*/*-packages/deejayd/playlist/*
 usr/lib/python*/*-packages/deejayd/player/__init__.py
 usr/lib/python*/*-packages/deejayd/player/_base.py
-usr/lib/python*/*-packages/deejayd/plugins/*.py
 usr/lib/python*/*-packages/deejayd/sources/*.py
 usr/lib/python*/*-packages/deejayd/webradio/*.py
 usr/lib/python*/*-packages/deejayd/ui/*
-usr/lib/python*/*-packages/deejayd/database/*
+usr/lib/python*/*-packages/deejayd/db/*
+usr/lib/python*/*-packages/deejayd/db/dbmigrate/*
+usr/lib/python*/*-packages/deejayd/db/dbmigrate/versions/*
 usr/lib/python*/*-packages/pytyx11/*
 usr/share/locale/*/LC_MESSAGES/deejayd.mo
 etc/deejayd.conf
-debian/deejayd.xinitrc etc
-debian/50deejayd_steal-session etc/X11/Xsession.d/

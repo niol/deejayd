@@ -9,10 +9,6 @@ $ sudo invoke-rc.d deejayd restart
 
 The default configuration for deejayd is pretty minimal and you'll probably
 want to change the following items from their default value :
-- in the 'general' section, maybe enable more modes using the activated_modes
-  variable. The default does not enable video related modes.
-  activated_modes =  playlist,webradio,video,dvd,panel
-  (this is new in version 0.7.0)
 - in the 'webui' section, enable it using the 'enabled' configuration variable.
 - you may want the daemon to be controllable from machines other than the one it
   is running on. In the 'net' and 'webui' sections, you may want to change the
@@ -27,11 +23,6 @@ want to change the following items from their default value :
 
 Deejayd supports video. But it will not try to establish a connection to a
 X server until it is asked to play a video and if the 'video' mode is enabled.
+We recommend the installation of lightdm-autologin-greeter to launch a X server
+with deejayd user.
 
-The Debian packaging provides two modes of operation in that regard:
-- 'standalone': Deejayd launches its own dedicated X server,
-- 'reuse':      Deejayd connects to an existing X session (e.g. launched by
-  (x|g|k)dm).
-
-Configuration should be easy enough, and details are available in the comments
-in /etc/default/deejayd .

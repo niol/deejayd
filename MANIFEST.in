@@ -8,15 +8,14 @@ include TODO
 include prepare.sh
 include docs.py
 include deejayd/ui/defaults.conf
-include po/*po
-include po/POTFILES.in
-include po/update.py
-include po/deejayd.pot
+include deejayd/db/dbmigrate/migrate.cfg
+include deejayd/db/dbmigrate/README
 include tests.py
 include scripts/testserver
 include scripts/deejayd_rgscan
 include devscripts/db_update.py
 recursive-include testdeejayd *
+recursive-include locale *
 include data/logo/*
 include man/*
 recursive-include webui/src *
