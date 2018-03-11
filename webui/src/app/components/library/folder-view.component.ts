@@ -79,6 +79,7 @@ interface PathObject {
         <mat-icon mat-list-icon>music_video</mat-icon>
         <div class="djd-library-item">
           <div>
+            <span *ngIf="type == 'video' && media.play_count == 0">*</span>
             <span>{{ media.filename }}</span>
           </div>
           <div style="flex: 1 1 auto;"></div>

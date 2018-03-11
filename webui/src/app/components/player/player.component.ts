@@ -48,8 +48,8 @@ interface SeekbarState {
         </div>
     </div>
     <div fxFlex="55px" fxLayout='row'>
-        <div fxFlex="1 1 250px"
-             fxFlex.sm="1 1 300px"
+        <div fxFlex="1 1 180px"
+             fxFlex.sm="1 1 230px"
              fxFlex.lt-sm="1 1 100%"
              fxLayoutAlign="center center">
             <button mat-icon-button (click)=player.previous()>
@@ -64,13 +64,6 @@ interface SeekbarState {
             </button>
             <button mat-icon-button (click)=player.next()>
                 <mat-icon>skip_next</mat-icon>
-            </button>
-
-            <button mat-button fxHide [fxShow.lt-md]="true"
-                    (click)="openSeekDialog()"
-                    [disabled]="seekbarState.length == 0">
-                {{seekbarState.formatedPosition}} /
-                {{seekbarState.formatedLength}}
             </button>
 
             <div fxHide [fxShow.lt-sm]="true">
@@ -92,17 +85,30 @@ interface SeekbarState {
                 </div>
             </div>
         </div>
+
         <div fxFlex="2 1 100%"
+             fxFlex.lt-md="1 1 200px"
              fxLayoutAlign="center center"
-             fxLayout="row"
-             fxShow [fxHide.lt-md]="true">
-            <button fxFlex="0 0 auto"
-                    [disabled]="seekbarState.length == 0"
+             fxLayout="row">
+            <button mat-icon-button (click)="player.seek(-10, true)"
+                    [disabled]="seekbarState.length == 0">
+                <mat-icon>replay_10</mat-icon>
+            </button>
+            <button mat-button
+                    fxHide [fxShow.lt-md]="true"
                     (click)="openSeekDialog()"
-                    mat-button>
+                    [disabled]="seekbarState.length == 0">
+                {{seekbarState.formatedPosition}} /
+                {{seekbarState.formatedLength}}
+            </button>
+            <button mat-button
+                    fxShow [fxHide.lt-md]="true"
+                    (click)="openSeekDialog()"
+                    [disabled]="seekbarState.length == 0">
                 {{seekbarState.formatedPosition}}
             </button>
             <mat-slider
+                fxShow [fxHide.lt-md]="true"
                 fxFlex="1 1 100%"
                 (change)="seek($event)"
                 (input)="onSeekbarSlide($event.value)"
@@ -111,11 +117,15 @@ interface SeekbarState {
                 [min]=0
                 [max]=seekbarState.length
                 [step]=seekbarState.step></mat-slider>
-            <button fxFlex="0 0 auto"
-                    [disabled]="seekbarState.length == 0"
+            <button mat-button
+                    fxShow [fxHide.lt-md]="true"
                     (click)="openSeekDialog()"
-                    mat-button>
+                    [disabled]="seekbarState.length == 0">
                 {{seekbarState.formatedLength}}
+            </button>
+            <button mat-icon-button (click)="player.seek(30, true)"
+                    [disabled]="seekbarState.length == 0">
+                <mat-icon>forward_30</mat-icon>
             </button>
         </div>
         <djd-volume fxFlex="1 1 250px"

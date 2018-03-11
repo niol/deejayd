@@ -23,7 +23,7 @@ import { MenuService } from '../../services/menu.service';
   selector: 'djd-video-library',
   template: `
   <mat-tab-group>
-    <mat-tab i18n-label label="Folder">
+    <mat-tab i18n-label label="Filesystem">
       <djd-folder-view type="video"></djd-folder-view>
     </mat-tab>
     <mat-tab i18n-label label="Search">
