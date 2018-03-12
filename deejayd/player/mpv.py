@@ -369,10 +369,15 @@ class MpvPlayer(_BasePlayer):
             return int(self.__player.state['time-pos'])
         return 0
 
-    def _set_position(self, pos):
+    def seek(self, pos, relative=False):
         if self.get_state() != PLAYER_STOP and self.__player.state['seekable']:
-            self.__player.command('seek', pos, 'absolute')
+            if relative:
+                flag = 'relative'
+            else:
+                flag = 'absolute'
+            self.__player.command('seek', pos, flag)
             self.__player.command('show-progress')
+            self.dispatch_signame('player.status')
 
     def get_state(self):
         return self.__player.state['playback']
