@@ -296,11 +296,13 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if self.__stop_watchdog:
             self.__stop_watchdog.cancel()
         self.__stop_watchdog = reactor.callLater(600, self.stop_if_idle)
+
         self.player.dispatch_signame('player.status')
 
     def EVENT_end_file(self):
         if self.__monitor.running:
             self.__monitor.stop()
+
         self.player._playing_media.played()
         self.player._playing_media['last_position'] = 0
         self._playing_media = None
