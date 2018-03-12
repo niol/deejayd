@@ -58,8 +58,7 @@ class MpvIpcProtocol(LineOnlyReceiver):
 
         for p in self.factory.handler.PROPERTIES:
             self.observe_property(p)
-            (self.command('get_property', p)
-             .addCallback(self.factory.handler.got_property, p))
+            self.factory.handler.get_property(p)
 
         self.factory.handler.starting.callback(True)
 
@@ -246,7 +245,12 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
     def error(self, msg):
         log.err('ctrl:mpv: error received: %s' % msg)
 
-    def got_property(self, p, msg):
+    def get_property(self, p):
+        d = self.command('get_property', p)
+        d.addCallback(self.got_property, p)
+        return d
+
+    def got_property(self, msg, p):
         if 'error' in msg and msg['error'] == 'success' and 'data' in msg:
             self.EVENT_property_change(p, msg['data'])
         return msg
@@ -261,7 +265,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     def __monitor_playback(self):
         if self.state['playback'] == PLAYER_PLAY:
-            self.command('get_property', 'time-pos')
+            self.get_property('time-pos')
 
     def EVENT_playback_restart(self):
         if self.state['playback'] != PLAYER_PLAY:
@@ -269,8 +273,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             
             for p in self.WHILE_PLAYING_PROPERTIES:
                 self.factory.conn.observe_property(p)
-                (self.command('get_property', p)
-                .addCallback(self.factory.handler.got_property, p))
+                self.get_property(p)
 
             self.__monitor.start(1)
 
