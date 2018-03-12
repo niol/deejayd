@@ -108,6 +108,7 @@ class MpvIpcProtocol(LineOnlyReceiver):
             del self.__commands_cb[cmd['request_id']]
             if 'error' in msg and msg['error'] != 'success':
                 raise PlayerError(cmd, msg)
+            return msg
         d.addCallback(base_cb, cmd)
         self.__commands_cb_lastid = self.__commands_cb_lastid + 1
 
@@ -123,6 +124,7 @@ class MpvIpcProtocol(LineOnlyReceiver):
         prop_watch_id = self.__property_watch_lastid
         def record_id(msg, p):
             self.__property_watch[p] = prop_watch_id
+            return msg
         d = self.command('observe_property', prop_watch_id, p)
         d.addCallback(record_id, p)
         self.__property_watch_lastid = self.__property_watch_lastid + 1
@@ -171,7 +173,9 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     def __set_starting(self):
         self.starting = defer.Deferred()
-        def started(r): self.starting = None
+        def started(r):
+            self.starting = None
+            return r
         self.starting.addCallback(started)
 
     def start_process(self, pmonitor):
@@ -245,6 +249,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
     def got_property(self, p, msg):
         if 'error' in msg and msg['error'] == 'success' and 'data' in msg:
             self.EVENT_property_change(p, msg['data'])
+        return msg
 
     def EVENT_property_change(self, name=None, data=None):
         assert name is not None
@@ -332,6 +337,7 @@ class MpvPlayer(_BasePlayer):
                 p_state = self._playing_media["playing_state"]
                 self._player_set_zoom(p_state["zoom"])
                 self._player_set_aspectratio(p_state["aspect-ratio"])
+            return r
 
         uris = iter(self._playing_media.get_uris())
         def try_play(r):
