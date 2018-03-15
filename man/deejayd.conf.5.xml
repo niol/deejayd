@@ -104,17 +104,6 @@ foo = bar
         </listitem>
       </varlistentry>
 
-      <varlistentry>
-        <term>enabled_plugins</term>
-        <listitem>
-          <para>a list of plugins to activate separated by ','.
-          Available plugins are :
-            <parameter>audioscrobbler</parameter> to activate lastfm
-            audioscrobbler
-          </para>
-        </listitem>
-      </varlistentry>
-
     </variablelist>
 
   </refsect1>
@@ -232,9 +221,10 @@ bind_addresses = 192.168.51.2, 10.0.0.3
     <variablelist>
 
       <varlistentry>
-        <term>db_name</term>
+        <term>uri</term>
         <listitem>
-          <para>The full path to the sqlite database file.</para>
+          <para>The RFC1738 path to the sqlite database file.</para>
+          <para>e.g. sqlite:////var/lib/deejayd/library.db .</para>
         </listitem>
       </varlistentry>
 
@@ -264,21 +254,6 @@ bind_addresses = 192.168.51.2, 10.0.0.3
         <term>video_directory</term>
         <listitem>
           <para>The full path to the directory holding you video files.</para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>filesystem_charset</term>
-        <listitem>
-          <para>The character set to use to decode your filenames. This should
-          probably be autodetected.</para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>cover_directory</term>
-        <listitem>
-          <para>The full path to cache album covers in.</para>
         </listitem>
       </varlistentry>
 
@@ -431,39 +406,6 @@ bind_addresses = 192.168.51.2, 10.0.0.3
             <parameter>oss</parameter>,
             <parameter>pulse</parameter>, etc.
           </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>video_enable</term>
-        <listitem>
-          <para>Boolean to define whether to output video (mainly for unit
-          testing purposes).</para>
-        </listitem>
-      </varlistentry>
-
-    </variablelist>
-  </refsect1>
-
-  <refsect1>
-    <title>lastfm section</title>
-
-    <para>This section defines the <parameter>lastfm</parameter> plugin section
-    configuration values.</para>
-
-    <variablelist>
-
-      <varlistentry>
-        <term>login</term>
-        <listitem>
-          <para>Your lastfm login.</para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>password</term>
-        <listitem>
-          <para>A MD5 hash of your lastfm password.</para>
         </listitem>
       </varlistentry>
 
