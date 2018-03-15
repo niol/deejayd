@@ -60,7 +60,8 @@ class MpvIpcProtocol(LineOnlyReceiver):
             self.observe_property(p)
             self.factory.handler.get_property(p)
 
-        self.factory.handler.starting.callback(True)
+        if self.factory.handler.starting:
+            self.factory.handler.starting.callback(True)
 
     def connectionLost(self, reason):
         log.debug('ctrl:mpv: connection to player process lost')
@@ -227,7 +228,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.factory = None
         self.tempdir.cleanup()
         self.tempdir = None
-        self.starting = None
 
     def stop_if_idle(self):
         self.__stop_watchdog = None
