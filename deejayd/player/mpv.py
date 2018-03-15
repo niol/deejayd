@@ -267,11 +267,11 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
     def __monitor_playback(self):
         if self.state['playback'] == PLAYER_PLAY:
             self.get_property('time-pos')
+            self.player.dispatch_signame('player.status')
 
     def EVENT_playback_restart(self):
         if self.state['playback'] == PLAYER_STOP:
             self.state['playback'] = PLAYER_PLAY
-            self.__seeking = False
             
             for p in self.WHILE_PLAYING_PROPERTIES:
                 self.factory.conn.observe_property(p)
@@ -309,10 +309,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.player._playing_media['last_position'] = 0
         self._playing_media = None
 
-    def EVENT_seek(self):
-        self.__seeking = True
-        self.player.dispatch_signame('player.status')
-
     def PROPERTY_eof_reached(self, reached):
         if reached != 'null':
             self.player._change_file(self.player._source.next(explicit=False))
@@ -321,11 +317,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if title != self._playing_media['desc']:
             self._playing_media.set_description(title)
             self.player.dispatch_signame('player.current')
-
-    def PROPERTY_time_pos(self, pos):
-        if self.__seeking:
-            self.__seeking = False
-            self.player.dispatch_signame('player.status')
 
 
 @jsonrpc_module(PlayerModule)
@@ -386,8 +377,11 @@ class MpvPlayer(_BasePlayer):
         if self.get_state() != PLAYER_STOP and self.__player.state['seekable']:
             if relative:
                 flag = 'relative'
+                current = self.__player.state['time-pos']
             else:
                 flag = 'absolute'
+                current = 0
+            self.__player.state['time-pos'] = current + pos
             self.__player.command('seek', pos, flag)
             self.__player.command('show-progress')
 
