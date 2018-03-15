@@ -29,8 +29,8 @@ class PlayerBackendProtocolClientFactory(protocol.ClientFactory):
                 % reason)
 
     def clientConnectionLost(self, connector, reason):
-        log.err('ctrl: player process connection to deejayd lost: %s'
-                % reason)
+        log.debug('ctrl: player process connection to deejayd lost: %s'
+                  % reason)
 
 
 class PlayerProcessMonitoring(protocol.ProcessProtocol):
