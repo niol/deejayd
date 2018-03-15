@@ -437,6 +437,6 @@ class MpvPlayer(_BasePlayer):
         return self.__player.state['sid']
 
     def _osd_set(self, text):
-        self.__player.command('show-text', text, 2)
+        self.__player.command('show-text', text, 2000)
 
 
