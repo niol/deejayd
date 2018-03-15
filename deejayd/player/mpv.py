@@ -164,6 +164,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.factory = None
         self.__monitor = task.LoopingCall(self.__monitor_playback)
         self.__stop_watchdog = None
+        self.starting = None
 
     def socket_path(self):
         if not self.tempdir:
