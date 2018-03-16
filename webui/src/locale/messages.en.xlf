@@ -65,16 +65,16 @@
       <target state="final">Add a Webradio</target></trans-unit><trans-unit id="de494ebdaba2cb926deb417d20affdb271cac9da" datatype="html">
         <source>Now Playing</source>
         
-      <target state="final">Now Playing</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">28</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">51</context></context-group></trans-unit><trans-unit id="45cadbf05a528d49c159d03be2757587ffc16706" datatype="html">
+      <target state="final">Now Playing</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">28</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">64</context></context-group></trans-unit><trans-unit id="45cadbf05a528d49c159d03be2757587ffc16706" datatype="html">
         <source>Music Library</source>
         
-      <target state="final">Music Library</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">29</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">57</context></context-group></trans-unit><trans-unit id="253467c74089d166f445380561322f90cabed8b6" datatype="html">
+      <target state="final">Music Library</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">29</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">70</context></context-group></trans-unit><trans-unit id="253467c74089d166f445380561322f90cabed8b6" datatype="html">
         <source>Video Library</source>
         
-      <target state="final">Video Library</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">30</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">63</context></context-group></trans-unit><trans-unit id="606fcae51bc2429fae850f55ed2218dc42d7a877" datatype="html">
+      <target state="final">Video Library</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">30</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">76</context></context-group></trans-unit><trans-unit id="606fcae51bc2429fae850f55ed2218dc42d7a877" datatype="html">
         <source>Radio</source>
         
-      <target state="final">Radio</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">31</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">69</context></context-group></trans-unit><trans-unit id="c8af2ab9b697604aa64e4fbc59668cc6980f2849" datatype="html">
+      <target state="final">Radio</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">31</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">82</context></context-group></trans-unit><trans-unit id="c8af2ab9b697604aa64e4fbc59668cc6980f2849" datatype="html">
         <source>
       Seek Dialog
     </source>
@@ -293,11 +293,8 @@
         </context-group>
       <target state="final">One Media</target></trans-unit><trans-unit id="d5a6db764ecb9e06d3c5fda4dfd17802758406f9" datatype="html">
         <source>Filesystem</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/components/library/music-library.component.ts</context>
-          <context context-type="linenumber">3</context>
-        </context-group>
-      <target state="final">Filesystem</target></trans-unit><trans-unit id="7e892ba15f2c6c17e83510e273b3e10fc32ea016" datatype="html">
+        
+      <target state="final">Filesystem</target><context-group purpose="location"><context context-type="sourcefile">src/app/components/library/music-library.component.ts</context><context context-type="linenumber">3</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/components/library/video-library.component.ts</context><context context-type="linenumber">3</context></context-group></trans-unit><trans-unit id="7e892ba15f2c6c17e83510e273b3e10fc32ea016" datatype="html">
         <source>Search</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/components/library/music-library.component.ts</context>
@@ -307,13 +304,7 @@
           <context context-type="sourcefile">src/app/components/library/video-library.component.ts</context>
           <context context-type="linenumber">6</context>
         </context-group>
-      <target state="final">Search</target></trans-unit><trans-unit id="d8e057d4fa08fbdb6f98af2073eff5ae0b47f5e1" datatype="html">
-        <source>Folder</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/components/library/video-library.component.ts</context>
-          <context context-type="linenumber">3</context>
-        </context-group>
-      <target state="final">Folder</target></trans-unit><trans-unit id="5e5ce1b19f15edca252be5ee4778391814142a0b" datatype="html">
+      <target state="final">Search</target></trans-unit><trans-unit id="5e5ce1b19f15edca252be5ee4778391814142a0b" datatype="html">
         <source>Aspect Ratio</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
@@ -395,6 +386,12 @@
           <context context-type="sourcefile">src/app/components/player/player.component.ts</context>
           <context context-type="linenumber">7</context>
         </context-group>
-      <target state="final">No playing media</target></trans-unit></body>
+      <target state="final">No playing media</target></trans-unit><trans-unit id="47bac78b91562f7f69ddc105d2bff08ac536762d" datatype="html">
+        <source>Wait for the connection to the server...</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.ts</context>
+          <context context-type="linenumber">51</context>
+        </context-group>
+      <target state="final">Wait for the connection to the server...</target></trans-unit></body>
   </file>
 </xliff>

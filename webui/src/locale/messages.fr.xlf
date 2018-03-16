@@ -3,13 +3,13 @@
   <file source-language="en" datatype="plaintext" original="ng2.template">
     <body>
       <trans-unit id="de494ebdaba2cb926deb417d20affdb271cac9da" datatype="html" approved="yes">
-        <source>Now Playing</source> <target state="translated">En cours de lecture</target> <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">28</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">51</context></context-group></trans-unit>
+        <source>Now Playing</source> <target state="translated">En cours de lecture</target> <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">28</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">64</context></context-group></trans-unit>
       <trans-unit id="45cadbf05a528d49c159d03be2757587ffc16706" datatype="html" approved="yes">
         <source>Music Library</source> <target state="translated">Musique</target> 
         
-      <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">29</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">57</context></context-group></trans-unit>
+      <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">29</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">70</context></context-group></trans-unit>
       <trans-unit id="253467c74089d166f445380561322f90cabed8b6" datatype="html" approved="yes">
-        <source>Video Library</source> <target state="translated">Vidéos</target> <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">30</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">63</context></context-group></trans-unit>
+        <source>Video Library</source> <target state="translated">Vidéos</target> <context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">30</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">76</context></context-group></trans-unit>
     <trans-unit id="11af766af5b487d044e5b1894707d3b062666e79" datatype="html" approved="yes">
         <source>
       Add new category
@@ -58,7 +58,7 @@
         </context-group>
       <target state="translated">Ajouter une radio</target></trans-unit><trans-unit id="606fcae51bc2429fae850f55ed2218dc42d7a877" datatype="html" approved="yes">
         <source>Radio</source> 
-      <target state="translated">Radio</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">31</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">69</context></context-group></trans-unit><trans-unit id="c8af2ab9b697604aa64e4fbc59668cc6980f2849" datatype="html" approved="yes">
+      <target state="translated">Radio</target><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">31</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/app.component.ts</context><context context-type="linenumber">82</context></context-group></trans-unit><trans-unit id="c8af2ab9b697604aa64e4fbc59668cc6980f2849" datatype="html" approved="yes">
         <source>
       Seek Dialog
     </source> <context-group purpose="location">
@@ -234,11 +234,8 @@
           <context context-type="linenumber">38</context>
         </context-group>
       <target state="translated">Un média</target></trans-unit><trans-unit id="d5a6db764ecb9e06d3c5fda4dfd17802758406f9" datatype="html" approved="yes">
-        <source>Filesystem</source> <context-group purpose="location">
-          <context context-type="sourcefile">src/app/components/library/music-library.component.ts</context>
-          <context context-type="linenumber">3</context>
-        </context-group>
-      <target state="translated">Système de fichiers</target></trans-unit><trans-unit id="7e892ba15f2c6c17e83510e273b3e10fc32ea016" datatype="html" approved="yes">
+        <source>Filesystem</source> 
+      <target state="translated">Système de fichiers</target><context-group purpose="location"><context context-type="sourcefile">src/app/components/library/music-library.component.ts</context><context context-type="linenumber">3</context></context-group><context-group purpose="location"><context context-type="sourcefile">src/app/components/library/video-library.component.ts</context><context context-type="linenumber">3</context></context-group></trans-unit><trans-unit id="7e892ba15f2c6c17e83510e273b3e10fc32ea016" datatype="html" approved="yes">
         <source>Search</source> <context-group purpose="location">
           <context context-type="sourcefile">src/app/components/library/music-library.component.ts</context>
           <context context-type="linenumber">6</context>
@@ -247,12 +244,7 @@
           <context context-type="sourcefile">src/app/components/library/video-library.component.ts</context>
           <context context-type="linenumber">6</context>
         </context-group>
-      <target state="translated">Rechercher</target></trans-unit><trans-unit id="d8e057d4fa08fbdb6f98af2073eff5ae0b47f5e1" datatype="html" approved="yes">
-        <source>Folder</source> <context-group purpose="location">
-          <context context-type="sourcefile">src/app/components/library/video-library.component.ts</context>
-          <context context-type="linenumber">3</context>
-        </context-group>
-      <target state="translated">Dossier</target></trans-unit><trans-unit id="5e5ce1b19f15edca252be5ee4778391814142a0b" datatype="html" approved="yes">
+      <target state="translated">Rechercher</target></trans-unit><trans-unit id="5e5ce1b19f15edca252be5ee4778391814142a0b" datatype="html" approved="yes">
         <source>Aspect Ratio</source> <context-group purpose="location">
           <context context-type="sourcefile">src/app/components/player/options-dialog.component.ts</context>
           <context context-type="linenumber">11</context>
@@ -316,11 +308,16 @@
           <context context-type="sourcefile">src/app/components/player/seek-dialog.component.ts</context>
           <context context-type="linenumber">63</context>
         </context-group>
-      <target state="translated">Aller à</target></trans-unit><trans-unit id="48b5008b2889af40e80e9f5f7f8eb74a68d13f0d" datatype="html">
+      <target state="translated">Aller à</target></trans-unit><trans-unit id="48b5008b2889af40e80e9f5f7f8eb74a68d13f0d" datatype="html" approved="yes">
         <source>No playing media</source> <context-group purpose="location">
           <context context-type="sourcefile">src/app/components/player/player.component.ts</context>
           <context context-type="linenumber">7</context>
         </context-group>
-      <target state="needs-review-translation">Aucune lecture en cours</target></trans-unit></body>
+      <target state="translated">Aucune lecture en cours</target></trans-unit><trans-unit id="47bac78b91562f7f69ddc105d2bff08ac536762d" datatype="html" approved="yes">
+        <source>Wait for the connection to the server...</source> <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.ts</context>
+          <context context-type="linenumber">51</context>
+        </context-group>
+      <target state="translated">Connexion au serveur...</target></trans-unit></body>
   </file>
 </xliff>

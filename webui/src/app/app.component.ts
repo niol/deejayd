@@ -57,7 +57,9 @@ declare var DeejaydApp: any;
     </mat-menu>
 
     <mat-toolbar class="djd-toolbar" color="primary">
-      <button fxHide [fxShow.lt-md]="true" mat-icon-button (click)=sidenav.toggle()>
+      <button *ngIf="!loading" 
+              fxHide [fxShow.lt-md]="true" 
+              mat-icon-button (click)=sidenav.toggle()>
         <mat-icon>menu</mat-icon>
       </button>
 
@@ -77,7 +79,20 @@ declare var DeejaydApp: any;
       </button>
     </mat-toolbar>
 
-    <mat-sidenav-container fxFlex="1 1 auto" style="overflow-y: auto;">
+    <div *ngIf="loading" 
+         fxFlex="1 1 auto"
+         fxLayout="column"
+         fxLayoutAlign="center center"
+         fxLayoutGap="10px"
+         class="djd-main-loading">
+        <mat-spinner [color]="accent"></mat-spinner>
+        <div i18n>Wait for the connection to the server...</div>
+    </div>
+
+    <mat-sidenav-container 
+         [fxHide]="loading"
+         fxFlex="1 1 auto" 
+         style="overflow-y: auto;">
       <mat-sidenav #sidenav mode="{{sidenavMode}}" opened="{{sidenavOpened}}">
         <div fxLayout="column" class="djd-sidenav-container">
           <a mat-button
@@ -119,6 +134,7 @@ declare var DeejaydApp: any;
 })
 export class AppComponent implements OnInit {
   @ViewChild("sidenav") sidenav: MatSidenav;
+  public loading: boolean = true;
   public title: string = 'Deejayd';
   public sidenavOpened: boolean = false;
   public sidenavMode: String = "side";
@@ -134,10 +150,10 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // connect to server
-    this.client.connect(DeejaydApp.options.root_url + "rpc")
-      .subscribe((message: any) => {
-      });
+    this.client.init(DeejaydApp.options.root_url + "rpc")
+    this.client.isConnected$.subscribe((connected:boolean) => {
+      this.loading = !connected;
+    });
 
     // adapt layout to device
     this.setLayout();
@@ -175,7 +191,7 @@ export class AppComponent implements OnInit {
   }
 
   setLayout(): void {
-    this.sidenavMode = this.isMobile() ? "push" : "side";
+    this.sidenavMode = this.isMobile() ? "over" : "side";
     this.sidenavOpened = !this.isMobile();
   }
 

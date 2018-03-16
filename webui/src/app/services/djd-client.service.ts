@@ -25,10 +25,15 @@ import * as SockJS from 'sockjs-client'
 export class DjdClientService {
     private debug: boolean = WEBPACK_ENV != 'production';
     private delimiter: string = 'ENDJSON\n';
+    private connectionUrl: string = null;
+
+    private reconnectInterval: number = 1000;
+    private reconnectAttempts: number = 50;
     private isConnected: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     public isConnected$ = this.isConnected.asObservable();
 
-    private sjsObservable: Observable<any>;
+    private sjsObservable: Observable<any> = null;
+    private reconnectObservable: Observable<any> = null;
     private cmdId: number = 0;
     private sockJs: SockJS;
     private cmdCallbacks: any = {};
@@ -42,16 +47,22 @@ export class DjdClientService {
         }
     }
 
-    connect(url: string): Observable<any> {
+    init(url: string) {
+        this.connectionUrl = url;
+        this.connect()
+    }
+
+    connect() {
         this.sjsObservable = Observable.create((observer: any) => {
-            this.debugMsg(`Sockjs -> connect to server ${url}`);
-            this.sockJs = new SockJS(url);
+            this.debugMsg(`Sockjs -> connect to server ${this.connectionUrl}`);
+            this.sockJs = new SockJS(this.connectionUrl);
 
             this.sockJs.onopen = (e: SockJS.OpenEvent) => {
                 this.debugMsg('Sockjs -> connection to the server opened');
             };
 
             this.sockJs.onclose = (e: SockJS.CloseEvent) => {
+                this.debugMsg("Sockjs -> connection close")
                 this.isConnected.next(false);
                 if (e.wasClean) {
                     observer.complete();
@@ -64,17 +75,12 @@ export class DjdClientService {
                 let msg: string = e.data;
                 this.debugMsg(`Sockjs -> receive server message: ${msg}`);
                 if (msg.indexOf("OK DEEJAYD") == 0) {
-                    console.log("Socksjs -> Client Connected")
+                    this.debugMsg("Socksjs -> Client Connected");
                     this.isConnected.next(true);
-                    observer.next({
-                        type: "state",
-                        payload: "connected"
-                    });
                 } else if (msg.indexOf(this.delimiter) > 0) {
                     let answer: any = JSON.parse(msg.substr(0, msg.length - this.delimiter.length))
                     if (answer.hasOwnProperty("error") && answer.error != null) {
                         let err: string = ` ${answer.error.code} - ${answer.error.message}`;
-                        observer.error(err);
                         if (this.cmdCallbacks.hasOwnProperty(answer.id)) {
                             this.cmdCallbacks[answer.id].error(err);
                         }
@@ -97,19 +103,42 @@ export class DjdClientService {
             }
         });
 
-        return Observable.create((observer: any) => {
-            let subscription = this.sjsObservable.subscribe(observer);
-
-            return () => {
-                subscription.unsubscribe();
-            };
-        }).retryWhen((errors: any) => {
-            //noinspection TypeScriptUnresolvedFunction
-            return Observable.timer(3000);
-        });
+        this.sjsObservable.subscribe(
+            null,
+            (error: any) => {
+                this.sjsObservable = null;
+                if (this.reconnectObservable == null) {
+                    this.debugMsg("An error ocurred in sockjs, try to reconnect")
+                    // clean callbacks and signals and try to reconnect
+                    this.cmdCallbacks = {};
+                    this.signals = {};
+                    this.reconnect();
+                }
+            }
+        )
     }
 
-    formatAnswer(answer: any) {
+    reconnect(): void {
+        this.reconnectObservable = Observable.interval(this.reconnectInterval)
+            .takeWhile((v, index) => {
+                return index < this.reconnectAttempts && !this.sjsObservable;
+            });
+        this.reconnectObservable.subscribe(
+            () => {
+                this.debugMsg("New connection attempt");
+                this.connect();
+            },
+            null,
+            () => {
+                this.reconnectObservable = null;
+                if (!this.sjsObservable) {
+                    this.debugMsg("Reconnection failed : max attemps are reached")
+                    this.isConnected.complete();
+                }
+            });
+    }
+
+    formatAnswer(answer: any) : any {
         return answer.answer;
     }
 
