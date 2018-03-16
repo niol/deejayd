@@ -40,7 +40,7 @@ interface PathObject {
     <li class="djd-active">{{ currentFolder }}</li>
   </ol>
 
-  <div [ngSwitch]="loading">
+  <div [ngSwitch]="loading" fxLayout="column">
     <mat-nav-list *ngSwitchCase="false" [disableRipple]="true">
       <mat-menu #libraryMenu="matMenu">
         <button mat-menu-item (click)="play()" i18n>Play</button>
@@ -94,8 +94,15 @@ interface PathObject {
       </mat-list-item>
     </mat-nav-list>
 
-    <div *ngSwitchCase="true" class="djd-loading-container">
-      <mat-spinner></mat-spinner>
+    <div *ngSwitchCase="true" 
+         fxFlex="1 1 auto"
+         fxLayout="column"
+         fxLayoutAlign="center center"
+         fxLayoutGap="10px"
+         class="djd-loading-container">
+        <div style="height: 50px; width: 50px;"></div> 
+        <mat-spinner></mat-spinner>
+        <div i18n>Loading...</div>
     </div>
   </div>
     `

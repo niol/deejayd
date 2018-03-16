@@ -92,6 +92,7 @@ declare var DeejaydApp: any;
     <mat-sidenav-container 
          [fxHide]="loading"
          fxFlex="1 1 auto" 
+         fxLayout="column"
          style="overflow-y: auto;">
       <mat-sidenav #sidenav mode="{{sidenavMode}}" opened="{{sidenavOpened}}">
         <div fxLayout="column" class="djd-sidenav-container">

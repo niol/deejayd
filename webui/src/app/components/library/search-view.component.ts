@@ -60,7 +60,7 @@ import { UtilsService } from '../../services/utils.service';
                     *ngIf="type == 'audio'"
                     (click)="loadToQueue()" i18n>Add to queue</button>
         </mat-menu>
-        <div [ngSwitch]="loading">
+        <div [ngSwitch]="loading" fxLayout="column">
             <ul *ngSwitchCase="false" class="djd-medialist">
                 <li *ngFor="let media of results" style="width: 100%">
                   <div fxLayout="row" fxLayoutAlign="start center">
@@ -79,8 +79,15 @@ import { UtilsService } from '../../services/utils.service';
                 </li>
             </ul>
 
-            <div *ngSwitchCase="true" class="djd-loading-container">
+            <div *ngSwitchCase="true" 
+                fxFlex="1 1 auto"
+                fxLayout="column"
+                fxLayoutAlign="center center"
+                fxLayoutGap="10px"
+                class="djd-loading-container">
+                <div style="height: 50px; width: 50px;"></div> 
                 <mat-spinner></mat-spinner>
+                <div i18n>Loading...</div>
             </div>
         </div>
     </div>
