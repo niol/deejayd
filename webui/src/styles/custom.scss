@@ -1,7 +1,23 @@
+@import '~@angular/material/theming';
+@import '~@angular/material/prebuilt-themes/indigo-pink.css';
 
-body {
-    font-family: Roboto,"Helvetica Neue",sans-seRoboto,"Helvetica Neue",sans-serif;
-}
+// Define a custom typography config that overrides the font-family as well as the
+// `body-1` levels.
+$custom-typography: mat-typography-config(
+  $font-family: 'Roboto, monospace',
+  $subheading-2: mat-typography-level(13px, 16px, 500),
+  $body-1: mat-typography-level(13px, 16px, 400),
+  $body-2: mat-typography-level(13px, 16px, 500)
+);
+
+// Override typography CSS classes (e.g., mat-h1, mat-display-1, mat-typography, etc.).
+@include mat-base-typography($custom-typography);
+
+// Override typography for all Angular Material, including mat-base-typography and all components.
+@include angular-material-typography($custom-typography);
+
+// Override the typography in the core CSS.
+@include mat-core($custom-typography);
 
 /*
  * Layout
@@ -66,9 +82,7 @@ body {
 }
 
 .djd-current-media {
-    font-weight: 500;
-    font-size: 13px;
-    line-height: 16px;
+    @include mat-typography-level-to-styles($custom-typography, body-2);
     padding: 2px;
     margin-top: 5px;
 }
@@ -87,13 +101,18 @@ body {
  * medialist
  */
 .djd-medialist-header {
-    padding: 5px;
     border-bottom: 1px solid #999;
+    padding-left: 5px;
 }
 .djd-medialist-header > h3 {
     color: #999;
     font-size: 13px;
-    font-weight: 500;
+    @include mat-typography-level-to-styles($custom-typography, subheading-2);
+}
+
+.djd-medialist-header .mat-button-toggle-label-content {
+    line-height: 24px;
+    padding: 0 2px;
 }
 
 ul.djd-medialist {
@@ -103,7 +122,7 @@ ul.djd-medialist {
 ul.djd-medialist>li {
     display: inline-block;
     width: 100%;
-    font-size: 13px;
+    font-size: mat-font-size($custom-typography, body-1);
     padding: 4px;
 }
 ul.djd-medialist>li.active {
@@ -112,11 +131,12 @@ ul.djd-medialist>li.active {
 
 .djd-medialist-item {
     width: 100%;
-    white-space: nowrap;
+    word-wrap: break-word;
     cursor: pointer;
 }
 .djd-medialist-item h4, .djd-medialist-item p {
     margin: 2px;
+    word-wrap: break-word;
     user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -142,7 +162,7 @@ ol.djd-breadcrumb {
 }
 ol.djd-breadcrumb>li {
     display: inline-block;
-    font-size: 13px;
+    font-size: mat-font-size($custom-typography, body-1);
 }
 ol.djd-breadcrumb>li+li:before {
     content: "/\00a0";
@@ -164,6 +184,6 @@ ol.djd-breadcrumb>li.djd-active {
      margin-bottom: 15px;
  }
  .djd-dialog-label {
-     font-size: 13px;
-     font-weight: 500;
+    font-size: mat-font-size($custom-typography, body-1);
+    font-weight: 500;
  }

@@ -27,8 +27,12 @@ import { UtilsService } from '../../services/utils.service';
   selector: 'djd-search-view',
   template: `
   <div style="width:99%" fxLayout="column">
-    <div fxLayout="row" fxLayoutAlign="center center">
-        <mat-input-container fxFlex="1 1 100%">
+    <div fxLayout="row" 
+         fxLayout.lt-md="column"
+         fxLayoutAlign="center center">
+        <mat-input-container 
+              fxFlex="1 1 100%"
+              fxFlex.lt-md="1 1 auto">
             <input matInput #pattern placeholder="search">
         </mat-input-container>
         <div fxFlex="0 0 auto">

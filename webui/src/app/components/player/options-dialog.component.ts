@@ -64,7 +64,6 @@ import { Media } from '../../models/media.model';
            fxLayoutAlign="center center"
            class="djd-dialog-option"
            *ngIf="data.options['av-offset']">
-        <div fxFlex="1 1 100%" class="djd-dialog-label" i18n>Audio/Video offset</div>
         <div fxFlex="2 2 100%">
             <mat-input-container>
               <input matInput #avOffsetInput i18n-placeholder placeholder="A/V offset"
@@ -102,7 +101,6 @@ import { Media } from '../../models/media.model';
            fxLayoutAlign="center center"
            class="djd-dialog-option"
            *ngIf="data.options['sub-offset']">
-        <div fxFlex="1 1 100%" class="djd-dialog-label" i18n>Audio/Subtitle offset</div>
         <div >
             <mat-input-container>
               <input matInput #subOffsetInput i18n-placeholder placeholder="Subtitle offset"

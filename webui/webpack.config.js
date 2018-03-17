@@ -4,6 +4,7 @@ const path = require('path');
 const webpack = require('webpack');
 const AotPlugin = require('@ngtools/webpack').AngularCompilerPlugin;
 const rootDir = path.resolve(__dirname);
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 function root(args) {
   args = Array.prototype.slice.call(arguments, 0);
@@ -13,7 +14,7 @@ function root(args) {
 const config = {
   entry: {
     'vendor': './src/vendor',
-    'app': './src/bootstrap'
+    'deejayd-webui': './src/bootstrap'
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -28,6 +29,7 @@ const config = {
       { enforce: 'pre', test: /\.ts$/, exclude: /node_modules/, loader: 'tslint-loader' },
       { test: /\.ts$/, exclude: /node_modules/, loader: 'awesome-typescript-loader' },
       { test: /\.css$/, loader: 'style-loader!css-loader' },
+      { test: /\.scss$/, loader: 'style-loader!css-loader!sass-loader' },
       { test: /\.woff2?$/, loader: 'url-loader?name=dist/fonts/[name].[ext]&limit=10000&mimetype=application/font-woff' },
       { test: /\.(ttf|eot|svg)$/, loader: 'file-loader?name=dist/fonts/[name].[ext]' }
     ]
@@ -55,10 +57,25 @@ if (!(process.env.WEBPACK_ENV === 'production')) {
     })
   ])
 } else {
+  const extractSass = new ExtractTextPlugin({
+    filename: "deejayd-webui.css",
+    disable: process.env.WEBPACK_ENV !== "production"
+  });
+
   config.devtool = 'hidden-source-map';
   config.module.rules = [
     { test: /(?:\.ngfactory\.js|\.ngstyle\.js|\.ts)$/, loaders: ['@ngtools/webpack'] },
-    { test: /\.css$/, loader: 'style-loader!css-loader' }
+    { test: /\.css$/, loader: 'style-loader!css-loader' },
+    { test: /\.scss$/, 
+      use: extractSass.extract({
+        use: [{
+          loader: "css-loader"
+        }, {
+          loader: "sass-loader"
+        }],
+        fallback: "style-loader"
+      }) }
+      //loader: 'style-loader!css-loader!sass-loader' },
   ];
   config.plugins = config.plugins.concat([
     new AotPlugin({
@@ -93,6 +110,7 @@ if (!(process.env.WEBPACK_ENV === 'production')) {
     new webpack.DefinePlugin({
       'WEBPACK_ENV': '"production"'
     }),
+    extractSass,
   ]);
 }
 

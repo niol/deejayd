@@ -58,7 +58,7 @@ interface MediaListStatus {
       <span>({{ timeDesc }})</span>
     </h3>
     <mat-button-toggle
-              style="min-width: 50px"
+              style="min-width: 30px"
               #repeatToggleButton
               *ngIf="hasRepeat"
               (change)="setRepeatOption(repeatToggleButton.checked)"
@@ -81,6 +81,7 @@ interface MediaListStatus {
           [ngClass]="{'active': media.id == playingMediaId}">
         <div fxLayout="row" fxLayoutAlign="start center">
           <div fxFlex="1 1 100%" 
+               fxFlex.lt-md="1 1 calc(100vw - 60px)" 
                (dblclick)="playMedia(media)"
                class="djd-medialist-item">
               <h4>{{getTitle(media)}}</h4>

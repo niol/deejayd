@@ -27,9 +27,13 @@ import { PlayerService, PlayerStatus } from '../services/player.service';
   <mat-tab-group (selectedTabChange)="onTabChange($event)">
     <mat-tab>
       <ng-template mat-tab-label>
-        <mat-icon *ngIf="playingState == 'play:audiopls'">play_arrow</mat-icon>
-        <mat-icon *ngIf="playingState == 'pause:audiopls'">pause</mat-icon>
-        <ng-container i18n>Music</ng-container>
+        <div fxLayout='row' fxLayoutAlign="center center">
+          <mat-icon *ngIf="playingState == 'play:audiopls'">play_arrow</mat-icon>
+          <mat-icon *ngIf="playingState == 'pause:audiopls'">pause</mat-icon>
+          <div flxFlex="1 1 100%">
+            <ng-container i18n>Music</ng-container>
+          </div>
+        </div>
       </ng-template>
       <djd-playlist name="audiopls" 
                     [playingMediaId]="playingMedia.audiopls"
@@ -37,9 +41,13 @@ import { PlayerService, PlayerStatus } from '../services/player.service';
     </mat-tab>
     <mat-tab>
       <ng-template mat-tab-label>
-        <mat-icon *ngIf="playingState == 'play:audioqueue'">play_arrow</mat-icon>
-        <mat-icon *ngIf="playingState == 'pause:audioqueue'">pause</mat-icon>
-        <ng-container i18n>Queue</ng-container>
+        <div fxLayout='row' fxLayoutAlign="center center">
+          <mat-icon *ngIf="playingState == 'play:audioqueue'">play_arrow</mat-icon>
+          <mat-icon *ngIf="playingState == 'pause:audioqueue'">pause</mat-icon>
+          <div flxFlex="1 1 100%">
+            <ng-container i18n>Queue</ng-container>
+          </div>
+        </div>
       </ng-template>
       <djd-playlist name="audioqueue" 
                     [playingMediaId]="playingMedia.audioqueue"
@@ -47,9 +55,13 @@ import { PlayerService, PlayerStatus } from '../services/player.service';
     </mat-tab>
     <mat-tab>
       <ng-template mat-tab-label>
-        <mat-icon *ngIf="playingState == 'play:videopls'">play_arrow</mat-icon>
-        <mat-icon *ngIf="playingState == 'pause:videopls'">pause</mat-icon>
-        <ng-container i18n>Video</ng-container>
+        <div fxLayout='row' fxLayoutAlign="center center">
+          <mat-icon *ngIf="playingState == 'play:videopls'">play_arrow</mat-icon>
+          <mat-icon *ngIf="playingState == 'pause:videopls'">pause</mat-icon>
+          <div flxFlex="1 1 100%">
+            <ng-container i18n>Video</ng-container>
+          </div>
+        </div>
       </ng-template>
       <djd-playlist name="videopls"
                     [hasRepeat]="true" 

@@ -76,7 +76,7 @@ def init(deejayd_core, config, webui_logfile, htdocs_dir):
     # json-rpc handler
     main_handler.putChild("rpc", SockJSResource(DeejaydFactory(deejayd_core)))
 
-    for d in ('dist', 'resources'):
+    for d in ('dist', 'ressources'):
         path = os.path.join(htdocs_dir, d)
         main_handler.putChild(d, static.File(path))
 

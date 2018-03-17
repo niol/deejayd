@@ -154,10 +154,10 @@ export class AppComponent implements OnInit {
     this.client.init(DeejaydApp.options.root_url + "rpc")
     this.client.isConnected$.subscribe((connected:boolean) => {
       this.loading = !connected;
+      if (connected && !this.isMobile()) {
+        this.sidenav.open();
+      }
     });
-
-    // adapt layout to device
-    this.setLayout();
 
     // watch route changes to update title and global menu
     this.router.events.filter((evt) => evt instanceof NavigationEnd)
@@ -192,7 +192,7 @@ export class AppComponent implements OnInit {
   }
 
   setLayout(): void {
-    this.sidenavMode = this.isMobile() ? "over" : "side";
+    this.sidenavMode = this.isMobile() ? "push" : "side";
     this.sidenavOpened = !this.isMobile();
   }
 

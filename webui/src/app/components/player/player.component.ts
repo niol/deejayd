@@ -30,10 +30,10 @@ import { UtilsService } from '../../services/utils.service';
   template: `
   <div fxLayout='column' id="djd-player-toolbar">
     <djd-seekbar fxFlex="30px"
-                 *ngIf="!seekbarMiniHidden"
+                 fxHide [fxShow.lt-md]="currentMedia != null"
                  style="width: 100%; opacity:0.8;"></djd-seekbar>
     <djd-volume fxFlex="30px"
-                *ngIf="!volumeMiniHidden"
+                fxHide [fxShow.lt-md]="!volumeMiniHidden"
                 style="width: 100%; opacity:0.8;"></djd-volume>
 
     <div fxFlex="85px" 
@@ -75,15 +75,11 @@ import { UtilsService } from '../../services/utils.service';
              fxLayout.lt-md='row'
              fxLayoutAlign="center center">
             <span class="djd-current-media">
-                <ng-container *ngIf="currentMedia != null; else noMedia">{{ currentMedia.title }}</ng-container>
+                <ng-container *ngIf="currentMedia != null; else noMedia">
+                    {{ currentMedia.title }}
+                </ng-container>
                 <ng-template #noMedia i18n>No playing media</ng-template>
             </span>
-            <button mat-button
-                    *ngIf="currentMedia != null"
-                    fxHide [fxShow.lt-md]="true"
-                    (click)="toggleSeekbar()">
-                {{ utils.formatTime(currentMedia.length) }}
-            </button>
 
             <djd-seekbar fxFlex
                          fxShow [fxHide.lt-md]="true"
@@ -100,7 +96,6 @@ export class PlayerComponent implements OnInit {
   public currentMedia:Media = null;
   public volume:number = 0;
   public volumeMiniHidden:boolean = true;
-  public seekbarMiniHidden:boolean = true;
 
   constructor(public player: PlayerService, private utils: UtilsService) { }
 
@@ -120,9 +115,5 @@ export class PlayerComponent implements OnInit {
 
   toggleVolumeMenu() {
       this.volumeMiniHidden = !this.volumeMiniHidden;
-  }
-
-  toggleSeekbar() {
-      this.seekbarMiniHidden = !this.seekbarMiniHidden;
   }
 }

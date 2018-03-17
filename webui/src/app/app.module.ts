@@ -17,6 +17,10 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 // angular imports
 
+// app custom styles
+import "../styles/custom.scss"
+
+// import angular modules
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { BrowserModule } from '@angular/platform-browser';
@@ -28,8 +32,6 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import {DEFAULT_BREAKPOINTS_PROVIDER, BreakPointRegistry, MatchMedia,
         OBSERVABLE_MEDIA_PROVIDER} from '@angular/flex-layout';
 
-// material styles and components
-import "../../node_modules/@angular/material/prebuilt-themes/indigo-pink.css";
 import { MatSidenavModule, MatToolbarModule,
          MatButtonModule, MatIconModule, MatButtonToggleModule,
          MatSliderModule, MatTabsModule, MatListModule,
@@ -37,8 +39,6 @@ import { MatSidenavModule, MatToolbarModule,
          MatSelectModule, MatInputModule, MatProgressSpinnerModule,
          MatSlideToggleModule } from '@angular/material';
 
-// app custom styles
-import "../styles/custom.css"
 // app component
 import { AppComponent } from './app.component';
 import { PlayerComponent } from './components/player/player.component';

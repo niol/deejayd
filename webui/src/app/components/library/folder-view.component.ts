@@ -60,10 +60,10 @@ interface PathObject {
       <mat-list-item *ngFor="let folder of folders" (click)="getPath(folder.path)">
         <mat-icon mat-list-icon>folder</mat-icon>
         <div class="djd-library-item">
-          <div>
+          <div fxFlex="1 1 100%"
+               fxFlex.lt-md="1 1 calc(100vw - 120px)"> 
             <span>{{ folder.name }}</span>
           </div>
-          <div style="flex: 1 1 auto;"></div>
           <div>
             <button mat-icon-button
                     (click)="selectFolder(folder); $event.stopPropagation()"
@@ -78,11 +78,11 @@ interface PathObject {
       <mat-list-item *ngFor="let media of medias">
         <mat-icon mat-list-icon>music_video</mat-icon>
         <div class="djd-library-item">
-          <div>
+          <div fxFlex="1 1 100%"
+               fxFlex.lt-md="1 1 calc(100vw - 120px)"> 
             <span *ngIf="type == 'video' && media.play_count == 0">*</span>
             <span>{{ media.filename }}</span>
           </div>
-          <div style="flex: 1 1 auto;"></div>
           <div>
             <button mat-icon-button
                     (click)="selectMedia(media)"

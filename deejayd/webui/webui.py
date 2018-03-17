@@ -27,7 +27,7 @@ class DeejaydMainHandler(Resource):
     tpl = 'webui.thtml'
     scripts = [
         ("dist/vendor.bundle.js", "text/javascript"),
-        ("dist/app.bundle.js", "text/javascript"),
+        ("dist/deejayd-webui.bundle.js", "text/javascript"),
     ]
 
     def getChild(self, name, request):
