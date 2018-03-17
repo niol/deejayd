@@ -51,6 +51,7 @@ import { FolderViewComponent } from './components/library/folder-view.component'
 import { SearchViewComponent } from './components/library/search-view.component';
 import { VideoOptionsDialog } from './components/player/options-dialog.component';
 import { SeekDialogComponent } from './components/player/seek-dialog.component';
+import { SeekbarComponent } from './components/player/seekbar.component';
 import { WebradioComponent } from './components/webradio/webradio.component';
 import { WebradioSourceComponent } from './components/webradio/webradio-source.component';
 import { WrCategoryDialogComponent } from './components/webradio/category-dialog.component';
@@ -78,6 +79,7 @@ import { appRoutes } from './app.routes';
     SearchViewComponent,
     VideoOptionsDialog,
     SeekDialogComponent,
+    SeekbarComponent,
     WebradioComponent,
     WebradioSourceComponent,
     ConfirmDialogComponent,

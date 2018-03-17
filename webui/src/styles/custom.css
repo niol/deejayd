@@ -45,7 +45,7 @@ body {
 .djd-player-container {
     position: fixed;
     bottom: 0; left:0;
-    height: 85px; width: 100%;
+    min-height: 85px; width: 100%;
     z-index: 10;
 }
 
@@ -62,24 +62,15 @@ body {
 #djd-player-toolbar {
     width: 100%;
     background-color: #ccc;
-    opacity: 0.9;
+    opacity: 0.8;
 }
 
 .djd-current-media {
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: 500;
+    font-size: 13px;
     line-height: 16px;
     padding: 2px;
     margin-top: 5px;
-}
-
-.djd-mini-vslider-box {
-    position: absolute;
-    bottom: 45px;
-}
-
-.djd-mini-vslider {
-  min-height: 250px;
 }
 
 /*
@@ -101,7 +92,7 @@ body {
 }
 .djd-medialist-header > h3 {
     color: #999;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
 }
 
@@ -112,7 +103,7 @@ ul.djd-medialist {
 ul.djd-medialist>li {
     display: inline-block;
     width: 100%;
-    font-size: 14px;
+    font-size: 13px;
     padding: 4px;
 }
 ul.djd-medialist>li.active {
@@ -140,7 +131,7 @@ ul.djd-medialist>li.active {
     width: 100%;
     flex-direction: row;
     align-items: center;
-    font-size: 14px;
+    font-size: 13px;
 }
 ol.djd-breadcrumb {
     list-style: none;
@@ -151,7 +142,7 @@ ol.djd-breadcrumb {
 }
 ol.djd-breadcrumb>li {
     display: inline-block;
-    font-size: 14px;
+    font-size: 13px;
 }
 ol.djd-breadcrumb>li+li:before {
     content: "/\00a0";
@@ -173,6 +164,6 @@ ol.djd-breadcrumb>li.djd-active {
      margin-bottom: 15px;
  }
  .djd-dialog-label {
-     font-size: 14px;
+     font-size: 13px;
      font-weight: 500;
  }

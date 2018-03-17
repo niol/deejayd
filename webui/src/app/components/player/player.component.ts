@@ -19,118 +19,78 @@
 import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { MatSliderChange } from '@angular/material';
-import {MatDialog} from '@angular/material';
 import { Timer } from '../../models/timer.model';
 import { Media } from '../../models/media.model';
 import { PlayerService, PlayerStatus } from '../../services/player.service';
 import { UtilsService } from '../../services/utils.service';
-import { SeekDialogComponent } from './seek-dialog.component';
 
-
-interface SeekbarState {
-    length:number,
-    formatedLength:string,
-    position:number,
-    formatedPosition: string,
-    step:number
-}
 
 @Component({
   selector: 'djd-player',
   template: `
   <div fxLayout='column' id="djd-player-toolbar">
-    <div fxFlex="30px" fxLayout='row'>
-        <div fxFlexFill fxLayoutAlign="center center">
-            <span class="djd-current-media">
-                <ng-container *ngIf="currentMedia != null; else noMedia">{{ currentMedia.title }}</ng-container>
-                <ng-template #noMedia i18n>No playing media</ng-template>
-            </span>
-        </div>
-    </div>
-    <div fxFlex="55px" fxLayout='row'>
-        <div fxFlex="1 1 180px"
-             fxFlex.sm="1 1 230px"
-             fxFlex.lt-sm="1 1 100%"
-             fxLayoutAlign="center center">
-            <button mat-icon-button (click)=player.previous()>
-                <mat-icon>skip_previous</mat-icon>
-            </button>
-            <button mat-icon-button (click)=player.playToggle()>
-                <mat-icon *ngIf="!isPlaying">play_arrow</mat-icon>
-                <mat-icon *ngIf="isPlaying">pause</mat-icon>
-            </button>
-            <button mat-icon-button (click)=player.stop()>
-                <mat-icon>stop</mat-icon>
-            </button>
-            <button mat-icon-button (click)=player.next()>
-                <mat-icon>skip_next</mat-icon>
-            </button>
+    <djd-seekbar fxFlex="30px"
+                 *ngIf="!seekbarMiniHidden"
+                 style="width: 100%; opacity:0.8;"></djd-seekbar>
+    <djd-volume fxFlex="30px"
+                *ngIf="!volumeMiniHidden"
+                style="width: 100%; opacity:0.8;"></djd-volume>
 
-            <div fxHide [fxShow.lt-sm]="true">
+    <div fxFlex="85px" 
+         fxLayout='row'
+         fxLayout.lt-md='column'>
+        <div fxLayoutAlign="center center" 
+             fxFlex="1 1 270px"
+             fxFlex.lt-md="1 1 100%">
+            <div>
+                <button mat-icon-button (click)="player.seek(-10, true)">
+                    <mat-icon>replay_10</mat-icon>
+                </button>
+                <button mat-icon-button (click)=player.previous()>
+                    <mat-icon>skip_previous</mat-icon>
+                </button>
+                <button mat-icon-button (click)=player.playToggle()>
+                    <mat-icon *ngIf="!isPlaying">play_arrow</mat-icon>
+                    <mat-icon *ngIf="isPlaying">pause</mat-icon>
+                </button>
+                <button mat-icon-button (click)=player.stop()>
+                    <mat-icon>stop</mat-icon>
+                </button>
+                <button mat-icon-button (click)=player.next()>
+                    <mat-icon>skip_next</mat-icon>
+                </button>
+                <button mat-icon-button (click)="player.seek(30, true)">
+                    <mat-icon>forward_30</mat-icon>
+                </button>
                 <button mat-icon-button
+                        fxHide [fxShow.lt-md]="true"
                         #vMiniButton
                         (click)="toggleVolumeMenu()">
                     <mat-icon>volume_up</mat-icon>
                 </button>
-
-                <div #volMenu class="djd-mini-vslider-box">
-                    <mat-slider vertical
-                        class="djd-mini-vslider"
-                        *ngIf="!vSliderHidden"
-                        (change)="player.setVolume($event.value)"
-                        [ngModel]="volume"
-                        [min]=0
-                        [max]=100
-                        [step]=5></mat-slider>
-                </div>
             </div>
         </div>
-
-        <div fxFlex="2 1 100%"
-             fxFlex.lt-md="1 1 200px"
-             fxLayoutAlign="center center"
-             fxLayout="row">
-            <button mat-icon-button (click)="player.seek(-10, true)"
-                    [disabled]="seekbarState.length == 0">
-                <mat-icon>replay_10</mat-icon>
-            </button>
+        <div fxFlex="1 1 100%"
+             fxLayout="column"
+             fxLayout.lt-md='row'
+             fxLayoutAlign="center center">
+            <span class="djd-current-media">
+                <ng-container *ngIf="currentMedia != null; else noMedia">{{ currentMedia.title }}</ng-container>
+                <ng-template #noMedia i18n>No playing media</ng-template>
+            </span>
             <button mat-button
+                    *ngIf="currentMedia != null"
                     fxHide [fxShow.lt-md]="true"
-                    (click)="openSeekDialog()"
-                    [disabled]="seekbarState.length == 0">
-                {{seekbarState.formatedPosition}} /
-                {{seekbarState.formatedLength}}
+                    (click)="toggleSeekbar()">
+                {{ utils.formatTime(currentMedia.length) }}
             </button>
-            <button mat-button
-                    fxShow [fxHide.lt-md]="true"
-                    (click)="openSeekDialog()"
-                    [disabled]="seekbarState.length == 0">
-                {{seekbarState.formatedPosition}}
-            </button>
-            <mat-slider
-                fxShow [fxHide.lt-md]="true"
-                fxFlex="1 1 100%"
-                (change)="seek($event)"
-                (input)="onSeekbarSlide($event.value)"
-                [ngModel]="seekbarState.position"
-                [disabled]="seekbarState.length == 0"
-                [min]=0
-                [max]=seekbarState.length
-                [step]=seekbarState.step></mat-slider>
-            <button mat-button
-                    fxShow [fxHide.lt-md]="true"
-                    (click)="openSeekDialog()"
-                    [disabled]="seekbarState.length == 0">
-                {{seekbarState.formatedLength}}
-            </button>
-            <button mat-icon-button (click)="player.seek(30, true)"
-                    [disabled]="seekbarState.length == 0">
-                <mat-icon>forward_30</mat-icon>
-            </button>
+
+            <djd-seekbar fxFlex
+                         fxShow [fxHide.lt-md]="true"
+                         style="width: 100%"></djd-seekbar>
         </div>
-        <djd-volume fxFlex="1 1 250px"
-                    fxFlex.sm="1 1 100%"
-                    fxShow [fxHide.lt-sm]="true"></djd-volume>
+        <djd-volume fxFlex="2 2 200px"
+                    fxShow [fxHide.lt-md]="true"></djd-volume>
     </div>
   </div>
     `
@@ -138,16 +98,19 @@ interface SeekbarState {
 export class PlayerComponent implements OnInit {
   public isPlaying:boolean = false;
   public currentMedia:Media = null;
-  public seekbarState:SeekbarState;
-  private seekTimer:Timer;
   public volume:number = 0;
-  public vSliderHidden:boolean = true;
+  public volumeMiniHidden:boolean = true;
+  public seekbarMiniHidden:boolean = true;
 
-  constructor(public player:PlayerService, public dialog:MatDialog,
-              private utils:UtilsService) {
-    this.resetSeekbar();
-    this.seekTimer = new Timer((val: number) => {
-        this.player.seek(val, false);
+  constructor(public player: PlayerService, private utils: UtilsService) { }
+
+  ngOnInit(): void {
+    this.player.playerStatus$.subscribe((status:PlayerStatus) => {
+      this.isPlaying = status.state == "play";
+      this.volume = status.volume;
+    });
+    this.player.playingMedia$.subscribe((media: Media) => {
+        this.currentMedia = media;
     });
   }
 
@@ -155,54 +118,11 @@ export class PlayerComponent implements OnInit {
       console.log(event.value);
   }
 
-  ngOnInit(): void {
-    this.player.playerStatus$.subscribe((status:PlayerStatus) => {
-      this.isPlaying = status.state == "play";
-      this.volume = status.volume;
-      if (status.state != "stop") { // update seekbar
-        let time:string[] = status.time.split(":");
-        this.seekbarState = {
-            position: parseInt(time[0]),
-            formatedPosition: this.utils.formatTime(parseInt(time[0])),
-            length: parseInt(time[1]),
-            formatedLength: this.utils.formatTime(parseInt(time[1])),
-            step: 10
-        };
-      } else {
-          this.resetSeekbar();
-      }
-    });
-    this.player.playingMedia$.subscribe((media: Media) => {
-        this.currentMedia = media;
-    });
-  }
-
-  resetSeekbar():void {
-    this.seekbarState = {
-        length: 0,
-        formatedLength: "00:00",
-        position: 0,
-        formatedPosition: "00:00",
-        step: 1,
-    }
-  }
-
-  seek(event: MatSliderChange):void {
-    this.seekbarState.formatedPosition = this.utils.formatTime(event.value);
-    this.seekTimer.update(event.value);
-  }
-
-  onSeekbarSlide(value:number):void {
-      this.seekbarState.formatedPosition = this.utils.formatTime(value);
-  }
-
-  openSeekDialog() {
-    this.dialog.open(SeekDialogComponent, {
-        data: this.seekbarState.length
-    })
-  }
-
   toggleVolumeMenu() {
-      this.vSliderHidden = !this.vSliderHidden;
+      this.volumeMiniHidden = !this.volumeMiniHidden;
+  }
+
+  toggleSeekbar() {
+      this.seekbarMiniHidden = !this.seekbarMiniHidden;
   }
 }
