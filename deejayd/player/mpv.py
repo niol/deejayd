@@ -58,10 +58,10 @@ class MpvIpcProtocol(LineOnlyReceiver):
 
         for p in self.factory.handler.PROPERTIES:
             self.observe_property(p)
-            (self.command('get_property', p)
-             .addCallback(self.factory.handler.got_property, p))
+            self.factory.handler.get_property(p)
 
-        self.factory.handler.starting.callback(True)
+        if self.factory.handler.starting:
+            self.factory.handler.starting.callback(True)
 
     def connectionLost(self, reason):
         log.debug('ctrl:mpv: connection to player process lost')
@@ -108,6 +108,7 @@ class MpvIpcProtocol(LineOnlyReceiver):
             del self.__commands_cb[cmd['request_id']]
             if 'error' in msg and msg['error'] != 'success':
                 raise PlayerError(cmd, msg)
+            return msg
         d.addCallback(base_cb, cmd)
         self.__commands_cb_lastid = self.__commands_cb_lastid + 1
 
@@ -123,6 +124,7 @@ class MpvIpcProtocol(LineOnlyReceiver):
         prop_watch_id = self.__property_watch_lastid
         def record_id(msg, p):
             self.__property_watch[p] = prop_watch_id
+            return msg
         d = self.command('observe_property', prop_watch_id, p)
         d.addCallback(record_id, p)
         self.__property_watch_lastid = self.__property_watch_lastid + 1
@@ -163,6 +165,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.factory = None
         self.__monitor = task.LoopingCall(self.__monitor_playback)
         self.__stop_watchdog = None
+        self.starting = None
 
     def socket_path(self):
         if not self.tempdir:
@@ -171,7 +174,9 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     def __set_starting(self):
         self.starting = defer.Deferred()
-        def started(r): self.starting = None
+        def started(r):
+            self.starting = None
+            return r
         self.starting.addCallback(started)
 
     def start_process(self, pmonitor):
@@ -223,7 +228,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.factory = None
         self.tempdir.cleanup()
         self.tempdir = None
-        self.starting = None
 
     def stop_if_idle(self):
         self.__stop_watchdog = None
@@ -242,9 +246,15 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
     def error(self, msg):
         log.err('ctrl:mpv: error received: %s' % msg)
 
-    def got_property(self, p, msg):
+    def get_property(self, p):
+        d = self.command('get_property', p)
+        d.addCallback(self.got_property, p)
+        return d
+
+    def got_property(self, msg, p):
         if 'error' in msg and msg['error'] == 'success' and 'data' in msg:
             self.EVENT_property_change(p, msg['data'])
+        return msg
 
     def EVENT_property_change(self, name=None, data=None):
         assert name is not None
@@ -256,16 +266,16 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     def __monitor_playback(self):
         if self.state['playback'] == PLAYER_PLAY:
-            self.command('get_property', 'time-pos')
+            self.get_property('time-pos')
+            self.player.dispatch_signame('player.status')
 
     def EVENT_playback_restart(self):
-        if self.state['playback'] != PLAYER_PLAY:
+        if self.state['playback'] == PLAYER_STOP:
             self.state['playback'] = PLAYER_PLAY
             
             for p in self.WHILE_PLAYING_PROPERTIES:
                 self.factory.conn.observe_property(p)
-                (self.command('get_property', p)
-                .addCallback(self.factory.handler.got_property, p))
+                self.get_property(p)
 
             self.__monitor.start(1)
 
@@ -288,11 +298,13 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if self.__stop_watchdog:
             self.__stop_watchdog.cancel()
         self.__stop_watchdog = reactor.callLater(600, self.stop_if_idle)
+
         self.player.dispatch_signame('player.status')
 
     def EVENT_end_file(self):
         if self.__monitor.running:
             self.__monitor.stop()
+
         self.player._playing_media.played()
         self.player._playing_media['last_position'] = 0
         self._playing_media = None
@@ -332,6 +344,7 @@ class MpvPlayer(_BasePlayer):
                 p_state = self._playing_media["playing_state"]
                 self._player_set_zoom(p_state["zoom"])
                 self._player_set_aspectratio(p_state["aspect-ratio"])
+            return r
 
         uris = iter(self._playing_media.get_uris())
         def try_play(r):
@@ -360,9 +373,16 @@ class MpvPlayer(_BasePlayer):
             return int(self.__player.state['time-pos'])
         return 0
 
-    def _set_position(self, pos):
+    def seek(self, pos, relative=False):
         if self.get_state() != PLAYER_STOP and self.__player.state['seekable']:
-            self.__player.command('seek', pos, 'absolute')
+            if relative:
+                flag = 'relative'
+                current = self.__player.state['time-pos']
+            else:
+                flag = 'absolute'
+                current = 0
+            self.__player.state['time-pos'] = current + pos
+            self.__player.command('seek', pos, flag)
             self.__player.command('show-progress')
 
     def get_state(self):
@@ -417,6 +437,6 @@ class MpvPlayer(_BasePlayer):
         return self.__player.state['sid']
 
     def _osd_set(self, text):
-        self.__player.command('show-text', text, 2)
+        self.__player.command('show-text', text, 2000)
 
 
