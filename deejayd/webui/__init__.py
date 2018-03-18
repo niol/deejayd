@@ -61,7 +61,7 @@ class DeejaydRootRedirector(Resource):
 class SiteWithCustomLogging(server.Site):
 
     def _openLogFile(self, path):
-        self.log_file = log.LogFile(path)
+        self.log_file = log.LogFile(path, mode="ab", buffering=0)
         return self.log_file.fd
 
     def reopen_log(self):

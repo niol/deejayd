@@ -36,18 +36,21 @@ def set_log_level():
     log_level = {"error": ERROR, "info": INFO, "debug": DEBUG}[level]
     return
 
+
 set_log_level()
 
 
 class LogFile(object):
 
-    def __init__(self, path):
+    def __init__(self, path, mode='a', buffering=-1):
         self.path = path
+        self.mode = mode
+        self.buffering = buffering
         self.open()
 
     def open(self):
         try:
-            self.fd = open(self.path, 'ab')
+            self.fd = open(self.path, self.mode, self.buffering)
         except IOError:
             sys.exit("Unable to open the log file %s" % self.path)
 
