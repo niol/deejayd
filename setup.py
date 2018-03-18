@@ -230,7 +230,7 @@ if __name__ == "__main__":
                      "deejayd.db.dbmigrate.versions", "deejayd.webradio",
                      "deejayd.webui", "deejayd.playlist", "pytyx11"],
            package_data={'deejayd.ui': ['defaults.conf'],
-                         'deejayd.webui': ['webui.thtml'], 
+                         'deejayd.webui': ['webui.thtml', 'manifest.tjson'], 
                          'deejayd.db.dbmigrate': ['migrate.cfg', 'README']},
            data_files=build_data_files_list(),
            cmdclass={

@@ -1,3 +1,4 @@
 usr/lib/python*/*-packages/deejayd/webui/*.py
 usr/lib/python*/*-packages/deejayd/webui/*.thtml
+usr/lib/python*/*-packages/deejayd/webui/*.tjson
 usr/share/deejayd/htdocs/*

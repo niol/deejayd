@@ -32,7 +32,7 @@ Requirements:
     * mutagen >= 1.30
         (http://www.sacredchao.net/quodlibet/wiki/Development/Mutagen)
     * if you want to use gstreamer backend
-        * gstreamer >= 0.10.24 (http://gstreamer.freedesktop.org)
+        * gstreamer >= 1.2.0 (http://gstreamer.freedesktop.org)
     * if you want to use vlc backend
         * libvlc >= 2.2.0
     * To be abble to play video medias
@@ -69,6 +69,3 @@ Then prepare a configuration file based on deejayd/ui/defaults.conf. After that,
 you can launch deejayd with
   $ PYTHONPATH=. python scripts/deejayd -n -c $cfg_file
 
-Documentation and more informations:
-------------------------------------
-see http://mroy31.domring.net/~roy/projects/deejayd

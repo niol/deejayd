@@ -37,14 +37,19 @@ class DeejaydMainHandler(Resource):
         return self
 
     def render_GET(self, request):
+        if request.prepath[-1] == b"manifest.json":
+            # return the manifest file for mobile webapp
+            request.setHeader("Content-Type",
+                              "application/manifest+json; charset=utf-8")
+            return self._build("manifest.tjson")
         # Trailing slash is required for js script paths in the mobile webui,
         # therefore we need to add it if it is missing, by issuing a redirect
         # to the web browser.
-        if request.prepath[-1] != b'':
+        elif request.prepath[-1] != b'':
             request.redirect(request.path + b'/')
             return b'redirected'
 
-        return self._build()
+        return self._build(self.tpl)
 
     def _load_script(self, script, type="text/javascript"):
         config = DeejaydConfig()
@@ -66,8 +71,8 @@ class DeejaydMainHandler(Resource):
             args['root_url'] = args['root_url'] + '/'
         return args
 
-    def _build(self):
-        tpl_path = os.path.join(os.path.dirname(__file__), self.tpl)
+    def _build(self, tpl_name):
+        tpl_path = os.path.join(os.path.dirname(__file__), tpl_name)
         tpl_content = ""
         with open(tpl_path) as tpl:
             tpl_content = tpl.read()
