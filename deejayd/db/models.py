@@ -54,7 +54,8 @@ class LibraryFolder(Base):
 
     library = relationship("Library", backref="folders")
     child_folders = relationship(
-        "LibraryFolder", backref=backref('parent_folder', remote_side=[id]))
+        "LibraryFolder", backref=backref('parent_folder', remote_side=[id]),
+        order_by="LibraryFolder.name")
     medias = relationship("Media",
                           backref="folder",
                           order_by="Media.filename",
