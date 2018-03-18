@@ -2,3 +2,6 @@
 
 # Additional options that are passed to the Daemon.
 DEEJAYD_DAEMON_OPTS=""
+
+# Set diplay for deejayd
+DISPLAY=:0.0
