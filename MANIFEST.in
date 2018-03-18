@@ -22,5 +22,6 @@ recursive-include webui/src *
 recursive-include webui/dev *
 recursive-include webui/ressources *
 include webui/dist/*.js
+include webui/dist/*.css
 include webui/*.json
 include webui/*.js
