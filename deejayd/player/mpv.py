@@ -256,6 +256,16 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             self.EVENT_property_change(p, msg['data'])
         return msg
 
+    def loadfile(self, uri):
+        if self.__monitor.running:
+            self.__monitor.stop()
+        return self.command('loadfile', uri)
+
+    def stop(self):
+        if self.__monitor.running:
+            self.__monitor.stop()
+        return self.command('stop')
+
     def EVENT_property_change(self, name=None, data=None):
         assert name is not None
         self.state[name] = data
@@ -271,16 +281,15 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     def EVENT_playback_restart(self):
         if self.state['playback'] == PLAYER_STOP:
-            self.state['playback'] = PLAYER_PLAY
-            
             for p in self.WHILE_PLAYING_PROPERTIES:
                 self.factory.conn.observe_property(p)
                 self.get_property(p)
 
+        self.state['playback'] = PLAYER_PLAY
+        if not self.__monitor.running:
             self.__monitor.start(1)
 
-            self.player.dispatch_signame('player.status')
-            self.player.dispatch_signame('player.current')
+        self.player.dispatch_signame('player.current')
 
     def EVENT_pause(self):
         self.state['playback'] = PLAYER_PAUSE
@@ -308,6 +317,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.player._playing_media.played()
         self.player._playing_media['last_position'] = 0
         self._playing_media = None
+        self.player.dispatch_signame('player.current')
 
     def PROPERTY_eof_reached(self, reached):
         if reached != 'null':
@@ -349,7 +359,7 @@ class MpvPlayer(_BasePlayer):
         uris = iter(self._playing_media.get_uris())
         def try_play(r):
             try:
-                return self.__player.command('loadfile', next(uris)) \
+                return self.__player.loadfile(next(uris)) \
                     .addCallback(restore_state) \
                     .addErrback(try_play)
             except StopIteration:
@@ -400,7 +410,7 @@ class MpvPlayer(_BasePlayer):
             self._playing_media = new_file
             self.play()
         else:
-            self.__player.command('stop')
+            self.__player.stop()
 
     def _set_volume(self, vol, sig=True):
         self.__player.command('set_property', 'volume', int(vol))
