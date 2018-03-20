@@ -22,12 +22,8 @@
 This is the script used to launch deejayd
 """
 
-import errno
-import random
 import sys
 import os
-import pwd
-import grp
 import traceback
 from optparse import OptionParser
 from pathlib import Path
@@ -67,26 +63,14 @@ t.install()
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 # List options
-parser.set_defaults(pidfile="deejayd.pid", kill=False, daemon=True)
 # The help option must be changed to comply with i18n.
 parser.get_option('-h').help = _("Show this help message and exit.")
-parser.add_option("-u", "--uid", dest="uid", type="string",
-                  help=_("The uid to run as"))
-parser.add_option("-g", "--gid", dest="gid", type="string",
-                  help=_("The gid to run as (the first one), and the "
-                         "supplementary gids separated by commas."))
-parser.add_option("-n", "--nodaemon", action="store_false", dest="daemon",
-                  help=_("No daemonize deejayd"))
 parser.add_option("-l", "--log-file", type="string", dest="logfile",
                   metavar="FILE", help=_("Specify the log file"))
 parser.add_option("-w", "--webui-log", type="string", dest="webui_logfile",
                   metavar="FILE", help=_("Specify the log file for the webui"))
-parser.add_option("-p", "--pid-file", type="string", dest="pidfile",
-                  metavar="FILE", help=_("Specify the log file"))
 parser.add_option("-c", "--conf-file", type="string", dest="conffile",
                   metavar="FILE", help=_("Specify a custom conf file"))
-parser.add_option("-k", "--kill", action="store_true", dest="kill",
-                  help=_("Kill the actual deejayd process"))
 parser.add_option("-d", "--debug",
                   action="store_true", dest="debug",
                   help=_("Log more debug informations"))
@@ -108,95 +92,12 @@ if options.debug:
 deejayd.ui.log.set_log_level()
 
 
-######################################################
-
-def daemonize():
-    # See http://www.erlenstar.demon.co.uk/unix/faq_toc.html#TOC16
-    if os.fork():  # launch child and...
-        os._exit(0)  # kill off parent
-    os.setsid()
-    if os.fork():  # launch child and...
-        os._exit(0)  # kill off parent again.
-    os.umask(0o77)
-    null = os.open('/dev/null', os.O_RDWR)
-    for i in range(3):
-        try:
-            os.dup2(null, i)
-        except OSError as e:
-            if e.errno != errno.EBADF:
-                raise
-    os.close(null)
-
-
-def killDeejayd(pidfile):
-    if os.path.exists(pidfile):
-        try:
-            pid = int(open(pidfile).read())
-        except ValueError:
-            sys.exit(_('Pidfile %s contains non-numeric value') % pidfile)
-        try:
-            os.kill(pid, 15)
-            removePID(pidfile)
-        except OSError as err:
-            sys.exit(_("Unable to stop deejayd : %s, are you sure "
-                       "it running ?") % (err,))
-    else:
-        sys.exit(_('no PidFile found, are you sure deejayd running ?'))
-
-
-def removePID(pidfile):
-    try:
-        os.unlink(pidfile)
-    except OSError as e:
-        if e.errno == errno.EACCES or e.errno == errno.EPERM:
-            sys.exit(_("Unable to remove pid file : %s") % (e,))
-
-
 def setEnv(options):
-    def get_uid(uid_arg):
-        try:
-            uid = int(options.uid)
-        except ValueError:
-            uid = pwd.getpwnam(options.uid)[2]
-        return uid
-
-    # Init random generator
-    random.seed()
-
     # create log files if necessary
     for l_file in (options.logfile, options.webui_logfile):
         if l_file is None:
             continue
         Path(l_file).touch(mode=0o644)
-        if options.uid:
-            os.chown(l_file, get_uid(options.uid), -1)
-
-    # daemonize if necessary
-    if options.daemon:
-        daemonize()
-        # Store the pid
-        removePID(options.pidfile)
-        open(options.pidfile, 'wb').write(str(os.getpid()))
-
-    if options.gid:
-        gids = options.gid.split(',')
-        ngids = []
-        for gid in gids:
-            try:
-                ngid = int(gid)
-            except ValueError:
-                ngid = grp.getgrnam(gid)[2]
-            ngids.append(ngid)
-        try:
-            os.setgroups(ngids)
-            os.setgid(ngids[0])
-        except OSError:
-            sys.exit(_("Unable to change gid of the process"))
-    if options.uid:
-        try:
-            os.setuid(get_uid(options.uid))
-        except OSError:
-            sys.exit(_("Unable to change uid of the process"))
 
 
 def startLog(options):
@@ -205,8 +106,6 @@ def startLog(options):
     log_file_name = None
     if options.logfile:
         log_file_name = options.logfile
-    elif options.daemon:
-        log_file_name = 'deejayd.log'
 
     if log_file_name:
         flo = deejayd.ui.log.SignaledFileLogObserver(log_file_name)
@@ -218,9 +117,6 @@ def startLog(options):
 
 # Start
 if __name__ == "__main__":
-    if options.kill:
-        killDeejayd(options.pidfile)
-        sys.exit()
     config = DeejaydConfig()
 
     setEnv(options)
