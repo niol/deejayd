@@ -5,6 +5,7 @@ usr/lib/python*/*-packages/deejayd/library/*
 usr/lib/python*/*-packages/deejayd/playlist/*
 usr/lib/python*/*-packages/deejayd/player/__init__.py
 usr/lib/python*/*-packages/deejayd/player/_base.py
+usr/lib/python*/*-packages/deejayd/player/_procctrl.py
 usr/lib/python*/*-packages/deejayd/sources/*.py
 usr/lib/python*/*-packages/deejayd/webradio/*.py
 usr/lib/python*/*-packages/deejayd/ui/*

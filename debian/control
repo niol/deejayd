@@ -19,7 +19,7 @@ Architecture: all
 Depends: ${misc:Depends}, ${python3:Depends},
     logrotate, adduser,
     deejayd-client (= ${binary:Version}),
-    deejayd-vlc (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
+    deejayd-vlc (= ${binary:Version}) | deejayd-mpv (= ${binary:Version}) | deejayd-gstreamer (= ${binary:Version}),
     python3-twisted,
     python3-mutagen,
     python3-sqlalchemy,
@@ -31,8 +31,8 @@ Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
  through the network using JSON messages.
  It supports playlists, searching, many media tags. It can playback many
- music and video formats using either its vlc (recommended) or its GStreamer
- backend.
+ music and video formats using either its vlc (recommended), mpv or its
+ GStreamer backend.
 
 Package: deejayd-client
 Architecture: all
@@ -60,3 +60,9 @@ Architecture: all
 Depends: ${misc:Depends}, ${python3:Depends}, libvlc5
 Description: Deejayd VLC backend
  The deejayd media backend using the VLC library.
+
+Package: deejayd-mpv
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends}, mpv
+Description: Deejayd mpv backend
+ The deejayd media backend using the mpv player.
