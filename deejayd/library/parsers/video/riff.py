@@ -70,8 +70,8 @@ class Riff(core.AVContainer):
         core.AVContainer.__init__(self)
         # read the header
         h = file.read(12)
-        if h[:4] != b"RIFF" and h[:4] != b'SDSS':
-            raise ParseError()
+        if h[:4] not in (b"RIFF", b'SDSS', b'RMP3', ):
+            raise ParseError('unsupported RIFF header: %s' % h[:4])
 
         self.has_idx = False
         self.header = {}
