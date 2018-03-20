@@ -32,6 +32,11 @@ import traceback
 from optparse import OptionParser
 from pathlib import Path
 import gettext
+
+
+import sdnotify
+
+
 from deejayd.db import connection
 from deejayd.ui.i18n import DeejaydTranslations
 from deejayd.ui.config import DeejaydConfig
@@ -327,4 +332,8 @@ if __name__ == "__main__":
     # launch reactor
     from twisted.internet import reactor
     reactor.addSystemEventTrigger('before', 'shutdown', deejayd_core.close)
+    n = sdnotify.SystemdNotifier()
+    reactor.addSystemEventTrigger('after', 'startup', n.notify, 'READY=1')
     reactor.run()
+
+

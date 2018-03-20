@@ -3,7 +3,7 @@ Description=Deejayd media player daemon
 After=network.target
 
 [Service]
-Type=simple
+Type=notify
 # setting PYTHONUNBUFFERED is necessary to see the output in the journal
 Environment=PYTHONUNBUFFERED=true
 EnvironmentFile=/etc/default/deejayd
