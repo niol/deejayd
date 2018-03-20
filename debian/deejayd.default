@@ -1,4 +1,5 @@
-# Defaults for deejayd initscripts
+LOGFILE=/var/log/deejayd.log
+WEBUI_LOGFILE=/var/log/deejayd-webui.log
 
 # Additional options that are passed to the Daemon.
 DEEJAYD_DAEMON_OPTS=""

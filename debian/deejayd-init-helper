@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Read configuration variable file if it is present
+[ -r /etc/default/deejayd ] && . /etc/default/deejayd
+
+# Create logfiles if they do not exist
+for FILE in "$LOGFILE" "$WEBUI_LOGFILE"
+do
+    if [ ! -z "$FILE" ] && [ ! -r "$FILE" ]
+    then
+        touch $FILE
+        chown deejayd:adm $FILE
+    fi
+done

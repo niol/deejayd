@@ -1,12 +1,17 @@
 [Unit]
-Description=Media player daemon
+Description=Deejayd media player daemon
 After=network.target
 
 [Service]
-Environment=DEEJAYD_DAEMON_OPTS=
-Environment=DISPLAY=:0.0
-EnvironmentFile=-/etc/default/deejayd
-ExecStart=/usr/bin/deejayd -n -u deejayd -g audio,video -c /etc/deejayd.conf -l /var/log/deejayd.log -w /var/log/deejayd-webui.log $DEEJAYD_DAEMON_OPTS
+Type=simple
+# setting PYTHONUNBUFFERED is necessary to see the output in the journal
+Environment=PYTHONUNBUFFERED=true
+EnvironmentFile=/etc/default/deejayd
+ExecStartPre=/usr/share/deejayd/deejayd-init-helper
+ExecStart=/usr/bin/deejayd -l ${LOGFILE} -w ${WEBUI_LOGFILE} ${DEEJAYD_DAEMON_OPTS}
+User=deejayd
+SupplementaryGroups=audio cdrom video
+PermissionsStartOnly=true
 
 [Install]
 WantedBy=multi-user.target
