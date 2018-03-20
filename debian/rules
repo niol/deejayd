@@ -5,8 +5,10 @@
 #export DH_VERBOSE=1
 
 
+include /usr/share/dpkg/pkg-info.mk
+
+
 UVERSION := $(shell ./setup.py --version)
-VERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p' | sed -e 's/^[[:digit:]]*://' -e 's/[-].*//')
 #export PYBUILD_NAME = deejayd
 export PYBUILD_DISABLE=test
 
@@ -28,5 +30,5 @@ override_dh_installlogrotate:
 
 orig_source:
 	./setup.py sdist
-	mv dist/deejayd-$(UVERSION).tar.gz ../deejayd_$(VERSION).orig.tar.gz
+	mv dist/deejayd-$(UVERSION).tar.gz ../deejayd_$(DEB_VERSION_UPSTREAM).orig.tar.gz
 	rmdir dist
