@@ -25,26 +25,14 @@ Depends: ${misc:Depends}, ${python3:Depends},
     python3-sqlalchemy,
     python3-migrate,
     python3-twisted-sockjs
-Suggests: lightdm-autologin-greeter, deejayd-webui
+Suggests: lightdm-autologin-greeter
+Conflicts: deejayd-webui
 Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled
  through the network using JSON messages.
  It supports playlists, searching, many media tags. It can playback many
  music and video formats using either its vlc (recommended) or its GStreamer
  backend.
-
-Package: deejayd-webui
-Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends},
-         deejayd (= ${binary:Version}), logrotate,
-         python3-twisted-sockjs,
-Description: Web interface for deejayd
- This package provides, in order to control your deejayd server, two HTML and
- AJAX web interfaces:
-    - one suitable for desktop computers or laptops,
-    - one optimized for small screens.
- .
- The required webserver is embedded in the deejayd daemon.
 
 Package: deejayd-client
 Architecture: all
