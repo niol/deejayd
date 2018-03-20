@@ -1,6 +1,6 @@
 Source: deejayd
 Section: sound
-Priority: extra
+Priority: optional
 Maintainer: Alexandre Rossi <alexandre.rossi@gmail.com>
 Build-Depends: debhelper (>= 10.0.0), python3 (>= 3.4.0)
 Build-Depends-Indep: python3-babel, xsltproc, docbook-xsl, dh-python
