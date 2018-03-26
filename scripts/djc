@@ -22,7 +22,7 @@ import sys
 from optparse import OptionParser
 import socket
 from deejayd.common.client import DeejayDaemonSync, DeejaydError
-from deejayd.commmon.client import ConnectError, camelcase_to_underscore
+from deejayd.common.client import ConnectError, camelcase_to_underscore
 
 
 class DjcError(Exception):
@@ -234,7 +234,7 @@ def get_cmds():
     for cmd_name in dir(AvailableCommands):
         if cmd_name[0] != '_':
             cmd = getattr(AvailableCommands, cmd_name)
-            if isinstance(cmd, types.UnboundMethodType):
+            if isinstance(cmd, types.MethodType):
                 cmds.append(' : '.join([cmd_name, cmd.__doc__]))
     return cmds
 
