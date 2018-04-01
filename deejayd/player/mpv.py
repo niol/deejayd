@@ -339,7 +339,8 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             self.player.dispatch_signame('player.current')
 
     def PROPERTY_time_pos(self, time):
-        self.__eof_coming = self.state['duration'] - time < 2
+        if self.state['seekable']:
+            self.__eof_coming = self.state['duration'] - time < 2
 
 
 @jsonrpc_module(PlayerModule)
