@@ -149,7 +149,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         'playlist-pos',
         'duration',
         'path',
-        'eof-reached',
         'seekable',
         'media-title',
     }
@@ -165,6 +164,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.factory = None
         self.__monitor = task.LoopingCall(self.__monitor_playback)
         self.__stop_watchdog = None
+        self.__eof_coming = False
         self.starting = None
 
     def socket_path(self):
@@ -279,6 +279,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.state[name] = data
         try:
             f = getattr(self, 'PROPERTY_%s' % name.replace('-', '_'))
+            f(data)
         except AttributeError:
             pass
 
@@ -328,14 +329,17 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self._playing_media = None
         self.player.dispatch_signame('player.current')
 
-    def PROPERTY_eof_reached(self, reached):
-        if reached != 'null':
+        if self.__eof_coming:
+            self.__eof_coming = False
             self.player._change_file(self.player._source.next(explicit=False))
 
     def PROPERTY_media_title(self, title):
-        if title != self._playing_media['desc']:
+        if self._playing_media and title != self._playing_media['desc']:
             self._playing_media.set_description(title)
             self.player.dispatch_signame('player.current')
+
+    def PROPERTY_time_pos(self, time):
+        self.__eof_coming = self.state['duration'] - time < 2
 
 
 @jsonrpc_module(PlayerModule)
