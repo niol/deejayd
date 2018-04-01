@@ -73,6 +73,9 @@ class PlayerProcess(object):
         self.stop_process()
         self.__process_gone()
 
+    def alive(self):
+        return self.pmonitor is not None
+
     def __process_gone(self):
         if self.tempdir:
             self.tempdir.cleanup()
@@ -81,8 +84,7 @@ class PlayerProcess(object):
         self.pmonitor = None
 
     def _process_lost(self):
-        pass
-        # kill, restart?
+        self.__process_gone()
 
 
 # vim: ts=4 sw=4 expandtab

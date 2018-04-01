@@ -233,6 +233,8 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.__stop_watchdog = None
         if self.state['playback'] == PLAYER_STOP:
             self.stop()
+        else:
+            log.debug('ctrl:mpv: not stopping mpv process, playback in progress')
 
     def command(self, name, *args):
         self.connect(self)
@@ -261,7 +263,13 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             self.__monitor.stop()
         return self.command('loadfile', uri)
 
-    def stop(self):
+    def playback_stop(self):
+        if not self.alive():
+            log.debug('ctrl:mpv: no mpv process, ignoring stop command')
+            d = defer.Deferred()
+            d.callback(True)
+            return d
+
         if self.__monitor.running:
             self.__monitor.stop()
         return self.command('stop')
@@ -305,6 +313,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             self.__monitor.stop()
 
         if self.__stop_watchdog:
+            log.debug('ctrl:mpv: stop watchdog reset')
             self.__stop_watchdog.cancel()
         self.__stop_watchdog = reactor.callLater(600, self.stop_if_idle)
 
@@ -410,7 +419,7 @@ class MpvPlayer(_BasePlayer):
             self._playing_media = new_file
             self.play()
         else:
-            self.__player.stop()
+            self.__player.playback_stop()
 
     def _set_volume(self, vol, sig=True):
         self.__player.command('set_property', 'volume', int(vol))
