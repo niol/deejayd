@@ -18,13 +18,16 @@
 
 import random
 import time
+from functools import reduce
 from collections import MutableMapping
+
 from sqlalchemy.orm import with_polymorphic
+
 from deejayd import DeejaydError
 from deejayd.db.connection import Session
 from deejayd.db.models import StaticMediaList, StaticMediaListItem
 from deejayd.db.models import Media, Video, Song
-from functools import reduce
+from deejayd.ui import log
 
 
 def update_action(func):
@@ -78,9 +81,13 @@ class PlaylistEntry(MutableMapping):
         m_obj = Session.query(video_or_song)\
                        .filter(Media.m_id == self.media["m_id"])\
                        .one_or_none()
+
         if m_obj is None:
-            raise DeejaydError("Weird error: media with id %d "
-                               "disappear" % self.media["m_id"])
+            log.debug('media with id %d is gone, was probably deleted. '
+                      'Ignoring media update.'
+                      % self.media["m_id"])
+            return
+
         for key in attrs:
             setattr(m_obj, key, attrs[key])
             self.media[key] = attrs[key]
