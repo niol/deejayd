@@ -333,7 +333,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             self.__monitor.stop()
 
         self.player._playing_media.played()
-        if self.state['seekable']:
+        if 'seekable' in self.state and self.state['seekable']:
             self.player._playing_media['last_position'] = 0
         self._playing_media = None
         self.player.dispatch_signame('player.current')
