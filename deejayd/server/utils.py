@@ -90,7 +90,8 @@ def format_time_long(time):
 
 def get_playlist_file_lines(URL):
     pls_handle = urllib.request.urlopen(URL)
-    playlist = pls_handle.read()
+    charset = pls_handle.headers.get_content_charset() or 'utf-8'
+    playlist = pls_handle.read().decode(charset)
 
     return playlist.splitlines()
 
