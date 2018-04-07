@@ -31,7 +31,7 @@ import json
 import tempfile
 import math
 
-from twisted.internet import reactor
+from twisted.internet import reactor, protocol
 from twisted.internet import task
 from twisted.protocols.basic import LineOnlyReceiver
 from twisted.internet import defer
@@ -201,7 +201,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
     def __try_connect(self):
         if not self.factory.conn:
             if self.__connect_tries < 5:
-                reactor.connectUNIX(self.socket_path(),  self.factory)
+                reactor.connectUNIX(self.socket_path(), self.factory)
                 reactor.callLater(1, self.__try_connect)
             else:
                 log.err('ctrl:mpv: Could not connect to player process, '
@@ -214,7 +214,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if not self.starting:
             self.__set_starting()
 
-        self.factory = procctrl.PlayerBackendProtocolClientFactory()
+        self.factory = protocol.ClientFactory()
         self.factory.protocol = MpvIpcProtocol
         self.factory.handler = handler
         self.factory.process = self

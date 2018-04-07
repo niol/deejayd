@@ -22,17 +22,6 @@ from twisted.internet import protocol
 from deejayd.ui import log
 
 
-class PlayerBackendProtocolClientFactory(protocol.ClientFactory):
-
-    def clientConnectionFailed(self, connector, reason):
-        log.err('ctrl: player process connection to deejayd failed: %s'
-                % reason)
-
-    def clientConnectionLost(self, connector, reason):
-        log.debug('ctrl: player process connection to deejayd lost: %s'
-                  % reason)
-
-
 class PlayerProcessMonitoring(protocol.ProcessProtocol):
 
     def __init__(self, manager):
