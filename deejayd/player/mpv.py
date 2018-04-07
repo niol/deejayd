@@ -300,6 +300,14 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
         self.player.dispatch_signame('player.current')
 
+    def EVENT_audio_reconfig(self):
+        # This means that some stream change is ongoing, either
+        # a file change or a seek. So we stop the monitor. If
+        # needed, it will be restarted with the playback-restart
+        # event handler.
+        if self.__monitor.running:
+            self.__monitor.stop()
+
     def EVENT_pause(self):
         self.state['playback'] = PLAYER_PAUSE
         self.player.dispatch_signame('player.status')
