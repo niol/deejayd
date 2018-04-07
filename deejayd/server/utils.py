@@ -112,8 +112,6 @@ def get_uris_from_pls(URL):
 def get_uris_from_m3u(URL):
     uris = []
     lines = get_playlist_file_lines(URL)
-    if not lines[0].startswith("#EXTM3U"):
-        raise DeejaydError(_("Playlist has a wrong format"))
     for line in lines:
         if not line.startswith("#") and line.strip() != "":
             uris.append(line.strip())
