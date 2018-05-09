@@ -332,14 +332,14 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if self.__monitor.running:
             self.__monitor.stop()
 
-        self.player._playing_media.played()
-        if 'seekable' in self.state and self.state['seekable']:
-            self.player._playing_media['last_position'] = 0
         self._playing_media = None
         self.player.dispatch_signame('player.current')
 
         if self.__eof_coming:
             self.__eof_coming = False
+            self.player._playing_media.played()
+            if 'seekable' in self.state and self.state['seekable']:
+                self.player._playing_media['last_position'] = 0
             self.player._change_file(self.player._source.next(explicit=False))
 
     def PROPERTY_media_title(self, title):
