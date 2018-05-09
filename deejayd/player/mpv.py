@@ -147,7 +147,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     WHILE_PLAYING_PROPERTIES = {
         'playlist-pos',
-        'duration',
         'path',
         'seekable',
         'media-title',
@@ -156,6 +155,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
     state = {
         'playback': PLAYER_STOP,
         'time-pos': 0,
+        'duration': False,
     }
 
     def __init__(self, player):
@@ -348,8 +348,14 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             self.player.dispatch_signame('player.current')
 
     def PROPERTY_time_pos(self, time):
-        if self.state['seekable']:
+        if self.state['seekable'] and self.state['duration']:
             self.__eof_coming = self.state['duration'] - time < 2
+
+    def PROPERTY_seekable(self, seekable):
+        if seekable:
+            self.get_property('duration')
+        else:
+            self.state['duration'] = False
 
 
 @jsonrpc_module(PlayerModule)
