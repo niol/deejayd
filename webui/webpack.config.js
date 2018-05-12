@@ -13,12 +13,12 @@ function root(args) {
 
 const config = {
   entry: {
-    'vendor': './src/vendor',
+    'vendor': ['./src/vendor', 'webpack-material-design-icons', 'typeface-roboto'],
     'deejayd-webui': './src/bootstrap'
   },
   output: {
     path: path.resolve(__dirname, './dist'),
-    publicPath: "/assets/",
+    publicPath: "dist/",
     filename: '[name].bundle.js'
   },
   resolve: {
@@ -30,8 +30,8 @@ const config = {
       { test: /\.ts$/, exclude: /node_modules/, loader: 'awesome-typescript-loader' },
       { test: /\.css$/, loader: 'style-loader!css-loader' },
       { test: /\.scss$/, loader: 'style-loader!css-loader!sass-loader' },
-      { test: /\.woff2?$/, loader: 'url-loader?name=dist/fonts/[name].[ext]&limit=10000&mimetype=application/font-woff' },
-      { test: /\.(ttf|eot|svg)$/, loader: 'file-loader?name=dist/fonts/[name].[ext]' }
+      { test: /\.woff2?$/, loader: 'url-loader?name=fonts/[name].[ext]&limit=10000&mimetype=application/font-woff' },
+      { test: /\.(ttf|eot|svg)$/, loader: 'file-loader?name=fonts/[name].[ext]' }
     ]
   },
   plugins: [
@@ -74,8 +74,9 @@ if (!(process.env.WEBPACK_ENV === 'production')) {
           loader: "sass-loader"
         }],
         fallback: "style-loader"
-      }) }
-      //loader: 'style-loader!css-loader!sass-loader' },
+      }) },
+    { test: /\.woff2?$/, loader: 'url-loader?name=fonts/[name].[ext]&limit=10000&mimetype=application/font-woff' },
+    { test: /\.(ttf|eot|svg)$/, loader: 'file-loader?name=fonts/[name].[ext]' }
   ];
   config.plugins = config.plugins.concat([
     new AotPlugin({
