@@ -107,6 +107,7 @@ class Media(Base):
             "title": self.title,
             "play_count": self.play_count,
             "skip_count": self.skip_count,
+            "last_position": self.last_position,
             "rating": self.rating,
             "length": self.length,
             "uri": self.uri
