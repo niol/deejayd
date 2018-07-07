@@ -19,7 +19,7 @@ msgstr ""
 
 #: deejayd/common/component.py:105
 msgid "You try to save a state which has not been loaded !"
-msgstr ""
+msgstr "Tentative de sauvegarde d'un état qui n'a pas été chargé !"
 
 #: deejayd/db/models.py:225 deejayd/db/models.py:229
 msgid "Disabled"
@@ -79,9 +79,9 @@ msgid "A library update is already running"
 msgstr "Une mise à jour de la librarie est déjà en cours"
 
 #: deejayd/library/_base.py:163
-#, fuzzy, python-format
+#, python-format
 msgid "file %s is not found in the db"
-msgstr "L'argument %s n'est pas un chiffre entier"
+msgstr "Le fichier %s n'existe pas dans la base de donnée"
 
 #: deejayd/library/_base.py:207
 #, python-format
@@ -94,9 +94,9 @@ msgid "Unable to update the %s library. See log."
 msgstr "Impossible de mettre à jour la library %s. Voir les logs"
 
 #: deejayd/library/parsers/video/__init__.py:95
-#, fuzzy, python-format
+#, python-format
 msgid "Video media %s not supported"
-msgstr "Mode %s non supporté"
+msgstr "La vidéo %s n'est pas supportée"
 
 #: deejayd/library/parsers/video/__init__.py:97
 msgid "This file is not a video"
@@ -128,17 +128,17 @@ msgstr "La valuer %s n'est pas supporté pour cette option"
 #: deejayd/player/_base.py:244
 #, python-format
 msgid "Zoom: %s"
-msgstr ""
+msgstr "Zoom: %s"
 
 #: deejayd/player/_base.py:248
-#, fuzzy, python-format
+#, python-format
 msgid "Video aspect ratio %s is not known"
-msgstr "L'aspect vidéo %s n'est pas connu"
+msgstr "Le ratio %s n'est pas connu"
 
 #: deejayd/player/_base.py:251
-#, fuzzy, python-format
+#, python-format
 msgid "Video aspect ratio: %s"
-msgstr "L'aspect vidéo %s n'est pas connu"
+msgstr "Ratio : %s"
 
 #: deejayd/player/_base.py:255
 #, python-format
@@ -156,19 +156,19 @@ msgid "Audio channel: %s"
 msgstr "Canal audio : %s"
 
 #: deejayd/player/_base.py:268
-#, fuzzy, python-format
+#, python-format
 msgid "Current media hasn't audio channel with idx %d"
-msgstr "Le média courant n'a pas plusieurs canaux audio %d"
+msgstr "Le média courant n'a pas de canal audio avec l'id %d"
 
 #: deejayd/player/_base.py:275
-#, fuzzy, python-format
+#, python-format
 msgid "Subtitle channel: %s"
 msgstr "Canal des sous-titres : %s"
 
 #: deejayd/player/_base.py:277
-#, fuzzy, python-format
+#, python-format
 msgid "Current media hasn't subtitle channel with idx %d"
-msgstr "Le média courant n'a pas plusieurs canaux audio %d"
+msgstr "Le média courant n'a pas de sous-titre avec l'id %d"
 
 #: deejayd/player/gstreamer.py:76
 #, python-format
@@ -194,9 +194,9 @@ msgid "No video sink found for Gstreamer : %s"
 msgstr "Aucun driver vidéo trouvé pour gstreamer : %s"
 
 #: deejayd/player/gstreamer.py:264
-#, fuzzy, python-format
+#, python-format
 msgid "'%s' is not allowed for speaker_setup option"
-msgstr "La valuer %s n'est pas supporté pour cette option"
+msgstr "La valuer %s n'est pas supporté pour l'option speaker_setup"
 
 #: deejayd/player/gstreamer.py:297 deejayd/player/vlc.py:144
 #, python-format
@@ -205,22 +205,21 @@ msgstr "Impossible de lire le fichier %s"
 
 #: deejayd/player/gstreamer.py:347
 msgid "Gstreamer: unable to get stream position"
-msgstr ""
+msgstr "Gstreamer : impossible d'obtenir la position courante"
 
 #: deejayd/player/gstreamer.py:382
 msgid "Unable to change gstreamer state"
 msgstr "Impossible de changer l'état du player gstreamer"
 
 #: deejayd/player/gstreamer.py:491
-#, fuzzy
 msgid "Unable to open input files"
-msgstr "Impossible d'ouvrir la pochette d'album pour %s"
+msgstr "Impossible d'ouvrir les fichiers"
 
 #: deejayd/player/gstreamer.py:492
 msgid ""
 "GStreamer has no element to handle reading files. Check your GStreamer "
 "installation settings."
-msgstr ""
+msgstr "Gstreamer ne peut gérer le fichier en entrée"
 
 #: deejayd/player/vlc.py:86
 #, python-format
@@ -270,11 +269,11 @@ msgstr "Cette liste de lecture existe déjà"
 #: deejayd/playlist/rpc.py:172
 #, python-format
 msgid "Property %s does not exist for magic playlist"
-msgstr ""
+msgstr "La propriété %s n'existe pas pour les listes de lectures dynamiques"
 
 #: deejayd/server/core.py:90
 msgid "Player is not able to play http streams"
-msgstr ""
+msgstr "Le lecteur n'est pas capable de lire les flux http"
 
 #: deejayd/server/core.py:103
 msgid "Start inotify watcher"
@@ -289,9 +288,9 @@ msgid "Request too long, close the connection"
 msgstr "Requête trop longue, cloture de la connection"
 
 #: deejayd/server/protocol.py:116
-#, fuzzy, python-format
+#, python-format
 msgid "Signal %s does not exist"
-msgstr "Le répertoire %s n'existe pas"
+msgstr "Le signal %s n'existe pas"
 
 #: deejayd/server/utils.py:61
 msgid "No time information"
@@ -341,9 +340,9 @@ msgid "Video support disabled"
 msgstr "Mode vidéo désactivé"
 
 #: deejayd/sources/__init__.py:53 deejayd/sources/__init__.py:58
-#, fuzzy, python-format
+#, python-format
 msgid "Source %s not found"
-msgstr "%s non trouvé"
+msgstr "La source %s n'existe pas"
 
 #: deejayd/sources/_base.py:106
 #, python-format
@@ -355,14 +354,13 @@ msgid "Option value has to be a boolean"
 msgstr "La valeur de l'option doit être un booléen"
 
 #: deejayd/sources/_base.py:116
-#, fuzzy, python-format
+#, python-format
 msgid "Option %s not supported"
-msgstr "Le type %s n'est pas supporté"
+msgstr "L'option %s n'est pas supporté"
 
 #: deejayd/sources/_base.py:122
-#, fuzzy
 msgid "Some medias has not been found in the library."
-msgstr "Le chemin %s n'a pas été trouvé dans la librairie"
+msgstr "Certains médias n'ont pas été trouvés dans la librairie"
 
 #: deejayd/ui/log.py:76
 #, python-format
@@ -380,12 +378,11 @@ msgid "DEBUG - %s"
 msgstr "DEBUG - %s"
 
 #: deejayd/webradio/_base.py:68
-#, fuzzy, python-format
+#, python-format
 msgid "Category with id %s is not found"
-msgstr "Le fichier avec l'identifiant %s n'a pas été trouvé"
+msgstr "La catégorie avec l'id %s n'existe pas"
 
 #: deejayd/webradio/icecast.py:60
-#, fuzzy
 msgid "Unable to update icecast webradio, see exception below"
 msgstr ""
 "Impossible de mettre à jour les radios web icecast, voir l'exception au "
@@ -412,7 +409,7 @@ msgid "Finish to reload icecast webradio source"
 msgstr "Fin de la mise à jour des radios web icecast"
 
 #: deejayd/webradio/local.py:56
-#, fuzzy, python-format
+#, python-format
 msgid "Category %s already exists"
 msgstr "La catégorie %s existe déjà"
 
@@ -427,14 +424,14 @@ msgid "Discarding %s : webradio protocol not supported."
 msgstr "Abandon de %s : radio web non supporté"
 
 #: deejayd/webradio/local.py:98
-#, fuzzy, python-format
+#, python-format
 msgid "Given urls %s is not supported"
 msgstr "L'URL %s n'est pas supportée"
 
 #: deejayd/webradio/local.py:107
-#, fuzzy, python-format
+#, python-format
 msgid "Webradio %s already exists"
-msgstr "La catégorie %s existe déjà"
+msgstr "La radio web %s existe déjà"
 
 #: deejayd/webradio/rpc.py:34
 #, python-format
@@ -446,9 +443,9 @@ msgid "You can not edit this webradio source"
 msgstr "Vous ne pouvez pas éditer cette source de radio web"
 
 #: deejayd/webradio/rpc.py:118
-#, fuzzy, python-format
+#, python-format
 msgid "Webradio with id '%s' is not found"
-msgstr "Le fichier avec l'identifiant %s n'a pas été trouvé"
+msgstr "La radio web avec l'id %s n'a pas été trouvé"
 
 #~ msgid "You chose a database which is not supported. see config file. %s"
 #~ msgstr ""

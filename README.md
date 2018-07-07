@@ -1,7 +1,7 @@
 deejayd
 ===========
 
-Actual version : 0.14.0 (2018-XX-XX)
+Actual version : 0.14.0 (2018-07-07)
 ------------------------------------
 
 Description:
@@ -35,6 +35,8 @@ Requirements:
         * gstreamer >= 1.2.0 (http://gstreamer.freedesktop.org)
     * if you want to use vlc backend
         * libvlc >= 2.2.0
+    * if you want to use mpv backend
+        * mpv >= 0.23
     * To be abble to play video medias
         * libX11, libXext
     * nodejs 6 or higher and npm to build the webui

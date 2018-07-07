@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deejayd 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-01-27 23:06+0100\n"
+"POT-Creation-Date: 2018-07-07 13:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "You try to save a state which has not been loaded !"
 msgstr ""
 
-#: deejayd/db/models.py:225 deejayd/db/models.py:229
+#: deejayd/db/models.py:227 deejayd/db/models.py:231
 msgid "Disabled"
 msgstr ""
 
@@ -102,17 +102,18 @@ msgstr ""
 msgid "This file is not a video"
 msgstr ""
 
-#: deejayd/player/__init__.py:47
+#: deejayd/player/__init__.py:60
 #, python-format
 msgid "Autodetected %s backend."
 msgstr ""
 
-#: deejayd/player/__init__.py:49
+#: deejayd/player/__init__.py:62
 msgid "Could not find suitable media backend."
 msgstr ""
 
 #: deejayd/player/__init__.py:66
-msgid "Invalid media backend"
+#, python-format
+msgid "Invalid media backend %s"
 msgstr ""
 
 #: deejayd/player/_base.py:219
@@ -170,52 +171,53 @@ msgstr ""
 msgid "Current media hasn't subtitle channel with idx %d"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:76
+#: deejayd/player/gstreamer.py:79
 #, python-format
 msgid "Could not link GStreamer pipeline: '%s'"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:84
+#: deejayd/player/gstreamer.py:87
 msgid "Unable to create pipeline"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:100
+#: deejayd/player/gstreamer.py:103
 #, python-format
 msgid "No audio sink found for Gstreamer : %s"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:153 deejayd/player/vlc.py:279
+#: deejayd/player/gstreamer.py:156 deejayd/player/vlc.py:279
 msgid "Unable to open video display"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:164
+#: deejayd/player/gstreamer.py:167
 #, python-format
 msgid "No video sink found for Gstreamer : %s"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:264
+#: deejayd/player/gstreamer.py:267
 #, python-format
 msgid "'%s' is not allowed for speaker_setup option"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:297 deejayd/player/vlc.py:144
+#: deejayd/player/gstreamer.py:300 deejayd/player/mpv.py:395
+#: deejayd/player/vlc.py:144
 #, python-format
 msgid "unable to play file %s"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:347
+#: deejayd/player/gstreamer.py:350
 msgid "Gstreamer: unable to get stream position"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:382
+#: deejayd/player/gstreamer.py:385
 msgid "Unable to change gstreamer state"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:491
+#: deejayd/player/gstreamer.py:501
 msgid "Unable to open input files"
 msgstr ""
 
-#: deejayd/player/gstreamer.py:492
+#: deejayd/player/gstreamer.py:502
 msgid ""
 "GStreamer has no element to handle reading files. Check your GStreamer "
 "installation settings."
@@ -331,7 +333,7 @@ msgid_plural "%d years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: deejayd/server/utils.py:102 deejayd/server/utils.py:115
+#: deejayd/server/utils.py:103
 msgid "Playlist has a wrong format"
 msgstr ""
 
@@ -362,17 +364,17 @@ msgstr ""
 msgid "Some medias has not been found in the library."
 msgstr ""
 
-#: deejayd/ui/log.py:76
+#: deejayd/ui/log.py:88
 #, python-format
 msgid "ERROR - %s"
 msgstr ""
 
-#: deejayd/ui/log.py:88
+#: deejayd/ui/log.py:100
 #, python-format
 msgid "INFO - %s"
 msgstr ""
 
-#: deejayd/ui/log.py:94
+#: deejayd/ui/log.py:106
 #, python-format
 msgid "DEBUG - %s"
 msgstr ""

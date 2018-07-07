@@ -17,7 +17,3 @@
   is either an access to libdbus low level message marshalling functions, or to
   rely on a pure python DBus implementation. Such implementation exists in Ruby:
   http://trac.luon.net/ruby-dbus/browser/trunk/lib/dbus/bus.rb
-
-* Do not segfault when there is no xserver and video mode is activated.
-
-* Use clean-css and uglifyjs (available in debian) to compress webui code

@@ -1,11 +1,12 @@
 
 New features and significant updates in version...
 
-0.14.0 (2018-01-XX)
+0.14.0 (2018-07-07)
 -------------------
   * Python 3 support
   * Manage database with sqlalchemy library
-  * Rewrite webui with angular 5, angular-material and webpack
+  * Rewrite webui with angular, angular-material and webpack
+  * Add new player backend based on mpv
 
 0.13.1 (2014-01-10)
 -------------------
