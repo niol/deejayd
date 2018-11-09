@@ -35,7 +35,7 @@ class PlayerProcessMonitoring(protocol.ProcessProtocol):
     def processEnded(self, status):
         if status.value.exitCode not in self.manager.EXIT_SUCCESS:
             log.err('ctrl: child process ended with status: %s' % status)
-            self.manager._process_lost()
+        self.manager._process_gone()
 
 
 class PlayerProcess(object):
@@ -44,7 +44,7 @@ class PlayerProcess(object):
 
     def __init__(self):
         self.tempdir = None
-        self.__process_gone()
+        self._process_gone()
 
     def start(self):
         if self.pmonitor:
@@ -65,15 +65,12 @@ class PlayerProcess(object):
     def alive(self):
         return self.pmonitor is not None
 
-    def __process_gone(self):
+    def _process_gone(self):
         if self.tempdir:
             self.tempdir.cleanup()
             self.tempdir = None
 
         self.pmonitor = None
-
-    def _process_lost(self):
-        self.__process_gone()
 
 
 # vim: ts=4 sw=4 expandtab
