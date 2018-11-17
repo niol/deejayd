@@ -60,7 +60,7 @@ class PlayerProcess(object):
             return
 
         self.stop_process()
-        self.__process_gone()
+        self._process_gone()
 
     def alive(self):
         return self.pmonitor is not None
