@@ -180,10 +180,10 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.starting.addCallback(started)
 
     def start_process(self, pmonitor):
-        if self.player.config.get('video', 'fullscreen'):
-            fs_opts = '--fullscreen'
+        if self.player.config.getboolean('video', 'fullscreen'):
+            fs_opts = ('--fullscreen', )
         else:
-            fs_opts = '--no-fullscreen'
+            fs_opts = ('--no-fullscreen', '--geometry=20%', )
 
         env = os.environ.copy()
         reactor.spawnProcess(pmonitor, 'mpv',
@@ -193,8 +193,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
                               '--quiet',
                               '--gapless-audio',
                               '--no-resume-playback', # handled by deejayd
-                              fs_opts,
-                             ), env=env)
+                             ) + fs_opts, env=env)
 
         self.__set_starting()
 
