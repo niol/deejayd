@@ -156,6 +156,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         'playback': PLAYER_STOP,
         'time-pos': 0,
         'duration': False,
+        'seekable': False,
     }
 
     def __init__(self, player):
@@ -166,6 +167,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.__stop_watchdog = None
         self.__eof_coming = False
         self.starting = None
+        self.when_playing_cb = []
 
     def socket_path(self):
         if not self.tempdir:
@@ -271,7 +273,16 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
         if self.__monitor.running:
             self.__monitor.stop()
+
+        self.when_playing_cb.clear()
+
         return self.command('stop')
+
+    def seek(self, pos, flag):
+        if self.state['playback'] != PLAYER_PLAY:
+            self.when_playing_cb.append(lambda: self.seek(pos, flag))
+        else:
+            self.command('seek', pos, flag)
 
     def EVENT_property_change(self, name=None, data=None):
         assert name is not None
@@ -294,6 +305,11 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
                 self.get_property(p)
 
         self.state['playback'] = PLAYER_PLAY
+
+        for cb in self.when_playing_cb:
+            cb()
+        self.when_playing_cb.clear()
+
         if not self.__monitor.running:
             self.__monitor.start(1)
 
@@ -412,7 +428,11 @@ class MpvPlayer(_BasePlayer):
         return 0
 
     def seek(self, pos, relative=False):
-        if self.get_state() != PLAYER_STOP and self.__player.state['seekable']:
+        try_seek_init = self.get_state() == PLAYER_STOP and \
+            self.__player.state['seekable'] is None
+        if try_seek_init or \
+           (self.get_state() == PLAYER_PLAY and \
+            self.__player.state['seekable']):
             if relative:
                 flag = 'relative'
                 current = self.__player.state['time-pos']
@@ -420,8 +440,12 @@ class MpvPlayer(_BasePlayer):
                 flag = 'absolute'
                 current = 0
             self.__player.state['time-pos'] = current + pos
-            self.__player.command('seek', pos, flag)
+            self.__player.seek(pos, flag)
             self.__player.command('show-progress')
+        elif not self.__player.state['seekable']:
+            log.debug('mpv: seek on not seekable media ignored')
+        elif self.get_state() == PLAYER_PAUSE:
+            log.debug('mpv: seek on paused media ignored')
 
     def get_state(self):
         return self.__player.state['playback']
