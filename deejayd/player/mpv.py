@@ -260,9 +260,13 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         return msg
 
     def loadfile(self, uri):
+        def cmd_loadfile(r):
+            return self.command('loadfile', uri)
+
         if self.__monitor.running:
-            self.__monitor.stop()
-        return self.command('loadfile', uri)
+            return self.playback_stop().addCallback(cmd_loadfile)
+        else:
+            return cmd_loadfile(None)
 
     def playback_stop(self):
         if not self.alive():
@@ -305,6 +309,9 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
                 self.get_property(p)
 
         self.state['playback'] = PLAYER_PLAY
+        if self.state['pause']:
+            # paused leaked from previous playback, avoid deadlock
+            self.command('set_property', 'pause', False)
 
         for cb in self.when_playing_cb:
             cb()
