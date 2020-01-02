@@ -5,11 +5,10 @@
 All of the configuration for the daemon is kept in /etc/deejayd.conf . As for
 many daemons, for the changes in the configuration file to be taken into
 account, the daemon must be restarted.
-$ sudo invoke-rc.d deejayd restart
+$ sudo systemctl restart deejayd
 
 The default configuration for deejayd is pretty minimal and you'll probably
 want to change the following items from their default value :
-- in the 'webui' section, enable it using the 'enabled' configuration variable.
 - you may want the daemon to be controllable from machines other than the one it
   is running on. In the 'net' and 'webui' sections, you may want to change the
   'bind_adresses' configuration variable to something other than 'localhost'.
@@ -24,5 +23,8 @@ want to change the following items from their default value :
 Deejayd supports video. But it will not try to establish a connection to a
 X server until it is asked to play a video and if the 'video' mode is enabled.
 We recommend the installation of lightdm-autologin-greeter to launch a X server
-with deejayd user.
+with the deejayd user.
 
+== Connection to a Wayland compositor for video support ==
+
+Using the provided deejayd-weston service should provide a suitable compositor.

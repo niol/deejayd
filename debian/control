@@ -28,7 +28,7 @@ Depends: ${misc:Depends}, ${python3:Depends},
     python3-sqlalchemy,
     python3-migrate,
     python3-twisted-sockjs
-Suggests: lightdm-autologin-greeter
+Suggests: lightdm-autologin-greeter, weston
 Conflicts: deejayd-webui
 Description: Network controllable media player daemon
  Deejayd is a multi purpose media player that can be completely controlled

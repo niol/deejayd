@@ -99,6 +99,11 @@ def setEnv(options):
             continue
         Path(l_file).touch(mode=0o644)
 
+    # try to guess XDG_RUNTIME_DIR if not set
+    if 'XDG_RUNTIME_DIR' not in os.environ:
+        os.environ['XDG_RUNTIME_DIR'] = os.path.join('/run', 'user',
+                                                     str(os.geteuid()))
+
 
 def startLog(options):
     from twisted.python import log

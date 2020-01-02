@@ -17,3 +17,4 @@ usr/share/locale/*/LC_MESSAGES/deejayd.mo
 usr/share/deejayd/htdocs/*
 etc/deejayd.conf
 etc/default/deejayd
+debian/pam.d/deejayd-weston etc/pam.d

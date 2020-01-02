@@ -30,7 +30,9 @@ override_dh_installinit:
 	echo "Skipping dh_installinit"
 
 override_dh_systemd_enable:
-	dh_systemd_enable --no-enable # Disable service by default
+	# Disable service by default
+	dh_systemd_enable --no-enable
+	dh_systemd_enable --no-enable -pdeejayd --name=deejayd-weston
 
 override_dh_installlogrotate:
 	dh_installlogrotate
