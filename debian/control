@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Alexandre Rossi <alexandre.rossi@gmail.com>
 Build-Depends: debhelper (>= 10), python3 (>= 3.4), dh-python,
 Build-Depends-Indep: gettext, xsltproc, docbook-xsl,
-    python3-distutils,
+    python3-distutils | libpython3.5-stdlib,
     python3-babel,
     python3-twisted,
     python3-mutagen,
