@@ -9,8 +9,8 @@ include /usr/share/dpkg/pkg-info.mk
 
 
 UVERSION := $(shell ./setup.py --version)
-#export PYBUILD_NAME = deejayd
-export PYBUILD_DISABLE=test
+# tell build system not to install JSLIBS as they are provided by deps
+export DISTUTILS_INSTALL_JSLIBS=bootstrap-slider jquery
 
 
 %:
