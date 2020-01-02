@@ -2,8 +2,8 @@ include MANIFEST.in
 include doc/*
 include .gitignore
 include COPYING
-include README
-include NEWS
+include README.md
+include NEWS.md
 include TODO
 include prepare.sh
 include docs.py
