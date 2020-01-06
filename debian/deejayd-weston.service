@@ -33,8 +33,6 @@ ConditionPathExists=/dev/tty0
 Type=notify
 ExecStart=/usr/bin/weston --modules=systemd-notify.so
 
-EnvironmentFile=/etc/deejayd/weston.env
-
 # The user to run Weston as.
 User=deejayd
 
