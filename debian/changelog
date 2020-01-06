@@ -1,3 +1,14 @@
+deejayd (0.14.0+2020010613-1) unstable; urgency=medium
+
+  * [debian] Bump debhelper compat level to 12 (use dh_installsystemd)
+  * [debian] update to standards version 4.4.1 (nothing to do)
+  * [debian] use secure copyright format uri
+  * remove useless db migrate README
+  * [debian] set -e in body of script
+  * [debian] add documentation to deejayd.service
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 06 Jan 2020 13:30:19 +0100
+
 deejayd (0.14.0+2020010213-3) unstable; urgency=medium
 
   [ Mickael Royer ]
