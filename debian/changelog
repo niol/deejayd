@@ -1,3 +1,9 @@
+deejayd (0.14.0+2020010613-2) unstable; urgency=medium
+
+  * [debian] weston service: remove useless environment file
+
+ -- Alexandre Rossi <alexandre.rossi@gmail.com>  Mon, 06 Jan 2020 13:41:29 +0100
+
 deejayd (0.14.0+2020010613-1) unstable; urgency=medium
 
   * [debian] Bump debhelper compat level to 12 (use dh_installsystemd)
