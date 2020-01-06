@@ -1,6 +1,7 @@
 [Unit]
 Description=Deejayd media player daemon
 After=network.target
+Documentation=man:deejayd
 
 [Service]
 Type=notify
