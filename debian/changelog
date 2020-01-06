@@ -36,7 +36,7 @@ deejayd (0.14.0~hg+1+9ef373dd259e-1) UNRELEASED; urgency=low
 
 deejayd (0.10.0-8) UNRELEASED; urgency=low
 
-  * fix bashism: sleep only takes one integer (Closes: #772265). 
+  * fix bashism: sleep only takes one integer (Closes: #772265).
 
  -- Alexandre Rossi <alexandre.rossi@gmail.com>  Wed, 17 Dec 2014 14:57:39 +0100
 
