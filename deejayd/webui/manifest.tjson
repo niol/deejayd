@@ -6,33 +6,33 @@
     "icons": [
         {
             "sizes": "128x128",
-            "src": "%(root_url)s/ressources/favicon-128x128.png",
+            "src": "%(root_url)sressources/favicon-128x128.png",
             "type": "image/png"
         },
         {
             "sizes": "192x192",
-            "src": "%(root_url)s/ressources/favicon-192x192.png",
+            "src": "%(root_url)sressources/favicon-192x192.png",
             "type": "image/png"
         },
         {
             "sizes": "384x384",
-            "src": "%(root_url)s/ressources/favicon-384x384.png",
+            "src": "%(root_url)sressources/favicon-384x384.png",
             "type": "image/png"
         },
         {
             "sizes": "512x512",
-            "src": "%(root_url)s/ressources/favicon-512x512.png",
+            "src": "%(root_url)sressources/favicon-512x512.png",
             "type": "image/png"
         },
         {
             "sizes": "1024x1024",
-            "src": "%(root_url)s/ressources/favicon-1024x1024.png",
+            "src": "%(root_url)sressources/favicon-1024x1024.png",
             "type": "image/png"
         }
     ],
     "lang": "en-US",
     "name": "Deejayd",
     "short_name": "Deejayd",
-    "start_url": "%(root_url)s/playing",
+    "start_url": "%(root_url)splaying",
     "theme_color": "#3f51b5"
 }
