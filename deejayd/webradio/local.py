@@ -69,7 +69,8 @@ class WebradioLocalSource(_BaseWebradioSource):
     def add_webradio(self, source, name, urls, cat=None):
         provided_urls = []
         for url in urls:
-            if url.lower().startswith("http://"):
+            if url.lower().startswith("http://") or \
+               url.lower().startswith("https://"):
                 try:
                     if url.lower().endswith(".pls"):
                         provided_urls.extend(get_uris_from_pls(url))
