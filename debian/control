@@ -12,6 +12,7 @@ Build-Depends-Indep: gettext, xsltproc, docbook-xsl,
     python3-migrate,
     python3-twisted-sockjs
 Standards-Version: 4.4.1
+Rules-Requires-Root: no
 Homepage: https://mroy31.domring.net/~roy/repositories.git/deejayd/about/
 Vcs-Git: https://mroy31.domring.net/~roy/repositories.git/deejayd/
 Vcs-Browser: https://mroy31.domring.net/~roy/repositories.git/deejayd/
