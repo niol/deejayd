@@ -371,7 +371,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     def PROPERTY_time_pos(self, time):
         if self.state['seekable'] and self.state['duration']:
-            self.__eof_coming = self.state['duration'] - time < 2
+            self.__eof_coming = self.state['duration'] - time < 10
 
     def PROPERTY_seekable(self, seekable):
         if seekable:
