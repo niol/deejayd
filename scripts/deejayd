@@ -104,12 +104,12 @@ def setEnv(options):
         os.environ['XDG_RUNTIME_DIR'] = os.path.join('/run', 'user',
                                                      str(os.geteuid()))
 
-        # also try to guess WAYLAND_DISPLAY
+    # try to guess WAYLAND_DISPLAY
+    if 'WAYLAND_DISPLAY' not in os.environ:
         for f in os.listdir(os.environ['XDG_RUNTIME_DIR']):
             if f.startswith('wayland'):
                 os.environ['WAYLAND_DISPLAY'] = f
                 break
-
 
 
 def startLog(options):
