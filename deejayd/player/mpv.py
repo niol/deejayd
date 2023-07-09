@@ -350,7 +350,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
         self.player.dispatch_signame('player.status')
 
-    def EVENT_end_file(self, reason=None):
+    def EVENT_end_file(self, reason=None, playlist_entry_id=None):
         if self.__monitor.running:
             self.__monitor.stop()
 
