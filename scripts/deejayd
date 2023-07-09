@@ -30,7 +30,7 @@ from pathlib import Path
 import gettext
 
 
-import sdnotify
+import systemd.daemon
 
 
 from deejayd.db import connection
@@ -233,8 +233,8 @@ if __name__ == "__main__":
     # launch reactor
     from twisted.internet import reactor
     reactor.addSystemEventTrigger('before', 'shutdown', deejayd_core.close)
-    n = sdnotify.SystemdNotifier()
-    reactor.addSystemEventTrigger('after', 'startup', n.notify, 'READY=1')
+    reactor.addSystemEventTrigger('after', 'startup',
+                                  systemd.daemon.notify, 'READY=1')
     reactor.run()
 
 
