@@ -19,8 +19,15 @@
 
 import sys
 import locale
+
+
+import systemd.journal
+import twisted.logger
 from twisted.python import log
+
+
 from deejayd.ui.config import DeejaydConfig
+
 
 ERROR = 0
 INFO = 1
@@ -74,6 +81,34 @@ class SignaledFileLogObserver(log.FileLogObserver):
         self.log_file.reopen()
         self.__observe_log_file()
         self.start()
+
+class JournaldLogObserver(object):
+
+    def __init__(self, identifier=None):
+        self.identifier = identifier
+
+    def __call__(self, event):
+        m = twisted.logger.formatEvent(event)
+
+        if not m:
+            m = ''
+
+        if 'log_failure' in event:
+           try:
+                traceback = event['log_failure'].getTraceback()
+           except Exception:
+                traceback = '(UNABLE TO OBTAIN TRACEBACK FROM EVENT)\n'
+           m = '\n'.join((text, traceback))
+
+        if m:
+            p = 6
+            if 'failure' in event:
+                p = 2
+            elif event['isError'] or event['log_level'].name == 'error':
+                p = 3
+            elif event['log_level'].name == 'debug':
+                p = 7
+            systemd.journal.send(m, PRIORITY=p, SYSLOG_IDENTIFIER=self.identifier)
 
 
 def __log(log_msg):

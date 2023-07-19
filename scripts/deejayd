@@ -123,6 +123,8 @@ def startLog(options):
         flo = deejayd.ui.log.SignaledFileLogObserver(log_file_name)
         log.startLoggingWithObserver(flo.emit)
         return flo
+    elif 'JOURNAL_STREAM' in os.environ:
+        log.startLoggingWithObserver(deejayd.ui.log.JournaldLogObserver('deejayd'))
     else:
         log.startLogging(sys.stdout)
 
