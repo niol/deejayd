@@ -19,7 +19,7 @@
 import random
 import time
 from functools import reduce
-from collections import MutableMapping
+from collections.abc import MutableMapping
 
 from sqlalchemy.orm import with_polymorphic
 
