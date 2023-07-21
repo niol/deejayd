@@ -9,7 +9,7 @@ Type=notify
 Environment=PYTHONUNBUFFERED=true
 EnvironmentFile=/etc/default/deejayd
 ExecStartPre=/usr/share/deejayd/deejayd-init-helper
-ExecStart=/usr/bin/deejayd -l ${LOGFILE} -w ${WEBUI_LOGFILE} ${DEEJAYD_DAEMON_OPTS}
+ExecStart=/usr/bin/deejayd ${DEEJAYD_DAEMON_OPTS}
 User=deejayd
 SupplementaryGroups=audio cdrom video
 PermissionsStartOnly=true
