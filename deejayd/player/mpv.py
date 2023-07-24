@@ -230,9 +230,20 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         self.tempdir.cleanup()
         self.tempdir = None
 
+    def stop_watchdog_start(self, delay):
+        self.stop_watchdog_cancel()
+        self.__stop_watchdog = reactor.callLater(delay, self.stop_if_idle)
+        log.debug('ctrl:mpv: will stop if paused/stopped in %ss' % delay)
+
+    def stop_watchdog_cancel(self):
+        if self.__stop_watchdog:
+            log.debug('ctrl:mpv: stop watchdog reset')
+            self.__stop_watchdog.cancel()
+            self.__stop_watchdog = None
+
     def stop_if_idle(self):
         self.__stop_watchdog = None
-        if self.state['playback'] == PLAYER_STOP:
+        if self.state['playback'] in (PLAYER_STOP, PLAYER_PAUSE):
             self.stop()
         else:
             log.debug('ctrl:mpv: not stopping mpv process, playback in progress')
@@ -319,6 +330,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
         if not self.__monitor.running:
             self.__monitor.start(1)
+        self.stop_watchdog_cancel()
 
         self.player.dispatch_signame('player.current')
 
@@ -343,10 +355,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if self.__monitor.running:
             self.__monitor.stop()
 
-        if self.__stop_watchdog:
-            log.debug('ctrl:mpv: stop watchdog reset')
-            self.__stop_watchdog.cancel()
-        self.__stop_watchdog = reactor.callLater(600, self.stop_if_idle)
+        self.stop_watchdog_start(600)
 
         self.player.dispatch_signame('player.status')
 
