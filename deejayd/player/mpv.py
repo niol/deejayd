@@ -306,6 +306,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             f = getattr(self, 'PROPERTY_%s' % name.replace('-', '_'))
             f(data)
         except AttributeError:
+            log.debug('mpv: ignored property-change %s' % name)
             pass
 
     def __monitor_playback(self):
@@ -342,14 +343,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if self.__monitor.running:
             self.__monitor.stop()
 
-    def EVENT_pause(self):
-        self.state['playback'] = PLAYER_PAUSE
-        self.player.dispatch_signame('player.status')
-
-    def EVENT_unpause(self):
-        self.state['playback'] = PLAYER_PLAY
-        self.player.dispatch_signame('player.status')
-
     def EVENT_idle(self):
         self.state['playback'] = PLAYER_STOP
         if self.__monitor.running:
@@ -372,6 +365,16 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             if 'seekable' in self.state and self.state['seekable']:
                 self.player._playing_media['last_position'] = 0
             self.player._change_file(self.player._source.next(explicit=False))
+
+    def PROPERTY_pause(self, value):
+        if value:
+            self.state['playback'] = PLAYER_PAUSE
+            self.stop_watchdog_start(3600)
+            self.player.dispatch_signame('player.status')
+        else:
+            self.state['playback'] = PLAYER_PLAY
+            self.stop_watchdog_cancel()
+            self.player.dispatch_signame('player.status')
 
     def PROPERTY_media_title(self, title):
         if self._playing_media and title != self._playing_media['desc']:
