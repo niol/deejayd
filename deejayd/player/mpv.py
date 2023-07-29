@@ -357,7 +357,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if self.__eof_coming:
             self.__eof_coming = False
             self.player._playing_media.played()
-            if 'seekable' in self.state and self.state['seekable']:
+            if self.state['seekable']:
                 self.player._playing_media['last_position'] = 0
             self.player._change_file(self.player._source.next(explicit=False))
 
