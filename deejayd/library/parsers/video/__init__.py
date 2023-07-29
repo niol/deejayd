@@ -84,7 +84,7 @@ class VideoParserFactory(object):
         path = file_obj.get_path()
         parser = self._find_parser(path)
         if parser is None:
-            raise NoParserError()
+            raise NoParserError('No parser found for %s' % path)
         mod_path = os.path.join(os.path.dirname(__file__), parser+".py")
         mod = runpy.run_path(mod_path, init_globals=globals())
         with open(path, 'rb') as f:
