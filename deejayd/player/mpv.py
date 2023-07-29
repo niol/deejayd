@@ -86,7 +86,7 @@ class MpvIpcProtocol(LineOnlyReceiver):
                     f = getattr(self.factory.handler,
                                 'EVENT_%s' % msg['event'].replace('-', '_'))
                 except AttributeError:
-                    log.debug('ctrl:mpv: unknown event received: %s'
+                    log.debug('ctrl:mpv: unhandled event received: %s'
                               % msg['event'])
                 else:
                     for unwanted_arg in ('event', 'id'):
@@ -272,6 +272,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     def loadfile(self, uri):
         def cmd_loadfile(r):
+            log.info('mpv: playing %s' % uri)
             return self.command('loadfile', uri)
 
         if self.__monitor.running:
@@ -289,6 +290,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if self.__monitor.running:
             self.__monitor.stop()
 
+        log.info('mpv: stopping playback')
         self.when_playing_cb.clear()
 
         return self.command('stop')
