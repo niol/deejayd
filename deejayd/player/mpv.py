@@ -347,15 +347,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         if self.__monitor.running:
             self.__monitor.stop()
 
-    def EVENT_idle(self):
-        self.state['playback'] = PLAYER_STOP
-        if self.__monitor.running:
-            self.__monitor.stop()
-
-        self.stop_watchdog_start(600)
-
-        self.player.dispatch_signame('player.status')
-
     def EVENT_end_file(self, reason=None, playlist_entry_id=None):
         if self.__monitor.running:
             self.__monitor.stop()
@@ -369,6 +360,16 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
             if 'seekable' in self.state and self.state['seekable']:
                 self.player._playing_media['last_position'] = 0
             self.player._change_file(self.player._source.next(explicit=False))
+
+    def PROPERTY_idle_active(self, idle):
+        if idle:
+            self.state['playback'] = PLAYER_STOP
+            if self.__monitor.running:
+                self.__monitor.stop()
+
+            self.stop_watchdog_start(600)
+
+            self.player.dispatch_signame('player.status')
 
     def PROPERTY_pause(self, paused):
         if paused:
