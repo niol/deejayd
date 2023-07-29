@@ -138,7 +138,6 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
         'volume',
         'pause',
         'idle-active',
-        'video-aspect',
         'aid',
         'sid',
         'audio-delay',
@@ -146,6 +145,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
     }
 
     WHILE_PLAYING_PROPERTIES = {
+        'video-params/aspect',
         'playlist-pos',
         'path',
         'seekable',
@@ -495,7 +495,7 @@ class MpvPlayer(_BasePlayer):
     def _player_set_aspectratio(self, aspect_ratio):
         if aspect_ratio == 'auto':
             aspect_ratio = -1
-        self.__player.command('set_property', 'video-aspect', aspect_ratio)
+        self.__player.command('set_property', 'video-aspect-override', aspect_ratio)
 
     def _player_set_avoffset(self, offset):
         self.__player.command('set_property', 'audio-delay', offset)
