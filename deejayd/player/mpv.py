@@ -370,15 +370,19 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
                 self.player._playing_media['last_position'] = 0
             self.player._change_file(self.player._source.next(explicit=False))
 
-    def PROPERTY_pause(self, value):
-        if value:
-            self.state['playback'] = PLAYER_PAUSE
-            self.stop_watchdog_start(3600)
-            self.player.dispatch_signame('player.status')
+    def PROPERTY_pause(self, paused):
+        if paused:
+            if self.state['playback'] == PLAYER_PLAY:
+                self.state['playback'] = PLAYER_PAUSE
+                self.stop_watchdog_start(3600)
+                log.info('mpv: pausing playback')
+                self.player.dispatch_signame('player.status')
         else:
-            self.state['playback'] = PLAYER_PLAY
-            self.stop_watchdog_cancel()
-            self.player.dispatch_signame('player.status')
+            if self.state['playback'] == PLAYER_PAUSE:
+                self.state['playback'] = PLAYER_PLAY
+                self.stop_watchdog_cancel()
+                log.info('mpv: unpausing playback')
+                self.player.dispatch_signame('player.status')
 
     def PROPERTY_media_title(self, title):
         if self._playing_media and title != self._playing_media['desc']:
