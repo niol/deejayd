@@ -243,8 +243,10 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
 
     def stop_if_idle(self):
         self.__stop_watchdog = None
-        if self.state['playback'] in (PLAYER_STOP, PLAYER_PAUSE):
+        if self.state['playback'] == PLAYER_STOP:
             self.stop()
+        elif self.state['playback'] == PLAYER_PAUSE:
+            self.playback_stop()
         else:
             log.debug('ctrl:mpv: not stopping mpv process, playback in progress')
 
