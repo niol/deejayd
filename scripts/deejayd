@@ -105,7 +105,8 @@ def setEnv(options):
                                                      str(os.geteuid()))
 
     # try to guess WAYLAND_DISPLAY
-    if 'WAYLAND_DISPLAY' not in os.environ:
+    if 'WAYLAND_DISPLAY' not in os.environ \
+    and os.path.isdir(os.environ['XDG_RUNTIME_DIR']):
         for f in os.listdir(os.environ['XDG_RUNTIME_DIR']):
             if f.startswith('wayland'):
                 os.environ['WAYLAND_DISPLAY'] = f
