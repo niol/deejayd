@@ -195,6 +195,7 @@ class MpvPlayerProcess(procctrl.PlayerProcess):
                               '--quiet',
                               '--gapless-audio',
                               '--no-resume-playback', # handled by deejayd
+                              '--reset-on-next-file=fullscreen',
                              ) + fs_opts, env=env)
 
         self.__set_starting()
