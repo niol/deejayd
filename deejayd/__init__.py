@@ -22,6 +22,10 @@ __version__ = "0.14.0"
 class DeejaydError(Exception):
     """General purpose error structure."""
 
+    def __init__(self, message=None):
+        self.message = message
+        super().__init__()
+
 
 def Singleton(singleton_cls):
     class SingletonClass(object):

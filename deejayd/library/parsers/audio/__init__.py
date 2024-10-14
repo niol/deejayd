@@ -58,7 +58,7 @@ class AudioParserFactory(object):
         path = file_obj.get_path()
         extension = os.path.splitext(path)[1]
         if extension not in self.parsers:
-            raise NoParserError()
+            raise NoParserError('No parser found for %s' % path)
         infos = self.parsers[extension].parse(path, self.library)
 
         # find and save album

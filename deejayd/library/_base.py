@@ -29,6 +29,7 @@ from deejayd.server.utils import log_traceback
 from deejayd.db.models import And
 from deejayd.ui import log
 from deejayd.library import pathutils
+from deejayd.library.parsers import NoParserError, ParseError
 
 
 class BaseLibrary(SignalingComponent, JSONRpcComponent,
@@ -323,12 +324,14 @@ class BaseLibrary(SignalingComponent, JSONRpcComponent,
     def _get_file_info(self, file_obj):
         try:
             file_obj = self.parser.parse(file_obj, Session)
-        except Exception:
+        except (NoParserError, ParseError) as e:
             if util.has_identity(file_obj):
                 Session.delete(file_obj)
             else:
                 Session.expunge(file_obj)
-            log_traceback(level="info")
+            path = file_obj.get_path()
+            msg = e.message or repr(e)
+            log.info(f'Could not parse {path}: {msg}')
             return None
         return file_obj
 
